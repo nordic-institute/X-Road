@@ -26,30 +26,13 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import com.apicatalog.did.Did;
-
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Injected failure raised by the fake IdentityHub/Control Plane provisioning clients to simulate a
+ * step failing mid-tick.
  */
-public interface ControlPlaneProvisioningClient {
+final class FakeProvisioningException extends RuntimeException {
 
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, Did did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl);
-
-    /**
-     * Deletes (idempotently) the Control Plane participant context and its configuration for the given participant.
-     */
-    void deleteParticipantContext(String participantContextId);
-
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    FakeProvisioningException(String step) {
+        super("injected failure at step: " + step);
+    }
 }

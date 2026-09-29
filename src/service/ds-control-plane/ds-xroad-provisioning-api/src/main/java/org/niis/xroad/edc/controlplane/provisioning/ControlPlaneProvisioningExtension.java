@@ -26,13 +26,18 @@
  */
 package org.niis.xroad.edc.controlplane.provisioning;
 
+import org.eclipse.edc.connector.store.sql.participantcontext.config.ParticipantContextConfigStoreStatements;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
 import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
@@ -45,6 +50,10 @@ import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 public class ControlPlaneProvisioningExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Control Plane Provisioning gRPC Extension";
+
+    @Setting(description = "The datasource backing the participant context configuration table",
+            defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.participantcontextconfig.datasource")
+    private String participantContextConfigDataSourceName;
 
     @Inject
     private ParticipantContextService participantContextService;
@@ -62,6 +71,18 @@ public class ControlPlaneProvisioningExtension implements ServiceExtension {
     private GrpcServiceRegistry grpcServiceRegistry;
 
     @Inject
+    private DataSourceRegistry dataSourceRegistry;
+
+    @Inject
+    private TransactionContext transactionContext;
+
+    @Inject
+    private QueryExecutor queryExecutor;
+
+    @Inject(required = false)
+    private ParticipantContextConfigStoreStatements participantContextConfigStatements;
+
+    @Inject
     private Monitor monitor;
 
     @Override
@@ -71,9 +92,11 @@ public class ControlPlaneProvisioningExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var participantContextConfigDeleter = new ParticipantContextConfigDeleter(dataSourceRegistry,
+                participantContextConfigDataSourceName, transactionContext, queryExecutor, participantContextConfigStatements);
         var grpcService = new ControlPlaneProvisioningGrpcService(
-                participantContextService, participantContextConfigService, dataPlaneContextRegistrar,
-                catalogCacheInvalidator, new RpcResponseHandler());
+                participantContextService, participantContextConfigService, participantContextConfigDeleter,
+                dataPlaneContextRegistrar, catalogCacheInvalidator, new RpcResponseHandler());
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }

@@ -24,32 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.cs.admin.core.dataspace;
 
-import com.apicatalog.did.Did;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Published after a security server's {@code server_clients} row for a member (or one of its
+ * subsystems) is deleted and the deleting transaction commits. {@code memberId} is always
+ * member-level (no subsystem code), and {@code removedAt} is the epoch-millisecond time of
+ * publication, used as the issuer revocation's issued-before cut-off.
  */
-public interface ControlPlaneProvisioningClient {
-
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, Did did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl);
-
-    /**
-     * Deletes (idempotently) the Control Plane participant context and its configuration for the given participant.
-     */
-    void deleteParticipantContext(String participantContextId);
-
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+public record ServerClientRemovedEvent(SecurityServerId securityServerId, ClientId memberId, long removedAt) {
 }

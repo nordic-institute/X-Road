@@ -98,6 +98,13 @@ class GrpcIdentityHubProvisioningClientTest {
     }
 
     @Test
+    void deleteParticipantContextDelegatesToRpcClient() {
+        client.deleteParticipantContext(CTX_ID);
+
+        verify(rpcClient).deleteIdentityHubParticipantContext(CTX_ID);
+    }
+
+    @Test
     void requestMembershipCredentialDelegatesToRpcClientAndReturnsRequestId() {
         when(rpcClient.requestMembershipCredential(CTX_ID, ISSUER_DIDS, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT))
                 .thenReturn("req-id-1");

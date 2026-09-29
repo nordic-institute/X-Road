@@ -31,19 +31,24 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
+import org.niis.xroad.cs.admin.core.dataspace.ServerClientRemovedEvent;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ClientRegistrationRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
@@ -51,16 +56,19 @@ import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.DECLINED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
@@ -84,6 +92,8 @@ class ClientDeletionRequestHandlerTest {
     private ServerClientRepository serverClientRepository;
     @Mock
     private RequestMapper requestMapper;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     private final SecurityServerId securityServerId = SecurityServerId.create("INSTANCE", "MEMBER_CLASS", "MEMBER_CODE", "SERVER-CODE");
     private final ClientId subsystemId = SubsystemId.create("INSTANCE", "MEMBER_CLASS", "MEMBER_CODE", "SUBSYSTEM-CODE");
     private ClientDeletionRequestHandler handler;
@@ -98,7 +108,8 @@ class ClientDeletionRequestHandlerTest {
                 deletionRequestRepository,
                 registrationRequestRepository,
                 serverClientRepository,
-                requestMapper);
+                requestMapper,
+                eventPublisher);
     }
 
     @Test
@@ -114,6 +125,7 @@ class ClientDeletionRequestHandlerTest {
 
         var err = assertThrows(NotFoundException.class, () -> handler.add(request));
         assertEquals(MR_CLIENT_REGISTRATION_NOT_FOUND.code(), err.getErrorDeviation().code());
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
@@ -136,5 +148,41 @@ class ClientDeletionRequestHandlerTest {
         handler.add(request);
 
         verify(requestMapper).toDto(mockClientDeletionRequest);
+    }
+
+    @Test
+    void deletesSecurityServerClientAndPublishesRemovalEvent() {
+        var request = new ClientDeletionRequest(Origin.SECURITY_SERVER, securityServerId, subsystemId);
+
+        var mockServerId = mock(SecurityServerIdEntity.class);
+        var mockClientId = mock(ClientIdEntity.class);
+        var mockClientDeletionRequest = mock(ClientDeletionRequestEntity.class);
+        var mockSecurityServer = mock(SecurityServerEntity.class);
+        var mockClient = mock(SecurityServerClientEntity.class);
+        var mockServerClient = mock(ServerClientEntity.class);
+        var memberId = MemberIdEntity.create("INSTANCE", "MEMBER_CLASS", "MEMBER_CODE");
+
+        when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
+        when(clientIdRepository.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
+        when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(mockSecurityServer));
+
+        when(clientRepository.findOneBy(mockClientId)).thenReturn(Optional.of(mockClient));
+        when(mockClient.getId()).thenReturn(1L);
+        when(mockServerClient.getSecurityServerClient()).thenReturn(mockClient);
+        when(mockSecurityServer.getServerClients()).thenReturn(Set.of(mockServerClient));
+        when(mockSecurityServer.getServerId()).thenReturn(mockServerId);
+        when(mockClientId.getMemberId()).thenReturn(memberId);
+
+        when(deletionRequestRepository.save(isA(ClientDeletionRequestEntity.class))).thenReturn(mockClientDeletionRequest);
+
+        handler.add(request);
+
+        verify(serverClientRepository).delete(mockServerClient);
+
+        ArgumentCaptor<ServerClientRemovedEvent> eventCaptor = ArgumentCaptor.forClass(ServerClientRemovedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().securityServerId()).isEqualTo(mockServerId);
+        assertThat(eventCaptor.getValue().memberId()).isEqualTo(memberId);
+        assertThat(eventCaptor.getValue().removedAt()).isPositive();
     }
 }

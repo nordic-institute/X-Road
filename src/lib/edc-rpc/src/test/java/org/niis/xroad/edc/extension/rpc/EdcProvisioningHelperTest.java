@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.rpc;
 
-import com.apicatalog.did.Did;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-/**
- * Transport-agnostic client for Control Plane provisioning operations.
- */
-public interface ControlPlaneProvisioningClient {
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrNotFound;
 
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, Did did);
+class EdcProvisioningHelperTest {
 
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl);
+    @Test
+    void requireSuccessOrNotFoundToleratesSuccess() {
+        assertThatCode(() -> requireSuccessOrNotFound(ServiceResult.success(), DSP_PARTICIPANT_CONTEXT_FAILED, "ctx-1"))
+                .doesNotThrowAnyException();
+    }
 
-    /**
-     * Deletes (idempotently) the Control Plane participant context and its configuration for the given participant.
-     */
-    void deleteParticipantContext(String participantContextId);
+    @Test
+    void requireSuccessOrNotFoundToleratesNotFound() {
+        assertThatCode(() -> requireSuccessOrNotFound(ServiceResult.notFound("gone"), DSP_PARTICIPANT_CONTEXT_FAILED, "ctx-1"))
+                .doesNotThrowAnyException();
+    }
 
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    @Test
+    void requireSuccessOrNotFoundThrowsOnOtherFailures() {
+        var result = ServiceResult.unexpected("storage error");
+        assertThatThrownBy(() -> requireSuccessOrNotFound(result, DSP_PARTICIPANT_CONTEXT_FAILED, "ctx-1"))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
 }
