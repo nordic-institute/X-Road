@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.common.rpc.client;
 
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.MethodDescriptor;
 
-/** gRPC channel configuration for the asset access service connection. */
-public class AssetAccessRpcChannelProperties extends XRoadRpcChannelProperties {
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-    public AssetAccessRpcChannelProperties(XRoadConfig config) {
-        super(config,
-                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_HOST,
-                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_PORT,
-                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_DEADLINE_AFTER);
+/** Applies the channel's configured deadline to a call, unless the call already carries a shorter one of its own. */
+final class DeadlineInterceptor implements ClientInterceptor {
+
+    private final int deadlineAfterMillis;
+
+    DeadlineInterceptor(int deadlineAfterMillis) {
+        this.deadlineAfterMillis = deadlineAfterMillis;
     }
 
-    public AssetAccessRpcChannelProperties() {
-        this(null);
+    @Override
+    public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
+            MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+        return next.newCall(method, applyDeadline(callOptions));
+    }
+
+    CallOptions applyDeadline(CallOptions callOptions) {
+        return callOptions.getDeadline() == null
+                ? callOptions.withDeadlineAfter(deadlineAfterMillis, MILLISECONDS)
+                : callOptions;
     }
 }

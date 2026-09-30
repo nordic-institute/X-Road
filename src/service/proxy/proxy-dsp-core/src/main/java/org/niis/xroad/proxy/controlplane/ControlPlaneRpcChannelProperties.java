@@ -24,20 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.proxy.controlplane;
 
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-/** XRoadConfig-backed implementation of {@link ControlPlaneProvisioningRpcChannelProperties}. */
-public class XRoadControlPlaneProvisioningRpcChannelProperties extends XRoadRpcChannelProperties
-        implements ControlPlaneProvisioningRpcChannelProperties {
+/**
+ * gRPC channel configuration for the ds-control-plane connection, shared by the asset-access and
+ * agreement-grant lookups that both talk to the same server.
+ */
+public class ControlPlaneRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    public XRoadControlPlaneProvisioningRpcChannelProperties(XRoadConfig config) {
+    public ControlPlaneRpcChannelProperties(XRoadConfig config) {
         super(config,
                 CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_HOST,
                 CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_PORT,
                 CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_DEADLINE_AFTER);
+    }
+
+    public ControlPlaneRpcChannelProperties() {
+        this(null);
     }
 }

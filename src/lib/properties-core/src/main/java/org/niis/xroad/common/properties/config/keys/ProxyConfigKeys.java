@@ -913,6 +913,13 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /** {@code xroad.proxy.agreement-token.grant-lookup-deadline}. */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_GRANT_LOOKUP_DEADLINE = AGREEMENT_TOKEN
+            .keyDuration("grant-lookup-deadline")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .exposedInUi()
+            .build();
+
     private ProxyConfigKeys() {
     }
 

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,28 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.common.rpc.client;
 
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
+import io.grpc.CallOptions;
+import io.grpc.Deadline;
+import org.junit.jupiter.api.Test;
 
-/** gRPC channel configuration for the asset access service connection. */
-/**
- * The control plane's agreement-grant lookup lives on the same gRPC server as asset access, so host and port are
- * shared; only the deadline differs, because this lookup runs on the data-flow start path where the token is
- * optional and must fail fast.
- */
-public class AgreementGrantRpcChannelProperties extends XRoadRpcChannelProperties {
+import java.util.concurrent.TimeUnit;
 
-    public AgreementGrantRpcChannelProperties(XRoadConfig config) {
-        super(config,
-                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_HOST,
-                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_PORT,
-                CommonRpcConfigKeys.CHANNEL_AGREEMENT_GRANT_DEADLINE_AFTER);
+import static org.assertj.core.api.Assertions.assertThat;
+
+class DeadlineInterceptorTest {
+
+    @Test
+    void callWithoutADeadlineGetsTheChannelDeadline() {
+        var interceptor = new DeadlineInterceptor(60_000);
+
+        var result = interceptor.applyDeadline(CallOptions.DEFAULT);
+
+        assertThat(result.getDeadline()).isNotNull();
+        assertThat(result.getDeadline().timeRemaining(TimeUnit.MILLISECONDS))
+                .isLessThanOrEqualTo(60_000)
+                .isGreaterThan(59_000);
     }
 
-    public AgreementGrantRpcChannelProperties() {
-        this(null);
+    @Test
+    void callWithAShorterDeadlineKeepsItsOwn() {
+        var interceptor = new DeadlineInterceptor(60_000);
+        var stubDeadline = Deadline.after(5_000, TimeUnit.MILLISECONDS);
+
+        var result = interceptor.applyDeadline(CallOptions.DEFAULT.withDeadline(stubDeadline));
+
+        assertThat(result.getDeadline()).isEqualTo(stubDeadline);
     }
 }

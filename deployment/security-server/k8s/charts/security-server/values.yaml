@@ -544,8 +544,8 @@ services:
     #   8184 control      \_ live listeners (web.http.control/.signaling in application.yaml);
     #   8185 signaling    /  neither covered nor excluded by ADR-42's HTTPS-surface inventory —
     #                        classification pending an ADR-42 amendment (not decided here)
-    #   5461 asset-access — internal, xroad.ds.rpc.port: X-Road gRPC-over-mTLS (XRDADR-38),
-    #                        not DS TLS; provisioning channel, same trust as signer/proxy
+    #   5461 control-plane — internal, xroad.common-rpc.channel.control-plane: X-Road gRPC-over-mTLS
+    #                        (XRDADR-38), not DS TLS; provisioning channel, same trust as signer/proxy
     #   4099 health       — internal, Quarkus SmallRye health (/q/health); k8s probe only
     #   9999 debug        — internal, JDWP debug agent (dev only)
     ports:
@@ -558,7 +558,7 @@ services:
       - port: 8185
         name: signaling
       - port: 5461
-        name: asset-access
+        name: control-plane
       - port: 4099
         name: health
       - port: 9999

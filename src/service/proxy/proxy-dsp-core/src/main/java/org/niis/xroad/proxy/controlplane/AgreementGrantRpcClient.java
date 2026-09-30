@@ -40,15 +40,20 @@ import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.edc.agreementgrant.proto.AgreementGrantServiceGrpc;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
+import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 
 import java.util.Optional;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Resolves the grant behind a negotiated agreement from the control plane, over the same gRPC server
  * {@link AssetAccessRpcClient} already talks to. Never throws: any gRPC error, deadline, or an explicit
  * {@code NoGrant} answer — including the {@code SUBJECT_NOT_A_SUBSYSTEM} case, which is how the control plane
  * already enforces the member/group-subject minting ban — comes back as an empty result, logged without the
- * agreement id's associated grant details (only the id itself, never token or grant material).
+ * agreement id's associated grant details (only the id itself, never token or grant material). The lookup runs
+ * on the data-flow start path where the token is optional, so it carries its own short per-call deadline instead
+ * of the shared channel's, and must fail fast rather than wait for the channel to become ready.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -56,7 +61,8 @@ import java.util.Optional;
 public class AgreementGrantRpcClient extends AbstractRpcClient {
 
     private final RpcChannelFactory rpcChannelFactory;
-    private final AgreementGrantRpcChannelProperties channelProperties;
+    private final ControlPlaneRpcChannelProperties channelProperties;
+    private final ProxyAgreementTokenProperties agreementTokenProperties;
 
     private ManagedChannel channel;
     private AgreementGrantServiceGrpc.AgreementGrantServiceBlockingStub grantServiceBlockingStub;
@@ -94,7 +100,10 @@ public class AgreementGrantRpcClient extends AbstractRpcClient {
     public Optional<AgreementGrant> resolveAgreementGrant(String agreementId) {
         try {
             var request = ResolveAgreementGrantRequest.newBuilder().setAgreementId(agreementId).build();
-            var response = exec(() -> grantServiceBlockingStub.resolveAgreementGrant(request));
+            var deadlineMillis = agreementTokenProperties.grantLookupDeadline().toMillis();
+            var response = exec(() -> grantServiceBlockingStub
+                    .withDeadlineAfter(deadlineMillis, MILLISECONDS)
+                    .resolveAgreementGrant(request));
             if (!response.hasGrant()) {
                 log.info("No agreement grant for agreement id '{}': {}", agreementId,
                         response.hasNoGrant() ? response.getNoGrant().getReason() : "no grant stated");
