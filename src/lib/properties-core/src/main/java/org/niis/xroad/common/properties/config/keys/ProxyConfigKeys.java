@@ -42,6 +42,7 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROX
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.positive;
 
 /**
  * Keys for the {@code xroad.proxy} scope, mirroring the nested structure of the legacy
@@ -903,6 +904,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_TOKEN_TTL = AGREEMENT_TOKEN
             .keyDuration("token-ttl")
             .withDefaultValue(Duration.ofSeconds(60))
+            .withValidator(positive())
             .exposedInUi()
             .build();
 
@@ -910,6 +912,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_KEY_REFRESH_INTERVAL = AGREEMENT_TOKEN
             .keyDuration("key-refresh-interval")
             .withDefaultValue(Duration.ofSeconds(30))
+            .withValidator(positive())
             .exposedInUi()
             .build();
 
@@ -917,6 +920,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_GRANT_LOOKUP_DEADLINE = AGREEMENT_TOKEN
             .keyDuration("grant-lookup-deadline")
             .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(positive())
             .exposedInUi()
             .build();
 
