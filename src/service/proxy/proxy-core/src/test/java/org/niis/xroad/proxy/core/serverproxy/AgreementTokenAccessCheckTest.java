@@ -28,10 +28,6 @@ package org.niis.xroad.proxy.core.serverproxy;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,15 +39,14 @@ import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
+import org.niis.xroad.proxy.core.test.InMemoryAgreementTokenKeyProvider;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -80,11 +75,11 @@ class AgreementTokenAccessCheckTest {
 
     private Logger logger;
     private RecordingHandler logHandler;
+    private Level originalLogLevel;
 
     @BeforeEach
     void setUp() {
-        keyProvider = new InMemoryAgreementTokenKeyProvider();
-        keyProvider.addKey("1", generateKeyPair());
+        keyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
 
         properties = mock(ProxyAgreementTokenProperties.class);
         when(properties.issuer()).thenReturn(ISSUER);
@@ -97,6 +92,7 @@ class AgreementTokenAccessCheckTest {
         accessCheck = new AgreementTokenAccessCheck(keyMaterial, properties);
 
         logger = Logger.getLogger(AgreementTokenAccessCheck.class.getName());
+        originalLogLevel = logger.getLevel();
         logHandler = new RecordingHandler();
         logger.addHandler(logHandler);
         logger.setLevel(Level.ALL);
@@ -105,6 +101,7 @@ class AgreementTokenAccessCheckTest {
     @AfterEach
     void tearDown() {
         logger.removeHandler(logHandler);
+        logger.setLevel(originalLogLevel);
     }
 
     @Test
@@ -138,8 +135,7 @@ class AgreementTokenAccessCheckTest {
 
     @Test
     void shouldNotSkipAclWhenTokenSignedByAnotherKey() {
-        var strangerProvider = new InMemoryAgreementTokenKeyProvider();
-        strangerProvider.addKey("1", generateKeyPair());
+        var strangerProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
         var token = new AgreementTokenMinter(strangerProvider, properties)
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**"))));
 
@@ -210,6 +206,37 @@ class AgreementTokenAccessCheckTest {
     }
 
     @Test
+    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithoutTokenSoap() {
+        assertThat(accessCheck.allowsAclSkip(null, null, SERVICE)).isFalse();
+    }
+
+    @Test
+    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithoutTokenRest() {
+        assertThat(accessCheck.allowsAclSkip(null, null, SERVICE, "GET", "/foo/bar")).isFalse();
+    }
+
+    @Test
+    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithTokenSoap() {
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        assertThat(accessCheck.allowsAclSkip(token, null, SERVICE)).isFalse();
+    }
+
+    @Test
+    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithTokenRest() {
+        var token = mint(new AgreementTokenScope("GET", "/foo/*"));
+
+        assertThat(accessCheck.allowsAclSkip(token, null, SERVICE, "GET", "/foo/bar")).isFalse();
+    }
+
+    @Test
+    void shouldNotSkipAclAndShouldNotThrowOnNullRestMethodAndPathWithToken() {
+        var token = mint(new AgreementTokenScope("GET", "/foo/*"));
+
+        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE, null, null)).isFalse();
+    }
+
+    @Test
     void shouldNotSkipAclWhenKeyMaterialIsAbsent() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
@@ -248,46 +275,7 @@ class AgreementTokenAccessCheckTest {
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(scope)));
     }
 
-    private static ECKey generateKeyPair() {
-        try {
-            return new ECKeyGenerator(Curve.P_256).generate();
-        } catch (JOSEException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     private record TestProtocolProperties(String issuer, String audience, Duration tokenTtl) implements AgreementTokenProtocolProperties {
-    }
-
-    private static final class InMemoryAgreementTokenKeyProvider implements AgreementTokenKeyProvider {
-
-        private final Map<String, AgreementTokenSigningKey> keysById = new LinkedHashMap<>();
-        private String activeKeyId;
-
-        void addKey(String keyId, ECKey keyPair) {
-            keysById.put(keyId, new AgreementTokenSigningKey(keyId, keyPair));
-            activeKeyId = keyId;
-        }
-
-        @Override
-        public AgreementTokenSigningKey activeKey() {
-            return keysById.get(activeKeyId);
-        }
-
-        @Override
-        public Optional<AgreementTokenSigningKey> keyById(String keyId) {
-            return Optional.ofNullable(keysById.get(keyId));
-        }
-
-        @Override
-        public AgreementTokenSigningKey rotate() {
-            throw new UnsupportedOperationException("not needed by this test");
-        }
-
-        @Override
-        public void refresh() {
-            // nothing to reload, everything lives in memory
-        }
     }
 
     private static final class ThrowingAgreementTokenKeyProvider implements AgreementTokenKeyProvider {

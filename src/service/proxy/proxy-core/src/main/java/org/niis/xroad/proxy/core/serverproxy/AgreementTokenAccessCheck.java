@@ -37,6 +37,8 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 
+import java.util.function.Supplier;
+
 /**
  * Decides, at the exact point the server proxy would otherwise consult the ACL, whether an incoming
  * {@code x-road-agreement-token} header grants exactly what the request is asking for. Every outcome except a
@@ -57,7 +59,7 @@ public class AgreementTokenAccessCheck {
      *         to {@code requestService}, so the SOAP ACL check may be skipped
      */
     public boolean allowsAclSkip(String agreementToken, ClientId requestClient, ServiceId requestService) {
-        return allowsAclSkip(agreementToken, AgreementTokenRequestContext.forSoap(requestClient, requestService));
+        return allowsAclSkip(agreementToken, () -> AgreementTokenRequestContext.forSoap(requestClient, requestService));
     }
 
     /**
@@ -68,10 +70,10 @@ public class AgreementTokenAccessCheck {
     public boolean allowsAclSkip(String agreementToken, ClientId requestClient, ServiceId requestService,
                                   String requestMethod, String requestPath) {
         return allowsAclSkip(agreementToken,
-                AgreementTokenRequestContext.forRest(requestClient, requestService, requestMethod, requestPath));
+                () -> AgreementTokenRequestContext.forRest(requestClient, requestService, requestMethod, requestPath));
     }
 
-    private boolean allowsAclSkip(String agreementToken, AgreementTokenRequestContext context) {
+    private boolean allowsAclSkip(String agreementToken, Supplier<AgreementTokenRequestContext> contextSupplier) {
         if (agreementToken == null || agreementToken.isBlank()) {
             return false;
         }
@@ -82,6 +84,7 @@ public class AgreementTokenAccessCheck {
         }
 
         try {
+            var context = contextSupplier.get();
             var result = new AgreementTokenVerifier(provider.get(), agreementTokenProperties).verify(agreementToken, context);
             if (result instanceof AgreementTokenVerificationResult.Valid valid) {
                 log.debug("agreement token accepted, skipping ACL: agreementId={}", valid.claims().agreementId());

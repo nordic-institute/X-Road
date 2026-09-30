@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.core.test;
 
 import lombok.Getter;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -77,17 +78,33 @@ import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import javax.net.ssl.SSLSession;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestContext {
+    private static final String AGREEMENT_TOKEN_ISSUER = "x-road-provider-data-plane";
+    private static final String AGREEMENT_TOKEN_AUDIENCE = "x-road-server-proxy";
+    private static final Duration AGREEMENT_TOKEN_TTL = Duration.ofSeconds(60);
+
     final TestGlobalConfWrapper globalConfProvider;
     final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     @Getter
     final KeyConfProvider keyConfProvider;
     final TestServerConfWrapper serverConfProvider;
     final ProxyTestSuiteHelper proxyTestSuiteHelper;
+
+    /** Real in-memory key material backing the server-side {@link AgreementTokenAccessCheck} in this context. */
+    @Getter
+    final AgreementTokenKeyProvider agreementTokenKeyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
+    @Getter
+    final ProxyAgreementTokenProperties agreementTokenProperties = mockAgreementTokenProperties();
+    /** The consumer-side DSP dependency of the client proxy, stubbable per test case. */
+    @Getter
+    final DspRequestProcessor consumerSideDspProcessor = mock(DspRequestProcessor.class);
 
     public ServerProxy serverProxy;
     ClientProxy clientProxy;
@@ -176,7 +193,7 @@ public class TestContext {
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
-                    ocspVerifierFactory, clientRequestPreparationService, mock(DspRequestProcessor.class), identifierValidationService);
+                    ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);
@@ -194,8 +211,10 @@ public class TestContext {
                         httpSenderProvider, httpClientCreator.getHttpClient());
                 serviceHandlerLoader.init();
 
-                var agreementTokenAccessCheck = new AgreementTokenAccessCheck(
-                        mock(AgreementTokenKeyMaterial.class), mock(ProxyAgreementTokenProperties.class));
+                var agreementTokenKeyMaterial = mock(AgreementTokenKeyMaterial.class);
+                when(agreementTokenKeyMaterial.provider()).thenReturn(Optional.of(agreementTokenKeyProvider));
+
+                var agreementTokenAccessCheck = new AgreementTokenAccessCheck(agreementTokenKeyMaterial, agreementTokenProperties);
 
                 var serverRestMessageProcessor = new ServerRestMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
@@ -222,6 +241,14 @@ public class TestContext {
         } catch (Exception e) {
             throw new RuntimeException("Init failed", e);
         }
+    }
+
+    private static ProxyAgreementTokenProperties mockAgreementTokenProperties() {
+        var properties = mock(ProxyAgreementTokenProperties.class);
+        when(properties.issuer()).thenReturn(AGREEMENT_TOKEN_ISSUER);
+        when(properties.audience()).thenReturn(AGREEMENT_TOKEN_AUDIENCE);
+        when(properties.tokenTtl()).thenReturn(AGREEMENT_TOKEN_TTL);
+        return properties;
     }
 
     /** Port the server proxy is bound to (OS-assigned when configured with {@code listen-port=0}). */
