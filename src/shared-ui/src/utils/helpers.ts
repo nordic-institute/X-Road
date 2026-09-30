@@ -125,5 +125,4 @@ export function isValidRestURL(str: string): boolean {
 // Read nonce from meta tag
 export function getNonce(): string | undefined {
   return document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.nonce || undefined;
-
 }

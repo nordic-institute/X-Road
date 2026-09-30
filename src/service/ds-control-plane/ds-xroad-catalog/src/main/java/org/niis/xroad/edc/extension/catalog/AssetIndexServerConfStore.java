@@ -91,10 +91,12 @@ class AssetIndexServerConfStore implements AssetIndex {
         for (var member : localClients) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
-                if (serverConfProvider.getDisabledNotice(serviceId) == null) {
-                    for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, hostedMemberContextIds)) {
-                        assets.add(AssetMapper.toAsset(serviceId, ctxId));
-                    }
+                var contexts = serviceContextResolver.resolveContexts(serviceId, hostedMemberContextIds);
+                for (var ctxId : contexts) {
+                    assets.add(AssetMapper.toAsset(serviceId, ctxId));
+                }
+                if (shouldPublishSystemAsset(serviceId)) {
+                    assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
                 }
             }
         }
@@ -109,6 +111,25 @@ class AssetIndexServerConfStore implements AssetIndex {
         syntheticServices.systemEntries()
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.system())));
         return assets;
+    }
+
+    /**
+     * Whether an enumerated, system-eligible service should get a SYSTEM-context Asset: any
+     * enabled service, or a disabled one that still has admin-configured access rights — matching
+     * {@code ContractDefinitionServerConfStore}/{@code PolicyDefinitionServerConfStore}, which keep
+     * publishing a per-subject Contract/Policy under SYSTEM for an ACL-authorized subject
+     * regardless of disabled state. The services this is called for come from
+     * {@link ServerConfProvider#getAllServices}, so existence is already guaranteed and is not
+     * re-checked here.
+     */
+    private boolean shouldPublishSystemAsset(ServiceId serviceId) {
+        if (!serviceContextResolver.isSystemEligible(serviceId)) {
+            return false;
+        }
+        if (serverConfProvider.getDisabledNotice(serviceId) == null) {
+            return true;
+        }
+        return !serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
     }
 
     @Override
@@ -128,7 +149,10 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
-            return systemServiceId == null ? null : AssetMapper.toAsset(systemServiceId, contextIds.system());
+            if (systemServiceId == null || !serviceContextResolver.isSystemPublished(systemServiceId)) {
+                return null;
+            }
+            return AssetMapper.toAsset(systemServiceId, contextIds.system());
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
@@ -146,16 +170,14 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
-        var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
-                ? contextIds.management()
-                : selectContextId(serviceId);
+        var ctxId = selectContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 
     /**
-     * Every enabled service also carries an owner-only copy under the management context (added
+     * Every service also carries an owner-only copy under the management context (added
      * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
-     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveEnabled}
+     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveContextsById}
      * resolves for the service itself.
      */
     private String selectContextId(ServiceId serviceId) {
@@ -163,7 +185,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         if (contextIds.management().equals(requested)) {
             return contextIds.management();
         }
-        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
         return ServiceContextResolver.select(resolvedContexts, requested);
     }
 
@@ -190,10 +212,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
             log.trace("resolveForAsset assetId={} decode failed, returning null", assetId);
-            return null;
-        }
-        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-            log.trace("resolveForAsset assetId={} service disabled, returning null", assetId);
             return null;
         }
         String serviceAddress;

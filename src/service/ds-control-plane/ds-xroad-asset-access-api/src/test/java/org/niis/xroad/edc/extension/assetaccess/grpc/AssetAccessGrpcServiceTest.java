@@ -46,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -399,5 +400,43 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(participantContextService.getParticipantContext("participant-1"))
                 .thenReturn(ServiceResult.success(participantContext));
+    }
+
+    @Test
+    void acquireForwardsClientIdToOrchestrator() {
+        var captor = stubOrchestratorCapturingRequest();
+
+        stub.acquire(minimalRequest().setClientId("DEV:COM:222:TESTCLIENT").build());
+
+        assertThat(captor.getValue().clientId()).isEqualTo("DEV:COM:222:TESTCLIENT");
+    }
+
+    @Test
+    void acquireWithoutClientIdForwardsNull() {
+        var captor = stubOrchestratorCapturingRequest();
+
+        stub.acquire(minimalRequest().build());
+
+        assertThat(captor.getValue().clientId()).isNull();
+    }
+
+    private ArgumentCaptor<AssetAccessRequest> stubOrchestratorCapturingRequest() {
+        stubParticipantContext();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NS + "endpoint", "http://provider/api/data")
+                .build();
+        var captor = ArgumentCaptor.forClass(AssetAccessRequest.class);
+        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), captor.capture()))
+                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+        return captor;
+    }
+
+    private static AcquireAssetAccessReq.Builder minimalRequest() {
+        return AcquireAssetAccessReq.newBuilder()
+                .setParticipantContextId("participant-1")
+                .setAssetId("asset-1")
+                .setCounterPartyId("provider-1")
+                .setCounterPartyAddress("http://provider/dsp");
     }
 }

@@ -183,16 +183,21 @@
     "requiredIf": "The {fieldName} field is required",
     "description": "Use valid description characters only"
   },
-  "dsTlsCertificate": {
-    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending",
-    "enrollmentStatus": {
-      "method": {
-        "none": "Not configured",
-        "manual": "Manual",
-        "acme": "ACME"
-      },
-      "nextRenewal": "Next renewal",
-      "wasDue": "Was due"
+  "dsTlsCertificates": {
+    "downloadSuccess": "Dataspace TLS certificate successfully downloaded",
+    "generateCsr": {
+      "example": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
+    },
+    "generateKey": {
+      "confirmation": "Generate a new Dataspace TLS key and certificate?",
+      "explanation": "The system will generate a new Dataspace TLS key and a self-signed certificate, replacing the existing key and certificate. The Dataspace protocol endpoints of this Security Server will start serving the new certificate.",
+      "success": "New Dataspace TLS key and certificate generated successfully",
+      "title": "Dataspace TLS Key"
+    },
+    "title": "Dataspace TLS Key",
+    "uploadCertificate": {
+      "success": "Dataspace TLS certificate imported",
+      "title": "Upload Dataspace TLS certificate"
     }
   },
   "diagnostics": {
@@ -461,12 +466,15 @@
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
     "diagnostic_request_failed": "Diagnostic request failed",
-    "ds_tls_certificate_expired": "The DataSpace TLS certificate has expired",
-    "ds_tls_certificate_not_configured": "No DataSpace TLS certificate has been provisioned yet",
-    "ds_tls_certificate_not_yet_valid": "The DataSpace TLS certificate is not yet valid",
-    "ds_tls_certificate_parse_failed": "Cannot read the DataSpace TLS certificate",
-    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the DataSpace TLS key",
-    "ds_tls_key_not_generated": "Generate a DataSpace TLS key before requesting a CSR or uploading a certificate",
+    "ds_tls_acme_order_failed": "Ordering the Dataspace TLS certificate failed",
+    "ds_tls_ca_not_found": "The named certification authority is not a designated, ACME-capable Dataspace TLS CA",
+    "ds_tls_certificate_expired": "The Dataspace TLS certificate has expired",
+    "ds_tls_certificate_not_configured": "No Dataspace TLS certificate has been provisioned yet",
+    "ds_tls_certificate_not_yet_valid": "The Dataspace TLS certificate is not yet valid",
+    "ds_tls_certificate_parse_failed": "Cannot read the Dataspace TLS certificate",
+    "ds_tls_invalid_subject_alt_name": "The subject alternative name must be a single name with no whitespace",
+    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the Dataspace TLS key",
+    "ds_tls_key_not_generated": "Generate a Dataspace TLS key before requesting a CSR or uploading a certificate",
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
@@ -1493,7 +1501,7 @@
       "apiKey": "API Keys",
       "signAndAuthKeys": "SIGN and AUTH Keys",
       "ssTlsCertificate": "Security Server TLS Key",
-      "dsTlsCertificate": "DataSpace TLS Certificate"
+      "dsTlsCertificate": "Dataspace TLS Certificate"
     },
     "main": {
       "clients": "Clients",

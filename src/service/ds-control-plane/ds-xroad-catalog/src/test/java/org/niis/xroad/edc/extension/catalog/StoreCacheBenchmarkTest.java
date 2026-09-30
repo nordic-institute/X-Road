@@ -357,6 +357,11 @@ class StoreCacheBenchmarkTest {
         }
 
         @Override
+        public List<org.niis.xroad.serverconf.model.Endpoint> getAclEndpoints(ClientId clientId, ServiceId serviceId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public List<String> getTspUrls() {
             throw new UnsupportedOperationException();
         }

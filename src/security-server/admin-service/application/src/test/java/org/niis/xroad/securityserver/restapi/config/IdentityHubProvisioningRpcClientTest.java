@@ -41,6 +41,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
@@ -73,6 +75,7 @@ class IdentityHubProvisioningRpcClientTest {
     private CreateParticipantContextResp configuredCreateResp =
             CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
     private final AtomicReference<CreateParticipantContextReq> capturedCreateReq = new AtomicReference<>();
+    private final AtomicReference<DeleteParticipantContextReq> capturedDeleteReq = new AtomicReference<>();
     private final AtomicReference<RequestCredentialReq> capturedRequestCredReq = new AtomicReference<>();
 
     @BeforeEach
@@ -91,6 +94,14 @@ class IdentityHubProvisioningRpcClientTest {
                                           StreamObserver<RequestCredentialResp> responseObserver) {
                 capturedRequestCredReq.set(request);
                 responseObserver.onNext(RequestCredentialResp.newBuilder().setRequestId("req-42").build());
+                responseObserver.onCompleted();
+            }
+
+            @Override
+            public void deleteParticipantContext(DeleteParticipantContextReq request,
+                                                 StreamObserver<DeleteParticipantContextResp> responseObserver) {
+                capturedDeleteReq.set(request);
+                responseObserver.onNext(DeleteParticipantContextResp.newBuilder().build());
                 responseObserver.onCompleted();
             }
 
@@ -219,6 +230,13 @@ class IdentityHubProvisioningRpcClientTest {
                 .privateKeyAlias("ctx-id-key")
                 .reanchorMemberIdOnConflict(reanchorMemberIdOnConflict)
                 .build();
+    }
+
+    @Test
+    void deleteIdentityHubParticipantContextForwardsParticipantContextId() {
+        client.deleteIdentityHubParticipantContext("ctx-id");
+
+        assertThat(capturedDeleteReq.get().getParticipantContextId()).isEqualTo("ctx-id");
     }
 
     @Test

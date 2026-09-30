@@ -38,6 +38,11 @@ class DspCoreConfig {
     }
 
     @ApplicationScoped
+    AgreementGrantRpcChannelProperties agreementGrantRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new AgreementGrantRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
     AssetAccessClientProperties assetAccessClientProperties(XRoadConfig xRoadConfig) {
         return new AssetAccessClientProperties(xRoadConfig);
     }

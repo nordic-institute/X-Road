@@ -250,7 +250,11 @@ public class ConfigurationParser {
 
         private byte[] decodeBase64Signature(InputStream signatureIs) {
             try {
-                return decodeBase64(IOUtils.toString(signatureIs, Charset.defaultCharset()));
+                byte[] signature = decodeBase64(IOUtils.toString(signatureIs, Charset.defaultCharset()));
+                if (signature.length == 0) {
+                    throw new IllegalArgumentException("Signature is empty");
+                }
+                return signature;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE)
                         .details("Failed to decode signature of configuration instance %s".formatted(getInstanceIdentifier()))

@@ -144,6 +144,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public List<org.niis.xroad.serverconf.model.Endpoint> getAclEndpoints(ClientId clientId, ServiceId serviceId) {
+        return emptyList();
+    }
+
+    @Override
     public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
         return emptyList();
     }

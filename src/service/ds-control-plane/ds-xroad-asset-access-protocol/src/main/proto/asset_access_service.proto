@@ -42,6 +42,7 @@ message AcquireAssetAccessReq {
   string counter_party_id = 3;
   string counter_party_address = 4;
   string protocol = 5;
+  optional string client_id = 6;
 }
 
 message AcquireAssetAccessResp {

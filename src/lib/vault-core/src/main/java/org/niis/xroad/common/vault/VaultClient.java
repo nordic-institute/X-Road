@@ -85,6 +85,8 @@ public interface VaultClient {
 
     String ACME_ACCOUNT_KEYS_BASE_PATH = "acme/account-keys";
 
+    String AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH = "agreement-token/signing-keys";
+
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
@@ -189,6 +191,25 @@ public interface VaultClient {
      */
     Optional<AcmeAccountKey> getAcmeAccountKey(String alias);
 
+    /**
+     * Stores an agreement-token signing key pair, serialised as a JWK including its private part, under its
+     * key id. Key ids are versioned ("1", "2", ...) rather than reused, so rotation never overwrites a key
+     * a still-outstanding token might have been signed with; the OpenBao policy for this path grants no
+     * delete either.
+     *
+     * @param keyId the key's id, as later carried in a minted token's header
+     * @param keyPairJwk the key pair as JWK JSON, private part included
+     */
+    void createAgreementTokenSigningKey(String keyId, String keyPairJwk);
+
+    /**
+     * Retrieves every agreement-token signing key currently stored, keyed by key id. Includes keys
+     * superseded by rotation, so a verifier can still resolve the key a not-yet-expired token names.
+     *
+     * @return map of key id to key pair JWK JSON
+     */
+    Map<String, String> getAgreementTokenSigningKeys();
+
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {
@@ -269,29 +290,39 @@ public interface VaultClient {
     /**
      * Parses a raw Vault secret map into a {@link DsTlsEnrollmentStatus}. Shared by every {@link VaultClient}
      * implementation regardless of whether its underlying client returns {@code Map<String, Object>} or
-     * {@code Map<String, String>} values.
+     * {@code Map<String, String>} values. A missing or blank value means the field is absent, so records written
+     * by {@link #toDsTlsEnrollmentStatusSecret(DsTlsEnrollmentStatus)} and older records that omitted optional
+     * keys both parse.
      */
     default DsTlsEnrollmentStatus toDsTlsEnrollmentStatus(Map<String, ?> secret) {
-        var method = DsTlsEnrollmentMethod.valueOf(secret.get(METHOD_KEY).toString());
-        var nextRenewalTime = secret.containsKey(NEXT_RENEWAL_TIME_KEY)
-                ? Instant.parse(secret.get(NEXT_RENEWAL_TIME_KEY).toString()) : null;
-        var lastError = secret.containsKey(LAST_ERROR_KEY) ? secret.get(LAST_ERROR_KEY).toString() : null;
-        return new DsTlsEnrollmentStatus(method, nextRenewalTime, lastError);
+        var method = presentValue(secret, METHOD_KEY);
+        var nextRenewalTime = presentValue(secret, NEXT_RENEWAL_TIME_KEY);
+        return new DsTlsEnrollmentStatus(
+                method == null ? null : DsTlsEnrollmentMethod.valueOf(method),
+                nextRenewalTime == null ? null : Instant.parse(nextRenewalTime),
+                presentValue(secret, LAST_ERROR_KEY));
     }
 
     /**
      * Builds the raw Vault secret map for a {@link DsTlsEnrollmentStatus}, the inverse of
-     * {@link #toDsTlsEnrollmentStatus(Map)}.
+     * {@link #toDsTlsEnrollmentStatus(Map)}. Every key is always written, blank when the field is absent: the
+     * OpenBao policy for this path grants no delete, so clearing the record is an ordinary write, and a KV v1 mount
+     * rejects a secret without data fields.
      */
     default Map<String, String> toDsTlsEnrollmentStatusSecret(DsTlsEnrollmentStatus status) {
         var secret = new HashMap<String, String>();
-        secret.put(METHOD_KEY, status.method().name());
-        if (status.nextRenewalTime() != null) {
-            secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime().toString());
-        }
-        if (status.lastError() != null) {
-            secret.put(LAST_ERROR_KEY, status.lastError());
-        }
+        secret.put(METHOD_KEY, status.method() == null ? "" : status.method().name());
+        secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime() == null ? "" : status.nextRenewalTime().toString());
+        secret.put(LAST_ERROR_KEY, status.lastError() == null ? "" : status.lastError());
         return secret;
+    }
+
+    private static String presentValue(Map<String, ?> secret, String key) {
+        var value = secret.get(key);
+        if (value == null) {
+            return null;
+        }
+        var text = value.toString();
+        return text.isBlank() ? null : text;
     }
 }

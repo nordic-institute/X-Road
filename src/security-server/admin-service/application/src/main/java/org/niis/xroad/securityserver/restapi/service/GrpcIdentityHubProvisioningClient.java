@@ -51,6 +51,11 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     }
 
     @Override
+    public void deleteParticipantContext(String participantContextId) {
+        rpcClient.deleteIdentityHubParticipantContext(participantContextId);
+    }
+
+    @Override
     public String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,
                                               String credentialDefinitionId, String credentialType, String format) {
         return rpcClient.requestMembershipCredential(participantContextId, issuerDids, holderPid,

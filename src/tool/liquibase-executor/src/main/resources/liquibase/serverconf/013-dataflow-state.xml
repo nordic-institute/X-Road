@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="serverconf/013-dataflow-state.xml">
+
+    <changeSet author="niis" id="013-dataflow-state">
+        <createTable tableName="dataflow_state">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="flow_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint columnNames="flow_id" constraintName="uniq_dataflow_state_flow_id"
+                              tableName="dataflow_state"/>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            DROP TRIGGER IF EXISTS set_timestamps ON dataflow_state;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON dataflow_state
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

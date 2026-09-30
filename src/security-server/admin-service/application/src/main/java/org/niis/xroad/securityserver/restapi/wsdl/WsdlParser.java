@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.wsdl;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,10 +35,12 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.wsdl.BindingOperation;
@@ -55,6 +58,7 @@ import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLLocator;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -149,13 +153,13 @@ public final class WsdlParser {
         Map<String, ServiceInfo> result = new HashMap<>();
 
         for (Service service : services) {
-            for (Port port : (Collection<Port>) service.getPorts().values()) {
+            for (Port port : service.getPorts().values()) {
                 if (!hasSoapOverHttpBinding(port)) {
                     continue;
                 }
 
                 String url = getUrl(port);
-                for (BindingOperation operation : (List<BindingOperation>) port.getBinding().getBindingOperations()) {
+                for (BindingOperation operation : port.getBinding().getBindingOperations()) {
                     String title = getChildValue("title",
                             operation.getOperation().getDocumentationElement());
 
@@ -179,11 +183,19 @@ public final class WsdlParser {
             wsdlReader.setFeature("javax.wsdl.importDocuments", false);
             wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
 
-            Definition definition =
-                    wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
+            var locator = new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl);
+            Definition definition = wsdlReader.readWSDL(locator.getBaseURI(), parseSecurely(locator.getBaseInputSource()));
 
             return definition.getServices().values();
         } catch (WSDLException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    private static Document parseSecurely(InputSource inputSource) {
+        try {
+            return XmlUtils.newDocumentBuilder(true).parse(inputSource);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             throw XrdRuntimeException.systemException(e);
         }
     }
@@ -219,7 +231,7 @@ public final class WsdlParser {
     }
 
     private static String getVersion(BindingOperation operation) {
-        for (ExtensibilityElement ext : (List<ExtensibilityElement>) operation.getExtensibilityElements()) {
+        for (ExtensibilityElement ext : operation.getExtensibilityElements()) {
             if (ext.getElementType().getLocalPart().equals(VERSION)) {
                 return getValue(
                         ((UnknownExtensibilityElement) ext).getElement());

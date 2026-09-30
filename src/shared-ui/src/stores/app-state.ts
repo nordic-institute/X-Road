@@ -30,46 +30,50 @@ import { ref } from 'vue';
 
 type RestartState = 'restarting' | 'started' | 'restart_failed';
 
-export const useAppState = defineStore('xrd-app-state', () => {
-  const restartingState = ref('started' as RestartState);
-  const restartingMessage = ref('');
-  const sessionAlive = ref(false);
+export const useAppState = defineStore(
+  'xrd-app-state',
+  () => {
+    const restartingState = ref('started' as RestartState);
+    const restartingMessage = ref('');
+    const sessionAlive = ref(false);
 
-  function restarting(messageKey: string) {
-    restartingState.value = 'restarting';
-    restartingMessage.value = messageKey;
-  }
+    function restarting(messageKey: string) {
+      restartingState.value = 'restarting';
+      restartingMessage.value = messageKey;
+    }
 
-  function started() {
-    restartingState.value = 'started';
-    restartingMessage.value = '';
-  }
+    function started() {
+      restartingState.value = 'started';
+      restartingMessage.value = '';
+    }
 
-  function isRestarting() {
-    return restartingState.value === 'restarting';
-  }
+    function isRestarting() {
+      return restartingState.value === 'restarting';
+    }
 
-  function setSessionAlive(alive = true) {
-    sessionAlive.value = alive;
-  }
+    function setSessionAlive(alive = true) {
+      sessionAlive.value = alive;
+    }
 
-  function isSessionAlive() {
-    return sessionAlive.value;
-  }
+    function isSessionAlive() {
+      return sessionAlive.value;
+    }
 
-  return {
-    restartingState,
-    restartingMessage,
-    restarting,
-    started,
-    isRestarting,
-    sessionAlive,
-    setSessionAlive,
-    isSessionAlive
-  };
-}, {
-  persist: {
-    storage: localStorage,
-    pick: ['sessionAlive'],
+    return {
+      restartingState,
+      restartingMessage,
+      restarting,
+      started,
+      isRestarting,
+      sessionAlive,
+      setSessionAlive,
+      isSessionAlive,
+    };
   },
-});
+  {
+    persist: {
+      storage: localStorage,
+      pick: ['sessionAlive'],
+    },
+  },
+);

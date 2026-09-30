@@ -157,4 +157,14 @@ public class NoopVaultClient implements VaultClient {
     public Optional<AcmeAccountKey> getAcmeAccountKey(String alias) {
         return Optional.empty();
     }
+
+    @Override
+    public void createAgreementTokenSigningKey(String keyId, String keyPairJwk) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public Map<String, String> getAgreementTokenSigningKeys() {
+        return Map.of();
+    }
 }

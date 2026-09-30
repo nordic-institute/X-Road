@@ -38,6 +38,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import static jakarta.persistence.FetchType.EAGER;
 import static jakarta.persistence.FetchType.LAZY;
@@ -58,12 +60,14 @@ public class ServerClientEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "security_server_client_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Getter
     @Setter
     private SecurityServerClientEntity securityServerClient;
 
     @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "security_server_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Getter
     @Setter
     private SecurityServerEntity securityServer;

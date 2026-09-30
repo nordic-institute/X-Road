@@ -37,6 +37,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Condition;
@@ -62,8 +63,12 @@ import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisionin
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
 
 /**
- * Level-triggered provisioning worker that drives dataspace participant context provisioning
- * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
+ * Level-triggered provisioning worker that drives dataspace participant context provisioning and
+ * teardown from real lifecycle state. One idempotent, non-blocking step is performed per tick; no
+ * success is cached, so convergence is re-derived every tick from serverconf and the binding table.
+ * Every tick — whether from {@link #scheduledProvision()} or {@link #provisionParticipantAsync()} —
+ * runs through {@link #provisionParticipantBestEffort()}, which is {@code synchronized} so at most
+ * one tick converges at a time within this node.
  */
 @Slf4j
 @Component
@@ -162,11 +167,14 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     }
 
     /**
-     * Executes one idempotent provisioning step: {@link #ensure()} followed by {@link #teardown()}.
+     * Executes one idempotent provisioning step: {@link #teardown()} followed by {@link #ensure()}.
+     *
+     * <p>Teardown runs first and is gated on nothing: a decommissioned binding must keep converging
+     * toward absence even while the owner or the registered address is unknown.
      */
     public void provisionParticipant() {
-        ensure();
         teardown();
+        ensure();
     }
 
     /**
@@ -228,8 +236,23 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         ensureCredentials(ensuredContexts, statuses);
     }
 
+    /**
+     * Converges every decommissioned binding one step closer to absence. A failure tearing down one
+     * tombstone is logged and does not block the rest; the row (and whichever steps did not complete)
+     * is left for the next tick.
+     */
     private void teardown() {
-        // Deprovisioning slot for a client no longer registered on this security server; no deprovisioning logic exists yet.
+        List<TombstonedParticipant> tombstones = dataspaceProvisioningService.decommissionedParticipants();
+        for (var tombstone : tombstones) {
+            log.debug("Dataspace provisioning: tearing down tombstoned participant {} (row id {})",
+                    tombstone.participantContextId(), tombstone.id());
+            try {
+                dataspaceProvisioningService.teardownParticipant(tombstone);
+            } catch (Exception e) {
+                log.error("Dataspace provisioning: failed to tear down participant {}, continuing with the rest",
+                        tombstone.participantContextId(), e);
+            }
+        }
     }
 
     private Map<ParticipantContext, ParticipantContextStatus> statusesOf(List<ParticipantContext> contexts) {

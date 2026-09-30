@@ -18,6 +18,7 @@ dependencies {
   implementation(libs.quarkus.scheduler)
 
   implementation(project(":lib:asic-core"))
+  implementation(project(":lib:agreement-token-core"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:properties-core"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))

@@ -3,6 +3,7 @@
     "addName": "Add subsystem name",
     "approve": "Approve",
     "decline": "Decline",
+    "order": "Order",
     "rename": "Rename",
     "select": "Select"
   },
@@ -16,16 +17,21 @@
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
     "description": "Use valid description characters only"
   },
-  "dsTlsCertificate": {
-    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending",
-    "enrollmentStatus": {
-      "method": {
-        "none": "Not configured",
-        "manual": "Manual",
-        "acme": "ACME"
-      },
-      "nextRenewal": "Next renewal",
-      "wasDue": "Was due"
+  "dsTlsCertificates": {
+    "downloadSuccess": "Dataspace TLS certificate successfully downloaded",
+    "generateCsr": {
+      "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
+    },
+    "generateKey": {
+      "confirmation": "Generate a new Dataspace TLS key and certificate?",
+      "explanation": "The system will generate a new Dataspace TLS key and a self-signed certificate, replacing the existing key and certificate. The Issuer Service endpoints of this Central Server will start serving the new certificate.",
+      "success": "New Dataspace TLS key and certificate generated successfully",
+      "title": "Dataspace TLS Key"
+    },
+    "title": "Dataspace TLS Key",
+    "uploadCertificate": {
+      "success": "Dataspace TLS certificate successfully uploaded",
+      "title": "Upload Dataspace TLS certificate"
     }
   },
   "error_code": {
@@ -50,12 +56,15 @@
     "configuration_part_validator_not_found": "Configuration part validator not found",
     "csr_generation_failed": "CSR generation failed",
     "double_file_extension": "Double file extension is not allowed",
-    "ds_tls_certificate_expired": "The DataSpace TLS certificate has expired",
-    "ds_tls_certificate_not_configured": "No DataSpace TLS certificate has been provisioned yet",
-    "ds_tls_certificate_not_yet_valid": "The DataSpace TLS certificate is not yet valid",
-    "ds_tls_certificate_parse_failed": "Cannot read the DataSpace TLS certificate",
-    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the DataSpace TLS key",
-    "ds_tls_key_not_generated": "Generate a DataSpace TLS key before requesting a CSR or uploading a certificate",
+    "ds_tls_acme_order_failed": "Ordering the Dataspace TLS certificate failed",
+    "ds_tls_ca_not_found": "The named certification authority is not a designated, ACME-capable Dataspace TLS CA",
+    "ds_tls_certificate_expired": "The Dataspace TLS certificate has expired",
+    "ds_tls_certificate_not_configured": "No Dataspace TLS certificate has been provisioned yet",
+    "ds_tls_certificate_not_yet_valid": "The Dataspace TLS certificate is not yet valid",
+    "ds_tls_certificate_parse_failed": "Cannot read the Dataspace TLS certificate",
+    "ds_tls_invalid_subject_alt_name": "The subject alternative name must be a single name with no whitespace",
+    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the Dataspace TLS key",
+    "ds_tls_key_not_generated": "Generate a Dataspace TLS key before requesting a CSR or uploading a certificate",
     "error_activating_signing_key": "Error activating signing key",
     "error_deleting_signing_key": "Error deleting signing key",
     "error_recreating_anchor": "Error re-creating anchor file",
@@ -142,7 +151,7 @@
     "authenticationCertificateProfileId": "Authentication certificate profile id",
     "certFile": "Certificate File",
     "certProfile": "Certificate Profile Info",
-    "dsTlsCertificateProfileId": "DS TLS certificate profile id",
+    "dsTlsCertificateProfileId": "Dataspace TLS certificate profile id",
     "init": {
       "address": "Central Server Address",
       "confirmPin": "Repeat PIN",
@@ -516,9 +525,9 @@
   },
   "status": {
     "dataspace_tls_acme": {
-      "enrollment_failing": "DS TLS certificate ACME enrollment failing: {0}",
-      "renewal_failing": "DS TLS certificate ACME renewal failing: {0}",
-      "status_check_failed": "Failed to check DS TLS certificate ACME status"
+      "enrollment_failing": "Dataspace TLS certificate ACME enrollment failing: {0}",
+      "renewal_failing": "Dataspace TLS certificate ACME renewal failing: {0}",
+      "status_check_failed": "Failed to check Dataspace TLS certificate ACME status"
     },
     "global_conf_generation": {
       "failing": "Global configuration generation failing since {0}",
@@ -761,7 +770,7 @@
       "systemParameters": "System Parameters",
       "systemSettings": "System Settings",
       "tlsCertificates": "TLS Certificates",
-      "dsTlsCertificate": "DS TLS Certificate"
+      "dsTlsCertificate": "Dataspace TLS Certificate"
     }
   },
   "tlsCertificates": {
@@ -812,20 +821,20 @@
     "certificationServices": "Certification Services",
     "defaultCsrFormat": "Default CSR format",
     "dsTls": {
-      "addDsTlsCertificationAuthority": "Add DS TLS certification authority",
+      "addDsTlsCertificationAuthority": "Add Dataspace TLS certification authority",
       "delete": {
         "confirmationDialog": {
-          "message": "Are you sure you want to delete the DS TLS certification authority \"{name}\"?",
+          "message": "Are you sure you want to delete the Dataspace TLS certification authority \"{name}\"?",
           "title": "Are you sure?"
         },
-        "success": "DS TLS certification authority deleted successfully"
+        "success": "Dataspace TLS certification authority deleted successfully"
       },
-      "dsTlsCertificateProfileIdExplanation": "Profile ID used for some ACME servers to let them know the certificate usage type when ordering a DS TLS certificate.",
-      "dsTlsCertificationAuthorities": "DS TLS Certification Authorities",
-      "dsTlsCertificationAuthority": "DS TLS Certification Authority",
+      "dsTlsCertificateProfileIdExplanation": "Profile ID used for some ACME servers to let them know the certificate usage type when ordering a Dataspace TLS certificate.",
+      "dsTlsCertificationAuthorities": "Dataspace TLS Certification Authorities",
+      "dsTlsCertificationAuthority": "Dataspace TLS Certification Authority",
       "nameExplanation": "A free-form name identifying this certification authority, for example \"Let's Encrypt\".",
       "settings": {
-        "title": "DS TLS CA Settings"
+        "title": "Dataspace TLS CA Settings"
       }
     },
     "timestampingService": {

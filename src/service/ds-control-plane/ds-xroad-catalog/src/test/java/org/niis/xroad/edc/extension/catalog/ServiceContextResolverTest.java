@@ -37,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.Client;
 
 import java.util.List;
@@ -44,6 +45,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,15 +83,15 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveEnabledReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of());
+    void resolveContextsReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of());
 
         assertThat(result).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveEnabledIncludesOwningMemberContextWhenProvisioned() {
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
+    void resolveContextsIncludesOwningMemberContextWhenProvisioned() {
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
@@ -98,7 +100,7 @@ class ServiceContextResolverTest {
     void subsystemScopedServiceCollapsesToOwningMemberContextNeverASubsystemDerivedOne() {
         var subsystemDerivedCtx = MEMBER_CTX + ":not-a-real-member-ctx";
 
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
@@ -107,7 +109,7 @@ class ServiceContextResolverTest {
     void managementRequestServiceLegacyPublicationContextIsManagementNotHost() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
-        var result = resolver().resolveEnabled(MGMT_SERVICE, Set.of());
+        var result = resolver().resolveContexts(MGMT_SERVICE, Set.of());
 
         assertThat(result).containsExactly(MGMT_CTX);
     }
@@ -167,25 +169,25 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveEnabledByIdReturnsOnlyLegacyHostContextWhenOwningMemberIsNotHosted() {
+    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberIsNotHosted() {
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
-        assertThat(resolver().resolveEnabledById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX);
+        assertThat(resolver().resolveContextsById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveEnabledByIdIncludesOwningMemberContextWhenHostedButNotYetProvisioned() {
+    void resolveContextsByIdIncludesOwningMemberContextWhenHostedButNotYetProvisioned() {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER));
         when(serverConfProvider.getMemberStatus(MEMBER)).thenReturn(Client.STATUS_REGISTERED);
 
-        assertThat(resolver().resolveEnabledById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(resolver().resolveContextsById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX, MEMBER_CTX);
     }
 
     @Test
-    void resolveEnabledByIdPropagatesWhenServerConfCannotBeRead() {
+    void resolveContextsByIdPropagatesWhenServerConfCannotBeRead() {
         when(serverConfProvider.getMembers()).thenThrow(new IllegalStateException("boom"));
 
-        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+        assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -215,9 +217,18 @@ class ServiceContextResolverTest {
 
     @Test
     void isSystemEligibleAcceptsVersionlessEligibleCode() {
-        stubEligibleManagementSubsystem();
+        stubLiveManagementSubsystem();
 
         assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemEligibleDoesNotConsultRealServiceConfiguration() {
+        stubLiveManagementSubsystem();
+
+        assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+
+        verify(serverConfProvider, never()).getAllServices(any());
     }
 
     @Test
@@ -254,6 +265,54 @@ class ServiceContextResolverTest {
     }
 
     @Test
+    void isSystemUnrestrictedByIdTrueForExistingEnabledServiceWithNoAccessRights() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of());
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdFalseWhenServiceDoesNotExist() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(false);
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdFalseWhenServiceDisabled() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdFalseWhenAccessRightsConfigured() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of(new AccessRight()));
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void shouldPublishUnrestrictedSystemEntryTrueWhenEligibleAndNoAccessRights() {
+        assertThat(resolver().shouldPublishUnrestrictedSystemEntry(true, List.of())).isTrue();
+    }
+
+    @Test
+    void shouldPublishUnrestrictedSystemEntryFalseWhenNotEligible() {
+        assertThat(resolver().shouldPublishUnrestrictedSystemEntry(false, List.of())).isFalse();
+    }
+
+    @Test
+    void shouldPublishUnrestrictedSystemEntryFalseWhenAccessRightsConfigured() {
+        assertThat(resolver().shouldPublishUnrestrictedSystemEntry(true, List.of(new AccessRight()))).isFalse();
+    }
+
+    @Test
     void resolveSyntheticServicesResolvesManagementSubsystemOnceForBothLists() {
         stubEligibleManagementSubsystem();
 
@@ -275,6 +334,89 @@ class ServiceContextResolverTest {
     }
 
     @Test
+    void resolveSyntheticServicesReturnsEmptyListsWhenManagementSubsystemHasRealServices() {
+        stubLiveManagementSubsystem();
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
+
+        var result = resolver().resolveSyntheticServices();
+
+        assertThat(result.managementEntries()).isEmpty();
+        assertThat(result.systemEntries()).isEmpty();
+    }
+
+    // --- isSystemPublished / isSystemSyntheticEligible ---
+
+    private static final ServiceId.Conf OTHER_MGMT_ELIGIBLE_SERVICE =
+            ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "maintenanceModeEnable");
+
+    @Test
+    void isSystemPublishedTrueForRealEnabledService() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn(null);
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemPublishedFalseForRealDisabledService() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of());
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemPublishedTrueForRealDisabledServiceWithConfiguredAccessRights() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of(new AccessRight()));
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemPublishedTrueForSyntheticFallbackCoveredService() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(false);
+        stubEligibleManagementSubsystem();
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemPublishedFalseWhenNeitherRealNorSyntheticallyCovered() {
+        // Partial migration: MGMT_ELIGIBLE_SERVICE is real, so the whole subsystem no longer
+        // qualifies for the synthetic fallback, but OTHER_MGMT_ELIGIBLE_SERVICE was never configured.
+        when(serverConfProvider.serviceExists(OTHER_MGMT_ELIGIBLE_SERVICE)).thenReturn(false);
+        stubLiveManagementSubsystem();
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
+
+        assertThat(resolver().isSystemPublished(OTHER_MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemSyntheticEligibleTrueWhenSubsystemHasNoRealServices() {
+        stubEligibleManagementSubsystem();
+
+        assertThat(resolver().isSystemSyntheticEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemSyntheticEligibleFalseWhenSubsystemHasRealServices() {
+        stubLiveManagementSubsystem();
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
+
+        assertThat(resolver().isSystemSyntheticEligible(OTHER_MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemSyntheticEligibleFalseWhenNoManagementSubsystem() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+
+        assertThat(resolver().isSystemSyntheticEligible(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
     void selectBuiltinContextIdReturnsSystemWhenSystemRequested() {
         assertThat(resolver().selectBuiltinContextId(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
     }
@@ -285,10 +427,14 @@ class ServiceContextResolverTest {
         assertThat(resolver().selectBuiltinContextId(null)).isEqualTo(MGMT_CTX);
     }
 
-    private void stubEligibleManagementSubsystem() {
+    private void stubLiveManagementSubsystem() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+    }
+
+    private void stubEligibleManagementSubsystem() {
+        stubLiveManagementSubsystem();
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
     }
 }

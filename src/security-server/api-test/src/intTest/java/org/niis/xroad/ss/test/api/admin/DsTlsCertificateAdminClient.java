@@ -76,6 +76,33 @@ public class DsTlsCertificateAdminClient {
     }
 
     /**
+     * Generates a certificate signing request for the stored DS TLS key, carrying the given DNS subject
+     * alternative name. Returns the raw CSR bytes.
+     */
+    public byte[] generateCsr(String distinguishedName, String subjectAltName) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body("{\"name\":\"" + distinguishedName + "\",\"subject_alt_name\":\"" + subjectAltName + "\"}")
+                .post("/ds-tls-certificate/csr")
+                .then()
+                .statusCode(200)
+                .extract()
+                .asByteArray();
+    }
+
+    /**
+     * Orders the DS TLS certificate via ACME from a named, ACME-capable designated certification authority.
+     */
+    public ValidatableResponse orderCertificate(String caName, String distinguishedName, String subjectAltName) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body("{\"ca_name\":\"" + caName + "\",\"distinguished_name\":\"" + distinguishedName
+                        + "\",\"subject_alt_name\":\"" + subjectAltName + "\"}")
+                .post("/ds-tls-certificate/acme-order")
+                .then();
+    }
+
+    /**
      * Uploads a certificate chain (leaf first) obtained for the DS TLS key.
      */
     public ValidatableResponse uploadCertificate(byte[] certificateBytes) {

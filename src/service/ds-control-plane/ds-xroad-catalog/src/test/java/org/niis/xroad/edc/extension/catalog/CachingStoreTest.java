@@ -102,7 +102,6 @@ class CachingStoreTest {
     private void setupSingleMemberService() {
         lenient().when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         lenient().when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
     }
@@ -144,7 +143,6 @@ class CachingStoreTest {
     @Test
     void findByIdHitServedFromCache() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
@@ -157,7 +155,6 @@ class CachingStoreTest {
     @Test
     void findByIdCacheKeyIncludesRequestedParticipantContext() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
@@ -174,7 +171,6 @@ class CachingStoreTest {
     @Test
     void findByIdCacheKeyCollapsesGarbageRequestedContextsWithNoContextRequested() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
@@ -272,7 +268,6 @@ class CachingStoreTest {
         var store = buildStore(cache);
 
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
         var first = store.findById(SERVICE_1.asEncodedId());
@@ -292,7 +287,6 @@ class CachingStoreTest {
 
     @Test
     void resolveForAssetHitServedFromCache() {
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn("https://example.com/svc");
         var store = buildStore(withCache);
 
@@ -304,7 +298,7 @@ class CachingStoreTest {
 
     @Test
     void resolveForAssetNullNotCached() {
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(null);
         var store = buildStore(withCache);
 
         var r1 = store.resolveForAsset(SERVICE_1.asEncodedId());
@@ -312,12 +306,11 @@ class CachingStoreTest {
 
         assertThat(r1).isNull();
         assertThat(r2).isNull();
-        verify(serverConfProvider, times(2)).getDisabledNotice(SERVICE_1);
+        verify(serverConfProvider, times(2)).getServiceAddress(SERVICE_1);
     }
 
     @Test
     void resolveForAssetCacheDisabledReloadsEachCall() {
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn("https://example.com/svc");
         var store = buildStore(noCache);
 
@@ -335,7 +328,6 @@ class CachingStoreTest {
         var cache = new StoreEnumerationCache<Asset>(true, ttlSeconds, 1000, "test", ticker);
         var store = buildStore(cache);
 
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn("https://old.example.com/svc");
 
         var first = store.resolveForAsset(SERVICE_1.asEncodedId());

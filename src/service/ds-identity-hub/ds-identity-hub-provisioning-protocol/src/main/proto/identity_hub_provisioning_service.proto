@@ -32,6 +32,7 @@ option java_multiple_files = true;
 
 service IdentityHubProvisioningService {
   rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
+  rpc DeleteParticipantContext(DeleteParticipantContextReq) returns (DeleteParticipantContextResp);
   rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
   rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
   rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
@@ -55,6 +56,13 @@ message CreateParticipantContextResp {
   // not be confirmed — the request's read/update failed and was swallowed, or this hub predates
   // the field (proto3 default) and never attempted it.
   bool member_id_reanchored = 1;
+}
+
+message DeleteParticipantContextReq {
+  string participant_context_id = 1;
+}
+
+message DeleteParticipantContextResp {
 }
 
 message RequestCredentialReq {

@@ -52,6 +52,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     private static final Prefix CHANNEL_PROXY = CHANNEL.subPrefix("proxy");
     private static final Prefix CHANNEL_AUXILIARY_SERVICE = CHANNEL.subPrefix("auxiliary-service");
     private static final Prefix CHANNEL_ASSET_ACCESS = CHANNEL.subPrefix("asset-access");
+    private static final Prefix CHANNEL_AGREEMENT_GRANT = CHANNEL.subPrefix("agreement-grant");
 
     private static final String DEADLINE_AFTER = "deadline-after";
     private static final String LOCALHOST_IP = "127.0.0.1";
@@ -327,6 +328,16 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CHANNEL_ASSET_ACCESS_DEADLINE_AFTER = CHANNEL_ASSET_ACCESS
             .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
+            .build();
+
+    /**
+     * {@code xroad.common-rpc.channel.agreement-grant.deadline-after}. The grant lookup shares the asset-access
+     * host and port but runs on the data-flow start path where the token is optional, so it fails fast instead
+     * of waiting out the asset-access deadline.
+     */
+    public static final ConfigKey<Integer> CHANNEL_AGREEMENT_GRANT_DEADLINE_AFTER = CHANNEL_AGREEMENT_GRANT
+            .integer(DEADLINE_AFTER)
+            .withDefaultValue(5000)
             .build();
 
     private CommonRpcConfigKeys() {

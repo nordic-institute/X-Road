@@ -37,6 +37,7 @@ export * from './views';
 export * from './views/BackupsAndRestore';
 export * from './views/ApiKeys';
 export * from './views/TlsCertificates';
+export * from './views/DsTlsCertificate';
 export * from './views/admin-users';
 
 export * from './openapi-types';

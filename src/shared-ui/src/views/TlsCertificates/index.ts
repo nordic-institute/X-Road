@@ -26,6 +26,5 @@
  */
 
 import XrdTlsCertificateView from './XrdTlsCertificateView.vue';
-import XrdDsTlsCertificateEnrollmentStatusChip from './XrdDsTlsCertificateEnrollmentStatusChip.vue';
 
-export { XrdTlsCertificateView, XrdDsTlsCertificateEnrollmentStatusChip };
+export { XrdTlsCertificateView };

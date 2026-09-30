@@ -36,6 +36,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.Client;
 
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ class ServiceContextResolver {
     private final ServerConfProvider serverConfProvider;
 
     /**
-     * The contexts an enabled service is published under, besides its always-present
+     * The contexts a service is published under, besides its always-present
      * management-context copy: the legacy host context first — or the management context, for the
      * MANAGEMENT subsystem's own service — followed by the owning member's context if that member
      * is hosted here. The first entry is always the legacy publication context.
@@ -79,7 +80,7 @@ class ServiceContextResolver {
      * @param serviceId the service to resolve contexts for
      * @param hostedMemberContextIds the hosted members' contexts, from {@link #hostedMemberContextIds(Collection)}
      */
-    List<String> resolveEnabled(ServiceId serviceId, Set<String> hostedMemberContextIds) {
+    List<String> resolveContexts(ServiceId serviceId, Set<String> hostedMemberContextIds) {
         var contexts = new ArrayList<String>(2);
         contexts.add(legacyPublicationContextId(serviceId));
         memberContextId(serviceId.getClientId(), hostedMemberContextIds).ifPresent(contexts::add);
@@ -87,19 +88,19 @@ class ServiceContextResolver {
     }
 
     /**
-     * Same contract as {@link #resolveEnabled(ServiceId, Set)}, for the by-id cache-miss path,
+     * Same contract as {@link #resolveContexts(ServiceId, Set)}, for the by-id cache-miss path,
      * reading the local clients itself.
      *
      * @param serviceId the service to resolve contexts for
      */
-    List<String> resolveEnabledById(ServiceId serviceId) {
-        return resolveEnabled(serviceId, hostedMemberContextIds(serverConfProvider.getMembers()));
+    List<String> resolveContextsById(ServiceId serviceId) {
+        return resolveContexts(serviceId, hostedMemberContextIds(serverConfProvider.getMembers()));
     }
 
     /**
      * Picks the record matching the request's addressed context, if it is one of
      * {@code resolvedContexts}; otherwise falls back to the legacy host context, which by
-     * {@link #resolveEnabled(ServiceId, Set)}'s contract is always the first entry.
+     * {@link #resolveContexts(ServiceId, Set)}'s contract is always the first entry.
      */
     static String select(List<String> resolvedContexts, @Nullable String requestedParticipantContextId) {
         if (requestedParticipantContextId != null && resolvedContexts.contains(requestedParticipantContextId)) {
@@ -120,11 +121,11 @@ class ServiceContextResolver {
     }
 
     /**
-     * The synthetic service a SYSTEM-addressed by-id lookup resolves {@code assetId} to, or
-     * {@code null} when nothing eligible is published there. A SYSTEM-addressed lookup only ever
-     * resolves to a synthetic entry eligible under SYSTEM ({@link #isSystemEligible}) — never to a
-     * real service, so a SYSTEM request for anything else is a clean not-found rather than a
-     * fallback to the legacy host context.
+     * The service a SYSTEM-addressed by-id lookup resolves {@code assetId} to, or {@code null} when
+     * nothing SYSTEM-eligible is published there. Resolves a real, SYSTEM-eligible service just as
+     * often as a synthetic one ({@link #isSystemEligible} does not distinguish the two) — whether the
+     * result is actually published under SYSTEM without also being disabled is the caller's
+     * responsibility, via {@link #isSystemPublished} or {@link #isSystemUnrestrictedById}.
      */
     @Nullable
     ServiceId.Conf resolveSystemService(String assetId) {
@@ -135,12 +136,47 @@ class ServiceContextResolver {
     /**
      * Same as {@link #resolveSystemService}, for the owner-only policy and contract-definition ids
      * that carry {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}. An id without that suffix
-     * resolves to {@code null}: under SYSTEM only owner-only entries are ever published.
+     * resolves to {@code null} here — {@link #resolveSystemService} resolves the plain, unrestricted
+     * form SYSTEM also publishes for a real, SYSTEM-eligible service with no configured access
+     * rights. Owner-only ids are only ever minted for the no-real-services synthetic fallback, so a
+     * real service — even one that is otherwise {@link #isSystemEligible} — never resolves here;
+     * only {@link #isSystemSyntheticEligible} does.
      */
     @Nullable
     ServiceId.Conf resolveSystemOwnerOnlyService(String ownerOnlyId) {
         var serviceId = decodeOwnerOnlyId(ownerOnlyId);
-        return serviceId != null && isSystemEligible(serviceId) ? serviceId : null;
+        if (serviceId == null || !isSystemEligible(serviceId)) {
+            return null;
+        }
+        return isSystemSyntheticEligible(serviceId) ? serviceId : null;
+    }
+
+    /**
+     * Whether an already-{@link #isSystemEligible} service should actually resolve under SYSTEM: a
+     * real, enabled service, a real disabled one with admin-configured access rights, or — when it
+     * isn't real — one the no-real-services synthetic fallback currently covers. Narrower than
+     * {@link #isSystemEligible} alone, so a by-id lookup never disagrees with what
+     * {@code buildAssetList}/{@code collectContractDefinitionsForService}/
+     * {@code collectPoliciesForService} actually enumerate.
+     */
+    boolean isSystemPublished(ServiceId serviceId) {
+        if (serverConfProvider.serviceExists(serviceId)) {
+            return serverConfProvider.getDisabledNotice(serviceId) == null
+                    || !serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
+        }
+        return isSystemSyntheticEligible(serviceId);
+    }
+
+    /**
+     * Whether {@code serviceId} is specifically covered by the no-real-services synthetic
+     * fallback — implies it is not a real service, since
+     * {@link #resolveManagementSubsystemWithoutRealServices()} only returns non-null when the whole
+     * subsystem has none. Used where a caller must distinguish the synthetic case from the real one
+     * (the owner-only by-id path), not just "is it published at all" ({@link #isSystemPublished}).
+     */
+    boolean isSystemSyntheticEligible(ServiceId serviceId) {
+        var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
+        return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
     }
 
     /**
@@ -192,7 +228,7 @@ class ServiceContextResolver {
      * subsystem resolution so a rebuild that needs both never resolves it twice.
      */
     SyntheticServices resolveSyntheticServices() {
-        var managementSubsystem = resolveManagementSubsystem();
+        var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
         if (managementSubsystem == null) {
             return new SyntheticServices(List.of(), List.of());
         }
@@ -217,16 +253,24 @@ class ServiceContextResolver {
      * resolve to it either.
      *
      * <p>Cheap checks (version, service code) run before the globalconf/serverconf resolution
-     * behind {@link #resolveManagementSubsystem()}, and a resolution failure degrades to
+     * behind {@link #resolveLiveManagementSubsystem()}, and a resolution failure degrades to
      * not-eligible rather than propagating — a by-id lookup must fail closed, not throw.
+     *
+     * <p>Eligibility does not depend on whether the management subsystem has real configured
+     * services: a normally-configured management service is just as SYSTEM-eligible as a
+     * synthetic one. Whether it is actually published under SYSTEM without also being disabled is
+     * the caller's responsibility.
      */
+    // Called once per management-coded service per enumeration pass, so resolveLiveManagementSubsystem()
+    // below re-runs per service rather than once per pass; bounded by the small number of
+    // management-coded services and the 60s catalog cache TTL, so left as is.
     boolean isSystemEligible(ServiceId serviceId) {
         if (serviceId.getServiceVersion() != null
                 || !ManagementServiceCatalog.SYSTEM_SERVICE_CODES.contains(serviceId.getServiceCode())) {
             return false;
         }
         try {
-            var managementSubsystem = resolveManagementSubsystem();
+            var managementSubsystem = resolveLiveManagementSubsystem();
             return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
         } catch (RuntimeException e) {
             log.warn("Failed to resolve SYSTEM eligibility for service '{}': {}", serviceId, e.getMessage());
@@ -234,8 +278,43 @@ class ServiceContextResolver {
         }
     }
 
+    /**
+     * Whether {@code serviceId} — already known to be {@link #isSystemEligible} — resolves to the
+     * unrestricted SYSTEM entry: a real, enabled {@code ServiceDescription} with no admin-configured
+     * access rights. {@code false} when the service was never configured, is disabled, or has access
+     * rights configured, in which case only its per-subject entry, if any, is published under
+     * SYSTEM.
+     */
+    boolean isSystemUnrestrictedById(ServiceId serviceId) {
+        return serverConfProvider.serviceExists(serviceId)
+                && serverConfProvider.getDisabledNotice(serviceId) == null
+                && serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
+    }
+
+    /**
+     * Whether a catalog enumeration pass should publish the unrestricted SYSTEM entry for an
+     * already-eligible service: true only when no admin-configured access rights gate it, so it
+     * stays usable federation-wide under SYSTEM like every other SYSTEM-published
+     * synthetic/built-in entry. Once access rights are configured, SYSTEM is gated the same as
+     * every other context instead, via the per-subject entries.
+     *
+     * <p>Takes {@code systemEligible} and {@code accessRights} as parameters rather than
+     * resolving them itself: an enumerating caller has both in hand a few lines earlier, and
+     * re-deriving them here — as {@link #isSystemUnrestrictedById} does for the by-id path — would
+     * mean redundant {@code serverConfProvider} calls.
+     */
+    boolean shouldPublishUnrestrictedSystemEntry(boolean systemEligible, List<AccessRight> accessRights) {
+        return systemEligible && accessRights.isEmpty();
+    }
+
+    /**
+     * The live management-request-service subsystem hosted on this server, regardless of whether
+     * it has real configured services. The one place both {@link #isSystemEligible} and
+     * {@link #resolveManagementSubsystemWithoutRealServices()} resolve this from, so the
+     * globalconf/serverconf lookups are never duplicated.
+     */
     @Nullable
-    private ClientId resolveManagementSubsystem() {
+    private ClientId resolveLiveManagementSubsystem() {
         ClientId managementSubsystem = globalConfProvider.getManagementRequestService();
         if (managementSubsystem == null || managementSubsystem.getSubsystemCode() == null) {
             return null;
@@ -247,7 +326,19 @@ class ServiceContextResolver {
         if (!globalConfProvider.isSecurityServerClient(managementSubsystem, thisServer)) {
             return null;
         }
-        if (!serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
+        return managementSubsystem;
+    }
+
+    /**
+     * The live management subsystem, but only when it has no real configured services —
+     * the case the {@code -mgmt} synthetic entries exist to cover. A real per-member catalog
+     * entry already covers {@code -mgmt} publication once real services exist, so returning
+     * non-null here in that case would double-publish.
+     */
+    @Nullable
+    private ClientId resolveManagementSubsystemWithoutRealServices() {
+        var managementSubsystem = resolveLiveManagementSubsystem();
+        if (managementSubsystem == null || !serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
             return null;
         }
         return managementSubsystem;

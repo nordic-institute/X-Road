@@ -190,6 +190,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
+    public List<org.niis.xroad.serverconf.model.Endpoint> getAclEndpoints(ClientId clientId, ServiceId serviceId) {
+        return serverConfProvider.getAclEndpoints(clientId, serviceId);
+    }
+
+    @Override
     public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
         return serverConfProvider.getServiceAccessRights(serviceId);
     }

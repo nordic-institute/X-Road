@@ -31,32 +31,42 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.restapi.dstls.DsTlsCsrBuilder;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.springframework.stereotype.Component;
 
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.security.SignatureException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- * Enrolls and continuously renews a product's own DS TLS certificate via ACME, once DS TLS ACME enrollment is
- * enabled (per {@link DsTlsAcmeHostContext}) and a governing authority has designated an ACME-capable CA for DS
- * TLS, per {@link DsTlsAcmeHostContext#getDsTlsCertificationAuthorities()}.
+ * Renews a product's own DS TLS certificate via ACME, following the same rule the Security Server's own member
+ * auth/sign renewal worker applies to member certificates: never enroll a first certificate, resolve the issuing
+ * CA from the stored certificate itself, and renew only once that CA turns out to be both a designated DS TLS CA
+ * and ACME-capable.
  * <p>
  * Entirely parallel to the member auth/sign {@code AcmeCertificateRenewalWorker}: signer-free, in-process key
  * generation, no {@code KeyUsageInfo}, no member id. Runs on its own {@link CertificateRenewalScheduler}
  * instance, wired by {@link DsTlsAcmeCertificateRenewalSchedulingConfig}.
  * <p>
- * Each cycle: resolve the public hostname from {@link DsTlsAcmeHostContext} (blank/absent means enrollment
- * isn't currently enabled — skip, not a failure; malformed is a real configuration error); find the designated
- * ACME-capable DS TLS CA (zero matches — skip, manual upload remains the path; more than one — fail closed);
- * enroll or renew as needed, regardless of whether the currently stored certificate was obtained manually or
- * via ACME.
+ * Each cycle: read the stored certificate (none stored — skip, nothing to renew); resolve its issuing CA among
+ * {@link DsTlsAcmeHostContext#getDsTlsCertificationAuthorities()} by matching the certificate against each
+ * candidate's chain (no match, or a match with no ACME server — skip); when due (ARI-aware, unchanged), renew
+ * from that CA with a fresh key pair, the certificate's own subject and its first DNS Subject Alternative Name
+ * (falling back to the product's public hostname when the certificate carries none). A skip never writes
+ * bookkeeping, so a last error recorded by a failed administrator-triggered order (see the shared DS TLS
+ * certificate service) survives untouched until a real renewal outcome overwrites it.
  */
 @Slf4j
 @Component
@@ -64,6 +74,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private static final int DS_TLS_KEY_LENGTH = 2048;
+    private static final int GENERAL_NAME_DNS = 2;
 
     private final GlobalConfProvider globalConfProvider;
     private final DsTlsCertificateService dsTlsCertificateService;
@@ -82,96 +93,153 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             return;
         }
 
-        String hostname;
-        try {
-            hostname = hostContext.getPublicHostname();
-        } catch (Exception ex) {
-            log.error("The configured DS TLS public hostname is malformed", ex);
-            String error = describeError(ex);
-            if (dsTlsCertificateService.recordAcmeOutcome(error)) {
-                hostContext.notifyEnrollmentFailure(hostContext.getConfiguredHostnameSource(), error);
-            }
-            finishCycle(scheduler, true);
-            return;
-        }
-
-        if (hostname == null) {
-            log.debug("DS TLS ACME enrollment is not currently enabled, skipped");
-            dsTlsCertificateService.suspendAcmeScheduling();
+        X509Certificate currentCertificate = dsTlsCertificateService.getStatus().certificate();
+        if (currentCertificate == null) {
+            log.debug("No DS TLS certificate is stored, DS TLS ACME renewal skipped");
             finishCycle(scheduler, false);
             return;
         }
 
-        boolean failed = !runCycle(hostname);
+        boolean failed = !runCycle(currentCertificate);
         finishCycle(scheduler, failed);
     }
 
     /**
      * @return {@code true} on success (including a skipped or not-yet-due cycle), {@code false} on a real failure
      */
-    private boolean runCycle(String hostname) {
-        List<ApprovedDsTlsCaInfo> acmeCapableCas = hostContext.getDsTlsCertificationAuthorities()
-                .stream()
-                .filter(ca -> isNotBlank(ca.getAcmeServerDirectoryUrl()))
-                .toList();
-
-        if (acmeCapableCas.isEmpty()) {
-            log.debug("No ACME-capable DS TLS CA is designated, DS TLS ACME enrollment skipped");
-            dsTlsCertificateService.recordAcmeOutcome(null);
+    private boolean runCycle(X509Certificate currentCertificate) {
+        ApprovedDsTlsCaInfo issuingCa = resolveIssuingCa(currentCertificate, hostContext.getDsTlsCertificationAuthorities());
+        if (issuingCa == null) {
+            log.debug("The DS TLS certificate's issuer is not a designated DS TLS CA, renewal skipped");
             return true;
         }
-
-        if (acmeCapableCas.size() > 1) {
-            String error = "More than one ACME-capable DS TLS CA is designated (%d); refusing to enroll against any of them"
-                    .formatted(acmeCapableCas.size());
-            log.error(error);
-            if (dsTlsCertificateService.recordAcmeOutcome(error)) {
-                hostContext.notifyEnrollmentFailure(hostname, error);
-            }
-            return false;
+        if (isBlank(issuingCa.getAcmeServerDirectoryUrl())) {
+            log.debug("The DS TLS certificate's issuing CA '{}' has no ACME server, renewal skipped", issuingCa.getName());
+            return true;
         }
 
         try {
-            enrollOrRenew(hostname, acmeCapableCas.getFirst());
+            if (Instant.now().isBefore(dsTlsAcmeService.getNextRenewalTime(issuingCa, currentCertificate))) {
+                log.debug("DS TLS certificate is not yet due for renewal");
+                return true;
+            }
+            renew(issuingCa, currentCertificate);
             return true;
         } catch (Exception ex) {
-            log.error("DS TLS ACME enrollment/renewal failed", ex);
+            log.error("DS TLS ACME renewal failed", ex);
             String error = describeError(ex);
             if (dsTlsCertificateService.recordAcmeOutcome(error)) {
-                hostContext.notifyEnrollmentFailure(hostname, error);
+                hostContext.notifyEnrollmentFailure(identifierForNotification(currentCertificate), error);
             }
             return false;
         }
     }
 
-    private void enrollOrRenew(String hostname, ApprovedDsTlsCaInfo caInfo) {
-        X509Certificate currentCertificate = dsTlsCertificateService.getStatus().certificate();
-
-        if (currentCertificate != null
-                && Instant.now().isBefore(dsTlsAcmeService.getNextRenewalTime(caInfo, currentCertificate))) {
-            log.debug("DS TLS certificate is not yet due for renewal");
-            dsTlsCertificateService.recordAcmeOutcome(null);
-            return;
-        }
+    private void renew(ApprovedDsTlsCaInfo caInfo, X509Certificate currentCertificate) {
+        String subjectAltName = resolveSubjectAltName(currentCertificate);
+        String subject = currentCertificate.getSubjectX500Principal().getName();
 
         KeyPair keyPair = new RsaKeyManager(DS_TLS_KEY_LENGTH).generateKeyPair();
-        byte[] certRequest = DsTlsCsrBuilder.build(keyPair, hostname);
+        byte[] certRequest = DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), subject, subjectAltName);
 
-        List<X509Certificate> chain = currentCertificate == null
-                ? dsTlsAcmeService.enroll(caInfo, hostname, certRequest)
-                : dsTlsAcmeService.renew(caInfo, hostname, currentCertificate, certRequest);
-
+        List<X509Certificate> chain = dsTlsAcmeService.renew(caInfo, subjectAltName, currentCertificate, certRequest);
         if (chain == null || chain.isEmpty()) {
             throw new IllegalStateException("The ACME server returned no certificate");
         }
 
         X509Certificate[] chainArray = chain.toArray(X509Certificate[]::new);
         Instant nextRenewalTime = dsTlsAcmeService.getNextRenewalTime(caInfo, chainArray[0]);
-        dsTlsCertificateService.storeAcmeEnrolledCertificate(keyPair.getPrivate(), chainArray, nextRenewalTime);
+        boolean stored = dsTlsCertificateService.storeRenewedCertificate(currentCertificate, keyPair.getPrivate(), chainArray,
+                nextRenewalTime);
+        if (!stored) {
+            log.info("The DS TLS certificate was replaced while renewing it via ACME from '{}', the renewed certificate is discarded",
+                    caInfo.getName());
+            return;
+        }
 
-        boolean isRenewal = currentCertificate != null;
-        hostContext.notifyEnrollmentSuccess(hostname, isRenewal);
-        log.info("DS TLS certificate successfully {} via ACME", isRenewal ? "renewed" : "enrolled");
+        hostContext.notifyEnrollmentSuccess(subjectAltName, true);
+        log.info("DS TLS certificate successfully renewed via ACME from '{}'", caInfo.getName());
+    }
+
+    /**
+     * @return the certificate's first DNS Subject Alternative Name entry, or the product's public hostname when
+     *     the certificate carries none
+     * @throws IllegalStateException if the certificate has no SAN and no public hostname is configured to fall
+     *     back to
+     */
+    private String resolveSubjectAltName(X509Certificate certificate) {
+        String san = firstDnsSan(certificate);
+        if (san != null) {
+            return san;
+        }
+        String hostname = hostContext.getPublicHostname();
+        if (hostname == null) {
+            throw new IllegalStateException(
+                    "The DS TLS certificate has no Subject Alternative Name and no public hostname is configured to fall back to");
+        }
+        return hostname;
+    }
+
+    /**
+     * A best-effort identifier for a failure notification, never throwing: the certificate's own SAN when it has
+     * one, otherwise the raw, possibly-unparseable configured hostname source.
+     */
+    private String identifierForNotification(X509Certificate certificate) {
+        String san = firstDnsSan(certificate);
+        return san != null ? san : hostContext.getConfiguredHostnameSource();
+    }
+
+    private static String firstDnsSan(X509Certificate certificate) {
+        Collection<List<?>> sans;
+        try {
+            sans = certificate.getSubjectAlternativeNames();
+        } catch (CertificateParsingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+        if (sans == null) {
+            return null;
+        }
+        return sans.stream()
+                .filter(san -> san.size() > 1 && Integer.valueOf(GENERAL_NAME_DNS).equals(san.get(0)))
+                .map(san -> san.get(1))
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Resolves {@code certificate}'s issuing CA among {@code designatedCas} — the same approach the Security
+     * Server's own member auth/sign renewal worker uses to find a certificate's approved CA, applied here to the
+     * designated DS TLS CAs' chains instead.
+     */
+    private static ApprovedDsTlsCaInfo resolveIssuingCa(X509Certificate certificate, List<ApprovedDsTlsCaInfo> designatedCas) {
+        return designatedCas.stream()
+                .filter(ca -> isIssuedByCa(certificate, ca))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static boolean isIssuedByCa(X509Certificate certificate, ApprovedDsTlsCaInfo ca) {
+        return Stream.concat(Stream.ofNullable(ca.getTopCaCert()), ca.getIntermediateCaCerts().stream())
+                .anyMatch(candidateIssuer -> isIssuedBy(certificate, candidateIssuer));
+    }
+
+    /**
+     * Whether {@code certificate} was issued by {@code candidateIssuer}, verified by signature wherever possible.
+     * A definitive signature mismatch rules the candidate out; any other verification failure (an unusable
+     * key/algorithm combination, for instance) falls back to a plain issuer/subject distinguished name
+     * comparison rather than ruling the candidate out on a technicality.
+     */
+    private static boolean isIssuedBy(X509Certificate certificate, X509Certificate candidateIssuer) {
+        try {
+            certificate.verify(candidateIssuer.getPublicKey());
+            return true;
+        } catch (SignatureException e) {
+            return false;
+        } catch (GeneralSecurityException e) {
+            return certificate.getIssuerX500Principal().equals(candidateIssuer.getSubjectX500Principal());
+        }
     }
 
     private void finishCycle(CertificateRenewalScheduler scheduler, boolean failed) {

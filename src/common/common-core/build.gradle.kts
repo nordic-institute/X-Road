@@ -33,6 +33,7 @@ dependencies {
   api(libs.opentelemetry.instrumentation.annotations)
 
   testImplementation(project(":common:common-test"))
+  testImplementation(project(":common:common-management-request"))
   testImplementation(libs.logback.classic)
   testImplementation(libs.opentelemetry.sdk.testing)
 }

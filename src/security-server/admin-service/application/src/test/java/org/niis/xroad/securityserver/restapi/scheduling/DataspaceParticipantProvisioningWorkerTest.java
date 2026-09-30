@@ -45,12 +45,14 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -292,7 +294,6 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
     }
 
-
     @Test
     void provisionParticipantOnlyReappliesControlPlaneRecordsOnAFullyConvergedTick() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
@@ -436,5 +437,72 @@ class DataspaceParticipantProvisioningWorkerTest {
         TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCommit());
 
         verify(dataspaceProvisioningService, timeout(1000)).participantContexts(true);
+    }
+
+    // --- teardown ---
+
+    @Test
+    void provisionParticipantTearsDownEachDecommissionedParticipant() {
+        var tombstoneA = new TombstonedParticipant(1L, "ctx-a");
+        var tombstoneB = new TombstonedParticipant(2L, "ctx-b");
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(tombstoneA, tombstoneB));
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of());
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).teardownParticipant(tombstoneA);
+        verify(dataspaceProvisioningService).teardownParticipant(tombstoneB);
+    }
+
+    @Test
+    void provisionParticipantContinuesRemainingTeardownsWhenOneFails() {
+        var tombstoneA = new TombstonedParticipant(1L, "ctx-a");
+        var tombstoneB = new TombstonedParticipant(2L, "ctx-b");
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(tombstoneA, tombstoneB));
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of());
+        doThrow(new IllegalStateException("control plane unreachable"))
+                .when(dataspaceProvisioningService).teardownParticipant(tombstoneA);
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        verify(dataspaceProvisioningService).teardownParticipant(tombstoneA);
+        verify(dataspaceProvisioningService).teardownParticipant(tombstoneB);
+    }
+
+    @Test
+    void provisionParticipantDoesNotAttemptTeardownWhenNoTombstonesExist() {
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of());
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        verify(dataspaceProvisioningService, never()).teardownParticipant(any());
+    }
+
+    // --- single-threaded convergence ---
+
+    @Test
+    void asyncTriggeredProvisioningNeverRunsConcurrentlyWithScheduledTick() throws InterruptedException {
+        var concurrentInvocations = new AtomicInteger(0);
+        var maxConcurrentInvocations = new AtomicInteger(0);
+        var completedInvocations = new AtomicInteger(0);
+        var completionLatch = new CountDownLatch(2);
+
+        when(dataspaceProvisioningService.participantContexts(true)).thenAnswer(invocation -> {
+            int concurrent = concurrentInvocations.incrementAndGet();
+            maxConcurrentInvocations.updateAndGet(max -> Math.max(max, concurrent));
+            Thread.sleep(100);
+            concurrentInvocations.decrementAndGet();
+            completedInvocations.incrementAndGet();
+            completionLatch.countDown();
+            return List.of();
+        });
+
+        new Thread(worker::scheduledProvision).start();
+        worker.provisionParticipantAsync();
+
+        assertThat(completionLatch.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(maxConcurrentInvocations.get()).isEqualTo(1);
+        assertThat(completedInvocations.get()).isEqualTo(2);
     }
 }

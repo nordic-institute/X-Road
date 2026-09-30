@@ -190,6 +190,11 @@ class ProxyConfig {
     }
 
     @ApplicationScoped
+    ProxyAgreementTokenProperties proxyAgreementTokenProperties(XRoadConfig xRoadConfig) {
+        return new ProxyAgreementTokenProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
     ProxyProperties.ClientProxyProperties clientProxyProperties(ProxyProperties proxyProperties) {
         return proxyProperties.clientProxy();
     }
