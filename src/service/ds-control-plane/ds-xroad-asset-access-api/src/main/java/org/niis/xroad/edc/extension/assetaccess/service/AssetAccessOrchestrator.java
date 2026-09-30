@@ -266,11 +266,6 @@ public class AssetAccessOrchestrator {
         return policy.getPermissions().isEmpty();
     }
 
-    private static boolean namesClient(Policy policy, String encodedClientId) {
-        return anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
-                && isLiteral(atomic.getRightExpression(), encodedClientId));
-    }
-
     private static boolean appliesToMember(Policy policy, String encodedMemberId) {
         return PolicySubjectMatcher.namesClient(policy, encodedMemberId)
                 || PolicySubjectMatcher.anyConstraint(policy, atomic ->
