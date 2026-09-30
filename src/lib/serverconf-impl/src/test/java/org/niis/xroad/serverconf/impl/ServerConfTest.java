@@ -44,6 +44,7 @@ import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
+import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.security.cert.X509Certificate;
@@ -262,6 +263,25 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
+    }
+
+    /**
+     * Tests getting the ACL endpoint entries a client holds for a service — the same entries
+     * {@link #isQueryAllowed()} matches a request against.
+     */
+    @Test
+    public void getAclEndpoints() {
+        ClientId client1 = createTestClientId(client(1));
+        ClientId clientX = createTestClientId(CLIENT_CODE + "X");
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+
+        List<Endpoint> endpoints = serverConfProvider.getAclEndpoints(client1, serviceRest);
+
+        assertEquals(2, endpoints.size());
+        assertTrue(endpoints.stream().anyMatch(e -> "GET".equals(e.getMethod()) && "/api/**".equals(e.getPath())));
+        assertTrue(endpoints.stream().anyMatch(e -> "POST".equals(e.getMethod()) && "/api/test/*".equals(e.getPath())));
+
+        assertTrue(serverConfProvider.getAclEndpoints(clientX, serviceRest).isEmpty());
     }
 
     /**

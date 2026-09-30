@@ -94,6 +94,9 @@ class AssetIndexServerConfStore implements AssetIndex {
                 for (var ctxId : contexts) {
                     assets.add(AssetMapper.toAsset(serviceId, ctxId));
                 }
+                if (shouldPublishSystemAsset(serviceId)) {
+                    assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
+                }
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -107,6 +110,25 @@ class AssetIndexServerConfStore implements AssetIndex {
         syntheticServices.systemEntries()
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.system())));
         return assets;
+    }
+
+    /**
+     * Whether an enumerated, system-eligible service should get a SYSTEM-context Asset: any
+     * enabled service, or a disabled one that still has admin-configured access rights — matching
+     * {@code ContractDefinitionServerConfStore}/{@code PolicyDefinitionServerConfStore}, which keep
+     * publishing a per-subject Contract/Policy under SYSTEM for an ACL-authorized subject
+     * regardless of disabled state. The services this is called for come from
+     * {@link ServerConfProvider#getAllServices}, so existence is already guaranteed and is not
+     * re-checked here.
+     */
+    private boolean shouldPublishSystemAsset(ServiceId serviceId) {
+        if (!serviceContextResolver.isSystemEligible(serviceId)) {
+            return false;
+        }
+        if (serverConfProvider.getDisabledNotice(serviceId) == null) {
+            return true;
+        }
+        return !serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
     }
 
     @Override
@@ -126,7 +148,10 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
-            return systemServiceId == null ? null : AssetMapper.toAsset(systemServiceId, contextIds.system());
+            if (systemServiceId == null || !serviceContextResolver.isSystemPublished(systemServiceId)) {
+                return null;
+            }
+            return AssetMapper.toAsset(systemServiceId, contextIds.system());
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {

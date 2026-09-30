@@ -167,6 +167,14 @@ public class ProxyRpcClient extends AbstractRpcClient {
         exec(() -> adminServiceBlockingStub.triggerDSAssetUpdate(Empty.getDefaultInstance()));
     }
 
+    /**
+     * @return the id of the newly active agreement-token signing key
+     */
+    public String rotateAgreementTokenSigningKey() {
+        var response = exec(() -> adminServiceBlockingStub.rotateAgreementTokenSigningKey(Empty.getDefaultInstance()));
+        return response.getKeyId();
+    }
+
     // Internal TLS management methods
     public X509Certificate getInternalTlsCertificate() {
         var response = exec(() -> internalTlsServiceBlockingStub.getInternalTlsCertificate(Empty.getDefaultInstance()));

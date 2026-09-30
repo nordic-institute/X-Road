@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,30 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
 
-import com.apicatalog.did.Did;
-import org.junit.jupiter.api.Test;
+package org.niis.xroad.proxy.core.configuration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-class CounterPartyTargetTest {
+/**
+ * Drives {@link AgreementTokenKeyMaterial#retryOrRefresh()} off the request path, on a programmatic
+ * {@link Scheduler} job whose interval comes from {@link ProxyAgreementTokenProperties#keyRefreshInterval()}.
+ */
+@Startup
+@ApplicationScoped
+@Slf4j
+@RequiredArgsConstructor
+public class AgreementTokenKeyRefreshJob {
 
-    @Test
-    void managementMapTargetsRegisteredAddressWithSubstrateLocalContextId() {
-        var map = CounterPartyTarget.managementMap();
+    private final Scheduler scheduler;
+    private final AgreementTokenKeyMaterial keyMaterial;
+    private final ProxyAgreementTokenProperties properties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-        assertThat(map.get("xrd-ss0")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:xrd-ss0%3A7183:mgmt"),
-                "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
-        assertThat(map.get("xrd-ss0.lxd")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:xrd-ss0.lxd%3A7183:mgmt"),
-                "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/http-dsp-profile-2025-1"));
-        assertThat(map.get("ss0")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:ss0%3A7183:mgmt"),
-                "https://ss0:8183/api/dsp/ss0-mgmt/http-dsp-profile-2025-1"));
-        assertThat(map.get("proxy.ss0")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:proxy.ss0%3A7183:mgmt"),
-                "https://proxy.ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
+    @PostConstruct
+    public void init() {
+        var interval = properties.keyRefreshInterval();
+        log.info("Scheduling agreement-token signing key refresh every {}", interval);
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval(interval.toString())
+                .setTask(_ -> keyMaterial.retryOrRefresh())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
 }

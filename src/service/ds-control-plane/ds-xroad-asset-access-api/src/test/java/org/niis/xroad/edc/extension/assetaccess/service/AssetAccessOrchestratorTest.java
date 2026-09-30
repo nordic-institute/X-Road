@@ -702,6 +702,13 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
+    void unrestrictedOfferIsTakenWhenClientIdIsSetButNoOfferNamesTheCallerOrItsGroup() {
+        var chosen = acquireAndCaptureOfferId(Map.of("offer-unrestricted", unrestrictedPolicy()), "DEV:COM:222:TESTCLIENT");
+
+        assertThat(chosen).isEqualTo("offer-unrestricted");
+    }
+
+    @Test
     void withoutAClientIdTheOnlyOfferIsNegotiated() {
         var chosen = acquireAndCaptureOfferId(Map.of("offer-only", clientPolicy("DEV:COM:222:A")), null);
 
@@ -857,6 +864,10 @@ class AssetAccessOrchestratorTest {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance().constraint(groupConstraint).build())
                 .build();
+    }
+
+    private static Policy unrestrictedPolicy() {
+        return Policy.Builder.newInstance().build();
     }
 
     private static Catalog buildCatalogWithOffers(String assetId, Map<String, Policy> offers) {

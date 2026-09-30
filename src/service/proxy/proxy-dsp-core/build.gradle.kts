@@ -15,7 +15,9 @@ dependencies {
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:rpc-core"))
+  implementation(project(":lib:agreement-token-core"))
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
+  implementation(project(":service:ds-control-plane:ds-xroad-agreement-grant-protocol"))
   implementation(project(":service:op-monitor:op-monitor-api"))
 
   implementation(libs.quarkus.caffeine)

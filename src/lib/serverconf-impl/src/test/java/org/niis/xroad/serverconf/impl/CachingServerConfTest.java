@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
@@ -73,6 +74,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_VERSION;
 import static org.niis.xroad.serverconf.impl.TestUtil.SUBSYSTEM;
 import static org.niis.xroad.serverconf.impl.TestUtil.XROAD_INSTANCE;
 import static org.niis.xroad.serverconf.impl.TestUtil.client;
+import static org.niis.xroad.serverconf.impl.TestUtil.createAccessRight;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
@@ -266,6 +268,64 @@ public class CachingServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
+    }
+
+    /**
+     * Tests getting the ACL endpoint entries a client holds for a service through the caching wrapper — the
+     * same entries {@link #isQueryAllowed()} matches a request against.
+     */
+    @Test
+    public void getAclEndpoints() {
+        ClientId client1 = createTestClientId(client(1));
+        ClientId clientX = createTestClientId(CLIENT_CODE + "X");
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+
+        List<org.niis.xroad.serverconf.model.Endpoint> endpoints = serverConfProvider.getAclEndpoints(client1, serviceRest);
+
+        assertEquals(2, endpoints.size());
+        assertTrue(endpoints.stream().anyMatch(e -> "GET".equals(e.getMethod()) && "/api/**".equals(e.getPath())));
+        assertTrue(endpoints.stream().anyMatch(e -> "POST".equals(e.getMethod()) && "/api/test/*".equals(e.getPath())));
+
+        assertTrue(serverConfProvider.getAclEndpoints(clientX, serviceRest).isEmpty());
+    }
+
+    /**
+     * The public {@code getAclEndpoints(ClientId, ServiceId)} enumeration must always read the current
+     * configuration, unlike {@code isQueryAllowed}, which the caching wrapper serves from its ACL cache
+     * for {@link org.niis.xroad.serverconf.ServerConfCommonProperties#DEFAULT_CACHE_PERIOD} seconds.
+     */
+    @Test
+    public void getAclEndpointsBypassesTheAclCacheWhileIsQueryAllowedStaysCached() {
+        ClientId client1 = createTestClientId(client(1));
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo"));
+        assertEquals(2, serverConfProvider.getAclEndpoints(client1, serviceRest).size());
+
+        var clientEntity = new ClientDAOImpl().getClient(DATABASE_CTX.getSession(), client1);
+        var revokedRights = clientEntity.getAccessRights().stream()
+                .filter(ar -> "rest".equals(ar.getEndpoint().getServiceCode()))
+                .toList();
+        clientEntity.getAccessRights().removeAll(revokedRights);
+        DATABASE_CTX.commitTransaction();
+        DATABASE_CTX.beginTransaction();
+
+        try {
+            assertTrue(serverConfProvider.getAclEndpoints(client1, serviceRest).isEmpty());
+            assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo"));
+        } finally {
+            restoreRestAccessRights(client1);
+        }
+    }
+
+    private static void restoreRestAccessRights(ClientId client1) {
+        var clientEntity = new ClientDAOImpl().getClient(DATABASE_CTX.getSession(), client1);
+        clientEntity.getEndpoints().stream()
+                .filter(e -> "rest".equals(e.getServiceCode()))
+                .forEach(e -> clientEntity.getAccessRights().add(createAccessRight(e, clientEntity.getIdentifier())));
+        DATABASE_CTX.commitTransaction();
+        DATABASE_CTX.beginTransaction();
+        serverConfProvider.clearCache();
     }
 
     /**

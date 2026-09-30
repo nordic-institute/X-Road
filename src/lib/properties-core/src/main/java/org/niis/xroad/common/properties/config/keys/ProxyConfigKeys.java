@@ -73,6 +73,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final Prefix RPC = PROXY.subPrefix("rpc");
     private static final Prefix DSP = PROXY.subPrefix("dsp");
     private static final Prefix DSP_CACHE = DSP.subPrefix("cache");
+    private static final Prefix AGREEMENT_TOKEN = PROXY.subPrefix("agreement-token");
 
     private static final String ENABLED = "enabled";
     private static final String LISTEN_ADDRESS = "listen-address";
@@ -880,6 +881,36 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Long> DSP_CACHE_MAXIMUM_SIZE = DSP_CACHE
             .longValue("maximum-size")
             .withDefaultValue(10000L)
+            .build();
+
+    // --- xroad.proxy.agreement-token ---------------------------------------------
+
+    /** {@code xroad.proxy.agreement-token.issuer}. */
+    public static final ConfigKey<String> AGREEMENT_TOKEN_ISSUER = AGREEMENT_TOKEN
+            .string("issuer")
+            .withDefaultValue("x-road-provider-data-plane")
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.proxy.agreement-token.audience}. */
+    public static final ConfigKey<String> AGREEMENT_TOKEN_AUDIENCE = AGREEMENT_TOKEN
+            .string("audience")
+            .withDefaultValue("x-road-server-proxy")
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.proxy.agreement-token.token-ttl}. */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_TOKEN_TTL = AGREEMENT_TOKEN
+            .keyDuration("token-ttl")
+            .withDefaultValue(Duration.ofSeconds(60))
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.proxy.agreement-token.key-refresh-interval}. */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_KEY_REFRESH_INTERVAL = AGREEMENT_TOKEN
+            .keyDuration("key-refresh-interval")
+            .withDefaultValue(Duration.ofSeconds(30))
+            .exposedInUi()
             .build();
 
     private ProxyConfigKeys() {
