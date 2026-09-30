@@ -74,6 +74,7 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
@@ -103,6 +104,7 @@ public class ServerSoapMessageProcessor {
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final IdentifierValidationService identifierValidationService;
+    private final AgreementTokenAccessCheck agreementTokenAccessCheck;
 
     /**
      * Processes a server-side SOAP request.
@@ -222,7 +224,7 @@ public class ServerSoapMessageProcessor {
         // orElseThrow is safe — DefaultServiceHandlerImpl always returns true from canHandle()
 
         if (handler.shouldVerifyAccess(requestMessage)) {
-            verifyAccess(requestMessage, requestServiceId);
+            verifyAccess(requestMessage, requestServiceId, jRequest.getHeaders().get(HEADER_AGREEMENT_TOKEN));
         }
 
         if (handler.shouldVerifySignature()) {
@@ -236,7 +238,7 @@ public class ServerSoapMessageProcessor {
         return handler.startHandling(jRequest, requestMessage, opMonitoringData);
     }
 
-    private void verifyAccess(ProxyMessage requestMessage, ServiceId requestServiceId) {
+    void verifyAccess(ProxyMessage requestMessage, ServiceId requestServiceId, String agreementToken) {
         log.trace("verifyAccess()");
 
         if (!serverConfProvider.serviceExists(requestServiceId)) {
@@ -249,7 +251,9 @@ public class ServerSoapMessageProcessor {
                     "Service is a REST service and cannot be called using SOAP interface");
         }
 
-        if (!serverConfProvider.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
+        var client = requestMessage.getSoap().getClient();
+        var aclSkipped = agreementTokenAccessCheck.allowsAclSkip(agreementToken, client, requestServiceId);
+        if (!aclSkipped && !serverConfProvider.isQueryAllowed(client, requestServiceId)) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
         }
 
