@@ -114,6 +114,6 @@ seed_property_if_absent "xroad.proxy-ui-api.dataspace.participant-id" \
 seed_property_if_absent "xroad.proxy-ui-api.dataspace.management-context-enabled" \
   "${XROAD_DATASPACE_MANAGEMENT_CONTEXT_ENABLED:-true}"
 
-seed_property_if_absent "xroad.dataspace.control-plane-provisioning.rpc.host" "127.0.0.1"
+seed_property_if_absent "xroad.common-rpc.channel.control-plane.host" "127.0.0.1"
 
 seed_property_if_absent "xroad.dataspace.identity-hub-provisioning.rpc.host" "127.0.0.1"

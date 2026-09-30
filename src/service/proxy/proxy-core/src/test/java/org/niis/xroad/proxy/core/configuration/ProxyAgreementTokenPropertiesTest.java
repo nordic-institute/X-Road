@@ -46,6 +46,7 @@ class ProxyAgreementTokenPropertiesTest {
         assertThat(properties.audience()).isEqualTo("x-road-server-proxy");
         assertThat(properties.tokenTtl()).isEqualTo(Duration.ofSeconds(60));
         assertThat(properties.keyRefreshInterval()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(properties.grantLookupDeadline()).isEqualTo(Duration.ofSeconds(5));
     }
 
     @Test
@@ -55,7 +56,8 @@ class ProxyAgreementTokenPropertiesTest {
                         "xroad.proxy.agreement-token.issuer", "custom-issuer",
                         "xroad.proxy.agreement-token.audience", "custom-audience",
                         "xroad.proxy.agreement-token.token-ttl", "PT30S",
-                        "xroad.proxy.agreement-token.key-refresh-interval", "PT15S"))
+                        "xroad.proxy.agreement-token.key-refresh-interval", "PT15S",
+                        "xroad.proxy.agreement-token.grant-lookup-deadline", "PT2S"))
                 .build();
         var properties = new ProxyAgreementTokenProperties(config);
 
@@ -63,5 +65,6 @@ class ProxyAgreementTokenPropertiesTest {
         assertThat(properties.audience()).isEqualTo("custom-audience");
         assertThat(properties.tokenTtl()).isEqualTo(Duration.ofSeconds(30));
         assertThat(properties.keyRefreshInterval()).isEqualTo(Duration.ofSeconds(15));
+        assertThat(properties.grantLookupDeadline()).isEqualTo(Duration.ofSeconds(2));
     }
 }

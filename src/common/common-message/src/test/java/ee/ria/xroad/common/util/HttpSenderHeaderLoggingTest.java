@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package ee.ria.xroad.common.util;
 
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
+import org.apache.http.message.BasicHeader;
+import org.junit.Test;
 
-/** XRoadConfig-backed implementation of {@link ControlPlaneProvisioningRpcChannelProperties}. */
-public class XRoadControlPlaneProvisioningRpcChannelProperties extends XRoadRpcChannelProperties
-        implements ControlPlaneProvisioningRpcChannelProperties {
+import static org.junit.Assert.assertEquals;
 
-    public XRoadControlPlaneProvisioningRpcChannelProperties(XRoadConfig config) {
-        super(config,
-                CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_HOST,
-                CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_PORT,
-                CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_DEADLINE_AFTER);
+public class HttpSenderHeaderLoggingTest {
+
+    @Test
+    public void redactsTheAgreementTokenHeaderValue() {
+        assertEquals("<redacted>", HttpSender.loggableValue(new BasicHeader(MimeUtils.HEADER_AGREEMENT_TOKEN, "eyJ.secret")));
+        assertEquals("<redacted>", HttpSender.loggableValue(new BasicHeader("X-Road-Agreement-Token", "eyJ.secret")));
+    }
+
+    @Test
+    public void leavesOtherHeaderValuesReadable() {
+        assertEquals("req-1", HttpSender.loggableValue(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, "req-1")));
     }
 }

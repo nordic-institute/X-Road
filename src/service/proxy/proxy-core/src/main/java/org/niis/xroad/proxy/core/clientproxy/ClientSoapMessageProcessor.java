@@ -43,6 +43,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
@@ -88,6 +89,7 @@ import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.HeaderValueUtils.getBoundary;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
@@ -321,7 +323,7 @@ public class ClientSoapMessageProcessor {
         }
     }
 
-    private void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
+    void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                              String xRequestId, OpMonitoringData opMonitoringData, AssetAccessResponse assetAccess,
                              ReplaySoapProxyMessageEntity replayEntity) throws Exception {
         log.trace("sendRequest()");
@@ -337,6 +339,10 @@ public class ClientSoapMessageProcessor {
 
             // Add unique id to distinguish request/response pairs
             httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
+
+            if (assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization())) {
+                httpSender.addHeader(HEADER_AGREEMENT_TOKEN, assetAccess.authorization());
+            }
 
             if (replayEntity == null) {
                 // first attempt: stream the message from the pipe as the handler thread encodes it

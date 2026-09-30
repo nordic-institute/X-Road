@@ -73,7 +73,7 @@ class AssetAccessRpcClientTest {
     @Mock
     private RpcChannelFactory rpcChannelFactory;
     @Mock
-    private AssetAccessRpcChannelProperties channelProperties;
+    private ControlPlaneRpcChannelProperties channelProperties;
     @Mock
     private AssetAccessClientProperties clientProperties;
     @Mock
