@@ -8530,8 +8530,6 @@ components:
           readOnly: true
           description: participant context kind
           enum:
-            - HOST
-            - MANAGEMENT
             - SYSTEM
             - MEMBER
         context_created:
