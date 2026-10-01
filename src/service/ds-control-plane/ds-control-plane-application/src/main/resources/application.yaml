@@ -45,8 +45,8 @@ xroad:
   edc:
     boot:
       # Upstream DataPlaneSignalingApiExtension also mounts a data-plane registration REST controller;
-      # XRoadDataPlaneSignalingApiExtension replaces it with the transfer API only, since the in-process
-      # registrar (XRoadDataPlaneRegistrarExtension) is the sole DataPlaneInstanceStore writer.
+      # XRoadDataPlaneSignalingApiExtension replaces it with the transfer API only, since the
+      # configuration-backed DataPlaneInstanceStore (XRoadDataPlaneStoreExtension) has no write path.
       # JettyExtension is also excluded: its jetty-core artifact is excluded from the runtime classpath
       # entirely (see xroad.edc-owned-jetty-conventions), so this setting is defense in depth, not the
       # only thing standing between it and boot.

@@ -3,9 +3,6 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
-  implementation(project(":lib:ds-identity-core"))
-
   implementation(libs.edc.spi.core)
   implementation(libs.edc.boot)
   implementation(libs.edc.spi.dataplane.selector)
@@ -13,6 +10,8 @@ dependencies {
   implementation(libs.slf4j.api)
 
   testImplementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
+  testImplementation(libs.edc.core.dataplane.selector)
   testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.jupiter)
 }

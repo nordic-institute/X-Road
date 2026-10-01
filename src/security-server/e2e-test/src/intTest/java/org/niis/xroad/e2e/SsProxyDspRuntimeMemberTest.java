@@ -88,16 +88,13 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * {@link #awaitMemberContextIssued} additionally confirms the context and its membership credential are
  * provisioned before any traffic flows.
  *
- * <p><b>Per-member data-plane registration is exercised for both members' contexts.</b> The provider
- * side's transfer runs under {@code DEV:COM:4321}, so data-plane selection resolves the member-context
- * instance the registrar created for that context at runtime — a transfer under a member context with no
- * registered instance terminates with "No dataplane found", so the transfer succeeding is itself the
- * end-to-end proof of the runtime registration. The EDC data-plane instance store is in-memory in the
- * control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d} on the live
- * database lists no data-plane-instance table) and no externally reachable listing endpoint the control
- * port exposes (that port carries data-plane signaling callbacks, not a selector query API) — so the
- * record itself is not directly observable; the registration mechanics are covered by
- * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests.
+ * <p><b>Per-member data-plane resolution is exercised for both members' contexts.</b> The provider
+ * side's transfer runs under {@code DEV:COM:4321}, so data-plane selection must resolve a data plane for
+ * that member context. The control plane's data-plane store computes it from configuration on demand,
+ * with no registration step; a transfer under a context that resolves no data plane terminates with
+ * "No dataplane found", so the transfer succeeding is itself the end-to-end proof. The store keeps no
+ * record (no table, no listing endpoint), so there is nothing to observe directly; its behaviour is
+ * covered by {@code XRoadDataPlaneInstanceStoreTest}.
  *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
