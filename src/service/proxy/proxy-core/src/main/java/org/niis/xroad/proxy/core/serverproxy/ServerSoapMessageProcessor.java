@@ -254,9 +254,9 @@ public class ServerSoapMessageProcessor {
 
         var client = requestMessage.getSoap().getClient();
         var decision = agreementTokenAccessCheck.decide(agreementToken, client, requestServiceId);
-        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected rejected) {
+        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected(var reasonClass)) {
             throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
-                    "Agreement token rejected: %s".formatted(rejected.reasonClass()));
+                    "Agreement token rejected: %s".formatted(reasonClass));
         }
         var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(client, requestServiceId)) {

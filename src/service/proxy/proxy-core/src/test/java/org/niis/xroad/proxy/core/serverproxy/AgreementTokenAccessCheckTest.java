@@ -269,10 +269,9 @@ class AgreementTokenAccessCheckTest {
 
         accessCheck.decide(validToken, CONSUMER, SERVICE);
 
-        assertThat(logHandler.records).isNotEmpty();
-        assertThat(logHandler.records).allSatisfy(record -> {
-            assertThat(record.getLevel().intValue()).isLessThanOrEqualTo(Level.FINE.intValue());
-            assertThat(record.getMessage()).doesNotContain(validToken);
+        assertThat(logHandler.records).isNotEmpty().allSatisfy(logRecord -> {
+            assertThat(logRecord.getLevel().intValue()).isLessThanOrEqualTo(Level.FINE.intValue());
+            assertThat(logRecord.getMessage()).doesNotContain(validToken);
         });
     }
 
@@ -290,10 +289,9 @@ class AgreementTokenAccessCheckTest {
 
         accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE);
 
-        assertThat(logHandler.records).isNotEmpty();
-        assertThat(logHandler.records).allSatisfy(record -> {
-            assertThat(record.getLevel()).isEqualTo(Level.WARNING);
-            assertThat(record.getMessage()).doesNotContain(token);
+        assertThat(logHandler.records).isNotEmpty().allSatisfy(logRecord -> {
+            assertThat(logRecord.getLevel()).isEqualTo(Level.WARNING);
+            assertThat(logRecord.getMessage()).doesNotContain(token);
         });
     }
 
@@ -306,10 +304,9 @@ class AgreementTokenAccessCheckTest {
 
         withoutKeyMaterial.decide(token, CONSUMER, SERVICE);
 
-        assertThat(logHandler.records).isNotEmpty();
-        assertThat(logHandler.records).allSatisfy(record -> {
-            assertThat(record.getLevel()).isEqualTo(Level.WARNING);
-            assertThat(record.getMessage()).doesNotContain(token);
+        assertThat(logHandler.records).isNotEmpty().allSatisfy(logRecord -> {
+            assertThat(logRecord.getLevel()).isEqualTo(Level.WARNING);
+            assertThat(logRecord.getMessage()).doesNotContain(token);
         });
     }
 
@@ -357,8 +354,8 @@ class AgreementTokenAccessCheckTest {
         private final List<LogRecord> records = new ArrayList<>();
 
         @Override
-        public void publish(LogRecord record) {
-            records.add(record);
+        public void publish(LogRecord logRecord) {
+            records.add(logRecord);
         }
 
         @Override

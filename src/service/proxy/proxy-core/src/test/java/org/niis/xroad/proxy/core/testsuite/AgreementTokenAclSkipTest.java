@@ -187,6 +187,7 @@ class AgreementTokenAclSkipTest {
 
             @Override
             protected void validateNormalResponse(Message receivedResponse) {
+                assertTrue(receivedResponse.isResponse());
             }
         };
     }

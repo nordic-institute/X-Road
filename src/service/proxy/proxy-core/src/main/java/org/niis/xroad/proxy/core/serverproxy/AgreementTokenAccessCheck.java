@@ -120,8 +120,8 @@ public class AgreementTokenAccessCheck {
 
         try {
             var result = new AgreementTokenVerifier(provider.get(), agreementTokenProperties).verify(agreementToken, context);
-            if (result instanceof AgreementTokenVerificationResult.Valid valid) {
-                log.debug("agreement token accepted, skipping ACL: agreementId={}", valid.claims().agreementId());
+            if (result instanceof AgreementTokenVerificationResult.Valid(var claims)) {
+                log.debug("agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
                 return ACCEPTED;
             }
             var reason = ((AgreementTokenVerificationResult.Rejected) result).reason();

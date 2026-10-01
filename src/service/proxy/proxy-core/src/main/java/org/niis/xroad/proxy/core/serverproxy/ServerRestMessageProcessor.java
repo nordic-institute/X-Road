@@ -245,9 +245,9 @@ public class ServerRestMessageProcessor {
         var rest = requestMessage.getRest();
         var decision = agreementTokenAccessCheck.decide(
                 agreementToken, rest.getClientId(), requestServiceId, rest.getVerb().name(), rest.getServicePath());
-        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected rejected) {
+        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected(var reasonClass)) {
             throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
-                    "Agreement token rejected: %s".formatted(rejected.reasonClass()));
+                    "Agreement token rejected: %s".formatted(reasonClass));
         }
         var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(

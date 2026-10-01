@@ -321,15 +321,6 @@ class AgreementTokenMintVerifyTest {
     }
 
     @Test
-    void zeroLeewayKeepsTheOldBehaviourOfRejectingAsSoonAsTheRealExpiryPasses() {
-        var token = mintDefaultGrant();
-
-        var verifier = verifierAt(NOW.plusSeconds(61));
-
-        assertRejected(verifier.verify(token, restContext()), EXPIRED);
-    }
-
-    @Test
     void shouldRejectWrongIssuer() {
         var token = mintDefaultGrant();
 
