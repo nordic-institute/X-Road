@@ -69,7 +69,6 @@ dependencies {
 
   runtimeOnly(libs.edc.dataplane.signaling)
   runtimeOnly(libs.edc.dataplane.signaling.client)
-  runtimeOnly(libs.edc.dataplane.selector.control.api)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)
   runtimeOnly(libs.edc.contolplane.api.config)
 

@@ -265,7 +265,6 @@ edc-api-observability = { module = "org.eclipse.edc:api-observability", version.
 edc-contolplane-api-config = { module = "org.eclipse.edc:control-api-configuration", version.ref = "edc" }
 edc-dataplane-signaling = { module = "org.eclipse.edc:data-plane-signaling", version.ref = "edc" }
 edc-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-signaling-client", version.ref = "edc" }
-edc-dataplane-selector-control-api = { module = "org.eclipse.edc:data-plane-selector-control-api", version.ref = "edc" }
 edc-core-participantcontext-connector-classic = { module = "org.eclipse.edc:participant-context-connector-classic-core", version.ref = "edc" }
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
