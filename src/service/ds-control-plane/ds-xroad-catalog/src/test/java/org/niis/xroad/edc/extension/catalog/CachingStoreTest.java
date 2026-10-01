@@ -27,7 +27,6 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.common.base.Ticker;
@@ -69,7 +68,6 @@ class CachingStoreTest {
             PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID);
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
     private static final ServiceId.Conf SERVICE_1 = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "getRecords", "v1");
-    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1111", "ss0");
     private static final String MEMBER_CTX =
             ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1111"));
 
@@ -199,9 +197,6 @@ class CachingStoreTest {
     void findByIdNotFoundNotCached() {
         var unknownService = ServiceId.Conf.create("DEV", "GOV", "9999", "Unknown", "noSvc");
         when(serverConfProvider.serviceExists(unknownService)).thenReturn(false);
-        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
-        var unknownClient = unknownService.getClientId();
-        when(globalConfProvider.isSecurityServerClient(unknownClient, SS_ID)).thenReturn(false);
         var store = buildStore(withCache);
 
         var r1 = store.findById(unknownService.asEncodedId());
@@ -210,24 +205,6 @@ class CachingStoreTest {
         assertThat(r1).isNull();
         assertThat(r2).isNull();
         verify(serverConfProvider, times(2)).serviceExists(unknownService);
-    }
-
-    @Test
-    void findByIdSynthesisPreservedAfterCaching() {
-        var localService = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "localOp");
-        when(serverConfProvider.serviceExists(localService)).thenReturn(false);
-        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
-        when(globalConfProvider.isSecurityServerClient(MEMBER_1, SS_ID)).thenReturn(true);
-        var store = buildStore(withCache);
-
-        var r1 = store.findById(localService.asEncodedId());
-        var r2 = store.findById(localService.asEncodedId());
-
-        assertThat(r1).isNotNull();
-        assertThat(r1.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
-        assertThat(r2).isNotNull();
-        assertThat(r2.getId()).isEqualTo(r1.getId());
-        verify(serverConfProvider, times(1)).serviceExists(localService);
     }
 
     @Test

@@ -88,8 +88,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById policyId={} matched builtin", policyId);
-            return toBuiltinPolicyDefinition(policyId,
-                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+            return toBuiltinPolicyDefinition(policyId, contextIds.system());
         }
 
         var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
@@ -104,8 +103,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             }
             // Fall through: a SYSTEM-eligible real service with configured access rights
             // publishes its per-subject compound id there instead of the plain/owner-only forms.
-        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            return findOwnerOnlyPolicyDefinition(policyId);
         }
 
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -156,17 +153,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         return toBuiltinPolicyDefinition(policyId, contextIds.system());
     }
 
-    /** The management-context owner-only policy {@code policyId} names, if this server serves it. */
-    @Nullable
-    private PolicyDefinition findOwnerOnlyPolicyDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
-        if (serviceId == null) {
-            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
-            return null;
-        }
-        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), contextIds.management());
-    }
-
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec spec) {
         if (log.isTraceEnabled()) {
@@ -190,8 +176,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             var assetId = AssetMapper.encodeAssetId(serviceId);
-            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
-            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.management()));
             policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
         }
         var syntheticServices = serviceContextResolver.resolveSyntheticServices();
@@ -264,16 +248,13 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     }
 
     /**
-     * Emits one owner-only policy per service (referenced by the paired owner-only
-     * ContractDefinition) plus one per-subject policy per ACL entry, for each context the
-     * service is published under.
+     * Emits one unrestricted policy under SYSTEM for a SYSTEM-eligible service with no configured
+     * access rights, plus one per-subject policy per ACL entry, for each context the service is
+     * published under. A service with neither stays published as an Asset but gets no policy at
+     * all, so it has no callable grant — not even for its own owning member.
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies,
                                            Set<String> provisionedMemberContextIds) {
-        var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
-        policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
-                serviceId.getClientId(), contextIds.management()));
-
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)

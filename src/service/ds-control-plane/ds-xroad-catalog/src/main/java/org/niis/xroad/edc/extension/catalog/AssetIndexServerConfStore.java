@@ -89,7 +89,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
                 var contexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
                 for (var ctxId : contexts) {
                     assets.add(AssetMapper.toAsset(serviceId, ctxId));
@@ -100,8 +99,6 @@ class AssetIndexServerConfStore implements AssetIndex {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
-            assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
             assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
         }
         var syntheticServices = serviceContextResolver.resolveSyntheticServices();
@@ -144,7 +141,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
-            return AssetMapper.toAsset(builtinServiceId, serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+            return AssetMapper.toAsset(builtinServiceId, contextIds.system());
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
@@ -162,30 +159,12 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
-            if (serviceContextResolver.isLocallyRegisteredSubsystem(serviceId.getClientId())) {
-                log.trace("findById assetId={} synthesizing owner-only asset for locally registered subsystem", assetId);
-                return AssetMapper.toAsset(serviceId, contextIds.management());
-            }
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
-        var ctxId = selectContextId(serviceId);
-        return AssetMapper.toAsset(serviceId, ctxId);
-    }
-
-    /**
-     * Every service also carries an owner-only copy under the management context (added
-     * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
-     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveContextsById}
-     * resolves for the service itself.
-     */
-    private String selectContextId(ServiceId serviceId) {
-        var requested = requestedParticipantContext.get();
-        if (contextIds.management().equals(requested)) {
-            return contextIds.management();
-        }
         var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
-        return ServiceContextResolver.select(resolvedContexts, requested);
+        var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        return AssetMapper.toAsset(serviceId, ctxId);
     }
 
     @Override

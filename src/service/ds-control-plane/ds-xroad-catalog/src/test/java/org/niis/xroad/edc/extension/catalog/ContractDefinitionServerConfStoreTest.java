@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -134,15 +135,9 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(2);
-        var perSubject = result.stream()
-                .filter(d -> !d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
-                .toList();
-        assertThat(perSubject).hasSize(1);
-        var ownerOnly = result.stream()
-                .filter(d -> d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
-                .toList();
-        assertThat(ownerOnly).hasSize(1);
+        assertThat(result).hasSize(1);
+        assertThat(result).noneSatisfy(d ->
+                assertThat(d.getAccessPolicyId()).endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX));
     }
 
     @Test
@@ -157,13 +152,11 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(2);
         assertThat(result).extracting(ContractDefinition::getId)
                 .doesNotHaveDuplicates();
-        var ownerOnly = result.stream()
-                .filter(d -> d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
-                .toList();
-        assertThat(ownerOnly).hasSize(1);
+        assertThat(result).noneSatisfy(d ->
+                assertThat(d.getAccessPolicyId()).endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX));
     }
 
     @Test
@@ -178,12 +171,45 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(2);
-        var perSubject = result.stream()
-                .filter(d -> !d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
-                .toList();
-        assertThat(perSubject).hasSize(1);
-        assertThat(perSubject.getFirst().getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findAllPublishesDefinitionUnderMemberContextOnlyOnceProvisioned() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        var memberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1234"));
+
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(memberCtx))));
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getParticipantContextId()).isEqualTo(memberCtx);
+    }
+
+    @Test
+    void findByIdResolvesDefinitionUnderMemberContextOnlyOnceProvisioned() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        var memberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1234"));
+
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.getParticipantContext(memberCtx))
+                .thenReturn(ServiceResult.success(participantContext(memberCtx)));
+
+        var contractId = AssetMapper.encodeAssetId(SERVICE_1)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+        var result = store.findById(contractId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(memberCtx);
     }
 
     @Test
@@ -269,28 +295,9 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findByIdSynthesizesOwnerOnlyContractDefinitionForLocallyRegisteredSubsystemWithoutServiceDescription() {
-        var clientDisableService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientDisable");
-        when(serverConfProvider.serviceExists(clientDisableService)).thenReturn(false);
-        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
-        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
-
-        var contractId = clientDisableService.asEncodedId()
-                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
-                + ContractDefinitionMapper.getContractDefinitionSuffix();
-        var result = store.findById(contractId);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
-    }
-
-    @Test
-    void findByIdReturnsNullForOwnerOnlyContractOfUnregisteredSubsystem() {
+    void findByIdReturnsNullForOwnerOnlySuffixedIdWhenNotSystemAddressed() {
         var foreignSubsystem = ClientId.Conf.create("DEV", "COM", "9999", "Foreign");
         var foreignService = ServiceId.Conf.create(foreignSubsystem, "noSuchService");
-        when(serverConfProvider.serviceExists(foreignService)).thenReturn(false);
-        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
-        when(globalConfProvider.isSecurityServerClient(foreignSubsystem, SS_ID)).thenReturn(false);
 
         var contractId = foreignService.asEncodedId()
                 + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
@@ -371,23 +378,17 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(4);
+        assertThat(result).hasSize(2);
         var hostPerSubject = result.stream()
-                .filter(d -> d.getId().startsWith(SERVICE_1.asEncodedId())
-                        && !d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .filter(d -> d.getId().startsWith(SERVICE_1.asEncodedId()))
                 .findFirst().orElseThrow();
         var mgmtPerSubject = result.stream()
-                .filter(d -> d.getId().startsWith(MGMT_SERVICE.asEncodedId())
-                        && !d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .filter(d -> d.getId().startsWith(MGMT_SERVICE.asEncodedId()))
                 .findFirst().orElseThrow();
         assertThat(hostPerSubject.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
         assertThat(mgmtPerSubject.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
-        var ownerOnly = result.stream()
-                .filter(d -> d.getAccessPolicyId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
-                .toList();
-        assertThat(ownerOnly).hasSize(2);
-        assertThat(ownerOnly).allSatisfy(d ->
-                assertThat(d.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX));
+        assertThat(result).noneSatisfy(d ->
+                assertThat(d.getAccessPolicyId()).endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX));
     }
 
     @Test
@@ -469,7 +470,7 @@ class ContractDefinitionServerConfStoreTest {
                 .filter(new Criterion("participantContextId", "=", MGMT_PARTICIPANT_CTX))
                 .build();
         var mgmtResult = store.findAll(mgmtSpec).toList();
-        assertThat(mgmtResult).hasSize(3);
+        assertThat(mgmtResult).hasSize(1);
 
         var hostSpec = QuerySpec.Builder.newInstance()
                 .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
@@ -488,11 +489,11 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(14);
+        assertThat(result).hasSize(7);
     }
 
     @Test
-    void findAllBuiltinsTaggedWithMgmtAndSystemContext() {
+    void findAllBuiltinsTaggedWithSystemContextOnly() {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, CONTEXT_IDS,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
@@ -501,9 +502,8 @@ class ContractDefinitionServerConfStoreTest {
         var result = builtinStore.findAll(QuerySpec.max()).toList();
 
         assertThat(result).allSatisfy(def ->
-                assertThat(def.getParticipantContextId()).isIn(MGMT_PARTICIPANT_CTX, SYSTEM_PARTICIPANT_CTX));
-        assertThat(result).filteredOn(def -> MGMT_PARTICIPANT_CTX.equals(def.getParticipantContextId())).hasSize(7);
-        assertThat(result).filteredOn(def -> SYSTEM_PARTICIPANT_CTX.equals(def.getParticipantContextId())).hasSize(7);
+                assertThat(def.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX));
+        assertThat(result).hasSize(7);
     }
 
     @Test
@@ -534,7 +534,7 @@ class ContractDefinitionServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(contractId);
-        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX);
         assertThat(result.getAccessPolicyId()).isEqualTo(builtinAssetId);
     }
 
@@ -550,51 +550,25 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findAllEmptyAclEmitsOwnerOnlyContractDefinition() {
+    void findAllEmptyAclEmitsNoContractDefinition() {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(1);
-        var def = result.getFirst();
-        assertThat(def.getId()).endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX
-                + ContractDefinitionMapper.getContractDefinitionSuffix());
-        assertThat(def.getAccessPolicyId())
-                .isEqualTo(AssetMapper.encodeAssetId(SERVICE_1) + ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
-        assertThat(def.getContractPolicyId()).isEqualTo(def.getAccessPolicyId());
-        assertThat(def.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void findByIdEmptyAclResolvesOwnerOnlyContractDefinition() {
-        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-
+    void findByIdOwnerOnlySuffixedIdNotFoundWhenServiceHasNoAcl() {
         var contractId = AssetMapper.encodeAssetId(SERVICE_1)
                 + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
                 + ContractDefinitionMapper.getContractDefinitionSuffix();
 
         var result = store.findById(contractId);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(contractId);
-        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
-    }
-
-    @Test
-    void findByIdOwnerOnlyReturnedEvenWhenServiceHasAcl() {
-        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-
-        var contractId = AssetMapper.encodeAssetId(SERVICE_1)
-                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
-                + ContractDefinitionMapper.getContractDefinitionSuffix();
-
-        var result = store.findById(contractId);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(contractId);
-        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -872,5 +846,12 @@ class ContractDefinitionServerConfStoreTest {
         ar.setEndpoint(endpoint);
         ar.setRightsGiven(new Date());
         return ar;
+    }
+
+    private static ParticipantContext participantContext(String contextId) {
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId(contextId)
+                .identity("did:web:example.com:v1:" + contextId)
+                .build();
     }
 }

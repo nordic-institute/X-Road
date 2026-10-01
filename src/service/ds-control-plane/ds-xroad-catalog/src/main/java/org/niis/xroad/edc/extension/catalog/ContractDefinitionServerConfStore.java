@@ -93,8 +93,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById definitionId={} matched builtin", definitionId);
-            return toBuiltinContractDefinition(builtinServiceId,
-                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+            return toBuiltinContractDefinition(builtinServiceId, contextIds.system());
         }
         var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
         if (systemAddressed) {
@@ -108,8 +107,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
             // Fall through: a SYSTEM-eligible real service with configured access rights
             // publishes its per-subject compound id there instead of the plain/owner-only forms.
-        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            return findOwnerOnlyContractDefinition(policyId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
@@ -163,17 +160,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         return toBuiltinContractDefinition(systemServiceId, contextIds.system());
     }
 
-    /** The management-context owner-only definition {@code policyId} names, if this server serves it. */
-    @Nullable
-    private ContractDefinition findOwnerOnlyContractDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
-        if (serviceId == null) {
-            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
-            return null;
-        }
-        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.management());
-    }
-
     @Override
     @NotNull
     public Stream<ContractDefinition> findAll(QuerySpec spec) {
@@ -197,8 +183,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
-            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.management()));
             definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
         var syntheticServices = serviceContextResolver.resolveSyntheticServices();
@@ -259,14 +243,13 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     }
 
     /**
-     * Emits one owner-only definition per service (hidden from non-owner peers by EDC's
-     * ContractDefinitionResolverImpl) plus one per-subject definition per ACL entry, for each
-     * context the service is published under.
+     * Emits one unrestricted definition under SYSTEM for a SYSTEM-eligible service with no configured
+     * access rights, plus one per-subject definition per ACL entry, for each context the service is
+     * published under. A service with neither stays published as an Asset but gets no definition at
+     * all, so it has no callable grant — not even for its own owning member.
      */
     private void collectContractDefinitionsForService(ServiceId serviceId, List<ContractDefinition> definitions,
                                                        Set<String> provisionedMemberContextIds) {
-        definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                serviceId, contextIds.management()));
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)

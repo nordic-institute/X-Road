@@ -44,7 +44,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -77,19 +76,24 @@ class ServiceContextResolver {
     private final ParticipantContextService participantContextService;
 
     /**
-     * The contexts a service is published under, besides its always-present management-context
-     * copy: the legacy host context first — or the management context, for the MANAGEMENT
-     * subsystem's own service — followed by the owning member's context if one is provisioned.
-     * The first entry is always the legacy publication context.
+     * The single context a service is published under: the owning member's own context, once one is
+     * provisioned for it, or else the legacy publication context (host — or management, for the
+     * MANAGEMENT subsystem's own service) as a pre-provisioning fallback. The MANAGEMENT subsystem's
+     * own service always resolves via the legacy path regardless of member-context provisioning —
+     * its distinct {@code -mgmt} identity exists for self-negotiation collision avoidance, a concern
+     * unrelated to whether its owning member also happens to have an ordinary member context.
      *
-     * @param serviceId the service to resolve contexts for
+     * @param serviceId the service to resolve the context for
      * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
      */
     List<String> resolveContexts(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
-        var contexts = new ArrayList<String>(2);
-        contexts.add(legacyPublicationContextId(serviceId));
-        memberContextId(serviceId.getClientId(), provisionedMemberContextIds).ifPresent(contexts::add);
-        return List.copyOf(contexts);
+        if (!isManagementOwnService(serviceId)) {
+            var memberCtx = memberContextId(serviceId.getClientId(), provisionedMemberContextIds);
+            if (memberCtx.isPresent()) {
+                return List.of(memberCtx.get());
+            }
+        }
+        return List.of(legacyPublicationContextId(serviceId));
     }
 
     /**
@@ -98,31 +102,29 @@ class ServiceContextResolver {
      * lookup instead of requiring the full {@link #provisionedMemberContextIds()} enumeration — a
      * by-id lookup only ever needs to know about the one ctx-id it can derive from the service.
      *
-     * @param serviceId the service to resolve contexts for
+     * @param serviceId the service to resolve the context for
      */
     List<String> resolveContextsById(ServiceId serviceId) {
-        var contexts = new ArrayList<String>(2);
-        contexts.add(legacyPublicationContextId(serviceId));
-        memberContextIdById(serviceId.getClientId()).ifPresent(contexts::add);
-        return List.copyOf(contexts);
+        if (!isManagementOwnService(serviceId)) {
+            var memberCtx = memberContextIdById(serviceId.getClientId());
+            if (memberCtx.isPresent()) {
+                return List.of(memberCtx.get());
+            }
+        }
+        return List.of(legacyPublicationContextId(serviceId));
     }
 
     /**
      * Picks the record matching the request's addressed context, if it is one of
-     * {@code resolvedContexts}; otherwise falls back to the legacy host context, which by
-     * {@link #resolveContexts(ServiceId, Set)}'s contract is always the first entry.
+     * {@code resolvedContexts}; otherwise falls back to the list's first entry — by
+     * {@link #resolveContexts(ServiceId, Set)}'s either/or contract, the service's sole resolved
+     * context, or the SYSTEM context a caller appended on top of it.
      */
     static String select(List<String> resolvedContexts, @Nullable String requestedParticipantContextId) {
         if (requestedParticipantContextId != null && resolvedContexts.contains(requestedParticipantContextId)) {
             return requestedParticipantContextId;
         }
         return resolvedContexts.getFirst();
-    }
-
-    /** Built-ins are ungated (published under both SYSTEM and management on every server). */
-    // TODO with the -mgmt cutover, built-ins are SYSTEM-only; collapse the management fallback
-    String selectBuiltinContextId(@Nullable String requestedParticipantContextId) {
-        return isSystemAddressed(requestedParticipantContextId) ? contextIds.system() : contextIds.management();
     }
 
     /** Whether a DSP request was addressed to this server's SYSTEM context. */
@@ -187,40 +189,6 @@ class ServiceContextResolver {
     boolean isSystemSyntheticEligible(ServiceId serviceId) {
         var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
         return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
-    }
-
-    /**
-     * The service an owner-only id names outside the SYSTEM context: a service this server actually
-     * serves, or one of a locally registered subsystem, for which the owner-only entry is
-     * synthesized on the fly even with nothing in serverconf. {@code null} when the id carries no
-     * owner-only suffix, does not decode, or names neither.
-     */
-    @Nullable
-    ServiceId.Conf resolveOwnerOnlyService(String ownerOnlyId) {
-        var serviceId = decodeOwnerOnlyId(ownerOnlyId);
-        if (serviceId == null) {
-            return null;
-        }
-        return serverConfProvider.serviceExists(serviceId) || isLocallyRegisteredSubsystem(serviceId.getClientId())
-                ? serviceId
-                : null;
-    }
-
-    /**
-     * Whether {@code clientId} is a subsystem registered on this security server. A global-conf read
-     * failure degrades to not-registered rather than propagating — a by-id lookup must fail closed.
-     */
-    boolean isLocallyRegisteredSubsystem(@Nullable ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
-        }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (RuntimeException e) {
-            log.warn("Failed to read global-conf for synthetic entry check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
     }
 
     @Nullable
@@ -408,10 +376,12 @@ class ServiceContextResolver {
 
     /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
     private String legacyPublicationContextId(ServiceId serviceId) {
+        return isManagementOwnService(serviceId) ? contextIds.management() : contextIds.host();
+    }
+
+    private boolean isManagementOwnService(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? contextIds.management()
-                : contextIds.host();
+        return mgmtService != null && mgmtService.equals(serviceId.getClientId());
     }
 
     private Optional<String> memberContextId(ClientId owner, Set<String> provisionedMemberContextIds) {

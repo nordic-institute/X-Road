@@ -48,7 +48,8 @@ class ManagementServiceCatalog {
     /**
      * {@link #SERVICE_CODES} minus {@code authCertReg}: it is never negotiated over the
      * dataspace protocol (it goes as direct HTTPS to the Central Server), so the SYSTEM
-     * publication excludes it while the {@code -mgmt} mirror keeps its full list.
+     * publication excludes it while the management subsystem's own synthetic fallback entries
+     * (published when it has no real configured services) still carry the full list.
      */
     static final Set<String> SYSTEM_SERVICE_CODES = ManagementServiceCodes.DSP_NEGOTIATED;
 }

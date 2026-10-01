@@ -97,10 +97,10 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveContextsIncludesOwningMemberContextWhenProvisioned() {
+    void resolveContextsReturnsOnlyMemberContextWhenProvisioned() {
         var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
 
-        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(result).containsExactly(MEMBER_CTX);
     }
 
     @Test
@@ -109,7 +109,7 @@ class ServiceContextResolverTest {
 
         var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
 
-        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(result).containsExactly(MEMBER_CTX);
     }
 
     @Test
@@ -117,6 +117,16 @@ class ServiceContextResolverTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var result = resolver().resolveContexts(MGMT_SERVICE, Set.of());
+
+        assertThat(result).containsExactly(MGMT_CTX);
+    }
+
+    @Test
+    void managementRequestServiceResolvesManagementEvenWhenOwningMemberContextIsProvisioned() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        var mgmtMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333"));
+
+        var result = resolver().resolveContexts(MGMT_SERVICE, Set.of(mgmtMemberCtx));
 
         assertThat(result).containsExactly(MGMT_CTX);
     }
@@ -179,13 +189,23 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveContextsByIdIncludesOwningMemberContextWhenProvisioned() {
+    void resolveContextsByIdReturnsOnlyMemberContextWhenProvisioned() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
         var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
-        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(result).containsExactly(MEMBER_CTX);
+    }
+
+    @Test
+    void resolveContextsByIdManagementRequestServiceNeverConsultsMemberContextProvisioning() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+
+        var result = resolver().resolveContextsById(MGMT_SERVICE);
+
+        assertThat(result).containsExactly(MGMT_CTX);
+        verify(participantContextService, never()).getParticipantContext(any());
     }
 
     @Test
@@ -235,7 +255,7 @@ class ServiceContextResolverTest {
         assertThat(resolver().normalizeRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isNull();
     }
 
-    // --- isSystemEligible / resolveSyntheticServices / selectBuiltinContextId ---
+    // --- isSystemEligible / resolveSyntheticServices ---
 
     private static final ServiceId.Conf MGMT_ELIGIBLE_SERVICE =
             ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg");
@@ -439,17 +459,6 @@ class ServiceContextResolverTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
         assertThat(resolver().isSystemSyntheticEligible(MGMT_ELIGIBLE_SERVICE)).isFalse();
-    }
-
-    @Test
-    void selectBuiltinContextIdReturnsSystemWhenSystemRequested() {
-        assertThat(resolver().selectBuiltinContextId(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
-    }
-
-    @Test
-    void selectBuiltinContextIdReturnsManagementOtherwise() {
-        assertThat(resolver().selectBuiltinContextId(HOST_CTX)).isEqualTo(MGMT_CTX);
-        assertThat(resolver().selectBuiltinContextId(null)).isEqualTo(MGMT_CTX);
     }
 
     private void stubLiveManagementSubsystem() {
