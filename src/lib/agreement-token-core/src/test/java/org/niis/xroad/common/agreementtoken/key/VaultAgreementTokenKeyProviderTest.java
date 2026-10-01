@@ -252,6 +252,23 @@ class VaultAgreementTokenKeyProviderTest {
         assertThat(provider.activeKey().keyId()).isEqualTo(rotated.keyId());
     }
 
+    @Test
+    void rotationWithinTheActivationDelayAfterBootstrapKeepsSigningWithTheFirstKey() {
+        var clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var provider = new VaultAgreementTokenKeyProvider(vaultClient, secureRandom, Duration.ofSeconds(30), clock);
+        assertThat(provider.activeKey().keyId()).isEqualTo("1");
+
+        clock.advance(Duration.ofSeconds(10));
+        var rotated = provider.rotate();
+
+        assertThat(provider.keyById(rotated.keyId())).isPresent();
+        assertThat(provider.activeKey().keyId()).isEqualTo("1");
+
+        clock.advance(Duration.ofSeconds(31));
+        provider.refresh();
+        assertThat(provider.activeKey().keyId()).isEqualTo(rotated.keyId());
+    }
+
     private void putStoredKey(String keyId) {
         keyPairsByKeyId.put(keyId, TestKeyPairs.generate().toJSONString());
     }

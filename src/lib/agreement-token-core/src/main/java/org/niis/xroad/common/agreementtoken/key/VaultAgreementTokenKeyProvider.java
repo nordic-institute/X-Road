@@ -144,27 +144,28 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         var stored = loadFromVaultOrFail();
 
         var keysById = new HashMap<String, AgreementTokenSigningKey>();
-        String highestKeyId = null;
-        long maxVersion = -1;
+        String oldestKeyId = null;
+        long minVersion = Long.MAX_VALUE;
         for (var entry : stored.entrySet()) {
             var keyId = entry.getKey();
             keysById.put(keyId, toSigningKey(keyId, entry.getValue()));
             var version = parseVersion(keyId);
-            if (version > maxVersion) {
-                maxVersion = version;
-                highestKeyId = keyId;
+            if (version < minVersion) {
+                minVersion = version;
+                oldestKeyId = keyId;
             }
         }
-        var activeKeyId = chooseActiveKeyId(keysById, highestKeyId);
+        var activeKeyId = chooseActiveKeyId(keysById, oldestKeyId);
         snapshot.set(new Snapshot(Map.copyOf(keysById), activeKeyId));
     }
 
     /**
      * @return the highest-versioned key old enough to sign (issued at least {@code activationDelay} in the
-     *         past), or {@code highestKeyId} when no key qualifies yet
+     *         past), or {@code oldestKeyId} when no key qualifies yet: right after first boot every key is
+     *         young, and the lowest version is the one every replica has had the longest to load
      */
-    private String chooseActiveKeyId(Map<String, AgreementTokenSigningKey> keysById, String highestKeyId) {
-        if (highestKeyId == null) {
+    private String chooseActiveKeyId(Map<String, AgreementTokenSigningKey> keysById, String oldestKeyId) {
+        if (oldestKeyId == null) {
             return null;
         }
         var now = Instant.now(clock);
@@ -180,7 +181,7 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
                 activeKeyId = entry.getKey();
             }
         }
-        return activeKeyId != null ? activeKeyId : highestKeyId;
+        return activeKeyId != null ? activeKeyId : oldestKeyId;
     }
 
     private boolean isOldEnoughToSign(AgreementTokenSigningKey key, Instant now) {
