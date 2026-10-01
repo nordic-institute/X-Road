@@ -54,6 +54,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAI
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
@@ -182,10 +183,17 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .map(XrdRuntimeException::getCode)
                     .collect(Collectors.toSet());
             if (xrdCodes.size() == 1) {
-                if (isRemoteNotFoundCode(xrdCodes.iterator().next())) {
+                var remoteCode = xrdCodes.iterator().next();
+                if (isRemoteOffersNotFoundCode(remoteCode)) {
                     return XrdRuntimeException.systemException(UNKNOWN_MEMBER)
                             .cause(remoteFailures.getLast())
                             .details("No catalog offer found for service %s".formatted(serviceId))
+                            .build();
+                }
+                if (isRemoteDatasetNotFoundCode(remoteCode)) {
+                    return XrdRuntimeException.systemException(UNKNOWN_SERVICE)
+                            .cause(remoteFailures.getLast())
+                            .details("Service %s was not found in the provider's catalog".formatted(serviceId))
                             .build();
                 }
                 return remoteFailures.getFirst();
@@ -199,8 +207,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 .build();
     }
 
-    private static boolean isRemoteNotFoundCode(String errorCode) {
-        return errorCode != null
-                && (errorCode.endsWith(DSP_DATASET_NOT_FOUND.code()) || errorCode.endsWith(DSP_OFFERS_NOT_FOUND.code()));
+    private static boolean isRemoteOffersNotFoundCode(String errorCode) {
+        return errorCode != null && errorCode.endsWith(DSP_OFFERS_NOT_FOUND.code());
+    }
+
+    private static boolean isRemoteDatasetNotFoundCode(String errorCode) {
+        return errorCode != null && errorCode.endsWith(DSP_DATASET_NOT_FOUND.code());
     }
 }
