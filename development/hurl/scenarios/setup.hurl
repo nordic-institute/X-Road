@@ -19,7 +19,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "software_token_pin": "Secret1234",
-  "instance_identifier": "DEV",
+  "instance_identifier": "{{xroad_instance}}",
   "central_server_address": "{{cs_host}}"
 }
 
@@ -33,7 +33,7 @@ POST https://{{cs_host}}:4000/api/v1/member-classes
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
-  "code": "COM",
+  "code": "{{member_class}}",
   "description": "Commercial"
 }
 
@@ -100,8 +100,8 @@ Content-Type: application/json
 #XSRF-TOKEN: {{cs_xsrf_token}}
 {
   "member_id": {
-    "member_class": "COM",
-    "member_code": "1234"
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss0_member_code}}"
   },
   "member_name": "Test member"
 }
@@ -114,15 +114,15 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_id": {
-    "member_class": "COM",
-    "member_code": "4321"
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss1_member_code}}"
   },
   "member_name": "Test client"
 }
 
 HTTP 201
 
-# Add management subsystem for member 1234 to Central Server
+# Add management subsystem for the SS0 member to Central Server
 POST https://{{cs_host}}:4000/api/v1/subsystems
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -131,8 +131,8 @@ Content-Type: application/json
 #XSRF-TOKEN: {{cs_xsrf_token}}
 {
   "subsystem_id": {
-    "member_class": "COM",
-    "member_code": "1234",
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss0_member_code}}",
     "subsystem_code": "MANAGEMENT"
   }
 }
@@ -140,7 +140,7 @@ Content-Type: application/json
 HTTP 201
 
 
-# Set management subsystem for member 1234 as the management service for the Central Server
+# Set management subsystem for the SS0 member as the management service for the Central Server
 PATCH https://{{cs_host}}:4000/api/v1/management-services-configuration
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -148,7 +148,7 @@ Content-Type: application/json
 #JSESSIONID: {{cssessid}}
 #XSRF-TOKEN: {{cs_xsrf_token}}
 {
-  "service_provider_id": "DEV:COM:1234:MANAGEMENT"
+  "service_provider_id": "{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}:MANAGEMENT"
 }
 
 HTTP 200
@@ -309,8 +309,8 @@ POST https://{{ss0_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
-  "owner_member_class": "COM",
-  "owner_member_code": "1234",
+  "owner_member_class": "{{member_class}}",
+  "owner_member_code": "{{ss0_member_code}}",
   "security_server_code": "SS0",
   "software_token_pin": "Secret1234",
   "ignore_warnings": true
@@ -402,7 +402,7 @@ Content-Type: application/json
       "C": "FI",
       "O": "Test member",
       "subjectAltName": "{{ss0_proxy}}",
-      "serialNumber": "DEV/SS0/COM"
+      "serialNumber": "{{xroad_instance}}/SS0/{{member_class}}"
     }
   }
 }
@@ -464,13 +464,13 @@ Content-Type: application/json
     "key_usage_type": "SIGNING",
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
-    "member_id": "DEV:COM:1234",
+    "member_id": "{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}",
     "subject_field_values": {
-      "CN": "1234",
+      "CN": "{{ss0_member_code}}",
       "C": "FI",
       "O": "Test member",
       "subjectAltName": "{{ss0_proxy}}",
-      "serialNumber": "DEV/SS0/COM"
+      "serialNumber": "{{xroad_instance}}/SS0/{{member_class}}"
     }
   }
 }
@@ -562,7 +562,7 @@ HTTP 200
 POST https://{{cs_host}}:4000/api/v1/management-services-configuration/register-provider
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 {
-  "security_server_id": "DEV:COM:1234:SS0"
+  "security_server_id": "{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}:SS0"
 }
 
 HTTP 200
@@ -573,8 +573,8 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
-    "member_class": "COM",
-    "member_code": "1234",
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss0_member_code}}",
     "subsystem_code": "MANAGEMENT",
     "connection_type": "HTTP"
   }
@@ -624,7 +624,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 }
 
 # Add security server owners group access to management services
-POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_management_client_id}}/service-clients/DEV:security-server-owners/access-rights
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_management_client_id}}/service-clients/{{xroad_instance}}:security-server-owners/access-rights
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
@@ -741,8 +741,8 @@ POST https://{{ss1_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
-  "owner_member_class": "COM",
-  "owner_member_code": "4321",
+  "owner_member_class": "{{member_class}}",
+  "owner_member_code": "{{ss1_member_code}}",
   "security_server_code": "SS1",
   "software_token_pin": "Secret1234",
   "ignore_warnings": true
@@ -822,7 +822,7 @@ Content-Type: application/json
       "C": "FI",
       "O": "Test client",
       "subjectAltName": "{{ss1_proxy}}",
-      "serialNumber": "DEV/SS1/COM"
+      "serialNumber": "{{xroad_instance}}/SS1/{{member_class}}"
     }
   }
 }
@@ -874,16 +874,16 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
-# ss1's sign key is deliberately provisioned on its SoftHSM-backed token, selected explicitly
-# by type so list order never matters and a missing HARDWARE token fails this capture loudly
-# instead of silently landing the key on the wrong token.
+# ss1's sign key is deliberately provisioned on the token of type ss1_sign_token_type (HARDWARE by default,
+# SoftHSM-backed), selected explicitly by type so list order never matters and a missing token of that type
+# fails this capture loudly instead of silently landing the key on the wrong token.
 GET https://{{ss1_host}}:4000/api/v1/tokens
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 
 HTTP 200
 
 [Captures]
-ss1_token_id: jsonpath "$[?(@.type == 'HARDWARE')].id"
+ss1_token_id: jsonpath "$[?(@.type == '{{ss1_sign_token_type}}')].id"
 
 # Log in to the Security Servers token
 PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
@@ -905,13 +905,13 @@ Content-Type: application/json
     "key_usage_type": "SIGNING",
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
-    "member_id": "DEV:COM:4321",
+    "member_id": "{{xroad_instance}}:{{member_class}}:{{ss1_member_code}}",
     "subject_field_values": {
-      "CN": "4321",
+      "CN": "{{ss1_member_code}}",
       "C": "FI",
       "O": "Test client",
       "subjectAltName": "{{ss1_proxy}}",
-      "serialNumber": "DEV/SS1/COM"
+      "serialNumber": "{{xroad_instance}}/SS1/{{member_class}}"
     }
   }
 }
@@ -1019,8 +1019,8 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
-    "member_class": "COM",
-    "member_code": "4321",
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss1_member_code}}",
     "subsystem_code": "TestClient",
     "connection_type": "HTTP"
   }
@@ -1057,8 +1057,8 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
-    "member_class": "COM",
-    "member_code": "1234",
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss0_member_code}}",
     "subsystem_code": "TestService",
     "connection_type": "HTTP"
   }
@@ -1095,8 +1095,8 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
-    "member_class": "COM",
-    "member_code": "1234",
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss0_member_code}}",
     "subsystem_code": "TestSaved",
     "connection_type": "HTTP"
   }
@@ -1133,8 +1133,8 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
-    "member_class": "COM",
-    "member_code": "1234",
+    "member_class": "{{member_class}}",
+    "member_code": "{{ss0_member_code}}",
     "subsystem_code": "test-consumer",
     "connection_type": "HTTP"
   }
@@ -1155,13 +1155,13 @@ Content-Type: application/json
     "key_usage_type": "SIGNING",
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
-    "member_id": "DEV:COM:1234",
+    "member_id": "{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}",
     "subject_field_values": {
-      "CN": "1234",
+      "CN": "{{ss0_member_code}}",
       "C": "FI",
       "O": "Test Consumer",
       "subjectAltName": "{{ss1_proxy}}",
-      "serialNumber": "DEV/SS1/COM"
+      "serialNumber": "{{xroad_instance}}/SS1/{{member_class}}"
     }
   }
 }
@@ -1347,7 +1347,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 # Grant TestService access to itself, for the same-SS self-call scenario: SS0 acts as both
 # consumer and provider of its own service. Tolerates 409 so this stays safe to run against
 # a substrate where the grant already exists.
-POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/DEV:COM:1234:TestService/access-rights
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}:TestService/access-rights
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
@@ -1392,7 +1392,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
     {
-      "id": "DEV:COM:4321:TestClient",
+      "id": "{{xroad_instance}}:{{member_class}}:{{ss1_member_code}}:TestClient",
       "name": "Test client",
       "service_client_type": "SUBSYSTEM"
     }
@@ -1506,8 +1506,8 @@ HTTP 201
 # submits -> issuer issues); both SSes' auth certs are already registered by
 # now, so they converge in parallel across these two polls. Member contexts are
 # gated because outgoing DSP requests negotiate as the sender member's derived
-# context (ctx-id "instance:class:code"): SS0 hosts clients of member 1234 only;
-# SS1 hosts clients of members 4321 (owner, TestClient) and 1234 (test-consumer).
+# context (ctx-id "instance:class:code"): SS0 hosts clients of the SS0 member only;
+# SS1 hosts clients of the SS1 member (owner, TestClient) and the SS0 member (test-consumer).
 # The provisioning worker batches all pending contexts per tick, so each SS's
 # asserts converge together; retry is a cap, not a wait.
 # =============================================================================
@@ -1520,7 +1520,7 @@ retry-interval: 5000
 HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
-jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}')].credential_status" == "ISSUED"
 
 GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -1531,5 +1531,5 @@ retry-interval: 5000
 HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
-jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:4321')].credential_status" == "ISSUED"
-jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss1_member_code}}')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}')].credential_status" == "ISSUED"
