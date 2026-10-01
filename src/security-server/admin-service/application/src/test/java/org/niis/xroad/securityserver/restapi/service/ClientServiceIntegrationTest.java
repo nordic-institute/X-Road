@@ -1525,13 +1525,6 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(Client.STATUS_DELINPROG, client.getClientStatus());
     }
 
-    @Test
-    public void unregisterClientNudgesDataspaceProvisioning() {
-        clientService.unregisterClient(existingRegisteredClientId);
-
-        verify(dataspaceParticipantProvisioningWorker).provisionParticipantAsync();
-    }
-
     @Test(expected = ActionNotPossibleException.class)
     public void unregisterClientNotPossible() {
         Client client = clientService.getLocalClient(existingSavedClientId);

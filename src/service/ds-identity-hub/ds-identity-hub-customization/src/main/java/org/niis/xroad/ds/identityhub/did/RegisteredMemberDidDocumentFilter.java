@@ -56,7 +56,6 @@ import java.util.OptionalInt;
 
 import static org.eclipse.edc.identityhub.spi.did.DidConstants.DID_WEB_DID_DOCUMENT;
 import static org.eclipse.edc.identityhub.spi.webcontext.IdentityHubApiContext.CREDENTIALS;
-import static org.eclipse.edc.identityhub.spi.webcontext.IdentityHubApiContext.IH_DID;
 
 /**
  * Serves a synthesised, keyless DID document for a member that is a registered client of this
@@ -66,11 +65,14 @@ import static org.eclipse.edc.identityhub.spi.webcontext.IdentityHubApiContext.I
  * <p>Runs behind EDC's {@code DidWebController}, which answers an unknown {@code did.json} path
  * with an empty body. Only that case is examined: the requested path is decoded through the
  * participant identifier scheme, the DID's authority must be this server's GlobalConf-registered
- * address at the identity hub's DID port, and the member, or one of its subsystems, must be a
- * client of this server in GlobalConf. The document carries the same service entries a
- * provisioned member's document does and no verification keys, and is served with
- * {@code Cache-Control: no-store}. Anything else, including any failure while looking the member
- * up, leaves the controller's response untouched.
+ * address at the ecosystem-wide {@link DspConventions#DID_PORT} — the only authority a
+ * counter-party can derive — and the member, or one of its subsystems, must be a client of this
+ * server in GlobalConf. The document carries no verification keys and the same service types a
+ * provisioned member's document does, and is served with {@code Cache-Control: no-store}. Its
+ * credential-service endpoint is built on the registered address, whereas a provisioned
+ * document's uses the host of the admin service's configured identity-hub URL; the two differ
+ * where that URL names an internal service host. Anything else, including any failure while
+ * looking the member up, leaves the controller's response untouched.
  */
 @RequiredArgsConstructor
 class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
@@ -142,23 +144,22 @@ class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
     }
 
     /**
-     * This server, identified by matching the DID's authority against the GlobalConf-registered
-     * addresses of the member's instance at the identity hub's DID port.
+     * This server, identified by matching the DID's authority against the DID authorities derived
+     * from the GlobalConf-registered addresses of the member's instance.
      */
     private Optional<HostingServer> hostingServer(MemberParticipant member) {
-        var didPort = port(IH_DID);
-        if (didPort.isEmpty()) {
-            return Optional.empty();
-        }
         return globalConfProvider.getSecurityServers(member.member().getXRoadInstance()).stream()
                 .map(id -> new HostingServer(id, globalConfProvider.getSecurityServerAddress(id)))
                 .filter(server -> server.address() != null
-                        && DspConventions.didAuthority(server.address(), didPort.getAsInt()).equals(member.ssHost()))
+                        && DspConventions.didAuthority(server.address()).equals(member.ssHost()))
                 .findFirst();
     }
 
     /** Whether the member itself or any of its subsystems is a client of {@code server} in GlobalConf. */
     private boolean isRegisteredClient(ClientId member, SecurityServerId server) {
+        if (globalConfProvider.isSecurityServerClient(member, server)) {
+            return true;
+        }
         return globalConfProvider.getMembers(member.getXRoadInstance()).stream()
                 .map(MemberInfo::id)
                 .filter(client -> member.equals(client.getMemberId()))

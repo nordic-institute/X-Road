@@ -679,13 +679,21 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readContextStatusKeepsTheContextAndCredentialReadsWhenTheIdentityAssessmentFails() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenThrow(new IllegalStateException("db down"));
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenThrow(new IllegalStateException("unexpected"));
 
         var status = service.readContextStatus(MEMBER_CONTEXT);
 
         assertThat(status.contextCreated()).isFalse();
+        assertThat(status.contextDidUnreadable()).isFalse();
         assertThat(status.credentialStatus()).isEqualTo(CredentialStatus.ABSENT);
         assertThat(status.identityStatus()).isEqualTo(IdentityStatus.UNKNOWN);
+    }
+
+    @Test
+    void readContextStatusPropagatesADatabaseFailure() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenThrow(new DataAccessResourceFailureException("db down"));
+
+        assertThatThrownBy(() -> service.readContextStatus(MEMBER_CONTEXT)).isInstanceOf(DataAccessResourceFailureException.class);
     }
 
     @Test
@@ -710,6 +718,7 @@ class DataspaceProvisioningServiceTest {
         var status = service.readContextStatus(MEMBER_CONTEXT);
 
         assertThat(status.contextCreated()).isFalse();
+        assertThat(status.contextDidUnreadable()).isTrue();
         assertThat(status.credentialStatus()).isEqualTo(CredentialStatus.UNKNOWN);
         assertThat(status.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
     }

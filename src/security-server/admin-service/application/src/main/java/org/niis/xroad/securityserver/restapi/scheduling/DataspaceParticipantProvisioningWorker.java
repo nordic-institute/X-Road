@@ -188,7 +188,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * write, no bind and no credential request; only its Control Plane records are re-applied, because
      * the Control Plane has no status to read. A context of any kind whose hub DID differs from the
      * derived one is never converged: it takes the ensure pass, which refuses to touch it and reports
-     * the drift instead of re-applying the stale DID. Members are
+     * the drift instead of re-applying the stale DID. A context whose identity hub state could not be
+     * read is left for the next tick, rather than spending a second identity hub call on it. Members are
      * bound only after their participant context has been ensured, so the DID written to
      * {@code ds_participant} is one the identity hub has just confirmed or been created with. A
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
@@ -211,6 +212,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             var status = statuses.get(context);
             if (converged(status)) {
                 refreshControlPlane(context, status.contextDid());
+            } else if (status.contextDidUnreadable()) {
+                log.debug("Dataspace provisioning: identity hub state of participant context {} unreadable, retrying next tick",
+                        context.participantId());
             } else {
                 nonConverged.add(context);
             }

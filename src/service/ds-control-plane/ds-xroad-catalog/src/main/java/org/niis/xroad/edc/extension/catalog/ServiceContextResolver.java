@@ -89,12 +89,16 @@ class ServiceContextResolver {
 
     /**
      * Same contract as {@link #resolveContexts(ServiceId, Set)}, for the by-id cache-miss path,
-     * reading the local clients itself.
+     * reading the status of only the owning member's local clients.
      *
      * @param serviceId the service to resolve contexts for
      */
     List<String> resolveContextsById(ServiceId serviceId) {
-        return resolveContexts(serviceId, hostedMemberContextIds(serverConfProvider.getMembers()));
+        var owner = toMemberId(serviceId.getClientId());
+        var ownerClients = serverConfProvider.getMembers().stream()
+                .filter(client -> owner.equals(toMemberId(client)))
+                .toList();
+        return resolveContexts(serviceId, hostedMemberContextIds(ownerClients));
     }
 
     /**

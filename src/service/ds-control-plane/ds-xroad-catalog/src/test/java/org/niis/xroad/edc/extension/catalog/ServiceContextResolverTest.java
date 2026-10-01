@@ -184,6 +184,15 @@ class ServiceContextResolverTest {
     }
 
     @Test
+    void resolveContextsByIdReadsTheStatusOfOnlyTheOwningMembersClients() {
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT, MEMBER));
+        when(serverConfProvider.getMemberStatus(MEMBER)).thenReturn(Client.STATUS_REGISTERED);
+
+        assertThat(resolver().resolveContextsById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX, MEMBER_CTX);
+        verify(serverConfProvider, never()).getMemberStatus(MGMT_CLIENT);
+    }
+
+    @Test
     void resolveContextsByIdPropagatesWhenServerConfCannotBeRead() {
         when(serverConfProvider.getMembers()).thenThrow(new IllegalStateException("boom"));
 

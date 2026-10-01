@@ -158,6 +158,19 @@ class RegisteredMemberDidDocumentFilterTest {
     }
 
     @Test
+    void didAtTheEcosystemDidPortResolvesWhateverPortTheHubListensOn() {
+        when(portMappingRegistry.getAll()).thenReturn(List.of(
+                new PortMapping("did", 8443, "/"), new PortMapping("credentials", 7185, "/api/credentials")));
+        requestFor("v1/DEV/COM/222/did.json");
+        controllerFoundNoDocument();
+        when(globalConfProvider.isSecurityServerClient(MEMBER, SS_ID)).thenReturn(true);
+
+        filter().filter(request, response);
+
+        assertThat(servedDocument().getId()).isEqualTo(MEMBER_DID);
+    }
+
+    @Test
     void memberThatIsNotAClientOfThisServerStaysUnresolved() {
         requestFor("v1/DEV/COM/222/did.json");
         controllerFoundNoDocument();

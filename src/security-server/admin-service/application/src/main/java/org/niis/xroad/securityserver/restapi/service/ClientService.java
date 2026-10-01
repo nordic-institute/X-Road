@@ -553,7 +553,6 @@ public class ClientService {
         putClientStatusToAudit(client);
         auditDataHelper.putManagementRequestId(requestId);
         client.setClientStatus(STATUS_DELINPROG);
-        dataspaceParticipantProvisioningTrigger.provisionParticipantAsync();
     }
 
     /**
@@ -890,7 +889,8 @@ public class ClientService {
     /**
      * Flips the member's dataspace participant binding to decommissioned, in this same transaction,
      * once the deleted client was the member's last one on this server (own client and all
-     * subsystems counted). Does nothing when the member was never bound.
+     * subsystems counted), and schedules a provisioning run to tear it down after commit. Does
+     * nothing when the member was never bound.
      */
     private void decommissionDataspaceBindingIfLastClient(ClientEntity deletedClient, ServerConfEntity serverConfEntity) {
         ClientId member = deletedClient.getIdentifier().getMemberId();
@@ -903,6 +903,7 @@ public class ClientService {
         }
         if (dsParticipantRepository.decommissionMember(member)) {
             log.info("Data space participant binding for {} marked decommissioned", member);
+            dataspaceParticipantProvisioningTrigger.provisionParticipantAsync();
         }
     }
 

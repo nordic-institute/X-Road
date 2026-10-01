@@ -118,8 +118,8 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
             IdentityStatus identityStatus) {
-        return new ParticipantContextStatus("irrelevant", ParticipantKind.HOST, contextCreated ? HUB_DID : null, HUB_DID,
-                credentialStatus, identityStatus);
+        return new ParticipantContextStatus("irrelevant", ParticipantKind.HOST, contextCreated ? HUB_DID : null, false,
+                HUB_DID, credentialStatus, identityStatus);
     }
 
     @Test
@@ -336,7 +336,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
         when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT)).thenReturn(new ParticipantContextStatus(
-                HOST_ID, ParticipantKind.HOST, HUB_DID, DRIFTED_INTENDED_DID, CredentialStatus.ISSUED, null));
+                HOST_ID, ParticipantKind.HOST, HUB_DID, false, DRIFTED_INTENDED_DID, CredentialStatus.ISSUED, null));
 
         worker.provisionParticipant();
 
@@ -358,6 +358,20 @@ class DataspaceParticipantProvisioningWorkerTest {
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
         verify(dataspaceProvisioningService).ensureControlPlaneContext(MGMT_CONTEXT, HUB_DID);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantLeavesAContextWhoseHubStateCouldNotBeReadForTheNextTick() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT)).thenReturn(new ParticipantContextStatus(
+                HOST_ID, ParticipantKind.HOST, null, true, HUB_DID, CredentialStatus.UNKNOWN, null));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(HOST_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(eq(HOST_CONTEXT), any());
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
     }
 

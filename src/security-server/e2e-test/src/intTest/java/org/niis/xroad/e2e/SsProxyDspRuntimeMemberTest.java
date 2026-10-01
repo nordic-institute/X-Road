@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.e2e;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +36,16 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.DidResolutionOps.DidDocumentResponse;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -157,14 +163,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
 
-    /** The identity hub's DID resolution port, served at the Security Server's registered address. */
-    private static final int DID_PORT = 7183;
-
-    /**
-     * The path segments {@code ParticipantIdentifierScheme.memberDid} appends to the authority for
-     * {@link #NEW_MEMBER_CTX_ID}; {@code did:web} maps them onto the URL path of {@code did.json}.
-     */
-    private static final String NEW_MEMBER_DID_PATH = "v1:" + NEW_MEMBER_CTX_ID;
+    private static final String DID_WEB_PREFIX = "did:web:";
+    private static final ClientId.Conf NEW_MEMBER = ClientId.Conf.create(X_ROAD_INSTANCE, NEW_MEMBER_CLASS, NEW_MEMBER_CODE);
 
     /** The ctx-id the consumer side negotiates as: {@link #CONSUMER_CLIENT_ID}'s member, ss0's owner. */
     private static final String CONSUMER_MEMBER_CTX_ID = "DEV:COM:1234";
@@ -608,12 +608,14 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     private String newMemberDid(E2eEnvironment env) {
-        return "did:web:%s%%3A%d:%s".formatted(env.securityServerAddress(SS0_ENV), DID_PORT, NEW_MEMBER_DID_PATH);
+        return DspConventions.memberCounterPartyId(NEW_MEMBER, env.securityServerAddress(SS0_ENV)).toString();
     }
 
+    /** The {@code did:web} resolution URL: the decoded authority, then the remaining DID segments as the path. */
     private String newMemberDidUrl(E2eEnvironment env) {
-        return "https://%s:%d/%s/did.json".formatted(
-                env.securityServerAddress(SS0_ENV), DID_PORT, NEW_MEMBER_DID_PATH.replace(':', '/'));
+        var segments = newMemberDid(env).substring(DID_WEB_PREFIX.length()).split(":");
+        var path = String.join("/", Arrays.copyOfRange(segments, 1, segments.length));
+        return "https://%s/%s/did.json".formatted(URLDecoder.decode(segments[0], StandardCharsets.UTF_8), path);
     }
 
     /**

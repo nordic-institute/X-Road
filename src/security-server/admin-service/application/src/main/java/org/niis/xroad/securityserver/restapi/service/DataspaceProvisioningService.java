@@ -45,7 +45,9 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -157,6 +159,8 @@ public class DataspaceProvisioningService {
      * @param kind             HOST, MANAGEMENT, SYSTEM or MEMBER
      * @param contextDid       the DID the identity hub serves for the participant context;
      *                         {@code null} when the context does not exist there or could not be read
+     * @param contextDidUnreadable whether reading {@code contextDid} from the identity hub failed, so
+     *                         a {@code null} there says nothing about whether the context exists
      * @param intendedDid      the DID this server derives for the participant context today;
      *                         {@code null} when it cannot be derived (DID authority unknown, unreadable
      *                         or broken member binding)
@@ -168,6 +172,7 @@ public class DataspaceProvisioningService {
             String participantId,
             ParticipantKind kind,
             @Nullable Did contextDid,
+            boolean contextDidUnreadable,
             @Nullable Did intendedDid,
             CredentialStatus credentialStatus,
             @Nullable IdentityStatus identityStatus
@@ -503,11 +508,11 @@ public class DataspaceProvisioningService {
 
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
-     * trigger provisioning, poll, or sleep. Never throws. The bound-identity assessment, the
-     * participant context DID and the credential status are read independently, so a failure in
-     * one is reported as {@code UNKNOWN} in its own field and leaves the others as observed. An
-     * unreadable context DID additionally leaves the credential status {@code UNKNOWN}: without a
-     * context there is nothing to resolve a credential against.
+     * trigger provisioning, poll, or sleep. The bound-identity assessment, the participant context
+     * DID and the credential status are read independently, so a dataspace-backend failure in one is
+     * reported as {@code UNKNOWN} in its own field and leaves the others as observed. An unreadable
+     * context DID additionally leaves the credential status {@code UNKNOWN}: without a context there
+     * is nothing to resolve a credential against. Database failures propagate.
      *
      * @param context the participant context to report on
      */
@@ -520,18 +525,18 @@ public class DataspaceProvisioningService {
                 : null;
         var intendedDid = assessment != null ? assessment.intendedDid() : derivedDidOrNull(context);
 
-        Optional<Did> hubDid = Optional.empty();
-        var credentialStatus = CredentialStatus.UNKNOWN;
+        Optional<Did> hubDid;
         try {
-            var did = identityHubClient.contextDid(participantId);
-            hubDid = did;
-            credentialStatus = readOrFallback(participantId, "credential status",
-                    () -> resolveCredentialStatus(context, did.isPresent()), CredentialStatus.UNKNOWN);
+            hubDid = identityHubClient.contextDid(participantId);
         } catch (Exception e) {
             log.warn("Data space: could not read the participant context DID of {}", participantId, e);
+            return new ParticipantContextStatus(participantId, context.kind(), null, true, intendedDid,
+                    CredentialStatus.UNKNOWN, identityStatusOf(assessment, Optional.empty()));
         }
+        var credentialStatus = readOrFallback(participantId, "credential status",
+                () -> resolveCredentialStatus(context, hubDid.isPresent()), CredentialStatus.UNKNOWN);
 
-        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), intendedDid,
+        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), false, intendedDid,
                 credentialStatus, identityStatusOf(assessment, hubDid));
     }
 
@@ -547,6 +552,8 @@ public class DataspaceProvisioningService {
     private <T> T readOrFallback(String participantId, String what, Supplier<T> read, T fallback) {
         try {
             return read.get();
+        } catch (DataAccessException | TransactionException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Data space: could not read the {} of participant {}", what, participantId, e);
             return fallback;

@@ -45,7 +45,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
-import org.niis.xroad.securityserver.restapi.scheduling.NoopDataspaceParticipantProvisioningTrigger;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 
@@ -94,6 +94,8 @@ class ClientServiceDataspaceTombstoneTest {
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private ServerConfEntity serverConfEntity;
+    @Mock
+    private DataspaceParticipantProvisioningWorker provisioningTrigger;
 
     private ClientService clientService;
     private Set<ClientEntity> clients;
@@ -103,7 +105,7 @@ class ClientServiceDataspaceTombstoneTest {
         clientService = new ClientService(clientRepository, null, globalConfProvider, serverConfService, null,
                 identifierRepository, dsParticipantRepository, localGroupRepository, accessRightRepository, null,
                 new CurrentSecurityServerId(SecurityServerId.Conf.create(OWNER, "SS1")), subsystemNameStatus,
-                auditDataHelper, catalogInvalidationNotifier, new NoopDataspaceParticipantProvisioningTrigger(),
+                auditDataHelper, catalogInvalidationNotifier, provisioningTrigger,
                 mock(CurrentSecurityServerSignCertificates.class));
 
         clients = new HashSet<>();
@@ -125,6 +127,7 @@ class ClientServiceDataspaceTombstoneTest {
         clientService.deleteLocalClient(member);
 
         verify(dsParticipantRepository).decommissionMember(member);
+        verify(provisioningTrigger).provisionParticipantAsync();
     }
 
     @Test
@@ -137,6 +140,7 @@ class ClientServiceDataspaceTombstoneTest {
         assertDoesNotThrow(() -> clientService.deleteLocalClient(member));
 
         verify(dsParticipantRepository).decommissionMember(member);
+        verify(provisioningTrigger, never()).provisionParticipantAsync();
     }
 
     @Test
