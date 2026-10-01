@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
@@ -180,7 +181,13 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .map(XrdRuntimeException.class::cast)
                     .map(XrdRuntimeException::getCode)
                     .collect(Collectors.toSet());
-            if (xrdCodes.size() == 1 && !isRemoteNotFoundCode(xrdCodes.iterator().next())) {
+            if (xrdCodes.size() == 1) {
+                if (isRemoteNotFoundCode(xrdCodes.iterator().next())) {
+                    return XrdRuntimeException.systemException(UNKNOWN_MEMBER)
+                            .cause(remoteFailures.getLast())
+                            .details("No catalog offer found for service %s".formatted(serviceId))
+                            .build();
+                }
                 return remoteFailures.getFirst();
             }
         }
