@@ -36,7 +36,7 @@
         name: cloudnative_pg
 
     # security_server_instances is the multi-release topology hook: a list of
-    # {namespace, dsp_participant_context_id, openbao_tls_dir} dicts, one per Security Server
+    # {namespace, openbao_tls_dir} dicts, one per Security Server
     # release. When unset it defaults to the single existing
     # security_server_namespace/openbao_tls_dir — identical single-iteration behavior to before
     # this was a loop.
@@ -73,7 +73,6 @@
         name: security_server
       vars:
         security_server_namespace: "{{ ss_instance.namespace }}"
-        dsp_participant_context_id: "{{ ss_instance.dsp_participant_context_id | default('') }}"
         signer_hsm_enabled: "{{ ss_instance.signer_hsm_enabled | default(false) }}"
         softtoken_signer_enabled: "{{ ss_instance.softtoken_signer_enabled | default(false) }}"
         messagelog_encryption_config: "{{ ss_instance.messagelog_encryption_config | default('') }}"

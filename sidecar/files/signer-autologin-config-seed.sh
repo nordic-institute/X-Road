@@ -10,7 +10,7 @@
 # (xroad.signer.autologin.tokens.*.pin), which are a plain smallrye
 # @ConfigMapping and so read XROAD_SIGNER_AUTOLOGIN_TOKENS__<id>__PIN directly
 # from the process environment. This script is the enable flag's equivalent
-# of the DSP participant-context-id seed: the sidecar's bridge from a
+# of the DSP config seed (dsp-config-seed.sh): the sidecar's bridge from a
 # docker-run environment variable to the DB-config-override row the signer
 # actually reads. No row is written unless the operator opts in, so an
 # unconfigured container keeps the packaged default (disabled).

@@ -6,10 +6,9 @@
 # boot cleanly.
 #
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
-# once upstream packaging ships debconf preseeds or cloud-init hooks for:
-#   - ds-control-plane:  participant-context-id
-#   - xroad-proxy:       dsp.participant-context-id
-# AND the packages no longer start the units unconditionally during postinst.
+# once upstream packaging ships debconf preseeds or cloud-init hooks for
+# ds-control-plane's sts.oauth.token.url and dsp.callback.address config, AND
+# the packages no longer start the units unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
 # of xroad-ss) before this file runs.
@@ -66,7 +65,7 @@
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   participant-context-id, sts.oauth.token.url and dsp.callback.address config.
+#   sts.oauth.token.url and dsp.callback.address config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
   copy:
@@ -95,8 +94,6 @@
               token:
                 url: "https://{{ xroad_host_fqdn }}:7184/api/sts/token"
       xroad:
-        dsp:
-          participant-context-id: "{{ xroad_host_fqdn }}"
         edc:
           web:
             https:

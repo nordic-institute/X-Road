@@ -10,7 +10,6 @@
    reach-the-hub URL for the admin-service provisioning client. #}
 {% set ds_ih_host = 'ds-identity-hub.' ~ security_server_namespace %}
 {% set ds_serverproxy_host = 'proxy.' ~ security_server_namespace %}
-{% set ds_participant_id = dsp_participant_context_id %}
 {% set messagelog_encryption_enabled = (messagelog_encryption_config | default('')) | length > 0 %}
 {% if (xroad_image_registry | length > 0) or jvm_metrics_enabled %}
 global:
@@ -67,12 +66,6 @@ configSeed:
       value: "{{ configuration_client_update_interval }}"
     - key: xroad.signer.ocsp-response-retrieval-active
       value: "true"
-    # proxy and ds-identity-hub gate their startup on these two rows (chart
-    # waits), so they must be seeded regardless of ds_tls or the pods deadlock.
-    - key: xroad.proxy.dsp.participant-context-id
-      value: "{{ ds_participant_id }}"
-    - key: xroad.proxy-ui-api.dataspace.participant-id
-      value: "{{ ds_participant_id }}"
     # Where this Security Server advertises its own server proxy for the DSP data
     # plane. The product default is https://localhost:5500, which only holds when
     # consumer and provider share a host; a multi-release k8s topology needs it
@@ -147,7 +140,7 @@ services:
   op-monitor:
     enabled: true
 
-{% if ds_tls and dsp_participant_context_id | length > 0 %}
+{% if ds_tls %}
   # The GlobalConf-registered address is the proxy Service, so the DSP surface
   # counterparties derive from it (7183 DID resolution, 8183 DSP) must be served
   # there too: the ds-gateway-dev stream sidecar in the proxy pod forwards those
@@ -253,11 +246,6 @@ otel:
   resourceAttributes:
     serviceNamespace: xroad
     deploymentEnvironment: {{ otel_deployment_environment }}
-{% endif %}
-
-{% if dsp_participant_context_id | length > 0 %}
-dsp:
-  participantContextId: "{{ dsp_participant_context_id }}"
 {% endif %}
 
 # Postgres image used by DSP wait-gate initContainers. The DB clusters

@@ -4,15 +4,15 @@ services:
     environment:
       - XROAD_ADMIN_USER=xrd
       - XROAD_ADMIN_PASSWORD=secret123!
+      # e2e-config.sh (mounted below) derives xroad.proxy.dsp.serverproxy-endpoint's host from this.
       - XROAD_DSP_PARTICIPANT_CONTEXT_ID=${XROAD_DSP_PARTICIPANT_CONTEXT_ID:-xrd-ss0}
-      # The admin-service's data space participant-context provisioning worker needs these on every
-      # scheduled tick, not only for DSP-specific scenarios: identity-hub-url/participant-id have no
-      # built-in default, so leaving them unset fails every tick with a NullPointerException instead
-      # of just leaving data space credentials unprovisioned. The identity-hub URL points at the
-      # identity hub's DID resolution port (7183), which in the sidecar is served by this container
-      # under its own ds-identity-hub network alias.
+      # The admin-service's data space participant-context provisioning worker needs this on every
+      # scheduled tick, not only for DSP-specific scenarios: identity-hub-url has no built-in default,
+      # so leaving it unset fails every tick with a NullPointerException instead of just leaving data
+      # space credentials unprovisioned. The identity-hub URL points at the identity hub's DID
+      # resolution port (7183), which in the sidecar is served by this container under its own
+      # ds-identity-hub network alias.
       - XROAD_DATASPACE_IDENTITY_HUB_URL=https://${SS_NAME:-ss0}-ds-identity-hub:7183
-      - XROAD_DATASPACE_PARTICIPANT_ID=xrd-${SS_NAME:-ss0}
       # ds-control-plane builds its own self-callback URL (used even for a same-SS negotiation,
       # e.g. the management Security Server registering its own clients) from this address. Without
       # it, it falls back to the container's own auto-assigned Docker hostname, which is not in the
