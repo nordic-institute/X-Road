@@ -101,10 +101,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
         }
-        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
-        syntheticServices.managementEntries()
-                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.management())));
-        syntheticServices.systemEntries()
+        serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.system())));
         return assets;
     }
@@ -164,6 +161,10 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        if (ctxId == null) {
+            log.trace("findById assetId={} has no provisioned context, returning null", assetId);
+            return null;
+        }
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 

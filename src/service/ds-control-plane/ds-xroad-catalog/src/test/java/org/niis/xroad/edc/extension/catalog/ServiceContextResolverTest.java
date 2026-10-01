@@ -58,10 +58,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ServiceContextResolverTest {
 
-    private static final String HOST_CTX = "xroad-provider";
-    private static final String MGMT_CTX = "xroad-provider-mgmt";
     private static final String SYSTEM_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(HOST_CTX, MGMT_CTX, SYSTEM_CTX);
+    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(SYSTEM_CTX);
 
     private static final ClientId.Conf MEMBER = ClientId.Conf.create("DEV", "GOV", "1111");
     private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
@@ -90,10 +88,10 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveContextsReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+    void resolveContextsReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
         var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of());
 
-        assertThat(result).containsExactly(HOST_CTX);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -113,49 +111,52 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void managementRequestServiceLegacyPublicationContextIsManagementNotHost() {
-        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
-
+    void managementRequestServiceReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
         var result = resolver().resolveContexts(MGMT_SERVICE, Set.of());
 
-        assertThat(result).containsExactly(MGMT_CTX);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void managementRequestServiceResolvesManagementEvenWhenOwningMemberContextIsProvisioned() {
-        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+    void managementRequestServiceResolvesOwningMemberContextOnceProvisioned() {
         var mgmtMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333"));
 
         var result = resolver().resolveContexts(MGMT_SERVICE, Set.of(mgmtMemberCtx));
 
-        assertThat(result).containsExactly(MGMT_CTX);
+        assertThat(result).containsExactly(mgmtMemberCtx);
     }
 
     @Test
     void selectReturnsRequestedContextWhenItIsAmongResolvedContexts() {
-        var selected = ServiceContextResolver.select(List.of(HOST_CTX, MEMBER_CTX), MEMBER_CTX);
+        var selected = ServiceContextResolver.select(List.of(SYSTEM_CTX, MEMBER_CTX), MEMBER_CTX);
 
         assertThat(selected).isEqualTo(MEMBER_CTX);
     }
 
     @Test
-    void selectFallsBackToLegacyHostContextWhenNoneRequested() {
-        var selected = ServiceContextResolver.select(List.of(HOST_CTX, MEMBER_CTX), null);
+    void selectFallsBackToFirstResolvedContextWhenNoneRequested() {
+        var selected = ServiceContextResolver.select(List.of(SYSTEM_CTX, MEMBER_CTX), null);
 
-        assertThat(selected).isEqualTo(HOST_CTX);
+        assertThat(selected).isEqualTo(SYSTEM_CTX);
     }
 
     @Test
-    void selectFallsBackToLegacyHostContextWhenRequestedContextIsNotAmongResolvedContexts() {
-        var selected = ServiceContextResolver.select(List.of(HOST_CTX), "some-other-context");
+    void selectFallsBackToFirstResolvedContextWhenRequestedContextIsNotAmongResolvedContexts() {
+        var selected = ServiceContextResolver.select(List.of(MEMBER_CTX), "some-other-context");
 
-        assertThat(selected).isEqualTo(HOST_CTX);
+        assertThat(selected).isEqualTo(MEMBER_CTX);
     }
 
     @Test
-    void provisionedMemberContextIdsRecognisesThreeSegmentShapeAndExcludesHostAndManagement() {
+    void selectReturnsNullWhenResolvedContextsIsEmpty() {
+        assertThat(ServiceContextResolver.select(List.of(), "some-other-context")).isNull();
+        assertThat(ServiceContextResolver.select(List.of(), null)).isNull();
+    }
+
+    @Test
+    void provisionedMemberContextIdsRecognisesThreeSegmentShapeAndExcludesNonMemberShapes() {
         when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(
-                participantContext(MEMBER_CTX), participantContext(HOST_CTX), participantContext(MGMT_CTX))));
+                participantContext(MEMBER_CTX), participantContext(SYSTEM_CTX))));
 
         var result = resolver().provisionedMemberContextIds();
 
@@ -179,13 +180,13 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+    void resolveContextsByIdReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.notFound("no such context"));
 
         var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
-        assertThat(result).containsExactly(HOST_CTX);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -199,13 +200,14 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveContextsByIdManagementRequestServiceNeverConsultsMemberContextProvisioning() {
-        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+    void resolveContextsByIdManagementRequestServiceReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
+        var mgmtMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333"));
+        when(participantContextService.getParticipantContext(mgmtMemberCtx))
+                .thenReturn(ServiceResult.notFound("no such context"));
 
         var result = resolver().resolveContextsById(MGMT_SERVICE);
 
-        assertThat(result).containsExactly(MGMT_CTX);
-        verify(participantContextService, never()).getParticipantContext(any());
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -237,9 +239,7 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void normalizeRequestedContextPassesThroughHostAndManagementAndValidMemberCtx() {
-        assertThat(resolver().normalizeRequestedContext(HOST_CTX)).isEqualTo(HOST_CTX);
-        assertThat(resolver().normalizeRequestedContext(MGMT_CTX)).isEqualTo(MGMT_CTX);
+    void normalizeRequestedContextPassesThroughValidMemberCtx() {
         assertThat(resolver().normalizeRequestedContext(MEMBER_CTX)).isEqualTo(MEMBER_CTX);
     }
 
@@ -253,6 +253,11 @@ class ServiceContextResolverTest {
         assertThat(resolver().normalizeRequestedContext(null)).isNull();
         assertThat(resolver().normalizeRequestedContext("not-a-real-ctx")).isNull();
         assertThat(resolver().normalizeRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isNull();
+    }
+
+    @Test
+    void normalizeRequestedContextCollapsesSingleSegmentNonSystemStringToNull() {
+        assertThat(resolver().normalizeRequestedContext("xroad-provider")).isNull();
     }
 
     // --- isSystemEligible / resolveSyntheticServices ---
@@ -358,35 +363,32 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveSyntheticServicesResolvesManagementSubsystemOnceForBothLists() {
+    void resolveSyntheticServicesResolvesManagementSubsystemOnce() {
         stubEligibleManagementSubsystem();
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result.managementEntries()).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
-        assertThat(result.systemEntries()).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
+        assertThat(result).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
         verify(serverConfProvider, times(1)).getAllServices(MGMT_CLIENT);
     }
 
     @Test
-    void resolveSyntheticServicesReturnsEmptyListsWhenNoManagementSubsystem() {
+    void resolveSyntheticServicesReturnsEmptyListWhenNoManagementSubsystem() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result.managementEntries()).isEmpty();
-        assertThat(result.systemEntries()).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void resolveSyntheticServicesReturnsEmptyListsWhenManagementSubsystemHasRealServices() {
+    void resolveSyntheticServicesReturnsEmptyListWhenManagementSubsystemHasRealServices() {
         stubLiveManagementSubsystem();
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result.managementEntries()).isEmpty();
-        assertThat(result.systemEntries()).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     // --- isSystemPublished / isSystemSyntheticEligible ---

@@ -29,7 +29,6 @@ package org.niis.xroad.edc.extension.catalog;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.ManagementServiceCodes;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,13 +42,10 @@ import java.util.Set;
 @UtilityClass
 class ManagementServiceCatalog {
 
-    static final List<String> SERVICE_CODES = ManagementServiceCodes.ALL;
-
     /**
-     * {@link #SERVICE_CODES} minus {@code authCertReg}: it is never negotiated over the
-     * dataspace protocol (it goes as direct HTTPS to the Central Server), so the SYSTEM
-     * publication excludes it while the management subsystem's own synthetic fallback entries
-     * (published when it has no real configured services) still carry the full list.
+     * The subset of management-request service codes actually negotiated over the dataspace
+     * protocol. Excludes {@code authCertReg}: it is never negotiated over the dataspace protocol
+     * (it goes as direct HTTPS to the Central Server).
      */
     static final Set<String> SYSTEM_SERVICE_CODES = ManagementServiceCodes.DSP_NEGOTIATED;
 }

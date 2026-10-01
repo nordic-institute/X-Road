@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * <p>A subsystem-scoped service collapses to its owning member before member-context resolution,
  * since subsystems never hold participant identity (XRDADR-41). Provisioned member contexts are
  * read from EDC's {@link ParticipantContextService} and recognised by their three-segment ctx-id
- * shape, which separates them from the host and management ctx-ids held in the same store.
+ * shape.
  *
  * <p>Also owns the SYSTEM-context routing decisions shared by the three ServerConf-backed catalog
  * stores: which built-in/synthetic context a SYSTEM-addressed request resolves to, and which
@@ -77,23 +77,19 @@ class ServiceContextResolver {
 
     /**
      * The single context a service is published under: the owning member's own context, once one is
-     * provisioned for it, or else the legacy publication context (host — or management, for the
-     * MANAGEMENT subsystem's own service) as a pre-provisioning fallback. The MANAGEMENT subsystem's
-     * own service always resolves via the legacy path regardless of member-context provisioning —
-     * its distinct {@code -mgmt} identity exists for self-negotiation collision avoidance, a concern
-     * unrelated to whether its owning member also happens to have an ordinary member context.
+     * provisioned for it — or no context at all otherwise. A service whose owning member has no
+     * provisioned participant context yet is simply not published anywhere; full pre-provisioning
+     * discoverability is a deferred follow-up (XRDADR-41). The MANAGEMENT subsystem's own services
+     * are ordinary member traffic like any other subsystem's — no special-cased identity.
      *
      * @param serviceId the service to resolve the context for
      * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
+     * @return the service's sole publication context, or an empty list when its owning member has no provisioned context
      */
     List<String> resolveContexts(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
-        if (!isManagementOwnService(serviceId)) {
-            var memberCtx = memberContextId(serviceId.getClientId(), provisionedMemberContextIds);
-            if (memberCtx.isPresent()) {
-                return List.of(memberCtx.get());
-            }
-        }
-        return List.of(legacyPublicationContextId(serviceId));
+        return memberContextId(serviceId.getClientId(), provisionedMemberContextIds)
+                .map(List::of)
+                .orElse(List.of());
     }
 
     /**
@@ -103,28 +99,27 @@ class ServiceContextResolver {
      * by-id lookup only ever needs to know about the one ctx-id it can derive from the service.
      *
      * @param serviceId the service to resolve the context for
+     * @return the service's sole publication context, or an empty list when its owning member has no provisioned context
      */
     List<String> resolveContextsById(ServiceId serviceId) {
-        if (!isManagementOwnService(serviceId)) {
-            var memberCtx = memberContextIdById(serviceId.getClientId());
-            if (memberCtx.isPresent()) {
-                return List.of(memberCtx.get());
-            }
-        }
-        return List.of(legacyPublicationContextId(serviceId));
+        return memberContextIdById(serviceId.getClientId())
+                .map(List::of)
+                .orElse(List.of());
     }
 
     /**
      * Picks the record matching the request's addressed context, if it is one of
      * {@code resolvedContexts}; otherwise falls back to the list's first entry — by
      * {@link #resolveContexts(ServiceId, Set)}'s either/or contract, the service's sole resolved
-     * context, or the SYSTEM context a caller appended on top of it.
+     * context, or the SYSTEM context a caller appended on top of it. Returns {@code null} when
+     * {@code resolvedContexts} is empty: the service has no context to publish under at all.
      */
+    @Nullable
     static String select(List<String> resolvedContexts, @Nullable String requestedParticipantContextId) {
         if (requestedParticipantContextId != null && resolvedContexts.contains(requestedParticipantContextId)) {
             return requestedParticipantContextId;
         }
-        return resolvedContexts.getFirst();
+        return resolvedContexts.isEmpty() ? null : resolvedContexts.getFirst();
     }
 
     /** Whether a DSP request was addressed to this server's SYSTEM context. */
@@ -201,26 +196,19 @@ class ServiceContextResolver {
     }
 
     /**
-     * The additive management-service synthetic entries for one catalog rebuild: the full,
-     * {@code -mgmt}-published set and the SYSTEM-eligible subset, derived from a single management
-     * subsystem resolution so a rebuild that needs both never resolves it twice.
+     * The SYSTEM-eligible management-request synthetic entries for one catalog rebuild: the
+     * versionless codes from {@link ManagementServiceCatalog#SYSTEM_SERVICE_CODES}, minted for the
+     * locally hosted management subsystem when it has no real configured services of its own.
      */
-    SyntheticServices resolveSyntheticServices() {
+    List<ServiceId.Conf> resolveSyntheticServices() {
         var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
         if (managementSubsystem == null) {
-            return new SyntheticServices(List.of(), List.of());
+            return List.of();
         }
-        var managementEntries = ManagementServiceCatalog.SERVICE_CODES.stream()
+        return ManagementServiceCatalog.SYSTEM_SERVICE_CODES.stream()
                 .map(code -> ServiceId.Conf.create(managementSubsystem, code))
                 .toList();
-        var systemEntries = ManagementServiceCatalog.SYSTEM_SERVICE_CODES.stream()
-                .map(code -> ServiceId.Conf.create(managementSubsystem, code))
-                .toList();
-        return new SyntheticServices(managementEntries, systemEntries);
     }
-
-    /** The management-service synthetic entries for one catalog rebuild, split by publication context. */
-    record SyntheticServices(List<ServiceId.Conf> managementEntries, List<ServiceId.Conf> systemEntries) { }
 
     /**
      * Whether {@code serviceId} is one of the SYSTEM-eligible management-request synthetic
@@ -324,20 +312,18 @@ class ServiceContextResolver {
 
     /**
      * Normalizes a requested participant context for use as a by-id cache key: a value that is
-     * neither the host context, the management context, the SYSTEM context, nor syntactically a
-     * valid member ctx-id collapses to {@code null} — the same key as "no context requested" — so
-     * that distinct garbage input never mints a distinct cache entry for what is, in every case,
-     * the same legacy-fallback record. The cache itself stays unaware of ctx-id scheme rules; this
-     * is the one place that decides what a plausible context looks like.
+     * neither the SYSTEM context nor syntactically a valid member ctx-id collapses to {@code null}
+     * — the same key as "no context requested" — so that distinct garbage input never mints a
+     * distinct cache entry for what is, in every case, the same not-found record. The cache itself
+     * stays unaware of ctx-id scheme rules; this is the one place that decides what a plausible
+     * context looks like.
      */
     @Nullable
     String normalizeRequestedContext(@Nullable String requestedParticipantContextId) {
         if (requestedParticipantContextId == null) {
             return null;
         }
-        if (requestedParticipantContextId.equals(contextIds.host())
-                || requestedParticipantContextId.equals(contextIds.management())
-                || requestedParticipantContextId.equals(contextIds.system())
+        if (requestedParticipantContextId.equals(contextIds.system())
                 || isMemberContextShape(requestedParticipantContextId)) {
             return requestedParticipantContextId;
         }
@@ -372,16 +358,6 @@ class ServiceContextResolver {
             throw XrdRuntimeException.systemException(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED, e,
                     "Failed to list provisioned participant contexts: %s", e.getMessage());
         }
-    }
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String legacyPublicationContextId(ServiceId serviceId) {
-        return isManagementOwnService(serviceId) ? contextIds.management() : contextIds.host();
-    }
-
-    private boolean isManagementOwnService(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return mgmtService != null && mgmtService.equals(serviceId.getClientId());
     }
 
     private Optional<String> memberContextId(ClientId owner, Set<String> provisionedMemberContextIds) {

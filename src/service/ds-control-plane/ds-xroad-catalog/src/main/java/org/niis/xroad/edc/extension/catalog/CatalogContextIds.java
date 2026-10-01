@@ -27,12 +27,11 @@
 package org.niis.xroad.edc.extension.catalog;
 
 /**
- * The three server-level participant contexts every ServerConf-backed catalog store publishes
- * under. Kept together so callers pass one named value instead of three interchangeable strings.
+ * The server-level participant context every ServerConf-backed catalog store publishes under for
+ * synthetic/built-in entries. A service owned by a member with no provisioned participant context
+ * is simply not published anywhere — there is no legacy placeholder context to fall back to.
  *
- * @param host       the legacy host context, this server's own DSP identity
- * @param management the distinct identity for MANAGEMENT-subsystem entities
- * @param system     the per-server SYSTEM context (XRDADR-41)
+ * @param system the per-server SYSTEM context (XRDADR-41)
  */
-record CatalogContextIds(String host, String management, String system) {
+record CatalogContextIds(String system) {
 }

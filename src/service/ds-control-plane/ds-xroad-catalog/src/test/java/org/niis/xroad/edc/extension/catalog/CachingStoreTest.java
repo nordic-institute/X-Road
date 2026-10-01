@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import com.google.common.base.Ticker;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -61,11 +62,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CachingStoreTest {
 
-    private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
-    private static final String MGMT_PARTICIPANT_CONTEXT_ID = "xroad-provider-mgmt";
     private static final String SYSTEM_PARTICIPANT_CONTEXT_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(
-            PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID);
+    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(SYSTEM_PARTICIPANT_CONTEXT_ID);
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
     private static final ServiceId.Conf SERVICE_1 = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "getRecords", "v1");
     private static final String MEMBER_CTX =
@@ -111,6 +109,15 @@ class CachingStoreTest {
         lenient().when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        lenient().when(participantContextService.search(any()))
+                .thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_CTX))));
+    }
+
+    private static ParticipantContext participantContext(String contextId) {
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId(contextId)
+                .identity("did:web:example.com:v1:" + contextId)
+                .build();
     }
 
     @Test
@@ -150,6 +157,8 @@ class CachingStoreTest {
     @Test
     void findByIdHitServedFromCache() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
@@ -162,14 +171,16 @@ class CachingStoreTest {
     @Test
     void findByIdCacheKeyIncludesRequestedParticipantContext() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
-        // A syntactically valid member ctx-id and the host ctx are both plausible requested
-        // contexts, so each must key its own cache entry.
+        // A syntactically valid member ctx-id and "no context requested" are both plausible
+        // requested contexts, so each must key its own cache entry.
         requestedParticipantContext.set(MEMBER_CTX);
         store.findById(SERVICE_1.asEncodedId());
-        requestedParticipantContext.set(PARTICIPANT_CONTEXT_ID);
+        requestedParticipantContext.clear();
         store.findById(SERVICE_1.asEncodedId());
 
         verify(serverConfProvider, times(2)).serviceExists(SERVICE_1);
@@ -178,11 +189,13 @@ class CachingStoreTest {
     @Test
     void findByIdCacheKeyCollapsesGarbageRequestedContextsWithNoContextRequested() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
-        // Neither string decodes as a member ctx-id nor matches the host/management ctx, so both
-        // collapse to the same key as "no context requested" — one cache entry, one loader call.
+        // Neither string decodes as a member ctx-id nor matches the SYSTEM ctx, so both collapse to
+        // the same key as "no context requested" — one cache entry, one loader call.
         requestedParticipantContext.clear();
         store.findById(SERVICE_1.asEncodedId());
         requestedParticipantContext.set("not-a-real-ctx");
@@ -213,12 +226,12 @@ class CachingStoreTest {
         var store = buildStore(withCache);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CONTEXT_ID))
+                .filter(new Criterion("participantContextId", "=", MEMBER_CTX))
                 .build();
         var result = store.queryAssets(spec).toList();
 
         assertThat(result).allSatisfy(a ->
-                assertThat(a.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID));
+                assertThat(a.getParticipantContextId()).isEqualTo(MEMBER_CTX));
         assertThat(result).isNotEmpty();
     }
 
@@ -254,6 +267,8 @@ class CachingStoreTest {
         var store = buildStore(cache);
 
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
         var first = store.findById(SERVICE_1.asEncodedId());

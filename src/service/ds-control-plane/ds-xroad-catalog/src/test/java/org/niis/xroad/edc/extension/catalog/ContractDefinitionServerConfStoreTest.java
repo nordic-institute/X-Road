@@ -63,17 +63,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ContractDefinitionServerConfStoreTest {
 
-    private static final String PARTICIPANT_CTX = "xroad-provider";
-    private static final String MGMT_PARTICIPANT_CTX = "xroad-provider-mgmt";
     private static final String SYSTEM_PARTICIPANT_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(
-            PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX, SYSTEM_PARTICIPANT_CTX);
+    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(SYSTEM_PARTICIPANT_CTX);
     private static final StoreEnumerationCache<ContractDefinition> DISABLED_CACHE =
             new StoreEnumerationCache<>(false, 60, 1000, "test");
 
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1234", "SubSys");
     private static final ClientId.Conf MEMBER_2 = ClientId.Conf.create("DEV", "GOV", "5678", "SubSys");
     private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
+    private static final String MEMBER_1_CTX = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1234"));
+    private static final String MEMBER_2_CTX = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "5678"));
 
     private static final ServiceId.Conf SERVICE_1 = ServiceId.Conf.create("DEV", "GOV", "1234", "SubSys", "svc1", "v1");
     private static final ServiceId.Conf SERVICE_2 = ServiceId.Conf.create("DEV", "GOV", "5678", "SubSys", "svc2");
@@ -132,6 +131,7 @@ class ContractDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar1, ar2));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
 
         var result = store.findAll(QuerySpec.max()).toList();
 
@@ -149,6 +149,7 @@ class ContractDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(arClient, arGroup));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
 
         var result = store.findAll(QuerySpec.max()).toList();
 
@@ -168,11 +169,12 @@ class ContractDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
 
         var result = store.findAll(QuerySpec.max()).toList();
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getFirst().getParticipantContextId()).isEqualTo(MEMBER_1_CTX);
     }
 
     @Test
@@ -219,6 +221,8 @@ class ContractDefinitionServerConfStoreTest {
 
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.getParticipantContext(MEMBER_1_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_1_CTX)));
 
         var contractId = AssetMapper.encodeAssetId(SERVICE_1)
                 + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()
@@ -228,7 +232,7 @@ class ContractDefinitionServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(contractId);
-        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getParticipantContextId()).isEqualTo(MEMBER_1_CTX);
     }
 
     @Test
@@ -243,6 +247,8 @@ class ContractDefinitionServerConfStoreTest {
         when(serverConfProvider.serviceExists(sixPartAttempt)).thenReturn(false);
         when(serverConfProvider.serviceExists(SERVICE_2)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(SERVICE_2)).thenReturn(List.of(ar));
+        when(participantContextService.getParticipantContext(MEMBER_2_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_2_CTX)));
 
         var contractId = AssetMapper.encodeAssetId(SERVICE_2)
                 + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()
@@ -315,9 +321,10 @@ class ContractDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
 
         var matchingSpec = QuerySpec.Builder.newInstance()
-                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
+                .filter(new Criterion("participantContextId", "=", MEMBER_1_CTX))
                 .build();
         var matchResult = store.findAll(matchingSpec).toList();
         assertThat(matchResult).hasSize(1);
@@ -363,7 +370,7 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findAllMgmtServiceTaggedWithMgmtCtx() {
+    void findAllManagementOwnServiceEmitsNoDefinitionWhenMemberContextNotProvisioned() {
         var epSvc1 = new Endpoint("svc1", "GET", "/api/data", false);
         var arSvc1 = createAccessRight(SUBJECT_CLIENT, epSvc1);
         var epMgmt = new Endpoint("clientReg", "*", "**", true);
@@ -378,17 +385,29 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(2);
-        var hostPerSubject = result.stream()
-                .filter(d -> d.getId().startsWith(SERVICE_1.asEncodedId()))
-                .findFirst().orElseThrow();
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findAllManagementOwnServicePublishedUnderMemberContextLikeAnyOtherServiceOnceProvisioned() {
+        var epMgmt = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, epMgmt);
+        var mgmtMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333"));
+
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT));
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(participantContextService.search(any()))
+                .thenReturn(ServiceResult.success(List.of(participantContext(mgmtMemberCtx))));
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
         var mgmtPerSubject = result.stream()
                 .filter(d -> d.getId().startsWith(MGMT_SERVICE.asEncodedId()))
                 .findFirst().orElseThrow();
-        assertThat(hostPerSubject.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
-        assertThat(mgmtPerSubject.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CTX);
-        assertThat(result).noneSatisfy(d ->
-                assertThat(d.getAccessPolicyId()).endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX));
+        assertThat(mgmtPerSubject.getParticipantContextId()).isEqualTo(mgmtMemberCtx);
+        assertThat(mgmtPerSubject.getAccessPolicyId()).doesNotEndWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
     }
 
     @Test
@@ -436,7 +455,7 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findAllEmitsSyntheticManagementCatalogUnderMgmtAndSystemExcludingAuthCertRegFromSystem() {
+    void findAllEmitsSyntheticManagementCatalogUnderSystemExcludingAuthCertReg() {
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
@@ -444,40 +463,10 @@ class ContractDefinitionServerConfStoreTest {
 
         var result = store.findAll(QuerySpec.max()).toList();
 
-        var mgmtCtx = result.stream().filter(d -> MGMT_PARTICIPANT_CTX.equals(d.getParticipantContextId())).toList();
         var systemCtx = result.stream().filter(d -> SYSTEM_PARTICIPANT_CTX.equals(d.getParticipantContextId())).toList();
-        assertThat(mgmtCtx).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
         assertThat(systemCtx)
                 .hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size())
                 .noneSatisfy(d -> assertThat(d.getAccessPolicyId()).startsWith(MGMT_CLIENT.asEncodedId() + ":authCertReg"));
-    }
-
-    @Test
-    void findAllWithMgmtCtxFilterReturnsOnlyMgmtDefinitions() {
-        var epSvc1 = new Endpoint("svc1", "GET", "/api/data", false);
-        var arSvc1 = createAccessRight(SUBJECT_CLIENT, epSvc1);
-        var epMgmt = new Endpoint("clientReg", "*", "**", true);
-        var arMgmt = createAccessRight(SUBJECT_CLIENT, epMgmt);
-
-        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
-        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
-        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(arSvc1));
-        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
-        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
-
-        var mgmtSpec = QuerySpec.Builder.newInstance()
-                .filter(new Criterion("participantContextId", "=", MGMT_PARTICIPANT_CTX))
-                .build();
-        var mgmtResult = store.findAll(mgmtSpec).toList();
-        assertThat(mgmtResult).hasSize(1);
-
-        var hostSpec = QuerySpec.Builder.newInstance()
-                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
-                .build();
-        var hostResult = store.findAll(hostSpec).toList();
-        assertThat(hostResult).hasSize(1);
-        assertThat(hostResult.getFirst().getId()).startsWith(SERVICE_1.asEncodedId());
     }
 
     @Test
@@ -504,22 +493,6 @@ class ContractDefinitionServerConfStoreTest {
         assertThat(result).allSatisfy(def ->
                 assertThat(def.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX));
         assertThat(result).hasSize(7);
-    }
-
-    @Test
-    void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
-        var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        when(serverConfProvider.getMembers()).thenReturn(List.of());
-
-        var hostSpec = QuerySpec.Builder.newInstance()
-                .filter(new Criterion("participantContextId", "=", PARTICIPANT_CTX))
-                .build();
-
-        var result = builtinStore.findAll(hostSpec).toList();
-
-        assertThat(result).isEmpty();
     }
 
     @Test
@@ -630,6 +603,8 @@ class ContractDefinitionServerConfStoreTest {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
+        when(participantContextService.getParticipantContext(MEMBER_1_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_1_CTX)));
 
         var contractId = AssetMapper.encodeAssetId(SERVICE_1)
                 + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()
@@ -774,11 +749,13 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findByIdOrdinaryServiceCompoundIdNotFoundUnderSystemContextEvenWithValidHostAcl() {
+    void findByIdOrdinaryServiceCompoundIdNotFoundUnderSystemContextEvenWithValidAcl() {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         var ar = createAccessRight(SUBJECT_CLIENT, ep);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.getParticipantContext(MEMBER_1_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_1_CTX)));
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
 
         var contractId = AssetMapper.encodeAssetId(SERVICE_1)

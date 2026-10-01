@@ -36,6 +36,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.AfterAll;
@@ -64,8 +65,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class StoreCacheBenchmarkTest {
 
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(
-            "participant", "participant-mgmt", ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
 
     private static final int WARMUP = 50;
     private static final int K = 200;
@@ -202,11 +202,19 @@ class StoreCacheBenchmarkTest {
         return times;
     }
 
+    private static final String BENCH_MEMBER_CTX =
+            ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1111"));
+
     private AssetIndexServerConfStore buildStore(ServerConfProvider provider, boolean cacheEnabled) {
         var cache = new StoreEnumerationCache<Asset>(cacheEnabled, 3600, 10000, "bench");
-        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
-        lenient().when(participantContextService.getParticipantContext(any()))
-                .thenReturn(ServiceResult.notFound("no such context"));
+        var benchParticipantContext = ParticipantContext.Builder.newInstance()
+                .participantContextId(BENCH_MEMBER_CTX)
+                .identity("did:web:example.com:v1:" + BENCH_MEMBER_CTX)
+                .build();
+        lenient().when(participantContextService.search(any()))
+                .thenReturn(ServiceResult.success(List.of(benchParticipantContext)));
+        lenient().when(participantContextService.getParticipantContext(BENCH_MEMBER_CTX))
+                .thenReturn(ServiceResult.success(benchParticipantContext));
         var serviceContextResolver = new ServiceContextResolver(
                 CONTEXT_IDS,
                 globalConfProvider, provider, participantContextService);

@@ -185,11 +185,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
-        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
-        syntheticServices.managementEntries()
-                .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                        serviceId, contextIds.management())));
-        syntheticServices.systemEntries()
+        serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                         serviceId, contextIds.system())));
         return definitions;
@@ -239,6 +235,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             resolvedContexts.add(contextIds.system());
         }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        if (ctxId == null) {
+            return null;
+        }
         return ContractDefinitionMapper.toContractDefinition(serviceId, matchedEntries.getFirst().getSubjectId(), ctxId);
     }
 

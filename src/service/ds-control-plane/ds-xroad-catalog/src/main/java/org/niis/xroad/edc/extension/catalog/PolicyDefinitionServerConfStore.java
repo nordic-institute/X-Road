@@ -178,12 +178,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             var assetId = AssetMapper.encodeAssetId(serviceId);
             policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
         }
-        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
-        syntheticServices.managementEntries()
-                .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
-                        ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), contextIds.management())));
-        syntheticServices.systemEntries()
+        serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
                         serviceId.getClientId(), contextIds.system())));
@@ -244,6 +239,9 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             resolvedContexts.add(contextIds.system());
         }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        if (ctxId == null) {
+            return null;
+        }
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
 
