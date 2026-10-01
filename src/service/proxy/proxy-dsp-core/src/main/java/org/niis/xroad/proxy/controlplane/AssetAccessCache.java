@@ -87,7 +87,9 @@ class AssetAccessCache {
         /**
          * An entry carrying a real expiry lives until {@code margin} before it, floored at
          * {@link #MINIMUM_LIFETIME_NANOS} so a margin close to (or beyond) the remaining lifetime never
-         * makes an entry expire on arrival and defeat the cache.
+         * makes a still-valid entry expire on arrival and defeat the cache. An entry whose expiry has
+         * already passed is not retained at all: the caller that loaded it still receives it, and the
+         * next lookup acquires afresh.
          */
         @Override
         public long expireAfterCreate(CacheKey key, CachedEntry value, long currentTime) {
@@ -95,6 +97,9 @@ class AssetAccessCache {
                 return defaultTtlNanos;
             }
             long ttlSeconds = value.expiresAtEpochSeconds() - Instant.now().getEpochSecond();
+            if (ttlSeconds <= 0) {
+                return 0;
+            }
             long ttlNanos = TimeUnit.SECONDS.toNanos(ttlSeconds) - marginNanos;
             return Math.max(ttlNanos, MINIMUM_LIFETIME_NANOS);
         }

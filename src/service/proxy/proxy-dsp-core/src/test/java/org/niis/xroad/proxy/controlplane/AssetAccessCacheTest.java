@@ -117,6 +117,17 @@ class AssetAccessCacheTest {
         assertThat(loadCount.get()).isEqualTo(2);
     }
 
+    @Test
+    void anEntryAlreadyPastItsExpiryIsNotRetained() {
+        var key = key("asset-1");
+        cache.get(key, k -> load(-10));
+
+        ticker.advance(Duration.ofMillis(10));
+        cache.get(key, k -> load(-10));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
     private AssetAccessCache.CachedEntry load(long expiresInSeconds) {
         loadCount.incrementAndGet();
         return new AssetAccessCache.CachedEntry(
