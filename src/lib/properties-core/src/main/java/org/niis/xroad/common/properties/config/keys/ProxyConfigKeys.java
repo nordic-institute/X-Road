@@ -816,11 +816,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     // --- xroad.proxy.dsp --------------------------------------------------------
 
-    /** {@code xroad.proxy.dsp.participant-context-id} — no default (must be set per SS). */
-    public static final ConfigKey<String> DSP_PARTICIPANT_CONTEXT_ID = DSP
-            .string("participant-context-id")
-            .build();
-
     /** {@code xroad.proxy.dsp.protocol}. */
     public static final ConfigKey<String> DSP_PROTOCOL = DSP
             .string("protocol")

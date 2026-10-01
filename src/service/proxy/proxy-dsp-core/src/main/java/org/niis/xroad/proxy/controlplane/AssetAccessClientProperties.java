@@ -34,7 +34,6 @@ import java.time.Duration;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_DEFAULT_TTL;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_MAXIMUM_SIZE;
-import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_PARTICIPANT_CONTEXT_ID;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_PROTOCOL;
 
 /** Business configuration for DSP asset access requests ({@code xroad.proxy.dsp.*}). */
@@ -42,16 +41,6 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_P
 public class AssetAccessClientProperties {
 
     private final XRoadConfig xRoadConfig;
-
-    /**
-     * @return the configured {@code xroad.proxy.dsp.participant-context-id} value. Unused by any
-     * consumer-side DSP path — {@code ConsumerSideDspProcessor} always derives the participant context from
-     * the request sender. Retained because the underlying config property is still required, pending its
-     * removal once the legacy {@code -mgmt} machinery is retired.
-     */
-    public String participantContextId() {
-        return xRoadConfig.value(DSP_PARTICIPANT_CONTEXT_ID);
-    }
 
     /** @return DSP protocol identifier for negotiation */
     public String protocol() {

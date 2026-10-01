@@ -139,7 +139,6 @@ class DataspaceProvisioningServiceTest {
         appender.start();
         logger.addAppender(appender);
         logger.setLevel(Level.DEBUG);
-        lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);

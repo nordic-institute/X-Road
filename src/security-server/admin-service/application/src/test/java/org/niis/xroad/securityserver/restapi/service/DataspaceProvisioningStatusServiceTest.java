@@ -68,7 +68,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DataspaceProvisioningStatusServiceTest {
 
-    private static final String PARTICIPANT_ID = "test-participant";
     private static final String SYSTEM_PARTICIPANT_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
 
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "1234");
@@ -101,7 +100,6 @@ class DataspaceProvisioningStatusServiceTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
