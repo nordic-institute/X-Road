@@ -277,11 +277,11 @@ class AgreementTokenAccessCheckTest {
     }
 
     @Test
-    void absentIsNeverLoggedAboveDebug() {
+    void absentIsNotLoggedAtAll() {
         accessCheck.decide(null, CONSUMER, SERVICE);
+        accessCheck.decide("   ", CONSUMER, SERVICE);
 
-        assertThat(logHandler.records).allSatisfy(record ->
-                assertThat(record.getLevel().intValue()).isLessThanOrEqualTo(Level.FINE.intValue()));
+        assertThat(logHandler.records).isEmpty();
     }
 
     @Test
