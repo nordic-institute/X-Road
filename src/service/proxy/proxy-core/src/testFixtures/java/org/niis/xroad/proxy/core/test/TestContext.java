@@ -248,6 +248,7 @@ public class TestContext {
         when(properties.issuer()).thenReturn(AGREEMENT_TOKEN_ISSUER);
         when(properties.audience()).thenReturn(AGREEMENT_TOKEN_AUDIENCE);
         when(properties.tokenTtl()).thenReturn(AGREEMENT_TOKEN_TTL);
+        when(properties.expiryLeeway()).thenReturn(Duration.ZERO);
         return properties;
     }
 

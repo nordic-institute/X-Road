@@ -37,8 +37,13 @@ import org.niis.xroad.common.vault.VaultClient;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,9 +52,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * Provisions and caches the agreement-token signing key pairs in OpenBao, following the same only-if-absent
  * provisioning shape as {@code AcmeClient}'s account key: read what is there, and generate one only if
  * nothing exists yet. Each key is stored as a P-256 JWK including its private part. Key ids are the base-10
- * string of an ever-increasing version ("1", "2", ...), so the active key is simply the highest id currently
- * in the cache — no separate "current key" pointer record is needed, and nothing is ever deleted from the
- * store.
+ * string of an ever-increasing version ("1", "2", ...).
+ * <p>
+ * The active signing key is the highest-versioned key whose issue time is at least {@code activationDelay} in
+ * the past — new enough to have appeared in every replica's cache by the time it starts signing — falling back
+ * to the highest id when none qualifies yet (first boot, or every key freshly rotated). A key with no issue
+ * time (stored before this class tracked one) counts as old enough. Nothing is ever deleted from the store, so
+ * a token signed with a superseded key keeps verifying until it expires.
  * <p>
  * {@link #activeKey()} and {@link #keyById(String)} read a single, atomically swapped snapshot populated by
  * {@link #refresh()}; they never call {@link VaultClient} themselves, so verifying a token is always
@@ -60,16 +69,32 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
 
     private final VaultClient vaultClient;
     private final SecureRandom secureRandom;
+    private final Duration activationDelay;
+    private final Clock clock;
 
     private final AtomicReference<Snapshot> snapshot = new AtomicReference<>(Snapshot.EMPTY);
 
     public VaultAgreementTokenKeyProvider(VaultClient vaultClient) {
-        this(vaultClient, new SecureRandom());
+        this(vaultClient, new SecureRandom(), Duration.ZERO, Clock.systemUTC());
+    }
+
+    /**
+     * @param activationDelay how long a freshly rotated key is verify-only before it starts signing; pass
+     *                        {@link Duration#ZERO} for immediate activation
+     */
+    public VaultAgreementTokenKeyProvider(VaultClient vaultClient, Duration activationDelay) {
+        this(vaultClient, new SecureRandom(), activationDelay, Clock.systemUTC());
     }
 
     VaultAgreementTokenKeyProvider(VaultClient vaultClient, SecureRandom secureRandom) {
+        this(vaultClient, secureRandom, Duration.ZERO, Clock.systemUTC());
+    }
+
+    VaultAgreementTokenKeyProvider(VaultClient vaultClient, SecureRandom secureRandom, Duration activationDelay, Clock clock) {
         this.vaultClient = vaultClient;
         this.secureRandom = secureRandom;
+        this.activationDelay = Objects.requireNonNull(activationDelay, "activationDelay must not be null");
+        this.clock = Objects.requireNonNull(clock, "clock must not be null");
         refresh();
         if (snapshot.get().keysById().isEmpty()) {
             bootstrap();
@@ -119,7 +144,7 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         var stored = loadFromVaultOrFail();
 
         var keysById = new HashMap<String, AgreementTokenSigningKey>();
-        String activeKeyId = null;
+        String highestKeyId = null;
         long maxVersion = -1;
         for (var entry : stored.entrySet()) {
             var keyId = entry.getKey();
@@ -127,10 +152,43 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
             var version = parseVersion(keyId);
             if (version > maxVersion) {
                 maxVersion = version;
-                activeKeyId = keyId;
+                highestKeyId = keyId;
             }
         }
+        var activeKeyId = chooseActiveKeyId(keysById, highestKeyId);
         snapshot.set(new Snapshot(Map.copyOf(keysById), activeKeyId));
+    }
+
+    /**
+     * @return the highest-versioned key old enough to sign (issued at least {@code activationDelay} in the
+     *         past), or {@code highestKeyId} when no key qualifies yet
+     */
+    private String chooseActiveKeyId(Map<String, AgreementTokenSigningKey> keysById, String highestKeyId) {
+        if (highestKeyId == null) {
+            return null;
+        }
+        var now = Instant.now(clock);
+        String activeKeyId = null;
+        long activeVersion = -1;
+        for (var entry : keysById.entrySet()) {
+            if (!isOldEnoughToSign(entry.getValue(), now)) {
+                continue;
+            }
+            var version = parseVersion(entry.getKey());
+            if (version > activeVersion) {
+                activeVersion = version;
+                activeKeyId = entry.getKey();
+            }
+        }
+        return activeKeyId != null ? activeKeyId : highestKeyId;
+    }
+
+    private boolean isOldEnoughToSign(AgreementTokenSigningKey key, Instant now) {
+        var issueTime = key.keyPair().getIssueTime();
+        if (issueTime == null) {
+            return true;
+        }
+        return !issueTime.toInstant().isAfter(now.minus(activationDelay));
     }
 
     private synchronized void bootstrap() {
@@ -168,6 +226,7 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         try {
             return new ECKeyGenerator(Curve.P_256)
                     .keyID(keyId)
+                    .issueTime(Date.from(Instant.now(clock)))
                     .secureRandom(secureRandom)
                     .generate();
         } catch (JOSEException e) {

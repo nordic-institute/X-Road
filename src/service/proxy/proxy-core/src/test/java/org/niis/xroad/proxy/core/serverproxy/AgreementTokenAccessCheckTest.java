@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
+import org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
@@ -68,6 +69,8 @@ class AgreementTokenAccessCheckTest {
     private static final String ISSUER = "x-road-provider-data-plane";
     private static final String AUDIENCE = "x-road-server-proxy";
     private static final Duration TOKEN_TTL = Duration.ofSeconds(60);
+    private static final String CONTEXT_REASON = "CONTEXT";
+    private static final String VERIFIER_ERROR_REASON = "VERIFIER_ERROR";
 
     private InMemoryAgreementTokenKeyProvider keyProvider;
     private ProxyAgreementTokenProperties properties;
@@ -85,6 +88,7 @@ class AgreementTokenAccessCheckTest {
         when(properties.issuer()).thenReturn(ISSUER);
         when(properties.audience()).thenReturn(AUDIENCE);
         when(properties.tokenTtl()).thenReturn(TOKEN_TTL);
+        when(properties.expiryLeeway()).thenReturn(Duration.ZERO);
 
         var keyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(keyMaterial.provider()).thenReturn(Optional.of(keyProvider));
@@ -105,169 +109,217 @@ class AgreementTokenAccessCheckTest {
     }
 
     @Test
-    void shouldSkipAclOnFullSoapMatch() {
+    void shouldAcceptOnFullSoapMatch() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE)).isTrue();
+        assertThat(accessCheck.decide(token, CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
     }
 
     @Test
-    void shouldSkipAclOnFullRestMatch() {
+    void shouldAcceptOnFullRestMatch() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE, "GET", "/foo/bar")).isTrue();
+        assertThat(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/foo/bar"))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
     }
 
     @Test
-    void shouldNotSkipAclWhenHeaderIsAbsent() {
-        assertThat(accessCheck.allowsAclSkip(null, CONSUMER, SERVICE)).isFalse();
+    void shouldReturnAbsentWhenHeaderIsAbsent() {
+        assertThat(accessCheck.decide(null, CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Absent.class);
     }
 
     @Test
-    void shouldNotSkipAclWhenHeaderIsBlank() {
-        assertThat(accessCheck.allowsAclSkip("   ", CONSUMER, SERVICE)).isFalse();
+    void shouldReturnAbsentWhenHeaderIsBlank() {
+        assertThat(accessCheck.decide("   ", CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Absent.class);
     }
 
     @Test
-    void shouldNotSkipAclOnGarbageToken() {
-        assertThat(accessCheck.allowsAclSkip("not-a-jwt", CONSUMER, SERVICE)).isFalse();
+    void shouldRejectGarbageToken() {
+        assertRejected(accessCheck.decide("not-a-jwt", CONSUMER, SERVICE), AgreementTokenRejectionReason.MALFORMED_TOKEN);
     }
 
     @Test
-    void shouldNotSkipAclWhenTokenSignedByAnotherKey() {
+    void shouldRejectWhenTokenSignedByAnotherKey() {
         var strangerProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
         var token = new AgreementTokenMinter(strangerProvider, properties)
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**"))));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE)).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE), AgreementTokenRejectionReason.INVALID_SIGNATURE);
     }
 
     @Test
-    void shouldNotSkipAclOnExpiredToken() {
+    void shouldRejectExpiredToken() {
         var pastMinter = new AgreementTokenMinter(keyProvider, properties,
                 Clock.fixed(Instant.now().minusSeconds(120), ZoneOffset.UTC));
         var token = pastMinter.mint(
                 new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**"))));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE)).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE), AgreementTokenRejectionReason.EXPIRED);
     }
 
     @Test
-    void shouldNotSkipAclOnIssuerMismatch() {
+    void shouldRejectOnIssuerMismatch() {
         var wrongIssuerProperties = new TestProtocolProperties("someone-else", AUDIENCE, TOKEN_TTL);
         var token = new AgreementTokenMinter(keyProvider, wrongIssuerProperties)
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**"))));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE)).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE), AgreementTokenRejectionReason.ISSUER_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclOnAudienceMismatch() {
+    void shouldRejectOnAudienceMismatch() {
         var wrongAudienceProperties = new TestProtocolProperties(ISSUER, "someone-else", TOKEN_TTL);
         var token = new AgreementTokenMinter(keyProvider, wrongAudienceProperties)
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**"))));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE)).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE), AgreementTokenRejectionReason.AUDIENCE_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclOnClientMismatchAcrossSubsystemsOfTheSameMember() {
+    void shouldRejectOnClientMismatchAcrossSubsystemsOfTheSameMember() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertThat(accessCheck.allowsAclSkip(token, OTHER_SUBSYSTEM, SERVICE)).isFalse();
+        assertRejected(accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE), AgreementTokenRejectionReason.CLIENT_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclOnServiceVersionMismatch() {
+    void shouldRejectOnServiceVersionMismatch() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, OTHER_VERSION)).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, OTHER_VERSION), AgreementTokenRejectionReason.SERVICE_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclOnRestMethodMismatch() {
+    void shouldRejectOnRestMethodMismatch() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE, "POST", "/foo/bar")).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, "POST", "/foo/bar"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclOnRestPathOutsidePattern() {
+    void shouldRejectOnRestPathOutsidePattern() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE, "GET", "/other/path")).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/other/path"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclOnPathTraversalEscapingTheGrantedScope() {
+    void shouldRejectOnPathTraversalEscapingTheGrantedScope() {
         var token = mint(new AgreementTokenScope("GET", "/foo/**"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE, "GET", "/foo/../admin")).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/foo/../admin"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
     }
 
     @Test
-    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithoutTokenSoap() {
-        assertThat(accessCheck.allowsAclSkip(null, null, SERVICE)).isFalse();
+    void shouldReturnAbsentOnNullClientWithoutTokenSoap() {
+        assertThat(accessCheck.decide(null, null, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Absent.class);
     }
 
     @Test
-    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithoutTokenRest() {
-        assertThat(accessCheck.allowsAclSkip(null, null, SERVICE, "GET", "/foo/bar")).isFalse();
+    void shouldReturnAbsentOnNullClientWithoutTokenRest() {
+        assertThat(accessCheck.decide(null, null, SERVICE, "GET", "/foo/bar"))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Absent.class);
     }
 
     @Test
-    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithTokenSoap() {
+    void shouldRejectAndNotThrowOnNullClientWithTokenSoap() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertThat(accessCheck.allowsAclSkip(token, null, SERVICE)).isFalse();
+        assertRejected(accessCheck.decide(token, null, SERVICE), CONTEXT_REASON);
     }
 
     @Test
-    void shouldNotSkipAclAndShouldNotThrowOnNullClientWithTokenRest() {
+    void shouldRejectAndNotThrowOnNullClientWithTokenRest() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertThat(accessCheck.allowsAclSkip(token, null, SERVICE, "GET", "/foo/bar")).isFalse();
+        assertRejected(accessCheck.decide(token, null, SERVICE, "GET", "/foo/bar"), CONTEXT_REASON);
     }
 
     @Test
-    void shouldNotSkipAclAndShouldNotThrowOnNullRestMethodAndPathWithToken() {
+    void shouldRejectAndNotThrowOnNullRestMethodAndPathWithToken() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertThat(accessCheck.allowsAclSkip(token, CONSUMER, SERVICE, null, null)).isFalse();
+        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, null, null), CONTEXT_REASON);
     }
 
     @Test
-    void shouldNotSkipAclWhenKeyMaterialIsAbsent() {
+    void shouldReturnUnavailableWhenKeyMaterialIsAbsent() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
         var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties);
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertThat(withoutKeyMaterial.allowsAclSkip(token, CONSUMER, SERVICE)).isFalse();
+        assertThat(withoutKeyMaterial.decide(token, CONSUMER, SERVICE))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Unavailable.class);
     }
 
     @Test
-    void shouldNotSkipAclAndShouldNotThrowWhenTheProviderThrowsFromKeyById() {
+    void shouldRejectAndNotThrowWhenTheProviderThrowsFromKeyById() {
         var token = mint(new AgreementTokenScope("*", "**"));
         var throwingKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(throwingKeyMaterial.provider()).thenReturn(Optional.of(new ThrowingAgreementTokenKeyProvider()));
         var withThrowingProvider = new AgreementTokenAccessCheck(throwingKeyMaterial, properties);
 
-        assertThat(withThrowingProvider.allowsAclSkip(token, CONSUMER, SERVICE)).isFalse();
+        assertRejected(withThrowingProvider.decide(token, CONSUMER, SERVICE), VERIFIER_ERROR_REASON);
     }
 
     @Test
-    void shouldNeverLogAboveDebugOrLogTheTokenValue() {
+    void acceptedIsLoggedAtDebugWithoutTheTokenValue() {
         var validToken = mint(new AgreementTokenScope("*", "**"));
-        accessCheck.allowsAclSkip(validToken, CONSUMER, SERVICE);
-        accessCheck.allowsAclSkip(validToken, OTHER_SUBSYSTEM, SERVICE);
-        accessCheck.allowsAclSkip("not-a-jwt", CONSUMER, SERVICE);
+
+        accessCheck.decide(validToken, CONSUMER, SERVICE);
 
         assertThat(logHandler.records).isNotEmpty();
         assertThat(logHandler.records).allSatisfy(record -> {
             assertThat(record.getLevel().intValue()).isLessThanOrEqualTo(Level.FINE.intValue());
             assertThat(record.getMessage()).doesNotContain(validToken);
         });
+    }
+
+    @Test
+    void absentIsNeverLoggedAboveDebug() {
+        accessCheck.decide(null, CONSUMER, SERVICE);
+
+        assertThat(logHandler.records).allSatisfy(record ->
+                assertThat(record.getLevel().intValue()).isLessThanOrEqualTo(Level.FINE.intValue()));
+    }
+
+    @Test
+    void rejectedIsLoggedAtWarnWithoutTheTokenValue() {
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE);
+
+        assertThat(logHandler.records).isNotEmpty();
+        assertThat(logHandler.records).allSatisfy(record -> {
+            assertThat(record.getLevel()).isEqualTo(Level.WARNING);
+            assertThat(record.getMessage()).doesNotContain(token);
+        });
+    }
+
+    @Test
+    void unavailableIsLoggedAtWarnWithoutTheTokenValue() {
+        var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
+        when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
+        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties);
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        withoutKeyMaterial.decide(token, CONSUMER, SERVICE);
+
+        assertThat(logHandler.records).isNotEmpty();
+        assertThat(logHandler.records).allSatisfy(record -> {
+            assertThat(record.getLevel()).isEqualTo(Level.WARNING);
+            assertThat(record.getMessage()).doesNotContain(token);
+        });
+    }
+
+    private void assertRejected(AgreementTokenAccessCheck.Decision decision, AgreementTokenRejectionReason reason) {
+        assertRejected(decision, reason.name());
+    }
+
+    private void assertRejected(AgreementTokenAccessCheck.Decision decision, String reasonClass) {
+        assertThat(decision).isInstanceOf(AgreementTokenAccessCheck.Decision.Rejected.class);
+        assertThat(((AgreementTokenAccessCheck.Decision.Rejected) decision).reasonClass()).isEqualTo(reasonClass);
     }
 
     private String mint(AgreementTokenScope scope) {

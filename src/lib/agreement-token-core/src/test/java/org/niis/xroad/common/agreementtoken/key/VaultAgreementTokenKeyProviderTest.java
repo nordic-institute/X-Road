@@ -36,6 +36,10 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.security.SecureRandom;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -220,7 +224,62 @@ class VaultAgreementTokenKeyProviderTest {
         verify(vaultClient, never()).createAgreementTokenSigningKey(anyString(), anyString());
     }
 
+    @Test
+    void firstBootWithASingleFreshKeyIsActiveImmediatelyDespiteTheActivationDelay() {
+        var provider = new VaultAgreementTokenKeyProvider(vaultClient, secureRandom, Duration.ofSeconds(30), Clock.systemUTC());
+
+        assertThat(provider.activeKey().keyId()).isEqualTo("1");
+    }
+
+    @Test
+    void freshlyRotatedKeyIsVerifiableImmediatelyButOnlyActiveOnceTheDelayPasses() {
+        putStoredKey("1");
+        var clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var provider = new VaultAgreementTokenKeyProvider(vaultClient, secureRandom, Duration.ofSeconds(30), clock);
+        var previouslyActiveKeyId = provider.activeKey().keyId();
+
+        var rotated = provider.rotate();
+
+        assertThat(provider.keyById(rotated.keyId())).isPresent();
+        assertThat(provider.activeKey().keyId()).isEqualTo(previouslyActiveKeyId);
+
+        clock.advance(Duration.ofSeconds(29));
+        provider.refresh();
+        assertThat(provider.activeKey().keyId()).isEqualTo(previouslyActiveKeyId);
+
+        clock.advance(Duration.ofSeconds(2));
+        provider.refresh();
+        assertThat(provider.activeKey().keyId()).isEqualTo(rotated.keyId());
+    }
+
     private void putStoredKey(String keyId) {
         keyPairsByKeyId.put(keyId, TestKeyPairs.generate().toJSONString());
+    }
+
+    private static final class MutableClock extends Clock {
+        private Instant instant;
+
+        MutableClock(Instant instant) {
+            this.instant = instant;
+        }
+
+        void advance(Duration duration) {
+            instant = instant.plus(duration);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneId.of("UTC");
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            throw new UnsupportedOperationException("not needed by this test");
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 }

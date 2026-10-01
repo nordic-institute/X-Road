@@ -60,7 +60,7 @@ import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
 /**
  * Proves the agreement-token ACL skip through a real request: a SOAP request carries the
@@ -126,7 +126,7 @@ class AgreementTokenAclSkipTest {
     }
 
     @Test
-    void shouldStillDenyAccessWithATokenForAnotherService() throws Exception {
+    void shouldRefuseWithTheDedicatedErrorForATokenNamingAnotherService() throws Exception {
         stubAssetAccess(mintToken(OTHER_SERVICE));
 
         var testCase = new MessageTestCase() {
@@ -136,12 +136,37 @@ class AgreementTokenAclSkipTest {
 
             @Override
             public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-                return false;
+                // A rejected token must be refused even though the ACL itself would allow the call.
+                return true;
             }
 
             @Override
             protected void validateFaultResponse(Message receivedResponse) {
-                assertErrorCode(SERVER_SERVERPROXY_X, ACCESS_DENIED.code());
+                assertErrorCode(SERVER_SERVERPROXY_X, AGREEMENT_TOKEN_REJECTED.code());
+            }
+        };
+
+        assertTrue(testCase.execute(ctx));
+    }
+
+    @Test
+    void shouldRefuseWithTheDedicatedErrorForAnExpiredToken() throws Exception {
+        stubAssetAccess(mintExpiredToken(GET_STATE));
+
+        var testCase = new MessageTestCase() {
+            {
+                requestFileName = "getstate.query";
+            }
+
+            @Override
+            public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+                // A rejected token must be refused even though the ACL itself would allow the call.
+                return true;
+            }
+
+            @Override
+            protected void validateFaultResponse(Message receivedResponse) {
+                assertErrorCode(SERVER_SERVERPROXY_X, AGREEMENT_TOKEN_REJECTED.code());
             }
         };
 
@@ -169,6 +194,12 @@ class AgreementTokenAclSkipTest {
     private String mintToken(ServiceId service) {
         return new AgreementTokenMinter(ctx.getAgreementTokenKeyProvider(), ctx.getAgreementTokenProperties())
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, service, List.of(new AgreementTokenScope("*", "**"))));
+    }
+
+    private String mintExpiredToken(ServiceId service) {
+        var pastMinter = new AgreementTokenMinter(ctx.getAgreementTokenKeyProvider(), ctx.getAgreementTokenProperties(),
+                Clock.fixed(Instant.now().minusSeconds(120), ZoneOffset.UTC));
+        return pastMinter.mint(new AgreementTokenGrant("agreement-1", CONSUMER, service, List.of(new AgreementTokenScope("*", "**"))));
     }
 
     private void stubAssetAccess(String token) {

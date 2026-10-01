@@ -55,6 +55,7 @@ class AssetAccessCacheTest {
     void setUp() {
         when(cacheProperties.maximumSize()).thenReturn(10_000L);
         when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
+        when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(5));
         cache = new AssetAccessCache(cacheProperties, ticker);
         loadCount = new AtomicInteger();
     }
@@ -77,6 +78,41 @@ class AssetAccessCacheTest {
 
         ticker.advance(Duration.ofSeconds(61));
         cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void lookupBeforeTheMarginAheadOfExpiryDoesNotInvokeTheLoaderAgain() {
+        var key = key("asset-1");
+        cache.get(key, k -> load(60));
+
+        ticker.advance(Duration.ofSeconds(50));
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void lookupPastTheMarginAheadOfExpiryInvokesTheLoaderAgain() {
+        var key = key("asset-1");
+        cache.get(key, k -> load(60));
+
+        ticker.advance(Duration.ofSeconds(56));
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aMarginThatWouldOutliveTheEntryIsClampedToAOneSecondLifetime() {
+        when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(10));
+        cache = new AssetAccessCache(cacheProperties, ticker);
+        var key = key("asset-1");
+        cache.get(key, k -> load(5));
+
+        ticker.advance(Duration.ofMillis(1_500));
+        cache.get(key, k -> load(5));
 
         assertThat(loadCount.get()).isEqualTo(2);
     }

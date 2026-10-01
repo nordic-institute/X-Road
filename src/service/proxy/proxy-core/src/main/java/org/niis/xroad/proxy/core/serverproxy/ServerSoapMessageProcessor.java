@@ -80,6 +80,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_MESSAGE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SECURITY_SERVER;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
@@ -252,7 +253,12 @@ public class ServerSoapMessageProcessor {
         }
 
         var client = requestMessage.getSoap().getClient();
-        var aclSkipped = agreementTokenAccessCheck.allowsAclSkip(agreementToken, client, requestServiceId);
+        var decision = agreementTokenAccessCheck.decide(agreementToken, client, requestServiceId);
+        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected rejected) {
+            throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
+                    "Agreement token rejected: %s".formatted(rejected.reasonClass()));
+        }
+        var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(client, requestServiceId)) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
         }

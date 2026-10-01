@@ -40,62 +40,97 @@ import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 import java.util.function.Supplier;
 
 /**
- * Decides, at the exact point the server proxy would otherwise consult the ACL, whether an incoming
- * {@code x-road-agreement-token} header grants exactly what the request is asking for. Every outcome except a
- * full match — header absent or blank, no key material, a malformed or expired token, any claim mismatch, or an
- * unexpected failure while verifying — returns {@code false}, so the caller always falls back to the ACL. The
- * token never authenticates: it only ever widens which requests skip an ACL check that would otherwise run.
+ * Decides, at the exact point the server proxy would otherwise consult the ACL, what an incoming
+ * {@code x-road-agreement-token} header means for the current request. A presented token is authoritative: a
+ * full match ({@link Decision.Accepted}) skips the ACL, and anything else the verifier can pin on the token
+ * itself — a malformed or expired token, any claim mismatch, an unknown key id, an unbuildable request context,
+ * or an unexpected failure while verifying — is a {@link Decision.Rejected} that refuses the request outright.
+ * Only the absence of a header ({@link Decision.Absent}) or the absence of key material to judge it with
+ * ({@link Decision.Unavailable}) falls back to the ACL, exactly as today. The token never authenticates: it is
+ * never read before the header is known to be present, and a rejection never widens access.
  */
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class AgreementTokenAccessCheck {
 
+    private static final Decision ABSENT = new Decision.Absent();
+    private static final Decision UNAVAILABLE = new Decision.Unavailable();
+    private static final Decision ACCEPTED = new Decision.Accepted();
+
     private final AgreementTokenKeyMaterial keyMaterial;
     private final ProxyAgreementTokenProperties agreementTokenProperties;
 
-    /**
-     * @return {@code true} if {@code agreementToken} is a valid token granting {@code requestClient} full access
-     *         to {@code requestService}, so the SOAP ACL check may be skipped
-     */
-    public boolean allowsAclSkip(String agreementToken, ClientId requestClient, ServiceId requestService) {
-        return allowsAclSkip(agreementToken, () -> AgreementTokenRequestContext.forSoap(requestClient, requestService));
+    /** What a presented (or absent) agreement token means for the request at hand. */
+    public sealed interface Decision {
+        /** No header was presented; the ACL runs exactly as today. */
+        record Absent() implements Decision { }
+
+        /** A header was presented but no key material is available to judge it; the ACL runs, logged at warn. */
+        record Unavailable() implements Decision { }
+
+        /** The token fully matches the request; the ACL is skipped. */
+        record Accepted() implements Decision { }
+
+        /** The token was presented but refused; the request must be refused, never the ACL. */
+        record Rejected(String reasonClass) implements Decision { }
     }
 
     /**
-     * @return {@code true} if {@code agreementToken} is a valid token granting {@code requestClient} access to
-     *         {@code requestMethod}/{@code requestPath} on {@code requestService}, so the REST ACL check may be
-     *         skipped
+     * @return the decision for a SOAP request: {@code requestClient} and {@code requestService} are the
+     *         signature-proven client and the requested service
      */
-    public boolean allowsAclSkip(String agreementToken, ClientId requestClient, ServiceId requestService,
-                                  String requestMethod, String requestPath) {
-        return allowsAclSkip(agreementToken,
+    public Decision decide(String agreementToken, ClientId requestClient, ServiceId requestService) {
+        return decide(agreementToken, requestClient, requestService,
+                () -> AgreementTokenRequestContext.forSoap(requestClient, requestService));
+    }
+
+    /**
+     * @return the decision for a REST request: {@code requestClient} and {@code requestService} are the
+     *         signature-proven client and the requested service, {@code requestMethod}/{@code requestPath} the
+     *         actual verb and path
+     */
+    public Decision decide(String agreementToken, ClientId requestClient, ServiceId requestService,
+                            String requestMethod, String requestPath) {
+        return decide(agreementToken, requestClient, requestService,
                 () -> AgreementTokenRequestContext.forRest(requestClient, requestService, requestMethod, requestPath));
     }
 
-    private boolean allowsAclSkip(String agreementToken, Supplier<AgreementTokenRequestContext> contextSupplier) {
+    private Decision decide(String agreementToken, ClientId requestClient, ServiceId requestService,
+                             Supplier<AgreementTokenRequestContext> contextSupplier) {
         if (agreementToken == null || agreementToken.isBlank()) {
-            return false;
+            return ABSENT;
         }
 
         var provider = keyMaterial.provider();
         if (provider.isEmpty()) {
-            return false;
+            log.warn("agreement token presented but no key material is available to verify it; falling back to the ACL: "
+                    + "client={}, service={}", requestClient, requestService);
+            return UNAVAILABLE;
+        }
+
+        AgreementTokenRequestContext context;
+        try {
+            context = contextSupplier.get();
+        } catch (RuntimeException e) {
+            log.warn("agreement token presented but the request context could not be built; refusing the request: "
+                    + "client={}, service={}", requestClient, requestService, e);
+            return new Decision.Rejected("CONTEXT");
         }
 
         try {
-            var context = contextSupplier.get();
             var result = new AgreementTokenVerifier(provider.get(), agreementTokenProperties).verify(agreementToken, context);
             if (result instanceof AgreementTokenVerificationResult.Valid valid) {
                 log.debug("agreement token accepted, skipping ACL: agreementId={}", valid.claims().agreementId());
-                return true;
+                return ACCEPTED;
             }
-            if (result instanceof AgreementTokenVerificationResult.Rejected rejected) {
-                log.debug("agreement token rejected: reason={}", rejected.reason());
-            }
+            var reason = ((AgreementTokenVerificationResult.Rejected) result).reason();
+            log.warn("agreement token rejected: reason={}, client={}, service={}", reason, requestClient, requestService);
+            return new Decision.Rejected(reason.name());
         } catch (RuntimeException e) {
-            log.debug("agreement token verification failed unexpectedly; falling back to the ACL", e);
+            log.warn("agreement token verification failed unexpectedly; refusing the request: client={}, service={}",
+                    requestClient, requestService, e);
+            return new Decision.Rejected("VERIFIER_ERROR");
         }
-        return false;
     }
 }

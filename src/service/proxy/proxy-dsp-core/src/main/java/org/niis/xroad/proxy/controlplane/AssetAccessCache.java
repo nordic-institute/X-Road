@@ -68,25 +68,35 @@ class AssetAccessCache {
     AssetAccessCache(AssetAccessClientProperties.Cache cacheProps, Ticker ticker) {
         this.cache = Caffeine.newBuilder()
                 .maximumSize(cacheProps.maximumSize())
-                .expireAfter(new EntryExpiry(cacheProps.defaultTtl().toNanos()))
+                .expireAfter(new EntryExpiry(cacheProps.defaultTtl().toNanos(), cacheProps.margin().toNanos()))
                 .ticker(ticker)
                 .build();
     }
 
     private static final class EntryExpiry implements Expiry<CacheKey, CachedEntry> {
-        private final long defaultTtlNanos;
+        private static final long MINIMUM_LIFETIME_NANOS = TimeUnit.SECONDS.toNanos(1);
 
-        EntryExpiry(long defaultTtlNanos) {
+        private final long defaultTtlNanos;
+        private final long marginNanos;
+
+        EntryExpiry(long defaultTtlNanos, long marginNanos) {
             this.defaultTtlNanos = defaultTtlNanos;
+            this.marginNanos = marginNanos;
         }
 
+        /**
+         * An entry carrying a real expiry lives until {@code margin} before it, floored at
+         * {@link #MINIMUM_LIFETIME_NANOS} so a margin close to (or beyond) the remaining lifetime never
+         * makes an entry expire on arrival and defeat the cache.
+         */
         @Override
         public long expireAfterCreate(CacheKey key, CachedEntry value, long currentTime) {
             if (value.expiresAtEpochSeconds() <= 0) {
                 return defaultTtlNanos;
             }
             long ttlSeconds = value.expiresAtEpochSeconds() - Instant.now().getEpochSecond();
-            return TimeUnit.SECONDS.toNanos(Math.max(ttlSeconds, 0));
+            long ttlNanos = TimeUnit.SECONDS.toNanos(ttlSeconds) - marginNanos;
+            return Math.max(ttlNanos, MINIMUM_LIFETIME_NANOS);
         }
 
         @Override

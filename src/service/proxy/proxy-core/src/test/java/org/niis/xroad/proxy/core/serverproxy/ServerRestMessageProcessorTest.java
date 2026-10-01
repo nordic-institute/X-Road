@@ -41,12 +41,14 @@ import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
 class ServerRestMessageProcessorTest {
 
@@ -74,10 +76,10 @@ class ServerRestMessageProcessorTest {
             agreementTokenAccessCheck);
 
     @Test
-    void shouldSkipAclWhenAgreementTokenGrantsSkip() {
+    void shouldSkipAclWhenAgreementTokenIsAccepted() {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.allowsAclSkip(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
-                .thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Accepted());
 
         processor.verifyAccess(SERVICE, requestMessageFor(CLIENT), AGREEMENT_TOKEN);
 
@@ -85,9 +87,10 @@ class ServerRestMessageProcessorTest {
     }
 
     @Test
-    void shouldServeThroughAclWhenNoTokenIsPresent() {
+    void shouldConsultAclWhenNoTokenIsPresent() {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.allowsAclSkip(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH)).thenReturn(false);
+        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
         when(serverConfProvider.isQueryAllowed(CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH)).thenReturn(true);
 
         processor.verifyAccess(SERVICE, requestMessageFor(CLIENT), null);
@@ -96,15 +99,42 @@ class ServerRestMessageProcessorTest {
     }
 
     @Test
+    void shouldConsultAclWhenKeyMaterialIsUnavailable() {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Unavailable());
+        when(serverConfProvider.isQueryAllowed(CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH)).thenReturn(true);
+
+        processor.verifyAccess(SERVICE, requestMessageFor(CLIENT), AGREEMENT_TOKEN);
+
+        verify(serverConfProvider).isQueryAllowed(CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH);
+    }
+
+    @Test
     void shouldDenyAccessWhenNeitherTokenNorAclGrantIt() {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.allowsAclSkip(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH)).thenReturn(false);
+        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
         when(serverConfProvider.isQueryAllowed(CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH)).thenReturn(false);
 
         var requestMessage = requestMessageFor(CLIENT);
 
         assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, null))
                 .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void shouldRefuseWithAgreementTokenRejectedWhenTheTokenIsRejectedEvenIfTheAclWouldAllow() {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Rejected("SCOPE_MISMATCH"));
+
+        var requestMessage = requestMessageFor(CLIENT);
+
+        assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, AGREEMENT_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue());
+        verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
     }
 
     private static ServerRestMessageProcessor.VerifyingProxyMessage requestMessageFor(ClientId.Conf client) {

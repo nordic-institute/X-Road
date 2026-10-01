@@ -74,6 +74,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
@@ -242,8 +243,13 @@ public class ServerRestMessageProcessor {
         }
 
         var rest = requestMessage.getRest();
-        var aclSkipped = agreementTokenAccessCheck.allowsAclSkip(
+        var decision = agreementTokenAccessCheck.decide(
                 agreementToken, rest.getClientId(), requestServiceId, rest.getVerb().name(), rest.getServicePath());
+        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected rejected) {
+            throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
+                    "Agreement token rejected: %s".formatted(rejected.reasonClass()));
+        }
+        var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(
                 rest.getClientId(), requestServiceId, rest.getVerb().name(), rest.getServicePath())) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));

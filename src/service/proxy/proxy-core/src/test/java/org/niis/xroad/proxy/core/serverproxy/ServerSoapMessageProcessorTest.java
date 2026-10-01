@@ -44,12 +44,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
 class ServerSoapMessageProcessorTest {
 
@@ -75,9 +77,10 @@ class ServerSoapMessageProcessorTest {
             agreementTokenAccessCheck);
 
     @Test
-    void shouldSkipAclWhenAgreementTokenGrantsSkip() throws Exception {
+    void shouldSkipAclWhenAgreementTokenIsAccepted() throws Exception {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.allowsAclSkip(AGREEMENT_TOKEN, CLIENT, SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Accepted());
 
         processor.verifyAccess(requestMessageFor(CLIENT), SERVICE, AGREEMENT_TOKEN);
 
@@ -85,9 +88,9 @@ class ServerSoapMessageProcessorTest {
     }
 
     @Test
-    void shouldServeThroughAclWhenNoTokenIsPresent() throws Exception {
+    void shouldConsultAclWhenNoTokenIsPresent() throws Exception {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.allowsAclSkip(null, CLIENT, SERVICE)).thenReturn(false);
+        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE)).thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
         when(serverConfProvider.isQueryAllowed(CLIENT, SERVICE)).thenReturn(true);
 
         processor.verifyAccess(requestMessageFor(CLIENT), SERVICE, null);
@@ -96,15 +99,41 @@ class ServerSoapMessageProcessorTest {
     }
 
     @Test
+    void shouldConsultAclWhenKeyMaterialIsUnavailable() throws Exception {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Unavailable());
+        when(serverConfProvider.isQueryAllowed(CLIENT, SERVICE)).thenReturn(true);
+
+        processor.verifyAccess(requestMessageFor(CLIENT), SERVICE, AGREEMENT_TOKEN);
+
+        verify(serverConfProvider).isQueryAllowed(CLIENT, SERVICE);
+    }
+
+    @Test
     void shouldDenyAccessWhenNeitherTokenNorAclGrantIt() throws Exception {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.allowsAclSkip(null, CLIENT, SERVICE)).thenReturn(false);
+        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE)).thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
         when(serverConfProvider.isQueryAllowed(CLIENT, SERVICE)).thenReturn(false);
 
         var requestMessage = requestMessageFor(CLIENT);
 
         assertThatThrownBy(() -> processor.verifyAccess(requestMessage, SERVICE, null))
                 .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void shouldRefuseWithAgreementTokenRejectedWhenTheTokenIsRejectedEvenIfTheAclWouldAllow() throws Exception {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Rejected("SCOPE_MISMATCH"));
+
+        var requestMessage = requestMessageFor(CLIENT);
+
+        assertThatThrownBy(() -> processor.verifyAccess(requestMessage, SERVICE, AGREEMENT_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue());
+        verify(serverConfProvider, never()).isQueryAllowed(any(), any());
     }
 
     private static ProxyMessage requestMessageFor(ClientId.Conf client) throws Exception {
