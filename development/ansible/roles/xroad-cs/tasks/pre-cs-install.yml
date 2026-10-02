@@ -2,15 +2,15 @@
 # TEMPORARY (dataspaces dev): this file pre-seeds values that xroad-centralserver's
 # packages need on disk before their own postinst starts a unit for the first time,
 # where provisioning is only-if-absent so a value arriving late never lands
-# (systemd drop-ins for the admin-service TLS certificate hostname and the Issuer
-# Service's vault CA trust). The statuslist-callback/hostname gap this file used to
-# paper over for xroad-ds-issuer-service is closed: the package's own postinst now
-# writes edc.hostname and edc.statuslist.callback.address from the debconf-sourced
+# (systemd drop-ins for the admin-service TLS certificate hostname). The
+# statuslist-callback/hostname gap this file used to paper over for
+# xroad-ds-issuer-service is closed: the package's own postinst now writes
+# edc.hostname and edc.statuslist.callback.address from the debconf-sourced
 # dataspace issuer host answer before the unit's first start.
 #
 # What remains here, and why:
-# - the systemd drop-ins (XROAD_HOST, QUARKUS_VAULT_TLS_CA_CERT) have no packaged
-#   equivalent yet — remove each once its underlying package ships one;
+# - the systemd drop-in (XROAD_HOST) has no packaged equivalent yet — remove it
+#   once its underlying package ships one;
 # - xroad.edc.web.https.trust.reload-interval-seconds is genuine dev-only tuning
 #   (shortens a reload cycle for faster local iteration, not a correctness fix), so
 #   it stays regardless of packaging maturity.
@@ -23,7 +23,8 @@
 #    it earlier to drop YAML preseed files before any postinst auto-starts a
 #    unit. dpkg leaves pre-existing dirs intact (not a conffile).
 #
-# TEMPORARY (dataspaces dev): remove once packages ship the config stubs.
+# Dev-tuning support: holds the ds-issuer-service runtime overrides preseeded
+# below, and stays as long as that dev-only tuning does.
 # ---------------------------------------------------------------------------
 - name: ensure /etc/xroad/conf.d exists for preseeded configs
   file:

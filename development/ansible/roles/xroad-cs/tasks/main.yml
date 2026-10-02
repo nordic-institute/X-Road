@@ -1,8 +1,8 @@
 ---
-# TEMPORARY (dataspaces dev): pre-install preseed runs before the xroad-centralserver
-# package starts xroad-ds-issuer-service. Puts the DS runtime config on disk BEFORE
-# the package postinst fires. Remove this include (and pre-cs-install.yml)
-# once upstream packaging ships debconf preseeds and stops auto-starting the unit.
+# Pre-install preseed: runs before the xroad-centralserver packages' postinst
+# auto-starts their units, so the values it places are on disk at first start.
+# It carries dev-only tuning (the Issuer Service trust reload interval), which
+# stays, and the XROAD_HOST systemd drop-ins, which go once packaging provides them.
 - include_tasks: pre-cs-install.yml
 
 - include_tasks: ubuntu.yml
