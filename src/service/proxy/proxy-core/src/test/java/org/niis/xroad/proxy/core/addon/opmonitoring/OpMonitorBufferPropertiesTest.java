@@ -23,41 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
+import java.util.Map;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
+class OpMonitorBufferPropertiesTest {
 
-    private final XRoadConfig xRoadConfig;
-
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+    @Test
+    void storeMessageSizeDefaultsTo3Mib() {
+        assertThat(OpMonitoringBufferImplTest.properties(Map.of()).buffer().maxMessageSize()).isEqualTo(3 * 1024 * 1024);
     }
 
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+    @Test
+    void storeMessageSizeBelowOneBoundedRecordWithMarginIsRejected() {
+        assertThatThrownBy(() -> OpMonitoringBufferImplTest.properties(
+                Map.of("xroad.proxy.addon.op-monitor.buffer.max-message-size", "65535")).buffer().maxMessageSize())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("65536");
     }
 }

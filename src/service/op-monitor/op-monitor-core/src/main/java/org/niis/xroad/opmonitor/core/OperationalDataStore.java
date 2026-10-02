@@ -23,41 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.opmonitor.core;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import java.util.Optional;
+import java.util.List;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
 
+/**
+ * Stores operational data records and updates the health data metrics from them.
+ */
+@ApplicationScoped
 @RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
+class OperationalDataStore {
+    private final OperationalDataRecordManager operationalDataRecordManager;
+    private final HealthDataMetrics healthDataMetrics;
+    private final HealthDataRegistry healthDataRegistry;
 
-    private final XRoadConfig xRoadConfig;
-
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
-    }
-
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+    void store(List<OperationalDataRecord> records) {
+        operationalDataRecordManager.storeRecords(records, getEpochSecond());
+        healthDataMetrics.processRecords(healthDataRegistry.getRegistry(), records);
     }
 }

@@ -32,12 +32,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
+import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsResp;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
+import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
+import org.niis.xroad.opmonitor.api.StoreOperationalDataResp;
 
 import java.time.Instant;
 import java.util.List;
@@ -47,6 +50,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceImplBase {
     private final OperationalDataRecordManager operationalDataRecordManager;
+    private final OperationalDataStore operationalDataStore;
+    private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
+
+    @Override
+    public void storeOperationalData(StoreOperationalDataReq request,
+                                     StreamObserver<StoreOperationalDataResp> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
+            var records = request.getRecordsList().stream()
+                    .map(OperationalDataRecordProtoMapper::fromProto)
+                    .toList();
+            log.debug("Storing {} operational data record(s)", records.size());
+            operationalDataStore.store(records);
+            return StoreOperationalDataResp.getDefaultInstance();
+        });
+    }
 
     @Override
     public void getOperationalDataIntervals(GetOperationalDataIntervalsReq request,

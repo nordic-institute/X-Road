@@ -27,10 +27,19 @@
 
 package org.niis.xroad.common.rpc;
 
+import java.util.Optional;
+
 public interface RpcServerProperties {
     boolean enabled();
 
     String listenAddress();
 
     int port();
+
+    /**
+     * Maximum inbound message size in bytes. Empty keeps the gRPC default.
+     */
+    default Optional<Integer> maxInboundMessageSize() {
+        return Optional.empty();
+    }
 }

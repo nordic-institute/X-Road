@@ -43,6 +43,7 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROX
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 import static org.niis.xroad.common.properties.config.Validator.positive;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /**
  * Keys for the {@code xroad.proxy} scope, mirroring the nested structure of the legacy
@@ -457,6 +458,17 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> ADDON_OP_MONITOR_BUFFER_MAX_RECORDS_IN_MESSAGE = ADDON_OP_MONITOR_BUFFER
             .integer("max-records-in-message")
             .withDefaultValue(100)
+            .exposedInUi()
+            .build();
+
+    /**
+     * {@code xroad.proxy.addon.op-monitor.buffer.max-message-size}: largest store request in bytes; larger batches are
+     * split. Keep it below op-monitor's {@code xroad.op-monitor.rpc.max-inbound-message-size} (gRPC default 4 MiB).
+     */
+    public static final ConfigKey<Integer> ADDON_OP_MONITOR_BUFFER_MAX_MESSAGE_SIZE = ADDON_OP_MONITOR_BUFFER
+            .integer("max-message-size")
+            .withDefaultValue(3 * 1024 * 1024)
+            .withValidator(range(OpMonitorConfigKeys.MIN_STORE_MESSAGE_SIZE, Integer.MAX_VALUE))
             .exposedInUi()
             .build();
 

@@ -26,25 +26,40 @@
  */
 package org.niis.xroad.common.rpc.client;
 
+import jakarta.annotation.Nullable;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+
+import java.util.Optional;
 
 /** Base {@link RpcChannelProperties} implementation backed by the XRoadConfig DSL. */
 public class XRoadRpcChannelProperties implements RpcChannelProperties {
 
+    @Nullable
     private final XRoadConfig config;
     private final ConfigKey<String> hostKey;
     private final ConfigKey<Integer> portKey;
     private final ConfigKey<Integer> deadlineAfterKey;
+    @Nullable
+    private final ConfigKey<Integer> maxInboundMessageSizeKey;
 
     public XRoadRpcChannelProperties(XRoadConfig config,
                                      ConfigKey<String> hostKey,
                                      ConfigKey<Integer> portKey,
                                      ConfigKey<Integer> deadlineAfterKey) {
+        this(config, hostKey, portKey, deadlineAfterKey, null);
+    }
+
+    public XRoadRpcChannelProperties(XRoadConfig config,
+                                     ConfigKey<String> hostKey,
+                                     ConfigKey<Integer> portKey,
+                                     ConfigKey<Integer> deadlineAfterKey,
+                                     @Nullable ConfigKey<Integer> maxInboundMessageSizeKey) {
         this.config = config;
         this.hostKey = hostKey;
         this.portKey = portKey;
         this.deadlineAfterKey = deadlineAfterKey;
+        this.maxInboundMessageSizeKey = maxInboundMessageSizeKey;
     }
 
     @Override
@@ -60,5 +75,10 @@ public class XRoadRpcChannelProperties implements RpcChannelProperties {
     @Override
     public int deadlineAfter() {
         return config.value(deadlineAfterKey);
+    }
+
+    @Override
+    public Optional<Integer> maxInboundMessageSize() {
+        return config == null || maxInboundMessageSizeKey == null ? Optional.empty() : config.valueOpt(maxInboundMessageSizeKey);
     }
 }
