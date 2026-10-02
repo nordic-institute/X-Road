@@ -37,6 +37,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -70,7 +71,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class ServiceContextResolver {
 
-    private final CatalogContextIds contextIds;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final ParticipantContextService participantContextService;
@@ -80,7 +80,7 @@ class ServiceContextResolver {
      * provisioned for it — or no context at all otherwise. A service whose owning member has no
      * provisioned participant context yet is simply not published anywhere; full pre-provisioning
      * discoverability is a deferred follow-up (XRDADR-41). The MANAGEMENT subsystem's own services
-     * are ordinary member traffic like any other subsystem's — no special-cased identity.
+     * are ordinary member traffic like any other subsystem's.
      *
      * @param serviceId the service to resolve the context for
      * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
@@ -124,7 +124,7 @@ class ServiceContextResolver {
 
     /** Whether a DSP request was addressed to this server's SYSTEM context. */
     boolean isSystemAddressed(@Nullable String requestedParticipantContextId) {
-        return contextIds.system().equals(requestedParticipantContextId);
+        return ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(requestedParticipantContextId);
     }
 
     /**
@@ -197,7 +197,7 @@ class ServiceContextResolver {
 
     /**
      * The SYSTEM-eligible management-request synthetic entries for one catalog rebuild: the
-     * versionless codes from {@link ManagementServiceCatalog#SYSTEM_SERVICE_CODES}, minted for the
+     * versionless codes from {@link ManagementServiceCodes#DSP_NEGOTIATED}, minted for the
      * locally hosted management subsystem when it has no real configured services of its own.
      */
     List<ServiceId.Conf> resolveSyntheticServices() {
@@ -205,7 +205,7 @@ class ServiceContextResolver {
         if (managementSubsystem == null) {
             return List.of();
         }
-        return ManagementServiceCatalog.SYSTEM_SERVICE_CODES.stream()
+        return ManagementServiceCodes.DSP_NEGOTIATED.stream()
                 .map(code -> ServiceId.Conf.create(managementSubsystem, code))
                 .toList();
     }
@@ -213,7 +213,7 @@ class ServiceContextResolver {
     /**
      * Whether {@code serviceId} is one of the SYSTEM-eligible management-request synthetic
      * services on this server: a versionless code from
-     * {@link ManagementServiceCatalog#SYSTEM_SERVICE_CODES}, owned by the locally hosted
+     * {@link ManagementServiceCodes#DSP_NEGOTIATED}, owned by the locally hosted
      * management subsystem. The version-suffixed form of an otherwise-eligible code is rejected —
      * enumeration only ever publishes the versionless id, so a version-suffixed lookup must not
      * resolve to it either.
@@ -232,7 +232,7 @@ class ServiceContextResolver {
     // management-coded services and the 60s catalog cache TTL, so left as is.
     boolean isSystemEligible(ServiceId serviceId) {
         if (serviceId.getServiceVersion() != null
-                || !ManagementServiceCatalog.SYSTEM_SERVICE_CODES.contains(serviceId.getServiceCode())) {
+                || !ManagementServiceCodes.DSP_NEGOTIATED.contains(serviceId.getServiceCode())) {
             return false;
         }
         try {
@@ -296,10 +296,10 @@ class ServiceContextResolver {
     }
 
     /**
-     * The live management subsystem, but only when it has no real configured services —
-     * the case the {@code -mgmt} synthetic entries exist to cover. A real per-member catalog
-     * entry already covers {@code -mgmt} publication once real services exist, so returning
-     * non-null here in that case would double-publish.
+     * The live management subsystem, but only when it has no real configured services — the
+     * case the owner-only SYSTEM synthetic entries exist to cover. A real per-member catalog
+     * entry already covers SYSTEM publication once real services exist, so returning non-null
+     * here in that case would double-publish.
      */
     @Nullable
     private ClientId resolveManagementSubsystemWithoutRealServices() {
@@ -323,7 +323,7 @@ class ServiceContextResolver {
         if (requestedParticipantContextId == null) {
             return null;
         }
-        if (requestedParticipantContextId.equals(contextIds.system())
+        if (requestedParticipantContextId.equals(ParticipantIdentifierScheme.SYSTEM_SEGMENT)
                 || isMemberContextShape(requestedParticipantContextId)) {
             return requestedParticipantContextId;
         }

@@ -18,7 +18,7 @@ set_property xroad.proxy.message-log.timestamper.timestamp-immediately true
 set_property xroad.common-global-conf.refresh-rate 10S
 set_property xroad.configuration-client.update-interval 10
 set_property xroad.dsp.catalog.cache.ttl-seconds 5
-set_property xroad.proxy.dsp.serverproxy-endpoint "https://${XROAD_DSP_PARTICIPANT_CONTEXT_ID:-xrd-ss0}:5500"
+set_property xroad.proxy.dsp.serverproxy-endpoint "https://${XROAD_DSP_SERVERPROXY_HOSTNAME:-xrd-ss0}:5500"
 
 # Batch signing (compose.ss-batch-signature-enabled.e2e.yaml).
 set_property xroad.proxy.batch-signing-enabled true

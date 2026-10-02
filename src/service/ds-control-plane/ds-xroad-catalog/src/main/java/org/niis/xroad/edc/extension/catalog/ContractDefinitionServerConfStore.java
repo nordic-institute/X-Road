@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -58,7 +59,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -93,7 +93,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById definitionId={} matched builtin", definitionId);
-            return toBuiltinContractDefinition(builtinServiceId, contextIds.system());
+            return toBuiltinContractDefinition(builtinServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
         if (systemAddressed) {
@@ -117,9 +117,10 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (result == null) {
             result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, definitionId);
         }
-        if (systemAddressed && result != null && !contextIds.system().equals(result.getParticipantContextId())) {
+        if (systemAddressed && result != null
+                && !ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(result.getParticipantContextId())) {
             // A SYSTEM-addressed request must never resolve to a compound id whose only match is
-            // under a different context (select()'s host-context fallback) — that would grant a
+            // under a different context (select()'s first-entry fallback) — that would grant a
             // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
             // context and cached under the SYSTEM key.
             log.trace("findById definitionId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null",
@@ -143,7 +144,8 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private ContractDefinition findSystemContractDefinition(String policyId) {
         var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
         if (ownerOnlyServiceId != null) {
-            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(ownerOnlyServiceId, contextIds.system());
+            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(
+                    ownerOnlyServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
         if (systemServiceId == null) {
@@ -157,7 +159,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById policyId={} not unrestricted under SYSTEM", policyId);
             return null;
         }
-        return toBuiltinContractDefinition(systemServiceId, contextIds.system());
+        return toBuiltinContractDefinition(systemServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
     }
 
     @Override
@@ -183,11 +185,11 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
+            definitions.add(toBuiltinContractDefinition(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
         serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                        serviceId, contextIds.system())));
+                        serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT)));
         return definitions;
     }
 
@@ -232,7 +234,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContextsById(serviceId));
         if (serviceContextResolver.isSystemEligible(serviceId)) {
-            resolvedContexts.add(contextIds.system());
+            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         if (ctxId == null) {
@@ -257,7 +259,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
             // rights ARE configured, they must gate SYSTEM the same as every other context —
             // handled below via the per-subject loop, not here.
-            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
+            definitions.add(toBuiltinContractDefinition(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
         if (accessRights.isEmpty()) {
             return;
@@ -266,7 +268,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
         var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
         if (systemEligible) {
-            resolvedContexts.add(contextIds.system());
+            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
 
         for (var entry : grouped.entrySet()) {

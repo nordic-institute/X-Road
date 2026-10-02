@@ -65,8 +65,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class StoreCacheBenchmarkTest {
 
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-
     private static final int WARMUP = 50;
     private static final int K = 200;
     private static final Logger CATALOG_LOGGER =
@@ -216,10 +214,8 @@ class StoreCacheBenchmarkTest {
         lenient().when(participantContextService.getParticipantContext(BENCH_MEMBER_CTX))
                 .thenReturn(ServiceResult.success(benchParticipantContext));
         var serviceContextResolver = new ServiceContextResolver(
-                CONTEXT_IDS,
                 globalConfProvider, provider, participantContextService);
         return new AssetIndexServerConfStore(provider,
-                CONTEXT_IDS,
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),
                 cache, serviceContextResolver, new ThreadLocalRequestedParticipantContext());

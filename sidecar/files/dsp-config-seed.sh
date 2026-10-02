@@ -28,8 +28,6 @@
 #           https://<hostname>:7183 - override with the externally-resolvable
 #           address other participants reach this container's identity-hub
 #           through, e.g. a shared network alias)
-#         XROAD_DATASPACE_MANAGEMENT_CONTEXT_ENABLED (optional, defaults to
-#           true)
 #         /etc/xroad/db.properties (serverconf connection info, written by
 #         xroad-proxy's setup_serverconf_db.sh before this script runs)
 #   out - the rows above in serverconf's configuration_properties table, each
@@ -94,9 +92,6 @@ seed_property_if_absent "xroad.proxy-ui-api.dataspace.enabled" \
 
 seed_property_if_absent "xroad.proxy-ui-api.dataspace.identity-hub-url" \
   "${XROAD_DATASPACE_IDENTITY_HUB_URL:-https://${HOSTNAME:-localhost}:7183}"
-
-seed_property_if_absent "xroad.proxy-ui-api.dataspace.management-context-enabled" \
-  "${XROAD_DATASPACE_MANAGEMENT_CONTEXT_ENABLED:-true}"
 
 seed_property_if_absent "xroad.common-rpc.channel.control-plane.host" "127.0.0.1"
 

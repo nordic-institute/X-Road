@@ -229,7 +229,7 @@ public class DataspaceProvisioningService {
     /**
      * Enumerates the bound participant rows awaiting teardown convergence: every {@code ds_participant}
      * row currently marked {@link ParticipantState#DECOMMISSIONED}. A member with an entry here is
-     * excluded from {@link #participantContexts(boolean)} until its row is gone.
+     * excluded from {@link #participantContexts()} until its row is gone.
      */
     @Transactional(readOnly = true)
     public List<TombstonedParticipant> decommissionedParticipants() {
@@ -341,8 +341,8 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * The holder-pid slot-base for a participant context: unsalted for HOST/MANAGEMENT/MEMBER, salted
-     * with the current owner for SYSTEM.
+     * The holder-pid slot-base for a participant context: unsalted for MEMBER, salted with the
+     * current owner for SYSTEM.
      *
      * <p>The SYSTEM identifier is owner-free by design (XRDADR-41), but its credential is issued to the
      * current owner. Since the identity hub exposes no surface to read a credential's subject directly,

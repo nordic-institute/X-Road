@@ -483,11 +483,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(7185)
             .build();
 
-    public static final ConfigKey<Boolean> DATASPACE_MANAGEMENT_CONTEXT_ENABLED = DATASPACE
-            .bool("management-context-enabled")
-            .withDefaultValue(false)
-            .build();
-
     public static final ConfigKey<String> DATASPACE_CREDENTIAL_DEFINITION_ID = DATASPACE
             .string("credential-definition-id")
             .withDefaultValue("xroad-membership-credential-definition")

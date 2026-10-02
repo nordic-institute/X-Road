@@ -78,9 +78,6 @@ public class ParticipantIdentifierScheme {
 
     private static final String SEGMENT_SEPARATOR = ":";
 
-    /** The DID segment distinguishing the management context's DID from the host's. */
-    private static final String MANAGEMENT_SEGMENT = "mgmt";
-
     /** did:web's fixed escapes for the authority's port separator and IPv6 literal brackets. */
     private static final Map<Character, String> HOST_ESCAPES_BY_CHAR = Map.of(':', "3A", '[', "5B", ']', "5D");
     private static final Map<String, Character> HOST_CHARS_BY_ESCAPE = Map.of("3A", ':', "5B", '[', "5D", ']');
@@ -145,17 +142,6 @@ public class ParticipantIdentifierScheme {
      */
     public static Did hostDid(String ssHost) {
         return Did.of(DID_METHOD, didWebHost(ssHost));
-    }
-
-    /**
-     * Derives the MANAGEMENT participant context's DID: {@code did:web:{ss-host}:mgmt}. Unversioned,
-     * like {@link #hostDid(String)}.
-     *
-     * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
-     * @return the management context's DID
-     */
-    public static Did managementDid(String ssHost) {
-        return Did.of(DID_METHOD, hostDid(ssHost).methodSpecificId() + SEGMENT_SEPARATOR + MANAGEMENT_SEGMENT);
     }
 
     /**

@@ -5,7 +5,7 @@ services:
       - XROAD_ADMIN_USER=xrd
       - XROAD_ADMIN_PASSWORD=secret123!
       # e2e-config.sh (mounted below) derives xroad.proxy.dsp.serverproxy-endpoint's host from this.
-      - XROAD_DSP_PARTICIPANT_CONTEXT_ID=${XROAD_DSP_PARTICIPANT_CONTEXT_ID:-xrd-ss0}
+      - XROAD_DSP_SERVERPROXY_HOSTNAME=${XROAD_DSP_SERVERPROXY_HOSTNAME:-xrd-ss0}
       # The admin-service's data space participant-context provisioning worker needs this on every
       # scheduled tick, not only for DSP-specific scenarios: identity-hub-url has no built-in default,
       # so leaving it unset fails every tick with a NullPointerException instead of just leaving data

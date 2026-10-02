@@ -96,7 +96,7 @@ public class SidecarSsStackSetup extends AbstractSsStack {
     @Override
     protected ComposeContainer initEnv() {
         return new ComposeContainer(composeProjectName(), composeFile(COMPOSE_SIDECAR_FILE))
-                .withEnv("XROAD_DSP_PARTICIPANT_CONTEXT_ID", "xrd-" + name)
+                .withEnv("XROAD_DSP_SERVERPROXY_HOSTNAME", "xrd-" + name)
                 .withEnv("SS_NAME", name)
                 .withExposedService(SIDECAR, SsStackSetup.Port.PROXY,
                         forListeningPort().withStartupTimeout(PORT_WAIT_TIMEOUT))

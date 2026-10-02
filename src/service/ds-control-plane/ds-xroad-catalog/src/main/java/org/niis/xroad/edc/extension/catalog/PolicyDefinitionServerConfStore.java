@@ -40,6 +40,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 
@@ -61,7 +62,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
     private final PolicyMapper policyMapper;
-    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -88,7 +88,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById policyId={} matched builtin", policyId);
-            return toBuiltinPolicyDefinition(policyId, contextIds.system());
+            return toBuiltinPolicyDefinition(policyId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
 
         var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
@@ -115,9 +115,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         if (result == null) {
             result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
         }
-        if (systemAddressed && result != null && !contextIds.system().equals(result.getParticipantContextId())) {
+        if (systemAddressed && result != null
+                && !ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(result.getParticipantContextId())) {
             // A SYSTEM-addressed request must never resolve to a compound id whose only match is
-            // under a different context (select()'s host-context fallback) — that would grant a
+            // under a different context (select()'s first-entry fallback) — that would grant a
             // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
             // context and cached under the SYSTEM key.
             log.trace("findById policyId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null", policyId);
@@ -136,7 +137,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private PolicyDefinition findSystemPolicyDefinition(String policyId) {
         var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
         if (ownerOnlyServiceId != null) {
-            return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(), contextIds.system());
+            return policyMapper.toOwnerOnlyPolicyDefinition(
+                    policyId, ownerOnlyServiceId.getClientId(), ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
         if (systemServiceId == null) {
@@ -150,7 +152,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             log.trace("findById policyId={} not unrestricted under SYSTEM", policyId);
             return null;
         }
-        return toBuiltinPolicyDefinition(policyId, contextIds.system());
+        return toBuiltinPolicyDefinition(policyId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
     }
 
     @Override
@@ -176,12 +178,12 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             var assetId = AssetMapper.encodeAssetId(serviceId);
-            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
+            policies.add(toBuiltinPolicyDefinition(assetId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
         serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), contextIds.system())));
+                        serviceId.getClientId(), ParticipantIdentifierScheme.SYSTEM_SEGMENT)));
         return policies;
     }
 
@@ -236,7 +238,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
         var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContextsById(serviceId));
         if (serviceContextResolver.isSystemEligible(serviceId)) {
-            resolvedContexts.add(contextIds.system());
+            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         if (ctxId == null) {
@@ -261,7 +263,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
             // rights ARE configured, they must gate SYSTEM the same as every other context —
             // handled below via the per-subject loop, not here.
-            policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), contextIds.system()));
+            policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
         if (accessRights.isEmpty()) {
             return;
@@ -273,7 +275,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var assetId = AssetMapper.encodeAssetId(serviceId);
         var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
         if (systemEligible) {
-            resolvedContexts.add(contextIds.system());
+            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
 
         for (var entry : grouped.entrySet()) {

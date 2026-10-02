@@ -72,7 +72,6 @@ import static org.mockito.Mockito.when;
 class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     private static final String SYSTEM_PARTICIPANT_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(SYSTEM_PARTICIPANT_CTX);
 
     private static final String DISABLED_NOTICE = "Service temporarily suspended for scheduled maintenance, retry after 18:00 UTC";
 
@@ -115,19 +114,19 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         serviceContextResolver = new ServiceContextResolver(
-                CONTEXT_IDS, globalConfProvider, serverConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
 
         var noBuiltins = new BuiltinServiceCatalog(serverConfProvider, false, false, false,
                 BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
         contractStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS, noBuiltins,
+                serverConfProvider, noBuiltins,
                 new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
         policyStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, new PolicyMapper(), CONTEXT_IDS, noBuiltins,
+                serverConfProvider, new PolicyMapper(), noBuiltins,
                 new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
         assetIndex = new AssetIndexServerConfStore(
-                serverConfProvider, CONTEXT_IDS, noBuiltins,
+                serverConfProvider, noBuiltins,
                 new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
     }
 

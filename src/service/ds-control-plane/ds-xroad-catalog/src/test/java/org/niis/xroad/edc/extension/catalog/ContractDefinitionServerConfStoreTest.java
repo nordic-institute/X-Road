@@ -44,6 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.BuiltinServiceCodes;
+import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -64,7 +65,6 @@ import static org.mockito.Mockito.when;
 class ContractDefinitionServerConfStoreTest {
 
     private static final String SYSTEM_PARTICIPANT_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(SYSTEM_PARTICIPANT_CTX);
     private static final StoreEnumerationCache<ContractDefinition> DISABLED_CACHE =
             new StoreEnumerationCache<>(false, 60, 1000, "test");
 
@@ -102,12 +102,10 @@ class ContractDefinitionServerConfStoreTest {
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
         lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
-                CONTEXT_IDS,
                 globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
         store = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                noBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, noBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
     }
 
     private BuiltinServiceCatalog allBuiltins() {
@@ -465,15 +463,14 @@ class ContractDefinitionServerConfStoreTest {
 
         var systemCtx = result.stream().filter(d -> SYSTEM_PARTICIPANT_CTX.equals(d.getParticipantContextId())).toList();
         assertThat(systemCtx)
-                .hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size())
+                .hasSize(ManagementServiceCodes.DSP_NEGOTIATED.size())
                 .noneSatisfy(d -> assertThat(d.getAccessPolicyId()).startsWith(MGMT_CLIENT.asEncodedId() + ":authCertReg"));
     }
 
     @Test
     void findAllIncludesBuiltinContractDefinitions() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
@@ -484,8 +481,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinsTaggedWithSystemContextOnly() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
@@ -498,8 +494,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsBuiltinContractDefinition() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
         var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
 
@@ -514,8 +509,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService-contract-definition");
 
@@ -547,8 +541,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinDefinitionsHaveAcceptAllPolicyId() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.max()).toList();
@@ -563,8 +556,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllCacheHitServesFromCache() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
@@ -580,8 +572,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllCacheMissAfterInvalidate() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
@@ -598,8 +589,7 @@ class ContractDefinitionServerConfStoreTest {
     void findByIdCacheHitServesFromCache() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
@@ -619,8 +609,7 @@ class ContractDefinitionServerConfStoreTest {
     void findByIdCacheDoesNotCacheNotFound() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, noBuiltins(), cache, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(false);
 
         var contractId = "DEV:GOV:1234:SubSys:svc1:v1:DEV:GOV:9999:Consumer-contract-definition";
@@ -635,8 +624,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdBuiltinResolvesSystemContextWhenSystemRequested() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS,
-                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+                serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
         var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);

@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -59,7 +60,6 @@ import static org.mockito.Mockito.when;
 class ServiceContextResolverTest {
 
     private static final String SYSTEM_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(SYSTEM_CTX);
 
     private static final ClientId.Conf MEMBER = ClientId.Conf.create("DEV", "GOV", "1111");
     private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
@@ -84,7 +84,7 @@ class ServiceContextResolverTest {
 
     private ServiceContextResolver resolver() {
         return new ServiceContextResolver(
-                CONTEXT_IDS, globalConfProvider, serverConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
     }
 
     @Test
@@ -368,7 +368,7 @@ class ServiceContextResolverTest {
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
+        assertThat(result).hasSize(ManagementServiceCodes.DSP_NEGOTIATED.size());
         verify(serverConfProvider, times(1)).getAllServices(MGMT_CLIENT);
     }
 
