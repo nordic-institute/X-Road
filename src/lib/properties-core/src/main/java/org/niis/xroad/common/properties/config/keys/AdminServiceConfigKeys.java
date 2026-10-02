@@ -525,6 +525,13 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(20)
             .build();
 
+    /** {@code xroad.proxy-ui-api.dataspace.provisioning-tick-ms} */
+    public static final ConfigKey<Integer> DATASPACE_PROVISIONING_TICK_MS = DATASPACE
+            .integer("provisioning-tick-ms")
+            .withDefaultValue(30000)
+            .publishedToFramework()
+            .build();
+
     /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */
     public static final ConfigKey<String[]> DATASPACE_TLS_CERTIFICATE_CONTACTS = DATASPACE
             .stringArray("tls-certificate-contacts")

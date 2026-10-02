@@ -82,6 +82,13 @@ xroad:
 
 edc:
   hostname: ${HOSTNAME:localhost}
+  # Milliseconds (EDC default 300000). Bounds how long this runtime's DID resolver keeps a
+  # counter-party's document cached, so a keyless document served for a registered-but-
+  # unprovisioned member is replaced by the keyed one within a minute of provisioning.
+  did:
+    resolver:
+      cache:
+        expiry: 60000
   dataspace:
     enable:
       profiles:

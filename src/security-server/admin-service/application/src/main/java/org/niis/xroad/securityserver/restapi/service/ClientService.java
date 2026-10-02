@@ -53,6 +53,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningTrigger;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
@@ -137,6 +138,7 @@ public class ClientService {
     private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
     private final CatalogInvalidationNotifier catalogInvalidationNotifier;
+    private final DataspaceParticipantProvisioningTrigger dataspaceParticipantProvisioningTrigger;
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -887,7 +889,8 @@ public class ClientService {
     /**
      * Flips the member's dataspace participant binding to decommissioned, in this same transaction,
      * once the deleted client was the member's last one on this server (own client and all
-     * subsystems counted). Does nothing when the member was never bound.
+     * subsystems counted), and schedules a provisioning run to tear it down after commit. Does
+     * nothing when the member was never bound.
      */
     private void decommissionDataspaceBindingIfLastClient(ClientEntity deletedClient, ServerConfEntity serverConfEntity) {
         ClientId member = deletedClient.getIdentifier().getMemberId();
@@ -900,6 +903,7 @@ public class ClientService {
         }
         if (dsParticipantRepository.decommissionMember(member)) {
             log.info("Data space participant binding for {} marked decommissioned", member);
+            dataspaceParticipantProvisioningTrigger.provisionParticipantAsync();
         }
     }
 

@@ -39,6 +39,7 @@ import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestMa
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
@@ -81,8 +82,6 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
         implements AutoCloseable {
 
     private static final String XROAD_MEMBER_ID_PROPERTY = "xroadMemberId";
-    private static final String CREDENTIAL_SERVICE_TYPE = "CredentialService";
-    private static final String CREDENTIAL_SERVICE_ID_SUFFIX = "-credential-service";
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
     private static final Duration RESOLVE_TIMEOUT = Duration.ofSeconds(5);
@@ -140,8 +139,8 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 .active(true)
                 .property(XROAD_MEMBER_ID_PROPERTY, request.getMemberId())
                 .serviceEndpoint(new Service(
-                        request.getParticipantContextId() + CREDENTIAL_SERVICE_ID_SUFFIX,
-                        CREDENTIAL_SERVICE_TYPE,
+                        DspConventions.credentialServiceId(request.getParticipantContextId()),
+                        DspConventions.CREDENTIAL_SERVICE_TYPE,
                         request.getCredentialServiceUrl()))
                 .key(KeyDescriptor.Builder.newInstance()
                         .keyId(request.getKeyId())

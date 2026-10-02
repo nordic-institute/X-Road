@@ -28,7 +28,6 @@ package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,8 +61,6 @@ class XRoadServerConfCatalogExtensionTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
-    @Mock
-    private ParticipantContextService participantContextService;
 
     @Mock
     private WebService webService;
@@ -79,7 +76,6 @@ class XRoadServerConfCatalogExtensionTest {
 
         setField(extension, "serverConfProvider", serverConfProvider);
         setField(extension, "globalConfProvider", globalConfProvider);
-        setField(extension, "participantContextService", participantContextService);
         setField(extension, "webService", webService);
 
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -120,7 +116,6 @@ class XRoadServerConfCatalogExtensionTest {
         var badExtension = new XRoadServerConfCatalogExtension();
         setField(badExtension, "serverConfProvider", serverConfProvider);
         setField(badExtension, "globalConfProvider", globalConfProvider);
-        setField(badExtension, "participantContextService", participantContextService);
         setField(badExtension, "webService", webService);
         var badContext = mock(ServiceExtensionContext.class);
         when(badContext.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));
@@ -137,7 +132,6 @@ class XRoadServerConfCatalogExtensionTest {
         var badExtension = new XRoadServerConfCatalogExtension();
         setField(badExtension, "serverConfProvider", serverConfProvider);
         setField(badExtension, "globalConfProvider", globalConfProvider);
-        setField(badExtension, "participantContextService", participantContextService);
         setField(badExtension, "webService", webService);
         var badContext = mock(ServiceExtensionContext.class);
         when(badContext.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));

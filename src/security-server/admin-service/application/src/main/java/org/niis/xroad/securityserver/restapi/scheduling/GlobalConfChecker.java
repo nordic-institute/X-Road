@@ -86,6 +86,7 @@ public class GlobalConfChecker {
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
     private final AdminServiceProperties adminServiceProperties;
+    private final DataspaceParticipantProvisioningTrigger dataspaceParticipantProvisioningTrigger;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -348,6 +349,7 @@ public class GlobalConfChecker {
     private void updateClientStatus(ClientEntity client, String status) {
         client.setClientStatus(status);
         log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
+        dataspaceParticipantProvisioningTrigger.provisionParticipantAsync();
     }
 
     private void updateAuthCertStatuses(SecurityServerId securityServerId) {
