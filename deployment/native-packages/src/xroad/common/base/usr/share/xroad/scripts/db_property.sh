@@ -74,16 +74,23 @@ parse_args() {
 load_db_properties() {
   local -r ss_helper="/usr/share/xroad/scripts/read_db_properties.sh"
   local -r cs_helper="/usr/share/xroad/scripts/_read_cs_db_properties.sh"
+  local -r cp_helper="/usr/share/xroad/scripts/read_confproxy_db_properties.sh"
 
   # Deployment-type detection mirrors get_deployment_type() in
   # /etc/xroad/services/global.conf — Central Server is identified by the
-  # centralserver-admin-service.conf marker; otherwise treat as Security Server.
+  # centralserver-admin-service.conf marker, Configuration Proxy by the
+  # confproxy-cli.conf marker; otherwise treat as Security Server.
   if [ -f /etc/xroad/services/centralserver-admin-service.conf ]; then
     [ -f "$cs_helper" ] || die "Central Server detected but $cs_helper not found"
     # shellcheck source=/dev/null
     source "$cs_helper"
     prepare_db_props
     db_addr="$db_host"
+  elif [ -f /etc/xroad/services/confproxy-cli.conf ]; then
+    [ -f "$cp_helper" ] || die "Configuration Proxy detected but $cp_helper not found"
+    # shellcheck source=/dev/null
+    source "$cp_helper"
+    read_confproxy_database_properties /etc/xroad/db.properties
   else
     [ -f "$ss_helper" ] || die "Security Server detected but $ss_helper not found"
     # shellcheck source=/dev/null
