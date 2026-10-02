@@ -70,10 +70,8 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     @Nullable
     public ContractDefinition findById(String definitionId) {
         var requested = requestedParticipantContext.get();
-        if (!serviceContextResolver.isCacheableRequestedContext(requested)) {
-            return findByIdInternal(definitionId);
-        }
-        return cache.findById(definitionId, requested, () -> findByIdInternal(definitionId));
+        return cache.findById(definitionId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
+                () -> findByIdInternal(definitionId));
     }
 
     @Nullable
