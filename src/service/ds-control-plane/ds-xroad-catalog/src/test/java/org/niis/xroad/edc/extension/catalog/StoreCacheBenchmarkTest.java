@@ -36,7 +36,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.AfterAll;
@@ -61,6 +60,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 @ExtendWith(MockitoExtension.class)
 class StoreCacheBenchmarkTest {
@@ -205,10 +205,7 @@ class StoreCacheBenchmarkTest {
 
     private AssetIndexServerConfStore buildStore(ServerConfProvider provider, boolean cacheEnabled) {
         var cache = new StoreEnumerationCache<Asset>(cacheEnabled, 3600, 10000, "bench");
-        var benchParticipantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId(BENCH_MEMBER_CTX)
-                .identity("did:web:example.com:v1:" + BENCH_MEMBER_CTX)
-                .build();
+        var benchParticipantContext = participantContext(BENCH_MEMBER_CTX);
         lenient().when(participantContextService.search(any()))
                 .thenReturn(ServiceResult.success(List.of(benchParticipantContext)));
         lenient().when(participantContextService.getParticipantContext(BENCH_MEMBER_CTX))
