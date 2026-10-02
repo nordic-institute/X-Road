@@ -61,6 +61,11 @@ configSeed:
     # XRoadServerConfCatalogExtension's packaged default.
     - key: xroad.dsp.catalog.cache.ttl-seconds
       value: "60"
+    # proxy gates its startup on this row (waits) so it never boots against the
+    # packaged config before the seed Job commits. Value matches
+    # ProxyConfigKeys.SERVER_LISTEN_PORT's packaged default.
+    - key: xroad.proxy.server.listen-port
+      value: "5500"
 
 imagePullSecrets: []
 
@@ -194,6 +199,9 @@ services:
         persistentVolumeClaim:
           claimName: signer-tokens-pvc
   proxy:
+    waits:
+      - type: serverconfProperty
+        key: xroad.proxy.server.listen-port
     otelServiceName: xroad-proxy
     imageName: ss-proxy
     resources:
