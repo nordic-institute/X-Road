@@ -60,12 +60,10 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 @ExtendWith(MockitoExtension.class)
 class StoreCacheBenchmarkTest {
-
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(
-            "participant", "participant-mgmt", ParticipantIdentifierScheme.SYSTEM_SEGMENT);
 
     private static final int WARMUP = 50;
     private static final int K = 200;
@@ -202,16 +200,19 @@ class StoreCacheBenchmarkTest {
         return times;
     }
 
+    private static final String BENCH_MEMBER_CTX =
+            ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1111"));
+
     private AssetIndexServerConfStore buildStore(ServerConfProvider provider, boolean cacheEnabled) {
         var cache = new StoreEnumerationCache<Asset>(cacheEnabled, 3600, 10000, "bench");
-        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
-        lenient().when(participantContextService.getParticipantContext(any()))
-                .thenReturn(ServiceResult.notFound("no such context"));
+        var benchParticipantContext = participantContext(BENCH_MEMBER_CTX);
+        lenient().when(participantContextService.search(any()))
+                .thenReturn(ServiceResult.success(List.of(benchParticipantContext)));
+        lenient().when(participantContextService.getParticipantContext(BENCH_MEMBER_CTX))
+                .thenReturn(ServiceResult.success(benchParticipantContext));
         var serviceContextResolver = new ServiceContextResolver(
-                CONTEXT_IDS,
                 globalConfProvider, provider, participantContextService);
         return new AssetIndexServerConfStore(provider,
-                CONTEXT_IDS,
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),
                 cache, serviceContextResolver, new ThreadLocalRequestedParticipantContext());

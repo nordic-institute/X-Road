@@ -48,6 +48,7 @@ xrd-jaeger ansible_connection=lxd
 
 [ss_servers:vars]
 variant=vanilla
+xroad_install_opmonitoring=true
 
 [all:vars]
 # Point lxc at the local LXD socket instead of a Lima remote.

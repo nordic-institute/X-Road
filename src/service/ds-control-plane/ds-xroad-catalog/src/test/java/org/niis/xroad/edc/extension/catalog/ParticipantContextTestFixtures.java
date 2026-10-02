@@ -26,13 +26,19 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import lombok.experimental.UtilityClass;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+
 /**
- * The three server-level participant contexts every ServerConf-backed catalog store publishes
- * under. Kept together so callers pass one named value instead of three interchangeable strings.
- *
- * @param host       the legacy host context, this server's own DSP identity
- * @param management the distinct identity for MANAGEMENT-subsystem entities
- * @param system     the per-server SYSTEM context (XRDADR-41)
+ * Shared {@link ParticipantContext} test builder for the ServerConf-backed catalog store tests.
  */
-record CatalogContextIds(String host, String management, String system) {
+@UtilityClass
+class ParticipantContextTestFixtures {
+
+    static ParticipantContext participantContext(String contextId) {
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId(contextId)
+                .identity("did:web:example.com:v1:" + contextId)
+                .build();
+    }
 }

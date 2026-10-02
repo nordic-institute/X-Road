@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -58,7 +59,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -69,8 +69,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     @Override
     @Nullable
     public ContractDefinition findById(String definitionId) {
-        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
-        return cache.findById(definitionId, cacheKeyContext, () -> findByIdInternal(definitionId));
+        var requested = requestedParticipantContext.get();
+        return cache.findById(definitionId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
+                () -> findByIdInternal(definitionId));
     }
 
     @Nullable
@@ -93,8 +94,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById definitionId={} matched builtin", definitionId);
-            return toBuiltinContractDefinition(builtinServiceId,
-                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+            return toBuiltinContractDefinition(builtinServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
         if (systemAddressed) {
@@ -108,8 +108,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
             // Fall through: a SYSTEM-eligible real service with configured access rights
             // publishes its per-subject compound id there instead of the plain/owner-only forms.
-        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            return findOwnerOnlyContractDefinition(policyId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
@@ -119,15 +117,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, definitionId);
         if (result == null) {
             result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, definitionId);
-        }
-        if (systemAddressed && result != null && !contextIds.system().equals(result.getParticipantContextId())) {
-            // A SYSTEM-addressed request must never resolve to a compound id whose only match is
-            // under a different context (select()'s host-context fallback) — that would grant a
-            // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
-            // context and cached under the SYSTEM key.
-            log.trace("findById definitionId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null",
-                    definitionId);
-            return null;
         }
         logFindByIdResult(definitionId, result);
         return result;
@@ -146,7 +135,8 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private ContractDefinition findSystemContractDefinition(String policyId) {
         var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
         if (ownerOnlyServiceId != null) {
-            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(ownerOnlyServiceId, contextIds.system());
+            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(
+                    ownerOnlyServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
         if (systemServiceId == null) {
@@ -160,18 +150,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById policyId={} not unrestricted under SYSTEM", policyId);
             return null;
         }
-        return toBuiltinContractDefinition(systemServiceId, contextIds.system());
-    }
-
-    /** The management-context owner-only definition {@code policyId} names, if this server serves it. */
-    @Nullable
-    private ContractDefinition findOwnerOnlyContractDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
-        if (serviceId == null) {
-            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
-            return null;
-        }
-        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.management());
+        return toBuiltinContractDefinition(systemServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
     }
 
     @Override
@@ -197,17 +176,11 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
-            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.management()));
-            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
+            definitions.add(toBuiltinContractDefinition(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
-        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
-        syntheticServices.managementEntries()
+        serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                        serviceId, contextIds.management())));
-        syntheticServices.systemEntries()
-                .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                        serviceId, contextIds.system())));
+                        serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT)));
         return definitions;
     }
 
@@ -250,23 +223,22 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContextsById(serviceId));
-        if (serviceContextResolver.isSystemEligible(serviceId)) {
-            resolvedContexts.add(contextIds.system());
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        if (ctxId == null) {
+            return null;
+        }
         return ContractDefinitionMapper.toContractDefinition(serviceId, matchedEntries.getFirst().getSubjectId(), ctxId);
     }
 
     /**
-     * Emits one owner-only definition per service (hidden from non-owner peers by EDC's
-     * ContractDefinitionResolverImpl) plus one per-subject definition per ACL entry, for each
-     * context the service is published under.
+     * Emits one unrestricted definition under SYSTEM for a SYSTEM-eligible service with no configured
+     * access rights, plus one per-subject definition per ACL entry, for each context the service is
+     * published under. A service with neither stays published as an Asset but gets no definition at
+     * all, so it has no callable grant — not even for its own owning member.
      */
     private void collectContractDefinitionsForService(ServiceId serviceId, List<ContractDefinition> definitions,
                                                        Set<String> provisionedMemberContextIds) {
-        definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                serviceId, contextIds.management()));
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)
@@ -275,17 +247,14 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
             // rights ARE configured, they must gate SYSTEM the same as every other context —
             // handled below via the per-subject loop, not here.
-            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
+            definitions.add(toBuiltinContractDefinition(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
         if (accessRights.isEmpty()) {
             return;
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
-        if (systemEligible) {
-            resolvedContexts.add(contextIds.system());
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds, systemEligible);
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();

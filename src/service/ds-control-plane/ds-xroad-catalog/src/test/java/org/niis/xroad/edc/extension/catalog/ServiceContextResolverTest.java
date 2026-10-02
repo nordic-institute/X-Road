@@ -31,12 +31,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -54,14 +54,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceContextResolverTest {
 
-    private static final String HOST_CTX = "xroad-provider";
-    private static final String MGMT_CTX = "xroad-provider-mgmt";
     private static final String SYSTEM_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(HOST_CTX, MGMT_CTX, SYSTEM_CTX);
 
     private static final ClientId.Conf MEMBER = ClientId.Conf.create("DEV", "GOV", "1111");
     private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
@@ -86,21 +84,21 @@ class ServiceContextResolverTest {
 
     private ServiceContextResolver resolver() {
         return new ServiceContextResolver(
-                CONTEXT_IDS, globalConfProvider, serverConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
     }
 
     @Test
-    void resolveContextsReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+    void resolveContextsReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
         var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of());
 
-        assertThat(result).containsExactly(HOST_CTX);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void resolveContextsIncludesOwningMemberContextWhenProvisioned() {
+    void resolveContextsReturnsOnlyMemberContextWhenProvisioned() {
         var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
 
-        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(result).containsExactly(MEMBER_CTX);
     }
 
     @Test
@@ -109,43 +107,67 @@ class ServiceContextResolverTest {
 
         var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
 
-        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(result).containsExactly(MEMBER_CTX);
     }
 
     @Test
-    void managementRequestServiceLegacyPublicationContextIsManagementNotHost() {
-        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
-
+    void managementRequestServiceReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
         var result = resolver().resolveContexts(MGMT_SERVICE, Set.of());
 
-        assertThat(result).containsExactly(MGMT_CTX);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void managementRequestServiceResolvesOwningMemberContextOnceProvisioned() {
+        var mgmtMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333"));
+
+        var result = resolver().resolveContexts(MGMT_SERVICE, Set.of(mgmtMemberCtx));
+
+        assertThat(result).containsExactly(mgmtMemberCtx);
     }
 
     @Test
     void selectReturnsRequestedContextWhenItIsAmongResolvedContexts() {
-        var selected = ServiceContextResolver.select(List.of(HOST_CTX, MEMBER_CTX), MEMBER_CTX);
+        var selected = ServiceContextResolver.select(List.of(SYSTEM_CTX, MEMBER_CTX), MEMBER_CTX);
 
         assertThat(selected).isEqualTo(MEMBER_CTX);
     }
 
     @Test
-    void selectFallsBackToLegacyHostContextWhenNoneRequested() {
-        var selected = ServiceContextResolver.select(List.of(HOST_CTX, MEMBER_CTX), null);
+    void selectFallsBackToFirstResolvedContextWhenNoneRequested() {
+        var selected = ServiceContextResolver.select(List.of(SYSTEM_CTX, MEMBER_CTX), null);
 
-        assertThat(selected).isEqualTo(HOST_CTX);
+        assertThat(selected).isEqualTo(SYSTEM_CTX);
     }
 
     @Test
-    void selectFallsBackToLegacyHostContextWhenRequestedContextIsNotAmongResolvedContexts() {
-        var selected = ServiceContextResolver.select(List.of(HOST_CTX), "some-other-context");
+    void selectReturnsNullWhenRequestedContextIsNotAmongResolvedContexts() {
+        var selected = ServiceContextResolver.select(List.of(MEMBER_CTX), "some-other-context");
 
-        assertThat(selected).isEqualTo(HOST_CTX);
+        assertThat(selected).isNull();
     }
 
     @Test
-    void provisionedMemberContextIdsRecognisesThreeSegmentShapeAndExcludesHostAndManagement() {
+    void selectReturnsNullWhenRequestedContextIsAnotherMembersContextNotInTheResolvedList() {
+        var otherMember = ClientId.Conf.create("DEV", "GOV", "2222");
+        var otherMemberCtx = ParticipantIdentifierScheme.memberCtxId(otherMember);
+        var thirdMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "3333"));
+
+        var selected = ServiceContextResolver.select(List.of(MEMBER_CTX, otherMemberCtx), thirdMemberCtx);
+
+        assertThat(selected).isNull();
+    }
+
+    @Test
+    void selectReturnsNullWhenResolvedContextsIsEmpty() {
+        assertThat(ServiceContextResolver.select(List.of(), "some-other-context")).isNull();
+        assertThat(ServiceContextResolver.select(List.of(), null)).isNull();
+    }
+
+    @Test
+    void provisionedMemberContextIdsRecognisesThreeSegmentShapeAndExcludesNonMemberShapes() {
         when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(
-                participantContext(MEMBER_CTX), participantContext(HOST_CTX), participantContext(MGMT_CTX))));
+                participantContext(MEMBER_CTX), participantContext(SYSTEM_CTX))));
 
         var result = resolver().provisionedMemberContextIds();
 
@@ -169,23 +191,34 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+    void resolveContextsByIdReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.notFound("no such context"));
 
         var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
-        assertThat(result).containsExactly(HOST_CTX);
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void resolveContextsByIdIncludesOwningMemberContextWhenProvisioned() {
+    void resolveContextsByIdReturnsOnlyMemberContextWhenProvisioned() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
         var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
-        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+        assertThat(result).containsExactly(MEMBER_CTX);
+    }
+
+    @Test
+    void resolveContextsByIdManagementRequestServiceReturnsEmptyListWhenOwningMemberHasNoProvisionedContext() {
+        var mgmtMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333"));
+        when(participantContextService.getParticipantContext(mgmtMemberCtx))
+                .thenReturn(ServiceResult.notFound("no such context"));
+
+        var result = resolver().resolveContextsById(MGMT_SERVICE);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -217,25 +250,32 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void normalizeRequestedContextPassesThroughHostAndManagementAndValidMemberCtx() {
-        assertThat(resolver().normalizeRequestedContext(HOST_CTX)).isEqualTo(HOST_CTX);
-        assertThat(resolver().normalizeRequestedContext(MGMT_CTX)).isEqualTo(MGMT_CTX);
-        assertThat(resolver().normalizeRequestedContext(MEMBER_CTX)).isEqualTo(MEMBER_CTX);
+    void isCacheableRequestedContextAcceptsValidMemberCtx() {
+        assertThat(resolver().isCacheableRequestedContext(MEMBER_CTX)).isTrue();
     }
 
     @Test
-    void normalizeRequestedContextPassesThroughSystemCtx() {
-        assertThat(resolver().normalizeRequestedContext(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
+    void isCacheableRequestedContextAcceptsSystemCtx() {
+        assertThat(resolver().isCacheableRequestedContext(SYSTEM_CTX)).isTrue();
     }
 
     @Test
-    void normalizeRequestedContextCollapsesNullAndGarbageToNull() {
-        assertThat(resolver().normalizeRequestedContext(null)).isNull();
-        assertThat(resolver().normalizeRequestedContext("not-a-real-ctx")).isNull();
-        assertThat(resolver().normalizeRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isNull();
+    void isCacheableRequestedContextAcceptsNoContextRequested() {
+        assertThat(resolver().isCacheableRequestedContext(null)).isTrue();
     }
 
-    // --- isSystemEligible / resolveSyntheticServices / selectBuiltinContextId ---
+    @Test
+    void isCacheableRequestedContextRejectsGarbage() {
+        assertThat(resolver().isCacheableRequestedContext("not-a-real-ctx")).isFalse();
+        assertThat(resolver().isCacheableRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isFalse();
+    }
+
+    @Test
+    void isCacheableRequestedContextRejectsSingleSegmentNonSystemString() {
+        assertThat(resolver().isCacheableRequestedContext("xroad-provider")).isFalse();
+    }
+
+    // --- isSystemEligible / resolveSyntheticServices ---
 
     private static final ServiceId.Conf MGMT_ELIGIBLE_SERVICE =
             ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg");
@@ -338,35 +378,32 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveSyntheticServicesResolvesManagementSubsystemOnceForBothLists() {
+    void resolveSyntheticServicesResolvesManagementSubsystemOnce() {
         stubEligibleManagementSubsystem();
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result.managementEntries()).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
-        assertThat(result.systemEntries()).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
+        assertThat(result).hasSize(ManagementServiceCodes.DSP_NEGOTIATED.size());
         verify(serverConfProvider, times(1)).getAllServices(MGMT_CLIENT);
     }
 
     @Test
-    void resolveSyntheticServicesReturnsEmptyListsWhenNoManagementSubsystem() {
+    void resolveSyntheticServicesReturnsEmptyListWhenNoManagementSubsystem() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result.managementEntries()).isEmpty();
-        assertThat(result.systemEntries()).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void resolveSyntheticServicesReturnsEmptyListsWhenManagementSubsystemHasRealServices() {
+    void resolveSyntheticServicesReturnsEmptyListWhenManagementSubsystemHasRealServices() {
         stubLiveManagementSubsystem();
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
 
         var result = resolver().resolveSyntheticServices();
 
-        assertThat(result.managementEntries()).isEmpty();
-        assertThat(result.systemEntries()).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     // --- isSystemPublished / isSystemSyntheticEligible ---
@@ -441,17 +478,6 @@ class ServiceContextResolverTest {
         assertThat(resolver().isSystemSyntheticEligible(MGMT_ELIGIBLE_SERVICE)).isFalse();
     }
 
-    @Test
-    void selectBuiltinContextIdReturnsSystemWhenSystemRequested() {
-        assertThat(resolver().selectBuiltinContextId(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
-    }
-
-    @Test
-    void selectBuiltinContextIdReturnsManagementOtherwise() {
-        assertThat(resolver().selectBuiltinContextId(HOST_CTX)).isEqualTo(MGMT_CTX);
-        assertThat(resolver().selectBuiltinContextId(null)).isEqualTo(MGMT_CTX);
-    }
-
     private void stubLiveManagementSubsystem() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -461,12 +487,5 @@ class ServiceContextResolverTest {
     private void stubEligibleManagementSubsystem() {
         stubLiveManagementSubsystem();
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
-    }
-
-    private static ParticipantContext participantContext(String contextId) {
-        return ParticipantContext.Builder.newInstance()
-                .participantContextId(contextId)
-                .identity("did:web:example.com:v1:" + contextId)
-                .build();
     }
 }

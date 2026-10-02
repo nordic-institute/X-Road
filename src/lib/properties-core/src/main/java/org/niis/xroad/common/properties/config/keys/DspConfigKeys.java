@@ -59,24 +59,6 @@ public final class DspConfigKeys implements ConfigKeyProvider {
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
 
-    /**
-     * {@code xroad.dsp.participant-context-id} — no default; the extension falls back to
-     * {@code edc.hostname} itself when unset.
-     */
-    public static final ConfigKey<String> PARTICIPANT_CONTEXT_ID = DSP
-            .string("participant-context-id")
-            .publishedToFramework()
-            .build();
-
-    /**
-     * {@code xroad.dsp.management-participant-context-id} — no default; the extension falls back to
-     * {@code <participant-context-id>-mgmt} itself when unset.
-     */
-    public static final ConfigKey<String> MANAGEMENT_PARTICIPANT_CONTEXT_ID = DSP
-            .string("management-participant-context-id")
-            .publishedToFramework()
-            .build();
-
     /** {@code xroad.dsp.catalog.cache.enabled}. */
     public static final ConfigKey<Boolean> CATALOG_CACHE_ENABLED = CATALOG_CACHE
             .bool("enabled")

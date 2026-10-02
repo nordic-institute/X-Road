@@ -25,17 +25,26 @@
  */
 package org.niis.xroad.e2e;
 
+import ee.ria.xroad.common.util.MimeUtils;
+
+import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.e2e.container.SsStackSetup;
+import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.Mock1Fixture.MOCK1_X_ROAD_CLIENT;
 import static org.niis.xroad.e2e.Mock1Fixture.callMock1;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
+import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
  * Same-SS dataspace-protocol self-call: ss0 reaches its own {@code TestService} through its own proxy, so ss0
@@ -85,6 +94,17 @@ class SsProxyDspSelfCallTest extends E2eTest {
     /** The ctx-id the consumer side negotiates as: the sender member's derived context. */
     private static final String CONSUMER_MEMBER_CTX_ID = "DEV:COM:1234";
 
+    /**
+     * {@code setup.hurl}'s REST OpenAPI service on {@code TestService}, granted only to
+     * {@code DEV:COM:4321:TestClient}'s {@code /api/members} endpoint — never to {@code TestService}
+     * itself. Reused here, rather than provisioning a fresh unauthorized service, for exactly the
+     * same reason {@link #ASSET_ID} reuses {@link Mock1Fixture}'s existing self-granted service: the
+     * fixture already carries the access-control state this scenario needs.
+     */
+    private static final String NO_ACCESS_RIGHT_SERVICE_PATH = "/r1/DEV/COM/1234/TestService/restapi/api/members";
+
+    private static final String EXPECTED_FAULT_CODE = SERVER_CLIENTPROXY_X + "." + ErrorCode.UNKNOWN_MEMBER.code();
+
     @Test
     @DisplayName("Self-call converges its consumer and provider negotiation onto one agreement, and the transfer succeeds")
     void selfCallConvergesOntoOneAgreementAndTransfers(E2eEnvironment env) {
@@ -111,6 +131,35 @@ class SsProxyDspSelfCallTest extends E2eTest {
 
         and("the transfer over that agreement succeeds", () ->
                 dspAssertions.awaitTransferSucceeded(wireAgreementId));
+    }
+
+    @Test
+    @DisplayName("Self-call to an ordinary service with no access-right entry for the caller is denied")
+    void selfCallToServiceWithNoAccessRightIsDenied(E2eEnvironment env) {
+        Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
+                () -> "%s does not run the dataspace protocol stack; same-SS self-call is only wired for k8s and LXD"
+                        .formatted(env.getClass().getSimpleName()));
+
+        given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
+
+        var response = when(
+                "TestService calls its own restapi service via the ss0 proxy, for which it was never granted "
+                        + "an access right",
+                () -> callNoAccessRightService(env));
+
+        then("the call is denied: the provider's catalog carries no offer for the caller, surfaced to the "
+                + "consumer as an unknown-member fault", () ->
+                response.statusCode(500)
+                        .header(MimeUtils.HEADER_ERROR, equalTo(EXPECTED_FAULT_CODE))
+                        .body("type", equalTo(EXPECTED_FAULT_CODE)));
+    }
+
+    private ValidatableResponse callNoAccessRightService(E2eEnvironment env) {
+        var mapping = env.getContainerMapping(SELF_CALL_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
+        return RestAssuredFactory.given()
+                .header("x-road-client", MOCK1_X_ROAD_CLIENT)
+                .get("http://%s:%s%s".formatted(mapping.host(), mapping.port(), NO_ACCESS_RIGHT_SERVICE_PATH))
+                .then();
     }
 
 }

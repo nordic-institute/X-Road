@@ -32,7 +32,8 @@ import jakarta.annotation.Nullable;
  * Read access to the participant context a DSP protocol request was addressed to, captured
  * per request by {@link ParticipantContextCaptureFilter}. Returns {@code null} for callers
  * outside the DSP protocol request path — internal, management and diagnostic callers — which
- * the catalog stores treat as "no addressed context" and fall back to the legacy host context.
+ * the catalog stores treat as "no addressed context", selecting the first resolved context
+ * instead ({@link ServiceContextResolver#select}).
  */
 interface RequestedParticipantContext {
 
