@@ -502,7 +502,7 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
-    void findByIdFallsBackToProvisionedMemberContextWhenRequestedContextIsNotAmongResolvedContexts() {
+    void findByIdReturnsNullWhenRequestedContextIsNotAmongResolvedContexts() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
         var memberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1111"));
         when(participantContextService.getParticipantContext(memberCtx))
@@ -511,8 +511,7 @@ class AssetIndexServerConfStoreTest {
 
         var result = assetIndex.findById(SERVICE_1.asEncodedId());
 
-        assertThat(result).isNotNull();
-        assertThat(result.getParticipantContextId()).isEqualTo(memberCtx);
+        assertThat(result).isNull();
     }
 
     @Test

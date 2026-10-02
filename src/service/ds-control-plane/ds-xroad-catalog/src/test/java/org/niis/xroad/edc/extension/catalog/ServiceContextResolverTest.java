@@ -141,10 +141,21 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void selectFallsBackToFirstResolvedContextWhenRequestedContextIsNotAmongResolvedContexts() {
+    void selectReturnsNullWhenRequestedContextIsNotAmongResolvedContexts() {
         var selected = ServiceContextResolver.select(List.of(MEMBER_CTX), "some-other-context");
 
-        assertThat(selected).isEqualTo(MEMBER_CTX);
+        assertThat(selected).isNull();
+    }
+
+    @Test
+    void selectReturnsNullWhenRequestedContextIsAnotherMembersContextNotInTheResolvedList() {
+        var otherMember = ClientId.Conf.create("DEV", "GOV", "2222");
+        var otherMemberCtx = ParticipantIdentifierScheme.memberCtxId(otherMember);
+        var thirdMemberCtx = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "3333"));
+
+        var selected = ServiceContextResolver.select(List.of(MEMBER_CTX, otherMemberCtx), thirdMemberCtx);
+
+        assertThat(selected).isNull();
     }
 
     @Test

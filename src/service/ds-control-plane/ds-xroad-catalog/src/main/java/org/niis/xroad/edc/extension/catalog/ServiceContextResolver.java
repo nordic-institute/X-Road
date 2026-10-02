@@ -109,17 +109,20 @@ class ServiceContextResolver {
 
     /**
      * Picks the record matching the request's addressed context, if it is one of
-     * {@code resolvedContexts}; otherwise falls back to the list's first entry — by
-     * {@link #resolveContexts(ServiceId, Set)}'s either/or contract, the service's sole resolved
-     * context, or the SYSTEM context a caller appended on top of it. Returns {@code null} when
-     * {@code resolvedContexts} is empty: the service has no context to publish under at all.
+     * {@code resolvedContexts}. When no context was addressed ({@code requestedParticipantContextId}
+     * is {@code null} — an internal, management or diagnostic caller, per {@link RequestedParticipantContext}),
+     * falls back to the list's first entry — by {@link #resolveContexts(ServiceId, Set)}'s either/or
+     * contract, the service's sole resolved context, or the SYSTEM context a caller appended on top
+     * of it. A non-null addressed context that is not in {@code resolvedContexts} never falls back
+     * to an unrelated entry: it resolves to {@code null}, the same as when {@code resolvedContexts}
+     * is empty.
      */
     @Nullable
     static String select(List<String> resolvedContexts, @Nullable String requestedParticipantContextId) {
-        if (requestedParticipantContextId != null && resolvedContexts.contains(requestedParticipantContextId)) {
-            return requestedParticipantContextId;
+        if (requestedParticipantContextId == null) {
+            return resolvedContexts.isEmpty() ? null : resolvedContexts.getFirst();
         }
-        return resolvedContexts.isEmpty() ? null : resolvedContexts.getFirst();
+        return resolvedContexts.contains(requestedParticipantContextId) ? requestedParticipantContextId : null;
     }
 
     /** Whether a DSP request was addressed to this server's SYSTEM context. */
