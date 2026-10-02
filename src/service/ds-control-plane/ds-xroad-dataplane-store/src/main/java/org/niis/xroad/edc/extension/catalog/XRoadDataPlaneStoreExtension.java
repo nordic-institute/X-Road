@@ -26,18 +26,43 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-/**
- * Registers data-plane instances for a participant context under every configured data-plane entry.
- *
- * <p>Implementations must be idempotent: calling this repeatedly for the same participant context —
- * including on provisioning retries — must not create duplicates or fail.</p>
- */
-public interface DataPlaneContextRegistrar {
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-    /**
-     * Registers a data-plane instance for the given participant context, one per configured data-plane entry.
-     *
-     * @param participantContextId the participant context to register data-plane instances for
-     */
-    void registerParticipantContext(String participantContextId);
+/**
+ * Provides the {@link DataPlaneInstanceStore} as an {@link XRoadDataPlaneInstanceStore} computed from the
+ * local {@code xroad.cp.dataplane} configuration, so EDC's in-memory default store is never created.
+ */
+@Slf4j
+@Extension(XRoadDataPlaneStoreExtension.NAME)
+public class XRoadDataPlaneStoreExtension implements ServiceExtension {
+
+    static final String NAME = "X-Road DataPlane Store";
+    static final String SETTING_DATAPLANES = "xroad.cp.dataplane";
+
+    private XRoadDataPlaneInstanceStore store;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var entries = context.getConfig(SETTING_DATAPLANES).partition().toList();
+        if (entries.isEmpty()) {
+            log.warn("No data plane entries configured under '{}' — control plane will advertise no transfer endpoints.",
+                    SETTING_DATAPLANES);
+        }
+        store = new XRoadDataPlaneInstanceStore(entries);
+    }
+
+    @Provider
+    public DataPlaneInstanceStore dataPlaneInstanceStore() {
+        return store;
+    }
 }
