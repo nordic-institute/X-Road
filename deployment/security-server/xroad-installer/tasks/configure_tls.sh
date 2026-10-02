@@ -8,105 +8,87 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source common functions and logging
 source "$SCRIPT_DIR/../lib/common.sh"
 
-CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-YAML_HELPER="$SCRIPT_DIR/../lib/yaml_helper.sh"
+TLS_CONFIG_HELPER="${TLS_CONFIG_HELPER:-/usr/share/xroad/scripts/write_tls_config.sh}"
 
-# Extract the IP alternative names (IPv4 and IPv6) from a combined IP/DNS list.
-extract_ip_list() {
-  echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
+# Preseed the TLS subject questions of the proxy and the admin UI (Debian family).
+# The package configuration scripts keep a seen, non-empty answer and ask nothing.
+preseed_tls_debian() {
+  local hostname="$1"
+  local alt_names="$2"
+
+  # shellcheck source=install_security_server.sh
+  source "$SCRIPT_DIR/install_security_server.sh"
+  ensure_debconf_utils
+
+  log_message "Preseeding TLS identity questions (Common Name: $hostname, Alternative Names: $alt_names)"
+  set_debconf "xroad-proxy" "xroad-common/service-subject" "string" "$hostname"
+  set_debconf "xroad-proxy" "xroad-common/service-altsubject" "string" "$alt_names"
+  set_debconf "xroad-proxy-ui-api" "xroad-common/proxy-ui-api-subject" "string" "$hostname"
+  set_debconf "xroad-proxy-ui-api" "xroad-common/proxy-ui-api-altsubject" "string" "$alt_names"
 }
 
-# Extract the DNS alternative names from a combined IP/DNS list.
-extract_dns_list() {
-  echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
-}
+# Store the TLS identity rows of the proxy and the admin UI (RHEL family).
+# The package transaction has already seeded detected-host rows, so the answers
+# overwrite them. A server that was installed before this run is left as it is.
+write_tls_rows_rhel() {
+  local hostname="$1"
+  local alt_names="$2"
 
-# Function to get YAML value
-get_prop() {
-  "$YAML_HELPER" get "$1" "$2" 2>/dev/null
-}
-
-# Function to configure TLS settings for a service
-configure_service_tls() {
-  local service="$1"
-  local cn="$2"
-  local altn="$3"
-
-  log_message "Configuring TLS settings for $service"
-
-  # Check if settings already exist
-  local existing_cn existing_alt_names existing_ip_alt_names
-  existing_cn=$(get_prop "$CONFIG_FILE" "xroad.${service}.tls.certificate-provisioning.common-name")
-  existing_alt_names=$(get_prop "$CONFIG_FILE" "xroad.${service}.tls.certificate-provisioning.alt-names")
-  existing_ip_alt_names=$(get_prop "$CONFIG_FILE" "xroad.${service}.tls.certificate-provisioning.ip-subject-alt-names")
-
-  if [[ -n "$existing_cn" || -n "$existing_alt_names" || -n "$existing_ip_alt_names" ]]; then
-    log_info "$service TLS settings already exist, skipping"
-    return
+  if [[ "${XROAD_SS_PREINSTALLED:-false}" == "true" ]]; then
+    log_info "Security Server was already installed, keeping the existing TLS identity rows"
+    return 0
   fi
 
-  # Split IP and DNS entries
-  local ip_list dns_list
-  ip_list=$(extract_ip_list "$altn") || true
-  dns_list=$(extract_dns_list "$altn") || true
+  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+    log_info "XROAD_IGNORE_DATABASE_SETUP is set, not storing TLS identity rows"
+    return 0
+  fi
 
-  log_message "  Common Name: $cn"
-  log_message "  DNS Alternative Names: $dns_list"
-  log_message "  IP Alternative Names: $ip_list"
+  if [[ ! -r "$TLS_CONFIG_HELPER" ]]; then
+    log_die "$TLS_CONFIG_HELPER not found; the Security Server package must be installed before this step"
+  fi
+  # shellcheck source=/dev/null
+  source "$TLS_CONFIG_HELPER"
 
-  # Write settings using yaml_helper
-  "$YAML_HELPER" set "$CONFIG_FILE" "xroad.${service}.tls.certificate-provisioning.common-name" "$cn"
-  "$YAML_HELPER" set "$CONFIG_FILE" "xroad.${service}.tls.certificate-provisioning.alt-names" "$dns_list"
-  "$YAML_HELPER" set "$CONFIG_FILE" "xroad.${service}.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-
-  log_info "TLS settings configured for $service"
+  local module
+  for module in proxy proxy-ui-api; do
+    log_message "Storing TLS identity rows for $module (Common Name: $hostname, Alternative Names: $alt_names)"
+    if ! write_tls_identity_rows "$module" "$hostname" "$alt_names" reconfigure; then
+      log_die "Failed to store the $module TLS identity rows in the configuration database"
+    fi
+  done
+  log_info "TLS identity rows stored"
 }
 
 main() {
+  local phase="${1:-}"
+  local tls_hostname="${XROAD_TLS_HOSTNAME:-}"
+  local tls_alt_names="${XROAD_TLS_ALT_NAMES:-}"
+
   log_message "================================"
-  log_message "Configuring TLS Settings"
+  log_message "Configuring TLS Settings ($phase)"
   log_message "================================"
   log_message ""
 
-  # Check if running as root
   require_root
-
-  # Ensure the configuration directory exists
-  local conf_dir
-  conf_dir=$(dirname "$CONFIG_FILE")
-  if [[ ! -d "$conf_dir" ]]; then
-    log_message "Creating configuration directory: $conf_dir"
-    mkdir -p "$conf_dir"
-  fi
-
-  # Get TLS settings from environment variables
-  local tls_hostname="${XROAD_TLS_HOSTNAME:-}"
-  local tls_alt_names="${XROAD_TLS_ALT_NAMES:-}"
 
   if [[ -z "$tls_hostname" ]] || [[ -z "$tls_alt_names" ]]; then
     log_die "TLS settings not provided. XROAD_TLS_HOSTNAME and XROAD_TLS_ALT_NAMES are required."
   fi
 
-  log_message "TLS Hostname: $tls_hostname"
-  log_message "TLS Alternative Names: $tls_alt_names"
-  log_message ""
+  detect_os
+  case "$phase:$OS_FAMILY" in
+    preseed:debian) preseed_tls_debian "$tls_hostname" "$tls_alt_names" ;;
+    write:rhel) write_tls_rows_rhel "$tls_hostname" "$tls_alt_names" ;;
+    preseed:rhel | write:debian) log_message "Nothing to do in the $phase phase on $OS_NAME" ;;
+    *) log_die "Usage: configure_tls.sh preseed|write (supported OS family required)" ;;
+  esac
 
-  # Configure TLS settings for proxy
-  configure_service_tls "proxy" "$tls_hostname" "$tls_alt_names"
   log_message ""
-
-  # Configure TLS settings for proxy-ui-api
-  configure_service_tls "proxy-ui-api" "$tls_hostname" "$tls_alt_names"
-  log_message ""
-
-  log_message "TLS configuration file created: $CONFIG_FILE"
-  log_message ""
-  log_message "================================"
-  log_info "TLS configuration completed successfully!"
-  log_message "================================"
+  log_info "TLS configuration ($phase) completed successfully!"
 }
 
 # Run main function if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main
+  main "$@"
 fi
