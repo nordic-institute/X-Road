@@ -60,7 +60,7 @@ import static org.eclipse.edc.identityhub.spi.webcontext.IdentityHubApiContext.C
 /**
  * Serves a synthesised, keyless DID document for a member that is a registered client of this
  * security server but whose participant context has not been provisioned yet, so that the member
- * is resolvable from the moment it is registered (XRDADR-43).
+ * is resolvable from the moment it is registered (XRDADR-41).
  *
  * <p>Runs behind EDC's {@code DidWebController}, which answers an unknown {@code did.json} path
  * with an empty body. Only that case is examined: the requested path is decoded through the
@@ -115,7 +115,7 @@ class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
      */
     Optional<DidDocument> synthesise(String did) {
         MemberParticipant member = decodeMember(did);
-        if (member == null) {
+        if (member == null || !globalConfProvider.getInstanceIdentifiers().contains(member.member().getXRoadInstance())) {
             return Optional.empty();
         }
         var hostingServer = hostingServer(member);

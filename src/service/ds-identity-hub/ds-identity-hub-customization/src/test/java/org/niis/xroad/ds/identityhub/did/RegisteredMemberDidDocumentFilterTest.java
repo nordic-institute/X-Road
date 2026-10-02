@@ -54,6 +54,7 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -98,6 +99,7 @@ class RegisteredMemberDidDocumentFilterTest {
         when(response.getHeaders()).thenReturn(responseHeaders);
         when(portMappingRegistry.getAll()).thenReturn(List.of(
                 new PortMapping("did", 7183, "/"), new PortMapping("credentials", 7185, "/api/credentials")));
+        when(globalConfProvider.getInstanceIdentifiers()).thenReturn(Set.of("DEV"));
         when(globalConfProvider.getSecurityServers("DEV")).thenReturn(List.of(SS_ID));
         when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(SS_ADDRESS);
         when(globalConfProvider.getMembers("DEV")).thenReturn(List.of(
@@ -228,6 +230,18 @@ class RegisteredMemberDidDocumentFilterTest {
         filter().filter(request, response);
 
         assertResponseUntouched();
+    }
+
+    @Test
+    void didOfAnUnknownInstanceStaysUnresolvedWithoutAWarning() {
+        requestFor("v1/OTHER/COM/222/did.json");
+        controllerFoundNoDocument();
+
+        filter().filter(request, response);
+
+        assertResponseUntouched();
+        verify(globalConfProvider, never()).getSecurityServers(any(String[].class));
+        verifyNoInteractions(monitor);
     }
 
     @Test

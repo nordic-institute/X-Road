@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  * since subsystems never hold participant identity (XRDADR-41). Member contexts are derived from
  * the {@code REGISTERED} clients of this security server in serverconf, collapsed to member ids,
  * so a registered member's entries are published whether or not its participant context has been
- * provisioned yet (XRDADR-43).
+ * provisioned yet (XRDADR-41).
  *
  * <p>Also owns the SYSTEM-context routing decisions shared by the three ServerConf-backed catalog
  * stores: which built-in/synthetic context a SYSTEM-addressed request resolves to, and which
