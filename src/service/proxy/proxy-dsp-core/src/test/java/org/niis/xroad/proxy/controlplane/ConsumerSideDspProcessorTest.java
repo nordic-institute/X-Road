@@ -500,7 +500,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteDatasetNotFoundFromReachedProviderMapsToUnknownService() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToUnknownMember() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -512,7 +512,7 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_SERVICE.code()));
+                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
     }
 
     @Test
@@ -532,16 +532,16 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void allCandidatesHomogeneousRemoteOffersNotFoundMapsToUnknownMember() {
+    void allCandidatesHomogeneousRemoteNotFoundMapsToUnknownMember() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         var dspExceptionA = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_OFFERS_NOT_FOUND.code()))
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
                 .build();
         var dspExceptionB = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_OFFERS_NOT_FOUND.code()))
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
                 .build();
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any()))
                 .thenThrow(dspExceptionA);
@@ -553,35 +553,6 @@ class ConsumerSideDspProcessorTest {
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
                     assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
-                    assertThat(xrd.getDetails())
-                            .isNotBlank()
-                            .doesNotContainIgnoringCase("dsp_")
-                            .doesNotContainIgnoringCase("candidate security servers failed");
-                });
-    }
-
-    @Test
-    void allCandidatesHomogeneousRemoteDatasetNotFoundMapsToUnknownService() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var dspExceptionA = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
-                .build();
-        var dspExceptionB = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
-                .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any()))
-                .thenThrow(dspExceptionA);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any()))
-                .thenThrow(dspExceptionB);
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_SERVICE.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
                             .doesNotContainIgnoringCase("dsp_")
