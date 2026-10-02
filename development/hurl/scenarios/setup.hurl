@@ -1520,6 +1520,7 @@ retry-interval: 5000
 HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.kind == 'SYSTEM')].credential_status" == "ISSUED"
 
 GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -1531,3 +1532,4 @@ HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:4321')].credential_status" == "ISSUED"
 jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.kind == 'SYSTEM')].credential_status" == "ISSUED"
