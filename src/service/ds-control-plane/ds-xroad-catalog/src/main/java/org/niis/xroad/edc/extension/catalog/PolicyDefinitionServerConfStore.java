@@ -273,7 +273,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds, systemEligible);
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();

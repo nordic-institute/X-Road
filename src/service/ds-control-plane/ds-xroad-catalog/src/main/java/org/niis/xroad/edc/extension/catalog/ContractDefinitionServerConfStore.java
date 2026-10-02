@@ -266,7 +266,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds, systemEligible);
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();

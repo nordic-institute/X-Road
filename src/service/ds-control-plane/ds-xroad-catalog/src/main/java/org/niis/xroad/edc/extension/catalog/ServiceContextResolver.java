@@ -119,11 +119,22 @@ class ServiceContextResolver {
      * @return the service's resolved contexts, with SYSTEM appended when eligible
      */
     List<String> resolveContextsWithSystem(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
-        var resolvedContexts = new ArrayList<>(resolveContexts(serviceId, provisionedMemberContextIds));
-        if (isSystemEligible(serviceId)) {
-            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        }
-        return resolvedContexts;
+        return resolveContextsWithSystem(serviceId, provisionedMemberContextIds, isSystemEligible(serviceId));
+    }
+
+    /**
+     * Same as {@link #resolveContextsWithSystem(ServiceId, Set)}, for a caller that already holds
+     * {@code systemEligible} from an earlier {@link #isSystemEligible} call a few lines up — an
+     * enumerating caller typically does, to also feed {@link #shouldPublishUnrestrictedSystemEntry}
+     * — so it is not re-derived here.
+     *
+     * @param serviceId the service to resolve the contexts for
+     * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
+     * @param systemEligible the caller's already-computed {@link #isSystemEligible} result for {@code serviceId}
+     * @return the service's resolved contexts, with SYSTEM appended when eligible
+     */
+    List<String> resolveContextsWithSystem(ServiceId serviceId, Set<String> provisionedMemberContextIds, boolean systemEligible) {
+        return appendSystemIfEligible(resolveContexts(serviceId, provisionedMemberContextIds), systemEligible);
     }
 
     /**
@@ -135,11 +146,15 @@ class ServiceContextResolver {
      * @return the service's resolved contexts, with SYSTEM appended when eligible
      */
     List<String> resolveContextsByIdWithSystem(ServiceId serviceId) {
-        var resolvedContexts = new ArrayList<>(resolveContextsById(serviceId));
-        if (isSystemEligible(serviceId)) {
-            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        return appendSystemIfEligible(resolveContextsById(serviceId), isSystemEligible(serviceId));
+    }
+
+    private static List<String> appendSystemIfEligible(List<String> baseContexts, boolean systemEligible) {
+        var result = new ArrayList<>(baseContexts);
+        if (systemEligible) {
+            result.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
-        return resolvedContexts;
+        return result;
     }
 
     /**
