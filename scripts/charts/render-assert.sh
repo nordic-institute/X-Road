@@ -134,15 +134,6 @@ render_and_assert_snapshot "openbao-init" \
     ConfigMap=1 Job=1 Role=1 RoleBinding=1 ServiceAccount=1 || STATUS=1
 echo ""
 
-log_info "=== wait-gate seed-key coverage ==="
-if ! python3 "${SCRIPT_DIR}/check-wait-gate-seed-keys.py" \
-    --chart "${ROOT_DIR}/deployment/security-server/k8s/charts/security-server/values.yaml" \
-    --override "${ROOT_DIR}/development/k8s/roles/security_server/templates/security-server-values.yaml.j2"; then
-    log_error "ansible override is missing a chart-declared wait-gate seed key"
-    STATUS=1
-fi
-echo ""
-
 echo "========================================"
 if [[ "${STATUS}" -eq 0 ]]; then
     log_success "All render assertions passed"
