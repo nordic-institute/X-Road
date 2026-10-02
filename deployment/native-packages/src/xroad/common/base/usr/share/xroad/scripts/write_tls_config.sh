@@ -76,6 +76,7 @@ extract_cn() {
 #   $2 - subject answer (bare host, /CN=host or full distinguished name)
 #   $3 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
 #   $4 - optional, "reconfigure" to overwrite existing rows
+# An answer without a common name falls back to the host name (hostname -f).
 # Skips when XROAD_IGNORE_DATABASE_SETUP is set. Existing rows are kept unless reconfiguring.
 # Returns non-zero, naming the key, on any database error.
 write_tls_identity_rows() {
@@ -98,6 +99,14 @@ write_tls_identity_rows() {
   local prefix="xroad.${module_name}.tls.certificate-provisioning"
   local cn dns_list ip_list
   cn=$(extract_cn "$subject")
+  if [[ -z "$cn" ]]; then
+    cn=$(hostname -f 2>/dev/null || hostname 2>/dev/null || true)
+    if [[ -z "$cn" ]]; then
+      log "FATAL: no common name in the ${module_name} subject answer and no host name available"
+      return 1
+    fi
+    log "No common name in the ${module_name} subject answer, using ${cn}"
+  fi
   dns_list=$(extract_dns_list "$altn")
   ip_list=$(extract_ip_list "$altn")
 
