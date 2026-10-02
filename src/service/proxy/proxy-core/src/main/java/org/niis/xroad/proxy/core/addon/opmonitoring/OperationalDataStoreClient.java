@@ -23,41 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
 
-import java.util.Optional;
+import java.util.List;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
+/**
+ * Stores a batch of operational data records in op-monitor. Failures other than an oversized request are thrown.
+ */
+public interface OperationalDataStoreClient extends AutoCloseable {
 
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
-
-    private final XRoadConfig xRoadConfig;
-
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+    enum Result {
+        STORED,
+        TOO_LARGE
     }
 
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
+    Result store(List<OperationalDataRecordProto> records);
 
     @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+    default void close() {
     }
 }

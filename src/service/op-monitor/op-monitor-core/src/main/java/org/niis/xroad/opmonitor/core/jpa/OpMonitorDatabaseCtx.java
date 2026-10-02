@@ -29,9 +29,9 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
+import org.niis.xroad.opmonitor.api.OperationalDataTruncationPolicy;
 import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
 import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 
@@ -50,11 +50,6 @@ public class OpMonitorDatabaseCtx extends DatabaseCtx {
     }
 
     private static final class StringValueTruncator implements Interceptor {
-
-        private static final String SOAP_FAULT_STRING = "faultString";
-
-        private static final int FAULT_MAX_LENGTH = 2048;
-        private static final int MAX_LENGTH = 255;
 
         @Override
         public boolean onFlushDirty(Object entity, Object id,
@@ -83,13 +78,7 @@ public class OpMonitorDatabaseCtx extends DatabaseCtx {
                                                      String[] propertyNames, Type[] types) {
             for (int i = 0; i < types.length; i++) {
                 if (types[i].getReturnedClass() == String.class) {
-                    int maxLength = MAX_LENGTH;
-                    if (propertyNames[i].equals(SOAP_FAULT_STRING)) {
-                        maxLength = FAULT_MAX_LENGTH;
-                    }
-
-                    state[i] = StringUtils.substring((String) state[i], 0,
-                            maxLength);
+                    state[i] = OperationalDataTruncationPolicy.truncate(propertyNames[i], (String) state[i]);
                 }
             }
         }

@@ -27,13 +27,10 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import com.codahale.metrics.MetricRegistry;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -59,7 +56,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 /**
  * The main HTTP(S) request handler of the operational monitoring daemon.
@@ -74,10 +70,6 @@ public final class OpMonitorDaemon {
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    // The start timestamp is saved once the server has been started.
-    @Getter(AccessLevel.PRIVATE)
-    private long startTimestamp;
-
     private final Server server = new Server();
 
     private final OpMonitorProperties opMonitorProperties;
@@ -85,21 +77,17 @@ public final class OpMonitorDaemon {
     private final GlobalConfProvider globalConfProvider;
     private final VaultClient vaultClient;
     private final OperationalDataRecordManager operationalDataRecordManager;
-    private final HealthDataMetrics healthDataMetrics;
+    private final OperationalDataStore operationalDataStore;
+    private final HealthDataRegistry healthDataRegistry;
     private final ScheduledExecutorService tlsClientCertificateRefreshScheduler =
             Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
-
-    private final MetricRegistry healthMetricRegistry = new MetricRegistry();
 
     @PostConstruct
     @ArchUnitSuppressed("NoVanillaExceptions")
     public void init() throws Exception {
         log.info("Creating OpMonitorDaemon.");
-        startTimestamp = getEpochMillisecond();
-
         createConnector();
         createHandler();
-        registerHealthMetrics();
         server.start();
         log.info("OpMonitorDaemon started.");
     }
@@ -157,11 +145,7 @@ public final class OpMonitorDaemon {
 
     private void createHandler() {
         server.setHandler(new OpMonitorDaemonRequestHandler(opMonitorProperties, globalConfProvider,
-                healthMetricRegistry, operationalDataRecordManager, healthDataMetrics));
-    }
-
-    private void registerHealthMetrics() {
-        healthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
+                healthDataRegistry.getRegistry(), operationalDataRecordManager, operationalDataStore));
     }
 
     private OpMonitorSslTrustManager createTrustManager() {

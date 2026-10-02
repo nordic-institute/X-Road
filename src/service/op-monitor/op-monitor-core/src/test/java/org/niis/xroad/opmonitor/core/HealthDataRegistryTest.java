@@ -23,41 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.opmonitor.core;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
-import java.util.Optional;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.opmonitor.core.HealthDataMetrics.MONITORING_STARTUP_TIMESTAMP;
+import static org.niis.xroad.opmonitor.core.HealthDataMetrics.STATISTICS_PERIOD_SECONDS;
+import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.findGauge;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
+class HealthDataRegistryTest {
+    private static final OpMonitorProperties OP_MONITOR_PROPERTIES = new OpMonitorProperties(
+            XRoadConfigBuilder.create().register(OpMonitorConfigKeys.instance()).build());
 
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
+    @Test
+    void registryPublishesStartupTimestampAndStatisticsPeriod() {
+        long before = getEpochMillisecond();
 
-    private final XRoadConfig xRoadConfig;
+        var registry = new HealthDataRegistry(new HealthDataMetrics(OP_MONITOR_PROPERTIES)).getRegistry();
 
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
-    }
-
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+        assertThat((Long) findGauge(registry, MONITORING_STARTUP_TIMESTAMP).getValue())
+                .isBetween(before, getEpochMillisecond());
+        assertThat(findGauge(registry, STATISTICS_PERIOD_SECONDS).getValue())
+                .isEqualTo(OP_MONITOR_PROPERTIES.healthStatisticsPeriodSeconds());
     }
 }

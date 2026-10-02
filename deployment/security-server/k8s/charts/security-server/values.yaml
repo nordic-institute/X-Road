@@ -366,6 +366,8 @@ services:
         name: http
       - port: 2080
         name: opmon-daemon
+      - port: 2081
+        name: grpc
     debugPort: 9999
     readinessProbe:
       path: "/q/health/ready"

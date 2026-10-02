@@ -23,41 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
-
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
-
-    private final XRoadConfig xRoadConfig;
+final class RecordingOpMonitoringBuffer implements OpMonitoringBuffer {
+    final List<Integer> successes = Collections.synchronizedList(new ArrayList<>());
+    final List<List<OpMonitoringData>> failures = Collections.synchronizedList(new ArrayList<>());
 
     @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+    public void sendingSuccess(int count) {
+        successes.add(count);
     }
 
     @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    public void store(OpMonitoringData data) {
     }
 
     @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+    public void sendingFailure(List<OpMonitoringData> failedData) {
+        failures.add(List.copyOf(failedData));
     }
 }

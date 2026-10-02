@@ -13,6 +13,7 @@ dependencies {
   implementation(project(":common:common-jetty"))
   implementation(project(":lib:messagelog-core"))
   implementation(project(":service:op-monitor:op-monitor-api"))
+  implementation(project(":service:op-monitor:op-monitor-client"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
   implementation(libs.quarkus.scheduler)

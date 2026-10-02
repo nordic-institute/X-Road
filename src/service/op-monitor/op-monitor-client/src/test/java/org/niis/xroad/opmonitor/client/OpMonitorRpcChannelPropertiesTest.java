@@ -23,41 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.opmonitor.client;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 
-import java.util.Optional;
+import java.util.Map;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
+class OpMonitorRpcChannelPropertiesTest {
 
-    private final XRoadConfig xRoadConfig;
+    @Test
+    void maxInboundMessageSizeKeepsGrpcDefaultWhenNotConfigured() {
+        var properties = new OpMonitorRpcChannelProperties(config(Map.of()));
 
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+        assertThat(properties.maxInboundMessageSize()).isEmpty();
     }
 
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    @Test
+    void maxInboundMessageSizeIsReadFromOpMonitorChannelKey() {
+        var properties = new OpMonitorRpcChannelProperties(
+                config(Map.of("xroad.common-rpc.channel.op-monitor.max-inbound-message-size", "8388608")));
+
+        assertThat(properties.maxInboundMessageSize()).contains(8_388_608);
     }
 
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+    private static XRoadConfig config(Map<String, String> overrides) {
+        return XRoadConfigBuilder.create().register(CommonRpcConfigKeys.instance()).overrides(overrides).build();
     }
 }
