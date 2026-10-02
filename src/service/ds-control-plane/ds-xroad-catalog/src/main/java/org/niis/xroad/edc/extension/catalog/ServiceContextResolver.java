@@ -45,6 +45,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -105,6 +106,40 @@ class ServiceContextResolver {
         return memberContextIdById(serviceId.getClientId())
                 .map(List::of)
                 .orElse(List.of());
+    }
+
+    /**
+     * {@link #resolveContexts(ServiceId, Set)}, plus the SYSTEM context appended when
+     * {@code serviceId} is {@link #isSystemEligible}. The single place the three ServerConf-backed
+     * catalog stores derive the full set of contexts a service's per-subject entries are published
+     * under.
+     *
+     * @param serviceId the service to resolve the contexts for
+     * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
+     * @return the service's resolved contexts, with SYSTEM appended when eligible
+     */
+    List<String> resolveContextsWithSystem(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
+        var resolvedContexts = new ArrayList<>(resolveContexts(serviceId, provisionedMemberContextIds));
+        if (isSystemEligible(serviceId)) {
+            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        }
+        return resolvedContexts;
+    }
+
+    /**
+     * Same as {@link #resolveContextsWithSystem(ServiceId, Set)}, for the by-id cache-miss path:
+     * built on {@link #resolveContextsById(ServiceId)} instead of requiring the full
+     * {@link #provisionedMemberContextIds()} enumeration.
+     *
+     * @param serviceId the service to resolve the contexts for
+     * @return the service's resolved contexts, with SYSTEM appended when eligible
+     */
+    List<String> resolveContextsByIdWithSystem(ServiceId serviceId) {
+        var resolvedContexts = new ArrayList<>(resolveContextsById(serviceId));
+        if (isSystemEligible(serviceId)) {
+            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        }
+        return resolvedContexts;
     }
 
     /**

@@ -239,10 +239,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContextsById(serviceId));
-        if (serviceContextResolver.isSystemEligible(serviceId)) {
-            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         if (ctxId == null) {
             return null;
@@ -276,10 +273,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
-        if (systemEligible) {
-            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();

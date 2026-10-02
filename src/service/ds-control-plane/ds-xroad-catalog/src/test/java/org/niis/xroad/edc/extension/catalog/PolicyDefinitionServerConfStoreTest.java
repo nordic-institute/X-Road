@@ -34,7 +34,6 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -61,6 +60,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 @ExtendWith(MockitoExtension.class)
 class PolicyDefinitionServerConfStoreTest {
@@ -717,12 +717,5 @@ class PolicyDefinitionServerConfStoreTest {
         ar.setEndpoint(endpoint);
         ar.setRightsGiven(new Date());
         return ar;
-    }
-
-    private static ParticipantContext participantContext(String contextId) {
-        return ParticipantContext.Builder.newInstance()
-                .participantContextId(contextId)
-                .identity("did:web:example.com:v1:" + contextId)
-                .build();
     }
 }

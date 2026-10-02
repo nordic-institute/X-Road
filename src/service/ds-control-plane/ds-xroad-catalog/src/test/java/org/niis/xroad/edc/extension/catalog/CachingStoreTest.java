@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import com.google.common.base.Ticker;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -58,6 +57,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 @ExtendWith(MockitoExtension.class)
 class CachingStoreTest {
@@ -108,13 +108,6 @@ class CachingStoreTest {
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         lenient().when(participantContextService.search(any()))
                 .thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_CTX))));
-    }
-
-    private static ParticipantContext participantContext(String contextId) {
-        return ParticipantContext.Builder.newInstance()
-                .participantContextId(contextId)
-                .identity("did:web:example.com:v1:" + contextId)
-                .build();
     }
 
     @Test

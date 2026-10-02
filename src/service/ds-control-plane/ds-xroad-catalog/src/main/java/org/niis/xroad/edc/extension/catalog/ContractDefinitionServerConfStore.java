@@ -235,10 +235,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContextsById(serviceId));
-        if (serviceContextResolver.isSystemEligible(serviceId)) {
-            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         if (ctxId == null) {
             return null;
@@ -269,10 +266,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
-        if (systemEligible) {
-            resolvedContexts.add(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();

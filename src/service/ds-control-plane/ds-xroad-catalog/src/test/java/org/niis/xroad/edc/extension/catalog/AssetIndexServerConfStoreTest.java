@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +55,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 @ExtendWith(MockitoExtension.class)
 class AssetIndexServerConfStoreTest {
@@ -156,13 +156,6 @@ class AssetIndexServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(memberCtx);
-    }
-
-    private static ParticipantContext participantContext(String contextId) {
-        return ParticipantContext.Builder.newInstance()
-                .participantContextId(contextId)
-                .identity("did:web:example.com:v1:" + contextId)
-                .build();
     }
 
     @Test
