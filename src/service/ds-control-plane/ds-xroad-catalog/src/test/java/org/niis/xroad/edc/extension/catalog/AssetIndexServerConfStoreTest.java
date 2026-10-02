@@ -697,4 +697,17 @@ class AssetIndexServerConfStoreTest {
 
         assertThat(result).isNull();
     }
+
+    @Test
+    void findByIdUncontextedSystemEligibleServiceWithoutProvisionedMemberContextResolvesUnderSystem() {
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CONTEXT_ID);
+    }
 }

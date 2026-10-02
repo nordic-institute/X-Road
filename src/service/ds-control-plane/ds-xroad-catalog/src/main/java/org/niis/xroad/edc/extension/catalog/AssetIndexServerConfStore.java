@@ -151,7 +151,7 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
-        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
+        var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         if (ctxId == null) {
             log.trace("findById assetId={} has no provisioned context, returning null", assetId);
