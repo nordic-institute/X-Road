@@ -84,7 +84,7 @@
         # the right host over TLS.
         dsp:
           callback:
-            address: "https://{{ inventory_hostname }}.lxd:8183/api/dsp/%s"
+            address: "https://{{ xroad_host_fqdn }}:8183/api/dsp/%s"
         iam:
           credential:
             revocation:
@@ -93,10 +93,10 @@
           sts:
             oauth:
               token:
-                url: "https://{{ inventory_hostname }}.lxd:7184/api/sts/token"
+                url: "https://{{ xroad_host_fqdn }}:7184/api/sts/token"
       xroad:
         dsp:
-          participant-context-id: "{{ inventory_hostname }}.lxd"
+          participant-context-id: "{{ xroad_host_fqdn }}"
         edc:
           web:
             https:
