@@ -57,6 +57,62 @@ extract_dns_list() {
   echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
 }
 
+# Extract the bare common name from a subject answer.
+# Accepts a bare host name, a /CN=host form or a full distinguished name in slash
+# (/C=EE/O=Org/CN=host) or comma (CN=host, O=Org, C=EE) form; the CN component may appear anywhere.
+extract_cn() {
+  local subject="${1#"${1%%[![:space:]]*}"}"
+  subject="${subject%"${subject##*[![:space:]]}"}"
+  if [[ "$subject" == *[/,=]* ]]; then
+    subject=$(echo "$subject" | tr '/,' '\n\n' | sed -n 's/^[[:space:]]*[Cc][Nn][[:space:]]*=[[:space:]]*//p' | head -n1)
+    subject="${subject%"${subject##*[![:space:]]}"}"
+  fi
+  echo "$subject"
+}
+
+# Write the TLS identity rows of a module to the configuration database.
+# Arguments:
+#   $1 - module name (e.g., admin-service, management-service)
+#   $2 - subject answer (bare host, /CN=host or full distinguished name)
+#   $3 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
+#   $4 - optional, "reconfigure" to overwrite existing rows
+# Skips when XROAD_IGNORE_DATABASE_SETUP is set. Existing rows are kept unless reconfiguring.
+# Returns non-zero, naming the key, on any database error.
+write_tls_identity_rows() {
+  local module_name="$1"
+  local subject="$2"
+  local altn="$3"
+  local mode="${4:-}"
+  local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
+
+  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+    log "XROAD_IGNORE_DATABASE_SETUP is set, not storing ${module_name} TLS identity rows"
+    return 0
+  fi
+
+  local write_flag="--if-absent"
+  if [[ "$mode" == "reconfigure" || "${DEBCONF_RECONFIGURE:-}" == "1" ]]; then
+    write_flag="--yes"
+  fi
+
+  local prefix="xroad.${module_name}.tls.certificate-provisioning"
+  local cn dns_list ip_list
+  cn=$(extract_cn "$subject")
+  dns_list=$(extract_dns_list "$altn")
+  ip_list=$(extract_ip_list "$altn")
+
+  local key value
+  for key in common-name alt-names ip-subject-alt-names; do
+    case "$key" in
+      common-name) value="$cn" ;;
+      alt-names) value="$dns_list" ;;
+      ip-subject-alt-names) value="$ip_list" ;;
+    esac
+    "$db_property" set "${prefix}.${key}" "$value" "$write_flag" \
+      || { log "FATAL: failed to store ${prefix}.${key} in the database"; return 1; }
+  done
+}
+
 # Write TLS certificate provisioning settings to configuration file
 # Arguments:
 #   $1 - config file path (e.g., /etc/xroad/conf.d/local-tls.yaml)

@@ -4,6 +4,8 @@
 . /usr/share/debconf/confmodule
 trap db_stop EXIT
 
+. /usr/share/xroad/scripts/write_tls_config.sh
+
 abort() {
     local rc=$?
     echo -e "xroad-center: FATAL: $*" >&2
@@ -11,9 +13,6 @@ abort() {
 }
 log() { echo "xroad-center: $*" >&2; }
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
-get_yaml_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
-}
 
 gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"
@@ -186,6 +185,11 @@ configure_dataspace_issuer_host() {
   local -r key="xroad.dataspace.issuer.host"
   local -r template="xroad-common/dataspace-issuer-host"
 
+  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+    log "XROAD_IGNORE_DATABASE_SETUP is set, not storing ${key}"
+    return
+  fi
+
   RET=""
   db_get xroad-common/skip-cs-db-migrations || true
   if [[ "$RET" == "true" ]]; then
@@ -218,16 +222,7 @@ configure_dataspace_issuer_host() {
     || abort "Failed to store ${key} in the database. ABORTING."
 }
 
-extract_ip_list() {
-  echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
-}
-
-extract_dns_list() {
-  echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
-}
-
 prepare_certificates_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
   HOST=$(hostname -f)
   if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"
@@ -236,82 +231,66 @@ prepare_certificates_settings() {
   for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
   ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
-  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
+  log "Preparing center-admin-service certificate properties"
+  db_subst xroad-common/admin-subject HOST "$HOST"
+  db_subst xroad-common/admin-altsubject ALT "$ALT"
 
-    log "Preparing center-admin-service certificate properties"
-    db_subst xroad-common/admin-subject HOST "$HOST"
-    db_subst xroad-common/admin-altsubject ALT "$ALT"
+  db_get xroad-common/admin-subject
+  [ -z "$RET" ] && db_set xroad-common/admin-subject "$HOST"
+  db_get xroad-common/admin-altsubject
+  [ -z "$RET" ] && db_set xroad-common/admin-altsubject "$ALT"
 
-    db_get xroad-common/admin-subject
-    [ -z "$RET" ] && db_set xroad-common/admin-subject "$HOST"
-    db_get xroad-common/admin-altsubject
-    [ -z "$RET" ] && db_set xroad-common/admin-altsubject "$ALT"
+  db_beginblock
+  db_input critical xroad-common/admin-subject || true
+  db_input critical xroad-common/admin-altsubject || true
+  db_endblock
+  db_go
 
-    db_beginblock
-    db_input critical xroad-common/admin-subject || true
-    db_input critical xroad-common/admin-altsubject || true
-    db_endblock
-    db_go
+  log "Preparing management service certificate properties"
+  db_subst xroad-common/service-subject HOST "$HOST"
+  db_subst xroad-common/service-altsubject ALT "$ALT"
 
-    db_get xroad-common/admin-subject
-    subj="${RET#/CN=}"
-    db_get xroad-common/admin-altsubject
-    altn="$RET"
+  db_get xroad-common/service-subject
+  [ -z "$RET" ] && db_set xroad-common/service-subject "$HOST"
+  db_get xroad-common/service-altsubject
+  [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
 
-    local ip_list dns_list
-    ip_list=$(extract_ip_list "$altn")
-    dns_list=$(extract_dns_list "$altn")
+  db_beginblock
+  db_input critical xroad-common/service-subject || true
+  db_input critical xroad-common/service-altsubject || true
+  db_endblock
+  db_go
+}
 
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name" "$subj"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names" "$dns_list"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-  else
-    log "Center-admin-service certificate properties are set, skipping"
+# Stores the answers collected by prepare_certificates_settings as identity rows. Must run
+# after setup_database() so the configuration_properties table exists.
+store_certificates_settings() {
+  RET=""
+  db_get xroad-common/skip-cs-db-migrations || true
+  if [[ "$RET" == "true" ]]; then
+    log "Database migrations were skipped — not storing TLS identity rows; run 'dpkg-reconfigure xroad-center' after migrating"
+    return
   fi
 
-  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
-
-    log "Preparing management and registration service certificate properties"
-    db_subst xroad-common/service-subject HOST "$HOST"
-    db_subst xroad-common/service-altsubject ALT "$ALT"
-
-    db_get xroad-common/service-subject
-    [ -z "$RET" ] && db_set xroad-common/service-subject "$HOST"
-    db_get xroad-common/service-altsubject
-    [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
-
-    db_beginblock
-    db_input critical xroad-common/service-subject || true
-    db_input critical xroad-common/service-altsubject || true
-    db_endblock
-    db_go
-
-    db_get xroad-common/service-subject
-    subj="${RET#/CN=}"
-    db_get xroad-common/service-altsubject
-    altn="$RET"
-
-    local ip_list dns_list
-    ip_list=$(extract_ip_list "$altn")
-    dns_list=$(extract_dns_list "$altn")
-
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name" "$subj"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names" "$dns_list"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name" "$subj"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names" "$dns_list"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-  else
-    log "Management and registration service certificate properties are set, skipping"
+  local mode=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    mode="reconfigure"
   fi
+
+  local subject altn
+  db_get xroad-common/admin-subject
+  subject="$RET"
+  db_get xroad-common/admin-altsubject
+  altn="$RET"
+  write_tls_identity_rows admin-service "$subject" "$altn" "$mode" \
+    || abort "Failed to store admin-service TLS identity. ABORTING."
+
+  db_get xroad-common/service-subject
+  subject="$RET"
+  db_get xroad-common/service-altsubject
+  altn="$RET"
+  write_tls_identity_rows management-service "$subject" "$altn" "$mode" \
+    || abort "Failed to store management-service TLS identity. ABORTING."
 }
 
 
@@ -319,6 +298,7 @@ case "$1" in
 configure | reconfigure)
     prepare_certificates_settings
     setup_database
+    store_certificates_settings "$1"
     configure_dataspace_issuer_host "$1"
 
     RET=""
