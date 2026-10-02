@@ -118,16 +118,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (result == null) {
             result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, definitionId);
         }
-        if (systemAddressed && result != null
-                && !ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(result.getParticipantContextId())) {
-            // A SYSTEM-addressed request must never resolve to a compound id whose only match is
-            // under a different context (select()'s first-entry fallback) — that would grant a
-            // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
-            // context and cached under the SYSTEM key.
-            log.trace("findById definitionId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null",
-                    definitionId);
-            return null;
-        }
         logFindByIdResult(definitionId, result);
         return result;
     }
