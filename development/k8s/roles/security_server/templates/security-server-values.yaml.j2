@@ -66,6 +66,11 @@ configSeed:
       value: "{{ configuration_client_update_interval }}"
     - key: xroad.signer.ocsp-response-retrieval-active
       value: "true"
+    # proxy gates its startup on this row (waits) so it never boots against the
+    # packaged config before the seed Job commits. Value matches
+    # ProxyConfigKeys.SERVER_LISTEN_PORT's packaged default.
+    - key: xroad.proxy.server.listen-port
+      value: "5500"
     # Where this Security Server advertises its own server proxy for the DSP data
     # plane. The product default is https://localhost:5500, which only holds when
     # consumer and provider share a host; a multi-release k8s topology needs it
