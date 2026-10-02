@@ -314,23 +314,19 @@ class ServiceContextResolver {
     }
 
     /**
-     * Normalizes a requested participant context for use as a by-id cache key: a value that is
-     * neither the SYSTEM context nor syntactically a valid member ctx-id collapses to {@code null}
-     * — the same key as "no context requested" — so that distinct garbage input never mints a
-     * distinct cache entry for what is, in every case, the same not-found record. The cache itself
-     * stays unaware of ctx-id scheme rules; this is the one place that decides what a plausible
-     * context looks like.
+     * Whether a requested participant context is safe to use as a by-id cache key: no context at
+     * all ({@code null}), the SYSTEM context, or a syntactically valid member ctx-id. A non-null
+     * value that matches neither recognised shape must never be cached — in particular, it must
+     * never be keyed the same as "no context requested", since that would let an addressed-but-
+     * unmatched lookup read back whatever record an unrelated uncontexted caller cached (the
+     * cross-member leak {@link #select} closes at the resolution layer). The cache itself stays
+     * unaware of ctx-id scheme rules; this is the one place that decides what a plausible context
+     * looks like, and the caller skips the cache entirely when this returns {@code false}.
      */
-    @Nullable
-    String normalizeRequestedContext(@Nullable String requestedParticipantContextId) {
-        if (requestedParticipantContextId == null) {
-            return null;
-        }
-        if (requestedParticipantContextId.equals(ParticipantIdentifierScheme.SYSTEM_SEGMENT)
-                || isMemberContextShape(requestedParticipantContextId)) {
-            return requestedParticipantContextId;
-        }
-        return null;
+    boolean isCacheableRequestedContext(@Nullable String requestedParticipantContextId) {
+        return requestedParticipantContextId == null
+                || requestedParticipantContextId.equals(ParticipantIdentifierScheme.SYSTEM_SEGMENT)
+                || isMemberContextShape(requestedParticipantContextId);
     }
 
     /**

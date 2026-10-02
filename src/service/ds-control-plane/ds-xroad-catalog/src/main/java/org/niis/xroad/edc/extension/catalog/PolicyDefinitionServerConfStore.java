@@ -73,8 +73,11 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     @Nullable
     @WithSpan("dsp-find-acl")
     public PolicyDefinition findById(@SpanAttribute String policyId) {
-        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
-        return cache.findById(policyId, cacheKeyContext, () -> findByIdInternal(policyId));
+        var requested = requestedParticipantContext.get();
+        if (!serviceContextResolver.isCacheableRequestedContext(requested)) {
+            return findByIdInternal(policyId);
+        }
+        return cache.findById(policyId, requested, () -> findByIdInternal(policyId));
     }
 
     @Nullable

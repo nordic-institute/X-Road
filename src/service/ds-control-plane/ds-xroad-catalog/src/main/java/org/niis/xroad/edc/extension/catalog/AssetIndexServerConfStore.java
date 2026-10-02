@@ -119,8 +119,11 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Override
     @Nullable
     public Asset findById(String assetId) {
-        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
-        return cache.findById(assetId, cacheKeyContext, () -> findByIdInternal(assetId));
+        var requested = requestedParticipantContext.get();
+        if (!serviceContextResolver.isCacheableRequestedContext(requested)) {
+            return findByIdInternal(assetId);
+        }
+        return cache.findById(assetId, requested, () -> findByIdInternal(assetId));
     }
 
     @Nullable

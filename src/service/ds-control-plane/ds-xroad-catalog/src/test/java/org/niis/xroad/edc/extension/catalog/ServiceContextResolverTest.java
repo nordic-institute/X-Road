@@ -250,25 +250,29 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void normalizeRequestedContextPassesThroughValidMemberCtx() {
-        assertThat(resolver().normalizeRequestedContext(MEMBER_CTX)).isEqualTo(MEMBER_CTX);
+    void isCacheableRequestedContextAcceptsValidMemberCtx() {
+        assertThat(resolver().isCacheableRequestedContext(MEMBER_CTX)).isTrue();
     }
 
     @Test
-    void normalizeRequestedContextPassesThroughSystemCtx() {
-        assertThat(resolver().normalizeRequestedContext(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
+    void isCacheableRequestedContextAcceptsSystemCtx() {
+        assertThat(resolver().isCacheableRequestedContext(SYSTEM_CTX)).isTrue();
     }
 
     @Test
-    void normalizeRequestedContextCollapsesNullAndGarbageToNull() {
-        assertThat(resolver().normalizeRequestedContext(null)).isNull();
-        assertThat(resolver().normalizeRequestedContext("not-a-real-ctx")).isNull();
-        assertThat(resolver().normalizeRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isNull();
+    void isCacheableRequestedContextAcceptsNoContextRequested() {
+        assertThat(resolver().isCacheableRequestedContext(null)).isTrue();
     }
 
     @Test
-    void normalizeRequestedContextCollapsesSingleSegmentNonSystemStringToNull() {
-        assertThat(resolver().normalizeRequestedContext("xroad-provider")).isNull();
+    void isCacheableRequestedContextRejectsGarbage() {
+        assertThat(resolver().isCacheableRequestedContext("not-a-real-ctx")).isFalse();
+        assertThat(resolver().isCacheableRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isFalse();
+    }
+
+    @Test
+    void isCacheableRequestedContextRejectsSingleSegmentNonSystemString() {
+        assertThat(resolver().isCacheableRequestedContext("xroad-provider")).isFalse();
     }
 
     // --- isSystemEligible / resolveSyntheticServices ---

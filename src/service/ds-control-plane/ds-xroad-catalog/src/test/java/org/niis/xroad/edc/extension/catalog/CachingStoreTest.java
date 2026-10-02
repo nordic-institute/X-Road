@@ -191,16 +191,47 @@ class CachingStoreTest {
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
-        // Neither string decodes as a member ctx-id nor matches the SYSTEM ctx, so both collapse to
-        // the same key as "no context requested" — one cache entry, one loader call.
+        // The uncontexted call resolves via select()'s getFirst() fallback and caches the owning
+        // member's asset under the "no context requested" key.
         requestedParticipantContext.clear();
-        store.findById(SERVICE_1.asEncodedId());
-        requestedParticipantContext.set("not-a-real-ctx");
-        store.findById(SERVICE_1.asEncodedId());
-        requestedParticipantContext.set("also-not-a-real-ctx");
-        store.findById(SERVICE_1.asEncodedId());
+        var uncontexted = store.findById(SERVICE_1.asEncodedId());
+        assertThat(uncontexted).isNotNull();
+        assertThat(uncontexted.getParticipantContextId()).isEqualTo(MEMBER_CTX);
 
-        verify(serverConfProvider, times(1)).serviceExists(SERVICE_1);
+        // Neither string decodes as a member ctx-id nor matches the SYSTEM ctx. Each must be treated
+        // as its own, uncacheable lookup rather than sharing the uncontexted call's cache entry — so
+        // neither ever returns the member's asset that entry holds.
+        requestedParticipantContext.set("not-a-real-ctx");
+        var garbage1 = store.findById(SERVICE_1.asEncodedId());
+        requestedParticipantContext.set("also-not-a-real-ctx");
+        var garbage2 = store.findById(SERVICE_1.asEncodedId());
+
+        assertThat(garbage1).isNull();
+        assertThat(garbage2).isNull();
+        verify(serverConfProvider, times(3)).serviceExists(SERVICE_1);
+    }
+
+    @Test
+    void findByIdUnmatchedContextNeverReadsBackTheUncontextedCallsCachedAsset() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
+        lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var store = buildStore(withCache);
+
+        // An uncontexted internal call legitimately resolves to, and caches, the owning member's
+        // asset under the "no context requested" key.
+        requestedParticipantContext.clear();
+        var cachedForNoContext = store.findById(SERVICE_1.asEncodedId());
+        assertThat(cachedForNoContext).isNotNull();
+        assertThat(cachedForNoContext.getParticipantContextId()).isEqualTo(MEMBER_CTX);
+
+        // A later request addressed with a distinct, unmatched context string must miss — never read
+        // back the member's asset the first call cached — matching select()'s fail-closed contract.
+        requestedParticipantContext.set("stale-or-garbage-ctx");
+        var result = store.findById(SERVICE_1.asEncodedId());
+
+        assertThat(result).isNull();
     }
 
     @Test
