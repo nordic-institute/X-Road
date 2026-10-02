@@ -110,23 +110,11 @@ class ServiceContextResolver {
 
     /**
      * {@link #resolveContexts(ServiceId, Set)}, plus the SYSTEM context appended when
-     * {@code serviceId} is {@link #isSystemEligible}. The single place the three ServerConf-backed
-     * catalog stores derive the full set of contexts a service's per-subject entries are published
-     * under.
-     *
-     * @param serviceId the service to resolve the contexts for
-     * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
-     * @return the service's resolved contexts, with SYSTEM appended when eligible
-     */
-    List<String> resolveContextsWithSystem(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
-        return resolveContextsWithSystem(serviceId, provisionedMemberContextIds, isSystemEligible(serviceId));
-    }
-
-    /**
-     * Same as {@link #resolveContextsWithSystem(ServiceId, Set)}, for a caller that already holds
-     * {@code systemEligible} from an earlier {@link #isSystemEligible} call a few lines up — an
-     * enumerating caller typically does, to also feed {@link #shouldPublishUnrestrictedSystemEntry}
-     * — so it is not re-derived here.
+     * {@code systemEligible} is {@code true}. The single place the three ServerConf-backed
+     * catalog stores derive the full set of contexts a service's per-subject entries are
+     * published under; takes {@code systemEligible} rather than deriving it via
+     * {@link #isSystemEligible} since an enumerating caller already has it in hand, to also
+     * feed {@link #shouldPublishUnrestrictedSystemEntry}.
      *
      * @param serviceId the service to resolve the contexts for
      * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
@@ -138,9 +126,9 @@ class ServiceContextResolver {
     }
 
     /**
-     * Same as {@link #resolveContextsWithSystem(ServiceId, Set)}, for the by-id cache-miss path:
-     * built on {@link #resolveContextsById(ServiceId)} instead of requiring the full
-     * {@link #provisionedMemberContextIds()} enumeration.
+     * Same as {@link #resolveContextsWithSystem(ServiceId, Set, boolean)}, for the by-id
+     * cache-miss path: built on {@link #resolveContextsById(ServiceId)} instead of requiring the
+     * full {@link #provisionedMemberContextIds()} enumeration.
      *
      * @param serviceId the service to resolve the contexts for
      * @return the service's resolved contexts, with SYSTEM appended when eligible
