@@ -160,8 +160,13 @@
     xroad_repo_url_override: >-
       {{ 'http://xrd-repo/deb /' if ansible_facts['os_family'] == 'Debian'
          else 'http://xrd-repo/rpm' }}
-    xroad_tls_hostname: "{{ inventory_hostname }}.lxd"
-    xroad_tls_alt_names: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ inventory_hostname }}.lxd,DNS:{{ inventory_hostname }}"
+    # The xroad-ss task files included below do not load the xroad-ss role
+    # defaults, so the host name they and the installer TLS answers share is
+    # defined here.
+    xroad_host_fqdn: "{{ inventory_hostname }}.lxd"
+    xroad_host_extra_dns_san: "{{ ',DNS:' + inventory_hostname if xroad_host_fqdn != inventory_hostname else '' }}"
+    xroad_tls_hostname: "{{ xroad_host_fqdn }}"
+    xroad_tls_alt_names: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}"
   vars_files:
     # ss_database.yml consumed by xroad-ss postinstall (enable_postgres_remote_access, pg_remote_dev_cidrs)
     - vars_files/ss_database.yml
