@@ -96,9 +96,11 @@ fi
 %postun
 %systemd_postun_with_restart xroad-opmonitor.service
 
-%posttrans
+%posttrans -p /bin/bash
 %init_xroad_opmonitor_db
 /usr/share/xroad/scripts/write_tls_config.sh setup_default op-monitor
+rc=$?
+exit $rc
 
 %changelog
 
