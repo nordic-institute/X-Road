@@ -42,20 +42,32 @@ EOF
   exit 1
 }
 
+# Extract the values of one family (IP or DNS) from a combined list, comma-joined.
+# Arguments: $1 - family prefix, $2 - combined list
+extract_alt_names() {
+  printf '%s\n' "$2" | tr ',' '\n' \
+    | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+    | sed -n -e "s/^$1:[[:space:]]*//p" \
+    | sed -e '/^$/d' \
+    | paste -sd, -
+}
+
 # Extract the IP alternative names (IPv4 and IPv6) from a combined IP/DNS list.
 # Input format:
 #   IP:1.1.1.1,DNS:example.com,IP:2.2.2.2,DNS:example.org
 #   IP:10.0.2.15,IP:fd17:625c:f037:2:a00:27ff:fe7f:dfb6,DNS:example.org,DNS:example.org
+# Whitespace around entries is ignored.
 extract_ip_list() {
-  echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
+  extract_alt_names "IP" "$1"
 }
 
 # Extract the DNS alternative names from a combined IP/DNS list.
 # Input format:
 #   IP:1.1.1.1,DNS:example.com,IP:2.2.2.2,DNS:example.org
 #   IP:10.0.2.15,IP:fd17:625c:f037:2:a00:27ff:fe7f:dfb6,DNS:example.org,DNS:example.org
+# Whitespace around entries is ignored.
 extract_dns_list() {
-  echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
+  extract_alt_names "DNS" "$1"
 }
 
 # Extract the bare common name from a subject answer.
