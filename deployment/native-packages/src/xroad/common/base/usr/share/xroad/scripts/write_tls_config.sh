@@ -90,7 +90,8 @@ extract_cn() {
 #   $3 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
 #   $4 - optional, "reconfigure" to overwrite existing rows
 # An answer without a common name falls back to the host name (hostname -f).
-# Skips when XROAD_IGNORE_DATABASE_SETUP is set. Existing rows are kept unless reconfiguring.
+# Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
+# Existing rows are kept unless reconfiguring.
 # Returns non-zero, naming the key, on any database error.
 write_tls_identity_rows() {
   local module_name="$1"
@@ -101,6 +102,16 @@ write_tls_identity_rows() {
 
   if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
     log "XROAD_IGNORE_DATABASE_SETUP is set, not storing ${module_name} TLS identity rows"
+    return 0
+  fi
+
+  # Identity rows are written only when systemd is the running init (the sd_booted test).
+  # Without it the package is being configured inside an image build or a container's
+  # first-start reconfigure, where the host name belongs to the build or the container rather
+  # than to the deployment, and a stored row would outrank the runtime XROAD_HOST default.
+  # Deployed X-Road always runs under systemd.
+  if [[ ! -d /run/systemd/system ]]; then
+    log "systemd is not the running init (image build or container reconfigure), not storing ${module_name} TLS identity rows"
     return 0
   fi
 
@@ -158,7 +169,8 @@ write_tls_settings() {
 }
 
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.
-# Existing rows are kept. Skips when XROAD_IGNORE_DATABASE_SETUP is set.
+# Existing rows are kept. Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the
+# running init.
 # Arguments:
 #   $1 - module name (e.g., proxy, proxy-ui-api)
 setup_default_tls_config() {

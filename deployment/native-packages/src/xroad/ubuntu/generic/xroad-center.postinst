@@ -190,6 +190,14 @@ configure_dataspace_issuer_host() {
     return
   fi
 
+  # The row is written only when systemd is the running init; without it this is an image build
+  # or a container reconfigure and the host name is not the deployment's (see
+  # write_tls_identity_rows in write_tls_config.sh).
+  if [[ ! -d /run/systemd/system ]]; then
+    log "systemd is not the running init (image build or container reconfigure), not storing ${key}"
+    return
+  fi
+
   RET=""
   db_get xroad-common/skip-cs-db-migrations || true
   if [[ "$RET" == "true" ]]; then
