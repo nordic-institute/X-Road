@@ -40,8 +40,10 @@ import org.niis.xroad.edc.dataplanelifecycle.proto.DataFlowState;
 import org.niis.xroad.edc.dataplanelifecycle.proto.DataPlaneLifecycleServiceGrpc;
 import org.niis.xroad.edc.dataplanelifecycle.proto.ReportDataFlowStateRequest;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Reports the provider data plane's lifecycle state to the control plane over the same gRPC server
@@ -59,11 +61,14 @@ public class DataPlaneLifecycleRpcClient extends AbstractRpcClient {
     private final RpcChannelFactory rpcChannelFactory;
     private final ControlPlaneRpcChannelProperties channelProperties;
 
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor(runnable -> {
-        var thread = new Thread(runnable, "dataplane-lifecycle-report");
-        thread.setDaemon(true);
-        return thread;
-    });
+    private static final int REPORT_QUEUE_CAPACITY = 1000;
+
+    private final ExecutorService executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+            new ArrayBlockingQueue<>(REPORT_QUEUE_CAPACITY), runnable -> {
+                var thread = new Thread(runnable, "dataplane-lifecycle-report");
+                thread.setDaemon(true);
+                return thread;
+            });
 
     private ManagedChannel channel;
     private DataPlaneLifecycleServiceGrpc.DataPlaneLifecycleServiceBlockingStub stub;

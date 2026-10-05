@@ -71,12 +71,14 @@ class DataPlaneLifecycleRpcClientTest {
     private final AtomicReference<ReportDataFlowStateRequest> received = new AtomicReference<>();
     private final CountDownLatch receivedLatch = new CountDownLatch(1);
     private volatile StatusRuntimeException configuredError;
+    private volatile CountDownLatch blockReports;
 
     @BeforeEach
     void setUp() throws Exception {
         var mockService = new DataPlaneLifecycleServiceGrpc.DataPlaneLifecycleServiceImplBase() {
             @Override
             public void reportDataFlowState(ReportDataFlowStateRequest request, StreamObserver<Empty> responseObserver) {
+                awaitReleaseIfBlocked();
                 if (configuredError != null) {
                     responseObserver.onError(configuredError);
                     return;
@@ -152,6 +154,23 @@ class DataPlaneLifecycleRpcClientTest {
 
     @Test
     @Timeout(10)
+    void reportStateDropsReportsWhenTheQueueIsFullWithoutBlockingTheCaller() {
+        blockReports = new CountDownLatch(1);
+        try {
+            var started = System.nanoTime();
+            for (int i = 0; i < 1_200; i++) {
+                client.reportState("process-" + i, DataFlowStates.STARTED);
+            }
+            var elapsed = Duration.ofNanos(System.nanoTime() - started);
+
+            assertThat(elapsed).isLessThan(Duration.ofSeconds(2));
+        } finally {
+            blockReports.countDown();
+        }
+    }
+
+    @Test
+    @Timeout(10)
     void reportStateReturnsPromptlyEvenWhenTheControlPlaneIsUnreachable() throws Exception {
         server.shutdownNow();
         server.awaitTermination(5, TimeUnit.SECONDS);
@@ -161,5 +180,16 @@ class DataPlaneLifecycleRpcClientTest {
         var elapsed = Duration.ofNanos(System.nanoTime() - started);
 
         assertThat(elapsed).isLessThan(Duration.ofSeconds(1));
+    }
+    private void awaitReleaseIfBlocked() {
+        var block = blockReports;
+        if (block == null) {
+            return;
+        }
+        try {
+            block.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
