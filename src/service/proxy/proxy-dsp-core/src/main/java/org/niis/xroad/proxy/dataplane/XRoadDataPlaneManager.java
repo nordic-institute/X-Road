@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.controlplane.DataPlaneLifecycleRpcClient;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -72,6 +73,7 @@ public class XRoadDataPlaneManager {
     private final ProxyProperties proxyProperties;
     private final DataFlowStateStore flowStateStore;
     private final AgreementTokenIssuer agreementTokenIssuer;
+    private final DataPlaneLifecycleRpcClient lifecycleReportClient;
 
     /**
      * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
@@ -82,7 +84,7 @@ public class XRoadDataPlaneManager {
      */
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
         log.info("Preparing data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowStates.PROVISIONED);
+        applyTransition(message.getProcessId(), DataFlowTransition.PREPARE);
         return buildStatusMessage(DataFlowStates.PROVISIONED, message.getAgreementId());
     }
 
@@ -98,20 +100,22 @@ public class XRoadDataPlaneManager {
     public DataFlowStatusMessage start(DataFlowStartMessage message) {
         validateXrdPull(message);
         log.info("Starting Xrd-PULL data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowStates.STARTED);
+        applyTransition(message.getProcessId(), DataFlowTransition.START);
         return buildStatusMessage(DataFlowStates.STARTED, message.getAgreementId());
     }
 
     /**
-     * Handles the consumer-side started notification: the provider control plane has started
-     * the transfer and, for {@code Xrd-PULL}, data may now be pulled through the proxy.
+     * Handles the started notification this data plane receives from its own control plane: the transfer
+     * has started and, for {@code Xrd-PULL}, data may now be pulled through the proxy. The flow lands on
+     * {@link DataFlowStates#STARTED} but nothing is reported back, since the control plane is the source
+     * of this notification.
      *
      * @param flowId process ID of the flow that started
      * @return status message with state {@link DataFlowStates#STARTED}
      */
     public DataFlowStatusMessage started(String flowId) {
         log.info("Data flow {} started", flowId);
-        storeState(flowId, DataFlowStates.STARTED);
+        applyTransition(flowId, DataFlowTransition.NOTIFY_STARTED);
         return DataFlowStatusMessage.Builder.newInstance()
                 .state(DataFlowStates.STARTED.toString())
                 .build();
@@ -121,20 +125,22 @@ public class XRoadDataPlaneManager {
      * Completes a data flow, transitioning it to {@link DataFlowStates#COMPLETED}.
      *
      * @param flowId process ID of the flow to complete
+     * @throws XrdRuntimeException if the flow is not currently {@link DataFlowStates#STARTED}
      */
     public void completed(String flowId) {
         log.info("Completing data flow {}", flowId);
-        storeState(flowId, DataFlowStates.COMPLETED);
+        applyTransition(flowId, DataFlowTransition.COMPLETE);
     }
 
     /**
      * Terminates an active data flow, transitioning it to {@link DataFlowStates#TERMINATED}.
      *
      * @param flowId process ID of the flow to terminate
+     * @throws XrdRuntimeException if the flow is unknown or already in a terminal state
      */
     public void terminate(String flowId) {
         log.info("Terminating data flow {}", flowId);
-        storeState(flowId, DataFlowStates.TERMINATED);
+        applyTransition(flowId, DataFlowTransition.TERMINATE);
     }
 
     /**
@@ -142,10 +148,23 @@ public class XRoadDataPlaneManager {
      *
      * @param flowId  process ID of the flow to suspend
      * @param reason  optional suspend reason (may be null)
+     * @throws XrdRuntimeException if the flow is not currently {@link DataFlowStates#STARTED}
      */
     public void suspend(String flowId, String reason) {
         log.info("Suspending data flow {} — reason: {}", flowId, reason);
-        storeState(flowId, DataFlowStates.SUSPENDED);
+        applyTransition(flowId, DataFlowTransition.SUSPEND);
+    }
+
+    /**
+     * Resumes a suspended data flow, transitioning it back to {@link DataFlowStates#STARTED} and reporting
+     * the new state to the control plane, exactly as a fresh start does.
+     *
+     * @param flowId process ID of the flow to resume
+     * @throws XrdRuntimeException if the flow is not currently {@link DataFlowStates#SUSPENDED}
+     */
+    public void resume(String flowId) {
+        log.info("Resuming data flow {}", flowId);
+        applyTransition(flowId, DataFlowTransition.RESUME);
     }
 
     /**
@@ -196,7 +215,24 @@ public class XRoadDataPlaneManager {
         return dspProperties.serverproxyEndpoint();
     }
 
-    private void storeState(String processId, DataFlowStates state) {
-        flowStateStore.save(processId, state);
+    /**
+     * Validates {@code transition} against the flow's current state, persists the resulting state, and —
+     * for a transition the data-flow table marks as reported — tells the control plane off the calling
+     * thread. A reporting failure is logged and never propagates: it cannot fail or delay this call.
+     */
+    private void applyTransition(String processId, DataFlowTransition transition) {
+        var newState = transition.apply(flowStateStore.find(processId));
+        flowStateStore.save(processId, newState);
+        if (transition.isReported()) {
+            reportState(processId, newState);
+        }
+    }
+
+    private void reportState(String processId, DataFlowStates state) {
+        try {
+            lifecycleReportClient.reportState(processId, state);
+        } catch (Exception e) {
+            log.warn("Failed to report data flow state (process {}, state {}) to control plane", processId, state, e);
+        }
     }
 }

@@ -17,6 +17,7 @@ dependencies {
   implementation(project(":service:ds-control-plane:ds-xroad-dataplane-signaling-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-agreement-grant-api"))
+  implementation(project(":service:ds-control-plane:ds-xroad-dataplane-lifecycle-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-provisioning-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-contract-negotiation-store"))
 

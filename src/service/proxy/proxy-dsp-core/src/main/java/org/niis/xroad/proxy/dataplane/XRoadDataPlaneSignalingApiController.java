@@ -176,6 +176,20 @@ public class XRoadDataPlaneSignalingApiController {
         manager.suspend(dataFlowId, suspendMessage != null ? suspendMessage.getReason() : null);
     }
 
+    /**
+     * Resumes a suspended data flow, returning it to {@code STARTED}. Not part of EDC's stock
+     * data-plane-signaling contract — the signaling client has no counterpart for this call, so the body is
+     * an empty map here purely for symmetry with {@link #terminate} and {@link #completed}.
+     *
+     * @param dataFlowId process ID of the flow to resume
+     * @param body       ignored — empty map on the wire
+     */
+    @POST
+    @Path("/{id}/resume")
+    public void resume(@PathParam("id") String dataFlowId, Map<String, Object> body) {
+        manager.resume(dataFlowId);
+    }
+
     private JsonObject buildStateResponse(DataFlowStates state) {
         return Json.createObjectBuilder()
                 .add(TYPE, "DataFlowState")
