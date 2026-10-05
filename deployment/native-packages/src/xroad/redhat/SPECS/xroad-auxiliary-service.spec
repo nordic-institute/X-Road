@@ -19,6 +19,7 @@ BuildRequires:      systemd
 Requires:           systemd
 Requires:           net-tools, tar
 Requires:           xroad-base = %version-%release
+Requires:           xroad-proxy = %version-%release
 Requires:           (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 
 %define src %{_topdir}/..
@@ -68,7 +69,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/auxiliary-service.jar
 /usr/share/xroad/jlib/auxiliary-service/
 /usr/share/xroad/scripts/get_security_server_id.sh
-/usr/share/xroad/scripts/read_db_properties.sh
 /usr/share/xroad/scripts/backup_db.sh
 /usr/share/xroad/scripts/restore_db.sh
 /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh

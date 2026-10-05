@@ -14,6 +14,7 @@ Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           iproute, hostname
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
+Requires:           xroad-auxiliary-service = %version-%release
 
 %define src %{_topdir}/..
 

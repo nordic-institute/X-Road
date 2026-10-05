@@ -72,7 +72,7 @@ parse_args() {
 }
 
 load_db_properties() {
-  local -r ss_helper="/usr/share/xroad/scripts/read_db_properties.sh"
+  local -r ss_helper="/usr/share/xroad/scripts/read_serverconf_db_properties.sh"
   local -r cs_helper="/usr/share/xroad/scripts/_read_cs_db_properties.sh"
   local -r cp_helper="/usr/share/xroad/scripts/read_confproxy_db_properties.sh"
 

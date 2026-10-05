@@ -103,6 +103,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/proxy.jar
 /usr/share/xroad/jlib/proxy/
 /usr/share/xroad/scripts/proxy_memory_helper.sh
+/usr/share/xroad/scripts/read_serverconf_db_properties.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
