@@ -30,6 +30,8 @@ import com.github.benmanes.caffeine.cache.Ticker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
@@ -55,28 +57,48 @@ class AssetAccessCacheTest {
     void setUp() {
         when(cacheProperties.maximumSize()).thenReturn(10_000L);
         when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
+        when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(5));
         cache = new AssetAccessCache(cacheProperties, ticker);
         loadCount = new AtomicInteger();
     }
 
-    @Test
-    void lookupBeforeExpiryDoesNotInvokeTheLoaderAgain() {
+    @ParameterizedTest(name = "a lookup {0}s into a 60s entry with a 5s margin loads {1} time(s)")
+    @CsvSource({
+            "30, 1",
+            "50, 1",
+            "56, 2",
+            "61, 2",
+    })
+    void reloadsOnlyOnceTheMarginAheadOfExpiryIsReached(long secondsElapsed, int expectedLoads) {
         var key = key("asset-1");
         cache.get(key, k -> load(60));
 
-        ticker.advance(Duration.ofSeconds(30));
+        ticker.advance(Duration.ofSeconds(secondsElapsed));
         cache.get(key, k -> load(60));
 
-        assertThat(loadCount.get()).isEqualTo(1);
+        assertThat(loadCount.get()).isEqualTo(expectedLoads);
     }
 
     @Test
-    void lookupAfterExpiryInvokesTheLoaderAgain() {
+    void aMarginThatWouldOutliveTheEntryIsClampedToAOneSecondLifetime() {
+        when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(10));
+        cache = new AssetAccessCache(cacheProperties, ticker);
         var key = key("asset-1");
-        cache.get(key, k -> load(60));
+        cache.get(key, k -> load(5));
 
-        ticker.advance(Duration.ofSeconds(61));
-        cache.get(key, k -> load(60));
+        ticker.advance(Duration.ofMillis(1_500));
+        cache.get(key, k -> load(5));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void anEntryAlreadyPastItsExpiryIsNotRetained() {
+        var key = key("asset-1");
+        cache.get(key, k -> load(-10));
+
+        ticker.advance(Duration.ofMillis(10));
+        cache.get(key, k -> load(-10));
 
         assertThat(loadCount.get()).isEqualTo(2);
     }

@@ -223,6 +223,23 @@ public interface Validator<T> {
         };
     }
 
+    /** @return validator rejecting null and negative durations, accepting zero */
+    static Validator<Duration> nonNegative() {
+        return new Validator<>() {
+            @Override
+            public Result validate(Duration value) {
+                return value != null && !value.isNegative()
+                        ? Result.ok()
+                        : Result.error("must not be a negative duration");
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("non-negative duration");
+            }
+        };
+    }
+
     /** @return validator rejecting null, zero, and negative values */
     static Validator<Long> positiveLong() {
         return new Validator<>() {

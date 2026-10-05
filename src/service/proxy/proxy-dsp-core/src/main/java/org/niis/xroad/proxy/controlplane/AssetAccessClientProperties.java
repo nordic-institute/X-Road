@@ -33,6 +33,7 @@ import java.time.Duration;
 
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_DEFAULT_TTL;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_MARGIN;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_MAXIMUM_SIZE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_PROTOCOL;
 
@@ -71,6 +72,14 @@ public class AssetAccessClientProperties {
         /** @return maximum number of entries in the cache */
         public long maximumSize() {
             return xRoadConfig.value(DSP_CACHE_MAXIMUM_SIZE);
+        }
+
+        /**
+         * @return how long before a cached entry's real expiry it is treated as expired, so a token is
+         *         reloaded before it can run out in flight
+         */
+        public Duration margin() {
+            return xRoadConfig.value(DSP_CACHE_MARGIN);
         }
     }
 }
