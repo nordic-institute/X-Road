@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.catalog.ParticipantContextTestFixtures.participantContext;
 
 /**
  * Pins the guarantee that a consumer without an access-right entry cannot tell a disabled service
@@ -70,15 +71,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
-    private static final String PARTICIPANT_CTX = "xroad-provider";
-    private static final String MGMT_PARTICIPANT_CTX = "xroad-provider-mgmt";
     private static final String SYSTEM_PARTICIPANT_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(
-            PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX, SYSTEM_PARTICIPANT_CTX);
 
     private static final String DISABLED_NOTICE = "Service temporarily suspended for scheduled maintenance, retry after 18:00 UTC";
 
     private static final ClientId.Conf MEMBER = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
+    private static final String MEMBER_CTX = ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1111"));
     private static final ServiceId.Conf DISABLED_SERVICE =
             ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "svcDisabled", "v1");
     private static final ServiceId.Conf ENABLED_SERVICE =
@@ -116,19 +114,19 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         serviceContextResolver = new ServiceContextResolver(
-                CONTEXT_IDS, globalConfProvider, serverConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
 
         var noBuiltins = new BuiltinServiceCatalog(serverConfProvider, false, false, false,
                 BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
         contractStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, CONTEXT_IDS, noBuiltins,
+                serverConfProvider, noBuiltins,
                 new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
         policyStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, new PolicyMapper(), CONTEXT_IDS, noBuiltins,
+                serverConfProvider, new PolicyMapper(), noBuiltins,
                 new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
         assetIndex = new AssetIndexServerConfStore(
-                serverConfProvider, CONTEXT_IDS, noBuiltins,
+                serverConfProvider, noBuiltins,
                 new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
     }
 
@@ -173,11 +171,13 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
                 createAccessRight(AUTHORIZED_SUBJECT, new Endpoint("svcDisabled", "GET", "/api/data", false))));
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
         var result = contractStore.findById(contractDefinitionId(DISABLED_SERVICE, AUTHORIZED_SUBJECT));
 
         assertThat(result).isNotNull();
-        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getParticipantContextId()).isEqualTo(MEMBER_CTX);
     }
 
     @Test
@@ -185,11 +185,13 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
                 createAccessRight(AUTHORIZED_SUBJECT, new Endpoint("svcDisabled", "GET", "/api/data", false))));
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
         var result = policyStore.findById(policyDefinitionId(DISABLED_SERVICE, AUTHORIZED_SUBJECT));
 
         assertThat(result).isNotNull();
-        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+        assertThat(result.getParticipantContextId()).isEqualTo(MEMBER_CTX);
     }
 
     @Test
@@ -198,6 +200,8 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         when(serverConfProvider.serviceExists(ENABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAddress(DISABLED_SERVICE)).thenReturn("https://provider.example/svcDisabled");
         when(serverConfProvider.getServiceAddress(ENABLED_SERVICE)).thenReturn("https://provider.example/svcEnabled");
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
         var disabledAssetId = AssetMapper.encodeAssetId(DISABLED_SERVICE);
         var enabledAssetId = AssetMapper.encodeAssetId(ENABLED_SERVICE);
@@ -235,6 +239,7 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         when(serverConfProvider.getAllServices(MEMBER)).thenReturn(List.of(DISABLED_SERVICE));
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
                 createAccessRight(AUTHORIZED_SUBJECT, new Endpoint("svcDisabled", "GET", "/api/data", false))));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_CTX))));
 
         var assets = assetIndex.queryAssets(QuerySpec.max()).toList();
         var contractDefinitions = contractStore.findAll(QuerySpec.max()).toList();

@@ -500,7 +500,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteDatasetNotFoundFromReachedProviderMapsToIoError() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToUnknownMember() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -511,7 +511,100 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue());
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+    }
+
+    @Test
+    void remoteOffersNotFoundFromReachedProviderMapsToUnknownMember() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_OFFERS_NOT_FOUND.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any()))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+    }
+
+    @Test
+    void remoteDatasetNotFoundSanitizesToGenericUnknownMemberMessage() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any()))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getDetails())
+                            .isEqualTo("The requested service was not found on the provider security server.")
+                            .doesNotContain("No catalog offer found for service")
+                            .doesNotContain(serviceId.asEncodedId());
+                    assertThat(xrd.getErrorCodeMetadata())
+                            .containsExactly("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                });
+    }
+
+    @Test
+    void remoteOffersNotFoundSanitizesToGenericUnknownMemberMessage() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_OFFERS_NOT_FOUND.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any()))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getDetails())
+                            .isEqualTo("The requested service is not currently offered by the provider security server.")
+                            .doesNotContain("No catalog offer found for service");
+                    assertThat(xrd.getErrorCodeMetadata())
+                            .containsExactly("originalCode=" + ErrorCode.DSP_OFFERS_NOT_FOUND.code());
+                });
+    }
+
+    @Test
+    void allCandidatesHomogeneousRemoteNotFoundMapsToUnknownMember() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        var dspExceptionA = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
+                .build();
+        var dspExceptionB = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any()))
+                .thenThrow(dspExceptionA);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any()))
+                .thenThrow(dspExceptionB);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getDetails())
+                            .isNotBlank()
+                            .doesNotContainIgnoringCase("dsp_")
+                            .doesNotContainIgnoringCase("candidate security servers failed");
+                });
     }
 
     @Test

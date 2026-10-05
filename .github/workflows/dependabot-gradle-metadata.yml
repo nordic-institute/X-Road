@@ -33,7 +33,7 @@ jobs:
       # avoid the Develocity / dependency-graph init scripts that would themselves
       # fail verification on a fresh runner.
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
       - name: Regenerate verification metadata
         run: |

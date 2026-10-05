@@ -44,14 +44,6 @@ configSeed:
       value: https://proxy:8443
     - key: xroad.proxy.addon.op-monitor.connection.scheme
       value: https
-    # dsp.participantContextId, when set, overrides the value of this row and
-    # the dataspace.participant-id row below (see templates/init/config-seed-job.yaml).
-    - key: xroad.proxy.dsp.participant-context-id
-      value: security-server
-    # ds-identity-hub gates its startup on this row (waits), so the default
-    # seed must carry it or enabling the ds services deadlocks their pods.
-    - key: xroad.proxy-ui-api.dataspace.participant-id
-      value: security-server
     - key: xroad.op-monitor.scheme
       value: https
     # A signer serving a Security Server retrieves OCSP responses periodically.
@@ -69,6 +61,11 @@ configSeed:
     # XRoadServerConfCatalogExtension's packaged default.
     - key: xroad.dsp.catalog.cache.ttl-seconds
       value: "60"
+    # proxy gates its startup on this row (waits) so it never boots against the
+    # packaged config before the seed Job commits. Value matches
+    # ProxyConfigKeys.SERVER_LISTEN_PORT's packaged default.
+    - key: xroad.proxy.server.listen-port
+      value: "5500"
 
 imagePullSecrets: []
 
@@ -204,7 +201,7 @@ services:
   proxy:
     waits:
       - type: serverconfProperty
-        key: xroad.proxy.dsp.participant-context-id
+        key: xroad.proxy.server.listen-port
     otelServiceName: xroad-proxy
     imageName: ss-proxy
     resources:
@@ -582,7 +579,6 @@ services:
     env:
       HOSTNAME: "ds-control-plane"
       XROAD_HOST: "ds-control-plane"
-      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "security-server"
       XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
@@ -702,8 +698,6 @@ services:
         secretName: "db-serverconf"
         key: "password"
     waits:
-      - type: serverconfProperty
-        key: xroad.proxy-ui-api.dataspace.participant-id
       - type: postgres
         host: db-ds-identity-hub
         name: wait-db
@@ -887,20 +881,6 @@ otel:
 # `xroad.dsp.enabled` short-circuits all DSP-scoped resources.
 postgres:
   image: ""
-
-# participantContextId, when non-empty, overrides the per-release DSP
-# participant-context identifier everywhere the chart carries it: the
-# ds-control-plane service's XROAD_DSP_PARTICIPANT_CONTEXT_ID env (see
-# templates/_configmap.tpl's `xroad.configmap.env`) and the two configSeed
-# rows the proxy and ds-identity-hub gate their startup on
-# (xroad.proxy.dsp.participant-context-id,
-# xroad.proxy-ui-api.dataspace.participant-id — see
-# templates/init/config-seed-job.yaml). Left empty by default so a standalone
-# `helm install` with no overrides keeps the "security-server" defaults
-# unchanged; set it (e.g. per Security Server Helm release) to give distinct
-# releases distinct identifiers instead of conflating them on the same value.
-dsp:
-  participantContextId: ""
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).

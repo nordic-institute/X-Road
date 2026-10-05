@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -55,21 +56,11 @@ class AssetIndexServerConfStore implements AssetIndex {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
     private final ServiceContextResolver serviceContextResolver;
     private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
-
-    private boolean isOwnerOnly(ServiceId serviceId) {
-        try {
-            return serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
-        } catch (Exception e) {
-            log.warn("Failed to read access rights for service '{}': {}", serviceId, e.getMessage());
-            return false;
-        }
-    }
 
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
@@ -89,26 +80,20 @@ class AssetIndexServerConfStore implements AssetIndex {
         var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
                 var contexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
                 for (var ctxId : contexts) {
                     assets.add(AssetMapper.toAsset(serviceId, ctxId));
                 }
                 if (shouldPublishSystemAsset(serviceId)) {
-                    assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
+                    assets.add(AssetMapper.toAsset(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
                 }
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
-            assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
-            assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
+            assets.add(AssetMapper.toAsset(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
-        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
-        syntheticServices.managementEntries()
-                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.management())));
-        syntheticServices.systemEntries()
-                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.system())));
+        serviceContextResolver.resolveSyntheticServices()
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT)));
         return assets;
     }
 
@@ -134,8 +119,9 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Override
     @Nullable
     public Asset findById(String assetId) {
-        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
-        return cache.findById(assetId, cacheKeyContext, () -> findByIdInternal(assetId));
+        var requested = requestedParticipantContext.get();
+        return cache.findById(assetId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
+                () -> findByIdInternal(assetId));
     }
 
     @Nullable
@@ -144,14 +130,14 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
-            return AssetMapper.toAsset(builtinServiceId, serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+            return AssetMapper.toAsset(builtinServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
             if (systemServiceId == null || !serviceContextResolver.isSystemPublished(systemServiceId)) {
                 return null;
             }
-            return AssetMapper.toAsset(systemServiceId, contextIds.system());
+            return AssetMapper.toAsset(systemServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
@@ -162,30 +148,16 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
-            if (serviceContextResolver.isLocallyRegisteredSubsystem(serviceId.getClientId())) {
-                log.trace("findById assetId={} synthesizing owner-only asset for locally registered subsystem", assetId);
-                return AssetMapper.toAsset(serviceId, contextIds.management());
-            }
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
-        var ctxId = selectContextId(serviceId);
-        return AssetMapper.toAsset(serviceId, ctxId);
-    }
-
-    /**
-     * Every service also carries an owner-only copy under the management context (added
-     * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
-     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveContextsById}
-     * resolves for the service itself.
-     */
-    private String selectContextId(ServiceId serviceId) {
-        var requested = requestedParticipantContext.get();
-        if (contextIds.management().equals(requested)) {
-            return contextIds.management();
+        var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
+        var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        if (ctxId == null) {
+            log.trace("findById assetId={} has no provisioned context, returning null", assetId);
+            return null;
         }
-        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
-        return ServiceContextResolver.select(resolvedContexts, requested);
+        return AssetMapper.toAsset(serviceId, ctxId);
     }
 
     @Override

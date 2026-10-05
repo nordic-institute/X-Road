@@ -7,3 +7,15 @@ variant: vanilla
 xroad_varpkg_fi: xroad-securityserver-fi
 xroad_varpkg_ee: xroad-securityserver-ee
 xroad_varpkg_vanilla: xroad-securityserver
+
+# Routable host name used for TLS certificate subjects/SANs and dataspace
+# runtime config (participant-context-id, identity-hub URL, DSP callback
+# address, STS token URL). LXD dev containers only have a short hostname,
+# hence the ".lxd" suffix; hosts whose inventory_hostname is already a
+# routable FQDN (e.g. perftest) override this to inventory_hostname itself.
+xroad_host_fqdn: "{{ inventory_hostname }}.lxd"
+
+# Extra "DNS:{{ inventory_hostname }}" SAN entry, kept for the LXD default's short
+# name; empty when xroad_host_fqdn already equals inventory_hostname (perftest),
+# so alt-subject strings never carry a duplicate SAN.
+xroad_host_extra_dns_san: "{{ ',DNS:' + inventory_hostname if xroad_host_fqdn != inventory_hostname else '' }}"

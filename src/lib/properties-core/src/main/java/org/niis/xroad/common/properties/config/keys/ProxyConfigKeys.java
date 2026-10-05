@@ -42,6 +42,7 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROX
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.nonNegative;
 import static org.niis.xroad.common.properties.config.Validator.positive;
 
 /**
@@ -816,11 +817,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     // --- xroad.proxy.dsp --------------------------------------------------------
 
-    /** {@code xroad.proxy.dsp.participant-context-id} — no default (must be set per SS). */
-    public static final ConfigKey<String> DSP_PARTICIPANT_CONTEXT_ID = DSP
-            .string("participant-context-id")
-            .build();
-
     /** {@code xroad.proxy.dsp.protocol}. */
     public static final ConfigKey<String> DSP_PROTOCOL = DSP
             .string("protocol")
@@ -884,6 +880,14 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(10000L)
             .build();
 
+    /** {@code xroad.proxy.dsp.cache.margin} — how long before a cached token's real expiry it is reloaded. */
+    public static final ConfigKey<Duration> DSP_CACHE_MARGIN = DSP_CACHE
+            .keyDuration("margin")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
     // --- xroad.proxy.agreement-token ---------------------------------------------
 
     /** {@code xroad.proxy.agreement-token.issuer}. */
@@ -913,6 +917,14 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .keyDuration("key-refresh-interval")
             .withDefaultValue(Duration.ofSeconds(30))
             .withValidator(positive())
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.proxy.agreement-token.expiry-leeway} — clock-skew leeway the verifier allows past a token's exp. */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_EXPIRY_LEEWAY = AGREEMENT_TOKEN
+            .keyDuration("expiry-leeway")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(nonNegative())
             .exposedInUi()
             .build();
 
