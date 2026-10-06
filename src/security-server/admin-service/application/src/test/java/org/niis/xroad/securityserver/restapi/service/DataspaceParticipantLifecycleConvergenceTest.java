@@ -80,7 +80,6 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DataspaceParticipantLifecycleConvergenceTest {
 
-    private static final String HOST_ID = "xrd-ss0";
     private static final String SS_ADDRESS = "ih.example.test";
     private static final String SERVER_CODE = "SS0";
     private static final String IDENTITY_HUB_HOST = SS_ADDRESS + ":7183";
@@ -113,7 +112,6 @@ class DataspaceParticipantLifecycleConvergenceTest {
 
     @BeforeEach
     void setUp() {
-        when(dataspace.getParticipantId()).thenReturn(HOST_ID);
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + IDENTITY_HUB_HOST.split(":")[0]);
         when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         when(dataspace.getMaxHolderPidSlots()).thenReturn(20);

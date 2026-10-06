@@ -37,7 +37,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Owns the agreement-token signing key material for this proxy process: a single
- * {@link VaultAgreementTokenKeyProvider} shared by the data-plane minter and the server-proxy verifier.
+ * {@link VaultAgreementTokenKeyProvider} shared by the data-plane minter and the server-proxy verifier. A
+ * freshly rotated key starts signing only after {@link ProxyAgreementTokenProperties#keyRefreshInterval()} has
+ * passed, so every replica's cache has had a chance to pick it up before it is relied on.
  * <p>
  * Construction never throws — an unreachable vault at startup, or at any later retry, leaves
  * {@link #provider()} empty rather than failing the proxy's own startup or a mint/verify call. A proxy-owned
@@ -50,10 +52,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AgreementTokenKeyMaterial {
 
     private final VaultClient vaultClient;
+    private final ProxyAgreementTokenProperties properties;
     private final AtomicReference<AgreementTokenKeyProvider> provider = new AtomicReference<>();
 
-    public AgreementTokenKeyMaterial(VaultClient vaultClient) {
+    public AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties) {
         this.vaultClient = vaultClient;
+        this.properties = properties;
         tryBuild();
     }
 
@@ -83,7 +87,7 @@ public class AgreementTokenKeyMaterial {
 
     private void tryBuild() {
         try {
-            provider.set(new VaultAgreementTokenKeyProvider(vaultClient));
+            provider.set(new VaultAgreementTokenKeyProvider(vaultClient, properties.keyRefreshInterval()));
             log.info("Agreement-token signing key material initialized");
         } catch (Exception e) {
             log.warn("Agreement-token signing key material unavailable; agreement tokens will not be minted or "

@@ -84,20 +84,6 @@ public class DataspaceDidAuthority {
     }
 
     /**
-     * @return the HOST participant context's DID for the current authority
-     */
-    public Did hostDid() {
-        return ParticipantIdentifierScheme.hostDid(current());
-    }
-
-    /**
-     * @return the MANAGEMENT participant context's DID for the current authority
-     */
-    public Did managementDid() {
-        return ParticipantIdentifierScheme.managementDid(current());
-    }
-
-    /**
      * @param member the X-Road member identifier
      * @return the member's freshly derived DID for the current authority
      * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded

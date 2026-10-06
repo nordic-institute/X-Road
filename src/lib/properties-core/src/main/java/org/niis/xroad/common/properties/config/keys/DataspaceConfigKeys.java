@@ -41,7 +41,6 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     private static final Prefix DATASPACE = Prefix.of(Category.ADMIN_SERVICE, "xroad.dataspace");
     private static final Prefix ISSUER = DATASPACE.subPrefix("issuer");
     private static final Prefix ISSUER_PROVISIONING_RPC = DATASPACE.subPrefix("issuer-provisioning").subPrefix("rpc");
-    private static final Prefix CONTROL_PLANE_PROVISIONING_RPC = DATASPACE.subPrefix("control-plane-provisioning").subPrefix("rpc");
     private static final Prefix IDENTITY_HUB_PROVISIONING_RPC = DATASPACE.subPrefix("identity-hub-provisioning").subPrefix("rpc");
 
     private static final String DEADLINE_AFTER = "deadline-after";
@@ -97,24 +96,6 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.dataspace.issuer-provisioning.rpc.deadline-after}. */
     public static final ConfigKey<Integer> ISSUER_PROVISIONING_RPC_DEADLINE_AFTER = ISSUER_PROVISIONING_RPC
-            .integer(DEADLINE_AFTER)
-            .withDefaultValue(60000)
-            .build();
-
-    /** {@code xroad.dataspace.control-plane-provisioning.rpc.host}. */
-    public static final ConfigKey<String> CONTROL_PLANE_PROVISIONING_RPC_HOST = CONTROL_PLANE_PROVISIONING_RPC
-            .string("host")
-            .withDefaultValue("ds-control-plane")
-            .build();
-
-    /** {@code xroad.dataspace.control-plane-provisioning.rpc.port}. */
-    public static final ConfigKey<Integer> CONTROL_PLANE_PROVISIONING_RPC_PORT = CONTROL_PLANE_PROVISIONING_RPC
-            .integer("port")
-            .withDefaultValue(5461)
-            .build();
-
-    /** {@code xroad.dataspace.control-plane-provisioning.rpc.deadline-after}. */
-    public static final ConfigKey<Integer> CONTROL_PLANE_PROVISIONING_RPC_DEADLINE_AFTER = CONTROL_PLANE_PROVISIONING_RPC
             .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();

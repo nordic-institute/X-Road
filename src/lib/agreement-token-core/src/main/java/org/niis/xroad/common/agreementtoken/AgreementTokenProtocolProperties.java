@@ -44,6 +44,11 @@ public interface AgreementTokenProtocolProperties {
     Duration DEFAULT_TOKEN_TTL = Duration.ofSeconds(60);
 
     /**
+     * The default returned by {@link #expiryLeeway()} when a host does not override it.
+     */
+    Duration DEFAULT_EXPIRY_LEEWAY = Duration.ofSeconds(5);
+
+    /**
      * @return the {@code iss} claim value the minter stamps and the verifier requires
      */
     String issuer();
@@ -57,4 +62,17 @@ public interface AgreementTokenProtocolProperties {
      * @return how long a minted token remains valid from the moment it is minted
      */
     Duration tokenTtl();
+
+    /**
+     * How much clock skew between the minting and verifying hosts {@link AgreementTokenVerifier} tolerates past
+     * a token's {@code exp}: a token is accepted until {@code exp + expiryLeeway()}. A default method so every
+     * existing implementor keeps compiling; the default of 5 seconds matches the consumer-side cache's own
+     * refresh-before-expiry margin, so a token refreshed just in time is never rejected as expired by a verifier
+     * running slightly behind.
+     *
+     * @return the leeway, never negative
+     */
+    default Duration expiryLeeway() {
+        return DEFAULT_EXPIRY_LEEWAY;
+    }
 }

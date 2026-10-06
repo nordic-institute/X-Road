@@ -364,10 +364,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
             return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_URL);
         }
 
-        public String getParticipantId() {
-            return config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_ID);
-        }
-
         public int getIdentityHubDidPort() {
             return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_DID_PORT);
         }

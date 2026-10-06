@@ -87,8 +87,6 @@ class DspConfigKeysTest {
         assertThat(DspConfigKeys.instance().keys())
                 .extracting(key -> key.key())
                 .containsExactlyInAnyOrder(
-                        "xroad.dsp.participant-context-id",
-                        "xroad.dsp.management-participant-context-id",
                         "xroad.dsp.catalog.cache.enabled",
                         "xroad.dsp.catalog.cache.ttl-seconds",
                         "xroad.dsp.catalog.cache.find-by-id-max-size",

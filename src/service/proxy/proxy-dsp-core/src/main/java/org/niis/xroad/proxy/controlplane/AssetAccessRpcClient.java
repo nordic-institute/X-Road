@@ -53,7 +53,7 @@ import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAccessAcquisitionService {
 
     private final RpcChannelFactory rpcChannelFactory;
-    private final AssetAccessRpcChannelProperties channelProperties;
+    private final ControlPlaneRpcChannelProperties channelProperties;
     private final AssetAccessClientProperties clientProperties;
 
     private ManagedChannel channel;

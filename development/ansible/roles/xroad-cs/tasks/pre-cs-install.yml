@@ -37,7 +37,7 @@
 # 2b. TLS certificate host for the vault-provisioned service certs. The cert
 #     common-name resolves from the XROAD_HOST env var (default localhost);
 #     management/registration-service run Jetty with SNI validation, so the SS
-#     connecting to https://<cs>.lxd:4001 gets "400 Invalid SNI" when the cert
+#     connecting to https://<xroad_host_fqdn>:4001 gets "400 Invalid SNI" when the cert
 #     says localhost. Provisioning is only-if-absent, so the env var must be in
 #     place before the package postinst starts the services the first time —
 #     hence systemd drop-ins created pre-install (they apply once the units
@@ -63,7 +63,7 @@
     mode: "0644"
     content: |
       [Service]
-      Environment=XROAD_HOST={{ inventory_hostname }}.lxd
+      Environment=XROAD_HOST={{ xroad_host_fqdn }}
   loop: *cs_xroad_host_units
   register: cs_xroad_host_dropins
 
