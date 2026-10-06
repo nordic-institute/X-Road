@@ -67,8 +67,7 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
         if (!attempt.applied()) {
             throw transition.illegalFrom(attempt.stateBefore());
         }
-        var stateChanged = attempt.stateBefore().map(before -> before != transition.targetState()).orElse(true);
-        return new DataFlowTransitionOutcome(transition.targetState(), stateChanged);
+        return new DataFlowTransitionOutcome(attempt.stateBefore(), transition.targetState());
     }
 
     @Override

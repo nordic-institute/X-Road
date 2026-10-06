@@ -275,13 +275,25 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
-    void resumeByStartReportsStartedStateToControlPlaneAgain() {
+    void startOnASuspendedFlowIsNotReportedWhetherItIsAResumeOrALateRetryOfTheOriginalStart() {
         manager.start(buildStartMessage("flow-report-resume"));
         manager.suspend("flow-report-resume", "maintenance");
 
         manager.start(buildStartMessage("flow-report-resume"));
 
-        verify(lifecycleReportClient, times(2)).reportState("flow-report-resume", DataFlowStates.STARTED);
+        assertThat(manager.state("flow-report-resume")).isEqualTo(DataFlowStates.STARTED);
+        verify(lifecycleReportClient, times(1)).reportState("flow-report-resume", DataFlowStates.STARTED);
+    }
+
+    @Test
+    void startAfterAResumeIsReportedOnlyOnceOverall() {
+        manager.start(buildStartMessage("flow-report-after-resume"));
+        manager.suspend("flow-report-after-resume", "maintenance");
+        manager.start(buildStartMessage("flow-report-after-resume"));
+
+        manager.start(buildStartMessage("flow-report-after-resume"));
+
+        verify(lifecycleReportClient, times(1)).reportState(anyString(), any());
     }
 
     @Test
@@ -533,7 +545,7 @@ class XRoadDataPlaneManagerTest {
             var stateBefore = Optional.ofNullable(states.get(flowId));
             var stateAfter = transition.apply(stateBefore);
             states.put(flowId, stateAfter);
-            return new DataFlowTransitionOutcome(stateAfter, stateBefore.filter(stateAfter::equals).isEmpty());
+            return new DataFlowTransitionOutcome(stateBefore, stateAfter);
         }
 
         @Override

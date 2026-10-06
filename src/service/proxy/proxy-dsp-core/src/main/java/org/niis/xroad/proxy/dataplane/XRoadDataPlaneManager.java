@@ -92,7 +92,7 @@ public class XRoadDataPlaneManager {
      * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
      * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint, and returns it
      * wrapped in a {@link DataFlowStatusMessage}. This is also how a suspended flow resumes: EDC's control
-     * plane re-sends start, the flow returns to {@link DataFlowStates#STARTED} and is reported as started.
+     * plane re-sends start and the flow returns to {@link DataFlowStates#STARTED}; that landing is not reported.
      *
      * @param message incoming start message
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
@@ -208,12 +208,13 @@ public class XRoadDataPlaneManager {
      * Applies {@code transition} through the shared store, which validates and persists it as one operation,
      * and — for a transition the data-flow table marks as reported — tells the control plane off the calling
      * thread, but only about a state this call actually established: a retried signal that finds the flow
-     * already there is answered like the original and not reported again. A reporting failure is logged and
-     * never propagates: it cannot fail or delay this call.
+     * already there is answered like the original and not reported again, and a landing the table keeps
+     * silent from its particular predecessor is not reported either. A reporting failure is logged and never
+     * propagates: it cannot fail or delay this call.
      */
     private void applyTransition(String processId, DataFlowTransition transition) {
         var outcome = flowStateStore.apply(processId, transition);
-        if (transition.isReported() && outcome.stateChanged()) {
+        if (outcome.stateChanged() && transition.isReportedFrom(outcome.stateBefore())) {
             reportState(processId, outcome.state());
         }
     }

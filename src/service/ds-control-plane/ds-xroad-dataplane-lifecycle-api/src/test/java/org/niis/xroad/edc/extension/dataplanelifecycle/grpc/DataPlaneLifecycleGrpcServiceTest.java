@@ -115,14 +115,6 @@ class DataPlaneLifecycleGrpcServiceTest {
         verifyNoMoreInteractions(transferProcessService);
     }
 
-    @Test
-    void resumeAlsoReportsStartedAndNotifiesStarted() {
-        when(transferProcessService.notifyStarted(any())).thenReturn(ServiceResult.success());
-
-        stub.reportDataFlowState(request("transfer-resumed", DataFlowState.STARTED));
-
-        verify(transferProcessService).notifyStarted(any(NotifyStartedCommand.class));
-    }
 
     @Test
     void completedCompletesTheTransferProcess() {

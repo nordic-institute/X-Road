@@ -28,12 +28,22 @@ package org.niis.xroad.proxy.dataplane;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 
+import java.util.Optional;
+
 /**
- * What a {@link DataFlowStateStore#apply} call left behind: the state the flow now holds and whether this
- * call put it there. A retried signal finds the flow already in its target state and changes nothing.
+ * What a {@link DataFlowStateStore#apply} call found and left behind: the state the flow was in, or empty for a
+ * flow never seen before, and the state it holds now. A retried signal finds the flow already in its target state
+ * and changes nothing.
  *
- * @param state        the flow's state after the transition
- * @param stateChanged whether this call changed the stored state
+ * @param stateBefore the flow's state before the transition, empty for a new flow
+ * @param state       the flow's state after the transition
  */
-public record DataFlowTransitionOutcome(DataFlowStates state, boolean stateChanged) {
+public record DataFlowTransitionOutcome(Optional<DataFlowStates> stateBefore, DataFlowStates state) {
+
+    /**
+     * @return whether the call changed the stored state
+     */
+    public boolean stateChanged() {
+        return stateBefore.filter(state::equals).isEmpty();
+    }
 }

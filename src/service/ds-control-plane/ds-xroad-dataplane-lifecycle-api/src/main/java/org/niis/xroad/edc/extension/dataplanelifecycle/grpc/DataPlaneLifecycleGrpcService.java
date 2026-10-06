@@ -49,9 +49,8 @@ import org.niis.xroad.rpc.common.Empty;
  * {@link TransferProcessService#notifyPrepared} / {@link TransferProcessService#notifyStarted} with no data
  * address — the address content is unchanged from what the data plane already stated synchronously in its
  * signaling response, so nothing new travels here — and {@code COMPLETED} calls
- * {@link TransferProcessService#complete}. A resumed flow reports {@code STARTED} again, which is accepted:
- * {@code notifyStarted} legally advances a transfer process that is currently suspended, exactly as it does
- * from a fresh start.
+ * {@link TransferProcessService#complete}. A resumed flow is not reported: the control plane drives the resume
+ * and advances from the data plane's synchronous response.
  */
 @Slf4j
 @RequiredArgsConstructor

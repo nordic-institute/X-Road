@@ -152,6 +152,25 @@ class DataFlowTransitionTest {
         assertThat(TERMINATE.isReported()).isFalse();
     }
 
+    @Test
+    void startIsReportedExceptWhenItResumesASuspendedFlow() {
+        assertThat(START.isReportedFrom(Optional.empty())).isTrue();
+        assertThat(START.isReportedFrom(Optional.of(PROVISIONED))).isTrue();
+        assertThat(START.isReportedFrom(Optional.of(STARTED))).isTrue();
+        assertThat(START.isReportedFrom(Optional.of(SUSPENDED))).isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(DataFlowTransition.class)
+    void isReportedFromNeverReportsMoreThanTheTableFlag(DataFlowTransition transition) {
+        assertThat(transition.isReportedFrom(Optional.empty())).isEqualTo(transition.isReported());
+        for (var state : DataFlowStates.values()) {
+            if (transition.isReportedFrom(Optional.of(state))) {
+                assertThat(transition.isReported()).isTrue();
+            }
+        }
+    }
+
     private static boolean applies(DataFlowTransition transition, Optional<DataFlowStates> from) {
         try {
             transition.apply(from);
