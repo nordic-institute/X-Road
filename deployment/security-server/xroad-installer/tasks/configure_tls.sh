@@ -27,7 +27,8 @@ preseed_tls_debian() {
   set_debconf "xroad-proxy-ui-api" "xroad-common/proxy-ui-api-altsubject" "string" "$alt_names"
 }
 
-# Store the TLS identity rows of the proxy and the admin UI (RHEL family).
+# Store the TLS identity rows of the proxy, the admin UI and, when installed, op-monitor
+# (RHEL family).
 # The package transaction has already seeded detected-host rows, so the answers
 # overwrite them. A server that was installed before this run is left as it is.
 write_tls_rows_rhel() {
@@ -50,8 +51,13 @@ write_tls_rows_rhel() {
   # shellcheck source=/dev/null
   source "$TLS_CONFIG_HELPER"
 
+  local -a modules=(proxy proxy-ui-api)
+  if rpm -q --quiet xroad-opmonitor; then
+    modules+=(op-monitor)
+  fi
+
   local module
-  for module in proxy proxy-ui-api; do
+  for module in "${modules[@]}"; do
     log_message "Storing TLS identity rows for $module (Common Name: $hostname, Alternative Names: $alt_names)"
     if ! write_tls_identity_rows "$module" "$hostname" "$alt_names" reconfigure; then
       log_die "Failed to store the $module TLS identity rows in the configuration database"
