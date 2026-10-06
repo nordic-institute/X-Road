@@ -225,6 +225,33 @@ class ReusableAgreementLookupPostgresTest {
     }
 
     @Test
+    void clientScopedLookupFallsBackToUnrestrictedAgreementWhenNoneNamesTheClient() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-unrestricted", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(60), unrestrictedPolicy());
+        saveAgreement(store, "neg-other", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy("DEV:COM:222:A"));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", "DEV:COM:222:B");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-unrestricted");
+    }
+
+    @Test
+    void clientScopedLookupPrefersClientNamedAgreementOverNewerUnrestrictedAgreement() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        var clientB = "DEV:COM:222:B";
+        saveAgreement(store, "neg-client", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(60), clientPolicy(clientB));
+        saveAgreement(store, "neg-unrestricted", participantContextId, "asset-1", "provider-1", Instant.now(), unrestrictedPolicy());
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", clientB);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-client");
+    }
+
+    @Test
     void clientScopedLookupPrefersClientNamedAgreementOverNewerMemberLevelAgreement() {
         var participantContextId = "participant-" + UUID.randomUUID();
         var clientB = "DEV:COM:222:B";
@@ -330,6 +357,10 @@ class ReusableAgreementLookupPostgresTest {
                         .action(Action.Builder.newInstance().type("use").build())
                         .build())
                 .build();
+    }
+
+    private Policy unrestrictedPolicy() {
+        return Policy.Builder.newInstance().build();
     }
 
     private Policy clientPolicy(String encodedClientId) {

@@ -43,7 +43,7 @@ import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamesp
  * Matches an ODRL {@link Policy} against the X-Road subject it was published for, walking permission
  * constraints that may nest under {@code AndConstraint} / {@code MultiplicityConstraint}. Shared by offer
  * selection (which also falls back to a member or group subject) and agreement reuse (which matches a
- * client id only, with no such fallback).
+ * client id or an unrestricted policy, with no member or group fallback).
  */
 public final class PolicySubjectMatcher {
 
@@ -58,6 +58,14 @@ public final class PolicySubjectMatcher {
         return anyConstraint(policy, atomic -> atomic.getOperator() == Operator.EQ
                 && isLiteral(atomic.getLeftExpression(), XROAD_CLIENT_ID)
                 && isLiteral(atomic.getRightExpression(), encodedClientId));
+    }
+
+    /**
+     * Whether {@code policy} carries no permission at all, as the provider publishes for builtin and
+     * unrestricted-SYSTEM services. Such a policy applies to any caller.
+     */
+    public static boolean isUnrestricted(Policy policy) {
+        return policy.getPermissions().isEmpty();
     }
 
     /**

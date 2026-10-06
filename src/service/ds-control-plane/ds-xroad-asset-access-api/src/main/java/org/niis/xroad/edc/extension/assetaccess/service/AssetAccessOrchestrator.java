@@ -251,7 +251,7 @@ public class AssetAccessOrchestrator {
         var memberId = PolicyContextHelper.parseClientId(clientId).getMemberId().asEncodedId();
         return firstOffer(offers, policy -> PolicySubjectMatcher.namesClient(policy, clientId))
                 .or(() -> firstOffer(offers, policy -> appliesToMember(policy, memberId)))
-                .or(() -> firstOffer(offers, AssetAccessOrchestrator::isUnrestricted))
+                .or(() -> firstOffer(offers, PolicySubjectMatcher::isUnrestricted))
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
                         .origin(ErrorOrigin.DATASPACE)
                         .metadataItems(assetId, clientId)
@@ -260,10 +260,6 @@ public class AssetAccessOrchestrator {
 
     private static Optional<Map.Entry<String, Policy>> firstOffer(Map<String, Policy> offers, Predicate<Policy> matches) {
         return offers.entrySet().stream().filter(entry -> matches.test(entry.getValue())).findFirst();
-    }
-
-    private static boolean isUnrestricted(Policy policy) {
-        return policy.getPermissions().isEmpty();
     }
 
     private static boolean appliesToMember(Policy policy, String encodedMemberId) {

@@ -38,6 +38,7 @@ import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Looks up a reusable asset access agreement in the shared EDC agreement store, so that an agreement
@@ -47,12 +48,14 @@ import java.util.Optional;
  * <p>The provider publishes one offer per ACL subject, so an agreement negotiated on a subsystem's
  * behalf carries a policy naming only that subsystem. For an <b>Asset access acquisition</b> with a
  * client id, this lookup honours the same subsystem scoping: among the agreements matching participant
- * context, consumer, asset and provider, it returns the newest one whose policy names that client, or
- * empty when none does. There is no fallback to an agreement applying to the member as a whole or to a
- * group here; that fallback exists only in offer selection, because the consumer cannot verify a
- * subsystem's grant on such an agreement and a request under it fails the provider's own check. With a
- * null client id (the management-context and builtin-service route), <b>Agreement reuse</b> falls back
- * to today's behaviour: the newest candidate is returned regardless of policy.
+ * context, consumer, asset and provider, it returns the newest one whose policy names that client, else
+ * the newest unrestricted one (no permissions at all, negotiated from the offer the provider publishes
+ * for builtin and unrestricted-SYSTEM services), else empty. An unrestricted agreement applies to any
+ * caller, so reusing it isolates nothing less than negotiating a fresh one. There is no fallback to an
+ * agreement applying to the member as a whole or to a group here; that fallback exists only in offer
+ * selection, because the consumer cannot verify a subsystem's grant on such an agreement and a request
+ * under it fails the provider's own check. With a null client id (the caller states none),
+ * <b>Agreement reuse</b> returns the newest candidate regardless of policy.
  *
  * <p>Two or more instances may each miss this lookup for the same participant context, consumer, asset,
  * provider and client at the same moment and negotiate independently; every resulting agreement lands in
@@ -109,8 +112,12 @@ public class ReusableAgreementLookup {
         if (clientId == null) {
             return candidates.stream().findFirst();
         }
-        return candidates.stream()
-                .filter(agreement -> PolicySubjectMatcher.namesClient(agreement.getPolicy(), clientId))
-                .findFirst();
+        return firstMatching(candidates, agreement -> PolicySubjectMatcher.namesClient(agreement.getPolicy(), clientId))
+                .or(() -> firstMatching(candidates, agreement -> PolicySubjectMatcher.isUnrestricted(agreement.getPolicy())));
+    }
+
+    private static Optional<ContractAgreement> firstMatching(List<ContractAgreement> candidates,
+                                                             Predicate<ContractAgreement> matches) {
+        return candidates.stream().filter(matches).findFirst();
     }
 }
