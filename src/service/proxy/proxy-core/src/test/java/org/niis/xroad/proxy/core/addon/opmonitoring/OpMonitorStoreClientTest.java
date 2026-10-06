@@ -207,10 +207,12 @@ class OpMonitorStoreClientTest {
 
             @Override
             public void flush() {
+                // Messages are added to an in-memory list at once; nothing is buffered.
             }
 
             @Override
             public void close() {
+                // Holds no resources; the handler is detached from the logger by restoreLogger.
             }
         };
         var previousLevel = SENDER_LOGGER.getLevel();

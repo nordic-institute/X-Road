@@ -43,6 +43,7 @@ final class RecordingOpMonitoringBuffer implements OpMonitoringBuffer {
 
     @Override
     public void store(OpMonitoringData data) {
+        // The sender under test reports only sendingSuccess and sendingFailure; it never stores new records.
     }
 
     @Override
