@@ -1,30 +1,21 @@
 ---
-# TEMPORARY (dataspaces dev): this file pre-seeds values that xroad-centralserver's
-# packages need on disk before their own postinst starts a unit for the first time,
-# where provisioning is only-if-absent so a value arriving late never lands
-# (systemd drop-ins for the admin-service TLS certificate hostname). The
-# statuslist-callback/hostname gap this file used to paper over for
-# xroad-ds-issuer-service is closed: the package's own postinst now writes
-# edc.hostname and edc.statuslist.callback.address from the debconf-sourced
-# dataspace issuer host answer before the unit's first start.
-#
-# What remains here, and why:
-# - the systemd drop-in (XROAD_HOST) has no packaged equivalent yet — remove it
-#   once its underlying package ships one;
-# - xroad.edc.web.https.trust.reload-interval-seconds is genuine dev-only tuning
-#   (shortens a reload cycle for faster local iteration, not a correctness fix), so
-#   it stays regardless of packaging maturity.
+# Pre-seeds values the xroad-centralserver packages must find on disk before
+# their postinst starts a unit for the first time:
+# - XROAD_HOST systemd drop-ins for the TLS certificate common-name. Provisioning
+#   is only-if-absent, so the value must be in place before first start.
+#   TEMPORARY (dataspaces dev): goes once the packages ship an equivalent.
+# - The Issuer Service dev-only trust reload interval in
+#   local-ds-issuer-service.yaml. The xroad-ds-issuer-service postinst merges its
+#   own keys into that same file and skips keys already present, so the file has
+#   to exist before it runs. Permanent dev tuning, independent of packaging.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
 # of xroad-cs) before this file runs.
 
 # ---------------------------------------------------------------------------
-# 1. /etc/xroad/conf.d — xroad-common creates this during install; we need
-#    it earlier to drop YAML preseed files before any postinst auto-starts a
-#    unit. dpkg leaves pre-existing dirs intact (not a conffile).
-#
-# Dev-tuning support: holds the ds-issuer-service runtime overrides preseeded
-# below, and stays as long as that dev-only tuning does.
+# 1. /etc/xroad/conf.d — the packages create it during install; the preseed in
+#    section 3 needs it before that. dpkg leaves pre-existing dirs intact (not a
+#    conffile). Stays as long as the dev-only tuning below does.
 # ---------------------------------------------------------------------------
 - name: ensure /etc/xroad/conf.d exists for preseeded configs
   file:
@@ -35,7 +26,7 @@
     mode: "0755"
 
 # ---------------------------------------------------------------------------
-# 2b. TLS certificate host for the vault-provisioned service certs. The cert
+# 2. TLS certificate host for the vault-provisioned service certs. The cert
 #     common-name resolves from the XROAD_HOST env var (default localhost);
 #     management/registration-service run Jetty with SNI validation, so the SS
 #     connecting to https://<xroad_host_fqdn>:4001 gets "400 Invalid SNI" when the cert
@@ -74,7 +65,7 @@
   when: cs_xroad_host_dropins is changed
 
 # ---------------------------------------------------------------------------
-# 2. DS issuer-service dev-only runtime tuning.
+# 3. DS issuer-service dev-only runtime tuning.
 #
 #    xroad.edc.web.https.trust.reload-interval-seconds: see the identical setting in
 #    xroad-ss/tasks/pre-ss-install.yml — the Issuer Service's own outbound self-connect trust needs

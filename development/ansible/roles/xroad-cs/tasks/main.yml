@@ -1,8 +1,4 @@
 ---
-# Pre-install preseed: runs before the xroad-centralserver packages' postinst
-# auto-starts their units, so the values it places are on disk at first start.
-# It carries dev-only tuning (the Issuer Service trust reload interval), which
-# stays, and the XROAD_HOST systemd drop-ins, which go once packaging provides them.
 - include_tasks: pre-cs-install.yml
 
 - include_tasks: ubuntu.yml
