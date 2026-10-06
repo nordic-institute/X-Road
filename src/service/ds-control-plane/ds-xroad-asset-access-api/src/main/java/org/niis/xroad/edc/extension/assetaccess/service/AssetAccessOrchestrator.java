@@ -49,6 +49,7 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -150,11 +151,17 @@ public class AssetAccessOrchestrator {
                 .thenApply(ServiceResult::success);
     }
 
+    private static QuerySpec datasetQuery(String assetId) {
+        return QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("id", "=", assetId))
+                .build();
+    }
+
     private CompletableFuture<Catalog> fetchCatalog(String key, ParticipantContext participantContext, AssetAccessRequest request) {
         monitor.info("%s catalog fetch started".formatted(key));
         try {
             return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
-                            request.protocolOrDefault(), QuerySpec.none())
+                            request.protocolOrDefault(), datasetQuery(request.assetId()))
                     .thenApply(result -> {
                         if (result.failed()) {
                             monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));

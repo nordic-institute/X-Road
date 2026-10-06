@@ -55,6 +55,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -272,6 +273,49 @@ class AssetAccessOrchestratorTest {
         assertThat(result.getContent()).isSameAs(dataAddress);
 
         verify(monitor, atLeastOnce()).info(anyString());
+    }
+
+    @Test
+    void catalogFetchFiltersByAssetIdWithDefaultLimit() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+
+        stubCatalogAndTransformChain("asset-1");
+
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .build();
+        when(contractNegotiationService.initiateNegotiation(any(), any()))
+                .thenReturn(ServiceResult.success(negotiation));
+        var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(transferProcess));
+
+        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        var agreement = buildAgreement("agreement-1");
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(finalizedNegotiation("neg-1", agreement)));
+        var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data").build();
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(startedTransfer("tp-1", dataAddress)));
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            completionPoller.poll();
+            assertThat(future).isDone();
+        });
+        assertThat(future.get(5, TimeUnit.SECONDS).succeeded()).isTrue();
+
+        var querySpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(catalogService).requestCatalog(any(), any(), any(), any(), querySpecCaptor.capture());
+        var querySpec = querySpecCaptor.getValue();
+        assertThat(querySpec.getFilterExpression()).containsExactly(Criterion.criterion("id", "=", "asset-1"));
+        assertThat(querySpec.getLimit()).isEqualTo(QuerySpec.none().getLimit());
+        assertThat(querySpec.getOffset()).isZero();
     }
 
     @Test
