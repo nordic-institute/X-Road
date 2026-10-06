@@ -6,11 +6,13 @@
 #
 # Usage (when called directly):
 #   write_tls_config.sh setup_default <module_name>  # Auto-detect hostname and IPs, store identity rows if absent
+#   write_tls_config.sh set <module_name> <subject> <alt_names> [--yes|--if-absent]  # Given identity, no guards
 #
 # Usage (when sourced):
 #   . write_tls_config.sh
 #   setup_default_tls_config "proxy"           # Auto-detect, store identity rows if absent
-#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure]  # Explicit answers
+#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure]  # Package path, guarded
+#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent]  # No guards
 #
 
 log () { echo >&2 "$@"; }
@@ -19,15 +21,24 @@ usage() {
   cat >&2 <<EOF
 Usage:
   $0 setup_default <module_name>
+  $0 set <module_name> <subject> <alt_names> [--yes|-y|--if-absent]
 
 Commands:
   setup_default - Auto-detect hostname and IPs, store identity rows in the database if absent
+  set           - Store the given identity rows; an existing row prompts before overwrite
 
 Arguments:
   module_name   - X-Road module name (e.g., proxy, op-monitor, proxy-ui-api)
+  subject       - Common name as a bare host name, /CN=host or a full distinguished name
+  alt_names     - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
+
+Options for set:
+  -y, --yes      Overwrite existing rows without prompting
+      --if-absent  Keep existing rows, insert only the missing ones
 
 Examples:
   $0 setup_default proxy
+  $0 set proxy ss1.example.com "IP:10.0.0.1,DNS:ss1.example.com,DNS:ss1" --yes
 
 EOF
   exit 1
@@ -74,42 +85,23 @@ extract_cn() {
   echo "$subject"
 }
 
-# Write the TLS identity rows of a module to the configuration database.
+# Store the TLS identity rows of a module in the configuration database without the package
+# guards; the caller decides whether this host should write.
 # Arguments:
 #   $1 - module name (e.g., admin-service, management-service)
 #   $2 - subject answer (bare host, /CN=host or full distinguished name)
 #   $3 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
-#   $4 - optional, "reconfigure" to overwrite existing rows
+#   $4 - optional db_property.sh write flag: --yes overwrites, --if-absent keeps existing
+#        rows; none prompts before overwriting an existing row
 # An answer without a common name falls back to the host name (hostname -f).
-# Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
-# Existing rows are kept unless reconfiguring.
 # Returns non-zero, naming the key, on any database error.
-write_tls_identity_rows() {
+store_tls_identity_rows() {
   local module_name="$1"
   local subject="$2"
   local altn="$3"
-  local mode="${4:-}"
+  local -a write_flag=()
+  [[ -n "${4:-}" ]] && write_flag=("$4")
   local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
-
-  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
-    log "XROAD_IGNORE_DATABASE_SETUP is set, not storing ${module_name} TLS identity rows"
-    return 0
-  fi
-
-  # Identity rows are written only when systemd is the running init (the sd_booted test).
-  # Without it the package is being configured inside an image build or a container's
-  # first-start reconfigure, where the host name belongs to the build or the container rather
-  # than to the deployment, and a stored row would outrank the runtime XROAD_HOST default.
-  # Deployed X-Road always runs under systemd.
-  if [[ ! -d /run/systemd/system ]]; then
-    log "systemd is not the running init (image build or container reconfigure), not storing ${module_name} TLS identity rows"
-    return 0
-  fi
-
-  local write_flag="--if-absent"
-  if [[ "$mode" == "reconfigure" || "${DEBCONF_RECONFIGURE:-}" == "1" ]]; then
-    write_flag="--yes"
-  fi
 
   local prefix="xroad.${module_name}.tls.certificate-provisioning"
   local cn dns_list ip_list
@@ -132,9 +124,40 @@ write_tls_identity_rows() {
       alt-names) value="$dns_list" ;;
       ip-subject-alt-names) value="$ip_list" ;;
     esac
-    "$db_property" set "${prefix}.${key}" "$value" "$write_flag" \
+    "$db_property" set "${prefix}.${key}" "$value" "${write_flag[@]}" \
       || { log "FATAL: failed to store ${prefix}.${key} in the database"; return 1; }
   done
+}
+
+# Package entry point for the TLS identity rows of a module.
+# Arguments: as store_tls_identity_rows, with $4 optional "reconfigure" to overwrite existing rows.
+# Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
+# Existing rows are kept unless reconfiguring.
+write_tls_identity_rows() {
+  local module_name="$1"
+  local mode="${4:-}"
+
+  if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+    log "XROAD_IGNORE_DATABASE_SETUP is set, not storing ${module_name} TLS identity rows"
+    return 0
+  fi
+
+  # Identity rows are written only when systemd is the running init (the sd_booted test).
+  # Without it the package is being configured inside an image build or a container's
+  # first-start reconfigure, where the host name belongs to the build or the container rather
+  # than to the deployment, and a stored row would outrank the runtime XROAD_HOST default.
+  # Deployed X-Road always runs under systemd.
+  if [[ ! -d /run/systemd/system ]]; then
+    log "systemd is not the running init (image build or container reconfigure), not storing ${module_name} TLS identity rows"
+    return 0
+  fi
+
+  local write_flag="--if-absent"
+  if [[ "$mode" == "reconfigure" || "${DEBCONF_RECONFIGURE:-}" == "1" ]]; then
+    write_flag="--yes"
+  fi
+
+  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag"
 }
 
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.
@@ -157,14 +180,31 @@ setup_default_tls_config() {
 
 # Main execution block - only runs when script is executed directly (not sourced)
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  if [[ "$1" == "setup_default" ]]; then
-    if [[ -z "$2" ]]; then
-      log "Error: module name required"
+  case "${1:-}" in
+    setup_default)
+      [[ -n "${2:-}" ]] || { log "Error: module name required"; usage; }
+      setup_default_tls_config "$2"
+      ;;
+    set)
+      shift
+      write_flag=""
+      positional=()
+      while (($#)); do
+        case "$1" in
+          -y|--yes)    write_flag="--yes" ;;
+          --if-absent) write_flag="--if-absent" ;;
+          -h|--help)   usage ;;
+          -*)          log "Error: unknown option $1"; usage ;;
+          *)           positional+=("$1") ;;
+        esac
+        shift
+      done
+      (( ${#positional[@]} == 3 )) || { log "Error: set needs <module_name> <subject> <alt_names>"; usage; }
+      store_tls_identity_rows "${positional[0]}" "${positional[1]}" "${positional[2]}" "$write_flag"
+      ;;
+    *)
+      log "Error: unknown command '${1:-}'"
       usage
-    fi
-    setup_default_tls_config "$2"
-  else
-    log "Error: Wrong number of arguments"
-    usage
-  fi
+      ;;
+  esac
 fi
