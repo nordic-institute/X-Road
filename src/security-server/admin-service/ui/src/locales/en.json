@@ -1369,8 +1369,7 @@
               "op-monitor": {
                 "host": "Hostname used to connect to the operational monitoring daemon gRPC server.",
                 "port": "Port used to connect to the operational monitoring daemon gRPC server.",
-                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out.",
-                "max-inbound-message-size": "Maximum size in bytes of a gRPC response accepted from the operational monitoring daemon. If not set, the gRPC default of 4 MiB applies."
+                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out."
               }
             }
           },

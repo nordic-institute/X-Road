@@ -36,7 +36,6 @@ import java.time.Duration;
 import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
-import static org.niis.xroad.common.properties.config.Validator.range;
 
 /** Common-RPC keys ({@code xroad.common-rpc.*}): root props, cert-provisioning, and channel sub-trees. */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
@@ -210,13 +209,6 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_DEADLINE_AFTER = CHANNEL_OP_MONITOR
             .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.common-rpc.channel.op-monitor.max-inbound-message-size} — no default (gRPC default applies). */
-    public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE = CHANNEL_OP_MONITOR
-            .integer("max-inbound-message-size")
-            .withValidator(range(1, Integer.MAX_VALUE))
             .exposedInUi()
             .build();
 

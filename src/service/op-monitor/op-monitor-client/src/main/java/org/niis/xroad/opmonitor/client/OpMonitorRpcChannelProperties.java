@@ -37,8 +37,7 @@ public class OpMonitorRpcChannelProperties extends XRoadRpcChannelProperties {
         super(config,
                 CommonRpcConfigKeys.CHANNEL_OP_MONITOR_HOST,
                 CommonRpcConfigKeys.CHANNEL_OP_MONITOR_PORT,
-                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_DEADLINE_AFTER,
-                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE);
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_DEADLINE_AFTER);
     }
 
     public OpMonitorRpcChannelProperties() {
