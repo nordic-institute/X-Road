@@ -25,12 +25,8 @@
  */
 package org.niis.xroad.common.rpc.client;
 
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
@@ -41,8 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 
 import java.util.concurrent.ForkJoinPool;
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -64,13 +58,7 @@ public final class RpcChannelFactory {
                 channelProperties.deadlineAfter(),
                 credentials.getClass().getSimpleName());
 
-        final ClientInterceptor timeoutInterceptor = new ClientInterceptor() {
-            @Override
-            public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
-                    MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
-                return next.newCall(method, callOptions.withDeadlineAfter(channelProperties.deadlineAfter(), MILLISECONDS));
-            }
-        };
+        final ClientInterceptor timeoutInterceptor = new DeadlineInterceptor(channelProperties.deadlineAfter());
 
         final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-client-" + port + "-nio-worker", true);
 

@@ -13,7 +13,7 @@ dependencies {
   implementation(project(":service:ds-control-plane:ds-ext-sample"))
   implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))
   implementation(project(":service:ds-control-plane:ds-xroad-catalog"))
-  implementation(project(":service:ds-control-plane:ds-xroad-dataplane-registrar"))
+  implementation(project(":service:ds-control-plane:ds-xroad-dataplane-store"))
   implementation(project(":service:ds-control-plane:ds-xroad-dataplane-signaling-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-api"))
   implementation(project(":service:ds-control-plane:ds-xroad-agreement-grant-api"))
@@ -69,7 +69,6 @@ dependencies {
 
   runtimeOnly(libs.edc.dataplane.signaling)
   runtimeOnly(libs.edc.dataplane.signaling.client)
-  runtimeOnly(libs.edc.dataplane.selector.control.api)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)
   runtimeOnly(libs.edc.contolplane.api.config)
 

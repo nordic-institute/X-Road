@@ -44,7 +44,6 @@ import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCache
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
 import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
-import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
@@ -69,7 +68,6 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
     private final ParticipantContextService participantContextService;
     private final ParticipantContextConfigService participantContextConfigService;
     private final ParticipantContextConfigDeleter participantContextConfigDeleter;
-    private final DataPlaneContextRegistrar dataPlaneContextRegistrar;
     private final CatalogCacheInvalidator catalogCacheInvalidator;
     private final RpcResponseHandler responseHandler;
 
@@ -106,13 +104,11 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
 
         var result = participantContextService.createParticipantContext(participantContext);
         requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
-        // Data-plane registration must converge on every replica, so it fires on both outcomes; cache
-        // invalidation must not, since the admin worker re-sends this request every 30s and invalidating
-        // on each conflict would defeat the cache TTL permanently.
+        // Only a fresh create invalidates the cache: the admin worker re-sends this request every 30s, and
+        // invalidating on each conflict would defeat the cache TTL permanently.
         if (result.succeeded()) {
             catalogCacheInvalidator.invalidate();
         }
-        dataPlaneContextRegistrar.registerParticipantContext(request.getParticipantContextId());
         return CreateParticipantContextResp.getDefaultInstance();
     }
 

@@ -119,7 +119,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     public void provisionParticipant() {
         teardownDecommissioned();
 
-        var contexts = dataspaceProvisioningService.participantContexts(true);
+        var contexts = dataspaceProvisioningService.participantContexts();
         if (ownerUnknown(contexts)) {
             log.debug("Dataspace provisioning: SS owner not yet known, skipping");
             return;

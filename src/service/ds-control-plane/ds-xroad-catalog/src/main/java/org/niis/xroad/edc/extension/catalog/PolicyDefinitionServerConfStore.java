@@ -40,6 +40,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 
@@ -61,7 +62,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
     private final PolicyMapper policyMapper;
-    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -73,8 +73,9 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     @Nullable
     @WithSpan("dsp-find-acl")
     public PolicyDefinition findById(@SpanAttribute String policyId) {
-        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
-        return cache.findById(policyId, cacheKeyContext, () -> findByIdInternal(policyId));
+        var requested = requestedParticipantContext.get();
+        return cache.findById(policyId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
+                () -> findByIdInternal(policyId));
     }
 
     @Nullable
@@ -88,8 +89,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById policyId={} matched builtin", policyId);
-            return toBuiltinPolicyDefinition(policyId,
-                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+            return toBuiltinPolicyDefinition(policyId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
 
         var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
@@ -104,8 +104,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             }
             // Fall through: a SYSTEM-eligible real service with configured access rights
             // publishes its per-subject compound id there instead of the plain/owner-only forms.
-        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            return findOwnerOnlyPolicyDefinition(policyId);
         }
 
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -117,14 +115,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, policyId);
         if (result == null) {
             result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
-        }
-        if (systemAddressed && result != null && !contextIds.system().equals(result.getParticipantContextId())) {
-            // A SYSTEM-addressed request must never resolve to a compound id whose only match is
-            // under a different context (select()'s host-context fallback) — that would grant a
-            // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
-            // context and cached under the SYSTEM key.
-            log.trace("findById policyId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null", policyId);
-            return null;
         }
         log.trace("findById policyId={} result={}", policyId, result != null ? "found" : "not found");
         return result;
@@ -139,7 +129,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private PolicyDefinition findSystemPolicyDefinition(String policyId) {
         var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
         if (ownerOnlyServiceId != null) {
-            return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(), contextIds.system());
+            return policyMapper.toOwnerOnlyPolicyDefinition(
+                    policyId, ownerOnlyServiceId.getClientId(), ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
         var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
         if (systemServiceId == null) {
@@ -153,18 +144,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             log.trace("findById policyId={} not unrestricted under SYSTEM", policyId);
             return null;
         }
-        return toBuiltinPolicyDefinition(policyId, contextIds.system());
-    }
-
-    /** The management-context owner-only policy {@code policyId} names, if this server serves it. */
-    @Nullable
-    private PolicyDefinition findOwnerOnlyPolicyDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
-        if (serviceId == null) {
-            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
-            return null;
-        }
-        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), contextIds.management());
+        return toBuiltinPolicyDefinition(policyId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
     }
 
     @Override
@@ -190,19 +170,12 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             var assetId = AssetMapper.encodeAssetId(serviceId);
-            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
-            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.management()));
-            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
+            policies.add(toBuiltinPolicyDefinition(assetId, ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
-        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
-        syntheticServices.managementEntries()
+        serviceContextResolver.resolveSyntheticServices()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), contextIds.management())));
-        syntheticServices.systemEntries()
-                .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
-                        ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), contextIds.system())));
+                        serviceId.getClientId(), ParticipantIdentifierScheme.SYSTEM_SEGMENT)));
         return policies;
     }
 
@@ -255,25 +228,22 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContextsById(serviceId));
-        if (serviceContextResolver.isSystemEligible(serviceId)) {
-            resolvedContexts.add(contextIds.system());
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        if (ctxId == null) {
+            return null;
+        }
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
 
     /**
-     * Emits one owner-only policy per service (referenced by the paired owner-only
-     * ContractDefinition) plus one per-subject policy per ACL entry, for each context the
-     * service is published under.
+     * Emits one unrestricted policy under SYSTEM for a SYSTEM-eligible service with no configured
+     * access rights, plus one per-subject policy per ACL entry, for each context the service is
+     * published under. A service with neither stays published as an Asset but gets no policy at
+     * all, so it has no callable grant — not even for its own owning member.
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies,
                                            Set<String> provisionedMemberContextIds) {
-        var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
-        policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
-                serviceId.getClientId(), contextIds.management()));
-
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)
@@ -282,7 +252,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
             // rights ARE configured, they must gate SYSTEM the same as every other context —
             // handled below via the per-subject loop, not here.
-            policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), contextIds.system()));
+            policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), ParticipantIdentifierScheme.SYSTEM_SEGMENT));
         }
         if (accessRights.isEmpty()) {
             return;
@@ -292,10 +262,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
-        if (systemEligible) {
-            resolvedContexts.add(contextIds.system());
-        }
+        var resolvedContexts = serviceContextResolver.resolveContextsWithSystem(serviceId, provisionedMemberContextIds, systemEligible);
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();

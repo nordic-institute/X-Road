@@ -106,6 +106,19 @@ class StoreEnumerationCache<T> {
         return getOrLoad(findByIdCache, new FindByIdKey(id, requestedParticipantContextId), loader);
     }
 
+    /**
+     * Looks up a single entry by id, bypassing the cache entirely when the requested context is not
+     * cacheable. A context that is not cacheable must never be served from or written to the shared
+     * by-id cache, since doing so could leak a result resolved for one context to a lookup for another.
+     */
+    @Nullable
+    T findById(String id, @Nullable String requestedParticipantContextId, boolean cacheable, Supplier<T> loader) {
+        if (!cacheable) {
+            return loader.get();
+        }
+        return findById(id, requestedParticipantContextId, loader);
+    }
+
     @Nullable
     private static <K, V> V getOrLoad(@Nullable Cache<K, V> cache, K key, Supplier<V> loader) {
         if (cache == null) {

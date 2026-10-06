@@ -28,7 +28,9 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -60,8 +62,10 @@ import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,7 +73,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
@@ -191,6 +199,115 @@ class ClientRestMessageProcessorTest {
 
         var dspRequest = new DspRequest(serviceId, serviceId.getClientId(), null, processor.isManagementRequest(serviceId));
         assertThat(dspRequest.managementSubsystem()).isFalse();
+    }
+
+    private static final String PROVIDER_ADDRESS = "https://provider.example/service";
+    private static final String AGREEMENT_TOKEN = "token-abc-123";
+
+    @Test
+    void sendRequestAddsAgreementTokenHeaderWhenAssetAccessCarriesToken() throws Exception {
+        var harness = createHarness(true);
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var httpSender = mock(HttpSender.class);
+
+        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(httpSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+    }
+
+    @Test
+    void sendRequestOmitsAgreementTokenHeaderWhenAssetAccessHasNoAuthorization() throws Exception {
+        var harness = createHarness(true);
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, null));
+        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var httpSender = mock(HttpSender.class);
+
+        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(httpSender, never()).addHeader(eq(HEADER_AGREEMENT_TOKEN), any());
+    }
+
+    @Test
+    void sendRequestOmitsAgreementTokenHeaderWhenDspDisabled() throws Exception {
+        var harness = createHarness(false);
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var httpSender = mock(HttpSender.class);
+
+        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(httpSender, never()).addHeader(eq(HEADER_AGREEMENT_TOKEN), any());
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void sendRequestAddsAgreementTokenHeaderOnEveryAttempt() throws Exception {
+        var harness = createHarness(true);
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var firstAttemptSender = mock(HttpSender.class);
+        var replayedAttemptSender = mock(HttpSender.class);
+
+        // executeWithRetry invokes sendRequest fresh on every attempt with a new HttpSender, re-resolving
+        // asset access each time; two direct calls reproduce a first attempt and a retried attempt.
+        harness.processor().sendRequest(firstAttemptSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        harness.processor().sendRequest(replayedAttemptSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(firstAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+        verify(replayedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+    }
+
+    private static RestRequest restRequest() {
+        return new RestRequest("GET", "/r1/DEV/COM/222/TestClient/testService", null, List.of(), "req-1");
+    }
+
+    private static ServiceId serviceId() {
+        return ServiceId.Conf.create("DEV", "COM", "222", "TestClient", "testService");
+    }
+
+    private static RestRequestContext restRequestContext() {
+        return new RestRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class), null);
+    }
+
+    private record RestHarness(ClientRestMessageProcessor processor, DspRequestProcessor consumerSideDspProcessor,
+                               ClientRequestPreparationService clientRequestPreparationService) {
+    }
+
+    private RestHarness createHarness(boolean dspEnabled) {
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        var serverConfProvider = mock(ServerConfProvider.class);
+        var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(Map.of("xroad.proxy.dsp-enabled", String.valueOf(dspEnabled)))
+                .build());
+        var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .build());
+        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+
+        var processor = new ClientRestMessageProcessor(
+                mock(MessageSigningService.class),
+                mock(HttpSenderProvider.class),
+                mock(ClientVerificationService.class),
+                opMonitoringDataHelper,
+                globalConfProvider,
+                proxyProperties,
+                commonProperties,
+                mock(OcspVerifierFactory.class),
+                clientRequestPreparationService,
+                consumerSideDspProcessor,
+                mock(IdentifierValidationService.class));
+        return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService);
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

@@ -51,8 +51,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     private static final Prefix CHANNEL_CONF_CLIENT = CHANNEL.subPrefix("configuration-client");
     private static final Prefix CHANNEL_PROXY = CHANNEL.subPrefix("proxy");
     private static final Prefix CHANNEL_AUXILIARY_SERVICE = CHANNEL.subPrefix("auxiliary-service");
-    private static final Prefix CHANNEL_ASSET_ACCESS = CHANNEL.subPrefix("asset-access");
-    private static final Prefix CHANNEL_AGREEMENT_GRANT = CHANNEL.subPrefix("agreement-grant");
+    private static final Prefix CHANNEL_CONTROL_PLANE = CHANNEL.subPrefix("control-plane");
 
     private static final String DEADLINE_AFTER = "deadline-after";
     private static final String LOCALHOST_IP = "127.0.0.1";
@@ -309,35 +308,25 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
-    // --- channel.asset-access ---
+    // --- channel.control-plane ---
 
-    /** {@code xroad.common-rpc.channel.asset-access.host}. */
-    public static final ConfigKey<String> CHANNEL_ASSET_ACCESS_HOST = CHANNEL_ASSET_ACCESS
+    /** {@code xroad.common-rpc.channel.control-plane.host}. */
+    public static final ConfigKey<String> CHANNEL_CONTROL_PLANE_HOST = CHANNEL_CONTROL_PLANE
             .string("host")
             .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("ds-control-plane")
             .build();
 
-    /** {@code xroad.common-rpc.channel.asset-access.port}. */
-    public static final ConfigKey<Integer> CHANNEL_ASSET_ACCESS_PORT = CHANNEL_ASSET_ACCESS
+    /** {@code xroad.common-rpc.channel.control-plane.port}. */
+    public static final ConfigKey<Integer> CHANNEL_CONTROL_PLANE_PORT = CHANNEL_CONTROL_PLANE
             .integer("port")
             .withDefaultValue(5461)
             .build();
 
-    /** {@code xroad.common-rpc.channel.asset-access.deadline-after}. */
-    public static final ConfigKey<Integer> CHANNEL_ASSET_ACCESS_DEADLINE_AFTER = CHANNEL_ASSET_ACCESS
+    /** {@code xroad.common-rpc.channel.control-plane.deadline-after}. */
+    public static final ConfigKey<Integer> CHANNEL_CONTROL_PLANE_DEADLINE_AFTER = CHANNEL_CONTROL_PLANE
             .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
-            .build();
-
-    /**
-     * {@code xroad.common-rpc.channel.agreement-grant.deadline-after}. The grant lookup shares the asset-access
-     * host and port but runs on the data-flow start path where the token is optional, so it fails fast instead
-     * of waiting out the asset-access deadline.
-     */
-    public static final ConfigKey<Integer> CHANNEL_AGREEMENT_GRANT_DEADLINE_AFTER = CHANNEL_AGREEMENT_GRANT
-            .integer(DEADLINE_AFTER)
-            .withDefaultValue(5000)
             .build();
 
     private CommonRpcConfigKeys() {

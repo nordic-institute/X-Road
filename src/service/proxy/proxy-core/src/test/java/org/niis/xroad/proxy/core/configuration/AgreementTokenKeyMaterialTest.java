@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.vault.VaultClient;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +51,9 @@ class AgreementTokenKeyMaterialTest {
     @Mock
     private VaultClient vaultClient;
 
+    @Mock
+    private ProxyAgreementTokenProperties properties;
+
     private final Map<String, String> keyPairsByKeyId = new HashMap<>();
 
     @BeforeEach
@@ -59,20 +63,21 @@ class AgreementTokenKeyMaterialTest {
             keyPairsByKeyId.put(invocation.getArgument(0), invocation.getArgument(1));
             return null;
         }).when(vaultClient).createAgreementTokenSigningKey(anyString(), anyString());
+        lenient().when(properties.keyRefreshInterval()).thenReturn(Duration.ofSeconds(30));
     }
 
     @Test
     void providerStaysEmptyWhenTheVaultIsUnreachableAtConstruction() {
         when(vaultClient.getAgreementTokenSigningKeys()).thenThrow(new IllegalStateException("vault sealed"));
 
-        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient);
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, properties);
 
         assertThat(keyMaterial.provider()).isEmpty();
     }
 
     @Test
     void providerIsPresentWhenTheVaultIsReachableAtConstruction() {
-        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient);
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, properties);
 
         assertThat(keyMaterial.provider()).isPresent();
         assertThat(keyMaterial.provider().get().activeKey().keyId()).isEqualTo("1");
@@ -83,7 +88,7 @@ class AgreementTokenKeyMaterialTest {
         when(vaultClient.getAgreementTokenSigningKeys())
                 .thenThrow(new IllegalStateException("vault sealed"))
                 .thenAnswer(invocation -> new HashMap<>(keyPairsByKeyId));
-        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient);
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, properties);
         assertThat(keyMaterial.provider()).isEmpty();
 
         keyMaterial.retryOrRefresh();
@@ -93,7 +98,7 @@ class AgreementTokenKeyMaterialTest {
 
     @Test
     void retryOrRefreshCallsRefreshOnAnAlreadyBuiltProvider() {
-        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient);
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, properties);
         assertThat(keyMaterial.provider()).isPresent();
         clearInvocations(vaultClient);
 
@@ -104,7 +109,7 @@ class AgreementTokenKeyMaterialTest {
 
     @Test
     void refreshFailureLeavesTheLastGoodSnapshotInUse() {
-        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient);
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, properties);
         var providerBeforeFailedRefresh = keyMaterial.provider().orElseThrow();
         var activeKeyBeforeFailedRefresh = providerBeforeFailedRefresh.activeKey();
 
