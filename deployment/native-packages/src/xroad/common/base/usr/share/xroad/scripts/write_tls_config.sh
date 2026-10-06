@@ -1,20 +1,16 @@
 #!/bin/bash
 #
-# Script for storing the TLS certificate provisioning identity of X-Road modules:
-# as configuration database rows (setup_default) or in a YAML file (write_tls_settings).
-#
-# This script provides functions to write TLS settings for X-Road modules.
-# It handles splitting IP and DNS Subject Alternative Names (SANs) and writes
-# the appropriate configuration values.
+# Stores the TLS certificate provisioning identity of X-Road modules as configuration
+# database rows. Splits a combined IP/DNS Subject Alternative Name list into the two
+# families and extracts the bare common name from a subject answer.
 #
 # Usage (when called directly):
 #   write_tls_config.sh setup_default <module_name>  # Auto-detect hostname and IPs, store identity rows if absent
-#   write_tls_config.sh <config_file> <module_name> <common_name> <alt_names>  # Explicit settings
 #
 # Usage (when sourced):
 #   . write_tls_config.sh
 #   setup_default_tls_config "proxy"           # Auto-detect, store identity rows if absent
-#   write_tls_settings "$CONFIG_FILE" "proxy" "$cn" "$altn"  # Explicit settings
+#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure]  # Explicit answers
 #
 
 log () { echo >&2 "$@"; }
@@ -23,20 +19,15 @@ usage() {
   cat >&2 <<EOF
 Usage:
   $0 setup_default <module_name>
-  $0 <config_file> <module_name> <common_name> <alt_names>
 
 Commands:
   setup_default - Auto-detect hostname and IPs, store identity rows in the database if absent
 
 Arguments:
   module_name   - X-Road module name (e.g., proxy, op-monitor, proxy-ui-api)
-  config_file   - Path to the YAML configuration file (e.g., /etc/xroad/conf.d/local-tls.yaml)
-  common_name   - Common Name (CN) for the TLS certificate
-  alt_names     - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
 
 Examples:
   $0 setup_default proxy
-  $0 /etc/xroad/conf.d/local-tls.yaml proxy host.example.com "IP:10.0.0.1,DNS:host.example.com"
 
 EOF
   exit 1
@@ -146,28 +137,6 @@ write_tls_identity_rows() {
   done
 }
 
-# Write TLS certificate provisioning settings to configuration file
-# Arguments:
-#   $1 - config file path (e.g., /etc/xroad/conf.d/local-tls.yaml)
-#   $2 - module name (e.g., proxy, op-monitor, proxy-ui-api)
-#   $3 - Common Name (CN) for the certificate
-#   $4 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
-write_tls_settings() {
-  local config_file="$1"
-  local module_name="$2"
-  local cn="$3"
-  local altn="$4"
-
-  local ip_list dns_list
-  ip_list=$(extract_ip_list "$altn")
-  dns_list=$(extract_dns_list "$altn")
-
-  log "Writing ${module_name} TLS settings to ${config_file}"
-  /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "xroad.${module_name}.tls.certificate-provisioning.common-name" "$cn"
-  /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "xroad.${module_name}.tls.certificate-provisioning.alt-names" "$dns_list"
-  /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "xroad.${module_name}.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-}
-
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.
 # Existing rows are kept. Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the
 # running init.
@@ -194,8 +163,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       usage
     fi
     setup_default_tls_config "$2"
-  elif [[ $# -eq 4 ]]; then
-    write_tls_settings "$1" "$2" "$3" "$4"
   else
     log "Error: Wrong number of arguments"
     usage
