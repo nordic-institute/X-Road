@@ -91,11 +91,12 @@ public class XRoadDataPlaneManager {
     /**
      * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
      * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint, and returns it
-     * wrapped in a {@link DataFlowStatusMessage}.
+     * wrapped in a {@link DataFlowStatusMessage}. This is also how a suspended flow resumes: EDC's control
+     * plane re-sends start, the flow returns to {@link DataFlowStates#STARTED} and is reported as started.
      *
      * @param message incoming start message
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
-     * @throws XrdRuntimeException if the transfer type is not {@code Xrd-PULL}
+     * @throws XrdRuntimeException if the transfer type is not {@code Xrd-PULL} or the flow is completed or terminated
      */
     public DataFlowStatusMessage start(DataFlowStartMessage message) {
         validateXrdPull(message);
@@ -125,7 +126,7 @@ public class XRoadDataPlaneManager {
      * Completes a data flow, transitioning it to {@link DataFlowStates#COMPLETED}.
      *
      * @param flowId process ID of the flow to complete
-     * @throws XrdRuntimeException if the flow is not currently {@link DataFlowStates#STARTED}
+     * @throws XrdRuntimeException if the flow is not {@link DataFlowStates#STARTED} or already completed
      */
     public void completed(String flowId) {
         log.info("Completing data flow {}", flowId);
@@ -148,23 +149,11 @@ public class XRoadDataPlaneManager {
      *
      * @param flowId  process ID of the flow to suspend
      * @param reason  optional suspend reason (may be null)
-     * @throws XrdRuntimeException if the flow is not currently {@link DataFlowStates#STARTED}
+     * @throws XrdRuntimeException if the flow is not {@link DataFlowStates#STARTED} or already suspended
      */
     public void suspend(String flowId, String reason) {
         log.info("Suspending data flow {} — reason: {}", flowId, reason);
         applyTransition(flowId, DataFlowTransition.SUSPEND);
-    }
-
-    /**
-     * Resumes a suspended data flow, transitioning it back to {@link DataFlowStates#STARTED} and reporting
-     * the new state to the control plane, exactly as a fresh start does.
-     *
-     * @param flowId process ID of the flow to resume
-     * @throws XrdRuntimeException if the flow is not currently {@link DataFlowStates#SUSPENDED}
-     */
-    public void resume(String flowId) {
-        log.info("Resuming data flow {}", flowId);
-        applyTransition(flowId, DataFlowTransition.RESUME);
     }
 
     /**
@@ -216,15 +205,16 @@ public class XRoadDataPlaneManager {
     }
 
     /**
-     * Validates {@code transition} against the flow's current state, persists the resulting state, and —
-     * for a transition the data-flow table marks as reported — tells the control plane off the calling
-     * thread. A reporting failure is logged and never propagates: it cannot fail or delay this call.
+     * Applies {@code transition} through the shared store, which validates and persists it as one operation,
+     * and — for a transition the data-flow table marks as reported — tells the control plane off the calling
+     * thread, but only about a state this call actually established: a retried signal that finds the flow
+     * already there is answered like the original and not reported again. A reporting failure is logged and
+     * never propagates: it cannot fail or delay this call.
      */
     private void applyTransition(String processId, DataFlowTransition transition) {
-        var newState = transition.apply(flowStateStore.find(processId));
-        flowStateStore.save(processId, newState);
-        if (transition.isReported()) {
-            reportState(processId, newState);
+        var outcome = flowStateStore.apply(processId, transition);
+        if (transition.isReported() && outcome.stateChanged()) {
+            reportState(processId, outcome.state());
         }
     }
 

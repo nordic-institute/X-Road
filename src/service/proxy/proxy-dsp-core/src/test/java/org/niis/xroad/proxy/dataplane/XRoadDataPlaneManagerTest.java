@@ -35,7 +35,6 @@ import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.constants.CoreConstants;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -222,26 +221,28 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
-    void resumeTransitionsSuspendedFlowBackToStarted() {
+    void startOnASuspendedFlowResumesIt() {
         manager.start(buildStartMessage("flow-resume"));
         manager.suspend("flow-resume", "maintenance");
 
-        manager.resume("flow-resume");
+        var result = manager.start(buildStartMessage("flow-resume"));
 
+        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
         assertThat(manager.state("flow-resume")).isEqualTo(DataFlowStates.STARTED);
     }
 
     @Test
-    void resumeOnNonSuspendedFlowIsRejected() {
-        manager.start(buildStartMessage("flow-illegal-resume"));
+    void suspendOnANonStartedFlowIsRejected() {
+        manager.prepare(buildPrepareMessage("flow-illegal-suspend"));
 
-        assertThatThrownBy(() -> manager.resume("flow-illegal-resume"))
+        assertThatThrownBy(() -> manager.suspend("flow-illegal-suspend", null))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
-    void resumeOnUnknownFlowIsRejected() {
-        assertThatThrownBy(() -> manager.resume("never-seen-flow"))
+    void suspendOnUnknownFlowIsRejected() {
+        assertThatThrownBy(() -> manager.suspend("never-seen-flow", null))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 
@@ -274,13 +275,66 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
-    void resumeReportsStartedStateToControlPlane() {
+    void resumeByStartReportsStartedStateToControlPlaneAgain() {
         manager.start(buildStartMessage("flow-report-resume"));
         manager.suspend("flow-report-resume", "maintenance");
 
-        manager.resume("flow-report-resume");
+        manager.start(buildStartMessage("flow-report-resume"));
 
         verify(lifecycleReportClient, times(2)).reportState("flow-report-resume", DataFlowStates.STARTED);
+    }
+
+    @Test
+    void repeatedStartIsAnsweredLikeTheOriginalButNotReportedAgain() {
+        var first = manager.start(buildStartMessage("flow-retry-start"));
+
+        var retry = manager.start(buildStartMessage("flow-retry-start"));
+
+        assertThat(retry.getState()).isEqualTo(first.getState());
+        assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
+        assertThat(manager.state("flow-retry-start")).isEqualTo(DataFlowStates.STARTED);
+        verify(lifecycleReportClient, times(1)).reportState("flow-retry-start", DataFlowStates.STARTED);
+    }
+
+    @Test
+    void repeatedPrepareIsAnsweredLikeTheOriginalButNotReportedAgain() {
+        var first = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
+
+        var retry = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
+
+        assertThat(retry.getState()).isEqualTo(first.getState());
+        assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
+        assertThat(manager.state("flow-retry-prepare")).isEqualTo(DataFlowStates.PROVISIONED);
+        verify(lifecycleReportClient, times(1)).reportState("flow-retry-prepare", DataFlowStates.PROVISIONED);
+    }
+
+    @Test
+    void repeatedCompletedAndTerminateAreAccepted() {
+        manager.start(buildStartMessage("flow-retry-complete"));
+        manager.completed("flow-retry-complete");
+        manager.start(buildStartMessage("flow-retry-terminate"));
+        manager.terminate("flow-retry-terminate");
+
+        manager.completed("flow-retry-complete");
+        manager.terminate("flow-retry-terminate");
+
+        assertThat(manager.state("flow-retry-complete")).isEqualTo(DataFlowStates.COMPLETED);
+        assertThat(manager.state("flow-retry-terminate")).isEqualTo(DataFlowStates.TERMINATED);
+        verify(lifecycleReportClient, times(1)).reportState("flow-retry-complete", DataFlowStates.COMPLETED);
+    }
+
+    @Test
+    void transitionRejectedByTheStoreIsNotReported() {
+        var racedStore = mock(DataFlowStateStore.class);
+        when(racedStore.apply("flow-raced", DataFlowTransition.START))
+                .thenThrow(DataFlowTransition.START.illegalFrom(Optional.of(DataFlowStates.TERMINATED)));
+        var racedManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties,
+                racedStore, agreementTokenIssuer, lifecycleReportClient);
+
+        assertThatThrownBy(() -> racedManager.start(buildStartMessage("flow-raced")))
+                .isInstanceOf(XrdRuntimeException.class);
+
+        verifyNoInteractions(lifecycleReportClient);
     }
 
     @Test
@@ -468,16 +522,18 @@ class XRoadDataPlaneManagerTest {
 
     /**
      * A shared-map fake for {@link SharedDataFlowStateStore}, handed to every manager in a test so
-     * it models one record visible to every node.
+     * it models one record visible to every node. Single-threaded: it validates and writes in two steps.
      */
     private static final class InMemoryDataFlowStateStore implements DataFlowStateStore {
 
         private final ConcurrentHashMap<String, DataFlowStates> states = new ConcurrentHashMap<>();
 
         @Override
-        public StoreResult<Void> save(String flowId, DataFlowStates state) {
-            states.put(flowId, state);
-            return StoreResult.success();
+        public DataFlowTransitionOutcome apply(String flowId, DataFlowTransition transition) {
+            var stateBefore = Optional.ofNullable(states.get(flowId));
+            var stateAfter = transition.apply(stateBefore);
+            states.put(flowId, stateAfter);
+            return new DataFlowTransitionOutcome(stateAfter, stateBefore.filter(stateAfter::equals).isEmpty());
         }
 
         @Override

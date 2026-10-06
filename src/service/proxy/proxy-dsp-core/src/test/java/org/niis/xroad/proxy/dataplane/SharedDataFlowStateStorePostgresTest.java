@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.testcontainers.DockerClientFactory;
@@ -52,12 +53,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.COMPLETE;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.PREPARE;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.START;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.SUSPEND;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.TERMINATE;
 
 /**
  * Runs the real {@code serverconf-changelog.xml} against a Postgres testcontainer, then drives two
  * independent {@link SharedDataFlowStateStore} instances against that one database to prove
- * cross-node visibility against the actual schema and store implementation.
+ * cross-node visibility and race behaviour against the actual schema and store implementation.
  *
  * <p>The container is started manually, gated behind {@link DockerClientFactory#isDockerAvailable()},
  * instead of via {@code @Testcontainers}/{@code @Container}: that extension starts the container
@@ -65,6 +72,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * instead of skip.
  */
 class SharedDataFlowStateStorePostgresTest {
+
+    private static final int RACING_PAIRS = 25;
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
@@ -77,10 +86,8 @@ class SharedDataFlowStateStorePostgresTest {
     static void migrateAndConnect() throws Exception {
         assumeTrue(DockerClientFactory.instance().isDockerAvailable(),
                 "Docker is not available — skipping the Postgres-backed integration test");
-
         POSTGRES.start();
         applyServerConfChangelog();
-
         nodeADatabaseCtx = new ServerConfDatabaseCtx(dbProperties());
         nodeBDatabaseCtx = new ServerConfDatabaseCtx(dbProperties());
         nodeA = new SharedDataFlowStateStore(nodeADatabaseCtx);
@@ -101,37 +108,37 @@ class SharedDataFlowStateStorePostgresTest {
     }
 
     @Test
-    void flowSavedThroughOneNodeIsVisibleThroughAnother() {
+    void flowStartedThroughOneNodeIsVisibleThroughAnother() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
+        nodeA.apply(flowId, START);
 
         assertThat(nodeB.find(flowId)).contains(DataFlowStates.STARTED);
     }
 
     @Test
-    void lifecycleUpdatesFromEitherNodeAreVisibleOnTheOther() {
+    void lifecycleTransitionsFromEitherNodeAreVisibleOnTheOther() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.PROVISIONED);
+        nodeA.apply(flowId, PREPARE);
         assertThat(nodeB.find(flowId)).contains(DataFlowStates.PROVISIONED);
 
-        nodeB.save(flowId, DataFlowStates.STARTED);
+        nodeB.apply(flowId, START);
         assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
 
-        nodeA.save(flowId, DataFlowStates.SUSPENDED);
+        nodeA.apply(flowId, SUSPEND);
         assertThat(nodeB.find(flowId)).contains(DataFlowStates.SUSPENDED);
     }
 
     @Test
-    void repeatedLifecycleUpdatesLeaveExactlyOneRow() throws Exception {
+    void wholeLifecycleIncludingResumeLeavesExactlyOneRow() throws Exception {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.PROVISIONED);
-        nodeB.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.SUSPENDED);
-        nodeB.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.TERMINATED);
+        nodeA.apply(flowId, PREPARE);
+        nodeB.apply(flowId, START);
+        nodeA.apply(flowId, SUSPEND);
+        nodeB.apply(flowId, START);
+        nodeA.apply(flowId, TERMINATE);
 
         assertThat(nodeB.find(flowId)).contains(DataFlowStates.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
@@ -142,11 +149,10 @@ class SharedDataFlowStateStorePostgresTest {
         var terminatedFlowId = uniqueFlowId();
         var completedFlowId = uniqueFlowId();
 
-        nodeA.save(terminatedFlowId, DataFlowStates.STARTED);
-        nodeB.save(terminatedFlowId, DataFlowStates.TERMINATED);
-
-        nodeB.save(completedFlowId, DataFlowStates.STARTED);
-        nodeA.save(completedFlowId, DataFlowStates.COMPLETED);
+        nodeA.apply(terminatedFlowId, START);
+        nodeB.apply(terminatedFlowId, TERMINATE);
+        nodeB.apply(completedFlowId, START);
+        nodeA.apply(completedFlowId, COMPLETE);
 
         assertThat(nodeA.find(terminatedFlowId)).contains(DataFlowStates.TERMINATED);
         assertThat(nodeB.find(completedFlowId)).contains(DataFlowStates.COMPLETED);
@@ -154,145 +160,89 @@ class SharedDataFlowStateStorePostgresTest {
         assertThat(countRows(completedFlowId)).isEqualTo(1);
     }
 
-    /**
-     * Two nodes handling the first signal for the same new {@code flowId} can both see no existing
-     * row and both insert, racing on {@code uniq_dataflow_state_flow_id}. A {@link CyclicBarrier}
-     * lines up both {@link SharedDataFlowStateStore#save} calls across many distinct {@code flowId}s
-     * so at least some pairs genuinely race.
-     */
     @Test
-    void concurrentFirstWriteForTheSameNewFlowIdDoesNotFailEitherNode() throws Exception {
-        var racingPairs = 25;
-        var executor = Executors.newFixedThreadPool(2);
-        try {
-            var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
-
-            for (var flowId : flowIds) {
-                var barrier = new CyclicBarrier(2);
-                List<Future<?>> results = List.of(
-                        executor.submit(() -> raceToSave(nodeA, flowId, barrier)),
-                        executor.submit(() -> raceToSave(nodeB, flowId, barrier)));
-
-                for (var result : results) {
-                    result.get(10, TimeUnit.SECONDS);
-                }
-            }
-
-            for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
-                assertThat(countRows(flowId)).isEqualTo(1);
-            }
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-    private static Void raceToSave(SharedDataFlowStateStore node, String flowId, CyclicBarrier barrier) throws Exception {
-        barrier.await(5, TimeUnit.SECONDS);
-        node.save(flowId, DataFlowStates.STARTED);
-        return null;
-    }
-
-    /**
-     * Same race as {@link #concurrentFirstWriteForTheSameNewFlowIdDoesNotFailEitherNode}, but nodeA
-     * races with the more advanced {@code STARTED} and nodeB with {@code PROVISIONED}.
-     */
-    @Test
-    void concurrentFirstWriteWithDifferentStatesNeverRegressesToTheOlderState() throws Exception {
-        var racingPairs = 25;
-        var executor = Executors.newFixedThreadPool(2);
-        try {
-            var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
-
-            for (var flowId : flowIds) {
-                var barrier = new CyclicBarrier(2);
-                List<Future<?>> results = List.of(
-                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowStates.STARTED, barrier)),
-                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowStates.PROVISIONED, barrier)));
-
-                for (var result : results) {
-                    result.get(10, TimeUnit.SECONDS);
-                }
-            }
-
-            for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
-                assertThat(countRows(flowId)).isEqualTo(1);
-            }
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-    @Test
-    void terminatedFlowIsNeverMovedBackToAnEarlierState() {
+    void outcomeTellsWhetherTheCallChangedTheState() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.TERMINATED);
-        nodeB.save(flowId, DataFlowStates.STARTED);
+        var first = nodeA.apply(flowId, START);
+        var repeat = nodeB.apply(flowId, START);
+        var suspend = nodeA.apply(flowId, SUSPEND);
+
+        assertThat(first).isEqualTo(new DataFlowTransitionOutcome(DataFlowStates.STARTED, true));
+        assertThat(repeat).isEqualTo(new DataFlowTransitionOutcome(DataFlowStates.STARTED, false));
+        assertThat(suspend).isEqualTo(new DataFlowTransitionOutcome(DataFlowStates.SUSPENDED, true));
+    }
+
+    @Test
+    void terminatedFlowRejectsStart() {
+        var flowId = uniqueFlowId();
+        nodeA.apply(flowId, START);
+        nodeA.apply(flowId, TERMINATE);
+
+        assertThatThrownBy(() -> nodeB.apply(flowId, START)).isInstanceOf(XrdRuntimeException.class);
 
         assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
     }
 
     @Test
-    void completedFlowIsNeverMovedBackToAnEarlierState() {
+    void completedFlowRejectsSuspend() {
         var flowId = uniqueFlowId();
+        nodeA.apply(flowId, START);
+        nodeA.apply(flowId, COMPLETE);
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.COMPLETED);
-        nodeB.save(flowId, DataFlowStates.SUSPENDED);
+        assertThatThrownBy(() -> nodeB.apply(flowId, SUSPEND)).isInstanceOf(XrdRuntimeException.class);
 
         assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
     }
 
     @Test
-    void repeatingTheSameTerminalStateIsANoOpNotARegression() throws Exception {
+    void repeatingATerminalTransitionIsAcceptedAsANoOp() throws Exception {
         var flowId = uniqueFlowId();
+        nodeA.apply(flowId, START);
+        nodeA.apply(flowId, TERMINATE);
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.TERMINATED);
-        nodeB.save(flowId, DataFlowStates.TERMINATED);
+        var repeat = nodeB.apply(flowId, TERMINATE);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(repeat).isEqualTo(new DataFlowTransitionOutcome(DataFlowStates.TERMINATED, false));
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
-    private static Void raceToSaveState(SharedDataFlowStateStore node, String flowId, DataFlowStates state, CyclicBarrier barrier)
-            throws Exception {
-        barrier.await(5, TimeUnit.SECONDS);
-        node.save(flowId, state);
-        return null;
+    @Test
+    void suspendedFlowMustBeResumedBeforeItCompletes() {
+        var flowId = uniqueFlowId();
+        nodeA.apply(flowId, START);
+        nodeA.apply(flowId, SUSPEND);
+
+        assertThatThrownBy(() -> nodeB.apply(flowId, COMPLETE)).isInstanceOf(XrdRuntimeException.class);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.SUSPENDED);
+
+        nodeB.apply(flowId, START);
+        nodeB.apply(flowId, COMPLETE);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
     }
 
     /**
-     * Both nodes read the same {@code STARTED} row before either commits, then race different states —
-     * nodeA the terminal {@code COMPLETED}, nodeB {@code SUSPENDED}. A non-atomic read-then-write could
-     * let the later commit silently overwrite the earlier one.
+     * Two nodes handling the first signal for the same new {@code flowId} can both see no existing
+     * row and both insert, racing on {@code uniq_dataflow_state_flow_id}. A {@link CyclicBarrier}
+     * lines up both {@link SharedDataFlowStateStore#apply} calls across many distinct {@code flowId}s
+     * so at least some pairs genuinely race; the loser must then be validated against the winner's row.
      */
     @Test
-    void concurrentUpdateOfAnExistingFlowWithDifferentStatesNeverRegresses() throws Exception {
-        var racingPairs = 25;
+    void concurrentFirstStartForTheSameNewFlowIdFailsNeitherNode() throws Exception {
         var executor = Executors.newFixedThreadPool(2);
         try {
-            var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
-            for (var flowId : flowIds) {
-                nodeA.save(flowId, DataFlowStates.STARTED);
-            }
-
+            var flowIds = IntStream.range(0, RACING_PAIRS).mapToObj(i -> uniqueFlowId()).toList();
             for (var flowId : flowIds) {
                 var barrier = new CyclicBarrier(2);
-                List<Future<?>> results = List.of(
-                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowStates.COMPLETED, barrier)),
-                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowStates.SUSPENDED, barrier)));
-
+                List<Future<Boolean>> results = List.of(
+                        executor.submit(() -> raceToApply(nodeA, flowId, START, barrier)),
+                        executor.submit(() -> raceToApply(nodeB, flowId, START, barrier)));
                 for (var result : results) {
-                    result.get(10, TimeUnit.SECONDS);
+                    assertThat(result.get(10, TimeUnit.SECONDS)).isTrue();
                 }
             }
-
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -300,15 +250,69 @@ class SharedDataFlowStateStorePostgresTest {
         }
     }
 
+    /**
+     * Same race, nodeA starting and nodeB preparing the same new flow. Start is legal both first and after
+     * prepare, so it always succeeds; prepare after start is rejected. Either way the flow ends started.
+     */
     @Test
-    void suspendedFlowCanStillTransitionToCompleted() {
-        var flowId = uniqueFlowId();
+    void concurrentPrepareAndStartForTheSameNewFlowEndStartedWhicheverCommitsFirst() throws Exception {
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var flowIds = IntStream.range(0, RACING_PAIRS).mapToObj(i -> uniqueFlowId()).toList();
+            for (var flowId : flowIds) {
+                var barrier = new CyclicBarrier(2);
+                var start = executor.submit(() -> raceToApply(nodeA, flowId, START, barrier));
+                var prepare = executor.submit(() -> raceToApply(nodeB, flowId, PREPARE, barrier));
+                assertThat(start.get(10, TimeUnit.SECONDS)).isTrue();
+                prepare.get(10, TimeUnit.SECONDS);
+            }
+            for (var flowId : flowIds) {
+                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+                assertThat(countRows(flowId)).isEqualTo(1);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.SUSPENDED);
-        nodeB.save(flowId, DataFlowStates.COMPLETED);
+    /**
+     * Both nodes see the same {@code STARTED} row, then race incompatible transitions — nodeA completing,
+     * nodeB suspending. Whichever commits first wins; the other is validated against the winner's state and
+     * rejected, so the stored state is always the winner's and never a stale overwrite.
+     */
+    @Test
+    void concurrentCompleteAndSuspendOnAStartedFlowLetExactlyOneWin() throws Exception {
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var flowIds = IntStream.range(0, RACING_PAIRS).mapToObj(i -> uniqueFlowId()).toList();
+            for (var flowId : flowIds) {
+                nodeA.apply(flowId, START);
+            }
+            for (var flowId : flowIds) {
+                var barrier = new CyclicBarrier(2);
+                var complete = executor.submit(() -> raceToApply(nodeA, flowId, COMPLETE, barrier));
+                var suspend = executor.submit(() -> raceToApply(nodeB, flowId, SUSPEND, barrier));
+                var completed = complete.get(10, TimeUnit.SECONDS);
+                var suspended = suspend.get(10, TimeUnit.SECONDS);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+                assertThat(completed ^ suspended).isTrue();
+                assertThat(nodeA.find(flowId)).contains(completed ? DataFlowStates.COMPLETED : DataFlowStates.SUSPENDED);
+                assertThat(countRows(flowId)).isEqualTo(1);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private static boolean raceToApply(SharedDataFlowStateStore node, String flowId, DataFlowTransition transition,
+            CyclicBarrier barrier) throws Exception {
+        barrier.await(5, TimeUnit.SECONDS);
+        try {
+            node.apply(flowId, transition);
+            return true;
+        } catch (XrdRuntimeException e) {
+            return false;
+        }
     }
 
     /**
@@ -320,18 +324,16 @@ class SharedDataFlowStateStorePostgresTest {
     void auditTimestampsAreSetOnInsertAndUpdatedOnLifecycleChange() throws Exception {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.PROVISIONED);
+        nodeA.apply(flowId, PREPARE);
         var afterInsert = selectTimestamps(flowId);
-
         assertThat(afterInsert.createdAt()).isNotNull();
         assertThat(afterInsert.updatedAt()).isNotNull();
 
         // Ensures the "later" assertion below holds regardless of how fast the two transactions run.
         Thread.sleep(50);
 
-        nodeB.save(flowId, DataFlowStates.STARTED);
+        nodeB.apply(flowId, START);
         var afterUpdate = selectTimestamps(flowId);
-
         assertThat(afterUpdate.createdAt()).isEqualTo(afterInsert.createdAt());
         assertThat(afterUpdate.updatedAt()).isAfter(afterInsert.updatedAt());
     }

@@ -27,35 +27,13 @@
 package org.niis.xroad.proxy.dataplane;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-
-import java.util.Optional;
 
 /**
- * Stores the lifecycle state of proxy data-plane flows, shared by every proxy node of a
- * clustered Security Server.
+ * What a {@link DataFlowStateStore#apply} call left behind: the state the flow now holds and whether this
+ * call put it there. A retried signal finds the flow already in its target state and changes nothing.
+ *
+ * @param state        the flow's state after the transition
+ * @param stateChanged whether this call changed the stored state
  */
-public interface DataFlowStateStore {
-
-    /**
-     * Applies a transition to a flow as one operation: the current state is read and the new state written
-     * under one lock on the flow's record, so transitions racing on the same flow — from two threads or two
-     * nodes — serialize, and each is validated against what the previous one committed rather than against a
-     * stale read.
-     *
-     * @param flowId     the flow's process ID
-     * @param transition the transition to apply
-     * @return the state the flow holds afterwards and whether this call changed it
-     * @throws XrdRuntimeException if the transition is illegal from the flow's current state; nothing is written
-     */
-    DataFlowTransitionOutcome apply(String flowId, DataFlowTransition transition);
-
-    /**
-     * Finds the current state of a flow.
-     *
-     * @param flowId the flow's process ID
-     * @return the current state, or empty if the flow is not known
-     */
-    Optional<DataFlowStates> find(String flowId);
-
+public record DataFlowTransitionOutcome(DataFlowStates state, boolean stateChanged) {
 }

@@ -32,6 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,103 +42,123 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.COMPLETE;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.NOTIFY_STARTED;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.PREPARE;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.START;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.SUSPEND;
+import static org.niis.xroad.proxy.dataplane.DataFlowTransition.TERMINATE;
 
 class DataFlowTransitionTest {
 
     @Test
-    void prepareIsLegalOnlyFromUnknownFlow() {
-        assertThat(DataFlowTransition.PREPARE.apply(Optional.empty())).isEqualTo(PROVISIONED);
+    void prepareIsLegalFromUnknownFlowAndAsARepeatOnAProvisionedOne() {
+        assertThat(PREPARE.apply(Optional.empty())).isEqualTo(PROVISIONED);
+        assertThat(PREPARE.apply(Optional.of(PROVISIONED))).isEqualTo(PROVISIONED);
 
-        for (var state : DataFlowStates.values()) {
-            assertIllegal(DataFlowTransition.PREPARE, state);
-        }
+        assertIllegal(PREPARE, STARTED);
+        assertIllegal(PREPARE, SUSPENDED);
+        assertIllegal(PREPARE, COMPLETED);
+        assertIllegal(PREPARE, TERMINATED);
     }
 
     @Test
-    void startIsLegalFromUnknownFlowOrProvisioned() {
-        assertThat(DataFlowTransition.START.apply(Optional.empty())).isEqualTo(STARTED);
-        assertThat(DataFlowTransition.START.apply(Optional.of(PROVISIONED))).isEqualTo(STARTED);
+    void startIsLegalFromUnknownProvisionedOrSuspendedAndAsARepeatOnAStartedFlow() {
+        assertThat(START.apply(Optional.empty())).isEqualTo(STARTED);
+        assertThat(START.apply(Optional.of(PROVISIONED))).isEqualTo(STARTED);
+        assertThat(START.apply(Optional.of(SUSPENDED))).isEqualTo(STARTED);
+        assertThat(START.apply(Optional.of(STARTED))).isEqualTo(STARTED);
     }
 
     @Test
-    void startOnAnythingElseIsIllegal() {
-        assertIllegal(DataFlowTransition.START, STARTED);
-        assertIllegal(DataFlowTransition.START, SUSPENDED);
-        assertIllegal(DataFlowTransition.START, COMPLETED);
-        assertIllegal(DataFlowTransition.START, TERMINATED);
+    void startOnATerminalFlowIsIllegal() {
+        assertIllegal(START, COMPLETED);
+        assertIllegal(START, TERMINATED);
     }
 
     @Test
     void notifyStartedIsLegalFromUnknownProvisionedOrStartedAndIsNotReported() {
-        assertThat(DataFlowTransition.NOTIFY_STARTED.apply(Optional.empty())).isEqualTo(STARTED);
-        assertThat(DataFlowTransition.NOTIFY_STARTED.apply(Optional.of(PROVISIONED))).isEqualTo(STARTED);
-        assertThat(DataFlowTransition.NOTIFY_STARTED.apply(Optional.of(STARTED))).isEqualTo(STARTED);
-        assertThat(DataFlowTransition.NOTIFY_STARTED.isReported()).isFalse();
+        assertThat(NOTIFY_STARTED.apply(Optional.empty())).isEqualTo(STARTED);
+        assertThat(NOTIFY_STARTED.apply(Optional.of(PROVISIONED))).isEqualTo(STARTED);
+        assertThat(NOTIFY_STARTED.apply(Optional.of(STARTED))).isEqualTo(STARTED);
+        assertThat(NOTIFY_STARTED.isReported()).isFalse();
 
-        assertIllegal(DataFlowTransition.NOTIFY_STARTED, SUSPENDED);
-        assertIllegal(DataFlowTransition.NOTIFY_STARTED, COMPLETED);
-        assertIllegal(DataFlowTransition.NOTIFY_STARTED, TERMINATED);
+        assertIllegal(NOTIFY_STARTED, SUSPENDED);
+        assertIllegal(NOTIFY_STARTED, COMPLETED);
+        assertIllegal(NOTIFY_STARTED, TERMINATED);
     }
 
     @Test
-    void suspendIsLegalOnlyFromStarted() {
-        assertThat(DataFlowTransition.SUSPEND.apply(Optional.of(STARTED))).isEqualTo(SUSPENDED);
+    void suspendIsLegalFromStartedAndAsARepeatOnASuspendedFlow() {
+        assertThat(SUSPEND.apply(Optional.of(STARTED))).isEqualTo(SUSPENDED);
+        assertThat(SUSPEND.apply(Optional.of(SUSPENDED))).isEqualTo(SUSPENDED);
 
-        assertIllegalFromUnknown(DataFlowTransition.SUSPEND);
-        assertIllegal(DataFlowTransition.SUSPEND, PROVISIONED);
-        assertIllegal(DataFlowTransition.SUSPEND, SUSPENDED);
-        assertIllegal(DataFlowTransition.SUSPEND, COMPLETED);
-        assertIllegal(DataFlowTransition.SUSPEND, TERMINATED);
+        assertIllegalFromUnknown(SUSPEND);
+        assertIllegal(SUSPEND, PROVISIONED);
+        assertIllegal(SUSPEND, COMPLETED);
+        assertIllegal(SUSPEND, TERMINATED);
     }
 
     @Test
-    void resumeIsLegalOnlyFromSuspended() {
-        assertThat(DataFlowTransition.RESUME.apply(Optional.of(SUSPENDED))).isEqualTo(STARTED);
+    void completeIsLegalFromStartedAndAsARepeatOnACompletedFlow() {
+        assertThat(COMPLETE.apply(Optional.of(STARTED))).isEqualTo(COMPLETED);
+        assertThat(COMPLETE.apply(Optional.of(COMPLETED))).isEqualTo(COMPLETED);
 
-        assertIllegalFromUnknown(DataFlowTransition.RESUME);
-        assertIllegal(DataFlowTransition.RESUME, PROVISIONED);
-        assertIllegal(DataFlowTransition.RESUME, STARTED);
-        assertIllegal(DataFlowTransition.RESUME, COMPLETED);
-        assertIllegal(DataFlowTransition.RESUME, TERMINATED);
+        assertIllegalFromUnknown(COMPLETE);
+        assertIllegal(COMPLETE, PROVISIONED);
+        assertIllegal(COMPLETE, SUSPENDED);
+        assertIllegal(COMPLETE, TERMINATED);
     }
 
     @Test
-    void completeIsLegalOnlyFromStarted() {
-        assertThat(DataFlowTransition.COMPLETE.apply(Optional.of(STARTED))).isEqualTo(COMPLETED);
+    void terminateIsLegalFromAnyActiveStateAndAsARepeatOnATerminatedFlow() {
+        assertThat(TERMINATE.apply(Optional.of(PROVISIONED))).isEqualTo(TERMINATED);
+        assertThat(TERMINATE.apply(Optional.of(STARTED))).isEqualTo(TERMINATED);
+        assertThat(TERMINATE.apply(Optional.of(SUSPENDED))).isEqualTo(TERMINATED);
+        assertThat(TERMINATE.apply(Optional.of(TERMINATED))).isEqualTo(TERMINATED);
 
-        assertIllegalFromUnknown(DataFlowTransition.COMPLETE);
-        assertIllegal(DataFlowTransition.COMPLETE, PROVISIONED);
-        assertIllegal(DataFlowTransition.COMPLETE, SUSPENDED);
-        assertIllegal(DataFlowTransition.COMPLETE, COMPLETED);
-        assertIllegal(DataFlowTransition.COMPLETE, TERMINATED);
-    }
-
-    @Test
-    void terminateIsLegalFromAnyActiveState() {
-        assertThat(DataFlowTransition.TERMINATE.apply(Optional.of(PROVISIONED))).isEqualTo(TERMINATED);
-        assertThat(DataFlowTransition.TERMINATE.apply(Optional.of(STARTED))).isEqualTo(TERMINATED);
-        assertThat(DataFlowTransition.TERMINATE.apply(Optional.of(SUSPENDED))).isEqualTo(TERMINATED);
-
-        assertIllegalFromUnknown(DataFlowTransition.TERMINATE);
-        assertIllegal(DataFlowTransition.TERMINATE, COMPLETED);
-        assertIllegal(DataFlowTransition.TERMINATE, TERMINATED);
+        assertIllegalFromUnknown(TERMINATE);
+        assertIllegal(TERMINATE, COMPLETED);
     }
 
     @ParameterizedTest
     @EnumSource(DataFlowTransition.class)
-    void terminalStatesRejectEveryTransition(DataFlowTransition transition) {
-        assertIllegal(transition, COMPLETED);
-        assertIllegal(transition, TERMINATED);
+    void terminalStatesRejectEveryTransitionExceptTheRepeatOfTheirOwn(DataFlowTransition transition) {
+        for (var terminal : List.of(COMPLETED, TERMINATED)) {
+            if (transition.targetState() == terminal) {
+                assertThat(transition.apply(Optional.of(terminal))).isEqualTo(terminal);
+            } else {
+                assertIllegal(transition, terminal);
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(DataFlowTransition.class)
+    void applyThrowsExactlyWhereIsLegalFromSaysNo(DataFlowTransition transition) {
+        assertThat(transition.isLegalFrom(Optional.empty())).isEqualTo(applies(transition, Optional.empty()));
+        for (var state : DataFlowStates.values()) {
+            assertThat(transition.isLegalFrom(Optional.of(state))).isEqualTo(applies(transition, Optional.of(state)));
+        }
     }
 
     @Test
     void reportedFlagMatchesTheDataFlowTable() {
-        assertThat(DataFlowTransition.PREPARE.isReported()).isTrue();
-        assertThat(DataFlowTransition.START.isReported()).isTrue();
-        assertThat(DataFlowTransition.RESUME.isReported()).isTrue();
-        assertThat(DataFlowTransition.COMPLETE.isReported()).isTrue();
-        assertThat(DataFlowTransition.SUSPEND.isReported()).isFalse();
-        assertThat(DataFlowTransition.TERMINATE.isReported()).isFalse();
+        assertThat(PREPARE.isReported()).isTrue();
+        assertThat(START.isReported()).isTrue();
+        assertThat(COMPLETE.isReported()).isTrue();
+        assertThat(NOTIFY_STARTED.isReported()).isFalse();
+        assertThat(SUSPEND.isReported()).isFalse();
+        assertThat(TERMINATE.isReported()).isFalse();
+    }
+
+    private static boolean applies(DataFlowTransition transition, Optional<DataFlowStates> from) {
+        try {
+            transition.apply(from);
+            return true;
+        } catch (XrdRuntimeException e) {
+            return false;
+        }
     }
 
     private static void assertIllegalFromUnknown(DataFlowTransition transition) {

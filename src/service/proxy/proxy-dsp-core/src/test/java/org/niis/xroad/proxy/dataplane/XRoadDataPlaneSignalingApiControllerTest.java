@@ -147,13 +147,6 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
 
     @Test
-    void resumeDelegatesToManagerResume() {
-        controller.resume("flow-9", Map.of());
-
-        verify(manager).resume("flow-9");
-    }
-
-    @Test
     void getTransferStateReturnsStateJsonObject() {
         when(manager.state("flow-5")).thenReturn(DataFlowStates.STARTED);
 

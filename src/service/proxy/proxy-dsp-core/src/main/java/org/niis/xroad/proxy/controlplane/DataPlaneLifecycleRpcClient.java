@@ -52,6 +52,12 @@ import java.util.concurrent.TimeUnit;
  * unreachable control plane never delays a signaling response. A failed report is logged at warn with only
  * the process id and state — never an exception stack trace reaching the signaling caller — and otherwise
  * dropped.
+ *
+ * <p>Dropping is safe because the control plane does not depend on these reports for {@code Xrd-PULL}: every
+ * reported state is reached synchronously inside a signal the control plane itself sent, and it advances its
+ * transfer process from that signal's response. The reports are the second, informational channel that
+ * EDC's own data-plane callbacks provide; {@code GET /v1/dataflows/{id}/state} remains available to
+ * reconcile a flow after the fact.
  */
 @Slf4j
 @RequiredArgsConstructor
