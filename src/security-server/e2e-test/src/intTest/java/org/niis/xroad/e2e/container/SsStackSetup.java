@@ -100,7 +100,6 @@ public class SsStackSetup extends AbstractSsStack {
                 .withEnv("ENV_PREFIX", composeProjectName())
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
                 .withEnv("SS_ADDRESS", "xrd-" + name)
-                .withEnv("DSP_MGMT_CONTEXT", "true")
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())

@@ -76,28 +76,25 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * an established consumer. A same-member self-call of the new client is
  * {@link SsProxyDspSelfCallTest}-shaped, not this scenario.
  *
- * <p><b>Which participant contexts the exchange actually rides.</b> Publication is additive during this
- * epic (the legacy host-context publication is removed only by a later cutover story), so the new
- * client's service is published under the host context in addition to its own {@code DEV:COM:4321}
- * context — but the consumer proxy derives the counter-party coordinates from the provider member id
- * (XRDADR-41), so it dials the {@code DEV:COM:4321} context directly. The exchange therefore rides two
- * member contexts: the consumer side negotiates on the sender member's context ({@code DEV:COM:1234}),
- * the provider side serves the offer on the new member's <b>own</b> context ({@code DEV:COM:4321}), and
- * each side persists its own per-context copy of the one wire agreement. The runtime member's context is
- * thus exercised end-to-end as the provider side's negotiation identity;
- * {@link #awaitMemberContextIssued} additionally confirms the context and its membership credential are
- * provisioned before any traffic flows.
+ * <p><b>Which participant context the exchange actually rides.</b> The new client's service is published
+ * only under its own {@code DEV:COM:4321} context, once that context is provisioned — a service whose
+ * owning member has no provisioned context yet is not published anywhere at all (XRDADR-41's full
+ * pre-provisioning discoverability remains a deferred follow-up). The consumer proxy derives the
+ * counter-party coordinates from the provider member id, so it dials {@code DEV:COM:4321} directly;
+ * {@link #awaitMemberContextIssued} confirms that context and its membership credential are already
+ * provisioned before any traffic flows, so this scenario never exercises the pre-provisioning gap. The
+ * exchange rides two member contexts: the consumer side negotiates on the sender member's context
+ * ({@code DEV:COM:1234}), the provider side serves the offer on the new member's <b>own</b> context
+ * ({@code DEV:COM:4321}), and each side persists its own per-context copy of the one wire agreement. The
+ * runtime member's context is thus exercised end-to-end as the provider side's negotiation identity.
  *
- * <p><b>Per-member data-plane registration is exercised for both members' contexts.</b> The provider
- * side's transfer runs under {@code DEV:COM:4321}, so data-plane selection resolves the member-context
- * instance the registrar created for that context at runtime — a transfer under a member context with no
- * registered instance terminates with "No dataplane found", so the transfer succeeding is itself the
- * end-to-end proof of the runtime registration. The EDC data-plane instance store is in-memory in the
- * control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d} on the live
- * database lists no data-plane-instance table) and no externally reachable listing endpoint the control
- * port exposes (that port carries data-plane signaling callbacks, not a selector query API) — so the
- * record itself is not directly observable; the registration mechanics are covered by
- * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests.
+ * <p><b>Per-member data-plane resolution is exercised for both members' contexts.</b> The provider
+ * side's transfer runs under {@code DEV:COM:4321}, so data-plane selection must resolve a data plane for
+ * that member context. The control plane's data-plane store computes it from configuration on demand,
+ * with no registration step; a transfer under a context that resolves no data plane terminates with
+ * "No dataplane found", so the transfer succeeding is itself the end-to-end proof. The store keeps no
+ * record (no table, no listing endpoint), so there is nothing to observe directly; its behaviour is
+ * covered by {@code XRoadDataPlaneInstanceStoreTest}.
  *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the

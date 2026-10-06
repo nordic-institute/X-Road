@@ -51,10 +51,10 @@ configure_secret_store_trust_env() {
   export SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE="${SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE:-PEM}"
 }
 
-seed_dsp_participant_context_id() {
-  log "Seeding DSP participant-context-id"
+seed_dsp_config() {
+  log "Seeding DSP configuration"
   if ! bash /usr/share/xroad/scripts/sidecar/dsp-config-seed.sh 2>&1 | sed 's/^/    /'; then
-    warn "DSP participant-context-id seeding failed"
+    warn "DSP configuration seeding failed"
     return 1
   fi
 }
@@ -337,7 +337,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   log "Reconfiguring packages"
   if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
     RECONFIGURED=true
-    seed_dsp_participant_context_id
+    seed_dsp_config
     seed_signer_autologin_enabled
   fi
   # The local database, if any, is left running until the provisioning steps

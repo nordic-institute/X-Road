@@ -71,11 +71,9 @@ external_service_bridges: []
 # which inventory runs it. Mirrors e2e's split so dev and e2e stay converged.
 security_server_instances:
   - namespace: ss0
-    dsp_participant_context_id: xrd-ss0
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
     softtoken_signer_enabled: true
   - namespace: ss1
-    dsp_participant_context_id: xrd-ss1
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
     signer_hsm_enabled: true
 
