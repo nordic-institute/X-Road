@@ -201,7 +201,10 @@ configure_dataspace_issuer_host() {
   RET=""
   db_get xroad-common/skip-cs-db-migrations || true
   if [[ "$RET" == "true" ]]; then
-    log "Database migrations were skipped — not storing ${key}; run 'dpkg-reconfigure xroad-center' after migrating"
+    db_get "$template" || true
+    log "Database migrations were skipped — ${key} not stored. Once the schema is migrated, store the answer with:"
+    log "  /usr/share/xroad/scripts/db_property.sh set ${key} '${RET}' --yes"
+    log "or run 'dpkg-reconfigure xroad-center' and answer No to skipping migrations"
     return
   fi
 
@@ -276,7 +279,15 @@ store_certificates_settings() {
   RET=""
   db_get xroad-common/skip-cs-db-migrations || true
   if [[ "$RET" == "true" ]]; then
-    log "Database migrations were skipped — not storing TLS identity rows; run 'dpkg-reconfigure xroad-center' after migrating"
+    local admin_subject admin_altn service_subject service_altn
+    db_get xroad-common/admin-subject; admin_subject="$RET"
+    db_get xroad-common/admin-altsubject; admin_altn="$RET"
+    db_get xroad-common/service-subject; service_subject="$RET"
+    db_get xroad-common/service-altsubject; service_altn="$RET"
+    log "Database migrations were skipped — TLS identity rows not stored. Once the schema is migrated, store the answers with:"
+    log "  /usr/share/xroad/scripts/write_tls_config.sh set admin-service '${admin_subject}' '${admin_altn}' --yes"
+    log "  /usr/share/xroad/scripts/write_tls_config.sh set management-service '${service_subject}' '${service_altn}' --yes"
+    log "or run 'dpkg-reconfigure xroad-center' and answer No to skipping migrations"
     return
   fi
 
