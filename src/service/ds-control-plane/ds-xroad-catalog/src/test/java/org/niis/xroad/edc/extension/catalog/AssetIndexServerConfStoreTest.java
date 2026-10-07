@@ -631,6 +631,20 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
+    void countAssetsAppliesTheDefinitionSelectorAndTheTargetIdTogether() {
+        setupMembersAndServices();
+        var selectorForService1 = new Criterion(EDC_NAMESPACE + "id", "=", SERVICE_1.asEncodedId());
+
+        var sameAsset = assetIndex.countAssets(List.of(selectorForService1,
+                new Criterion(Asset.PROPERTY_ID, "=", SERVICE_1.asEncodedId())));
+        var otherAsset = assetIndex.countAssets(List.of(selectorForService1,
+                new Criterion(Asset.PROPERTY_ID, "=", SERVICE_2.asEncodedId())));
+
+        assertThat(sameAsset).isEqualTo(1);
+        assertThat(otherAsset).isZero();
+    }
+
+    @Test
     void findByIdBuiltinResolvesSystemContextWhenSystemRequested() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
