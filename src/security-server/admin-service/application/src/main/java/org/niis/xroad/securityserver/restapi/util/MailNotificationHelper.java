@@ -88,6 +88,21 @@ public class MailNotificationHelper {
         }
     }
 
+    public void sendAuthCertRenewalRegistrationPendingNotification(ClientId memberId,
+                                                                    SecurityServerId.Conf securityServerId,
+                                                                    CertificateInfo newCertInfo) {
+        if (notificationConfig.isAcmeRenewalSuccessNotificationEnabled()) {
+            String title =
+                    notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_registration_pending_title");
+            String content =
+                    notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_registration_pending_content",
+                            new String[]{securityServerId.asEncodedId(), newCertInfo.getCertificateDisplayName()});
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId.asEncodedId()))
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
     public void sendFailureNotification(String memberId,
                                         CertificateInfo certInfo,
                                         SecurityServerId.Conf securityServerId,

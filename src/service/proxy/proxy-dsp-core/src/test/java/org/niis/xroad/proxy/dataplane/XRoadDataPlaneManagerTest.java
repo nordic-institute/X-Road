@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.dataplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
@@ -46,11 +45,11 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Endpoint;
 
@@ -80,7 +79,7 @@ class XRoadDataPlaneManagerTest {
     @Mock
     private DataPlaneServerProperties properties;
     @Mock
-    private GlobalConfProvider globalConfProvider;
+    private OwnSecurityServerResolver ownSecurityServerResolver;
     @Mock
     private ServerConfProvider serverConfProvider;
     @Mock
@@ -96,11 +95,10 @@ class XRoadDataPlaneManagerTest {
 
     @BeforeEach
     void setUp() {
-        var ownId = SecurityServerId.Conf.create("DEV", "COM", "1234", "SS0");
-        lenient().when(serverConfProvider.getIdentifier()).thenReturn(ownId);
-        lenient().when(globalConfProvider.getSecurityServerAddress(ownId)).thenReturn(OWN_ADDRESS);
+        lenient().when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of(OWN_ADDRESS));
         lenient().when(proxyProperties.sslEnabled()).thenReturn(true);
         lenient().when(proxyProperties.serverProxyPort()).thenReturn(5500);
+        lenient().when(properties.serverproxyEndpoint()).thenReturn(SERVERPROXY_ENDPOINT);
 
         keyProvider = new TestAgreementTokenKeyProvider();
         keyProvider.addKey("1");
@@ -109,7 +107,7 @@ class XRoadDataPlaneManagerTest {
 
         agreementTokenIssuer = new AgreementTokenIssuer(grantRpcClient, serverConfProvider, keyMaterial, TOKEN_PROPERTIES);
         flowStateStore = new InMemoryDataFlowStateStore();
-        manager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties, flowStateStore,
+        manager = new XRoadDataPlaneManager(properties, ownSecurityServerResolver, proxyProperties, flowStateStore,
                 agreementTokenIssuer);
     }
 
@@ -153,6 +151,24 @@ class XRoadDataPlaneManagerTest {
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
         assertThat(result.getDataAddress().getEndpointType()).isEqualTo("https");
         assertThat(result.getState()).isEqualTo(DataFlowStates.PROVISIONED.toString());
+    }
+
+    @Test
+    void startFallsBackToConfiguredEndpointWhenRegisteredAddressUnavailable() {
+        when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.empty());
+
+        var result = manager.start(buildStartMessage("flow-registered-address-unavailable"));
+
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
+    }
+
+    @Test
+    void startFallsBackToConfiguredEndpointWhenResolverThrowsUnexpectedly() {
+        when(ownSecurityServerResolver.registeredAddress()).thenThrow(new RuntimeException("boom"));
+
+        var result = manager.start(buildStartMessage("flow-resolver-throws"));
+
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
     }
 
     @Test
@@ -288,7 +304,7 @@ class XRoadDataPlaneManagerTest {
 
     @Test
     void flowStartedOnOneNodeIsVisibleOnAnotherNodeSharingTheStore() {
-        var otherNodeManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
+        var otherNodeManager = new XRoadDataPlaneManager(properties, ownSecurityServerResolver,
                 proxyProperties, flowStateStore, agreementTokenIssuer);
 
         manager.start(buildStartMessage("flow-shared"));
@@ -299,7 +315,7 @@ class XRoadDataPlaneManagerTest {
     @Test
     void lifecycleTransitionOnOneNodeUpdatesTheSharedRecordSeenByAnother() {
         var nodeA = manager;
-        var nodeB = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
+        var nodeB = new XRoadDataPlaneManager(properties, ownSecurityServerResolver,
                 proxyProperties, flowStateStore, agreementTokenIssuer);
 
         nodeA.start(buildStartMessage("flow-cluster"));

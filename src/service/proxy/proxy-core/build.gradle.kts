@@ -24,6 +24,7 @@ dependencies {
   implementation(project(":lib:properties-core"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:serverconf-impl"))
+  implementation(project(":lib:security-server-identity-core"))
   implementation(project(":lib:keyconf-impl"))
 
 
@@ -52,6 +53,7 @@ dependencies {
 
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
+  testFixturesImplementation(project(":lib:security-server-identity-core"))
   testFixturesImplementation(project(":lib:agreement-token-core"))
   testFixturesImplementation(project(":lib:properties-core"))
   testFixturesImplementation(project(":lib:messagelog-core"))

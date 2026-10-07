@@ -34,9 +34,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
@@ -78,8 +80,10 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
 /**
@@ -92,11 +96,15 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Autowired
     private GlobalConfChecker globalConfChecker;
     @Autowired
+    private ScheduledJobHelper scheduledJobHelper;
+    @Autowired
     private ServerConfService serverConfService;
     @Autowired
     private ClientService clientService;
     @Autowired
     private GlobalConfService globalConfService;
+    @Autowired
+    private SecurityServerAddressChangeStatus addressChangeStatus;
     @MockitoBean
     private MailNotificationHelper mailNotificationHelper;
     @MockitoSpyBean
@@ -403,6 +411,44 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             verify(globalConfProvider).verifyValidity();
             verifyNoMoreInteractions(globalConfProvider);
         }
+    }
+
+    @Test
+    public void skipsServerConfUpdateWhenServerNotConfiguredYet() {
+        scheduledJobHelper.getServerConf().setOwner(null);
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(globalConfProvider).reload();
+        verify(globalConfProvider).verifyValidity();
+        verifyNoMoreInteractions(globalConfProvider);
+        verifyNoInteractions(signerRpcClient);
+        verifyNoInteractions(mailNotificationHelper);
+    }
+
+    @Test
+    public void clearsAddressChangeRequestWhenRegisteredAddressMatches() {
+        String registeredAddress = "security-server.example.org";
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(registeredAddress);
+        addressChangeStatus.setAddress(registeredAddress);
+
+        globalConfChecker.checkGlobalConf();
+
+        assertFalse(addressChangeStatus.getAddressChangeRequest().isPresent());
+    }
+
+    @Test
+    public void doesNotClearAddressChangeRequestWhenGlobalConfAddressNotReadable() {
+        String requestedAddress = "security-server.example.org";
+        when(globalConfProvider.getSecurityServerAddress(SS_ID))
+                .thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR, "globalconf not downloaded yet"));
+        addressChangeStatus.setAddress(requestedAddress);
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(Optional.of(requestedAddress), addressChangeStatus.getAddressChangeRequest());
+
+        addressChangeStatus.clear();
     }
 
 }

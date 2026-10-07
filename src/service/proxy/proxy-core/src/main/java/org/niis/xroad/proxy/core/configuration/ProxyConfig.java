@@ -72,6 +72,7 @@ import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.signature.SimpleSigner;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.XRoadServerConfProperties;
@@ -282,6 +283,12 @@ class ProxyConfig {
                                           GlobalConfProvider globalConfProvider,
                                           VaultClient vaultClient) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
+    }
+
+    @ApplicationScoped
+    OwnSecurityServerResolver ownSecurityServerResolver(ServerConfProvider serverConfProvider,
+                                                        GlobalConfProvider globalConfProvider) {
+        return new OwnSecurityServerResolver(serverConfProvider, globalConfProvider);
     }
 
     @ApplicationScoped

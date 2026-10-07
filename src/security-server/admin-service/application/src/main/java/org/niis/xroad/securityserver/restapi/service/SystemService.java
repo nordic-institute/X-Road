@@ -43,6 +43,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
@@ -97,6 +98,7 @@ public class SystemService {
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyRpcClient proxyRpcClient;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -300,7 +302,10 @@ public class SystemService {
         if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
             throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }
-        if (globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId()).equals(newAddress)) {
+        if (ownSecurityServerResolver.identity()
+                .flatMap(ownSecurityServerResolver::registeredAddress)
+                .filter(newAddress::equals)
+                .isPresent()) {
             throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
         }
         Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);

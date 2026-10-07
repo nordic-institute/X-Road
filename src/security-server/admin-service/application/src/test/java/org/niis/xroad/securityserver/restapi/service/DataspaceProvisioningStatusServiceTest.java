@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,18 +40,18 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
@@ -89,7 +90,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private ClientRepository clientRepository;
     @Mock
-    private ServerConfRepository serverConfRepository;
+    private ServerConfProvider serverConfProvider;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
@@ -111,16 +112,13 @@ class DataspaceProvisioningStatusServiceTest {
         var ownerEntity = mock(ClientEntity.class);
         lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
         lenient().when(ownerEntity.getClientStatus()).thenReturn(Client.STATUS_REGISTERED);
-        var serverConf = mock(ServerConfEntity.class);
-        lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
-        lenient().when(serverConf.getServerCode()).thenReturn("SS0");
-        lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerEntity));
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
         lenient().when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("ss.example.test");
+        lenient().when(serverConfProvider.getIdentifier()).thenReturn(SecurityServerId.Conf.create(OWNER, "SS0"));
 
-        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfProvider, globalConfProvider);
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
@@ -194,7 +192,7 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusSsNotInitializedReportsAllContextsAbsent() {
-        when(serverConfRepository.getServerConf())
+        when(serverConfProvider.getIdentifier())
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
@@ -275,9 +273,8 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusOmitsMemberContextWhenOwnerNotYetSet() {
-        var serverConf = mock(ServerConfEntity.class);
-        when(serverConf.getOwner()).thenReturn(null);
-        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+        when(serverConfProvider.getIdentifier())
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
 

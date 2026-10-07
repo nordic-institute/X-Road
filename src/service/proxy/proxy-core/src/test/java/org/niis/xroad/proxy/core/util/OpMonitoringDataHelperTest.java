@@ -43,10 +43,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -59,6 +61,8 @@ class OpMonitoringDataHelperTest {
     private GlobalConfProvider globalConfProvider;
     @Mock
     private ServerConfProvider serverConfProvider;
+    @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
 
     @Mock
     private SecurityServerId.Conf securityServerId;
@@ -69,8 +73,7 @@ class OpMonitoringDataHelperTest {
     @Test
     void testUpdateOpMonitoringClientSecurityServerAddress() {
         OpMonitoringData data = mock(OpMonitoringData.class);
-        when(serverConfProvider.getIdentifier()).thenReturn(securityServerId);
-        when(globalConfProvider.getSecurityServerAddress(securityServerId)).thenReturn("address");
+        when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of("address"));
 
         helper.updateOpMonitoringClientSecurityServerAddress(data);
 
@@ -80,12 +83,21 @@ class OpMonitoringDataHelperTest {
     @Test
     void testUpdateOpMonitoringServiceSecurityServerAddress() {
         OpMonitoringData data = mock(OpMonitoringData.class);
-        when(serverConfProvider.getIdentifier()).thenReturn(securityServerId);
-        when(globalConfProvider.getSecurityServerAddress(securityServerId)).thenReturn("address");
+        when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of("address"));
 
         helper.updateOpMonitoringServiceSecurityServerAddress(data);
 
         verify(data).setServiceSecurityServerAddress("address");
+    }
+
+    @Test
+    void testUpdateOpMonitoringClientSecurityServerAddressWhenNotKnown() {
+        OpMonitoringData data = mock(OpMonitoringData.class);
+        when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.empty());
+
+        helper.updateOpMonitoringClientSecurityServerAddress(data);
+
+        verify(data).setClientSecurityServerAddress(null);
     }
 
     @Test

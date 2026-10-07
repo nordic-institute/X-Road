@@ -47,6 +47,7 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
@@ -98,6 +99,8 @@ public class SystemServiceTest {
     @Mock
     private ProxyRpcClient proxyRpcClient;
     @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
+    @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
     private final MaintenanceModeStatus maintenanceModeStatus = new MaintenanceModeStatus();
@@ -119,7 +122,8 @@ public class SystemServiceTest {
 
         systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient);
+                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient,
+                ownSecurityServerResolver);
     }
 
     @Test
@@ -237,7 +241,9 @@ public class SystemServiceTest {
 
     @Test
     public void changeSecurityServerAddress() {
-        when(globalConfService.getSecurityServerAddress(any())).thenReturn("ss.address");
+        SecurityServerId.Conf serverId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        when(ownSecurityServerResolver.identity()).thenReturn(Optional.of(serverId));
+        when(ownSecurityServerResolver.registeredAddress(serverId)).thenReturn(Optional.of("ss.address"));
 
         systemService.changeSecurityServerAddress(SERVER_ADDRESS);
 
@@ -260,7 +266,9 @@ public class SystemServiceTest {
 
     @Test
     public void changeSecurityServerAddressSameAddress() {
-        when(globalConfService.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+        SecurityServerId.Conf serverId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        when(ownSecurityServerResolver.identity()).thenReturn(Optional.of(serverId));
+        when(ownSecurityServerResolver.registeredAddress(serverId)).thenReturn(Optional.of(SERVER_ADDRESS));
 
         try {
             systemService.changeSecurityServerAddress(SERVER_ADDRESS);
@@ -269,6 +277,30 @@ public class SystemServiceTest {
             assertEquals("Error[code=same_address_change_request]", e.getMessage());
             // ok
         }
+    }
+
+    @Test
+    public void changeSecurityServerAddressNoneRegisteredYet() {
+        SecurityServerId.Conf serverId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        when(ownSecurityServerResolver.identity()).thenReturn(Optional.of(serverId));
+        when(ownSecurityServerResolver.registeredAddress(serverId)).thenReturn(Optional.empty());
+
+        systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, SERVER_ADDRESS);
+        verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
+    }
+
+    @Test
+    public void changeSecurityServerAddressGlobalConfReadFailureTreatedAsNoConflict() {
+        SecurityServerId.Conf serverId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        when(ownSecurityServerResolver.identity()).thenReturn(Optional.of(serverId));
+        when(ownSecurityServerResolver.registeredAddress(serverId)).thenReturn(Optional.empty());
+
+        systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, SERVER_ADDRESS);
+        verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
     }
 
     @Test

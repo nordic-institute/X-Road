@@ -43,10 +43,12 @@ import org.niis.xroad.common.acme.AcmeKeyPurpose;
 import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -58,6 +60,7 @@ import org.springframework.scheduling.support.NoOpTaskScheduler;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -75,6 +78,7 @@ import static ee.ria.xroad.common.TestCertUtil.getCa;
 import static ee.ria.xroad.common.TestCertUtil.getKeyPairGenerator;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -84,6 +88,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockSignCsrBytes;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
@@ -106,6 +111,8 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     @Before
     public void setUp() throws Exception {
         when(globalConfProvider.isValid()).thenReturn(true);
+        when(serverConfProvider.getIdentifier()).thenReturn(TestUtils.OWNER_SERVER_ID);
+        when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("ss9.example.org");
         when(globalConfProvider.getApprovedCA(any(), any()))
                 .thenReturn(approvedCaWithAcme("testca", false, "ee.test.Profile"));
 
@@ -172,7 +179,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
                 any(),
                 any())).thenReturn(List.of(readCertificate(newAuthCertInfo.getCertificateBytes())));
 
-        doReturn(managementRequestSenderMock).when(acmeCertificateRenewalWorker).createManagementRequestSender();
+        doReturn(managementRequestSenderMock).when(acmeCertificateRenewalWorker).createManagementRequestSender(any());
     }
 
     private CertificateInfo createCertificateInfo(String certId, String commonName, KeyUsage keyUsage, Date notBefore,
@@ -215,6 +222,8 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
         verify(managementRequestSenderMock, times(1)).sendAuthCertRegRequest(any(), any(), any(), anyBoolean());
         verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
         verify(signerRpcClient, times(2)).setNextPlannedRenewal(any(), any());
+        verify(mailNotificationHelper, times(2)).sendSuccessNotification(any(), any(), any(), any());
+        verify(mailNotificationHelper, never()).sendAuthCertRenewalRegistrationPendingNotification(any(), any(), any());
     }
 
     @Test
@@ -253,6 +262,93 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
         verify(signerRpcClient, never()).importCert(any(), any(), any(), anyBoolean());
         verify(signerRpcClient, times(4)).deleteKey(any(), anyBoolean());
         verify(signerRpcClient, times(2)).setRenewalError(any(), any());
+    }
+
+    @Test
+    public void renewalRecordsErrorForEachCertWhenOwnSecurityServerIdentityIsEmpty() throws Exception {
+        when(serverConfProvider.getIdentifier())
+                .thenThrow(XrdRuntimeException.systemException(MALFORMED_SERVERCONF, "owner not initialised"));
+
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+
+        acmeCertificateRenewalWorker.execute(scheduler);
+
+        verify(signerRpcClient, never()).importCert(any(), any(), any(), anyBoolean());
+        verify(signerRpcClient, never()).setRenewedCertHash(any(), any());
+        verify(signerRpcClient, times(2)).setRenewalError(any(), any());
+        verify(signerRpcClient, never()).setNextPlannedRenewal(any(), any());
+        verify(mailNotificationHelper, never()).sendFailureNotification(any(), any(), any(), any());
+        verify(managementRequestSenderMock, never()).sendAuthCertRegRequest(any(), any(), any(), anyBoolean());
+    }
+
+    @Test
+    public void authCertRegRequestSkippedWhenGlobalConfNotReadable() throws Exception {
+        when(globalConfProvider.getSecurityServerAddress(any()))
+                .thenThrow(XrdRuntimeException.systemException(MALFORMED_SERVERCONF, "globalconf not readable"));
+
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+        acmeCertificateRenewalWorker.execute(scheduler);
+
+        verify(managementRequestSenderMock, never()).sendAuthCertRegRequest(any(), any(), any(), anyBoolean());
+        verify(signerRpcClient, never()).setCertStatus(any(), eq(CertificateInfo.STATUS_REGINPROG));
+        verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
+        verify(signerRpcClient, never()).deleteKey(any(), anyBoolean());
+        verify(mailNotificationHelper, times(1)).sendAuthCertRenewalRegistrationPendingNotification(any(), any(), any());
+        verify(mailNotificationHelper, times(1)).sendSuccessNotification(any(), any(), any(), eq(KeyUsageInfo.SIGNING));
+        verify(mailNotificationHelper, never()).sendSuccessNotification(any(), any(), any(), eq(KeyUsageInfo.AUTHENTICATION));
+    }
+
+    @Test
+    public void authCertRegRequestSkippedWhenNotRegistered() throws Exception {
+        when(globalConfProvider.getSecurityServerAddress(any())).thenReturn(null);
+
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+        acmeCertificateRenewalWorker.execute(scheduler);
+
+        verify(managementRequestSenderMock, never()).sendAuthCertRegRequest(any(), any(), any(), anyBoolean());
+        verify(signerRpcClient, never()).setCertStatus(any(), eq(CertificateInfo.STATUS_REGINPROG));
+        verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
+        verify(signerRpcClient, never()).deleteKey(any(), anyBoolean());
+        verify(mailNotificationHelper, times(1)).sendAuthCertRenewalRegistrationPendingNotification(any(), any(), any());
+        verify(mailNotificationHelper, times(1)).sendSuccessNotification(any(), any(), any(), eq(KeyUsageInfo.SIGNING));
+        verify(mailNotificationHelper, never()).sendSuccessNotification(any(), any(), any(), eq(KeyUsageInfo.AUTHENTICATION));
+    }
+
+    @Test
+    public void setRenewalErrorFallsBackToResolverOwnerWhenCertHasNoMemberId() {
+        CertificateInfo certWithoutMemberId = new CertificateTestUtils.CertificateInfoBuilder()
+                .id("cert_without_member_id")
+                .clientId(null)
+                .build();
+
+        ReflectionTestUtils.invokeMethod(acmeCertificateRenewalWorker,
+                "setRenewalErrorAndSendFailureNotification", certWithoutMemberId, "boom");
+
+        verify(mailNotificationHelper).sendFailureNotification(
+                eq(TestUtils.OWNER_SERVER_ID.getOwner().asEncodedId()),
+                eq(certWithoutMemberId),
+                eq(TestUtils.OWNER_SERVER_ID),
+                eq("boom"));
+    }
+
+    @Test
+    public void setRenewalErrorDoesNotThrowWhenMemberIdAndResolverOwnerBothUnavailable() {
+        when(serverConfProvider.getIdentifier())
+                .thenThrow(XrdRuntimeException.systemException(MALFORMED_SERVERCONF, "owner not initialised"));
+
+        CertificateInfo certWithoutMemberId = new CertificateTestUtils.CertificateInfoBuilder()
+                .id("cert_without_member_id_or_owner")
+                .clientId(null)
+                .build();
+
+        assertThatCode(() -> ReflectionTestUtils.invokeMethod(acmeCertificateRenewalWorker,
+                "setRenewalErrorAndSendFailureNotification", certWithoutMemberId, "boom"))
+                .doesNotThrowAnyException();
+
+        verify(mailNotificationHelper, never()).sendFailureNotification(any(), any(), any(), any());
     }
 
 }

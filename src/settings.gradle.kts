@@ -99,6 +99,7 @@ include("lib:vault-spring")
 include("lib:vault-quarkus")
 include("lib:health-check-core")
 include("lib:ds-identity-core")
+include("lib:security-server-identity-core")
 
 // Service projects
 include("service")

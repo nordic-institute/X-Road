@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
@@ -58,6 +59,7 @@ public class OpMonitoringDataHelper {
 
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     public void updateOpMonitoringClientSecurityServerAddress(OpMonitoringData opMonitoringData) {
         try {
@@ -168,6 +170,6 @@ public class OpMonitoringDataHelper {
     }
 
     private String getSecurityServerAddress() {
-        return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
+        return ownSecurityServerResolver.registeredAddress().orElse(null);
     }
 }

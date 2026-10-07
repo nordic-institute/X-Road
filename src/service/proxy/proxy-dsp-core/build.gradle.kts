@@ -11,6 +11,7 @@ dependencies {
   implementation(libs.quarkus.arc)
   implementation(libs.jetty.server)
   implementation(project(":lib:ds-identity-core"))
+  implementation(project(":lib:security-server-identity-core"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:serverconf-impl"))

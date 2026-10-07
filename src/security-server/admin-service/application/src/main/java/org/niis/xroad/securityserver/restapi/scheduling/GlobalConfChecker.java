@@ -40,6 +40,7 @@ import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
+import org.niis.xroad.securityserver.identity.OwnSecurityServerResolver;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
@@ -80,6 +81,7 @@ public class GlobalConfChecker {
     private volatile boolean restoreInProgress = false;
     private final ScheduledJobHelper scheduledJobHelper;
     private final GlobalConfProvider globalConfProvider;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final SubsystemNameStatus subsystemNameStatus;
@@ -134,13 +136,18 @@ public class GlobalConfChecker {
         }
 
         ServerConfEntity serverConf = scheduledJobHelper.getServerConf();
-
-        var securityServerId = buildSecurityServerId(serverConf);
+        if (serverConf.getOwner() == null) {
+            log.debug("Security Server is not configured yet - skipping globalconf update for this cycle");
+            return;
+        }
+        // Composed of this method's own transactional read rather than ownSecurityServerResolver.identity():
+        // the resolver's read is independent of this one and can race with it on an owner change, reset or restore.
+        SecurityServerId securityServerId = buildSecurityServerId(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
 
         addressChangeStatus.getAddressChangeRequest()
                 .ifPresent(requestedAddress -> {
-                    var currentAddress = globalConfProvider.getSecurityServerAddress(securityServerId);
-                    if (requestedAddress.equals(currentAddress)) {
+                    if (ownSecurityServerResolver.registeredAddress(securityServerId)
+                            .filter(requestedAddress::equals).isPresent()) {
                         addressChangeStatus.clear();
                     }
                 });
@@ -258,11 +265,6 @@ public class GlobalConfChecker {
         return SecurityServerId.Conf.create(
                 ownerId.getXRoadInstance(), ownerId.getMemberClass(),
                 ownerId.getMemberCode(), serverCode);
-    }
-
-    private SecurityServerId buildSecurityServerId(ServerConfEntity serverConf) {
-        ClientId ownerId = serverConf.getOwner().getIdentifier();
-        return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
     private void updateOwner(ServerConfEntity serverConf) {

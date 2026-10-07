@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -58,14 +56,5 @@ class ScheduledJobHelper {
      */
     ServerConfEntity getServerConf() {
         return serverConfRepository.getServerConf();
-    }
-
-    /**
-     * Get the Security Server's id
-     * @return SecurityServerId.Conf
-     */
-    SecurityServerId.Conf getSecurityServerId() {
-        ServerConfEntity serverConf = getServerConf();
-        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
     }
 }
