@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,7 @@ import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -128,6 +130,26 @@ class AssetIndexServerConfStoreTest {
         assertThat(result).hasSize(3);
         assertThat(result).extracting(Asset::getId)
                 .contains(SERVICE_1.asEncodedId(), SERVICE_2.asEncodedId(), SERVICE_3.asEncodedId());
+    }
+
+    @Test
+    void queryAssetsFilteredByIdFindsAssetBeyondDefaultLimit() {
+        var services = IntStream.range(0, 60)
+                .mapToObj(i -> ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "service" + i))
+                .toList();
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(services);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
+        var target = services.getLast().asEncodedId();
+        var defaultLimit = QuerySpec.none().getLimit();
+
+        assertThat(assetIndex.queryAssets(QuerySpec.none()).map(Asset::getId)).hasSize(defaultLimit).doesNotContain(target);
+
+        var filtered = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", target)).build();
+        var result = assetIndex.queryAssets(filtered).toList();
+
+        assertThat(result).extracting(Asset::getId).containsExactly(target);
     }
 
     @Test
@@ -606,6 +628,20 @@ class AssetIndexServerConfStoreTest {
         var count = store.countAssets(List.of());
 
         assertThat(count).isEqualTo(7);
+    }
+
+    @Test
+    void countAssetsAppliesTheDefinitionSelectorAndTheTargetIdTogether() {
+        setupMembersAndServices();
+        var selectorForService1 = new Criterion(EDC_NAMESPACE + "id", "=", SERVICE_1.asEncodedId());
+
+        var sameAsset = assetIndex.countAssets(List.of(selectorForService1,
+                new Criterion(Asset.PROPERTY_ID, "=", SERVICE_1.asEncodedId())));
+        var otherAsset = assetIndex.countAssets(List.of(selectorForService1,
+                new Criterion(Asset.PROPERTY_ID, "=", SERVICE_2.asEncodedId())));
+
+        assertThat(sameAsset).isEqualTo(1);
+        assertThat(otherAsset).isZero();
     }
 
     @Test
