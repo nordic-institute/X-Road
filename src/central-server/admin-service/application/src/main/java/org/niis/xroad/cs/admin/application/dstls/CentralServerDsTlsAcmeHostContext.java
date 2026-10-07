@@ -33,7 +33,7 @@ import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
@@ -93,9 +93,9 @@ public class CentralServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
      *     currently has on record. The shared worker filters this down to the ACME-capable entries itself.
      */
     @Override
-    public List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities() {
+    public List<ApprovedConnectorTlsCAInfo> getDsTlsCertificationAuthorities() {
         return dsTlsCertificationAuthoritiesService.findAll().stream()
-                .map(CentralServerDsTlsAcmeHostContext::toApprovedDsTlsCaInfo)
+                .map(CentralServerDsTlsAcmeHostContext::toApprovedConnectorTlsCAInfo)
                 .toList();
     }
 
@@ -105,12 +105,12 @@ public class CentralServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
      * Security Server's own adapter reads them off globalconf. The ACME-server-IP field is not part of the
      * Central Server's own DS TLS CA model, so it is left unset here.
      */
-    private static ApprovedDsTlsCaInfo toApprovedDsTlsCaInfo(DsTlsCertificationAuthority ca) {
+    private static ApprovedConnectorTlsCAInfo toApprovedConnectorTlsCAInfo(DsTlsCertificationAuthority ca) {
         X509Certificate topCaCert = CertUtils.readCertificateChain(ca.getCertificate())[0];
         List<X509Certificate> intermediateCaCerts = ca.getIntermediateCas().stream()
                 .map(intermediateCa -> CertUtils.readCertificateChain(intermediateCa.getCaCertificate().getEncoded())[0])
                 .toList();
-        return new ApprovedDsTlsCaInfo(ca.getName(), topCaCert, intermediateCaCerts, ca.getAcmeServerDirectoryUrl(), null,
+        return new ApprovedConnectorTlsCAInfo(ca.getName(), topCaCert, intermediateCaCerts, ca.getAcmeServerDirectoryUrl(), null,
                 ca.getDsTlsCertificateProfileId());
     }
 

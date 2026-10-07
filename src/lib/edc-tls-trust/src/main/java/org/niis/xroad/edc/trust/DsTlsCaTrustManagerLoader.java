@@ -28,7 +28,7 @@ package org.niis.xroad.edc.trust;
 
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -45,7 +45,7 @@ import java.util.HexFormat;
 import java.util.List;
 
 /**
- * Builds the DataSpace outbound trust manager from globalconf's {@code approvedDsTlsCa} list — the member
+ * Builds the DataSpace outbound trust manager from globalconf's {@code approvedConnectorTlsCA} list — the member
  * {@code approvedCA} list is never consulted, so trust is separated by construction. Two outcomes are
  * deliberately distinguished: globalconf answering successfully with an empty list is a <em>successful</em>
  * load whose material is an explicit {@link RejectAllTrustManager} (a valid, running, fail-closed state);
@@ -73,9 +73,9 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
     @Override
     public PeriodicMaterialReloader.Loaded<X509ExtendedTrustManager> load() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        var cas = globalConfProvider.getApprovedDsTlsCas(instanceIdentifier)
+        var cas = globalConfProvider.getApprovedConnectorTlsCAs(instanceIdentifier)
                 .stream()
-                .sorted(Comparator.comparing(ApprovedDsTlsCaInfo::getName))
+                .sorted(Comparator.comparing(ApprovedConnectorTlsCAInfo::getName))
                 .toList();
 
         if (cas.isEmpty()) {
@@ -84,7 +84,7 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
         return new PeriodicMaterialReloader.Loaded<>(buildTrustManager(cas), fingerprint(cas));
     }
 
-    private static X509ExtendedTrustManager buildTrustManager(List<ApprovedDsTlsCaInfo> cas) {
+    private static X509ExtendedTrustManager buildTrustManager(List<ApprovedConnectorTlsCAInfo> cas) {
         try {
             var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(null, null);
@@ -112,7 +112,7 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
         }
     }
 
-    private static String fingerprint(List<ApprovedDsTlsCaInfo> cas) {
+    private static String fingerprint(List<ApprovedConnectorTlsCAInfo> cas) {
         try {
             var digest = MessageDigest.getInstance(FINGERPRINT_ALGORITHM);
             for (var ca : cas) {

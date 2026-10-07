@@ -44,7 +44,7 @@ tasks.register("xjc") {
   group = "build"
 
   inputs.files(fileTree("src/main/resources") {
-    include("*.xsd")
+    include("*.xsd", "globalconf/**/*.xsd")
   })
   outputs.dir(schemaTargetDir)
 

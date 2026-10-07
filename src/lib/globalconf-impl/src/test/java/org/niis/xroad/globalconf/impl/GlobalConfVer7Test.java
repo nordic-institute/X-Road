@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.util.Collection;
 import java.util.Set;
@@ -51,9 +51,9 @@ public class GlobalConfVer7Test {
     }
 
     @Test
-    public void getApprovedDsTlsCas() {
-        Collection<ApprovedDsTlsCaInfo> eeDsTlsCas = globalConfProvider.getApprovedDsTlsCas("EE");
-        ApprovedDsTlsCaInfo dsTlsCa = eeDsTlsCas.stream().filter(ca -> ca.getName().equals("Test DS TLS CA")).findFirst().get();
+    public void getApprovedConnectorTlsCAs() {
+        Collection<ApprovedConnectorTlsCAInfo> eeDsTlsCas = globalConfProvider.getApprovedConnectorTlsCAs("EE");
+        ApprovedConnectorTlsCAInfo dsTlsCa = eeDsTlsCas.stream().filter(ca -> ca.getName().equals("Test DS TLS CA")).findFirst().get();
 
         assertEquals("Test DS TLS CA", dsTlsCa.getName());
         assertEquals(TestCertUtil.getCaCert(), dsTlsCa.getTopCaCert());
@@ -61,12 +61,12 @@ public class GlobalConfVer7Test {
         assertEquals(TestCertUtil.getTspCert(), dsTlsCa.getIntermediateCaCerts().get(0));
         assertEquals("http://testca.com/acme", dsTlsCa.getAcmeServerDirectoryUrl());
         assertEquals("192.99.88.7", dsTlsCa.getAcmeServerIpAddress());
-        assertEquals("ds-tls-profile", dsTlsCa.getDsTlsCertificateProfileId());
+        assertEquals("ds-tls-profile", dsTlsCa.getConnectorTlsCertificateProfileId());
     }
 
     @Test
-    public void getIssuerDids() {
-        Collection<String> eeIssuerDids = globalConfProvider.getIssuerDids("EE");
+    public void getCredentialIssuerDids() {
+        Collection<String> eeIssuerDids = globalConfProvider.getCredentialIssuerDids("EE");
 
         assertEquals(2, eeIssuerDids.size());
         assertEquals(Set.of("did:web:cs1.ee%3A443:issuer", "did:web:cs2.ee%3A443:issuer"), Set.copyOf(eeIssuerDids));

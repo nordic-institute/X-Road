@@ -84,8 +84,8 @@ class SharedParametersLoader {
 
     SharedParameters load() {
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), getApprovedDsTlsCas(), getIssuerDids(), getMembers(), getSecurityServers(), getGlobalGroups(),
-                getGlobalSettings());
+                getApprovedTSAs(), getApprovedConnectorTlsCAs(), getCredentialIssuerDids(), getMembers(),
+                getSecurityServers(), getGlobalGroups(), getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -171,25 +171,25 @@ class SharedParametersLoader {
                 .toList();
     }
 
-    private List<SharedParameters.ApprovedDsTlsCa> getApprovedDsTlsCas() {
+    private List<SharedParameters.ApprovedConnectorTlsCA> getApprovedConnectorTlsCAs() {
         return dsTlsCertificationAuthoritiesService.findAll().stream()
-                .map(this::toApprovedDsTlsCa)
+                .map(this::toApprovedConnectorTlsCA)
                 .toList();
     }
 
-    private SharedParameters.ApprovedDsTlsCa toApprovedDsTlsCa(DsTlsCertificationAuthority ca) {
-        var approvedDsTlsCa = new SharedParameters.ApprovedDsTlsCa();
-        approvedDsTlsCa.setName(ca.getName());
-        approvedDsTlsCa.setTopCA(new SharedParameters.CaInfo(ca.getCertificate(), List.of()));
-        approvedDsTlsCa.setIntermediateCas(toDsTlsCaInfos(ca.getIntermediateCas()));
+    private SharedParameters.ApprovedConnectorTlsCA toApprovedConnectorTlsCA(DsTlsCertificationAuthority ca) {
+        var approvedConnectorTlsCA = new SharedParameters.ApprovedConnectorTlsCA();
+        approvedConnectorTlsCA.setName(ca.getName());
+        approvedConnectorTlsCA.setTopCA(new SharedParameters.CaInfo(ca.getCertificate(), List.of()));
+        approvedConnectorTlsCA.setIntermediateCas(toDsTlsCaInfos(ca.getIntermediateCas()));
         if (isNotBlank(ca.getAcmeServerDirectoryUrl())) {
-            approvedDsTlsCa.setAcmeServer(new SharedParameters.AcmeServer(
+            approvedConnectorTlsCA.setAcmeServer(new SharedParameters.AcmeServer(
                     ca.getAcmeServerDirectoryUrl(), null, null, null, ca.getDsTlsCertificateProfileId()));
         }
-        return approvedDsTlsCa;
+        return approvedConnectorTlsCA;
     }
 
-    private List<String> getIssuerDids() {
+    private List<String> getCredentialIssuerDids() {
         return dataspaceIssuerDidService.findAll();
     }
 

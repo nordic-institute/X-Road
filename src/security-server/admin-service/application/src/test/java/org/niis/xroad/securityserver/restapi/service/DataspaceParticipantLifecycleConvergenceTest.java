@@ -122,7 +122,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
         bindingTable.wireOnto(dsParticipantRepository);
         givenServerOwnedBy(OWNER);
 

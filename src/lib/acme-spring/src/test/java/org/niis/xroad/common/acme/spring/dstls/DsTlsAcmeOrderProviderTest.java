@@ -30,7 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeOrderResult;
 
@@ -147,7 +147,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldEnrollWhenNoCertificateExistsYet() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
         when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate issued = mock(X509Certificate.class);
@@ -165,7 +165,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldRenewWhenACertificateAlreadyExists() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
         when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate currentCertificate = mock(X509Certificate.class);
@@ -183,7 +183,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldFailFastWhenTheAcmeServerReturnsNoCertificate() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
         when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
         when(dsTlsAcmeService.enroll(eq(caInfo), eq("ds.example.org"), any())).thenReturn(List.of());
@@ -195,7 +195,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldPropagateAnInvalidDistinguishedNameAsIs() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
         when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
 
@@ -205,12 +205,12 @@ class DsTlsAcmeOrderProviderTest {
         verify(dsTlsAcmeService, never()).enroll(any(), any(), any());
     }
 
-    private static ApprovedDsTlsCaInfo acmeCa(String name) {
-        return new ApprovedDsTlsCaInfo(name, null, List.of(), "http://testca:8887", null, null);
+    private static ApprovedConnectorTlsCAInfo acmeCa(String name) {
+        return new ApprovedConnectorTlsCAInfo(name, null, List.of(), "http://testca:8887", null, null);
     }
 
-    private static ApprovedDsTlsCaInfo nonAcmeCa(String name) {
-        return new ApprovedDsTlsCaInfo(name, null, List.of(), null, null, null);
+    private static ApprovedConnectorTlsCAInfo nonAcmeCa(String name) {
+        return new ApprovedConnectorTlsCAInfo(name, null, List.of(), null, null, null);
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

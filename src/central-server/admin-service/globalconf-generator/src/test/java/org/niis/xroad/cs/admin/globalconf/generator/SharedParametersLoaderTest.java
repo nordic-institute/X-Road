@@ -150,8 +150,8 @@ class SharedParametersLoaderTest {
         assertNodeAddressesWithConfigurationSigningKeys(parameters);
         assertApprovedCa(parameters);
         assertApproveTsa(parameters);
-        assertApprovedDsTlsCas(parameters);
-        assertThat(parameters.getIssuerDids()).containsExactlyInAnyOrder(ISSUER_DID_1, ISSUER_DID_2);
+        assertApprovedConnectorTlsCAs(parameters);
+        assertThat(parameters.getCredentialIssuerDids()).containsExactlyInAnyOrder(ISSUER_DID_1, ISSUER_DID_2);
         assertSecurityServers(parameters);
         assertGlobalGroups(parameters);
         assertGlobalSettings(parameters);
@@ -164,7 +164,7 @@ class SharedParametersLoaderTest {
 
         var parameters = sharedParametersLoader.load();
 
-        assertThat(parameters.getIssuerDids()).containsExactly(ISSUER_DID_1);
+        assertThat(parameters.getCredentialIssuerDids()).containsExactly(ISSUER_DID_1);
     }
 
     @Test
@@ -174,7 +174,7 @@ class SharedParametersLoaderTest {
 
         var parameters = sharedParametersLoader.load();
 
-        assertThat(parameters.getIssuerDids()).isEmpty();
+        assertThat(parameters.getCredentialIssuerDids()).isEmpty();
     }
 
     private void stubDependencies() {
@@ -200,8 +200,8 @@ class SharedParametersLoaderTest {
         when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
     }
 
-    private void assertApprovedDsTlsCas(SharedParameters parameters) {
-        assertThat(parameters.getApprovedDsTlsCas()).singleElement().satisfies(dsTlsCa -> {
+    private void assertApprovedConnectorTlsCAs(SharedParameters parameters) {
+        assertThat(parameters.getApprovedConnectorTlsCAs()).singleElement().satisfies(dsTlsCa -> {
             assertThat(dsTlsCa.getName()).isEqualTo(DS_TLS_CA_NAME);
             assertThat(dsTlsCa.getTopCA()).isNotNull();
             assertThat(dsTlsCa.getTopCA().getCert()).isEqualTo(DS_TLS_CA_CERT);
@@ -210,7 +210,7 @@ class SharedParametersLoaderTest {
                     .satisfies(caInfo -> assertThat(caInfo.getCert()).isEqualTo(DS_TLS_INTERMEDIATE_CA_CERT));
             assertThat(dsTlsCa.getAcmeServer()).isNotNull();
             assertThat(dsTlsCa.getAcmeServer().getDirectoryURL()).isEqualTo(DS_TLS_CA_ACME_SERVER_URL);
-            assertThat(dsTlsCa.getAcmeServer().getDsTlsCertificateProfileId()).isEqualTo(DS_TLS_CERTIFICATE_PROFILE_ID);
+            assertThat(dsTlsCa.getAcmeServer().getConnectorTlsCertificateProfileId()).isEqualTo(DS_TLS_CERTIFICATE_PROFILE_ID);
             assertThat(dsTlsCa.getAcmeServer().getAuthenticationCertificateProfileId()).isNull();
             assertThat(dsTlsCa.getAcmeServer().getSigningCertificateProfileId()).isNull();
         });

@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.security.cert.CertificateException;
 import java.util.List;
@@ -52,7 +52,7 @@ class DsTlsCaTrustManagerLoaderTest {
     @Test
     void anEmptyListIsASuccessfulLoadThatRejectsEverything() throws Exception {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER)).thenReturn(List.of());
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
         var loaded = new DsTlsCaTrustManagerLoader(globalConfProvider).load();
 
@@ -74,7 +74,7 @@ class DsTlsCaTrustManagerLoaderTest {
         var ca = TestCa.selfSigned("Listed DS TLS CA");
         var leaf = ca.issueLeaf("ds.example");
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER))
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of(dsTlsCaInfo("listed", ca)));
 
         var loaded = new DsTlsCaTrustManagerLoader(globalConfProvider).load();
@@ -89,7 +89,7 @@ class DsTlsCaTrustManagerLoaderTest {
         var unlistedCa = TestCa.selfSigned("Unlisted CA");
         var unlistedLeaf = unlistedCa.issueLeaf("ds.example");
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER))
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of(dsTlsCaInfo("listed", listedCa)));
 
         var loaded = new DsTlsCaTrustManagerLoader(globalConfProvider).load();
@@ -105,10 +105,10 @@ class DsTlsCaTrustManagerLoaderTest {
         var loader = new DsTlsCaTrustManagerLoader(globalConfProvider);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
 
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER)).thenReturn(List.of(dsTlsCaInfo("a", firstCa)));
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER)).thenReturn(List.of(dsTlsCaInfo("a", firstCa)));
         var firstLoad = loader.load();
 
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER)).thenReturn(List.of(dsTlsCaInfo("a", secondCa)));
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER)).thenReturn(List.of(dsTlsCaInfo("a", secondCa)));
         var secondLoad = loader.load();
 
         assertThat(firstLoad.fingerprint()).isNotEqualTo(secondLoad.fingerprint());
@@ -118,13 +118,13 @@ class DsTlsCaTrustManagerLoaderTest {
     void theFingerprintIsStableForTheSameList() throws Exception {
         var ca = TestCa.selfSigned("Stable CA");
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER)).thenReturn(List.of(dsTlsCaInfo("a", ca)));
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER)).thenReturn(List.of(dsTlsCaInfo("a", ca)));
         var loader = new DsTlsCaTrustManagerLoader(globalConfProvider);
 
         assertThat(loader.load().fingerprint()).isEqualTo(loader.load().fingerprint());
     }
 
-    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, TestCa ca) {
-        return new ApprovedDsTlsCaInfo(name, ca.certificate(), List.of(), null, null, null);
+    private static ApprovedConnectorTlsCAInfo dsTlsCaInfo(String name, TestCa ca) {
+        return new ApprovedConnectorTlsCAInfo(name, ca.certificate(), List.of(), null, null, null);
     }
 }

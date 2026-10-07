@@ -33,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -124,8 +124,8 @@ class SecurityServerDsTlsAcmeHostContextTest {
     @Test
     void getDsTlsCertificationAuthoritiesShouldReturnTheOnesApprovedInGlobalconf() {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
-        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, null);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        ApprovedConnectorTlsCAInfo caInfo = new ApprovedConnectorTlsCAInfo("Test CA", null, List.of(), "http://testca:8887", null, null);
+        when(globalConfProvider.getApprovedConnectorTlsCAs("DEV")).thenReturn(List.of(caInfo));
 
         assertThat(hostContext.getDsTlsCertificationAuthorities()).containsExactly(caInfo);
     }

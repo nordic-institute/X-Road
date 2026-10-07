@@ -36,17 +36,17 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-class SharedParametersOlderVersionsOmitDataspaceParametersTest {
+class SharedParametersOlderVersionsOmitConnectorTlsCaTest {
 
     @ParameterizedTest
     @MethodSource("olderVersionMarshallers")
-    void shouldNotLeakDataspaceParametersIntoOlderVersions(SharedParametersMarshaller marshaller) {
-        var sharedParameters = minimalSharedParametersWithIssuerDids();
+    void shouldNotLeakConnectorTlsCaElementsIntoOlderVersions(SharedParametersMarshaller marshaller) {
+        var sharedParameters = minimalSharedParametersWithConnectorTlsCa();
         var xml = new String[1];
 
         assertThatNoException().isThrownBy(() -> xml[0] = marshaller.marshall(sharedParameters));
 
-        assertThat(xml[0]).doesNotContain("dataspaceParameters", "issuer", "did");
+        assertThat(xml[0]).doesNotContain("approvedConnectorTlsCA", "connectorTlsCertificateProfileId");
     }
 
     private static Stream<SharedParametersMarshaller> olderVersionMarshallers() {
@@ -59,7 +59,7 @@ class SharedParametersOlderVersionsOmitDataspaceParametersTest {
         );
     }
 
-    private static SharedParameters minimalSharedParametersWithIssuerDids() {
+    private static SharedParameters minimalSharedParametersWithConnectorTlsCa() {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
 
@@ -70,9 +70,28 @@ class SharedParametersOlderVersionsOmitDataspaceParametersTest {
         sharedParamsBuilder.sources(List.of(configurationSource));
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
 
-        sharedParamsBuilder.issuerDids(List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer"));
+        var approvedConnectorTlsCA = new SharedParameters.ApprovedConnectorTlsCA();
+        approvedConnectorTlsCA.setName("Test connector TLS CA");
+        approvedConnectorTlsCA.setTopCA(
+                new SharedParameters.CaInfo("connector-tls-ca-cert".getBytes(StandardCharsets.UTF_8), List.of()));
+        approvedConnectorTlsCA.setAcmeServer(acmeServerWithConnectorTlsProfile());
+        sharedParamsBuilder.approvedConnectorTlsCAs(List.of(approvedConnectorTlsCA));
+
+        var approvedCA = new SharedParameters.ApprovedCA();
+        approvedCA.setName("Test CA");
+        approvedCA.setTopCA(new SharedParameters.CaInfo("ca-cert".getBytes(StandardCharsets.UTF_8), List.of()));
+        approvedCA.setIntermediateCas(List.of());
+        approvedCA.setCertificateProfileInfo("certificate-profile");
+        approvedCA.setAcmeServer(acmeServerWithConnectorTlsProfile());
+        sharedParamsBuilder.approvedCAs(List.of(approvedCA));
 
         return sharedParamsBuilder.build();
+    }
+
+    private static SharedParameters.AcmeServer acmeServerWithConnectorTlsProfile() {
+        var acmeServer = new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", "1", "2");
+        acmeServer.setConnectorTlsCertificateProfileId("connector-profile");
+        return acmeServer;
     }
 
 }

@@ -33,7 +33,7 @@ import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.dstls.DsTlsCsrBuilder;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.springframework.stereotype.Component;
@@ -108,7 +108,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
      * @return {@code true} on success (including a skipped or not-yet-due cycle), {@code false} on a real failure
      */
     private boolean runCycle(X509Certificate currentCertificate) {
-        ApprovedDsTlsCaInfo issuingCa = resolveIssuingCa(currentCertificate, hostContext.getDsTlsCertificationAuthorities());
+        ApprovedConnectorTlsCAInfo issuingCa = resolveIssuingCa(currentCertificate, hostContext.getDsTlsCertificationAuthorities());
         if (issuingCa == null) {
             log.debug("The DS TLS certificate's issuer is not a designated DS TLS CA, renewal skipped");
             return true;
@@ -135,7 +135,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
     }
 
-    private void renew(ApprovedDsTlsCaInfo caInfo, X509Certificate currentCertificate) {
+    private void renew(ApprovedConnectorTlsCAInfo caInfo, X509Certificate currentCertificate) {
         String subjectAltName = resolveSubjectAltName(currentCertificate);
         String subject = currentCertificate.getSubjectX500Principal().getName();
 
@@ -213,14 +213,15 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
      * Server's own member auth/sign renewal worker uses to find a certificate's approved CA, applied here to the
      * designated DS TLS CAs' chains instead.
      */
-    private static ApprovedDsTlsCaInfo resolveIssuingCa(X509Certificate certificate, List<ApprovedDsTlsCaInfo> designatedCas) {
+    private static ApprovedConnectorTlsCAInfo resolveIssuingCa(X509Certificate certificate,
+                                                               List<ApprovedConnectorTlsCAInfo> designatedCas) {
         return designatedCas.stream()
                 .filter(ca -> isIssuedByCa(certificate, ca))
                 .findFirst()
                 .orElse(null);
     }
 
-    private static boolean isIssuedByCa(X509Certificate certificate, ApprovedDsTlsCaInfo ca) {
+    private static boolean isIssuedByCa(X509Certificate certificate, ApprovedConnectorTlsCAInfo ca) {
         return Stream.concat(Stream.ofNullable(ca.getTopCaCert()), ca.getIntermediateCaCerts().stream())
                 .anyMatch(candidateIssuer -> isIssuedBy(certificate, candidateIssuer));
     }

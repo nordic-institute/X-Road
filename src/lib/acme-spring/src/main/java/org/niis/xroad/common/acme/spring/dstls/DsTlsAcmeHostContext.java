@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.common.acme.spring.dstls;
 
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.util.List;
 
@@ -61,7 +61,7 @@ public interface DsTlsAcmeHostContext {
      *     product-specific data source (globalconf distribution for the Security Server, a directly-read
      *     database table for the Central Server).
      */
-    List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities();
+    List<ApprovedConnectorTlsCAInfo> getDsTlsCertificationAuthorities();
 
     /**
      * @return the raw, possibly-unparseable configuration value {@link #getPublicHostname()} resolves from,

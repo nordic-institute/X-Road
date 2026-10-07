@@ -52,7 +52,7 @@ import java.time.Duration;
 
 /**
  * Replaces the default EDC {@link OkHttpClient} with one whose outbound TLS trust is entirely X-Road's own:
- * exactly the certificate authorities globalconf's {@code approvedDsTlsCa} list designates, fail-closed. This is
+ * exactly the certificate authorities globalconf's {@code approvedConnectorTlsCA} list designates, fail-closed. This is
  * the one place in the X-Road EDC distribution that builds the singleton OkHttp client every DataSpace outbound
  * connection — DID resolution, STS/OAuth2, DSP dispatch, credential and status-list fetches, and EDC's own
  * OpenBao vault client — shares, so it is also the only place trust needs replacing. The JVM default trust store

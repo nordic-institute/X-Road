@@ -386,7 +386,7 @@ public class DataspaceProvisioningService {
      */
     private Set<String> trustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
+        var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
             log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no dataspaceParameters "
                     + "in globalconf); dataspace issuance and trust are not enabled", instanceIdentifier);

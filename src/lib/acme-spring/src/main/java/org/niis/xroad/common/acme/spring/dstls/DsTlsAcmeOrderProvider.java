@@ -27,7 +27,7 @@ package org.niis.xroad.common.acme.spring.dstls;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeOrderResult;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateAcmeProvider;
@@ -58,7 +58,7 @@ class DsTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
 
     @Override
     public DsTlsAcmeAvailability getAvailability() {
-        List<String> caNames = acmeCapableCas().stream().map(ApprovedDsTlsCaInfo::getName).toList();
+        List<String> caNames = acmeCapableCas().stream().map(ApprovedConnectorTlsCAInfo::getName).toList();
         String hostname = resolvePublicHostnameOrNull();
         return new DsTlsAcmeAvailability(!caNames.isEmpty() && hostname != null, caNames, hostname);
     }
@@ -66,7 +66,7 @@ class DsTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
     @Override
     public DsTlsAcmeOrderResult order(String caName, String distinguishedName, String subjectAltName,
                                       PrivateKey privateKey, PublicKey publicKey, X509Certificate currentCertificate) {
-        ApprovedDsTlsCaInfo caInfo = acmeCapableCas().stream()
+        ApprovedConnectorTlsCAInfo caInfo = acmeCapableCas().stream()
                 .filter(ca -> ca.getName().equals(caName))
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException(DS_TLS_CA_NOT_FOUND.build(caName)));
@@ -84,7 +84,7 @@ class DsTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
         return new DsTlsAcmeOrderResult(chain, dsTlsAcmeService.getNextRenewalTime(caInfo, leaf));
     }
 
-    private List<ApprovedDsTlsCaInfo> acmeCapableCas() {
+    private List<ApprovedConnectorTlsCAInfo> acmeCapableCas() {
         return hostContext.getDsTlsCertificationAuthorities().stream()
                 .filter(ca -> isNotBlank(ca.getAcmeServerDirectoryUrl()))
                 .toList();

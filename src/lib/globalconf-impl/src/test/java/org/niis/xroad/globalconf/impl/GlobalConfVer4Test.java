@@ -36,7 +36,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -135,8 +135,8 @@ public class GlobalConfVer4Test {
     }
 
     @Test
-    public void getApprovedDsTlsCasReturnsEmptyForOlderGlobalConfVersion() {
-        Collection<ApprovedDsTlsCaInfo> eeDsTlsCas = globalConfProvider.getApprovedDsTlsCas("EE");
+    public void getApprovedConnectorTlsCAsReturnsEmptyForOlderGlobalConfVersion() {
+        Collection<ApprovedConnectorTlsCAInfo> eeDsTlsCas = globalConfProvider.getApprovedConnectorTlsCAs("EE");
         assertTrue(eeDsTlsCas.isEmpty());
     }
 }

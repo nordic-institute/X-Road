@@ -101,7 +101,7 @@ class DsTlsCompositeTrustManagerTest {
     @Test
     void aPeerChainingOnlyToAMemberApprovedCaIsRejected() throws Exception {
         var listedDsTlsCa = TestCa.selfSigned("Listed DS TLS CA");
-        // Represents a CA present in the member approvedCA list, but never entered into approvedDsTlsCa. The DS
+        // Represents a CA present in the member approvedCA list, but never entered into approvedConnectorTlsCA. The DS
         // TLS trust manager must never consult the member CA list, so this chain is rejected exactly like any
         // other unlisted CA.
         var memberApprovedCa = TestCa.selfSigned("Member Approved CA");

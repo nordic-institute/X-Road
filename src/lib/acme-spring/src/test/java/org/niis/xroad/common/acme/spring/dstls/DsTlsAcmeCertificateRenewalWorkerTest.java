@@ -42,7 +42,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 
@@ -184,7 +184,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldSkipPreservingAPriorErrorWhenNotYetDue() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME,
                 "CN=" + HOSTNAME, generateRsaKeyPair(), HOSTNAME);
 
@@ -207,7 +207,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldRenewFromTheIssuingCaCopyingSubjectAndFirstSan() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
 
         String subjectDn = "CN=" + HOSTNAME + ",OU=Dataspace,O=Example Org,C=US";
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, subjectDn,
@@ -242,7 +242,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldFallBackToThePublicHostnameWhenTheCertificateHasNoSan() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair());
 
@@ -266,10 +266,10 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldRenewFromTheMatchingCaWhenSeveralAcmeCapableCasAreDesignated() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo matchingCa = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo matchingCa = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
 
         X509Certificate otherCaCert = selfSignedCertificate(generateRsaKeyPair(), "CN=Other CA");
-        ApprovedDsTlsCaInfo otherCa = dsTlsCaInfo(otherCaCert, "Other CA", "http://otherca:8887");
+        ApprovedConnectorTlsCAInfo otherCa = dsTlsCaInfo(otherCaCert, "Other CA", "http://otherca:8887");
 
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), HOSTNAME);
@@ -294,7 +294,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldGenerateAFreshKeyPairForEveryRenewal() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), HOSTNAME);
 
@@ -319,7 +319,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldRecordAndNotifyOnRenewalFailure() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), HOSTNAME);
 
@@ -342,7 +342,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldNotSendASecondFailureNotificationWhenTheErrorIsUnchanged() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), HOSTNAME);
 
@@ -364,7 +364,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldNotifyUsingTheConfiguredHostnameSourceWhenNoSanAndHostnameResolutionFails() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair());
 
@@ -386,7 +386,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldRenewUsingTheFirstDnsSanWhenOtherSanTypesPrecedeIt() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateWithSans(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), new GeneralName[]{
                         new GeneralName(GeneralName.rfc822Name, "admin@example.org"),
@@ -413,7 +413,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldFallBackToThePublicHostnameWhenTheCertificateHasOnlyNonDnsSans() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateWithSans(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), new GeneralName[]{new GeneralName(GeneralName.iPAddress, "192.0.2.10")});
 
@@ -437,7 +437,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldSkipTheSuccessNotificationWhenTheSlotChangedDuringRenewal() throws Exception {
         KeyPair caKeyPair = generateRsaKeyPair();
         X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
         X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
                 generateRsaKeyPair(), HOSTNAME);
 
@@ -458,8 +458,8 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         verify(scheduler, never()).failure();
     }
 
-    private static ApprovedDsTlsCaInfo dsTlsCaInfo(X509Certificate caCert, String name, String acmeServerDirectoryUrl) {
-        return new ApprovedDsTlsCaInfo(name, caCert, List.of(), acmeServerDirectoryUrl, null, null);
+    private static ApprovedConnectorTlsCAInfo dsTlsCaInfo(X509Certificate caCert, String name, String acmeServerDirectoryUrl) {
+        return new ApprovedConnectorTlsCAInfo(name, caCert, List.of(), acmeServerDirectoryUrl, null, null);
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

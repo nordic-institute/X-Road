@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -95,15 +95,15 @@ class CentralServerDsTlsAcmeHostContextTest {
                 .setDsTlsCertificateProfileId("ds-tls-profile");
         when(dsTlsCertificationAuthoritiesService.findAll()).thenReturn(List.of(ca));
 
-        List<ApprovedDsTlsCaInfo> result = hostContext.getDsTlsCertificationAuthorities();
+        List<ApprovedConnectorTlsCAInfo> result = hostContext.getDsTlsCertificationAuthorities();
 
         assertThat(result).hasSize(1);
-        ApprovedDsTlsCaInfo caInfo = result.getFirst();
+        ApprovedConnectorTlsCAInfo caInfo = result.getFirst();
         assertThat(caInfo.getName()).isEqualTo("Test DS TLS CA");
         assertThat(caInfo.getTopCaCert()).isEqualTo(caCertificate);
         assertThat(caInfo.getIntermediateCaCerts()).isEmpty();
         assertThat(caInfo.getAcmeServerDirectoryUrl()).isEqualTo("http://testca:8887");
-        assertThat(caInfo.getDsTlsCertificateProfileId()).isEqualTo("ds-tls-profile");
+        assertThat(caInfo.getConnectorTlsCertificateProfileId()).isEqualTo("ds-tls-profile");
     }
 
     @Test

@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.dstls;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -89,8 +89,8 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
      *     {@code CertificateAuthorityService} and the DS TLS trust manager already read.
      */
     @Override
-    public List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities() {
-        return List.copyOf(globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier()));
+    public List<ApprovedConnectorTlsCAInfo> getDsTlsCertificationAuthorities() {
+        return List.copyOf(globalConfProvider.getApprovedConnectorTlsCAs(globalConfProvider.getInstanceIdentifier()));
     }
 
     @Override

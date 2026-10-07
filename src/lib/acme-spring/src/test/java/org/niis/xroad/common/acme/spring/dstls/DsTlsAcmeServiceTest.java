@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.acme.AcmeAccountContext;
 import org.niis.xroad.common.acme.AcmeClient;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -69,7 +69,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void enrollShouldOrderUnderTheConfiguredAliasWithNoContactsWhenUnconfigured() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         byte[] certRequest = {1, 2, 3};
         X509Certificate cert = mock(X509Certificate.class);
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
@@ -91,7 +91,8 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void enrollShouldCarryTheConfiguredDsTlsCertificateProfileIdThrough() {
-        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, "ds-tls-profile-id");
+        ApprovedConnectorTlsCAInfo caInfo = new ApprovedConnectorTlsCAInfo("Test CA", null, List.of(), "http://testca:8887",
+                null, "ds-tls-profile-id");
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
 
@@ -104,7 +105,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void enrollShouldPassTheConfiguredAccountContacts() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getAccountContacts()).thenReturn(List.of("dstls@example.org"));
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
@@ -118,7 +119,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void renewShouldReferenceTheCurrentCertificateUnderTheConfiguredAlias() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate currentCertificate = mock(X509Certificate.class);
         byte[] certRequest = {4, 5, 6};
         X509Certificate newCert = mock(X509Certificate.class);
@@ -134,7 +135,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void renewShouldPassTheConfiguredAccountContacts() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getAccountContacts()).thenReturn(List.of("dstls@example.org"));
         when(acmeClient.renew(any(AcmeAccountContext.class), any(), any(), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
@@ -148,7 +149,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void getNextRenewalTimeShouldDelegateToTheSharedEngine() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate certificate = mock(X509Certificate.class);
         Instant expected = Instant.now().plusSeconds(3600);
         when(acmeClient.getNextRenewalTime(any(AcmeAccountContext.class), any())).thenReturn(expected);
@@ -162,7 +163,7 @@ class DsTlsAcmeServiceTest {
         assertThat(accountCaptor.getValue().caName()).isEqualTo("Test CA");
     }
 
-    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
-        return new ApprovedDsTlsCaInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
+    private static ApprovedConnectorTlsCAInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
+        return new ApprovedConnectorTlsCAInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
     }
 }

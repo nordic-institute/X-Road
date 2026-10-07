@@ -31,10 +31,10 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
- * Value object containing approved DataSpace TLS CA information.
+ * Value object containing approved connector TLS CA information.
  */
 @Data
-public class ApprovedDsTlsCaInfo {
+public class ApprovedConnectorTlsCAInfo {
 
     private final String name;
 
@@ -43,5 +43,5 @@ public class ApprovedDsTlsCaInfo {
 
     private final String acmeServerDirectoryUrl;
     private final String acmeServerIpAddress;
-    private final String dsTlsCertificateProfileId;
+    private final String connectorTlsCertificateProfileId;
 }

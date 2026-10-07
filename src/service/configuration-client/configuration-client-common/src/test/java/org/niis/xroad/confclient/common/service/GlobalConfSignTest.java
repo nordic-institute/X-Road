@@ -36,7 +36,8 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.globalconf.generator.ConfigurationPart;
 import org.niis.xroad.cs.admin.globalconf.generator.DirectoryContentBuilder;
@@ -48,10 +49,8 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.PrivateKey;
 import java.security.Signature;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -66,20 +65,18 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_S
 
 
 class GlobalConfSignTest {
-    private static final String CONF_ROOT = "src/test/resources/nginx-container-files/var/lib/xroad/public";
-    public static final String V6_CONF_PATH = "/V6/20251110170000548026000";
-    public static final String INTERNAL_KEY_ID = "internal";
-    public static final Instant EXPIRE_DATE = Instant.parse("2035-11-11T03:07:40Z");
+    private static final String INTERNAL_KEY_ID = "internal";
+    private static final String VERIFICATION_CERTIFICATE_HASH =
+            "Verification-certificate-hash: pc2fwlS1MpbN2rxno4qAi27zvPTNIWxvC5xeHRLIQsPj5RR2J7TuY+6VAH0rmbDecjtia9AjYDzGIj3i6K9T1w==";
 
+    @Disabled("Run to re-sign the globalconf test fixtures after changing configuration files")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("org.niis.xroad.confclient.common.service.GlobalConfFixtureSet#all")
+    void signInternalConf(GlobalConfFixtureSet fixtureSet) throws Exception {
+        var signedDirectory = getSignedDirectory(internalDirectoryContent(fixtureSet), INTERNAL_KEY_ID);
 
-    @Disabled("Run to re-sign the globalconf test fixture after changing configuration files")
-    @Test
-    void signInternalConf() throws Exception {
-        var signedDirectory = getSignedDirectory(internalDirectoryContent(), INTERNAL_KEY_ID);
-
-        assertThat(signedDirectory).contains(
-                "Verification-certificate-hash: pc2fwlS1MpbN2rxno4qAi27zvPTNIWxvC5xeHRLIQsPj5RR2J7TuY+6VAH0rmbDecjtia9AjYDzGIj3i6K9T1w==");
-        Files.writeString(Path.of(CONF_ROOT, "V6/internalconf"), signedDirectory);
+        assertThat(signedDirectory).contains(VERIFICATION_CERTIFICATE_HASH);
+        Files.writeString(fixtureSet.signedIndexPath(), signedDirectory);
     }
 
     private String getSignedDirectory(DirectoryContentHolder directoryContent, String keyId) throws Exception {
@@ -91,19 +88,20 @@ class GlobalConfSignTest {
                 .createSignedDirectory(directoryContent, INTERNAL_KEY_ID, certBytes);
     }
 
-
-    DirectoryContentHolder internalDirectoryContent() throws Exception {
-        var builder = new DirectoryContentBuilder(SHA512, EXPIRE_DATE, V6_CONF_PATH, "DEV", 6);
-        builder.contentPart(configurationPart(V6_CONF_PATH, FILE_NAME_SHARED_PARAMETERS, CONTENT_ID_SHARED_PARAMETERS));
-        builder.contentPart(configurationPart(V6_CONF_PATH, FILE_NAME_PRIVATE_PARAMETERS, CONTENT_ID_PRIVATE_PARAMETERS));
+    DirectoryContentHolder internalDirectoryContent(GlobalConfFixtureSet fixtureSet) throws Exception {
+        var builder = new DirectoryContentBuilder(SHA512, fixtureSet.expireDate(), fixtureSet.confPath(),
+                fixtureSet.instanceIdentifier(), fixtureSet.version());
+        builder.contentPart(configurationPart(fixtureSet, FILE_NAME_SHARED_PARAMETERS, CONTENT_ID_SHARED_PARAMETERS));
+        builder.contentPart(configurationPart(fixtureSet, FILE_NAME_PRIVATE_PARAMETERS, CONTENT_ID_PRIVATE_PARAMETERS));
         return builder.build();
     }
 
-    private static ConfigurationPart configurationPart(String path, String filename, String contentId) throws IOException {
+    private static ConfigurationPart configurationPart(GlobalConfFixtureSet fixtureSet, String filename, String contentId)
+            throws IOException {
         return ConfigurationPart.builder()
                 .filename(filename)
                 .contentIdentifier(contentId)
-                .data(Files.readAllBytes(Path.of(CONF_ROOT, path, filename)))
+                .data(Files.readAllBytes(fixtureSet.partsDirectory().resolve(filename)))
                 .build();
     }
 

@@ -36,17 +36,17 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-class SharedParametersOlderVersionsOmitDsTlsCaTest {
+class SharedParametersOlderVersionsOmitCredentialIssuerTest {
 
     @ParameterizedTest
     @MethodSource("olderVersionMarshallers")
-    void shouldNotLeakApprovedDsTlsCaIntoOlderVersions(SharedParametersMarshaller marshaller) {
-        var sharedParameters = minimalSharedParametersWithDsTlsCa();
+    void shouldNotLeakCredentialIssuerIntoOlderVersions(SharedParametersMarshaller marshaller) {
+        var sharedParameters = minimalSharedParametersWithCredentialIssuerDids();
         var xml = new String[1];
 
         assertThatNoException().isThrownBy(() -> xml[0] = marshaller.marshall(sharedParameters));
 
-        assertThat(xml[0]).doesNotContain("approvedDsTlsCa");
+        assertThat(xml[0]).doesNotContain("credentialIssuer", "did");
     }
 
     private static Stream<SharedParametersMarshaller> olderVersionMarshallers() {
@@ -59,7 +59,7 @@ class SharedParametersOlderVersionsOmitDsTlsCaTest {
         );
     }
 
-    private static SharedParameters minimalSharedParametersWithDsTlsCa() {
+    private static SharedParameters minimalSharedParametersWithCredentialIssuerDids() {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
 
@@ -70,10 +70,7 @@ class SharedParametersOlderVersionsOmitDsTlsCaTest {
         sharedParamsBuilder.sources(List.of(configurationSource));
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
 
-        var approvedDsTlsCa = new SharedParameters.ApprovedDsTlsCa();
-        approvedDsTlsCa.setName("Test DS TLS CA");
-        approvedDsTlsCa.setTopCA(new SharedParameters.CaInfo("ds-tls-ca-cert".getBytes(StandardCharsets.UTF_8), List.of()));
-        sharedParamsBuilder.approvedDsTlsCas(List.of(approvedDsTlsCa));
+        sharedParamsBuilder.credentialIssuerDids(List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer"));
 
         return sharedParamsBuilder.build();
     }
