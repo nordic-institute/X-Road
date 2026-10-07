@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.AcmeAccountContext;
@@ -41,7 +41,7 @@ import java.util.List;
  * Thin DS TLS-specific wrapper around the shared {@link AcmeClient} engine (order, renew, ARI-aware renewal
  * timing) — no signer, no member id, no {@code KeyUsageInfo}.
  * <p>
- * Every call is made under a fixed, non-member ACME account alias supplied by {@link DsTlsAcmeHostContext},
+ * Every call is made under a fixed, non-member ACME account alias supplied by {@link ConnectorTlsAcmeHostContext},
  * reusing the existing per-CA/per-member EAB configuration map with a synthetic member slot rather than
  * extending its schema. That alias can never collide with a real encoded {@code ClientId}, because every
  * encoded {@code ClientId} contains a {@code :} separator and this alias does not.
@@ -53,10 +53,10 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-class DsTlsAcmeService {
+class ConnectorTlsAcmeService {
 
     private final AcmeClient acmeClient;
-    private final DsTlsAcmeHostContext hostContext;
+    private final ConnectorTlsAcmeHostContext hostContext;
 
     /**
      * Orders a brand-new DS TLS certificate: no certificate exists yet for this CSR's key.

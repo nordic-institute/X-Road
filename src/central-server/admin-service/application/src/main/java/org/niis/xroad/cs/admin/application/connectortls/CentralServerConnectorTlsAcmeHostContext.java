@@ -23,13 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.application.dstls;
+package org.niis.xroad.cs.admin.application.connectortls;
 
 import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
+import org.niis.xroad.common.acme.spring.connectortls.ConnectorTlsAcmeHostContext;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
@@ -42,21 +42,21 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- * The Central Server's own {@link DsTlsAcmeHostContext}: the public hostname comes from the co-located Issuer
+ * The Central Server's own {@link ConnectorTlsAcmeHostContext}: the public hostname comes from the co-located Issuer
  * Service's own configured host, the ACME account/EAB alias is the same fixed literal the Security Server uses,
  * and the designated ACME-capable CA is read directly from Central Server's own CA-management database rather
  * than from globalconf distribution. Whether the renewal scheduler runs at all is a separate, bean-wiring-time
- * decision made by {@link DsTlsAcmeCertificateRenewalSchedulingConfig}, not this class.
+ * decision made by {@link ConnectorTlsAcmeCertificateRenewalSchedulingConfig}, not this class.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CentralServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
+public class CentralServerConnectorTlsAcmeHostContext implements ConnectorTlsAcmeHostContext {
 
     static final String DS_TLS_ACME_ALIAS = "dataspace-tls";
 
     private final DataspaceIssuerProperties dataspaceIssuerProperties;
-    private final DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
+    private final DsTlsCertificationAuthoritiesService connectorTlsCertificationAuthoritiesService;
 
     /**
      * @return the co-located Issuer Service's configured public hostname ({@code xroad.dataspace.issuer.host}),
@@ -93,9 +93,9 @@ public class CentralServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
      *     currently has on record. The shared worker filters this down to the ACME-capable entries itself.
      */
     @Override
-    public List<ApprovedConnectorTlsCAInfo> getDsTlsCertificationAuthorities() {
-        return dsTlsCertificationAuthoritiesService.findAll().stream()
-                .map(CentralServerDsTlsAcmeHostContext::toApprovedConnectorTlsCAInfo)
+    public List<ApprovedConnectorTlsCAInfo> getConnectorTlsCertificationAuthorities() {
+        return connectorTlsCertificationAuthoritiesService.findAll().stream()
+                .map(CentralServerConnectorTlsAcmeHostContext::toApprovedConnectorTlsCAInfo)
                 .toList();
     }
 

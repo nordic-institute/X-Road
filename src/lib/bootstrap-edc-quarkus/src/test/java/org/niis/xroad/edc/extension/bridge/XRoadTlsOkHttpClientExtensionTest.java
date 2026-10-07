@@ -110,7 +110,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         var acceptedServer = startHttpsServer(issueLeaf(listedCa, "accepted"));
         var rejectedServer = startHttpsServer(issueLeaf(unlistedCa, "rejected"));
 
-        stubContext(List.of(dsTlsCaInfo("listed", listedCa.certificate())));
+        stubContext(List.of(connectorTlsCaInfo("listed", listedCa.certificate())));
         var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
 
         assertThat(get(client, acceptedServer)).isEqualTo(200);
@@ -141,7 +141,7 @@ class XRoadTlsOkHttpClientExtensionTest {
     void theReloadIntervalSettingKeyAndDefaultAreQueriedFromContext() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
-        stubContext(List.of(dsTlsCaInfo("any", ca.certificate())));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
 
         new XRoadTlsOkHttpClientExtension().okHttpClient(context);
 
@@ -152,7 +152,7 @@ class XRoadTlsOkHttpClientExtensionTest {
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
-        stubContext(List.of(dsTlsCaInfo("any", ca.certificate())));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
         var extension = new XRoadTlsOkHttpClientExtension();
         extension.okHttpClient(context);
 
@@ -183,7 +183,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         }
     }
 
-    private static ApprovedConnectorTlsCAInfo dsTlsCaInfo(String name, X509Certificate certificate) {
+    private static ApprovedConnectorTlsCAInfo connectorTlsCaInfo(String name, X509Certificate certificate) {
         return new ApprovedConnectorTlsCAInfo(name, certificate, List.of(), null, null, null);
     }
 

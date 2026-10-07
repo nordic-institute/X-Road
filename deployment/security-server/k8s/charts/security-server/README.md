@@ -120,7 +120,7 @@ separate namespaces. Only the `.Release.Name`-prefixed resources
 `ds-control-plane` no longer needs any per-deployment trusted-issuer
 setting. The issuer trust anchor — the complete set of Issuer DIDs a
 Central Server (cluster) publishes — arrives through signed globalconf
-(`dataspaceParameters`, shared-parameters v7) and is loaded by
+(`credentialIssuer`, shared-parameters v7) and is loaded by
 `XRoadIssuerTrustAnchorExtension` at runtime; the chart has no
 corresponding value or env var.
 

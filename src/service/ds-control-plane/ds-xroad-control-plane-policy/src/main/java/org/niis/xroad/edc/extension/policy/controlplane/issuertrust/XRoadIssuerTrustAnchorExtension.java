@@ -147,7 +147,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
-            monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no dataspaceParameters in globalconf); "
+            monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no credentialIssuer in globalconf); "
                     + "dataspace issuance and trust are not enabled").formatted(EXTENSION_NAME, instanceIdentifier));
         }
         return dids;

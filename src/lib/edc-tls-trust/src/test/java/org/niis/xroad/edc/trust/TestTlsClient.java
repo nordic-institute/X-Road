@@ -36,7 +36,7 @@ import java.security.SecureRandom;
 /**
  * Drives a real TLS handshake against {@link TestTlsServer} with a given trust manager under test, connecting by
  * an explicit host string so the socket-based {@code checkServerTrusted} overload sees a real, client-chosen
- * peer host and port — precisely what {@link DsTlsCompositeTrustManager}'s vault-endpoint routing keys off.
+ * peer host and port — precisely what {@link ConnectorTlsCompositeTrustManager}'s vault-endpoint routing keys off.
  */
 final class TestTlsClient {
 

@@ -136,7 +136,7 @@ public class GlobalConfVer4Test {
 
     @Test
     public void getApprovedConnectorTlsCAsReturnsEmptyForOlderGlobalConfVersion() {
-        Collection<ApprovedConnectorTlsCAInfo> eeDsTlsCas = globalConfProvider.getApprovedConnectorTlsCAs("EE");
-        assertTrue(eeDsTlsCas.isEmpty());
+        Collection<ApprovedConnectorTlsCAInfo> eeConnectorTlsCas = globalConfProvider.getApprovedConnectorTlsCAs("EE");
+        assertTrue(eeConnectorTlsCas.isEmpty());
     }
 }

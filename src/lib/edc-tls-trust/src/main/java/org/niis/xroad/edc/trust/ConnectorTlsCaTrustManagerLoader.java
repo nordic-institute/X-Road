@@ -53,7 +53,7 @@ import java.util.List;
  * reload seam keeps serving the last-known-good trust manager and retries — this loader never decides on its
  * own to fail closed on a transient read failure the way it does for a confirmed-empty list.
  */
-public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader.MaterialLoader<X509ExtendedTrustManager> {
+public final class ConnectorTlsCaTrustManagerLoader implements PeriodicMaterialReloader.MaterialLoader<X509ExtendedTrustManager> {
 
     /**
      * Shared by every successful load whose result is reject-all, whether the list came back genuinely empty or
@@ -66,7 +66,7 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
 
     private final GlobalConfProvider globalConfProvider;
 
-    public DsTlsCaTrustManagerLoader(GlobalConfProvider globalConfProvider) {
+    public ConnectorTlsCaTrustManagerLoader(GlobalConfProvider globalConfProvider) {
         this.globalConfProvider = globalConfProvider;
     }
 

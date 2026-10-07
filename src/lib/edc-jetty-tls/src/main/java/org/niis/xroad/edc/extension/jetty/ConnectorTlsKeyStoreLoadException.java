@@ -31,13 +31,13 @@ package org.niis.xroad.edc.extension.jetty;
  * carrying a message that already tells the operator what to do (provision the vault slot, wait for the
  * certificate, or check vault connectivity) rather than leaving that to the caller.
  */
-public class DsTlsKeyStoreLoadException extends RuntimeException {
+public class ConnectorTlsKeyStoreLoadException extends RuntimeException {
 
-    public DsTlsKeyStoreLoadException(String message) {
+    public ConnectorTlsKeyStoreLoadException(String message) {
         super(message);
     }
 
-    public DsTlsKeyStoreLoadException(String message, Throwable cause) {
+    public ConnectorTlsKeyStoreLoadException(String message, Throwable cause) {
         super(message, cause);
     }
 }

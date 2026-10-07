@@ -37,7 +37,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * A Central Server node's dataspace credential Issuer DID (globalconf {@code dataspaceParameters/issuerDid}
+ * A Central Server node's dataspace credential Issuer DID (globalconf {@code credentialIssuer/did}
  * entry). Under a high-availability Central Server, each node registers its own; the full set is the
  * distributed dataspace issuer trust anchor.
  */

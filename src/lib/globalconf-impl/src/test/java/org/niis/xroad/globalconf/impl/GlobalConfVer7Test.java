@@ -52,16 +52,17 @@ public class GlobalConfVer7Test {
 
     @Test
     public void getApprovedConnectorTlsCAs() {
-        Collection<ApprovedConnectorTlsCAInfo> eeDsTlsCas = globalConfProvider.getApprovedConnectorTlsCAs("EE");
-        ApprovedConnectorTlsCAInfo dsTlsCa = eeDsTlsCas.stream().filter(ca -> ca.getName().equals("Test DS TLS CA")).findFirst().get();
+        Collection<ApprovedConnectorTlsCAInfo> eeConnectorTlsCas = globalConfProvider.getApprovedConnectorTlsCAs("EE");
+        ApprovedConnectorTlsCAInfo connectorTlsCa = eeConnectorTlsCas.stream()
+                .filter(ca -> ca.getName().equals("Test DS TLS CA")).findFirst().get();
 
-        assertEquals("Test DS TLS CA", dsTlsCa.getName());
-        assertEquals(TestCertUtil.getCaCert(), dsTlsCa.getTopCaCert());
-        assertEquals(1, dsTlsCa.getIntermediateCaCerts().size());
-        assertEquals(TestCertUtil.getTspCert(), dsTlsCa.getIntermediateCaCerts().get(0));
-        assertEquals("http://testca.com/acme", dsTlsCa.getAcmeServerDirectoryUrl());
-        assertEquals("192.99.88.7", dsTlsCa.getAcmeServerIpAddress());
-        assertEquals("ds-tls-profile", dsTlsCa.getConnectorTlsCertificateProfileId());
+        assertEquals("Test DS TLS CA", connectorTlsCa.getName());
+        assertEquals(TestCertUtil.getCaCert(), connectorTlsCa.getTopCaCert());
+        assertEquals(1, connectorTlsCa.getIntermediateCaCerts().size());
+        assertEquals(TestCertUtil.getTspCert(), connectorTlsCa.getIntermediateCaCerts().getFirst());
+        assertEquals("http://testca.com/acme", connectorTlsCa.getAcmeServerDirectoryUrl());
+        assertEquals("192.99.88.7", connectorTlsCa.getAcmeServerIpAddress());
+        assertEquals("ds-tls-profile", connectorTlsCa.getConnectorTlsCertificateProfileId());
     }
 
     @Test

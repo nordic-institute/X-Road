@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
 import ee.ria.xroad.common.crypto.RsaKeyManager;
 
@@ -58,10 +58,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * <p>
  * Entirely parallel to the member auth/sign {@code AcmeCertificateRenewalWorker}: signer-free, in-process key
  * generation, no {@code KeyUsageInfo}, no member id. Runs on its own {@link CertificateRenewalScheduler}
- * instance, wired by {@link DsTlsAcmeCertificateRenewalSchedulingConfig}.
+ * instance, wired by {@link ConnectorTlsAcmeCertificateRenewalSchedulingConfig}.
  * <p>
  * Each cycle: read the stored certificate (none stored — skip, nothing to renew); resolve its issuing CA among
- * {@link DsTlsAcmeHostContext#getDsTlsCertificationAuthorities()} by matching the certificate against each
+ * {@link ConnectorTlsAcmeHostContext#getConnectorTlsCertificationAuthorities()} by matching the certificate against each
  * candidate's chain (no match, or a match with no ACME server — skip); when due (ARI-aware, unchanged), renew
  * from that CA with a fresh key pair, the certificate's own subject and its first DNS Subject Alternative Name
  * (falling back to the product's public hostname when the certificate carries none). A skip never writes
@@ -71,15 +71,15 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
+public class ConnectorTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private static final int DS_TLS_KEY_LENGTH = 2048;
     private static final int GENERAL_NAME_DNS = 2;
 
     private final GlobalConfProvider globalConfProvider;
-    private final DsTlsCertificateService dsTlsCertificateService;
-    private final DsTlsAcmeService dsTlsAcmeService;
-    private final DsTlsAcmeHostContext hostContext;
+    private final DsTlsCertificateService connectorTlsCertificateService;
+    private final ConnectorTlsAcmeService connectorTlsAcmeService;
+    private final ConnectorTlsAcmeHostContext hostContext;
 
     @Override
     public void execute(CertificateRenewalScheduler scheduler) {
@@ -93,7 +93,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             return;
         }
 
-        X509Certificate currentCertificate = dsTlsCertificateService.getStatus().certificate();
+        X509Certificate currentCertificate = connectorTlsCertificateService.getStatus().certificate();
         if (currentCertificate == null) {
             log.debug("No DS TLS certificate is stored, DS TLS ACME renewal skipped");
             finishCycle(scheduler, false);
@@ -108,7 +108,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
      * @return {@code true} on success (including a skipped or not-yet-due cycle), {@code false} on a real failure
      */
     private boolean runCycle(X509Certificate currentCertificate) {
-        ApprovedConnectorTlsCAInfo issuingCa = resolveIssuingCa(currentCertificate, hostContext.getDsTlsCertificationAuthorities());
+        ApprovedConnectorTlsCAInfo issuingCa = resolveIssuingCa(currentCertificate, hostContext.getConnectorTlsCertificationAuthorities());
         if (issuingCa == null) {
             log.debug("The DS TLS certificate's issuer is not a designated DS TLS CA, renewal skipped");
             return true;
@@ -119,7 +119,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
 
         try {
-            if (Instant.now().isBefore(dsTlsAcmeService.getNextRenewalTime(issuingCa, currentCertificate))) {
+            if (Instant.now().isBefore(connectorTlsAcmeService.getNextRenewalTime(issuingCa, currentCertificate))) {
                 log.debug("DS TLS certificate is not yet due for renewal");
                 return true;
             }
@@ -128,7 +128,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         } catch (Exception ex) {
             log.error("DS TLS ACME renewal failed", ex);
             String error = describeError(ex);
-            if (dsTlsCertificateService.recordAcmeOutcome(error)) {
+            if (connectorTlsCertificateService.recordAcmeOutcome(error)) {
                 hostContext.notifyEnrollmentFailure(identifierForNotification(currentCertificate), error);
             }
             return false;
@@ -142,14 +142,14 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         KeyPair keyPair = new RsaKeyManager(DS_TLS_KEY_LENGTH).generateKeyPair();
         byte[] certRequest = DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), subject, subjectAltName);
 
-        List<X509Certificate> chain = dsTlsAcmeService.renew(caInfo, subjectAltName, currentCertificate, certRequest);
+        List<X509Certificate> chain = connectorTlsAcmeService.renew(caInfo, subjectAltName, currentCertificate, certRequest);
         if (chain == null || chain.isEmpty()) {
             throw new IllegalStateException("The ACME server returned no certificate");
         }
 
         X509Certificate[] chainArray = chain.toArray(X509Certificate[]::new);
-        Instant nextRenewalTime = dsTlsAcmeService.getNextRenewalTime(caInfo, chainArray[0]);
-        boolean stored = dsTlsCertificateService.storeRenewedCertificate(currentCertificate, keyPair.getPrivate(), chainArray,
+        Instant nextRenewalTime = connectorTlsAcmeService.getNextRenewalTime(caInfo, chainArray[0]);
+        boolean stored = connectorTlsCertificateService.storeRenewedCertificate(currentCertificate, keyPair.getPrivate(), chainArray,
                 nextRenewalTime);
         if (!stored) {
             log.info("The DS TLS certificate was replaced while renewing it via ACME from '{}', the renewed certificate is discarded",

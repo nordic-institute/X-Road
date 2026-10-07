@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.securityserver.restapi.connectortls;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
-import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeCertificateRenewalWorker;
+import org.niis.xroad.common.acme.spring.connectortls.ConnectorTlsAcmeCertificateRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -51,34 +51,35 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * This deliberately stays a product-local class rather than moving into {@code lib/acme-spring} alongside the
  * worker/service it wires: the {@link Conditional} evaluates before any bean exists (see
  * {@link SpringConditionConfig}'s own javadoc), so the gating decision must come from a throwaway config read,
- * never from a live {@code DsTlsAcmeHostContext} bean — forcing that bean to instantiate early just to answer
+ * never from a live {@code ConnectorTlsAcmeHostContext} bean — forcing that bean to instantiate early just to answer
  * "should I schedule" would fight Spring's own bean-creation order for no benefit. Each product that wires this
  * scheduler owns an equivalent class reading its own config keys, matching this one's shape.
  * <p>
  * Like any {@link Conditional} bean, this is evaluated once at context startup: enabling DataSpace while
  * admin-service is already running does not start this scheduler until the process restarts, same restart
  * requirement {@code AcmeCertificateRenewalSchedulingConfig}'s own {@code acme-renewal-active} flag already has.
- * {@link DsTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick regardless,
+ * {@link ConnectorTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick regardless,
  * so a blank hostname is still handled as "skip this cycle" rather than relying solely on this gate.
  */
 @Slf4j
 @Configuration
-public class DsTlsAcmeCertificateRenewalSchedulingConfig {
+public class ConnectorTlsAcmeCertificateRenewalSchedulingConfig {
 
     @Bean
     @Profile("!test")
     @Order(Ordered.LOWEST_PRECEDENCE - 98)
-    @Conditional(IsDsTlsAcmeSchedulingActive.class)
-    CertificateRenewalScheduler dsTlsAcmeCertificateRenewalScheduler(DsTlsAcmeCertificateRenewalWorker dsTlsAcmeCertificateRenewalWorker,
-                                                                     AcmeSchedulingProperties acmeConfig) {
-        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(dsTlsAcmeCertificateRenewalWorker, acmeConfig,
+    @Conditional(IsConnectorTlsAcmeSchedulingActive.class)
+    CertificateRenewalScheduler connectorTlsAcmeCertificateRenewalScheduler(
+            ConnectorTlsAcmeCertificateRenewalWorker connectorTlsAcmeCertificateRenewalWorker,
+            AcmeSchedulingProperties acmeConfig) {
+        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(connectorTlsAcmeCertificateRenewalWorker, acmeConfig,
                 "acme-renewal-ds-tls-");
         scheduler.init();
         return scheduler;
     }
 
     @Slf4j
-    public static class IsDsTlsAcmeSchedulingActive implements Condition {
+    public static class IsConnectorTlsAcmeSchedulingActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());

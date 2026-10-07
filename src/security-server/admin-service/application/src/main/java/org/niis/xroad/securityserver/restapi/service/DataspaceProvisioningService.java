@@ -382,13 +382,13 @@ public class DataspaceProvisioningService {
     /**
      * The dataspace issuer trust anchor: every Issuer DID published by any Central Server node of this
      * X-Road instance's globalconf. Empty when the instance is not dataspace-enabled (no
-     * {@code dataspaceParameters} in the distributed shared parameters).
+     * {@code credentialIssuer} in the distributed shared parameters).
      */
     private Set<String> trustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
-            log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no dataspaceParameters "
+            log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no credentialIssuer "
                     + "in globalconf); dataspace issuance and trust are not enabled", instanceIdentifier);
         }
         return dids;

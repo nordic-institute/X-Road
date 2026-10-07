@@ -102,11 +102,11 @@ services:
         ('xroad.proxy-ui-api.dataspace.tls-certificate-contacts', 'dstls-ca-contact@example.org', now(), now()),
         ('xroad.proxy-ui-api.dataspace.tls-certificate-notification-contacts', 'dstls-notify@example.org', now(), now()),
 
-        -- the "dataspace-tls" member entry is the fixed, non-member ACME account alias DsTlsAcmeService uses for
-        -- every DS TLS enrollment/renewal (see DsTlsAcmeService.DS_TLS_ACME_ALIAS) - keyid_4 in
+        -- the "dataspace-tls" member entry is the fixed, non-member ACME account alias ConnectorTlsAcmeService uses for
+        -- every DS TLS enrollment/renewal (see SecurityServerConnectorTlsAcmeHostContext.DS_TLS_ACME_ALIAS) - keyid_4 in
         -- development/acme2certifier/kid_profiles.json carries the matching EAB credential on the test CA side.
         -- EAB credentials are looked up by the CA's own globalconf <name>, so the "dataspace-tls" entry has to be
-        -- duplicated under "Test DS TLS CA" (the V7 fixture's <approvedDsTlsCa> name) in addition to "Test CA" -
+        -- duplicated under "Test DS TLS CA" (the V7 fixture's <approvedConnectorTlsCA> name) in addition to "Test CA" -
         -- both point at the same acme2certifier backend and the same keyid_4 credential, just under the two
         -- distinct CA names each side of globalconf actually uses.
         ('xroad.acme', '{"eab-credentials":{"certificate-authorities":{"Test CA":{"mac-key-base64-encoded":true,"members":{"DEV:COM:1234":{"auth-kid":"keyid_2","auth-mac-key":"addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625","sign-kid":"keyid_3","sign-mac-key":"96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde"},"dataspace-tls":{"kid":"keyid_4","mac-key":"d1e4f9c6a8b53d2e7f0c1a4b8d3e6f9c2a5b8d1e4f7a0c3b6d9e2f5a8b1c4d7e"}}},"Test DS TLS CA":{"mac-key-base64-encoded":true,"members":{"dataspace-tls":{"kid":"keyid_4","mac-key":"d1e4f9c6a8b53d2e7f0c1a4b8d3e6f9c2a5b8d1e4f7a0c3b6d9e2f5a8b1c4d7e"}}}}}}', now(), now()),

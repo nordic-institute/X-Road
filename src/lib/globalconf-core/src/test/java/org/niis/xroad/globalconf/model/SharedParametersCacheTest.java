@@ -46,16 +46,16 @@ class SharedParametersCacheTest {
         approvedCa.setTopCA(new SharedParameters.CaInfo(memberCaCert.getEncoded(), List.of()));
         approvedCa.setIntermediateCas(List.of());
 
-        var dsTlsCa = new SharedParameters.ApprovedConnectorTlsCA();
-        dsTlsCa.setName("DS TLS CA");
-        dsTlsCa.setTopCA(new SharedParameters.CaInfo("not a real certificate".getBytes(UTF_8), List.of()));
-        dsTlsCa.setIntermediateCas(List.of(
+        var connectorTlsCa = new SharedParameters.ApprovedConnectorTlsCA();
+        connectorTlsCa.setName("DS TLS CA");
+        connectorTlsCa.setTopCA(new SharedParameters.CaInfo("not a real certificate".getBytes(UTF_8), List.of()));
+        connectorTlsCa.setIntermediateCas(List.of(
                 new SharedParameters.CaInfo("not a real intermediate certificate either".getBytes(UTF_8), List.of())));
 
         var sharedParameters = SharedParameters.builder()
                 .instanceIdentifier("CS")
                 .approvedCAs(List.of(approvedCa))
-                .approvedConnectorTlsCAs(List.of(dsTlsCa))
+                .approvedConnectorTlsCAs(List.of(connectorTlsCa))
                 .securityServers(List.of())
                 .build();
 
