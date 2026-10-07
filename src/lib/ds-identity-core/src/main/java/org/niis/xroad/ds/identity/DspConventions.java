@@ -66,12 +66,6 @@ public class DspConventions {
     public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
 
     /**
-     * Suffix appended to the host participant context id for the legacy management companion
-     * context. Applies to context ids only; the DID form is {@link ParticipantIdentifierScheme#managementDid}.
-     * Interim: dies with the SYSTEM-context migration.
-     */
-    public static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
-    /**
      * DID-document service type under which a participant's DCP credential service is published.
      */
     public static final String CREDENTIAL_SERVICE_TYPE = "CredentialService";

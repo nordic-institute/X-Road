@@ -44,8 +44,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -62,21 +60,6 @@ import java.util.List;
 public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
     static final String NAME = "X-Road ServerConf Catalog";
-
-    /**
-     * Tag for catalog entities owned by this SS. Must match the ParticipantContext registered
-     * in the Identity Hub (SS hostname) — EDC's catalog endpoint filters by it under
-     * edc-iam-dcp-core. Defaults to {@code edc.hostname}.
-     */
-    static final String SETTING_PARTICIPANT_CONTEXT_ID = "xroad.dsp.participant-context-id";
-
-    /**
-     * Distinct DSP identity for MANAGEMENT-subsystem entities. Required so that self-negotiation
-     * (SS hosting MANAGEMENT locally) avoids the {@code edc_contract_negotiation} unique-constraint
-     * collision. Defaults to {@code ${xroad.dsp.participant-context-id}-mgmt}.
-     */
-    // TODO transitional; remove with the -mgmt participant-context cutover (SYSTEM replaces it)
-    static final String SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID = "xroad.dsp.management-participant-context-id";
 
     static final String SETTING_CACHE_ENABLED = "xroad.dsp.catalog.cache.enabled";
     static final String SETTING_CACHE_TTL_SECONDS = "xroad.dsp.catalog.cache.ttl-seconds";
@@ -97,7 +80,6 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
-    private CatalogContextIds contextIds;
     private BuiltinServiceCatalog builtinServiceCatalog;
     private StoreCacheConfig cacheConfig;
     private ServiceContextResolver serviceContextResolver;
@@ -115,18 +97,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var defaultContextId = context.getSetting("edc.hostname", "localhost");
-        var hostContextId = context.getSetting(SETTING_PARTICIPANT_CONTEXT_ID, defaultContextId);
-        var managementContextId = context.getSetting(
-                SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, hostContextId + "-mgmt");
-        requireDistinctFromSystemSegment(SETTING_PARTICIPANT_CONTEXT_ID, hostContextId);
-        // TODO remove this call with the -mgmt cutover; the host-context check above stays
-        requireDistinctFromSystemSegment(SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, managementContextId);
-        contextIds = new CatalogContextIds(
-                hostContextId, managementContextId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        log.info("Participant context ID for catalog assets: {}", contextIds.host());
-        log.info("Management participant context ID for catalog assets: {}", contextIds.management());
-        log.info("SYSTEM participant context ID for catalog assets: {}", contextIds.system());
+        log.info("SYSTEM participant context ID for catalog assets: {}", ParticipantIdentifierScheme.SYSTEM_SEGMENT);
 
         var proxyMonitorEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_PROXY_MONITOR_ENABLED, true);
         var opMonitorEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_OP_MONITOR_ENABLED, true);
@@ -146,7 +117,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 cacheEnabled, cacheTtlSeconds, cacheFindByIdMaxSize);
 
         serviceContextResolver = new ServiceContextResolver(
-                contextIds, globalConfProvider, serverConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
         webService.registerResource(ApiContext.PROTOCOL,
                 new ParticipantContextCaptureFilter(requestedParticipantContext));
@@ -154,7 +125,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         assetIndexCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
                 cacheConfig.findByIdMaxSize(), "AssetIndex");
         assetIndexStore = new AssetIndexServerConfStore(
-                serverConfProvider, contextIds, builtinServiceCatalog, assetIndexCache,
+                serverConfProvider, builtinServiceCatalog, assetIndexCache,
                 serviceContextResolver, requestedParticipantContext);
 
         policyDefinitionCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
@@ -164,19 +135,6 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
         catalogCacheInvalidator = new DefaultCatalogCacheInvalidator(
                 serverConfProvider, List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
-    }
-
-    /**
-     * The SYSTEM segment is reserved (XRDADR-41): a configured host or management context ID that
-     * collides with it would make SYSTEM-addressed requests indistinguishable from that context's
-     * own. Fail fast rather than let the collision surface later as misrouted catalog entries.
-     */
-    private static void requireDistinctFromSystemSegment(String settingName, String configuredContextId) {
-        if (ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(configuredContextId)) {
-            throw XrdRuntimeException.systemException(ErrorCode.VALIDATION_ERROR,
-                    "Setting '%s' must not equal the reserved SYSTEM segment '%s'",
-                    settingName, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        }
     }
 
     @Provider
@@ -195,7 +153,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     public PolicyDefinitionStore policyDefinitionStore() {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
         return new PolicyDefinitionServerConfStore(
-                serverConfProvider, new PolicyMapper(), contextIds,
+                serverConfProvider, new PolicyMapper(),
                 builtinServiceCatalog, policyDefinitionCache,
                 serviceContextResolver, requestedParticipantContext);
     }
@@ -204,7 +162,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     public ContractDefinitionStore contractDefinitionStore() {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");
         return new ContractDefinitionServerConfStore(
-                serverConfProvider, contextIds,
+                serverConfProvider,
                 builtinServiceCatalog,
                 contractDefinitionCache,
                 serviceContextResolver, requestedParticipantContext);

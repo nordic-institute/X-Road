@@ -73,7 +73,7 @@ class AssetAccessRpcClientTest {
     @Mock
     private RpcChannelFactory rpcChannelFactory;
     @Mock
-    private AssetAccessRpcChannelProperties channelProperties;
+    private ControlPlaneRpcChannelProperties channelProperties;
     @Mock
     private AssetAccessClientProperties clientProperties;
     @Mock
@@ -131,6 +131,7 @@ class AssetAccessRpcClientTest {
         when(cacheProperties.enabled()).thenReturn(true);
         when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
         when(cacheProperties.maximumSize()).thenReturn(10_000L);
+        when(cacheProperties.margin()).thenReturn(Duration.ofSeconds(5));
 
         client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
         client.init();

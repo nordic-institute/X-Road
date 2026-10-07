@@ -73,9 +73,12 @@ public abstract class ManagedRpcServer {
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),
                 rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> services.forEach(service -> {
-                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
-                    builder.addService(service);
-                }));
+                builder -> {
+                    rpcServerProperties.maxInboundMessageSize().ifPresent(builder::maxInboundMessageSize);
+                    services.forEach(service -> {
+                        log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                        builder.addService(service);
+                    });
+                });
     }
 }

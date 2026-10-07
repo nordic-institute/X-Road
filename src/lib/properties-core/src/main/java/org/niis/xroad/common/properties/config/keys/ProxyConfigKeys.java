@@ -42,6 +42,9 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROX
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.nonNegative;
+import static org.niis.xroad.common.properties.config.Validator.positive;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /**
  * Keys for the {@code xroad.proxy} scope, mirroring the nested structure of the legacy
@@ -459,6 +462,17 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /**
+     * {@code xroad.proxy.addon.op-monitor.buffer.max-message-size}: largest store request in bytes; larger batches are
+     * split. Keep it below op-monitor's {@code xroad.op-monitor.rpc.max-inbound-message-size} (gRPC default 4 MiB).
+     */
+    public static final ConfigKey<Integer> ADDON_OP_MONITOR_BUFFER_MAX_MESSAGE_SIZE = ADDON_OP_MONITOR_BUFFER
+            .integer("max-message-size")
+            .withDefaultValue(3 * 1024 * 1024)
+            .withValidator(range(OpMonitorConfigKeys.MIN_STORE_MESSAGE_SIZE, Integer.MAX_VALUE))
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.proxy.addon.op-monitor.buffer.sending-interval-seconds}. */
     public static final ConfigKey<Long> ADDON_OP_MONITOR_BUFFER_SENDING_INTERVAL_SECONDS = ADDON_OP_MONITOR_BUFFER
             .longValue("sending-interval-seconds")
@@ -815,11 +829,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     // --- xroad.proxy.dsp --------------------------------------------------------
 
-    /** {@code xroad.proxy.dsp.participant-context-id} — no default (must be set per SS). */
-    public static final ConfigKey<String> DSP_PARTICIPANT_CONTEXT_ID = DSP
-            .string("participant-context-id")
-            .build();
-
     /** {@code xroad.proxy.dsp.protocol}. */
     public static final ConfigKey<String> DSP_PROTOCOL = DSP
             .string("protocol")
@@ -883,6 +892,14 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(10000L)
             .build();
 
+    /** {@code xroad.proxy.dsp.cache.margin} — how long before a cached token's real expiry it is reloaded. */
+    public static final ConfigKey<Duration> DSP_CACHE_MARGIN = DSP_CACHE
+            .keyDuration("margin")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
     // --- xroad.proxy.agreement-token ---------------------------------------------
 
     /** {@code xroad.proxy.agreement-token.issuer}. */
@@ -903,6 +920,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_TOKEN_TTL = AGREEMENT_TOKEN
             .keyDuration("token-ttl")
             .withDefaultValue(Duration.ofSeconds(60))
+            .withValidator(positive())
             .exposedInUi()
             .build();
 
@@ -910,6 +928,23 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_KEY_REFRESH_INTERVAL = AGREEMENT_TOKEN
             .keyDuration("key-refresh-interval")
             .withDefaultValue(Duration.ofSeconds(30))
+            .withValidator(positive())
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.proxy.agreement-token.expiry-leeway} — clock-skew leeway the verifier allows past a token's exp. */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_EXPIRY_LEEWAY = AGREEMENT_TOKEN
+            .keyDuration("expiry-leeway")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.proxy.agreement-token.grant-lookup-deadline}. */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_GRANT_LOOKUP_DEADLINE = AGREEMENT_TOKEN
+            .keyDuration("grant-lookup-deadline")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(positive())
             .exposedInUi()
             .build();
 

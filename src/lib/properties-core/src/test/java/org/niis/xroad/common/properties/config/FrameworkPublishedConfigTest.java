@@ -50,8 +50,6 @@ class FrameworkPublishedConfigTest {
             "xroad.admin-service.request-size-limit-binary-upload",
             // ds-control-plane extensions read these directly via ServiceExtensionContext.getSetting();
             // a stored override only reaches that call through the framework-published config source
-            "xroad.dsp.participant-context-id",
-            "xroad.dsp.management-participant-context-id",
             "xroad.dsp.catalog.cache.enabled",
             "xroad.dsp.catalog.cache.ttl-seconds",
             "xroad.dsp.catalog.cache.find-by-id-max-size",

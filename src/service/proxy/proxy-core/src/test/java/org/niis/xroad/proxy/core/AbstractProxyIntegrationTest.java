@@ -63,11 +63,14 @@ import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
+import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
+import org.niis.xroad.proxy.core.serverproxy.AgreementTokenAccessCheck;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
@@ -280,15 +283,18 @@ public abstract class AbstractProxyIntegrationTest {
 
         var identifierValidationService = new IdentifierValidationService(proxyProperties);
 
+        var agreementTokenAccessCheck = new AgreementTokenAccessCheck(
+                mock(AgreementTokenKeyMaterial.class), mock(ProxyAgreementTokenProperties.class));
+
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
                 serverSoapMessageProcessor, proxyProperties.server(),

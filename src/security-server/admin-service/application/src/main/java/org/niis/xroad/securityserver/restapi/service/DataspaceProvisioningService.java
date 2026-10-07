@@ -69,9 +69,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * <p>Exposes non-blocking, single-step primitives for use by
  * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
  * <ul>
- *   <li>{@link #participantContexts(boolean)} — enumerates the host, the per-server SYSTEM context,
- *       management (when registered) and per-member contexts to provision, member-level identity from
- *       the registered clients in {@link ClientRepository#getAllLocalClients()}.</li>
+ *   <li>{@link #participantContexts()} — enumerates the per-server SYSTEM context and per-member
+ *       contexts to provision, member-level identity from the registered clients in
+ *       {@link ClientRepository#getAllLocalClients()}.</li>
  *   <li>{@link #ensureParticipantContext(ParticipantContext)} — idempotent context
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} or
  *       {@link ParticipantKind#SYSTEM} context with a bound {@code ds_participant} row, the row is
@@ -121,18 +121,17 @@ public class DataspaceProvisioningService {
      */
     public enum IdentityStatus { OK, MISMATCH, VERSION_UNSUPPORTED, UNBOUND, DRIFTED, UNKNOWN }
 
-    public enum ParticipantKind { HOST, MANAGEMENT, SYSTEM, MEMBER }
+    public enum ParticipantKind { SYSTEM, MEMBER }
 
     /**
      * One participant context to provision or report on.
      *
      * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
+     * @param kind          SYSTEM or MEMBER
      * @param memberId      the credential subject: the X-Road member this context's credential is issued
-     *                      to; {@code null} only when the SS owner is not yet known (HOST/MANAGEMENT/SYSTEM
-     *                      — a MEMBER context always carries its member). For SYSTEM this is the current
-     *                      owner member, kept distinct from the SYSTEM identifier itself, which is
-     *                      owner-free.
+     *                      to; {@code null} only when the SS owner is not yet known (SYSTEM — a MEMBER
+     *                      context always carries its member). For SYSTEM this is the current owner
+     *                      member, kept distinct from the SYSTEM identifier itself, which is owner-free.
      */
     public record ParticipantContext(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
         public ParticipantContext {
@@ -156,7 +155,7 @@ public class DataspaceProvisioningService {
      * Read-only snapshot of one participant context's provisioning state.
      *
      * @param participantId    the participant context id
-     * @param kind             HOST, MANAGEMENT, SYSTEM or MEMBER
+     * @param kind             SYSTEM or MEMBER
      * @param contextDid       the DID the identity hub serves for the participant context;
      *                         {@code null} when the context does not exist there or could not be read
      * @param contextDidUnreadable whether reading {@code contextDid} from the identity hub failed, so
@@ -165,8 +164,7 @@ public class DataspaceProvisioningService {
      *                         {@code null} when it cannot be derived (DID authority unknown, unreadable
      *                         or broken member binding)
      * @param credentialStatus the membership credential state
-     * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for HOST
-     *                         and MANAGEMENT
+     * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for SYSTEM
      */
     public record ParticipantContextStatus(
             String participantId,
@@ -216,7 +214,7 @@ public class DataspaceProvisioningService {
      *
      * @param context the participant context to create
      * @return whether it is safe to issue a membership credential for this context in the same tick.
-     *         Trivially {@code true} for HOST, MANAGEMENT and MEMBER. For SYSTEM, {@code false} means
+     *         Trivially {@code true} for MEMBER. For SYSTEM, {@code false} means
      *         an owner change is in progress and the hub has not yet confirmed the stored member id
      *         was re-anchored to the new owner — issuing now would submit a credential into the new
      *         owner's holder-pid slot while the hub still builds the membership claim from the old
@@ -275,7 +273,7 @@ public class DataspaceProvisioningService {
     /**
      * Enumerates the bound participant rows awaiting teardown convergence: every {@code ds_participant}
      * row currently marked {@link ParticipantState#DECOMMISSIONED}. A member with an entry here is
-     * excluded from {@link #participantContexts(boolean)} until its row is gone.
+     * excluded from {@link #participantContexts()} until its row is gone.
      */
     @Transactional(readOnly = true)
     public List<TombstonedParticipant> decommissionedParticipants() {
@@ -387,8 +385,8 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * The holder-pid slot-base for a participant context: unsalted for HOST/MANAGEMENT/MEMBER, salted
-     * with the current owner for SYSTEM.
+     * The holder-pid slot-base for a participant context: unsalted for MEMBER, salted with the
+     * current owner for SYSTEM.
      *
      * <p>The SYSTEM identifier is owner-free by design (XRDADR-41), but its credential is issued to the
      * current owner. Since the identity hub exposes no surface to read a credential's subject directly,
@@ -441,11 +439,10 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Enumerates the participant contexts to provision or report on: the host context, the per-server
-     * SYSTEM context, the management context when {@code managementRegistered}, and one member context
-     * per distinct X-Road member (subsystems collapsed) hosted on this Security Server — a member
-     * appears once it has a registered local client, the SS owner included. The SYSTEM context is
-     * unconditional, gated on nothing. Member ctx-ids follow the v1 scheme
+     * Enumerates the participant contexts to provision or report on: the per-server SYSTEM context,
+     * unconditional and gated on nothing, followed by one member context per distinct X-Road member
+     * (subsystems collapsed) hosted on this Security Server — a member appears once it has a
+     * registered local client, the SS owner included. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
      * A member with an unconverged {@link ParticipantState#DECOMMISSIONED} row is excluded — it is
      * never provisioned until that tombstone is gone, which prevents provision/teardown flapping on
@@ -454,24 +451,14 @@ public class DataspaceProvisioningService {
      * <p>The SYSTEM context carries the current SS owner as its credential subject (the member the
      * credential is issued to), which is distinct from the SYSTEM identifier itself: the DID and ctx-id
      * are owner-free, per {@link ParticipantIdentifierScheme#systemDid(String)}.
-     *
-     * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
     @Transactional(readOnly = true)
-    public List<ParticipantContext> participantContexts(boolean managementRegistered) {
-        var ds = adminServiceProperties.getDataspace();
-        var hostParticipantId = ds.getParticipantId();
-
+    public List<ParticipantContext> participantContexts() {
         var ownerId = ownSecurityServerResolver.owner();
         var owner = ownerId.orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
-        contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, owner));
         contexts.add(new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner));
-        if (managementRegistered) {
-            contexts.add(new ParticipantContext(hostParticipantId + DspConventions.MANAGEMENT_CONTEXT_SUFFIX,
-                    ParticipantKind.MANAGEMENT, owner));
-        }
 
         if (ownerId.isEmpty()) {
             // serverconf is not initialised: reading local clients would throw MALFORMED_SERVERCONF
@@ -588,8 +575,6 @@ public class DataspaceProvisioningService {
 
     private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
-            case HOST -> didAuthority.hostDid();
-            case MANAGEMENT -> didAuthority.managementDid();
             case SYSTEM -> systemDid(didAuthority.current());
             case MEMBER -> boundOrDerivedMemberDid(memberId);
         };

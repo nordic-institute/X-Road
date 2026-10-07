@@ -26,14 +26,8 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import ee.ria.xroad.common.util.JsonUtils;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataRequest;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectWriter;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -41,7 +35,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 
 import static java.net.NetworkInterface.networkInterfaces;
 
@@ -49,21 +42,10 @@ import static java.net.NetworkInterface.networkInterfaces;
 public class OpMonitoringDataProcessor {
     private static final String NO_ADDRESS_FOUND = "No suitable IP address is bound to network interfaces";
 
-    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
     private static final Duration IP_RESOLUTION_CACHE_DURATION = Duration.ofMinutes(10);
 
     private String ipAddress;
     private Instant ipAddressLastResolutionAt;
-
-    String prepareMonitoringMessage(List<OpMonitoringData> dataToProcess) throws JacksonException {
-        StoreOpMonitoringDataRequest request = new StoreOpMonitoringDataRequest();
-
-        for (OpMonitoringData data : dataToProcess) {
-            request.addRecord(data.getData());
-        }
-
-        return OBJECT_WRITER.writeValueAsString(request);
-    }
 
     String getIpAddress() {
         try {

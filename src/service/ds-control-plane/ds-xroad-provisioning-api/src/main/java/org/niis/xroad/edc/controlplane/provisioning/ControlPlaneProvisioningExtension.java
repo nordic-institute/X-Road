@@ -40,7 +40,6 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
-import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
 /**
@@ -60,9 +59,6 @@ public class ControlPlaneProvisioningExtension implements ServiceExtension {
 
     @Inject
     private ParticipantContextConfigService participantContextConfigService;
-
-    @Inject
-    private DataPlaneContextRegistrar dataPlaneContextRegistrar;
 
     @Inject
     private CatalogCacheInvalidator catalogCacheInvalidator;
@@ -96,7 +92,7 @@ public class ControlPlaneProvisioningExtension implements ServiceExtension {
                 participantContextConfigDataSourceName, transactionContext, queryExecutor, participantContextConfigStatements);
         var grpcService = new ControlPlaneProvisioningGrpcService(
                 participantContextService, participantContextConfigService, participantContextConfigDeleter,
-                dataPlaneContextRegistrar, catalogCacheInvalidator, new RpcResponseHandler());
+                catalogCacheInvalidator, new RpcResponseHandler());
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }

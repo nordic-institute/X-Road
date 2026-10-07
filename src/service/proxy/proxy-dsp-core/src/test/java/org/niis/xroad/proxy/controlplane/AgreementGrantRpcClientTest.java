@@ -54,6 +54,7 @@ import org.niis.xroad.edc.agreementgrant.proto.NoGrantReason;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantResponse;
 import org.niis.xroad.edc.agreementgrant.proto.Scope;
+import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 
 import java.time.Duration;
 import java.util.List;
@@ -72,7 +73,9 @@ class AgreementGrantRpcClientTest {
     @Mock
     private RpcChannelFactory rpcChannelFactory;
     @Mock
-    private AgreementGrantRpcChannelProperties channelProperties;
+    private ControlPlaneRpcChannelProperties channelProperties;
+    @Mock
+    private ProxyAgreementTokenProperties agreementTokenProperties;
 
     private Server server;
     private ManagedChannel channel;
@@ -102,8 +105,9 @@ class AgreementGrantRpcClientTest {
         when(channelProperties.host()).thenReturn("localhost");
         when(channelProperties.port()).thenReturn(server.getPort());
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
+        when(agreementTokenProperties.grantLookupDeadline()).thenReturn(Duration.ofSeconds(5));
 
-        client = new AgreementGrantRpcClient(rpcChannelFactory, channelProperties);
+        client = new AgreementGrantRpcClient(rpcChannelFactory, channelProperties, agreementTokenProperties);
         client.init();
     }
 

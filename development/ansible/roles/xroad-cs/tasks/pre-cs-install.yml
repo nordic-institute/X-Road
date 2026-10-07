@@ -1,29 +1,17 @@
 ---
-# TEMPORARY (dataspaces dev): this file pre-seeds values that xroad-centralserver's
-# packages need on disk before their own postinst starts a unit for the first time,
-# where provisioning is only-if-absent so a value arriving late never lands
-# (systemd drop-ins for the admin-service TLS certificate hostname and the Issuer
-# Service's vault CA trust). The statuslist-callback/hostname gap this file used to
-# paper over for xroad-ds-issuer-service is closed: the package's own postinst now
-# writes edc.hostname and edc.statuslist.callback.address from the debconf-sourced
-# dataspace issuer host answer before the unit's first start.
-#
-# What remains here, and why:
-# - the systemd drop-ins (XROAD_HOST, QUARKUS_VAULT_TLS_CA_CERT) have no packaged
-#   equivalent yet — remove each once its underlying package ships one;
-# - xroad.edc.web.https.trust.reload-interval-seconds is genuine dev-only tuning
-#   (shortens a reload cycle for faster local iteration, not a correctness fix), so
-#   it stays regardless of packaging maturity.
+# Pre-seeds the Issuer Service dev-only trust reload interval in
+# local-ds-issuer-service.yaml before the xroad-ds-issuer-service postinst runs:
+# the postinst merges its own keys into that same file and skips keys already
+# present, so the file has to exist first. Permanent dev tuning, independent of
+# packaging.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
 # of xroad-cs) before this file runs.
 
 # ---------------------------------------------------------------------------
-# 1. /etc/xroad/conf.d — xroad-common creates this during install; we need
-#    it earlier to drop YAML preseed files before any postinst auto-starts a
-#    unit. dpkg leaves pre-existing dirs intact (not a conffile).
-#
-# TEMPORARY (dataspaces dev): remove once packages ship the config stubs.
+# 1. /etc/xroad/conf.d — the packages create it during install; the preseed in
+#    section 2 needs it before that. dpkg leaves pre-existing dirs intact (not a
+#    conffile). Stays as long as the dev-only tuning below does.
 # ---------------------------------------------------------------------------
 - name: ensure /etc/xroad/conf.d exists for preseeded configs
   file:
@@ -32,45 +20,6 @@
     owner: root
     group: root
     mode: "0755"
-
-# ---------------------------------------------------------------------------
-# 2b. TLS certificate host for the vault-provisioned service certs. The cert
-#     common-name resolves from the XROAD_HOST env var (default localhost);
-#     management/registration-service run Jetty with SNI validation, so the SS
-#     connecting to https://<cs>.lxd:4001 gets "400 Invalid SNI" when the cert
-#     says localhost. Provisioning is only-if-absent, so the env var must be in
-#     place before the package postinst starts the services the first time —
-#     hence systemd drop-ins created pre-install (they apply once the units
-#     appear).
-# ---------------------------------------------------------------------------
-- name: create systemd drop-in dirs for XROAD_HOST
-  file:
-    path: "/etc/systemd/system/{{ item }}.service.d"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-  loop: &cs_xroad_host_units
-    - xroad-center
-    - xroad-center-management-service
-    - xroad-center-registration-service
-
-- name: set XROAD_HOST for CS services (TLS cert common-name)
-  copy:
-    dest: "/etc/systemd/system/{{ item }}.service.d/xroad-host.conf"
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      [Service]
-      Environment=XROAD_HOST={{ inventory_hostname }}.lxd
-  loop: *cs_xroad_host_units
-  register: cs_xroad_host_dropins
-
-- name: reload systemd after drop-in changes
-  systemd:
-    daemon_reload: true
-  when: cs_xroad_host_dropins is changed
 
 # ---------------------------------------------------------------------------
 # 2. DS issuer-service dev-only runtime tuning.

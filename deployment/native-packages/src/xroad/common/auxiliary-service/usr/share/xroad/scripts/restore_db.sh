@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/share/xroad/scripts/read_db_properties.sh
+source /usr/share/xroad/scripts/read_serverconf_db_properties.sh
 
 abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 

@@ -27,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
 /** XRoadConfig-backed implementation of {@link ControlPlaneProvisioningRpcChannelProperties}. */
@@ -36,8 +36,8 @@ public class XRoadControlPlaneProvisioningRpcChannelProperties extends XRoadRpcC
 
     public XRoadControlPlaneProvisioningRpcChannelProperties(XRoadConfig config) {
         super(config,
-                DataspaceConfigKeys.CONTROL_PLANE_PROVISIONING_RPC_HOST,
-                DataspaceConfigKeys.CONTROL_PLANE_PROVISIONING_RPC_PORT,
-                DataspaceConfigKeys.CONTROL_PLANE_PROVISIONING_RPC_DEADLINE_AFTER);
+                CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_HOST,
+                CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_PORT,
+                CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_DEADLINE_AFTER);
     }
 }

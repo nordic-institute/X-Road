@@ -14,6 +14,7 @@ Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           iproute, hostname
 Requires:           xroad-base = %version-%release, xroad-proxy = %version-%release
+Requires:           xroad-auxiliary-service = %version-%release
 
 %define src %{_topdir}/..
 
@@ -82,13 +83,13 @@ if [ $1 -gt 1 ] ; then
   rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
 fi
 
-# create TLS certificate provisioning properties (if not already created)
-/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy-ui-api
-
 %preun
 %systemd_preun xroad-proxy-ui-api.service
 
 %postun
 %systemd_postun_with_restart xroad-proxy-ui-api.service
+
+%posttrans -p /bin/bash
+/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy-ui-api
 
 %changelog

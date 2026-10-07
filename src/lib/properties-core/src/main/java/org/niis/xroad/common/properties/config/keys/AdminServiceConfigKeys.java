@@ -468,10 +468,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("control-plane-url")
             .build();
 
-    public static final ConfigKey<String> DATASPACE_PARTICIPANT_ID = DATASPACE
-            .string("participant-id")
-            .build();
-
     public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_DID_PORT = DATASPACE
             .integer("identity-hub-did-port")
             .withDefaultValue(7183)
@@ -485,11 +481,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_CREDENTIALS_PORT = DATASPACE
             .integer("identity-hub-credentials-port")
             .withDefaultValue(7185)
-            .build();
-
-    public static final ConfigKey<Boolean> DATASPACE_MANAGEMENT_CONTEXT_ENABLED = DATASPACE
-            .bool("management-context-enabled")
-            .withDefaultValue(false)
             .build();
 
     public static final ConfigKey<String> DATASPACE_CREDENTIAL_DEFINITION_ID = DATASPACE

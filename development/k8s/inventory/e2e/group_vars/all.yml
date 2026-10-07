@@ -60,11 +60,9 @@ external_service_host: host.docker.internal
 external_service_bridges: []
 
 # Two Security Server chart releases in separate namespaces — the k8s form of compose's
-# ss0-/ss1-prefixed stacks. Each gets its own distinct DSP participant-context identifier
-# (security-server chart's dsp.participantContextId, templates/_configmap.tpl) so the two
-# releases are never conflated on the chart's own hardcoded "xrd-ss2" default, and its own
-# openbao_tls_dir so the two releases' self-signed openbao certs (each SAN-scoped to its own
-# namespace) don't clobber each other's on-disk staging files mid-run.
+# ss0-/ss1-prefixed stacks. Each gets its own openbao_tls_dir so the two releases'
+# self-signed openbao certs (each SAN-scoped to its own namespace) don't clobber each
+# other's on-disk staging files mid-run.
 # ss0 enables the softtoken-signer split (security_server role's
 # softtoken_signer_enabled var) — mirrors compose's E2eEnvSetup, which puts ss0 on the
 # split-out soft-token signing process and ss1 on SoftHSM. ss1 also enables the signer image
@@ -90,11 +88,9 @@ external_service_bridges: []
 # Server init and need no provisioning.
 security_server_instances:
   - namespace: ss0
-    dsp_participant_context_id: xrd-ss0
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
     softtoken_signer_enabled: true
   - namespace: ss1
-    dsp_participant_context_id: xrd-ss1
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
     signer_hsm_enabled: true
     messagelog_encryption_config: |
