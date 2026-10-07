@@ -1,0 +1,222 @@
+---
+# X-VIA: Pós-instalação — Migrations Liquibase, PAM, grupos, autologin
+
+# Reescrever db.properties (o post-install do pacote pode sobrescrever)
+- name: "FASE 7 — Ensure db.properties after install"
+  template:
+    src: templates/xvia_db.properties.j2
+    dest: /etc/xroad/db.properties
+    owner: xroad
+    group: xroad
+    mode: '0640'
+    force: yes
+
+# --- Liquibase Migrations ---
+- name: Wait for Liquibase files
+  wait_for:
+    path: /usr/share/xroad/db/serverconf-changelog.xml
+    timeout: 30
+
+- name: Run Liquibase migration - serverconf
+  shell: |
+    cd /usr/share/xroad/db
+    /usr/share/xroad/db/liquibase.sh \
+      --classpath=/usr/share/xroad/jlib/postgresql.jar \
+      --url="jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/serverconf" \
+      --changeLogFile=serverconf-changelog.xml \
+      --password={{ serverconf_password }} \
+      --username=serverconf_admin \
+      --defaultSchemaName=serverconf \
+      --contexts=admin \
+      update \
+      -Ddb_schema=serverconf \
+      -Ddb_user=serverconf
+  register: _liquibase_serverconf
+  changed_when: "'Running Changeset' in _liquibase_serverconf.stdout"
+
+- name: Run Liquibase migration - messagelog
+  shell: |
+    cd /usr/share/xroad/db
+    /usr/share/xroad/db/liquibase.sh \
+      --classpath=/usr/share/xroad/jlib/postgresql.jar \
+      --url="jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/messagelog" \
+      --changeLogFile=messagelog-changelog.xml \
+      --password={{ messagelog_password }} \
+      --username=messagelog_admin \
+      --defaultSchemaName=messagelog \
+      --contexts=admin \
+      update \
+      -Ddb_schema=messagelog \
+      -Ddb_user=messagelog
+  register: _liquibase_messagelog
+  changed_when: "'Running Changeset' in _liquibase_messagelog.stdout"
+
+- name: Run Liquibase migration - op-monitor
+  shell: |
+    cd /usr/share/xroad/db
+    /usr/share/xroad/db/liquibase.sh \
+      --classpath=/usr/share/xroad/jlib/postgresql.jar \
+      --url="jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/op-monitor" \
+      --changeLogFile=op-monitor-changelog.xml \
+      --password={{ opmonitor_password }} \
+      --username=opmonitor_admin \
+      --defaultSchemaName=opmonitor \
+      --contexts=admin \
+      update \
+      -Ddb_schema=opmonitor \
+      -Ddb_user=opmonitor
+  register: _liquibase_opmonitor
+  changed_when: "'Running Changeset' in _liquibase_opmonitor.stdout"
+
+# --- PAM ---
+- name: Create /etc/pam.d/xroad
+  copy:
+    content: |
+      #%PAM-1.0
+      @include common-auth
+      @include common-account
+      @include common-session
+    dest: /etc/pam.d/xroad
+    mode: '0644'
+
+# --- Grupos do admin ---
+- name: Add admin to xroad groups
+  user:
+    name: "{{ _admin_user }}"
+    groups: "{{ item }}"
+    append: yes
+  loop:
+    - xroad-security-officer
+    - xroad-registration-officer
+    - xroad-service-administrator
+    - xroad-system-administrator
+    - xroad-securityserver-observer
+
+# --- Messagelog toggle ---
+- name: Disable messagelog
+  copy:
+    content: |
+      [message-log]
+      enabled=false
+    dest: /etc/xroad/conf.d/messagelog.ini
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  when: not (xvia_enable_messagelog | default(true) | bool)
+
+- name: Enable messagelog (remove override)
+  file:
+    path: /etc/xroad/conf.d/messagelog.ini
+    state: absent
+  when: xvia_enable_messagelog | default(true) | bool
+
+# --- Memória do proxy ---
+- name: Configure proxy memory
+  lineinfile:
+    path: /etc/xroad/services/local.conf
+    regexp: '^XROAD_PROXY_PARAMS='
+    line: 'XROAD_PROXY_PARAMS="$XROAD_PROXY_PARAMS -Xms{{ xvia_proxy_memory }}m -Xmx{{ xvia_proxy_memory }}m -XX:MaxMetaspaceSize=140m"'
+    create: yes
+  when: xvia_proxy_memory != "d"
+
+# --- Autologin do token (opcional) ---
+- name: Create autologin directory
+  file:
+    path: /usr/share/xroad/autologin
+    state: directory
+    owner: xroad
+    group: xroad
+    mode: '0755'
+  when: (autologin_pin | default('')) != ''
+
+- name: Create autologin retry script
+  copy:
+    content: |
+      #!/bin/bash
+      PIN=$(cat /etc/xroad/autologin)
+      for i in $(seq 1 30); do
+          echo "Attempting to log in to token 0"
+          echo $PIN | /usr/share/xroad/bin/signer-console login-token 0 && break
+          sleep 5
+      done
+    dest: /usr/share/xroad/autologin/xroad-autologin-retry.sh
+    owner: xroad
+    group: xroad
+    mode: '0755'
+  when: (autologin_pin | default('')) != ''
+
+- name: Create autologin PIN file
+  copy:
+    content: "{{ autologin_pin }}"
+    dest: /etc/xroad/autologin
+    owner: xroad
+    group: xroad
+    mode: '0600'
+  when: (autologin_pin | default('')) != ''
+  no_log: true
+
+- name: Create xroad-autologin systemd unit
+  copy:
+    content: |
+      [Unit]
+      Description=X-Road Automatic Token Login
+      After=xroad-signer.service
+      Requires=xroad-signer.service
+
+      [Service]
+      Type=oneshot
+      User=xroad
+      Group=xroad
+      ExecStart=/usr/share/xroad/autologin/xroad-autologin-retry.sh
+      RemainAfterExit=no
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/xroad-autologin.service
+    mode: '0644'
+  when: (autologin_pin | default('')) != ''
+
+- name: Enable xroad-autologin service
+  systemd:
+    name: xroad-autologin
+    daemon_reload: yes
+    enabled: yes
+  when: (autologin_pin | default('')) != ''
+
+# --- Mail notification stub (silencia aviso de configuração incompleta na UI) ---
+- name: Create mail.yml stub (disables mail notifications)
+  copy:
+    content: |
+      host: localhost
+      port: 25
+      username: ""
+      password: ""
+      use-ssl-tls: false
+      contacts:
+        '{{ xvia_instance_id | default("XVIA") }}:{{ xvia_member_class | default("GOV") }}:{{ xvia_member_code | default("XVIA") }}': noreply@localhost
+    dest: /etc/xroad/conf.d/mail.yml
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  when: xvia_mail_config | default({}) | length == 0
+
+- name: Create mail.yml with custom config
+  copy:
+    content: |
+      host: "{{ xvia_mail_config.host }}"
+      port: {{ xvia_mail_config.port | default(587) }}
+      username: "{{ xvia_mail_config.username | default('') }}"
+      password: "{{ xvia_mail_config.password | default('') }}"
+      use-ssl-tls: {{ xvia_mail_config.use_ssl_tls | default(false) | lower }}
+      contacts: {{ xvia_mail_config.contacts | default({}) | to_nice_yaml | indent(2) }}
+    dest: /etc/xroad/conf.d/mail.yml
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  when: xvia_mail_config | default({}) | length > 0
+  no_log: true
+
+- name: Restart xroad-proxy-ui-api after mail config
+  service:
+    name: xroad-proxy-ui-api
+    state: restarted
