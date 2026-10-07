@@ -23,41 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.opmonitor.core;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import com.codahale.metrics.MetricRegistry;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.Getter;
 
-import java.util.Optional;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
+/**
+ * Holds the health data metrics of the operational monitoring daemon, shared by the store and query paths.
+ */
+@ApplicationScoped
+class HealthDataRegistry {
 
-@RequiredArgsConstructor
-public class OpMonitorServerProperties implements RpcServerProperties {
+    @Getter
+    private final MetricRegistry registry = new MetricRegistry();
+    private final long startTimestamp = getEpochMillisecond();
 
-    private final XRoadConfig xRoadConfig;
-
-    @Override
-    public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
-    }
-
-    @Override
-    public String listenAddress() {
-        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
-    }
-
-    @Override
-    public int port() {
-        return xRoadConfig.value(RPC_PORT);
-    }
-
-    @Override
-    public Optional<Integer> maxInboundMessageSize() {
-        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
+    HealthDataRegistry(HealthDataMetrics healthDataMetrics) {
+        healthDataMetrics.registerInitialMetrics(registry, () -> startTimestamp);
     }
 }

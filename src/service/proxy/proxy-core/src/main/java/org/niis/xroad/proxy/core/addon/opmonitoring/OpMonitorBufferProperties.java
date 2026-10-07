@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_CONNECTION_TIMEOUT_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_MAX_MESSAGE_SIZE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_MAX_RECORDS_IN_MESSAGE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_SENDING_INTERVAL_SECONDS;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_SIZE;
@@ -48,6 +49,10 @@ public class OpMonitorBufferProperties {
 
     public int maxRecordsInMessage() {
         return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_MAX_RECORDS_IN_MESSAGE);
+    }
+
+    public int maxMessageSize() {
+        return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_MAX_MESSAGE_SIZE);
     }
 
     public long sendingIntervalSeconds() {

@@ -30,7 +30,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -42,6 +44,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -50,6 +53,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * 0100 - Op monitoring data in intervals: queries op-monitor over gRPC for operational-data intervals,
  * filtered by security server type, member, and/or service, against the traffic data seeded by
  * {@code test-data/baseline-intTest.xml}.
+ * Store cases write records over gRPC for their own service ten days in the past, outside the seeded window.
  */
 @ExtendWith(ApiStackExtension.class)
 @SuppressWarnings("checkstyle:magicnumber")
@@ -59,6 +63,10 @@ class OpMonitorIntTest {
     private static final String MEMBER_SYSTEM1 = "DEV:COM:1234:System1";
     private static final String SERVICE_GET_TOP_SECRET = "DEV:COM:1234:Service9:getTopSecret.v2";
     private static final String SERVICE_XROAD_GET_RANDOM = "DEV:COM:4321:Service1:xroadGetRandom.v1";
+    private static final String STORE_CLIENT = "DEV:COM:222:TestClient";
+    private static final String SERVICE_STORED_OVER_GRPC = "DEV:COM:222:TestService:storedOverGrpc.v1";
+    private static final String SERVICE_REJECTED_BATCH = "DEV:COM:222:TestService:rejectedBatch.v1";
+    private static final Instant STORE_WINDOW = Instant.now().minus(10, ChronoUnit.DAYS);
 
     private OpMonitorClient opMonitorClient;
 
@@ -134,6 +142,57 @@ class OpMonitorIntTest {
                 () -> trafficData(2, 30, null, null, null));
         then("the query returns intervals with correct success and failure counts",
                 () -> assertIntervalBuckets(intervals));
+    }
+
+    @Test
+    @DisplayName("Store operational data over gRPC")
+    void storeOperationalDataOverGrpc() {
+        var records = List.of(
+                storedRecord(SERVICE_STORED_OVER_GRPC, 0, true),
+                storedRecord(SERVICE_STORED_OVER_GRPC, 1, true),
+                storedRecord(SERVICE_STORED_OVER_GRPC, 2, false));
+
+        when("the security server stores 2 successful and 1 failed record for \"" + SERVICE_STORED_OVER_GRPC + "\"",
+                () -> opMonitorClient.storeOperationalData(records));
+
+        var intervals = when("user asks for traffic data of that service around the stored records",
+                () -> storedTrafficData(SERVICE_STORED_OVER_GRPC));
+        then("the query returns 2 successful requests and 1 failed requests",
+                () -> assertTotals(intervals, 2, 1));
+    }
+
+    @Test
+    @DisplayName("Store rejects a batch with an invalid record as a whole")
+    void storeRejectsBatchWithInvalidRecord() {
+        var valid = storedRecord(SERVICE_REJECTED_BATCH, 0, true);
+        var withoutRequestInTs = storedRecord(SERVICE_REJECTED_BATCH, 1, true).toBuilder().clearRequestInTs().build();
+
+        then("storing a batch where one record has no request-in timestamp fails",
+                () -> assertThatThrownBy(() -> opMonitorClient.storeOperationalData(List.of(valid, withoutRequestInTs)))
+                        .isInstanceOf(RuntimeException.class));
+
+        var intervals = when("user asks for traffic data of that service",
+                () -> storedTrafficData(SERVICE_REJECTED_BATCH));
+        then("no record of the rejected batch was stored",
+                () -> assertTotals(intervals, 0, 0));
+    }
+
+    private static OperationalDataRecordProto storedRecord(String serviceId, int index, boolean succeeded) {
+        long requestInTs = STORE_WINDOW.plusSeconds(index).toEpochMilli();
+        var data = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, requestInTs);
+        data.setSecurityServerInternalIp("10.0.0.1");
+        data.setClientId(new ClientIdConverter().convertId(STORE_CLIENT));
+        data.setServiceId(new ServiceIdConverter().convertId(serviceId));
+        data.setResponseOutTs(requestInTs + 100, false);
+        data.setSucceeded(succeeded);
+        return data.toProto();
+    }
+
+    private List<OperationalDataInterval> storedTrafficData(String serviceId) {
+        return opMonitorClient.getOperationalDataIntervals(
+                STORE_WINDOW.minus(30, ChronoUnit.MINUTES).toEpochMilli(),
+                STORE_WINDOW.plus(30, ChronoUnit.MINUTES).toEpochMilli(),
+                60, null, null, new ServiceIdConverter().convertId(serviceId));
     }
 
     private List<OperationalDataInterval> trafficData(int windowInHours, int intervalMinutes,
