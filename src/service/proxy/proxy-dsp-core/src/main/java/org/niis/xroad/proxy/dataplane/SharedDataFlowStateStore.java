@@ -52,7 +52,7 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     private final DataFlowStateDAOImpl dao = new DataFlowStateDAOImpl();
 
     @Override
-    public DataFlowTransitionOutcome apply(String flowId, DataFlowTransition transition) {
+    public DataFlowStates apply(String flowId, DataFlowTransition transition) {
         LockedTransition attempt;
         try {
             attempt = transitionInTransaction(flowId, transition);
@@ -67,7 +67,7 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
         if (!attempt.applied()) {
             throw transition.illegalFrom(attempt.stateBefore());
         }
-        return new DataFlowTransitionOutcome(attempt.stateBefore(), transition.targetState());
+        return transition.targetState();
     }
 
     @Override

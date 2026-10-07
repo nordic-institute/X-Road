@@ -38,7 +38,6 @@ import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.proxy.controlplane.DataPlaneLifecycleRpcClient;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -73,7 +72,6 @@ public class XRoadDataPlaneManager {
     private final ProxyProperties proxyProperties;
     private final DataFlowStateStore flowStateStore;
     private final AgreementTokenIssuer agreementTokenIssuer;
-    private final DataPlaneLifecycleRpcClient lifecycleReportClient;
 
     /**
      * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
@@ -92,7 +90,7 @@ public class XRoadDataPlaneManager {
      * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
      * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint, and returns it
      * wrapped in a {@link DataFlowStatusMessage}. This is also how a suspended flow resumes: EDC's control
-     * plane re-sends start and the flow returns to {@link DataFlowStates#STARTED}; that landing is not reported.
+     * plane re-sends start and the flow returns to {@link DataFlowStates#STARTED}.
      *
      * @param message incoming start message
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
@@ -108,8 +106,7 @@ public class XRoadDataPlaneManager {
     /**
      * Handles the started notification this data plane receives from its own control plane: the transfer
      * has started and, for {@code Xrd-PULL}, data may now be pulled through the proxy. The flow lands on
-     * {@link DataFlowStates#STARTED} but nothing is reported back, since the control plane is the source
-     * of this notification.
+     * {@link DataFlowStates#STARTED}.
      *
      * @param flowId process ID of the flow that started
      * @return status message with state {@link DataFlowStates#STARTED}
@@ -205,25 +202,10 @@ public class XRoadDataPlaneManager {
     }
 
     /**
-     * Applies {@code transition} through the shared store, which validates and persists it as one operation,
-     * and — for a transition the data-flow table marks as reported — tells the control plane off the calling
-     * thread, but only about a state this call actually established: a retried signal that finds the flow
-     * already there is answered like the original and not reported again, and a landing the table keeps
-     * silent from its particular predecessor is not reported either. A reporting failure is logged and never
-     * propagates: it cannot fail or delay this call.
+     * Applies {@code transition} through the shared store, which validates and persists it as one operation;
+     * a retried signal that finds the flow already in its target state is answered like the original.
      */
     private void applyTransition(String processId, DataFlowTransition transition) {
-        var outcome = flowStateStore.apply(processId, transition);
-        if (outcome.stateChanged() && transition.isReportedFrom(outcome.stateBefore())) {
-            reportState(processId, outcome.state());
-        }
-    }
-
-    private void reportState(String processId, DataFlowStates state) {
-        try {
-            lifecycleReportClient.reportState(processId, state);
-        } catch (Exception e) {
-            log.warn("Failed to report data flow state (process {}, state {}) to control plane", processId, state, e);
-        }
+        flowStateStore.apply(processId, transition);
     }
 }

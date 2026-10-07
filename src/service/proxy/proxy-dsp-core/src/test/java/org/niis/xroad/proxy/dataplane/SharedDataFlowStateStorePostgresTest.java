@@ -45,7 +45,6 @@ import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
@@ -162,19 +161,16 @@ class SharedDataFlowStateStorePostgresTest {
     }
 
     @Test
-    void outcomeTellsWhetherTheCallChangedTheState() {
+    void applyReturnsTheStateTheFlowHoldsAfterwards() {
         var flowId = uniqueFlowId();
 
         var first = nodeA.apply(flowId, START);
         var repeat = nodeB.apply(flowId, START);
         var suspend = nodeA.apply(flowId, SUSPEND);
 
-        assertThat(first).isEqualTo(new DataFlowTransitionOutcome(Optional.empty(), DataFlowStates.STARTED));
-        assertThat(first.stateChanged()).isTrue();
-        assertThat(repeat).isEqualTo(new DataFlowTransitionOutcome(Optional.of(DataFlowStates.STARTED), DataFlowStates.STARTED));
-        assertThat(repeat.stateChanged()).isFalse();
-        assertThat(suspend).isEqualTo(new DataFlowTransitionOutcome(Optional.of(DataFlowStates.STARTED), DataFlowStates.SUSPENDED));
-        assertThat(suspend.stateChanged()).isTrue();
+        assertThat(first).isEqualTo(DataFlowStates.STARTED);
+        assertThat(repeat).isEqualTo(DataFlowStates.STARTED);
+        assertThat(suspend).isEqualTo(DataFlowStates.SUSPENDED);
     }
 
     @Test
@@ -207,8 +203,7 @@ class SharedDataFlowStateStorePostgresTest {
 
         var repeat = nodeB.apply(flowId, TERMINATE);
 
-        assertThat(repeat.state()).isEqualTo(DataFlowStates.TERMINATED);
-        assertThat(repeat.stateChanged()).isFalse();
+        assertThat(repeat).isEqualTo(DataFlowStates.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 

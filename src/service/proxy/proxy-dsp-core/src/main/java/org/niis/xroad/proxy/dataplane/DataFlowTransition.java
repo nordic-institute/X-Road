@@ -44,47 +44,37 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
  * The provider data plane's lifecycle state machine, one entry per signal of the data-flow signaling API.
  * Each transition names the state it lands on, which predecessor states may legally reach it, and whether an
  * unknown (never-seen) flow id is itself a legal predecessor — true only for the two signals that originate a
- * flow. Landing on {@link DataFlowStates#PROVISIONED}, {@link DataFlowStates#STARTED} or
- * {@link DataFlowStates#COMPLETED} is reported to the control plane; {@link DataFlowStates#SUSPENDED} and
- * {@link DataFlowStates#TERMINATED} are not.
+ * flow.
  *
  * <p>A signal that finds the flow already in its target state is a retry of a signal that was delivered but
  * whose response was lost — the control plane re-sends a signal after a transport failure — so every
  * transition is also legal from its own target state and then leaves the flow as it is.
  *
  * <p>There is no separate resume signal: EDC's control plane resumes a suspended transfer by sending
- * {@code start} again, so {@link #START} is legal from {@link DataFlowStates#SUSPENDED}. That landing is not
- * reported: the control plane drives a resume and advances from the synchronous response, and on the wire a
- * resume is indistinguishable from a late retry of the original start, so re-announcing {@code STARTED} could
- * un-suspend a transfer the control plane had suspended.
+ * {@code start} again, so {@link #START} is legal from {@link DataFlowStates#SUSPENDED}.
  *
  * <p>{@code PROVISIONED} is this runtime's EDC state for what the data-flow table calls {@code PREPARED}; no
  * separate {@code PREPARED} constant exists in {@link DataFlowStates}.
  */
 public enum DataFlowTransition {
 
-    PREPARE(PROVISIONED, true, EnumSet.noneOf(DataFlowStates.class), true, EnumSet.noneOf(DataFlowStates.class)),
-    /** Starts a new or prepared flow, and resumes a suspended one; only the former is reported. */
-    START(STARTED, true, EnumSet.of(PROVISIONED, SUSPENDED), true, EnumSet.of(SUSPENDED)),
-    /** The control plane's own started notification to this data plane; recorded, never reported back. */
-    NOTIFY_STARTED(STARTED, true, EnumSet.of(PROVISIONED), false, EnumSet.noneOf(DataFlowStates.class)),
-    SUSPEND(SUSPENDED, false, EnumSet.of(STARTED), false, EnumSet.noneOf(DataFlowStates.class)),
-    COMPLETE(COMPLETED, false, EnumSet.of(STARTED), true, EnumSet.noneOf(DataFlowStates.class)),
-    TERMINATE(TERMINATED, false, EnumSet.of(PROVISIONED, STARTED, SUSPENDED), false, EnumSet.noneOf(DataFlowStates.class));
+    PREPARE(PROVISIONED, true, EnumSet.noneOf(DataFlowStates.class)),
+    /** Starts a new or prepared flow, and resumes a suspended one. */
+    START(STARTED, true, EnumSet.of(PROVISIONED, SUSPENDED)),
+    /** The control plane's own started notification to this data plane; unlike {@link #START} it resumes nothing. */
+    NOTIFY_STARTED(STARTED, true, EnumSet.of(PROVISIONED)),
+    SUSPEND(SUSPENDED, false, EnumSet.of(STARTED)),
+    COMPLETE(COMPLETED, false, EnumSet.of(STARTED)),
+    TERMINATE(TERMINATED, false, EnumSet.of(PROVISIONED, STARTED, SUSPENDED));
 
     private final DataFlowStates targetState;
     private final boolean legalFromUnknownFlow;
     private final Set<DataFlowStates> legalPredecessors;
-    private final boolean reported;
-    private final Set<DataFlowStates> unreportedPredecessors;
 
-    DataFlowTransition(DataFlowStates targetState, boolean legalFromUnknownFlow, Set<DataFlowStates> legalPredecessors,
-                        boolean reported, Set<DataFlowStates> unreportedPredecessors) {
+    DataFlowTransition(DataFlowStates targetState, boolean legalFromUnknownFlow, Set<DataFlowStates> legalPredecessors) {
         this.targetState = targetState;
         this.legalFromUnknownFlow = legalFromUnknownFlow;
         this.legalPredecessors = legalPredecessors;
-        this.reported = reported;
-        this.unreportedPredecessors = unreportedPredecessors;
     }
 
     /**
@@ -92,21 +82,6 @@ public enum DataFlowTransition {
      */
     public DataFlowStates targetState() {
         return targetState;
-    }
-
-    /**
-     * @return whether landing on {@link #targetState()} is, as a rule, reported to the control plane
-     */
-    public boolean isReported() {
-        return reported;
-    }
-
-    /**
-     * @param previousState the state the flow left, or empty for a flow id never seen before
-     * @return whether landing on {@link #targetState()} from {@code previousState} is reported to the control plane
-     */
-    public boolean isReportedFrom(Optional<DataFlowStates> previousState) {
-        return reported && previousState.map(state -> !unreportedPredecessors.contains(state)).orElse(true);
     }
 
     /**

@@ -45,10 +45,10 @@ public interface DataFlowStateStore {
      *
      * @param flowId     the flow's process ID
      * @param transition the transition to apply
-     * @return the state the flow holds afterwards and whether this call changed it
+     * @return the state the flow holds afterwards
      * @throws XrdRuntimeException if the transition is illegal from the flow's current state; nothing is written
      */
-    DataFlowTransitionOutcome apply(String flowId, DataFlowTransition transition);
+    DataFlowStates apply(String flowId, DataFlowTransition transition);
 
     /**
      * Finds the current state of a flow.

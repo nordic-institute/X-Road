@@ -48,7 +48,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
-import org.niis.xroad.proxy.controlplane.DataPlaneLifecycleRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -61,14 +60,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -93,8 +86,6 @@ class XRoadDataPlaneManagerTest {
     private ProxyProperties proxyProperties;
     @Mock
     private AgreementGrantRpcClient grantRpcClient;
-    @Mock
-    private DataPlaneLifecycleRpcClient lifecycleReportClient;
 
     private AgreementTokenKeyMaterial keyMaterial;
     private TestAgreementTokenKeyProvider keyProvider;
@@ -118,7 +109,7 @@ class XRoadDataPlaneManagerTest {
         agreementTokenIssuer = new AgreementTokenIssuer(grantRpcClient, serverConfProvider, keyMaterial, TOKEN_PROPERTIES);
         flowStateStore = new InMemoryDataFlowStateStore();
         manager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties, flowStateStore,
-                agreementTokenIssuer, lifecycleReportClient);
+                agreementTokenIssuer);
     }
 
     @Test
@@ -185,8 +176,6 @@ class XRoadDataPlaneManagerTest {
                 .build());
 
         var result = manager.started("flow-9");
-
-        verify(lifecycleReportClient, never()).reportState("flow-9", DataFlowStates.STARTED);
 
         assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
         assertThat(result.getDataAddress()).isNull();
@@ -260,44 +249,12 @@ class XRoadDataPlaneManagerTest {
         assertThat(manager.state("unknown")).isEqualTo(DataFlowStates.FAILED);
     }
 
-    @Test
-    void prepareReportsPreparedStateToControlPlane() {
-        manager.prepare(buildPrepareMessage("flow-report-prepare"));
 
-        verify(lifecycleReportClient).reportState("flow-report-prepare", DataFlowStates.PROVISIONED);
-    }
+
+
 
     @Test
-    void startReportsStartedStateToControlPlane() {
-        manager.start(buildStartMessage("flow-report-start"));
-
-        verify(lifecycleReportClient).reportState("flow-report-start", DataFlowStates.STARTED);
-    }
-
-    @Test
-    void startOnASuspendedFlowIsNotReportedWhetherItIsAResumeOrALateRetryOfTheOriginalStart() {
-        manager.start(buildStartMessage("flow-report-resume"));
-        manager.suspend("flow-report-resume", "maintenance");
-
-        manager.start(buildStartMessage("flow-report-resume"));
-
-        assertThat(manager.state("flow-report-resume")).isEqualTo(DataFlowStates.STARTED);
-        verify(lifecycleReportClient, times(1)).reportState("flow-report-resume", DataFlowStates.STARTED);
-    }
-
-    @Test
-    void startAfterAResumeIsReportedOnlyOnceOverall() {
-        manager.start(buildStartMessage("flow-report-after-resume"));
-        manager.suspend("flow-report-after-resume", "maintenance");
-        manager.start(buildStartMessage("flow-report-after-resume"));
-
-        manager.start(buildStartMessage("flow-report-after-resume"));
-
-        verify(lifecycleReportClient, times(1)).reportState(anyString(), any());
-    }
-
-    @Test
-    void repeatedStartIsAnsweredLikeTheOriginalButNotReportedAgain() {
+    void repeatedStartIsAnsweredLikeTheOriginal() {
         var first = manager.start(buildStartMessage("flow-retry-start"));
 
         var retry = manager.start(buildStartMessage("flow-retry-start"));
@@ -305,11 +262,10 @@ class XRoadDataPlaneManagerTest {
         assertThat(retry.getState()).isEqualTo(first.getState());
         assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
         assertThat(manager.state("flow-retry-start")).isEqualTo(DataFlowStates.STARTED);
-        verify(lifecycleReportClient, times(1)).reportState("flow-retry-start", DataFlowStates.STARTED);
     }
 
     @Test
-    void repeatedPrepareIsAnsweredLikeTheOriginalButNotReportedAgain() {
+    void repeatedPrepareIsAnsweredLikeTheOriginal() {
         var first = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
 
         var retry = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
@@ -317,7 +273,6 @@ class XRoadDataPlaneManagerTest {
         assertThat(retry.getState()).isEqualTo(first.getState());
         assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
         assertThat(manager.state("flow-retry-prepare")).isEqualTo(DataFlowStates.PROVISIONED);
-        verify(lifecycleReportClient, times(1)).reportState("flow-retry-prepare", DataFlowStates.PROVISIONED);
     }
 
     @Test
@@ -332,60 +287,23 @@ class XRoadDataPlaneManagerTest {
 
         assertThat(manager.state("flow-retry-complete")).isEqualTo(DataFlowStates.COMPLETED);
         assertThat(manager.state("flow-retry-terminate")).isEqualTo(DataFlowStates.TERMINATED);
-        verify(lifecycleReportClient, times(1)).reportState("flow-retry-complete", DataFlowStates.COMPLETED);
     }
 
     @Test
-    void transitionRejectedByTheStoreIsNotReported() {
+    void startRejectedByTheStoreFailsTheSignal() {
         var racedStore = mock(DataFlowStateStore.class);
         when(racedStore.apply("flow-raced", DataFlowTransition.START))
                 .thenThrow(DataFlowTransition.START.illegalFrom(Optional.of(DataFlowStates.TERMINATED)));
         var racedManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties,
-                racedStore, agreementTokenIssuer, lifecycleReportClient);
+                racedStore, agreementTokenIssuer);
 
         assertThatThrownBy(() -> racedManager.start(buildStartMessage("flow-raced")))
                 .isInstanceOf(XrdRuntimeException.class);
-
-        verifyNoInteractions(lifecycleReportClient);
     }
 
-    @Test
-    void completedReportsCompletedStateToControlPlane() {
-        manager.start(buildStartMessage("flow-report-complete"));
 
-        manager.completed("flow-report-complete");
 
-        verify(lifecycleReportClient).reportState("flow-report-complete", DataFlowStates.COMPLETED);
-    }
 
-    @Test
-    void suspendDoesNotReportAnyState() {
-        manager.start(buildStartMessage("flow-report-suspend"));
-
-        manager.suspend("flow-report-suspend", "maintenance");
-
-        verify(lifecycleReportClient, times(1)).reportState(anyString(), any());
-    }
-
-    @Test
-    void terminateDoesNotReportAnyState() {
-        manager.start(buildStartMessage("flow-report-terminate"));
-
-        manager.terminate("flow-report-terminate");
-
-        verify(lifecycleReportClient, times(1)).reportState(anyString(), any());
-    }
-
-    @Test
-    void reportingFailureDoesNotFailTheSignalingOperation() {
-        doThrow(new RuntimeException("control plane unreachable"))
-                .when(lifecycleReportClient).reportState(anyString(), any());
-
-        var result = manager.start(buildStartMessage("flow-report-failure"));
-
-        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
-        assertThat(manager.state("flow-report-failure")).isEqualTo(DataFlowStates.STARTED);
-    }
 
     @Test
     void startAndPrepareCarryAuthorizationTokenWhenGrantAndLiveAclMatch() {
@@ -461,7 +379,7 @@ class XRoadDataPlaneManagerTest {
     @Test
     void flowStartedOnOneNodeIsVisibleOnAnotherNodeSharingTheStore() {
         var otherNodeManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
-                proxyProperties, flowStateStore, agreementTokenIssuer, lifecycleReportClient);
+                proxyProperties, flowStateStore, agreementTokenIssuer);
 
         manager.start(buildStartMessage("flow-shared"));
 
@@ -472,7 +390,7 @@ class XRoadDataPlaneManagerTest {
     void lifecycleTransitionOnOneNodeUpdatesTheSharedRecordSeenByAnother() {
         var nodeA = manager;
         var nodeB = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
-                proxyProperties, flowStateStore, agreementTokenIssuer, lifecycleReportClient);
+                proxyProperties, flowStateStore, agreementTokenIssuer);
 
         nodeA.start(buildStartMessage("flow-cluster"));
         assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowStates.STARTED);
@@ -541,11 +459,10 @@ class XRoadDataPlaneManagerTest {
         private final ConcurrentHashMap<String, DataFlowStates> states = new ConcurrentHashMap<>();
 
         @Override
-        public DataFlowTransitionOutcome apply(String flowId, DataFlowTransition transition) {
-            var stateBefore = Optional.ofNullable(states.get(flowId));
-            var stateAfter = transition.apply(stateBefore);
+        public DataFlowStates apply(String flowId, DataFlowTransition transition) {
+            var stateAfter = transition.apply(Optional.ofNullable(states.get(flowId)));
             states.put(flowId, stateAfter);
-            return new DataFlowTransitionOutcome(stateBefore, stateAfter);
+            return stateAfter;
         }
 
         @Override

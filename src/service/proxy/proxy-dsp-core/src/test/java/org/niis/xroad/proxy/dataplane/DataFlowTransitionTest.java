@@ -77,11 +77,10 @@ class DataFlowTransitionTest {
     }
 
     @Test
-    void notifyStartedIsLegalFromUnknownProvisionedOrStartedAndIsNotReported() {
+    void notifyStartedIsLegalFromUnknownProvisionedOrStarted() {
         assertThat(NOTIFY_STARTED.apply(Optional.empty())).isEqualTo(STARTED);
         assertThat(NOTIFY_STARTED.apply(Optional.of(PROVISIONED))).isEqualTo(STARTED);
         assertThat(NOTIFY_STARTED.apply(Optional.of(STARTED))).isEqualTo(STARTED);
-        assertThat(NOTIFY_STARTED.isReported()).isFalse();
 
         assertIllegal(NOTIFY_STARTED, SUSPENDED);
         assertIllegal(NOTIFY_STARTED, COMPLETED);
@@ -142,34 +141,8 @@ class DataFlowTransitionTest {
         }
     }
 
-    @Test
-    void reportedFlagMatchesTheDataFlowTable() {
-        assertThat(PREPARE.isReported()).isTrue();
-        assertThat(START.isReported()).isTrue();
-        assertThat(COMPLETE.isReported()).isTrue();
-        assertThat(NOTIFY_STARTED.isReported()).isFalse();
-        assertThat(SUSPEND.isReported()).isFalse();
-        assertThat(TERMINATE.isReported()).isFalse();
-    }
 
-    @Test
-    void startIsReportedExceptWhenItResumesASuspendedFlow() {
-        assertThat(START.isReportedFrom(Optional.empty())).isTrue();
-        assertThat(START.isReportedFrom(Optional.of(PROVISIONED))).isTrue();
-        assertThat(START.isReportedFrom(Optional.of(STARTED))).isTrue();
-        assertThat(START.isReportedFrom(Optional.of(SUSPENDED))).isFalse();
-    }
 
-    @ParameterizedTest
-    @EnumSource(DataFlowTransition.class)
-    void isReportedFromNeverReportsMoreThanTheTableFlag(DataFlowTransition transition) {
-        assertThat(transition.isReportedFrom(Optional.empty())).isEqualTo(transition.isReported());
-        for (var state : DataFlowStates.values()) {
-            if (transition.isReportedFrom(Optional.of(state))) {
-                assertThat(transition.isReported()).isTrue();
-            }
-        }
-    }
 
     private static boolean applies(DataFlowTransition transition, Optional<DataFlowStates> from) {
         try {
