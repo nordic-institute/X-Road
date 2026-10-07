@@ -6,8 +6,8 @@ HTTP 200
 # Log in to the Central Server
 POST https://{{cs_host}}:4000/login
 [FormParams]
-username: xrd
-password: secret123!
+username: {{ui_username}}
+password: {{ui_password}}
 
 HTTP 200
 [Captures]
@@ -18,7 +18,7 @@ POST https://{{cs_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
-  "software_token_pin": "Secret1234",
+  "software_token_pin": "{{token_pin}}",
   "instance_identifier": "{{xroad_instance}}",
   "central_server_address": "{{cs_host}}"
 }
@@ -60,7 +60,7 @@ PUT https://{{cs_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
-  "password": "Secret1234"
+  "password": "{{token_pin}}"
 }
 
 HTTP *
@@ -279,8 +279,8 @@ HTTP 200
 POST https://{{ss0_host}}:4000/api/v1/initialization/admin-user
 Content-Type: application/json
 {
-  "username": "xrd",
-  "password": "secret123!"
+  "username": "{{ui_username}}",
+  "password": "{{ui_password}}"
 }
 HTTP *
 [Asserts]
@@ -289,8 +289,8 @@ status toString matches "^(201|409)$"
 # Log in to the Security Server
 POST https://{{ss0_host}}:4000/login
 [FormParams]
-username: xrd
-password: secret123!
+username: {{ui_username}}
+password: {{ui_password}}
 
 HTTP 200
 [Captures]
@@ -312,7 +312,7 @@ Content-Type: application/json
   "owner_member_class": "{{member_class}}",
   "owner_member_code": "{{ss0_member_code}}",
   "security_server_code": "SS0",
-  "software_token_pin": "Secret1234",
+  "software_token_pin": "{{token_pin}}",
   "ignore_warnings": true
 }
 
@@ -323,7 +323,7 @@ PUT https://{{ss0_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
-  "password": "Secret1234"
+  "password": "{{token_pin}}"
 }
 
 HTTP *
@@ -711,8 +711,8 @@ HTTP 200
 POST https://{{ss1_host}}:4000/api/v1/initialization/admin-user
 Content-Type: application/json
 {
-  "username": "xrd",
-  "password": "secret123!"
+  "username": "{{ui_username}}",
+  "password": "{{ui_password}}"
 }
 HTTP *
 [Asserts]
@@ -721,8 +721,8 @@ status toString matches "^(201|409)$"
 # Log in to the Security Server
 POST https://{{ss1_host}}:4000/login
 [FormParams]
-username: xrd
-password: secret123!
+username: {{ui_username}}
+password: {{ui_password}}
 
 HTTP 200
 [Captures]
@@ -744,7 +744,7 @@ Content-Type: application/json
   "owner_member_class": "{{member_class}}",
   "owner_member_code": "{{ss1_member_code}}",
   "security_server_code": "SS1",
-  "software_token_pin": "Secret1234",
+  "software_token_pin": "{{token_pin}}",
   "ignore_warnings": true
 }
 
@@ -755,7 +755,7 @@ PUT https://{{ss1_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
-  "password": "Secret1234"
+  "password": "{{token_pin}}"
 }
 
 HTTP *
@@ -890,7 +890,7 @@ PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
-  "password": "Secret1234"
+  "password": "{{token_pin}}"
 }
 
 HTTP *

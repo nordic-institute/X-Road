@@ -2,8 +2,8 @@
 POST https://{{ss0_host}}:4000/api/v1/initialization/admin-user
 Content-Type: application/json
 {
-  "username": "xrd",
-  "password": "secret123!"
+  "username": "{{ui_username}}",
+  "password": "{{ui_password}}"
 }
 HTTP *
 [Asserts]
@@ -12,8 +12,8 @@ status toString matches "^(201|409)$"
 # Log in to the Security Server
 POST https://{{ss0_host}}:4000/login
 [FormParams]
-username: xrd
-password: secret123!
+username: {{ui_username}}
+password: {{ui_password}}
 
 HTTP 200
 [Captures]
