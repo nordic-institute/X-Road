@@ -92,4 +92,11 @@
         </sql>
     </changeSet>
 
+    <changeSet id="operational-testdata-sequence" author="xroad">
+        <comment>Move the record id sequence past the explicit ids of the test data, as 6-restart-sequence does</comment>
+        <sql splitStatements="false">
+            SELECT setval('hibernate_sequence', MAX(id) + 1) FROM operational_data;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

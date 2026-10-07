@@ -1498,7 +1498,7 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 HTTP 201
 
 # =============================================================================
-# DSP readiness gates (LAST): block until each SS's HOST and MEMBER participant
+# DSP readiness gates (LAST): block until each SS's MEMBER participant
 # context membership credentials reach ISSUED. Placed at the end so all core
 # X-Road setup (both SSes, certs, clients, services) completes first — proxy
 # readiness does not depend on DSP convergence. The credentials converge
@@ -1519,8 +1519,8 @@ retry-interval: 5000
 
 HTTP 200
 [Asserts]
-jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
 jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.kind == 'SYSTEM')].credential_status" == "ISSUED"
 
 GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -1530,6 +1530,6 @@ retry-interval: 5000
 
 HTTP 200
 [Asserts]
-jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
 jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss1_member_code}}')].credential_status" == "ISSUED"
 jsonpath "$.participant_contexts[?(@.participant_id == '{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.kind == 'SYSTEM')].credential_status" == "ISSUED"

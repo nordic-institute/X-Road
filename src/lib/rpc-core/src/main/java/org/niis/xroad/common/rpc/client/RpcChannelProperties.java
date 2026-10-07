@@ -27,6 +27,8 @@
 
 package org.niis.xroad.common.rpc.client;
 
+import java.util.Optional;
+
 public interface RpcChannelProperties {
     /**
      * Hostname or IP address of the server
@@ -42,4 +44,11 @@ public interface RpcChannelProperties {
      * Deadline in ms for the RPC call
      */
     int deadlineAfter();
+
+    /**
+     * Maximum inbound message size in bytes. Empty keeps the gRPC default.
+     */
+    default Optional<Integer> maxInboundMessageSize() {
+        return Optional.empty();
+    }
 }

@@ -1,0 +1,19 @@
+Template: xroad-common/service-subject
+Type: string
+Description: Insert TLS certificate subject common name
+ This certificate will be used to secure internal service->secureserver connections.
+ .
+ Include most used hostname or IP address as common name (CN) value.
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/service-altsubject
+Type: string
+Description: Insert TLS certificate subject name alternatives
+ This certificate will be used to secure internal service->secureserver connections.
+ .
+ Include all alternative names and IP addresses which will be used for accessing secure services
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}

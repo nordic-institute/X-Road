@@ -53,7 +53,6 @@
         tasks_from: render_values.yml
       vars:
         security_server_namespace: "{{ render_ss_item.namespace }}"
-        dsp_participant_context_id: "{{ render_ss_item.dsp_participant_context_id | default('') }}"
         signer_hsm_enabled: "{{ render_ss_item.signer_hsm_enabled | default(false) }}"
         softtoken_signer_enabled: "{{ render_ss_item.softtoken_signer_enabled | default(false) }}"
         messagelog_encryption_config: "{{ render_ss_item.messagelog_encryption_config | default('') }}"

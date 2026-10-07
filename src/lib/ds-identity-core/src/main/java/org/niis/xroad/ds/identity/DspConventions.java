@@ -60,13 +60,6 @@ public class DspConventions {
     public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
 
     /**
-     * Suffix appended to the host participant context id for the legacy management companion
-     * context. Applies to context ids only; the DID form is {@link ParticipantIdentifierScheme#managementDid}.
-     * Interim: dies with the SYSTEM-context migration.
-     */
-    public static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
-
-    /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
      * and their DID documents served, at the ecosystem-wide {@link #DID_PORT}. This is the form
      * every counter-party derives from GlobalConf alone.

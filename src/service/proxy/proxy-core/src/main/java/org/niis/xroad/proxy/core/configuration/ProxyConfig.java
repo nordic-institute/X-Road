@@ -52,6 +52,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -61,7 +62,10 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorStoreClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
@@ -79,10 +83,7 @@ import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -246,21 +247,25 @@ class ProxyConfig {
         @ApplicationScoped
         OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
                                               ProxyProperties proxyProperties,
-                                              VaultClient vaultClient)
-                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-                       InvalidKeySpecException, KeyManagementException {
+                                              RpcChannelFactory rpcChannelFactory,
+                                              XRoadConfig xRoadConfig) {
 
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
-                var opMonitoringBuffer = new OpMonitoringBufferImpl(
-                        serverConfProvider, proxyProperties.addon().opMonitor(), vaultClient,
-                        proxyProperties.clientProxy().poolEnableConnectionReuse());
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(serverConfProvider, proxyProperties.addon().opMonitor(),
+                        () -> new OpMonitorStoreClient(() -> createOpMonitorClient(rpcChannelFactory, xRoadConfig)));
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {
                 log.debug("Initializing NoOpMonitoringBuffer");
                 return new NoOpMonitoringBuffer();
             }
+        }
+
+        private static OpMonitorClient createOpMonitorClient(RpcChannelFactory rpcChannelFactory, XRoadConfig xRoadConfig) {
+            var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(xRoadConfig));
+            opMonitorClient.init();
+            return opMonitorClient;
         }
 
         public void cleanup(@Disposes OpMonitoringBuffer opMonitoringBuffer) {

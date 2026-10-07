@@ -62,13 +62,14 @@ public final class RpcChannelFactory {
 
         final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-client-" + port + "-nio-worker", true);
 
-        return NettyChannelBuilder.forAddress(host, port, credentials)
+        var builder = NettyChannelBuilder.forAddress(host, port, credentials)
                 .executor(ForkJoinPool.commonPool())
                 .channelType(NioSocketChannel.class)
                 .channelFactory(NioSocketChannel::new)
                 .eventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
-                .intercept(timeoutInterceptor)
-                .build();
+                .intercept(timeoutInterceptor);
+        channelProperties.maxInboundMessageSize().ifPresent(builder::maxInboundMessageSize);
+        return builder.build();
     }
 
 }

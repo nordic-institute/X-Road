@@ -26,93 +26,51 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.JsonUtils;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.TimeUtils;
-
+import com.google.protobuf.CodedOutputStream;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
-import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import tools.jackson.databind.ObjectReader;
+import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
+import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse.STATUS_ERROR;
-import static org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse.STATUS_OK;
-
 /**
- * Actor for sending operational data to the operational monitoring daemon. This actor is used by the
- * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
+ * Sends operational data gathered in the OpMonitoringBuffer to the operational monitoring daemon.
  */
 @Slf4j
 public class OpMonitoringDaemonSender {
+    private static final int RECORDS_FIELD_NUMBER = StoreOperationalDataReq.RECORDS_FIELD_NUMBER;
 
-    private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
-
-    private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
-    private final ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties;
-    private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
-    private final VaultClient vaultClient;
-    private final CloseableHttpClient httpClient;
-    private final boolean isEnabledPooledConnectionReuse;
+    private final OperationalDataStoreClient storeClient;
+    private final int maxMessageSize;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider,
-                             OpMonitoringBuffer opMonitoringBuffer,
-                             ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
-                             VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-        this.serverConfProvider = serverConfProvider;
+    OpMonitoringDaemonSender(OpMonitoringBuffer opMonitoringBuffer, OperationalDataStoreClient storeClient,
+                             int maxMessageSize) {
         this.opMonitoringBuffer = opMonitoringBuffer;
-        this.opMonitorProperties = opMonitorProperties;
-        this.vaultClient = vaultClient;
-        this.isEnabledPooledConnectionReuse = isEnabledPooledConnectionReuse;
-
-        this.httpClient = createHttpClient();
+        this.storeClient = storeClient;
+        this.maxMessageSize = maxMessageSize;
     }
 
     void sendMessage(final List<OpMonitoringData> dataToProcess) {
         executorService.execute(() -> {
-            try {
-                processing.set(true);
-                var json = opMonitoringDataProcessor.prepareMonitoringMessage(dataToProcess);
-                log.trace("onReceive: {}", json);
-
-                send(json);
-
-                processing.set(false);
+            processing.set(true);
+            List<OpMonitoringData> undelivered = deliver(dataToProcess);
+            processing.set(false);
+            if (undelivered.isEmpty()) {
                 opMonitoringBuffer.sendingSuccess(dataToProcess.size());
-            } catch (Exception e) {
-                log.error("Sending operational monitoring data failed", e);
-                processing.set(false);
-                opMonitoringBuffer.sendingFailure(dataToProcess);
+            } else {
+                opMonitoringBuffer.sendingFailure(undelivered);
             }
         });
     }
@@ -121,60 +79,84 @@ public class OpMonitoringDaemonSender {
         return Boolean.FALSE.equals(processing.get());
     }
 
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    private void send(String json) throws Exception {
-        try (HttpSender sender = new HttpSender(httpClient, isEnabledPooledConnectionReuse)) {
-            sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorProperties.buffer().connectionTimeoutSeconds()));
-            sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorProperties.buffer().socketTimeoutSeconds()));
-
-            sender.doPost(getAddress(), json, MimeTypes.JSON);
-
-            String responseJson = IOUtils.toString(sender.getResponseContent(), MimeUtils.UTF8);
-            StoreOpMonitoringDataResponse response;
-
+    private List<OpMonitoringData> deliver(List<OpMonitoringData> data) {
+        Deque<List<Item>> pending;
+        try {
+            pending = splitByMessageSize(data.stream().map(Item::of).toList());
+        } catch (Exception e) {
+            log.error("Preparing operational monitoring data failed", e);
+            return data;
+        }
+        while (!pending.isEmpty()) {
+            var chunk = pending.peekFirst();
+            OperationalDataStoreClient.Result result;
             try {
-                response = OBJECT_READER.forType(StoreOpMonitoringDataResponse.class).readValue(responseJson);
+                result = storeClient.store(chunk.stream().map(Item::proto).toList());
             } catch (Exception e) {
-                throw new Exception("Received invalid response: " + responseJson);
+                log.error("Sending operational monitoring data failed", e);
+                return undelivered(pending);
             }
-
-            if (STATUS_OK.equals(response.getStatus())) {
-                log.trace("Received OK response");
-
-                return;
-            }
-
-            if (STATUS_ERROR.equals(response.getStatus())) {
-                throw new Exception("Received error response" + (StringUtils.isBlank(response.getErrorMessage())
-                        ? "" : ": " + response.getErrorMessage()));
-            } else {
-                throw new Exception("Received invalid response: " + responseJson);
+            pending.removeFirst();
+            if (result == OperationalDataStoreClient.Result.TOO_LARGE) {
+                splitOrDrop(chunk, pending);
             }
         }
+        return List.of();
     }
 
-    private URI getAddress() throws URISyntaxException {
-        return new URI(opMonitorProperties.connection().scheme(), null,
-                opMonitorProperties.connection().host(), opMonitorProperties.connection().port(),
-                OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
+    private static void splitOrDrop(List<Item> chunk, Deque<List<Item>> pending) {
+        if (chunk.size() == 1) {
+            logDroppedRecord(chunk.getFirst());
+            return;
+        }
+        log.warn("op-monitor rejected {} operational monitoring records as too large, retrying in two halves", chunk.size());
+        int half = chunk.size() / 2;
+        pending.addFirst(chunk.subList(half, chunk.size()));
+        pending.addFirst(chunk.subList(0, half));
     }
 
-    CloseableHttpClient createHttpClient()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-        return OpMonitoringDaemonHttpClient.createHttpClient(
-                opMonitorProperties.connection(), serverConfProvider.getSSLKey(), vaultClient,
-                1, 1,
-                TimeUtils.secondsToMillis(opMonitorProperties.buffer().connectionTimeoutSeconds()),
-                TimeUtils.secondsToMillis(opMonitorProperties.buffer().socketTimeoutSeconds()));
+    private static void logDroppedRecord(Item item) {
+        var proto = item.proto();
+        log.error("op-monitor rejected one operational monitoring record as too large even when sent alone; the record is"
+                        + " dropped and not retried (record size {} bytes, securityServerType {}, requestInTs {}, messageId {},"
+                        + " xRequestId {}, serviceCode {}). Every valid record fits the smallest accepted"
+                        + " xroad.op-monitor.rpc.max-inbound-message-size, so check op-monitor's inbound message size limit",
+                item.size(), proto.getSecurityServerType(), proto.getRequestInTs(), proto.getMessageId(),
+                proto.getXRequestId(), proto.getServiceCode());
+    }
+
+    private Deque<List<Item>> splitByMessageSize(List<Item> items) {
+        Deque<List<Item>> chunks = new ArrayDeque<>();
+        List<Item> chunk = new ArrayList<>();
+        int chunkSize = 0;
+        for (Item item : items) {
+            if (!chunk.isEmpty() && chunkSize + item.size() > maxMessageSize) {
+                chunks.addLast(chunk);
+                chunk = new ArrayList<>();
+                chunkSize = 0;
+            }
+            chunk.add(item);
+            chunkSize += item.size();
+        }
+        if (!chunk.isEmpty()) {
+            chunks.addLast(chunk);
+        }
+        return chunks;
+    }
+
+    private static List<OpMonitoringData> undelivered(Deque<List<Item>> pending) {
+        return pending.stream().flatMap(List::stream).map(Item::data).toList();
+    }
+
+    private record Item(OpMonitoringData data, OperationalDataRecordProto proto, int size) {
+        static Item of(OpMonitoringData data) {
+            var proto = data.toProto();
+            return new Item(data, proto, CodedOutputStream.computeMessageSize(RECORDS_FIELD_NUMBER, proto));
+        }
     }
 
     public void destroy() {
         executorService.shutdown();
-
-        if (httpClient != null) {
-            IOUtils.closeQuietly(httpClient);
-        }
+        storeClient.close();
     }
-
 }

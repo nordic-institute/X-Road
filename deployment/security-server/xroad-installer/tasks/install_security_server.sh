@@ -16,7 +16,6 @@ XROAD_TLS_ALT_NAMES="${XROAD_TLS_ALT_NAMES:-}"
 XROAD_PROXY_MEM_SETTING="${XROAD_PROXY_MEM_SETTING:-}"
 
 # Helper to set debconf selections
-# Helper to set debconf selections
 set_debconf() {
   local package="$1"
   local key="$2"
@@ -24,6 +23,14 @@ set_debconf() {
   local value="$4"
   echo "$package $key $type $value" | debconf-set-selections
   log_info "$key value set."
+}
+
+# Ensure debconf-utils is installed for debconf-set-selections
+ensure_debconf_utils() {
+  if ! command -v debconf-set-selections >/dev/null; then
+    log_message "Installing debconf-utils..."
+    apt-get update && apt-get install -y debconf-utils
+  fi
 }
 
 # Apply proxy memory settings using the local helper script (before package installation)
@@ -56,11 +63,7 @@ install_security_server_ubuntu() {
   log_message "Package to install: $XROAD_SS_PACKAGE"
   log_message ""
 
-  # Ensure debconf-utils is installed for debconf-set-selections
-  if ! command -v debconf-set-selections >/dev/null; then
-    log_message "Installing debconf-utils..."
-    apt-get update && apt-get install -y debconf-utils
-  fi
+  ensure_debconf_utils
 
   log_message "Preseeding configuration..."
   
