@@ -32,8 +32,10 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.common.base.Ticker;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -76,6 +79,9 @@ class CachingStoreTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
+    @Mock
+    private ParticipantContextService participantContextService;
+
     private StoreEnumerationCache<Asset> noCache;
     private StoreEnumerationCache<Asset> withCache;
     private ServiceContextResolver serviceContextResolver;
@@ -85,9 +91,12 @@ class CachingStoreTest {
     void setUp() {
         noCache = new StoreEnumerationCache<>(false, 60, 1000, "test");
         withCache = new StoreEnumerationCache<>(true, 3600, 1000, "test");
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        lenient().when(participantContextService.getParticipantContext(any()))
+                .thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 CONTEXT_IDS,
-                globalConfProvider, serverConfProvider);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
     }
 

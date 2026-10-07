@@ -190,11 +190,10 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
     private List<ContractDefinition> buildContractDefinitionList() {
         var definitions = new ArrayList<ContractDefinition>();
-        var localClients = serverConfProvider.getMembers();
-        var hostedMemberContextIds = serviceContextResolver.hostedMemberContextIds(localClients);
-        for (var member : localClients) {
+        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
+        for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                collectContractDefinitionsForService(serviceId, definitions, hostedMemberContextIds);
+                collectContractDefinitionsForService(serviceId, definitions, provisionedMemberContextIds);
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -265,7 +264,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
      * context the service is published under.
      */
     private void collectContractDefinitionsForService(ServiceId serviceId, List<ContractDefinition> definitions,
-                                                       Set<String> hostedMemberContextIds) {
+                                                       Set<String> provisionedMemberContextIds) {
         definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                 serviceId, contextIds.management()));
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
@@ -283,7 +282,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, hostedMemberContextIds));
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
         if (systemEligible) {
             resolvedContexts.add(contextIds.system());
         }

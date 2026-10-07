@@ -11,6 +11,7 @@ dependencies {
   implementation(libs.edc.spi.policy.engine)
   implementation(libs.edc.spi.dataplane.http)
   implementation(libs.edc.spi.web)
+  implementation(libs.edc.spi.participantcontext)
 
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:globalconf-core"))

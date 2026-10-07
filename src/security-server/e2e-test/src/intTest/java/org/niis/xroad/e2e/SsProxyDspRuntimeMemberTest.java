@@ -49,7 +49,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -108,13 +107,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * record itself is not directly observable; the registration mechanics are covered by
  * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests.
  *
- * <p><b>Discoverable from the moment of registration.</b> The new member's DID is resolved as soon as ss0
- * reports its client REGISTERED, before provisioning is awaited. A registered member always resolves to a
- * document naming it: the synthesised keyless one or, once the REGISTERED nudge has provisioned the
- * context, the keyed one. Which of the two is observed is a race the nudge usually wins within seconds,
- * so the keyless shape and its {@code Cache-Control: no-store} are pinned by the identity hub's
- * {@code RegisteredMemberDidDocumentFilterTest}, not here. After the membership credential is ISSUED the
- * document is resolved again and must carry verification keys. Both resolutions go through
+ * <p><b>Resolvable once provisioned.</b> After the membership credential is ISSUED, the new member's DID
+ * must resolve to a document naming it and carrying verification keys. Resolution goes through
  * {@link DidResolutionOps}, from inside the environment, because the hub serves a document only at the
  * DID's registered authority.
  *
@@ -264,9 +258,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         then("the Central Server approves the pending request and ss0 reports the new client as REGISTERED", () ->
                 awaitClientRegistered(ss0BaseUrl, ss0Session, csBaseUrl, csSession, clientId));
 
-        and("the new member's DID resolves the moment it is REGISTERED, before provisioning is awaited", () ->
-                awaitDidDocument(env, didResolution, document -> true));
-
         var backendUrl = and("the backend URL of ss0's existing TestService mock1 service is discovered", () ->
                 discoverBackendUrl(ss0BaseUrl, ss0Session, EXISTING_SERVICE_ID));
 
@@ -284,7 +275,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 awaitMemberContextIssued(ss0BaseUrl, ss0Session));
 
         and("the new member's DID now resolves with verification keys", () ->
-                awaitDidDocument(env, didResolution, SsProxyDspRuntimeMemberTest::hasVerificationKeys));
+                awaitKeyedDidDocument(env, didResolution));
 
         var response = when(
                 "a REST request from the established consumer to the new client's service succeeds via the ss0 proxy, "
@@ -619,12 +610,11 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Polls until the new member's DID resolves (never the empty 204 an unknown DID gets) to a document
-     * satisfying {@code ready}, then checks it names the member. Polled because the hub reads the same
-     * GlobalConf the status flip came from but reloads it on its own cycle, and publishes the keyed
-     * document on its own schedule once the participant context exists.
+     * Polls until the new member's DID resolves to a document carrying verification keys, then checks it
+     * names the member. Polled because the hub publishes the keyed document on its own schedule once the
+     * participant context exists.
      */
-    private void awaitDidDocument(E2eEnvironment env, DidResolutionOps didResolution, Predicate<DidDocumentResponse> ready) {
+    private void awaitKeyedDidDocument(E2eEnvironment env, DidResolutionOps didResolution) {
         var did = newMemberDid(env);
         var last = new AtomicReference<DidDocumentResponse>();
         Awaitility.await()
@@ -634,7 +624,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 .until(() -> {
                     var response = didResolution.resolveDidDocument(SS0_ENV, newMemberDidUrl(env));
                     last.set(response);
-                    return response.status() == 200 && ready.test(response);
+                    return response.status() == 200 && hasVerificationKeys(response);
                 });
         assertThat(JsonPath.from(last.get().body()).getString("id")).as("id of the resolved document").isEqualTo(did);
     }

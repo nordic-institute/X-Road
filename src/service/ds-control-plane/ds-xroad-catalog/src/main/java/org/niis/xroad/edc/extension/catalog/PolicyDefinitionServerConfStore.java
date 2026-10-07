@@ -182,11 +182,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private List<PolicyDefinition> buildPolicyList() {
         var policies = new ArrayList<PolicyDefinition>();
-        var localClients = serverConfProvider.getMembers();
-        var hostedMemberContextIds = serviceContextResolver.hostedMemberContextIds(localClients);
-        for (var member : localClients) {
+        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
+        for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                collectPoliciesForService(serviceId, policies, hostedMemberContextIds);
+                collectPoliciesForService(serviceId, policies, provisionedMemberContextIds);
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -270,7 +269,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
      * service is published under.
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies,
-                                           Set<String> hostedMemberContextIds) {
+                                           Set<String> provisionedMemberContextIds) {
         var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
         policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
                 serviceId.getClientId(), contextIds.management()));
@@ -293,7 +292,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, hostedMemberContextIds));
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
         if (systemEligible) {
             resolvedContexts.add(contextIds.system());
         }

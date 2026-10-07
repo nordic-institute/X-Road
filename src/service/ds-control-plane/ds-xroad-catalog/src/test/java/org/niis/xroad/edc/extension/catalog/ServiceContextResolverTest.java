@@ -30,15 +30,18 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
-import org.niis.xroad.serverconf.model.Client;
 
 import java.util.List;
 import java.util.Set;
@@ -46,6 +49,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,9 +81,12 @@ class ServiceContextResolverTest {
     @Mock
     private ServerConfProvider serverConfProvider;
 
+    @Mock
+    private ParticipantContextService participantContextService;
 
     private ServiceContextResolver resolver() {
-        return new ServiceContextResolver(CONTEXT_IDS, globalConfProvider, serverConfProvider);
+        return new ServiceContextResolver(
+                CONTEXT_IDS, globalConfProvider, serverConfProvider, participantContextService);
     }
 
     @Test
@@ -136,68 +143,77 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void hostedMemberContextIdsCollapsesRegisteredClientsToTheirMembers() {
-        var memberSubsystem = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
-        var savedMember = ClientId.Conf.create("DEV", "COM", "2222");
-        when(serverConfProvider.getMemberStatus(MEMBER)).thenReturn(Client.STATUS_REGISTERED);
-        when(serverConfProvider.getMemberStatus(memberSubsystem)).thenReturn(Client.STATUS_REGISTERED);
-        when(serverConfProvider.getMemberStatus(MGMT_CLIENT)).thenReturn(Client.STATUS_REGISTERED);
-        when(serverConfProvider.getMemberStatus(savedMember)).thenReturn(Client.STATUS_SAVED);
+    void provisionedMemberContextIdsRecognisesThreeSegmentShapeAndExcludesHostAndManagement() {
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(
+                participantContext(MEMBER_CTX), participantContext(HOST_CTX), participantContext(MGMT_CTX))));
 
-        var result = resolver().hostedMemberContextIds(List.of(MEMBER, memberSubsystem, MGMT_CLIENT, savedMember));
+        var result = resolver().provisionedMemberContextIds();
 
-        assertThat(result).containsExactlyInAnyOrder(MEMBER_CTX,
-                ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "COM", "3333")));
+        assertThat(result).containsExactly(MEMBER_CTX);
     }
 
     @Test
-    void hostedMemberContextIdsIncludesAMemberRegisteredOnlyThroughASubsystem() {
-        var memberSubsystem = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
-        when(serverConfProvider.getMemberStatus(memberSubsystem)).thenReturn(Client.STATUS_REGISTERED);
+    void provisionedMemberContextIdsPropagatesWhenSearchFails() {
+        when(participantContextService.search(any())).thenReturn(ServiceResult.unexpected("boom"));
 
-        assertThat(resolver().hostedMemberContextIds(List.of(memberSubsystem))).containsExactly(MEMBER_CTX);
+        assertThatThrownBy(() -> resolver().provisionedMemberContextIds())
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
-    void hostedMemberContextIdsPropagatesWhenServerConfCannotBeRead() {
-        when(serverConfProvider.getMemberStatus(MEMBER)).thenThrow(new IllegalStateException("boom"));
-        var resolver = resolver();
-        var members = List.of(MEMBER);
+    void provisionedMemberContextIdsPropagatesWhenServiceThrows() {
+        when(participantContextService.search(any())).thenThrow(new IllegalStateException("boom"));
 
-        assertThatThrownBy(() -> resolver.hostedMemberContextIds(members))
-                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> resolver().provisionedMemberContextIds())
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
-    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberIsNotHosted() {
-        when(serverConfProvider.getMembers()).thenReturn(List.of());
+    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.notFound("no such context"));
 
-        assertThat(resolver().resolveContextsById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX);
+        var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
+
+        assertThat(result).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveContextsByIdIncludesOwningMemberContextWhenHostedButNotYetProvisioned() {
-        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER));
-        when(serverConfProvider.getMemberStatus(MEMBER)).thenReturn(Client.STATUS_REGISTERED);
+    void resolveContextsByIdIncludesOwningMemberContextWhenProvisioned() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
-        assertThat(resolver().resolveContextsById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX, MEMBER_CTX);
+        var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
+
+        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
 
     @Test
-    void resolveContextsByIdReadsTheStatusOfOnlyTheOwningMembersClients() {
-        when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT, MEMBER));
-        when(serverConfProvider.getMemberStatus(MEMBER)).thenReturn(Client.STATUS_REGISTERED);
+    void resolveContextsByIdDoesNotPerformFullEnumeration() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.notFound("no such context"));
 
-        assertThat(resolver().resolveContextsById(SUBSYSTEM_SERVICE)).containsExactly(HOST_CTX, MEMBER_CTX);
-        verify(serverConfProvider, never()).getMemberStatus(MGMT_CLIENT);
+        resolver().resolveContextsById(SUBSYSTEM_SERVICE);
+
+        verify(participantContextService, never()).search(any());
     }
 
     @Test
-    void resolveContextsByIdPropagatesWhenServerConfCannotBeRead() {
-        when(serverConfProvider.getMembers()).thenThrow(new IllegalStateException("boom"));
+    void resolveContextsByIdPropagatesOnUnexpectedFailure() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.unexpected("boom"));
 
         assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void resolveContextsByIdPropagatesWhenServiceThrows() {
+        when(participantContextService.getParticipantContext(eq(MEMBER_CTX)))
+                .thenThrow(new IllegalStateException("boom"));
+
+        assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
@@ -445,5 +461,12 @@ class ServiceContextResolverTest {
     private void stubEligibleManagementSubsystem() {
         stubLiveManagementSubsystem();
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
+    }
+
+    private static ParticipantContext participantContext(String contextId) {
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId(contextId)
+                .identity("did:web:example.com:v1:" + contextId)
+                .build();
     }
 }

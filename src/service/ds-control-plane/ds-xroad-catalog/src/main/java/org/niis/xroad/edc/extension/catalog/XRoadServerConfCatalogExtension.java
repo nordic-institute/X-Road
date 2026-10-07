@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -91,6 +92,9 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     private GlobalConfProvider globalConfProvider;
 
     @Inject
+    private ParticipantContextService participantContextService;
+
+    @Inject
     private WebService webService;
 
     private CatalogContextIds contextIds;
@@ -141,7 +145,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.info("Store cache enabled={} ttlSeconds={} findByIdMaxSize={}",
                 cacheEnabled, cacheTtlSeconds, cacheFindByIdMaxSize);
 
-        serviceContextResolver = new ServiceContextResolver(contextIds, globalConfProvider, serverConfProvider);
+        serviceContextResolver = new ServiceContextResolver(
+                contextIds, globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
         webService.registerResource(ApiContext.PROTOCOL,
                 new ParticipantContextCaptureFilter(requestedParticipantContext));

@@ -35,7 +35,9 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,7 +49,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
-import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,6 +75,9 @@ class StoreCacheBenchmarkTest {
 
     @Mock
     private GlobalConfProvider globalConfProvider;
+
+    @Mock
+    private ParticipantContextService participantContextService;
 
     @BeforeAll
     static void silenceCatalogLogging() {
@@ -198,9 +204,12 @@ class StoreCacheBenchmarkTest {
 
     private AssetIndexServerConfStore buildStore(ServerConfProvider provider, boolean cacheEnabled) {
         var cache = new StoreEnumerationCache<Asset>(cacheEnabled, 3600, 10000, "bench");
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        lenient().when(participantContextService.getParticipantContext(any()))
+                .thenReturn(ServiceResult.notFound("no such context"));
         var serviceContextResolver = new ServiceContextResolver(
                 CONTEXT_IDS,
-                globalConfProvider, provider);
+                globalConfProvider, provider, participantContextService);
         return new AssetIndexServerConfStore(provider,
                 CONTEXT_IDS,
                 new BuiltinServiceCatalog(provider, false, false, false,
@@ -328,7 +337,7 @@ class StoreCacheBenchmarkTest {
 
         @Override
         public String getMemberStatus(ClientId memberId) {
-            return Client.STATUS_REGISTERED;
+            throw new UnsupportedOperationException();
         }
 
         @Override
