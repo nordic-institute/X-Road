@@ -1,20 +1,16 @@
 ---
-# Pre-seeds values the xroad-centralserver packages must find on disk before
-# their postinst starts a unit for the first time:
-# - XROAD_HOST systemd drop-ins for the TLS certificate common-name. Provisioning
-#   is only-if-absent, so the value must be in place before first start.
-#   TEMPORARY (dataspaces dev): goes once the packages ship an equivalent.
-# - The Issuer Service dev-only trust reload interval in
-#   local-ds-issuer-service.yaml. The xroad-ds-issuer-service postinst merges its
-#   own keys into that same file and skips keys already present, so the file has
-#   to exist before it runs. Permanent dev tuning, independent of packaging.
+# Pre-seeds the Issuer Service dev-only trust reload interval in
+# local-ds-issuer-service.yaml before the xroad-ds-issuer-service postinst runs:
+# the postinst merges its own keys into that same file and skips keys already
+# present, so the file has to exist first. Permanent dev tuning, independent of
+# packaging.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
 # of xroad-cs) before this file runs.
 
 # ---------------------------------------------------------------------------
 # 1. /etc/xroad/conf.d — the packages create it during install; the preseed in
-#    section 3 needs it before that. dpkg leaves pre-existing dirs intact (not a
+#    section 2 needs it before that. dpkg leaves pre-existing dirs intact (not a
 #    conffile). Stays as long as the dev-only tuning below does.
 # ---------------------------------------------------------------------------
 - name: ensure /etc/xroad/conf.d exists for preseeded configs
@@ -26,46 +22,7 @@
     mode: "0755"
 
 # ---------------------------------------------------------------------------
-# 2. TLS certificate host for the vault-provisioned service certs. The cert
-#     common-name resolves from the XROAD_HOST env var (default localhost);
-#     management/registration-service run Jetty with SNI validation, so the SS
-#     connecting to https://<xroad_host_fqdn>:4001 gets "400 Invalid SNI" when the cert
-#     says localhost. Provisioning is only-if-absent, so the env var must be in
-#     place before the package postinst starts the services the first time —
-#     hence systemd drop-ins created pre-install (they apply once the units
-#     appear).
-# ---------------------------------------------------------------------------
-- name: create systemd drop-in dirs for XROAD_HOST
-  file:
-    path: "/etc/systemd/system/{{ item }}.service.d"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-  loop: &cs_xroad_host_units
-    - xroad-center
-    - xroad-center-management-service
-    - xroad-center-registration-service
-
-- name: set XROAD_HOST for CS services (TLS cert common-name)
-  copy:
-    dest: "/etc/systemd/system/{{ item }}.service.d/xroad-host.conf"
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      [Service]
-      Environment=XROAD_HOST={{ xroad_host_fqdn }}
-  loop: *cs_xroad_host_units
-  register: cs_xroad_host_dropins
-
-- name: reload systemd after drop-in changes
-  systemd:
-    daemon_reload: true
-  when: cs_xroad_host_dropins is changed
-
-# ---------------------------------------------------------------------------
-# 3. DS issuer-service dev-only runtime tuning.
+# 2. DS issuer-service dev-only runtime tuning.
 #
 #    xroad.edc.web.https.trust.reload-interval-seconds: see the identical setting in
 #    xroad-ss/tasks/pre-ss-install.yml — the Issuer Service's own outbound self-connect trust needs
