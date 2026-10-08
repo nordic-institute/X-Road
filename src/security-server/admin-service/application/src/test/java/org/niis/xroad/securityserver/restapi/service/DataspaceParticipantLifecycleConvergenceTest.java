@@ -50,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProv
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
@@ -126,7 +127,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
         bindingTable.wireOnto(dsParticipantRepository);
         givenServerOwnedBy(OWNER);
 
-        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(
+                new AdminOwnServerIdentitySource(serverConfRepository), globalConfProvider);
         var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
         var service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider, didAuthority);

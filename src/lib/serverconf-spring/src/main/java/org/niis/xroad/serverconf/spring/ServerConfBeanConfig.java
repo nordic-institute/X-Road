@@ -36,6 +36,8 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.XRoadServerConfProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -65,6 +67,12 @@ public class ServerConfBeanConfig {
                                                  ServerConfCommonProperties serverConfProperties,
                                                  VaultClient vaultClient) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
+    }
+
+    @Bean
+    public OwnSecurityServerResolver ownSecurityServerResolver(OwnServerIdentitySource identitySource,
+                                                               GlobalConfProvider globalConfProvider) {
+        return new OwnSecurityServerResolver(identitySource, globalConfProvider);
     }
 
     @Setter

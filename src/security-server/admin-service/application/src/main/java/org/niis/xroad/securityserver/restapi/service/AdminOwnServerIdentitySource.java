@@ -25,74 +25,49 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
- * This Security Server as GlobalConf knows it: owner member and registered address.
+ * Reads the own identity through the server configuration repository, in the caller's session, so
+ * uncommitted changes are visible. Joins the caller's transaction, or opens a short read-only one
+ * when there is none, because the shared entity manager is unusable outside a transaction.
  *
- * <p>Reads serverconf through the repository, not {@link ServerConfService}, because callers include
- * the unauthenticated scheduled provisioning worker, which the service's authentication guard would
- * reject. Each lookup runs in its own short read-only transaction, so callers do not hold a database
- * connection across remote calls. An uninitialized owner, a GlobalConf that is not yet downloaded, or
- * a registration that has not landed all read as empty — normal states before and during
- * registration, not errors.
+ * <p>Does not go through {@link org.niis.xroad.serverconf.ServerConfProvider}: that reads in its own
+ * session, cached, and cannot see uncommitted writes. Never reports global configuration as
+ * unavailable, because it does not read it.
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
-public class OwnSecurityServerResolver {
+public class AdminOwnServerIdentitySource implements OwnServerIdentitySource {
 
     private final ServerConfRepository serverConfRepository;
-    private final GlobalConfProvider globalConfProvider;
 
+    @Override
     @Transactional(readOnly = true)
-    public Optional<ClientId> owner() {
-        return serverConf().flatMap(OwnSecurityServerResolver::ownerOf);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<String> registeredAddress() {
-        return serverConf()
-                .flatMap(conf -> ownerOf(conf).map(owner -> SecurityServerId.Conf.create(owner, conf.getServerCode())))
-                .flatMap(this::registeredAddressOf);
-    }
-
-    private Optional<ServerConfEntity> serverConf() {
+    public OwnIdentity read() {
         try {
-            return Optional.of(serverConfRepository.getServerConf());
+            var serverConf = serverConfRepository.getServerConf();
+            var owner = serverConf.getOwner();
+            if (owner == null) {
+                return new OwnIdentity.OwnerNotInitialised();
+            }
+            return new OwnIdentity.Known(
+                    SecurityServerId.Conf.create(owner.getIdentifier(), serverConf.getServerCode()));
         } catch (XrdRuntimeException e) {
             if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
-                return Optional.empty();
+                return new OwnIdentity.OwnerNotInitialised();
             }
             throw e;
-        }
-    }
-
-    private static Optional<ClientId> ownerOf(ServerConfEntity conf) {
-        return Optional.ofNullable(conf.getOwner()).map(owner -> (ClientId) owner.getIdentifier());
-    }
-
-    private Optional<String> registeredAddressOf(SecurityServerId serverId) {
-        try {
-            return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
-                    .filter(address -> !address.isBlank());
-        } catch (XrdRuntimeException e) {
-            log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
-            return Optional.empty();
         }
     }
 }
