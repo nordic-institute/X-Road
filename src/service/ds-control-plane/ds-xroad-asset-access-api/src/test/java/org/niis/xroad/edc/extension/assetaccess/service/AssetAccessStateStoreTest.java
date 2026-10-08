@@ -76,6 +76,33 @@ class AssetAccessStateStoreTest {
     }
 
     @Test
+    void getCurrentTransferIdReturnsNullWhenEmpty() {
+        assertThat(store.getCurrentTransferId("any-key")).isNull();
+    }
+
+    @Test
+    void recordAndRetrieveCurrentTransferId() {
+        store.recordCurrentTransferId("key-1", "tp-1");
+
+        assertThat(store.getCurrentTransferId("key-1")).isEqualTo("tp-1");
+    }
+
+    @Test
+    void recordCurrentTransferIdOverwritesThePreviousOneForTheSameKey() {
+        store.recordCurrentTransferId("key-1", "tp-1");
+        store.recordCurrentTransferId("key-1", "tp-2");
+
+        assertThat(store.getCurrentTransferId("key-1")).isEqualTo("tp-2");
+    }
+
+    @Test
+    void recordCurrentTransferIdDoesNotAffectOtherKeys() {
+        store.recordCurrentTransferId("key-1", "tp-1");
+
+        assertThat(store.getCurrentTransferId("key-2")).isNull();
+    }
+
+    @Test
     void loadOrStartInFlightReturnsSameFutureForSameKey() {
         var supplierCallCount = new AtomicInteger(0);
 

@@ -83,6 +83,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -158,10 +159,12 @@ class AssetAccessOrchestratorTest {
 
         var result1 = future1.get(5, TimeUnit.SECONDS);
         assertThat(result1.succeeded()).isTrue();
+        verify(transferProcessService, never()).complete(anyString());
 
         var transferProcess2 = TransferProcess.Builder.newInstance().id("tp-2").build();
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(transferProcess2));
+        when(transferProcessService.complete("tp-1")).thenReturn(ServiceResult.success());
 
         var future2 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
 
@@ -178,6 +181,112 @@ class AssetAccessOrchestratorTest {
         verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
         verify(transferProcessService, times(2)).initiateTransfer(any(), any());
+        verify(transferProcessService).complete("tp-1");
+    }
+
+    @Test
+    void supersededTransferIsNotCompletedWhenTheSuccessorFails() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+
+        stubCatalogAndTransformChain("asset-1");
+
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .build();
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+
+        var transferProcess1 = TransferProcess.Builder.newInstance().id("tp-1").build();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(transferProcess1));
+
+        var future1 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        var agreement = buildAgreement("agreement-1");
+        var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .contractAgreement(agreement)
+                .build();
+        negotiationListener.finalized(finalizedNegotiation);
+
+        var dataAddress1 = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data").build();
+        var startedData1 = TransferProcessStartedData.Builder.newInstance()
+                .dataAddress(dataAddress1).build();
+        transferListener.started(TransferProcess.Builder.newInstance().id("tp-1").build(), startedData1);
+        future1.get(5, TimeUnit.SECONDS);
+
+        var transferProcess2 = TransferProcess.Builder.newInstance().id("tp-2").build();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(transferProcess2));
+
+        var future2 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+        transferListener.terminated(TransferProcess.Builder.newInstance().id("tp-2").build());
+
+        assertThatThrownBy(() -> future2.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
+        verify(transferProcessService, never()).complete(anyString());
+    }
+
+    @Test
+    void acquireAssetAccessSucceedsEvenWhenCompletingTheSupersededTransferFails() throws Exception {
+        var participantContext = buildParticipantContext();
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+
+        stubCatalogAndTransformChain("asset-1");
+
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .build();
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(negotiation));
+
+        var transferProcess1 = TransferProcess.Builder.newInstance().id("tp-1").build();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(transferProcess1));
+
+        var future1 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        var agreement = buildAgreement("agreement-1");
+        var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .contractAgreement(agreement)
+                .build();
+        negotiationListener.finalized(finalizedNegotiation);
+
+        var dataAddress1 = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data").build();
+        var startedData1 = TransferProcessStartedData.Builder.newInstance()
+                .dataAddress(dataAddress1).build();
+        transferListener.started(TransferProcess.Builder.newInstance().id("tp-1").build(), startedData1);
+        future1.get(5, TimeUnit.SECONDS);
+
+        var transferProcess2 = TransferProcess.Builder.newInstance().id("tp-2").build();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(transferProcess2));
+        when(transferProcessService.complete("tp-1")).thenThrow(new RuntimeException("boom"));
+
+        var future2 = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
+
+        var dataAddress2 = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data-refreshed").build();
+        var startedData2 = TransferProcessStartedData.Builder.newInstance()
+                .dataAddress(dataAddress2).build();
+        transferListener.started(TransferProcess.Builder.newInstance().id("tp-2").build(), startedData2);
+
+        var result2 = future2.get(5, TimeUnit.SECONDS);
+        assertThat(result2.succeeded()).isTrue();
+        assertThat(result2.getContent()).isSameAs(dataAddress2);
     }
 
     @Test

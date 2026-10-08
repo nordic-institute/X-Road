@@ -42,6 +42,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.DriverManager;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -67,6 +68,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class SharedDataFlowStateStorePostgresTest {
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
+
 
     private static ServerConfDatabaseCtx nodeADatabaseCtx;
     private static ServerConfDatabaseCtx nodeBDatabaseCtx;
@@ -334,6 +336,56 @@ class SharedDataFlowStateStorePostgresTest {
 
         assertThat(afterUpdate.createdAt()).isEqualTo(afterInsert.createdAt());
         assertThat(afterUpdate.updatedAt()).isAfter(afterInsert.updatedAt());
+    }
+
+    /**
+     * {@code pruneTerminal} must leave live flows and recently-terminal flows alone, deleting only
+     * rows whose terminal state has not changed since before the cutoff.
+     */
+    @Test
+    void pruneTerminalDeletesOnlyTerminalRowsOlderThanTheCutoff() throws Exception {
+        var oldTerminated = uniqueFlowId();
+        var oldCompleted = uniqueFlowId();
+        var recentCompleted = uniqueFlowId();
+        var oldButStillLive = uniqueFlowId();
+
+        nodeA.save(oldTerminated, DataFlowStates.TERMINATED);
+        nodeA.save(oldCompleted, DataFlowStates.COMPLETED);
+        nodeA.save(recentCompleted, DataFlowStates.COMPLETED);
+        nodeA.save(oldButStillLive, DataFlowStates.STARTED);
+
+        setUpdatedAt(oldTerminated, "localtimestamp - interval '1' hour");
+        setUpdatedAt(oldCompleted, "localtimestamp - interval '1' hour");
+        setUpdatedAt(oldButStillLive, "localtimestamp - interval '1' hour");
+        setUpdatedAt(recentCompleted, "localtimestamp");
+
+        var deleted = nodeA.pruneTerminal(Duration.ofMinutes(30));
+
+        assertThat(deleted).isEqualTo(2);
+        assertThat(nodeB.find(oldTerminated)).isEmpty();
+        assertThat(nodeB.find(oldCompleted)).isEmpty();
+        assertThat(nodeB.find(recentCompleted)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeB.find(oldButStillLive)).contains(DataFlowStates.STARTED);
+    }
+
+    /**
+     * {@code set_timestamps} unconditionally overwrites {@code updated_at} on every {@code UPDATE},
+     * so backdating it for the test needs the trigger disabled for the one statement that does it.
+     */
+    private void setUpdatedAt(String flowId, String sqlTimestampExpression) throws Exception {
+        try (var connection = DriverManager.getConnection(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
+            try (var statement = connection.createStatement()) {
+                statement.execute("alter table dataflow_state disable trigger set_timestamps");
+            }
+            try (var statement = connection.prepareStatement(
+                    "update dataflow_state set updated_at = " + sqlTimestampExpression + " where flow_id = ?")) {
+                statement.setString(1, flowId);
+                statement.executeUpdate();
+            }
+            try (var statement = connection.createStatement()) {
+                statement.execute("alter table dataflow_state enable trigger set_timestamps");
+            }
+        }
     }
 
     private Timestamps selectTimestamps(String flowId) throws Exception {

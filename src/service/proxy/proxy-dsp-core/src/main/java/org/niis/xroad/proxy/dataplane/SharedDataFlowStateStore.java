@@ -35,6 +35,7 @@ import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
@@ -114,6 +115,11 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     public Optional<DataFlowStates> find(String flowId) {
         return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId))
                 .map(entity -> DataFlowStates.valueOf(entity.getState().name()));
+    }
+
+    @Override
+    public int pruneTerminal(Duration retention) {
+        return databaseCtx.doInTransaction(session -> dao.deleteTerminalOlderThan(session, retention));
     }
 
 }

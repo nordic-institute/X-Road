@@ -36,6 +36,7 @@ import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -161,6 +162,50 @@ class DataFlowStateDAOImplTest {
         } finally {
             DATABASE_CTX.rollbackTransaction();
         }
+    }
+
+    @Test
+    void deleteTerminalOlderThanRemovesOnlyOldTerminalRows() {
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.upsertState(session, "flow-old-terminated", DataFlowLifecycleState.TERMINATED, ALWAYS_ALLOWED);
+            dao.upsertState(session, "flow-old-completed", DataFlowLifecycleState.COMPLETED, ALWAYS_ALLOWED);
+            dao.upsertState(session, "flow-old-started", DataFlowLifecycleState.STARTED, ALWAYS_ALLOWED);
+            dao.upsertState(session, "flow-recent-terminated", DataFlowLifecycleState.TERMINATED, ALWAYS_ALLOWED);
+            return null;
+        });
+        setUpdatedAt("flow-old-terminated", "localtimestamp - interval '1' day");
+        setUpdatedAt("flow-old-completed", "localtimestamp - interval '1' day");
+        setUpdatedAt("flow-old-started", "localtimestamp - interval '1' day");
+        setUpdatedAt("flow-recent-terminated", "localtimestamp");
+
+        var deleted = DATABASE_CTX.doInTransaction(session -> dao.deleteTerminalOlderThan(session, Duration.ofHours(1)));
+
+        assertEquals(2, deleted);
+        assertFalse(DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-old-terminated")).isPresent());
+        assertFalse(DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-old-completed")).isPresent());
+        assertTrue(DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-old-started")).isPresent());
+        assertTrue(DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-recent-terminated")).isPresent());
+    }
+
+    @Test
+    void deleteTerminalOlderThanReturnsZeroWhenNothingMatches() {
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.upsertState(session, "flow-fresh-terminated", DataFlowLifecycleState.TERMINATED, ALWAYS_ALLOWED);
+            return null;
+        });
+        setUpdatedAt("flow-fresh-terminated", "localtimestamp");
+
+        var deleted = DATABASE_CTX.doInTransaction(session -> dao.deleteTerminalOlderThan(session, Duration.ofDays(1)));
+
+        assertEquals(0, deleted);
+    }
+
+    private static void setUpdatedAt(String flowId, String sqlTimestampExpression) {
+        DATABASE_CTX.doInTransaction(session -> session
+                .createNativeMutationQuery("update dataflow_state set updated_at = " + sqlTimestampExpression
+                        + " where flow_id = :flowId")
+                .setParameter("flowId", flowId)
+                .executeUpdate());
     }
 
     private static DataFlowStateEntity newEntity(String flowId) {

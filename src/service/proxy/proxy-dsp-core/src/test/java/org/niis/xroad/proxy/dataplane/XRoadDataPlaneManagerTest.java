@@ -378,5 +378,10 @@ class XRoadDataPlaneManagerTest {
         public Optional<DataFlowStates> find(String flowId) {
             return Optional.ofNullable(states.get(flowId));
         }
+
+        @Override
+        public int pruneTerminal(Duration retention) {
+            return 0;
+        }
     }
 }

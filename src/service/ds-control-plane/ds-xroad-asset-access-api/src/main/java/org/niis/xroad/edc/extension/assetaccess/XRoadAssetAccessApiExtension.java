@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.C
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -49,6 +50,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.niis.xroad.edc.extension.assetaccess.listener.ConsumerDataFlowCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
@@ -76,6 +78,9 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessObservable transferObservable;
+
+    @Inject
+    private DataFlowController dataFlowController;
 
     @Inject
     private JsonLd jsonLd;
@@ -129,6 +134,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
         negotiationObservable.registerListener(negotiationCompletionListener);
         transferObservable.registerListener(transferCompletionListener);
+        transferObservable.registerListener(new ConsumerDataFlowCompletionListener(dataFlowController, monitor));
     }
 
     @Provider

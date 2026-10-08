@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.controlplane;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.proxy.dataplane.DataFlowStateRetentionProperties;
 import org.niis.xroad.proxy.dataplane.DataPlaneServerProperties;
 
 class DspCoreConfig {
@@ -45,6 +46,11 @@ class DspCoreConfig {
     @ApplicationScoped
     DataPlaneServerProperties dataPlaneServerProperties(XRoadConfig xRoadConfig) {
         return new DataPlaneServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    DataFlowStateRetentionProperties dataFlowStateRetentionProperties(XRoadConfig xRoadConfig) {
+        return new DataFlowStateRetentionProperties(xRoadConfig);
     }
 
 }

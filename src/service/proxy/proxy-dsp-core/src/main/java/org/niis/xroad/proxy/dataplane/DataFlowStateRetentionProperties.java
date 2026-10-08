@@ -26,46 +26,21 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.spi.result.StoreResult;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
-import java.util.Optional;
 
-/**
- * Stores the lifecycle state of proxy data-plane flows, shared by every proxy node of a
- * clustered Security Server.
- *
- * <p>Returns {@link StoreResult}, matching EDC's own store SPIs, for consistency with other
- * EDC-facing stores here (e.g. {@code AssetIndexServerConfStore}) despite being backed by
- * serverconf/Hibernate rather than EDC's SQL store.
- */
-public interface DataFlowStateStore {
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_DATAFLOW_STATE_RETENTION;
 
-    /**
-     * Creates or updates the state of a flow.
-     *
-     * @param flowId the flow's process ID
-     * @param state  the new state
-     * @return {@link StoreResult#success()} once the write is durable
-     */
-    StoreResult<Void> save(String flowId, DataFlowStates state);
+/** Retention configuration for terminal {@code dataflow_state} rows ({@code xroad.proxy.dsp.dataflow-state.*}). */
+@RequiredArgsConstructor
+public class DataFlowStateRetentionProperties {
 
-    /**
-     * Finds the current state of a flow.
-     *
-     * @param flowId the flow's process ID
-     * @return the current state, or empty if the flow is not known
-     */
-    Optional<DataFlowStates> find(String flowId);
+    private final XRoadConfig xRoadConfig;
 
-    /**
-     * Deletes terminal (completed or terminated) flows whose state has not changed for longer than
-     * {@code retention}, measured on the store's own clock.
-     *
-     * @param retention how long a terminal flow is kept after its last change
-     * @return the number of flows deleted
-     */
-    int pruneTerminal(Duration retention);
-
+    /** @return how long a completed or terminated flow's state row is kept before being pruned */
+    public Duration retention() {
+        return xRoadConfig.value(DSP_DATAFLOW_STATE_RETENTION);
+    }
 }

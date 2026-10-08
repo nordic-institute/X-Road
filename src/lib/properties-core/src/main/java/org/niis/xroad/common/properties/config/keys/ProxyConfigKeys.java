@@ -74,6 +74,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final Prefix RPC = PROXY.subPrefix("rpc");
     private static final Prefix DSP = PROXY.subPrefix("dsp");
     private static final Prefix DSP_CACHE = DSP.subPrefix("cache");
+    private static final Prefix DSP_DATAFLOW_STATE = DSP.subPrefix("dataflow-state");
     private static final Prefix AGREEMENT_TOKEN = PROXY.subPrefix("agreement-token");
 
     private static final String ENABLED = "enabled";
@@ -877,6 +878,13 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Long> DSP_CACHE_MAXIMUM_SIZE = DSP_CACHE
             .longValue("maximum-size")
             .withDefaultValue(10000L)
+            .build();
+
+    /** {@code xroad.proxy.dsp.dataflow-state.retention}. */
+    public static final ConfigKey<Duration> DSP_DATAFLOW_STATE_RETENTION = DSP_DATAFLOW_STATE
+            .keyDuration("retention")
+            .withDefaultValue(Duration.ofHours(6))
+            .withValidator(positive())
             .build();
 
     // --- xroad.proxy.agreement-token ---------------------------------------------

@@ -72,7 +72,7 @@ import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContex
  * selection is entirely self-contained within the presented credential set.
  */
 @Slf4j
-class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
+public class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
 
     static final String MEMBERSHIP_CREDENTIAL_TYPE = "XRoadMembershipCredential";
     static final String XROAD_INSTANCE_CLAIM = "xroadInstance";

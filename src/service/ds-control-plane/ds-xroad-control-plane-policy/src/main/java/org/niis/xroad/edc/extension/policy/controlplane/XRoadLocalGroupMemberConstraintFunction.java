@@ -30,8 +30,8 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
-import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -42,7 +42,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_LOCAL_GROUP;
 
 @RequiredArgsConstructor
-public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext>
+public class XRoadLocalGroupMemberConstraintFunction<C extends PolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = XROAD_LOCAL_GROUP;
@@ -52,7 +52,7 @@ public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentP
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, ParticipantAgentPolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
             if (!(rightValue instanceof String globalGroupCode)) {
@@ -60,7 +60,7 @@ public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentP
                 return false;
             }
             LocalGroupId localGroupId = parseLocalGroup(globalGroupCode);
-            return PolicyContextHelper.findMemberIdFromContext(context)
+            return PolicyContextHelper.findMemberId(context)
                     .map(memberId -> switch (operator) {
                         case EQ, IN -> serverConfProvider.isSubjectInLocalGroup(memberId, localGroupId);
                         default -> {

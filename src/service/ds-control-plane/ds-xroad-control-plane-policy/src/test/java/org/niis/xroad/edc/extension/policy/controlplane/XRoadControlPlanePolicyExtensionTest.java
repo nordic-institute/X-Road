@@ -88,11 +88,11 @@ class XRoadControlPlanePolicyExtensionTest {
 
         extension.initialize(serviceExtensionContext);
 
-        // bindPermissionFunction is called 9 times (3 functions x 3 scopes)
-        // Each call invokes ruleBindingRegistry.bind() 3 times (use, odrl:use, constraintKey) = 27 total
-        verify(ruleBindingRegistry, times(27)).bind(anyString(), anyString());
-        // Each call invokes policyEngine.registerFunction() once = 9 total
-        verify(policyEngine, times(9)).registerFunction(any(), any(), anyString(), any());
+        // bindPermissionFunction is called 12 times (3 functions x 4 scopes)
+        // Each call invokes ruleBindingRegistry.bind() 3 times (use, odrl:use, constraintKey) = 36 total
+        verify(ruleBindingRegistry, times(36)).bind(anyString(), anyString());
+        // Each call invokes policyEngine.registerFunction() once = 12 total
+        verify(policyEngine, times(12)).registerFunction(any(), any(), anyString(), any());
     }
 
     @Test

@@ -42,6 +42,7 @@ public class AssetAccessStateStore {
 
     private final ConcurrentHashMap<String, AgreementContext> agreementRegistry = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, CompletableFuture<ServiceResult<DataAddress>>> inFlightRequests = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String> currentTransferRegistry = new ConcurrentHashMap<>();
 
     /**
      * Returns the cached agreement context for the given key, or {@code null} if none is recorded.
@@ -55,6 +56,23 @@ public class AssetAccessStateStore {
      */
     public void recordAgreement(String key, ContractAgreement agreement, String transferType) {
         agreementRegistry.put(key, new AgreementContext(agreement, transferType));
+    }
+
+    /**
+     * Returns the id of the transfer currently backing {@code key}, or {@code null} if no transfer
+     * has yet succeeded for it.
+     */
+    public String getCurrentTransferId(String key) {
+        return currentTransferRegistry.get(key);
+    }
+
+    /**
+     * Records {@code transferProcessId} as the current transfer for {@code key}. Callers only do this
+     * once the transfer has actually produced a data address, so a failed transfer never supersedes the
+     * previously recorded one.
+     */
+    public void recordCurrentTransferId(String key, String transferProcessId) {
+        currentTransferRegistry.put(key, transferProcessId);
     }
 
     /**

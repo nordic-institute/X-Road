@@ -31,9 +31,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.AgreementPolicyContext;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.niis.xroad.edc.extension.policy.controlplane.participantagent.XRoadMemberIdAttributes;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -50,6 +55,26 @@ public class PolicyContextHelper {
     public static final String XRD_MEMBER_CODE_ATTRIBUTE = "xrd:memberCode";
 
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final XRoadMemberIdAttributes memberIdAttributes = new XRoadMemberIdAttributes();
+
+    /**
+     * Resolves the consumer's X-Road member identity from whichever shape of {@code context} is
+     * available: a live DSP request carries a {@link ParticipantAgentPolicyContext} (catalog,
+     * negotiation and transfer scopes), while the policy monitor's {@code PolicyMonitorContext} only
+     * carries the stored agreement ({@link AgreementPolicyContext}), replayed outside of any request.
+     */
+    public static Optional<ClientId> findMemberId(PolicyContext context) {
+        if (context instanceof ParticipantAgentPolicyContext participantAgentContext) {
+            return findMemberIdFromContext(participantAgentContext);
+        }
+        if (context instanceof AgreementPolicyContext agreementContext) {
+            var agreement = agreementContext.contractAgreement();
+            return agreement == null ? Optional.empty() : findMemberIdFromClaims(agreement.getClaims());
+        }
+        log.debug("findMemberId: context {} is neither participant-agent- nor agreement-based, returning empty",
+                context.getClass());
+        return Optional.empty();
+    }
 
     public static Optional<ClientId> findMemberIdFromContext(ParticipantAgentPolicyContext context) {
         var participantAgent = context.participantAgent();
@@ -58,13 +83,31 @@ public class PolicyContextHelper {
             return Optional.empty();
         }
         var attributes = participantAgent.getAttributes();
+        log.debug("findMemberIdFromContext: identity={} attributes={}",
+                participantAgent.getIdentity(), attributes.keySet());
+        return fromAttributes(attributes);
+    }
+
+    /**
+     * Resolves the consumer's X-Road member identity from a stored {@link AgreementPolicyContext}'s
+     * claims — the same {@code XRoadMembershipCredential} claims a live request's {@link ClaimToken}
+     * would carry, snapshotted onto the agreement when it was reached ({@code
+     * ContractNegotiationProtocolServiceImpl}) — by replaying them through the same extraction
+     * {@code XRoadMemberIdAttributes} uses for a live request.
+     */
+    public static Optional<ClientId> findMemberIdFromClaims(Map<String, Object> claims) {
+        var token = ClaimToken.Builder.newInstance().claims(claims).build();
+        var attributes = memberIdAttributes.attributesFor(token);
+        log.debug("findMemberIdFromClaims: attributes={}", attributes.keySet());
+        return fromAttributes(attributes);
+    }
+
+    private static Optional<ClientId> fromAttributes(Map<String, String> attributes) {
         var xroadInstance = attributes.get(XRD_INSTANCE_ATTRIBUTE);
         var memberClass = attributes.get(XRD_MEMBER_CLASS_ATTRIBUTE);
         var memberCode = attributes.get(XRD_MEMBER_CODE_ATTRIBUTE);
-        log.debug("findMemberIdFromContext: identity={} attributes={} instance={} class={} code={}",
-                participantAgent.getIdentity(), attributes.keySet(), xroadInstance, memberClass, memberCode);
         if (isBlank(xroadInstance) || isBlank(memberClass) || isBlank(memberCode)) {
-            log.debug("findMemberIdFromContext: no X-Road membership attributes present, returning empty");
+            log.debug("fromAttributes: no X-Road membership attributes present, returning empty");
             return Optional.empty();
         }
         return Optional.of(ClientId.Conf.create(xroadInstance, memberClass, memberCode));

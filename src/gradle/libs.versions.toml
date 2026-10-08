@@ -361,6 +361,8 @@ edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
+edc-lib-policy-engine = { module = "org.eclipse.edc:policy-engine-lib", version.ref = "edc" }
+edc-lib-policy-evaluator = { module = "org.eclipse.edc:policy-evaluator-lib", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
 # EDC DCP modules

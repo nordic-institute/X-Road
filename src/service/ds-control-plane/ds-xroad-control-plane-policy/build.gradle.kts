@@ -3,7 +3,9 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.edc.spi.core)
     implementation(libs.edc.spi.policy.engine)
+    implementation(libs.edc.spi.policy.monitor)
     implementation(libs.edc.spi.contract)
     implementation(libs.edc.spi.catalog)
     implementation(libs.edc.spi.participant)
@@ -21,4 +23,6 @@ dependencies {
     testImplementation(libs.edc.boot)
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.iam.dcp.core)
+    testImplementation(libs.edc.lib.policy.engine)
+    testImplementation(libs.edc.lib.policy.evaluator)
 }

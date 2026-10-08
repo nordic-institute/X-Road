@@ -35,6 +35,9 @@ import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
@@ -42,6 +45,9 @@ import java.util.function.BiPredicate;
  * Data access object for shared proxy data-plane flow state.
  */
 public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
+
+    private static final List<String> TERMINAL_STATE_NAMES =
+            List.of(DataFlowLifecycleState.COMPLETED.name(), DataFlowLifecycleState.TERMINATED.name());
 
     /**
      * Finds the current state row for a flow.
@@ -109,6 +115,25 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
             session.persist(entity);
         }
         return true;
+    }
+
+    /**
+     * Deletes rows in a terminal state ({@code COMPLETED} or {@code TERMINATED}) whose {@code updated_at} is older
+     * than {@code retention}, measured on the database's own clock. The audit trigger writes a session-local
+     * timestamp into a column without time zone, so a cutoff computed on the JVM clock would be off by the
+     * session's UTC offset.
+     *
+     * @param session   the Hibernate session
+     * @param retention how long a terminal row is kept after its last change
+     * @return the number of rows deleted
+     */
+    public int deleteTerminalOlderThan(Session session, Duration retention) {
+        var now = session.createNativeQuery("values (localtimestamp)", LocalDateTime.class).getSingleResult();
+        return session.createNativeMutationQuery(
+                        "delete from dataflow_state where state in (:terminal) and updated_at < :cutoff")
+                .setParameterList("terminal", TERMINAL_STATE_NAMES)
+                .setParameter("cutoff", now.minus(retention))
+                .executeUpdate();
     }
 
 }

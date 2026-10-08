@@ -378,22 +378,51 @@ public class AssetAccessOrchestrator {
         }
 
         var transferProcessId = result.getContent().getId();
+        var previousTransferId = stateStore.getCurrentTransferId(key);
         monitor.info("%s transfer initiated: transferProcessId=%s".formatted(key, transferProcessId));
         var future = new CompletableFuture<DataAddress>();
         transferListener.register(transferProcessId, future);
 
         return future
                 .orTimeout(transferTimeout.toMillis(), TimeUnit.MILLISECONDS)
-                .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
+                .whenComplete((dataAddress, throwable) ->
+                        onTransferComplete(key, transferProcessId, previousTransferId, dataAddress, throwable));
     }
 
-    private void onTransferComplete(String key, String transferProcessId, DataAddress dataAddress, Throwable throwable) {
+    private void onTransferComplete(String key, String transferProcessId, String previousTransferId,
+                                     DataAddress dataAddress, Throwable throwable) {
         transferListener.deregister(transferProcessId);
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
         } else if (dataAddress != null) {
             monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
             monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
+            stateStore.recordCurrentTransferId(key, transferProcessId);
+            completeSupersededTransfer(key, previousTransferId, transferProcessId);
+        }
+    }
+
+    /**
+     * Completes the transfer that {@code transferProcessId} just superseded for {@code key}, if any.
+     * Runs only after the successor has produced a data address; a failure here is logged and never
+     * propagated, so it cannot fail the acquisition that triggered it.
+     */
+    private void completeSupersededTransfer(String key, String previousTransferId, String transferProcessId) {
+        if (previousTransferId == null || previousTransferId.equals(transferProcessId)) {
+            return;
+        }
+        try {
+            var result = transferProcessService.complete(previousTransferId);
+            if (result.failed()) {
+                monitor.warning("%s completion of superseded transfer failed: transferProcessId=%s detail=%s"
+                        .formatted(key, previousTransferId, result.getFailureDetail()));
+            } else {
+                monitor.info("%s superseded transfer completion requested: transferProcessId=%s"
+                        .formatted(key, previousTransferId));
+            }
+        } catch (Exception e) {
+            monitor.warning("%s completion of superseded transfer failed: transferProcessId=%s"
+                    .formatted(key, previousTransferId), e);
         }
     }
 
