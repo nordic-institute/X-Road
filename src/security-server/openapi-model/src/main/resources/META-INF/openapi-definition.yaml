@@ -4935,6 +4935,15 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: request conflicts with the current Security Server state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
         '500':
           description: internal server error
           content:
@@ -4978,6 +4987,15 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: request conflicts with the current Security Server state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
         '500':
           description: internal server error
           content:
