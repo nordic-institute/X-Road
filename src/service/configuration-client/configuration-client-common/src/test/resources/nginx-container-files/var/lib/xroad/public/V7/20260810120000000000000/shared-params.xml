@@ -55,6 +55,12 @@
             <connectorTlsCertificateProfileId>ds-tls-profile</connectorTlsCertificateProfileId>
         </acmeServer>
     </approvedConnectorTlsCA>
+    <credentialIssuer>
+        <did>did:web:cs1.dev%3A443:issuer</did>
+    </credentialIssuer>
+    <credentialIssuer>
+        <did>did:web:cs2.dev%3A443:issuer</did>
+    </credentialIssuer>
     <member id="id0">
         <memberClass>
             <code>COM</code>
