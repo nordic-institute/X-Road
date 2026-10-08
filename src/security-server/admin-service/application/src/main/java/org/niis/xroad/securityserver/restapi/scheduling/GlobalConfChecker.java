@@ -44,10 +44,14 @@ import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -78,7 +82,7 @@ public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
     private volatile boolean restoreInProgress = false;
-    private final ScheduledJobHelper scheduledJobHelper;
+    private final ServerConfRepository serverConfRepository;
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
@@ -86,6 +90,7 @@ public class GlobalConfChecker {
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
     private final AdminServiceProperties adminServiceProperties;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -133,17 +138,16 @@ public class GlobalConfChecker {
             return;
         }
 
-        ServerConfEntity serverConf = scheduledJobHelper.getServerConf();
+        switch (ownSecurityServerResolver.identity()) {
+            case OwnIdentity.Known known -> updateServerConf(known.id());
+            case OwnIdentity.OwnerNotInitialised ignored -> log.debug("Security Server owner is not set - skip serverconf updates");
+            case OwnIdentity.GlobalConfUnavailable unavailable -> throw XrdRuntimeException.systemException(unavailable.cause());
+        }
+    }
 
-        var securityServerId = buildSecurityServerId(serverConf);
-
+    private void updateServerConf(SecurityServerId securityServerId) {
         addressChangeStatus.getAddressChangeRequest()
-                .ifPresent(requestedAddress -> {
-                    var currentAddress = globalConfProvider.getSecurityServerAddress(securityServerId);
-                    if (requestedAddress.equals(currentAddress)) {
-                        addressChangeStatus.clear();
-                    }
-                });
+                .ifPresent(requestedAddress -> clearAddressChangeIfRegistered(securityServerId, requestedAddress));
 
         switch (maintenanceModeStatus.getStatus()) {
             case MaintenanceModeStatus.DisableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
@@ -152,7 +156,7 @@ public class GlobalConfChecker {
 
             case MaintenanceModeStatus.EnableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
                     .filter(SharedParameters.MaintenanceMode::enabled)
-                    .ifPresent(mode -> maintenanceModeStatus.clear());
+                    .ifPresent(_ -> maintenanceModeStatus.clear());
 
             case null -> {
 
@@ -160,6 +164,7 @@ public class GlobalConfChecker {
         }
 
         try {
+            ServerConfEntity serverConf = serverConfRepository.getServerConf();
             if (globalConfProvider.getServerOwner(securityServerId) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
@@ -171,6 +176,19 @@ public class GlobalConfChecker {
             updateTimestampServices(serverConf);
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    private void clearAddressChangeIfRegistered(SecurityServerId securityServerId, String requestedAddress) {
+        switch (ownSecurityServerResolver.address(securityServerId)) {
+            case OwnAddress.Registered registered -> {
+                if (requestedAddress.equals(registered.address())) {
+                    addressChangeStatus.clear();
+                }
+            }
+            case OwnAddress.NotRegistered ignored -> log.debug("Server not registered - keeping address change request");
+            case OwnAddress.GlobalConfUnavailable ignored -> log.debug("Globalconf unavailable - keeping address change request");
+            case OwnAddress.OwnerNotInitialised ignored -> log.debug("Owner not set - keeping address change request");
         }
     }
 
@@ -254,17 +272,6 @@ public class GlobalConfChecker {
         return costType == null ? CostType.UNDEFINED.name() : costType.name();
     }
 
-    private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
-        return SecurityServerId.Conf.create(
-                ownerId.getXRoadInstance(), ownerId.getMemberClass(),
-                ownerId.getMemberCode(), serverCode);
-    }
-
-    private SecurityServerId buildSecurityServerId(ServerConfEntity serverConf) {
-        ClientId ownerId = serverConf.getOwner().getIdentifier();
-        return buildSecurityServerId(ownerId, serverConf.getServerCode());
-    }
-
     private void updateOwner(ServerConfEntity serverConf) {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         for (ClientEntity client : serverConf.getClients()) {
@@ -274,7 +281,7 @@ public class GlobalConfChecker {
                 log.debug("Found potential new owner: \"{}\"", client.getIdentifier());
 
                 // Build a new server id using the alternative member as owner
-                SecurityServerId altSecurityServerId = buildSecurityServerId(client.getIdentifier(),
+                SecurityServerId altSecurityServerId = SecurityServerId.Conf.create(client.getIdentifier(),
                         serverConf.getServerCode());
 
                 // Get local auth cert
