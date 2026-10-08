@@ -27,6 +27,7 @@
 package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -82,10 +83,12 @@ class SharedParametersV7ToXmlConverterTest {
         var conf = RecursiveComparisonConfiguration.builder()
                 .withIntrospectionStrategy(compareRenamedFields())
                 .withIgnoredFields("securityServers.owner",
+                        "securityServers.id",
                         "securityServers.clients",
                         "securityServers.authCerts",
                         "members.id",
                         "members.subsystems.id",
+                        "members.did",
                         "centralService",
                         "any",
                         "credentialIssuer"
@@ -105,6 +108,7 @@ class SharedParametersV7ToXmlConverterTest {
                 .allFieldsSatisfy(Objects::nonNull);
 
         assertIdReferences(xmlType);
+        assertMemberDidReferences(xmlType);
         assertThat(xmlType.getSecurityServer().getFirst().getAuthCertHash().getFirst())
                 .isEqualTo(sharedParameters.getSecurityServers().getFirst().getAuthCertHashes().getFirst().getHash(SHA256));
     }
@@ -184,6 +188,82 @@ class SharedParametersV7ToXmlConverterTest {
         assertThat(roundTripCredentialIssuerDids(List.of())).isEmpty();
     }
 
+    @Test
+    void shouldWriteAndReadBackXrdAdr44Example() {
+        var sharedParameters = xrdAdr44Example();
+        var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
+
+        var member = xmlType.getMember().getFirst();
+        var subsystem = member.getSubsystem().getFirst();
+        var server = xmlType.getSecurityServer().getFirst();
+        assertThat(server.getOwner()).isSameAs(member);
+        assertThat(server.getClient()).map(JAXBElement::getValue).containsExactly(subsystem);
+        assertThat(member.getDid()).singleElement().satisfies(did -> assertThat(did.getSecurityServer()).isSameAs(server));
+        assertThat(idIndex(server.getId())).isGreaterThan(idIndex(member.getId())).isGreaterThan(idIndex(subsystem.getId()));
+
+        var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
+
+        assertThat(xml)
+                .contains("<dspBaseUrl>https://ss0.example.org:8183/api/dsp</dspBaseUrl>")
+                .contains("<systemDid>did:web:ss0.example.org%3A7183:v1:system</systemDid>")
+                .contains("did:web:ss0.example.org%3A7183:v1:DEV:COM:222</did>");
+        assertThat(new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters())
+                .usingRecursiveComparison()
+                .isEqualTo(sharedParameters);
+    }
+
+    @Test
+    void shouldGiveEveryServerAnIdWhenNothingIsPublished() {
+        var sharedParameters = xrdAdr44Example();
+        var server = sharedParameters.getSecurityServers().getFirst();
+        server.setSystemDid(null);
+        server.setDspBaseUrl(null);
+        sharedParameters.getMembers().getFirst().setDids(List.of());
+
+        var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
+
+        assertThat(xmlType.getSecurityServer()).singleElement().satisfies(ss -> assertThat(ss.getId()).isNotBlank());
+        assertThat(xmlType.getMember().getFirst().getDid()).isEmpty();
+
+        var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
+
+        assertThat(xml).doesNotContain("<did securityServer", "systemDid", "dspBaseUrl");
+        assertThat(new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters())
+                .usingRecursiveComparison()
+                .isEqualTo(sharedParameters);
+    }
+
+    private static SharedParameters xrdAdr44Example() {
+        var memberId = ClientId.Conf.create("DEV", "COM", "222");
+        var subsystemId = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
+        var serverId = SecurityServerId.Conf.create(memberId, "ss0");
+
+        var member = new SharedParameters.Member();
+        member.setMemberClass(new SharedParameters.MemberClass("COM", "Commercial"));
+        member.setMemberCode("222");
+        member.setName("Test member");
+        member.setId(memberId);
+        member.setSubsystems(List.of(new SharedParameters.Subsystem("TESTCLIENT", null, subsystemId)));
+        member.setDids(List.of(new SharedParameters.MemberDid(serverId, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222")));
+
+        var server = new SharedParameters.SecurityServer();
+        server.setOwner(memberId);
+        server.setServerCode("ss0");
+        server.setAddress("ss0.example.org");
+        server.setAuthCertHashes(List.of(new CertHash(SHA256, "ss0-auth-cert-hash".getBytes(UTF_8))));
+        server.setClients(List.of(subsystemId));
+        server.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
+        server.setDspBaseUrl("https://ss0.example.org:8183/api/dsp");
+        server.setSystemDid("did:web:ss0.example.org%3A7183:v1:system");
+
+        return new SharedParameters("DEV", getConfigurationSources(), List.of(), List.of(), List.of(), List.of(),
+                List.of(member), List.of(server), List.of(), new SharedParameters.GlobalSettings(List.of(), 60));
+    }
+
+    private static int idIndex(String id) {
+        return Integer.parseInt(id.substring("id".length()));
+    }
+
     private static List<SharedParameters.ApprovedConnectorTlsCA> roundTrip(
             List<SharedParameters.ApprovedConnectorTlsCA> approvedConnectorTlsCAs) {
         var sharedParameters = minimalSharedParameters(approvedConnectorTlsCAs);
@@ -227,6 +307,17 @@ class SharedParametersV7ToXmlConverterTest {
                             .map(JAXBElement::getValue)
                             .singleElement().isSameAs(client);
                 });
+    }
+
+    private static void assertMemberDidReferences(SharedParametersTypeV7 xmlType) {
+        var member = xmlType.getMember().getFirst();
+        var server = xmlType.getSecurityServer().getFirst();
+
+        assertThat(member.getDid()).singleElement().satisfies(did -> {
+            assertThat(did.getValue()).isEqualTo("did:web:security-server-address%3A7183:v1:CLASS1:M1");
+            assertThat(did.getSecurityServer()).isSameAs(server);
+        });
+        assertThat(server.getId()).isNotBlank();
     }
 
     private static ComparingNormalizedFields compareRenamedFields() {
@@ -297,6 +388,9 @@ class SharedParametersV7ToXmlConverterTest {
                 subsystem(clientId, "SUB1", "Name1"),
                 subsystem(clientId, "SUB2", "Name2")
         ));
+        member.setDids(List.of(new SharedParameters.MemberDid(
+                SecurityServerId.Conf.create(clientId, "security-server-code"),
+                "did:web:security-server-address%3A7183:v1:CLASS1:M1")));
         return List.of(member);
     }
 
@@ -312,6 +406,8 @@ class SharedParametersV7ToXmlConverterTest {
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
         securityServer.setMaintenanceMode(new SharedParameters.MaintenanceMode(true, "maintenance message"));
+        securityServer.setSystemDid("did:web:security-server-address%3A7183:v1:system");
+        securityServer.setDspBaseUrl("https://security-server-address:8183/api/dsp");
         return securityServer;
     }
 

@@ -28,6 +28,7 @@ package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBElement;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
@@ -40,6 +41,7 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.CredentialIssuerType
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalSettingsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberClassType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberDidType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.OcspInfoType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
@@ -247,7 +249,18 @@ public class SharedParametersV7Converter {
             target.setSubsystems(source.getSubsystem().stream().map(subsystem ->
                     toSubsystem(instanceIdentifier, source, subsystem)).toList());
         }
+        target.setDids(source.getDid().stream().map(did -> toMemberDid(instanceIdentifier, did)).toList());
         return target;
+    }
+
+    private SharedParameters.MemberDid toMemberDid(String instanceIdentifier, MemberDidType source) {
+        return new SharedParameters.MemberDid(
+                toServerId(instanceIdentifier, (SecurityServerType) source.getSecurityServer()), source.getValue());
+    }
+
+    private SecurityServerId toServerId(String instanceIdentifier, SecurityServerType source) {
+        return SecurityServerId.Conf.create(
+                toClientId(instanceIdentifier, (MemberType) source.getOwner()), source.getServerCode());
     }
 
     private SharedParameters.MemberClass toMemberClass(MemberClassType source) {
@@ -269,6 +282,8 @@ public class SharedParametersV7Converter {
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
         target.setAddress(source.getAddress());
+        target.setSystemDid(source.getSystemDid());
+        target.setDspBaseUrl(source.getDspBaseUrl());
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
 
         if (source.getClient() != null) {

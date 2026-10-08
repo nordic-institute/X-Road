@@ -122,6 +122,8 @@
         </memberClass>
         <memberCode>producer</memberCode>
         <name>Experimental producer</name>
+        <did securityServer="id5">did:web:127.0.0.1%3A7183:v1:EE:BUSINESS:producer</did>
+        <did securityServer="id9">did:web:127.0.0.1%3A7283:v1:EE:BUSINESS:producer</did>
     </member>
     <member id="id1">
         <memberClass>
@@ -130,6 +132,7 @@
         </memberClass>
         <memberCode>consumer</memberCode>
         <name>Experimental consumer</name>
+        <did securityServer="id6">did:web:www.foo.com%3A7183:v1:EE:BUSINESS:consumer</did>
     </member>
     <member id="id2">
         <memberClass>
@@ -145,8 +148,9 @@
         <subsystem id="id4">
             <subsystemCode>barsubsystemId</subsystemCode>
         </subsystem>
+        <did securityServer="id8">did:web:foo.bar.baz%3A7183:v2:EE:BUSINESS:foo</did>
     </member>
-    <securityServer>
+    <securityServer id="id5">
         <owner>id0</owner>
         <serverCode>producerServerCode</serverCode>
         <address>127.0.0.1</address>
@@ -154,20 +158,22 @@
         <client>id1</client>
         <client>id2</client>
         <client>id3</client>
+        <dspBaseUrl>https://127.0.0.1:8183/api/dsp</dspBaseUrl>
+        <systemDid>did:web:127.0.0.1%3A7183:v1:system</systemDid>
     </securityServer>
-    <securityServer>
+    <securityServer id="id6">
         <owner>id1</owner>
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
         <authCertHash>XhdxNaWNz7XBuakTRDyz+5Ald53DCy3DwxUacFe/VX8=</authCertHash>
     </securityServer>
-    <securityServer>
+    <securityServer id="id7">
         <owner>id2</owner>
         <serverCode>fooServerCode</serverCode>
         <authCertHash>enRxKzBGb0q7sUJa8Hx0A5aHmQwCa1HzWNFrN3ZDDJw=</authCertHash>
         <client>id0</client>
     </securityServer>
-    <securityServer>
+    <securityServer id="id8">
         <owner>id2</owner>
         <serverCode>FooBarServerCode</serverCode>
         <address>https://foo.bar.baz</address>
@@ -176,6 +182,17 @@
         <inMaintenanceMode>
             <message>Test maintenance mode</message>
         </inMaintenanceMode>
+        <dspBaseUrl>https://foo.bar.baz:8183/api/dsp</dspBaseUrl>
+        <systemDid>did:web:foo.bar.baz%3A7183:v1:system</systemDid>
+    </securityServer>
+    <securityServer id="id9">
+        <owner>id0</owner>
+        <serverCode>producerServerCode2</serverCode>
+        <address>127.0.0.1</address>
+        <authCertHash>IJBbi0Y46y/OW02eiU8NEQUkIngeT13LSDhzUQ03NM8=</authCertHash>
+        <client>id0</client>
+        <dspBaseUrl>https://127.0.0.1:8283/api/dsp</dspBaseUrl>
+        <systemDid>did:web:127.0.0.1%3A7283:v1:system</systemDid>
     </securityServer>
     <globalGroup>
         <groupCode>Test group</groupCode>
