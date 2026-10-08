@@ -890,7 +890,7 @@ PUT https://{{ss1_host}}:4000/api/v1/tokens/{{ss1_token_id}}/login
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
-  "password": "{{token_pin}}"
+  "password": "{{ss1_sign_token_pin}}"
 }
 
 HTTP *
