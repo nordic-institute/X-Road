@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBElement;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedCATypeV4;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedConnectorTlsCAType;
@@ -249,18 +251,43 @@ public class SharedParametersV7Converter {
             target.setSubsystems(source.getSubsystem().stream().map(subsystem ->
                     toSubsystem(instanceIdentifier, source, subsystem)).toList());
         }
-        target.setDids(source.getDid().stream().map(did -> toMemberDid(instanceIdentifier, did)).toList());
+        target.setDids(PublishedValuesNormaliser.normaliseMemberDids(target.getId(),
+                source.getDid().stream().map(did -> toMemberDid(instanceIdentifier, did)).toList()));
         return target;
     }
 
     private SharedParameters.MemberDid toMemberDid(String instanceIdentifier, MemberDidType source) {
-        return new SharedParameters.MemberDid(
-                toServerId(instanceIdentifier, (SecurityServerType) source.getSecurityServer()), source.getValue());
+        if (!(source.getSecurityServer() instanceof SecurityServerType server)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MEMBER_DID_REFERENCES_NON_SERVER)
+                    .details("Element did references %s, which is not a security server"
+                            .formatted(idOf(source.getSecurityServer())))
+                    .metadataItems("did", idOf(source.getSecurityServer()))
+                    .build();
+        }
+        return new SharedParameters.MemberDid(toServerId(instanceIdentifier, server), source.getValue());
     }
 
     private SecurityServerId toServerId(String instanceIdentifier, SecurityServerType source) {
-        return SecurityServerId.Conf.create(
-                toClientId(instanceIdentifier, (MemberType) source.getOwner()), source.getServerCode());
+        return SecurityServerId.Conf.create(toOwnerId(instanceIdentifier, source), source.getServerCode());
+    }
+
+    private ClientId toOwnerId(String instanceIdentifier, SecurityServerType source) {
+        if (source.getOwner() instanceof SecurityServerType referenced) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OWNER_REFERENCES_SERVER)
+                    .details("Element owner references security server %s".formatted(referenced.getId()))
+                    .metadataItems("owner", referenced.getId())
+                    .build();
+        }
+        return toClientId(instanceIdentifier, (MemberType) source.getOwner());
+    }
+
+    private static String idOf(Object referenced) {
+        return switch (referenced) {
+            case MemberType member -> member.getId();
+            case SubsystemType subsystem -> subsystem.getId();
+            case SecurityServerType server -> server.getId();
+            default -> String.valueOf(referenced);
+        };
     }
 
     private SharedParameters.MemberClass toMemberClass(MemberClassType source) {
@@ -279,20 +306,26 @@ public class SharedParametersV7Converter {
     private SharedParameters.SecurityServer toSecurityServer(
             Map<String, ClientId> clientIds, SecurityServerType source, String instanceIdentifier) {
         var target = new SharedParameters.SecurityServer();
-        target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
+        target.setOwner(toOwnerId(instanceIdentifier, source));
         target.setServerCode(source.getServerCode());
         target.setAddress(source.getAddress());
-        target.setSystemDid(source.getSystemDid());
-        target.setDspBaseUrl(source.getDspBaseUrl());
+        var systemValues = PublishedValuesNormaliser.normaliseSystemValues(
+                SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()),
+                source.getSystemDid(), source.getDspBaseUrl());
+        target.setSystemDid(systemValues.systemDid());
+        target.setDspBaseUrl(systemValues.dspBaseUrl());
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
 
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {
-                if (client.getValue() instanceof MemberType) {
-                    clients.add(toClientId(instanceIdentifier, (MemberType) client.getValue()));
-                } else if (client.getValue() instanceof SubsystemType) {
-                    clients.add(clientIds.get(((SubsystemType) client.getValue()).getId()));
+                switch (client.getValue()) {
+                    case MemberType member -> clients.add(toClientId(instanceIdentifier, member));
+                    case SubsystemType subsystem -> clients.add(clientIds.get(subsystem.getId()));
+                    default -> throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_CLIENT_REFERENCES_SERVER)
+                            .details("Element client references security server %s".formatted(idOf(client.getValue())))
+                            .metadataItems("client", idOf(client.getValue()))
+                            .build();
                 }
             }
             target.setClients(clients);

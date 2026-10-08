@@ -38,6 +38,8 @@ import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
 
@@ -52,6 +54,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
 class SharedParametersV7ToXmlConverterTest {
@@ -231,6 +234,20 @@ class SharedParametersV7ToXmlConverterTest {
         assertThat(new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters())
                 .usingRecursiveComparison()
                 .isEqualTo(sharedParameters);
+    }
+
+    @Test
+    void shouldRejectMemberDidWhoseServerIsNotInTheServerList() {
+        var sharedParameters = xrdAdr44Example();
+        var member = sharedParameters.getMembers().getFirst();
+        var unlistedServerId = SecurityServerId.Conf.create(member.getId(), "unlisted");
+        member.setDids(List.of(new SharedParameters.MemberDid(unlistedServerId, "did:web:ss9.example.org%3A7183:v1:DEV:COM:222")));
+
+        assertThatThrownBy(() -> SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
+                    assertThat(e.getDetails()).contains(member.getId().toString(), unlistedServerId.toString());
+                });
     }
 
     private static SharedParameters xrdAdr44Example() {

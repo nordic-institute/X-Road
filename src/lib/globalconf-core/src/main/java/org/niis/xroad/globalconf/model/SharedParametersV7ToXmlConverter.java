@@ -38,6 +38,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedCATypeV4;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedConnectorTlsCAType;
@@ -162,10 +163,16 @@ abstract class SharedParametersV7ToXmlConverter {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }
 
-    private static MemberDidType toMemberDid(SharedParameters.MemberDid memberDid, ReferenceTargets targets) {
+    private static MemberDidType toMemberDid(ClientId memberId, SharedParameters.MemberDid memberDid,
+                                            ReferenceTargets targets) {
+        var server = targets.servers().get(memberDid.serverId());
+        if (server == null) {
+            throw XrdRuntimeException.systemInternalError("Member %s has a did for security server %s, which is not in the server list"
+                    .formatted(memberId, memberDid.serverId()));
+        }
         var memberDidType = OBJECT_FACTORY.createMemberDidType();
         memberDidType.setValue(memberDid.did());
-        memberDidType.setSecurityServer(targets.servers().get(memberDid.serverId()));
+        memberDidType.setSecurityServer(server);
         return memberDidType;
     }
 
@@ -197,7 +204,7 @@ abstract class SharedParametersV7ToXmlConverter {
         if (sharedParameters.getMembers() != null) {
             for (SharedParameters.Member member : sharedParameters.getMembers()) {
                 var memberType = (MemberType) targets.clients().get(member.getId());
-                member.getDids().forEach(memberDid -> memberType.getDid().add(toMemberDid(memberDid, targets)));
+                member.getDids().forEach(memberDid -> memberType.getDid().add(toMemberDid(member.getId(), memberDid, targets)));
             }
         }
         return targets;
