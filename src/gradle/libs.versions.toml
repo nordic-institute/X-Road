@@ -337,12 +337,14 @@ edc-spi-identityhub = { module = "org.eclipse.edc:identity-hub-spi", version.ref
 edc-spi-identityhub-vc = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
 edc-spi-identityhub-holdercredentialrequest = { module = "org.eclipse.edc:holder-credential-request-spi", version.ref = "edc" }
 edc-spi-identityhub-dcp = { module = "org.eclipse.edc:dcp-spi", version.ref = "edc" }
+edc-spi-keypair = { module = "org.eclipse.edc:keypair-spi", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-dsp-catalog-transform = { module = "org.eclipse.edc:dsp-catalog-transform-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
 edc-lib-json = { module = "org.eclipse.edc:json-lib", version.ref = "edc" }
+edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
