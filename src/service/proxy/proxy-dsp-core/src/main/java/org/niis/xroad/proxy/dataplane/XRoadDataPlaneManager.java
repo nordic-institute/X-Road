@@ -37,9 +37,9 @@ import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 
 /**
  * Manager for active data flows in the X-Road proxy data plane.
@@ -67,8 +67,7 @@ public class XRoadDataPlaneManager {
     private static final String BEARER_AUTH_TYPE = "bearer";
 
     private final DataPlaneServerProperties dspProperties;
-    private final GlobalConfProvider globalConfProvider;
-    private final ServerConfProvider serverConfProvider;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final ProxyProperties proxyProperties;
     private final DataFlowStateStore flowStateStore;
     private final AgreementTokenIssuer agreementTokenIssuer;
@@ -183,13 +182,19 @@ public class XRoadDataPlaneManager {
 
     private String resolveServerproxyEndpoint(String protocol) {
         try {
-            var ownAddress = globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
-            if (ownAddress != null && !ownAddress.isBlank()) {
-                var endpoint = "%s://%s:%d".formatted(protocol, ownAddress, proxyProperties.serverProxyPort());
+            var ownAddress = ownSecurityServerResolver.address();
+            if (ownAddress instanceof OwnAddress.Registered(_, var address)) {
+                var endpoint = "%s://%s:%d".formatted(protocol, address, proxyProperties.serverProxyPort());
                 log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
                 return endpoint;
             }
-            log.warn("Own security-server address is blank; falling back to configured serverproxy endpoint");
+            if (ownAddress instanceof OwnAddress.GlobalConfUnavailable(_, var cause)) {
+                log.warn("Own security-server address is not available (GlobalConfUnavailable); "
+                        + "falling back to configured serverproxy endpoint", cause);
+            } else {
+                log.warn("Own security-server address is not available ({}); falling back to configured serverproxy endpoint",
+                        ownAddress.getClass().getSimpleName());
+            }
         } catch (Exception e) {
             log.warn("Could not resolve own security-server address; falling back to configured serverproxy endpoint", e);
         }
