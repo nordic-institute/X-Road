@@ -9,7 +9,6 @@ dependencies {
   implementation(libs.edc.spi.core)
   implementation(libs.edc.boot)
   implementation(libs.edc.spi.policy.engine)
-  implementation(libs.edc.spi.dataplane.http)
   implementation(libs.edc.spi.web)
   implementation(libs.edc.spi.participantcontext)
 

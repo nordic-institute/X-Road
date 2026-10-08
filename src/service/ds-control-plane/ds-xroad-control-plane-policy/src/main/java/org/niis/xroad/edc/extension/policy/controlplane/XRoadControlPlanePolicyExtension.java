@@ -46,7 +46,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.eclipse.edc.jsonld.spi.JsonLd.DEFAULT_SCOPE;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_SCOPE_V_2025_1;
 import static org.niis.xroad.edc.extension.policy.controlplane.XRoadControlPlanePolicyExtension.EXTENSION_NAME;
 import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_NAMESPACE;
@@ -55,6 +54,7 @@ import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamesp
 public class XRoadControlPlanePolicyExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Control Plane Policy extension";
+    private static final String ODRL_SCHEMA = "http://www.w3.org/ns/odrl/2/";
 
     @Inject
     private JsonLd jsonLd;

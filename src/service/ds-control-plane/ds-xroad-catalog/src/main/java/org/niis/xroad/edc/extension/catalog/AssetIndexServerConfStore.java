@@ -33,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -45,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Read-only {@link AssetIndex} backed by live {@link ServerConfProvider} reads. Also serves
  * as {@code DataAddressResolver} since EDC 0.16 folds it into the {@code AssetIndex} contract.
@@ -54,6 +55,8 @@ import java.util.stream.Stream;
 class AssetIndexServerConfStore implements AssetIndex {
 
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
+    private static final String HTTP_DATA_TYPE = "HttpData";
+    private static final String BASE_URL_PROPERTY = EDC_NAMESPACE + "baseUrl";
 
     private final ServerConfProvider serverConfProvider;
     private final BuiltinServiceCatalog builtinServiceCatalog;
@@ -167,7 +170,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("resolveForAsset assetId={} matched builtin, baseUrl={}", assetId, builtinServiceCatalog.serverProxyUrl());
-            return buildHttpDataAddress(builtinServiceCatalog.serverProxyUrl());
+            return buildHttpDataTypeAddress(builtinServiceCatalog.serverProxyUrl());
         }
         var cached = cache.getDataAddress(assetId);
         if (cached != null) {
@@ -197,17 +200,17 @@ class AssetIndexServerConfStore implements AssetIndex {
             return null;
         }
         log.trace("resolveForAsset assetId={} resolved baseUrl={}", assetId, serviceAddress);
-        return buildHttpDataAddress(serviceAddress);
+        return buildHttpDataTypeAddress(serviceAddress);
     }
 
-    @SuppressWarnings("deprecation")
-    private static DataAddress buildHttpDataAddress(String baseUrl) {
-        return HttpDataAddress.Builder.newInstance()
-                .baseUrl(baseUrl)
-                .proxyPath("true")
-                .proxyMethod("true")
-                .proxyBody("true")
-                .proxyQueryParams("true")
+    private static DataAddress buildHttpDataTypeAddress(String baseUrl) {
+        return DataAddress.Builder.newInstance()
+                .type(HTTP_DATA_TYPE)
+                .property(BASE_URL_PROPERTY, baseUrl)
+                .property("proxyPath", "true")
+                .property("proxyMethod", "true")
+                .property("proxyBody", "true")
+                .property("proxyQueryParams", "true")
                 .build();
     }
 

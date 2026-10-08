@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
@@ -38,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Map;
 
@@ -67,7 +67,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
                 .processId("flow-6")
                 .transferType("Xrd-PULL")
                 .build();
-        var statusMessage = buildStatusMessage(DataFlowStates.PROVISIONED);
+        var statusMessage = buildStatusMessage(DataFlowLifecycleState.PROVISIONED);
 
         when(manager.prepare(prepareMessage)).thenReturn(statusMessage);
 
@@ -80,7 +80,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     @Test
     void startReturnsStatusMessageWithProxyEndpoint() {
         var startMessage = buildStartMessage("flow-1");
-        var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
+        var statusMessage = buildStatusMessage(DataFlowLifecycleState.STARTED);
 
         when(manager.start(startMessage)).thenReturn(statusMessage);
 
@@ -93,7 +93,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     @Test
     void startWithFlowIdDelegatesToManagerStart() {
         var startMessage = buildStartMessage("flow-2");
-        var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
+        var statusMessage = buildStatusMessage(DataFlowLifecycleState.STARTED);
 
         when(manager.start(startMessage)).thenReturn(statusMessage);
 
@@ -106,7 +106,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
     @Test
     void startedDelegatesToManagerAndReturnsStatusMessage() {
         var notification = DataFlowStartedNotificationMessage.Builder.newInstance().messageId("msg-1").build();
-        var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
+        var statusMessage = buildStatusMessage(DataFlowLifecycleState.STARTED);
 
         when(manager.started("flow-7")).thenReturn(statusMessage);
 
@@ -148,7 +148,7 @@ class XRoadDataPlaneSignalingApiControllerTest {
 
     @Test
     void getTransferStateReturnsStateJsonObject() {
-        when(manager.state("flow-5")).thenReturn(DataFlowStates.STARTED);
+        when(manager.state("flow-5")).thenReturn(DataFlowLifecycleState.STARTED);
 
         var result = controller.getTransferState("flow-5");
 
@@ -158,13 +158,29 @@ class XRoadDataPlaneSignalingApiControllerTest {
 
     @Test
     void getTransferStateUnknownIdReturnsFailedState() {
-        when(manager.state("unknown")).thenReturn(DataFlowStates.FAILED);
+        when(manager.state("unknown")).thenReturn(DataFlowLifecycleState.FAILED);
 
         var result = controller.getTransferState("unknown");
 
         assertThat(result.getString(EDC_NAMESPACE + "state")).isEqualTo("FAILED");
     }
 
+    @Test
+    void getTransferStateReportsEveryStateAsItsWireString() {
+        var wireStrings = Map.of(
+                DataFlowLifecycleState.PROVISIONED, "PROVISIONED",
+                DataFlowLifecycleState.STARTED, "STARTED",
+                DataFlowLifecycleState.SUSPENDED, "SUSPENDED",
+                DataFlowLifecycleState.COMPLETED, "COMPLETED",
+                DataFlowLifecycleState.TERMINATED, "TERMINATED",
+                DataFlowLifecycleState.FAILED, "FAILED");
+        assertThat(wireStrings).hasSameSizeAs(DataFlowLifecycleState.values());
+        wireStrings.forEach((state, wireString) -> {
+            when(manager.state("flow-wire")).thenReturn(state);
+            var result = controller.getTransferState("flow-wire");
+            assertThat(result.getString(EDC_NAMESPACE + "state")).isEqualTo(wireString);
+        });
+    }
     private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)
@@ -174,14 +190,14 @@ class XRoadDataPlaneSignalingApiControllerTest {
                 .build();
     }
 
-    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
+    private DataFlowStatusMessage buildStatusMessage(DataFlowLifecycleState state) {
         var dataAddress = DspDataAddress.Builder.newInstance()
                 .endpointType("http")
                 .endpoint(DATA_FLOW_ENDPOINT)
                 .build();
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddress)
-                .state(state.toString())
+                .state(state.name())
                 .build();
     }
 }

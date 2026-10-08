@@ -35,6 +35,7 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -418,18 +420,21 @@ class AssetIndexServerConfStoreTest {
 
     @Test
     @SuppressWarnings("deprecation")
-    void resolveForAssetReturnsHttpDataAddress() {
+    void resolveForAssetReturnsHttpDataTypeAddress() {
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
 
         var result = assetIndex.resolveForAsset(SERVICE_1.asEncodedId());
 
         assertThat(result).isNotNull();
+        assertThat(result.getClass()).isEqualTo(DataAddress.class);
         assertThat(result.getType()).isEqualTo("HttpData");
-        assertThat(result.getStringProperty("baseUrl")).isEqualTo(SERVICE_1_ADDRESS);
-        assertThat(result.getStringProperty("proxyPath")).isEqualTo("true");
-        assertThat(result.getStringProperty("proxyMethod")).isEqualTo("true");
-        assertThat(result.getStringProperty("proxyBody")).isEqualTo("true");
-        assertThat(result.getStringProperty("proxyQueryParams")).isEqualTo("true");
+        assertThat(result.getProperties()).containsOnly(
+                entry(EDC_NAMESPACE + "type", "HttpData"),
+                entry(EDC_NAMESPACE + "baseUrl", SERVICE_1_ADDRESS),
+                entry("proxyPath", "true"),
+                entry("proxyMethod", "true"),
+                entry("proxyBody", "true"),
+                entry("proxyQueryParams", "true"));
     }
 
     @Test

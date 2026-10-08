@@ -28,11 +28,11 @@ package org.niis.xroad.proxy.dataplane;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.EnumSet;
@@ -55,7 +55,7 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     private final DataFlowStateDAOImpl dao = new DataFlowStateDAOImpl();
 
     @Override
-    public StoreResult<Void> save(String flowId, DataFlowStates state) {
+    public StoreResult<Void> save(String flowId, DataFlowLifecycleState state) {
         try {
             upsert(flowId, state);
         } catch (XrdRuntimeException e) {
@@ -70,10 +70,9 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
         return StoreResult.success();
     }
 
-    private void upsert(String flowId, DataFlowStates state) {
-        var lifecycleState = DataFlowLifecycleState.valueOf(state.name());
+    private void upsert(String flowId, DataFlowLifecycleState state) {
         databaseCtx.doInTransaction(session -> {
-            dao.upsertState(session, flowId, lifecycleState, SharedDataFlowStateStore::isTransitionAllowed);
+            dao.upsertState(session, flowId, state, SharedDataFlowStateStore::isTransitionAllowed);
             return null;
         });
     }
@@ -97,23 +96,21 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     }
 
     /**
-     * Not {@link DataFlowStates#code()}: EDC's numbering puts {@code SUSPENDED} between
-     * {@code COMPLETED} and {@code TERMINATED}, which would block a legitimate completion arriving
-     * after a suspend. Here {@code SUSPENDED} ranks as a side branch of {@code STARTED}, not a step
-     * beyond it.
+     * {@code SUSPENDED} ranks as a side branch of {@code STARTED}, not a step beyond it, so a
+     * legitimate completion arriving after a suspend is not blocked.
      */
     private static int lifecycleRank(DataFlowLifecycleState state) {
         return switch (state) {
             case PROVISIONED -> 0;
             case STARTED, SUSPENDED -> 1;
-            case COMPLETED, TERMINATED -> 2;
+            case COMPLETED, TERMINATED, FAILED -> 2;
         };
     }
 
     @Override
-    public Optional<DataFlowStates> find(String flowId) {
+    public Optional<DataFlowLifecycleState> find(String flowId) {
         return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId))
-                .map(entity -> DataFlowStates.valueOf(entity.getState().name()));
+                .map(DataFlowStateEntity::getState);
     }
 
 }
