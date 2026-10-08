@@ -92,6 +92,8 @@ import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
+import org.niis.xroad.serverconf.impl.ProxyOwnServerIdentitySource;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.keyconf.TestKeyConf;
@@ -229,7 +231,8 @@ public abstract class AbstractProxyIntegrationTest {
         var unusableAddressTracker = new UnusableAddressTracker(proxyProperties);
         var httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                 .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
-        var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+        var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
+                new OwnSecurityServerResolver(new ProxyOwnServerIdentitySource(TEST_SERVER_CONF), TEST_GLOBAL_CONF));
         var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
         var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
         var serviceAddressResolverClient = serviceAddressResolverOverride != null
@@ -268,7 +271,8 @@ public abstract class AbstractProxyIntegrationTest {
                 proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
         ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
                 TEST_SERVER_CONF, new NoopVaultKeyProvider(), proxyProperties);
-        var opMonitoringDataHelperServer = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+        var opMonitoringDataHelperServer = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
+                new OwnSecurityServerResolver(new ProxyOwnServerIdentitySource(TEST_SERVER_CONF), TEST_GLOBAL_CONF));
         var httpSenderProviderServer = new HttpSenderProvider(httpClientCreator.getHttpClient(), httpClientCreator.getHttpClient(),
                 proxyProperties);
         var messageSigningServiceServer = new MessageSigningService(serverKeyConf, signingCtxProvider);
