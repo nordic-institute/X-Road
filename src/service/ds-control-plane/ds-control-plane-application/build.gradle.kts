@@ -30,10 +30,6 @@ dependencies {
 
   implementation(libs.bundles.quarkus.containerized)
 
-  testImplementation(libs.smallrye.config.yaml)
-  testImplementation(libs.junit.jupiter.params)
-  testImplementation(libs.assertj.core)
-
   runtimeOnly(libs.edc.core.controlplane) {
     // EDC 0.17 ships two mutually-exclusive state-machine drivers: classic Manager
     // (control-plane-{contract,transfer}-manager) and task-based (control-plane-
@@ -63,14 +59,10 @@ dependencies {
   runtimeOnly(libs.edc.configuration.filesystem)
 
   runtimeOnly(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
-  runtimeOnly(libs.edc.core.edrstore)
-  runtimeOnly(libs.edc.edrstore.receiver)
   runtimeOnly(libs.edc.vault.hashicorp)
 
   runtimeOnly(libs.edc.dataplane.signaling)
-  runtimeOnly(libs.edc.dataplane.signaling.client)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)
-  runtimeOnly(libs.edc.contolplane.api.config)
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   runtimeOnly(libs.edc.core.sql.bootstrapper)

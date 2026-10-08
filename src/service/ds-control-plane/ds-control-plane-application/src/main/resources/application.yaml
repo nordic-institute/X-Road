@@ -35,9 +35,6 @@ web:
       port: 8183
       path: /api/dsp
       virtual: true
-    control:
-      port: 8184
-      path: /api/v1/control
     signaling:
       port: 8185
 
@@ -103,15 +100,6 @@ edc:
           path: /v1/xrd-ds-secret
   component:
     id: DSP-compatibility-test
-  transfer:
-    proxy:
-      token:
-        signer:
-          privatekey:
-            alias: private-key
-        verifier:
-          publickey:
-            alias: public-key
   datasource:
     default:
       url: ${xroad.db.ds-control-plane.hibernate.connection.url}
@@ -123,8 +111,6 @@ edc:
   participant:
     did: "did:web:${HOSTNAME:localhost}%3A7183"
   iam:
-    issuer:
-      id: "did:web:${HOSTNAME:localhost}%3A7183"
     dcp:
       scopes:
         membership:
