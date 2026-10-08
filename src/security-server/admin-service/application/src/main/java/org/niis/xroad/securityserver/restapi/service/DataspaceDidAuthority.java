@@ -35,6 +35,8 @@ import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -68,7 +70,7 @@ public class DataspaceDidAuthority {
      * @return whether the registered address the authority derives from is resolvable yet
      */
     public boolean isKnown() {
-        return ownSecurityServerResolver.registeredAddress().isPresent();
+        return registeredAddress().isPresent();
     }
 
     /**
@@ -122,16 +124,22 @@ public class DataspaceDidAuthority {
      */
     public Optional<String> dspBaseUrl() {
         var dspPort = adminServiceProperties.getDataspace().getDspPort();
-        return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.dspBaseUrl(address, dspPort));
+        return registeredAddress().map(address -> DspConventions.dspBaseUrl(address, dspPort));
     }
 
     private String mintAuthority() {
-        ownSecurityServerResolver.registeredAddress().ifPresent(DidAuthority::requireAscii);
+        registeredAddress().ifPresent(DidAuthority::requireAscii);
         return current();
     }
 
     private Optional<String> find() {
         var didPort = adminServiceProperties.getDataspace().getDidPort();
-        return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
+        return registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
+    }
+
+    private Optional<String> registeredAddress() {
+        return ownSecurityServerResolver.address() instanceof OwnAddress.Registered(_, var address)
+                ? Optional.of(address)
+                : Optional.empty();
     }
 }
