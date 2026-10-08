@@ -49,6 +49,7 @@ import java.util.Arrays;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.PRODUCER;
 
@@ -70,7 +71,8 @@ class OpMonitorRpcServiceStoreTest extends BaseTestUsingDB {
 
         int port = TestPortUtils.findRandomPort();
         rpcServer = new RpcServer("127.0.0.1", port, credentials.createServerCredentials(),
-                builder -> builder.addService(new OpMonitorRpcService(operationalDataRecordManager, operationalDataStore)));
+                builder -> builder.addService(new OpMonitorRpcService(operationalDataRecordManager, operationalDataStore,
+                        mock(OperationalDataQueryService.class))));
         rpcServer.init();
         channel = new RpcChannelFactory(credentials).createChannel(channelProperties(port));
         stub = OpMonitorServiceGrpc.newBlockingStub(channel);

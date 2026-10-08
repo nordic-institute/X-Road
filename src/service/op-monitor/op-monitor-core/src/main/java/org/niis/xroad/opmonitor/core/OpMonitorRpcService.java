@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,6 +39,8 @@ import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsResp;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataResp;
@@ -51,6 +54,7 @@ import java.util.List;
 public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceImplBase {
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final OperationalDataStore operationalDataStore;
+    private final OperationalDataQueryService operationalDataQueryService;
     private final RpcResponseHandler rpcResponseHandler = new RpcResponseHandler();
 
     @Override
@@ -63,6 +67,18 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
             log.debug("Storing {} operational data record(s)", records.size());
             operationalDataStore.store(records);
             return StoreOperationalDataResp.getDefaultInstance();
+        });
+    }
+
+    @Override
+    public void queryOperationalData(QueryOperationalDataReq request,
+                                     StreamObserver<QueryOperationalDataResp> responseObserver) {
+        rpcResponseHandler.handleRequest(responseObserver, () -> {
+            var response = operationalDataQueryService.query(request.getSoapQuery().toByteArray(), request.getContentType());
+            return QueryOperationalDataResp.newBuilder()
+                    .setResponse(ByteString.copyFrom(response.body()))
+                    .setContentType(response.contentType())
+                    .build();
         });
     }
 

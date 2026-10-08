@@ -33,12 +33,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.ServiceIdConverter;
 import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -67,6 +69,36 @@ class OpMonitorIntTest {
     private static final String SERVICE_STORED_OVER_GRPC = "DEV:COM:222:TestService:storedOverGrpc.v1";
     private static final String SERVICE_REJECTED_BATCH = "DEV:COM:222:TestService:rejectedBatch.v1";
     private static final Instant STORE_WINDOW = Instant.now().minus(10, ChronoUnit.DAYS);
+
+    private static final String QUERY_CONTENT_TYPE = "text/xml; charset=utf-8";
+    private static final String QUERY_ENVELOPE = """
+            <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers">
+                <SOAP-ENV:Header>
+                    <xroad:client id:objectType="MEMBER">
+                        <id:xRoadInstance>DEV</id:xRoadInstance>
+                        <id:memberClass>COM</id:memberClass>
+                        <id:memberCode>1234</id:memberCode>
+                    </xroad:client>
+                    <xroad:service id:objectType="SERVICE">
+                        <id:xRoadInstance>DEV</id:xRoadInstance>
+                        <id:memberClass>COM</id:memberClass>
+                        <id:memberCode>1234</id:memberCode>
+                        <id:serviceCode>%s</id:serviceCode>
+                    </xroad:service>
+                    <xroad:securityServer id:objectType="SERVER">
+                        <id:xRoadInstance>DEV</id:xRoadInstance>
+                        <id:memberClass>COM</id:memberClass>
+                        <id:memberCode>1234</id:memberCode>
+                        <id:serverCode>SS0</id:serverCode>
+                    </xroad:securityServer>
+                    <xroad:id>op-monitor-int-test</xroad:id>
+                    <xroad:protocolVersion>4.0</xroad:protocolVersion>
+                </SOAP-ENV:Header>
+                <SOAP-ENV:Body>%s</SOAP-ENV:Body>
+            </SOAP-ENV:Envelope>
+            """;
 
     private OpMonitorClient opMonitorClient;
 
@@ -175,6 +207,59 @@ class OpMonitorIntTest {
                 () -> storedTrafficData(SERVICE_REJECTED_BATCH));
         then("no record of the rejected batch was stored",
                 () -> assertTotals(intervals, 0, 0));
+    }
+
+    @Test
+    @DisplayName("Query operational data over gRPC")
+    void queryOperationalDataOverGrpc() {
+        var response = when("user queries the operational data of the security server owner",
+                () -> query("getSecurityServerOperationalData", operationalDataQueryBody(), QUERY_CONTENT_TYPE));
+        then("the response is a multipart message with the operational data response and its records attachment", () -> {
+            assertThat(response.getContentType()).startsWith("multipart/related");
+            assertThat(text(response)).contains("getSecurityServerOperationalDataResponse")
+                    .contains("operational-monitoring-data.json.gz");
+        });
+    }
+
+    @Test
+    @DisplayName("Query health data over gRPC")
+    void queryHealthDataOverGrpc() {
+        var response = when("user queries the health data of the security server",
+                () -> query("getSecurityServerHealthData", "<om:getSecurityServerHealthData/>", QUERY_CONTENT_TYPE));
+        then("the response is the health data response", () -> {
+            assertThat(response.getContentType()).startsWith("text/xml");
+            assertThat(text(response)).contains("getSecurityServerHealthDataResponse").contains("monitoringStartupTimestamp");
+        });
+    }
+
+    @Test
+    @DisplayName("Query with an unsupported content type is answered with a SOAP fault")
+    void queryWithUnsupportedContentTypeIsAnsweredWithSoapFault() {
+        var response = when("user queries health data with the content type text/plain",
+                () -> query("getSecurityServerHealthData", "<om:getSecurityServerHealthData/>", "text/plain"));
+        then("the response is a SOAP fault as payload", () -> {
+            assertThat(response.getContentType()).startsWith("text/xml");
+            assertThat(text(response)).contains("<faultcode>").contains("invalid_content_type");
+        });
+    }
+
+    private QueryOperationalDataResp query(String serviceCode, String body, String contentType) {
+        var query = QUERY_ENVELOPE.formatted(serviceCode, body).getBytes(StandardCharsets.UTF_8);
+        return opMonitorClient.queryOperationalData(query, contentType);
+    }
+
+    private static String operationalDataQueryBody() {
+        return """
+                <om:getSecurityServerOperationalData>
+                    <om:searchCriteria>
+                        <om:recordsFrom>0</om:recordsFrom>
+                        <om:recordsTo>%d</om:recordsTo>
+                    </om:searchCriteria>
+                </om:getSecurityServerOperationalData>""".formatted(Instant.now().getEpochSecond());
+    }
+
+    private static String text(QueryOperationalDataResp response) {
+        return response.getResponse().toString(StandardCharsets.ISO_8859_1);
     }
 
     private static OperationalDataRecordProto storedRecord(String serviceId, int index, boolean succeeded) {

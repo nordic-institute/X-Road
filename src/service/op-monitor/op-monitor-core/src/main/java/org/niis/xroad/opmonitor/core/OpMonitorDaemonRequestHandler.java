@@ -56,7 +56,6 @@ import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON_UTF_8;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.QUERY_DATA_PATH;
 import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.STORE_DATA_PATH;
@@ -105,19 +104,18 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
                 throw XrdRuntimeException.systemException(INVALID_HTTP_METHOD, invalidMethodError(request));
             }
 
-            String contentType = MimeUtils.getBaseContentType(
-                    getContentType(request));
-
-            if (!MimeTypes.TEXT_XML.equalsIgnoreCase(contentType)) {
-                throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
-                        invalidContentTypeError(request,
-                                MimeTypes.TEXT_XML));
-            }
+            QueryRequestProcessor.checkContentType(getContentType(request));
 
             log.info("Received query request from {}", getRemoteAddr(request));
 
-            new QueryRequestProcessor(globalConfProvider, RequestWrapper.of(request), ResponseWrapper.of(response),
-                    healthMetricRegistry, operationalDataRecordManager, opMonitorProperties).process();
+            var requestWrapper = RequestWrapper.of(request);
+            var responseWrapper = ResponseWrapper.of(response);
+            new QueryRequestProcessor(globalConfProvider, healthMetricRegistry, operationalDataRecordManager,
+                    opMonitorProperties).process(requestWrapper.getInputStream(), requestWrapper.getContentType(),
+                    () -> {
+                        responseWrapper.putHeader("Connection", "close");
+                        return responseWrapper.getOutputStream();
+                    }, responseWrapper::setContentType);
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
