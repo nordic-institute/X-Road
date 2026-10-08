@@ -38,19 +38,29 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DATABASE_ERROR;
 
 @ExtendWith(MockitoExtension.class)
 class OpMonitoringDataHelperTest {
@@ -59,6 +69,8 @@ class OpMonitoringDataHelperTest {
     private GlobalConfProvider globalConfProvider;
     @Mock
     private ServerConfProvider serverConfProvider;
+    @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
 
     @Mock
     private SecurityServerId.Conf securityServerId;
@@ -69,8 +81,7 @@ class OpMonitoringDataHelperTest {
     @Test
     void testUpdateOpMonitoringClientSecurityServerAddress() {
         OpMonitoringData data = mock(OpMonitoringData.class);
-        when(serverConfProvider.getIdentifier()).thenReturn(securityServerId);
-        when(globalConfProvider.getSecurityServerAddress(securityServerId)).thenReturn("address");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(securityServerId, "address"));
 
         helper.updateOpMonitoringClientSecurityServerAddress(data);
 
@@ -80,12 +91,63 @@ class OpMonitoringDataHelperTest {
     @Test
     void testUpdateOpMonitoringServiceSecurityServerAddress() {
         OpMonitoringData data = mock(OpMonitoringData.class);
-        when(serverConfProvider.getIdentifier()).thenReturn(securityServerId);
-        when(globalConfProvider.getSecurityServerAddress(securityServerId)).thenReturn("address");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(securityServerId, "address"));
 
         helper.updateOpMonitoringServiceSecurityServerAddress(data);
 
         verify(data).setServiceSecurityServerAddress("address");
+    }
+
+    @ParameterizedTest
+    @MethodSource("unavailableOwnAddresses")
+    void clientAddressStaysUnsetWhenOwnAddressIsNotAvailable(OwnAddress ownAddress) {
+        OpMonitoringData data = mock(OpMonitoringData.class);
+        when(ownSecurityServerResolver.address()).thenReturn(ownAddress);
+
+        assertThatCode(() -> helper.updateOpMonitoringClientSecurityServerAddress(data)).doesNotThrowAnyException();
+
+        verify(data, never()).setClientSecurityServerAddress(any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("unavailableOwnAddresses")
+    void serviceAddressStaysUnsetWhenOwnAddressIsNotAvailable(OwnAddress ownAddress) {
+        OpMonitoringData data = mock(OpMonitoringData.class);
+        when(ownSecurityServerResolver.address()).thenReturn(ownAddress);
+
+        assertThatCode(() -> helper.updateOpMonitoringServiceSecurityServerAddress(data)).doesNotThrowAnyException();
+
+        verify(data, never()).setServiceSecurityServerAddress(any());
+    }
+
+    @Test
+    void databaseFailureDoesNotEscapeFromClientAddressUpdate() {
+        OpMonitoringData data = mock(OpMonitoringData.class);
+        when(ownSecurityServerResolver.address())
+                .thenThrow(XrdRuntimeException.systemException(DATABASE_ERROR, "database down"));
+
+        assertThatCode(() -> helper.updateOpMonitoringClientSecurityServerAddress(data)).doesNotThrowAnyException();
+
+        verify(data, never()).setClientSecurityServerAddress(any());
+    }
+
+    @Test
+    void databaseFailureDoesNotEscapeFromServiceAddressUpdate() {
+        OpMonitoringData data = mock(OpMonitoringData.class);
+        when(ownSecurityServerResolver.address())
+                .thenThrow(XrdRuntimeException.systemException(DATABASE_ERROR, "database down"));
+
+        assertThatCode(() -> helper.updateOpMonitoringServiceSecurityServerAddress(data)).doesNotThrowAnyException();
+
+        verify(data, never()).setServiceSecurityServerAddress(any());
+    }
+
+    private static Stream<OwnAddress> unavailableOwnAddresses() {
+        var id = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
+        return Stream.of(
+                new OwnAddress.NotRegistered(id),
+                new OwnAddress.GlobalConfUnavailable(id, new IllegalStateException("global conf unreadable")),
+                new OwnAddress.OwnerNotInitialised());
     }
 
     @Test
