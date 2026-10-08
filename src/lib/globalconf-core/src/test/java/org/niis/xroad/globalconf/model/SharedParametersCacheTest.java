@@ -26,6 +26,8 @@
 package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.Test;
 
@@ -67,4 +69,88 @@ class SharedParametersCacheTest {
         assertThat(cache.getSubjectsAndCaCerts()).containsValue(memberCaCert);
     }
 
+    @Test
+    void shouldKeepSeparateSystemValuesAndMemberDidsForServersSharingOneAddress() {
+        var owner = ClientId.Conf.create("DEV", "COM", "222");
+        var serverOne = SecurityServerId.Conf.create(owner, "ss1");
+        var serverTwo = SecurityServerId.Conf.create(owner, "ss2");
+
+        var cache = new SharedParametersCache(SharedParameters.builder()
+                .instanceIdentifier("DEV")
+                .approvedCAs(List.of())
+                .members(List.of(member("COM", "222",
+                        new SharedParameters.MemberDid(serverOne, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222"),
+                        new SharedParameters.MemberDid(serverTwo, "did:web:ss0.example.org%3A7283:v1:DEV:COM:222"))))
+                .securityServers(List.of(
+                        server(owner, "ss1", "ss0.example.org", "did:web:ss0.example.org%3A7183:v1:system",
+                                "https://ss0.example.org:8183/api/dsp"),
+                        server(owner, "ss2", "ss0.example.org", "did:web:ss0.example.org%3A7283:v1:system",
+                                "https://ss0.example.org:8283/api/dsp")))
+                .build());
+
+        assertThat(cache.getSystemValuesByServerId())
+                .containsEntry(serverOne, new ServerSystemValues("did:web:ss0.example.org%3A7183:v1:system",
+                        "https://ss0.example.org:8183/api/dsp"))
+                .containsEntry(serverTwo, new ServerSystemValues("did:web:ss0.example.org%3A7283:v1:system",
+                        "https://ss0.example.org:8283/api/dsp"));
+        assertThat(cache.getMemberDids().get(owner))
+                .containsEntry(serverOne, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222")
+                .containsEntry(serverTwo, "did:web:ss0.example.org%3A7283:v1:DEV:COM:222");
+    }
+
+    @Test
+    void shouldResolveMemberDidWhenMemberIsNotInServerClientList() {
+        var owner = ClientId.Conf.create("DEV", "COM", "222");
+        var otherMember = ClientId.Conf.create("DEV", "COM", "333");
+        var server = SecurityServerId.Conf.create(owner, "ss1");
+
+        var cache = new SharedParametersCache(SharedParameters.builder()
+                .instanceIdentifier("DEV")
+                .approvedCAs(List.of())
+                .members(List.of(member("COM", "222"),
+                        member("COM", "333", new SharedParameters.MemberDid(server, "did:web:ss0.example.org:v1"))))
+                .securityServers(List.of(server(owner, "ss1", "ss0.example.org", null, null)))
+                .build());
+
+        assertThat(cache.getSecurityServerClients().get(server)).containsExactly(owner);
+        assertThat(cache.getMemberDids().get(otherMember)).containsEntry(server, "did:web:ss0.example.org:v1");
+    }
+
+    @Test
+    void shouldNotCacheSystemValuesOfServerWithoutBothValues() {
+        var owner = ClientId.Conf.create("DEV", "COM", "222");
+
+        var cache = new SharedParametersCache(SharedParameters.builder()
+                .instanceIdentifier("DEV")
+                .approvedCAs(List.of())
+                .securityServers(List.of(
+                        server(owner, "ss1", "ss0.example.org", null, null),
+                        server(owner, "ss2", "ss1.example.org", "did:web:ss1.example.org:v1:system", null),
+                        server(owner, "ss3", "ss2.example.org", null, "https://ss2.example.org/api/dsp")))
+                .build());
+
+        assertThat(cache.getSystemValuesByServerId()).isEmpty();
+    }
+
+    private static SharedParameters.Member member(String memberClass, String memberCode,
+                                                  SharedParameters.MemberDid... dids) {
+        var member = new SharedParameters.Member();
+        member.setMemberClass(new SharedParameters.MemberClass(memberClass, memberClass));
+        member.setMemberCode(memberCode);
+        member.setDids(List.of(dids));
+        return member;
+    }
+
+    private static SharedParameters.SecurityServer server(ClientId owner, String serverCode, String address,
+                                                          String systemDid, String dspBaseUrl) {
+        var server = new SharedParameters.SecurityServer();
+        server.setOwner(owner);
+        server.setServerCode(serverCode);
+        server.setAddress(address);
+        server.setAuthCertHashes(List.of());
+        server.setClients(List.of());
+        server.setSystemDid(systemDid);
+        server.setDspBaseUrl(dspBaseUrl);
+        return server;
+    }
 }

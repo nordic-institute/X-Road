@@ -55,6 +55,7 @@ import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.PrivateParameters;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersCache;
 import org.niis.xroad.globalconf.util.GlobalConfUtils;
@@ -587,6 +588,19 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Collection<String> getCredentialIssuerDids(String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getCredentialIssuerDids();
+    }
+
+    @Override
+    public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
+        return globalConfSource.findSharedParametersCache(serverId.getXRoadInstance())
+                .map(cache -> cache.getSystemValuesByServerId().get(serverId));
+    }
+
+    @Override
+    public Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
+        return globalConfSource.findSharedParametersCache(serverId.getXRoadInstance())
+                .map(cache -> cache.getMemberDids().get(memberId.getMemberId()))
+                .map(didsByServer -> didsByServer.get(serverId));
     }
 
     @Override

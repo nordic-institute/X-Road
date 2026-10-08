@@ -41,6 +41,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.io.IOException;
@@ -335,5 +336,15 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public Set<SecurityServerId> getClientSecurityServers(ClientId clientId) {
         return globalConfProvider.getClientSecurityServers(clientId);
+    }
+
+    @Override
+    public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
+        return globalConfProvider.getServerSystemValues(serverId);
+    }
+
+    @Override
+    public Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
+        return globalConfProvider.getMemberDid(memberId, serverId);
     }
 }

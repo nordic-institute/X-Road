@@ -66,6 +66,8 @@ public class SharedParametersCache {
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
+    private final Map<SecurityServerId, ServerSystemValues> systemValuesByServerId = new HashMap<>();
+    private final Map<ClientId, Map<SecurityServerId, String>> memberDids = new HashMap<>();
     private final Map<ClientId, Set<SharedParameters.SecurityServer>> securityServersByClientId = new HashMap<>();
     private final Map<String, SharedParameters.SecurityServer> securityServersByAddress = new HashMap<>();
 
@@ -79,6 +81,7 @@ public class SharedParametersCache {
         cacheCaCerts();
         cacheKnownAddresses();
         cacheSecurityServers();
+        cacheMemberDids();
     }
 
 
@@ -155,9 +158,27 @@ public class SharedParametersCache {
                     securityServer.getOwner().getMemberCode(), securityServer.getServerCode()
             );
             securityServersById.put(securityServerId, securityServer);
+            if (securityServer.getSystemDid() != null && securityServer.getDspBaseUrl() != null) {
+                systemValuesByServerId.put(securityServerId,
+                        new ServerSystemValues(securityServer.getSystemDid(), securityServer.getDspBaseUrl()));
+            }
             securityServersByAddress.put(securityServer.getAddress(), securityServer);
 
             securityServer.getClients().forEach(client -> addServerClient(client, securityServer));
+        }
+    }
+
+    private void cacheMemberDids() {
+        if (sharedParameters.getMembers() == null) {
+            return;
+        }
+        for (SharedParameters.Member member : sharedParameters.getMembers()) {
+            ClientId memberId = ClientId.Conf.create(sharedParameters.getInstanceIdentifier(),
+                    member.getMemberClass().getCode(), member.getMemberCode());
+            for (SharedParameters.MemberDid memberDid : member.getDids()) {
+                memberDids.computeIfAbsent(memberId, k -> new HashMap<>())
+                        .put(memberDid.serverId(), memberDid.did());
+            }
         }
     }
 
