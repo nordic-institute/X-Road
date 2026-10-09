@@ -61,6 +61,7 @@ import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClie
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
@@ -157,7 +158,8 @@ class DataspaceProvisioningServiceTest {
         lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         lenient().when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
-        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(
+                new AdminOwnServerIdentitySource(serverConfRepository), globalConfProvider);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
@@ -1033,6 +1035,7 @@ class DataspaceProvisioningServiceTest {
         var ownerEntity = clientWith(owner);
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(ownerEntity);
+        lenient().when(serverConf.getServerCode()).thenReturn(SERVER_ID.getServerCode());
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
     }
 

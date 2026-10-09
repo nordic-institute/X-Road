@@ -34,9 +34,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
@@ -49,6 +52,8 @@ import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -75,7 +80,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -101,6 +108,10 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private MailNotificationHelper mailNotificationHelper;
     @MockitoSpyBean
     private AdminServiceProperties adminServiceProperties;
+    @MockitoSpyBean
+    private OwnSecurityServerResolver ownSecurityServerResolver;
+    @Autowired
+    private SecurityServerAddressChangeStatus addressChangeStatus;
 
     private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -110,6 +121,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             TestUtils.getClientId("FI", "GOV", "M2", null);
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(OWNER_MEMBER, "TEST-INMEM-SS");
     private static final SecurityServerId.Conf NEW_SS_ID = SecurityServerId.Conf.create(NEW_OWNER_MEMBER, "TEST-INMEM-SS");
+    private static final String NEW_ADDRESS = "new.example.org";
     private static final String KEY_OWNER_ID = "key-owner";
     private static final String CERT_OWNER_HASH = "cert-owner";
     private static final String KEY_NEW_OWNER_ID = "key-new-owner";
@@ -121,6 +133,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Before
     public void setup() throws Exception {
+        addressChangeStatus.clear();
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> null).when(globalConfProvider).reload();
 
@@ -391,6 +404,76 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.updateTimestampServiceCostTypes(globalTsps, localTsps);
 
         assertEquals(CostType.UNDEFINED.name(), localTsps.getFirst().getCostType());
+    }
+
+    @Test
+    public void registeredWithMatchingAddressClearsPendingAddressChange() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(NEW_ADDRESS);
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        assertFalse(addressChangeStatus.getAddressChangeRequest().isPresent());
+    }
+    @Test
+    public void registeredWithDifferentAddressKeepsPendingAddressChange() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn("old.example.org");
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+    }
+    @Test
+    public void notRegisteredKeepsPendingAddressChangeAndSyncContinues() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        verifySyncRan();
+    }
+    @Test
+    public void globalConfUnavailableKeepsPendingAddressChangeAndSyncContinues() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable"));
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        verifySyncRan();
+    }
+    @Test
+    public void secondCycleWhileNotRegisteredChangesNothingMore() {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        var subsystemStatusAfterFirstCycle = clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus();
+        globalConfChecker.checkGlobalConf();
+        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(subsystemStatusAfterFirstCycle, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
+    }
+    @Test
+    public void ownerNotInitialisedSkipsServerConfUpdate() {
+        doReturn(new OwnIdentity.OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        verifySyncSkipped();
+    }
+    @Test
+    public void secondCycleWhileOwnerNotInitialisedChangesNothingMore() {
+        doReturn(new OwnIdentity.OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
+        addressChangeStatus.setAddress(NEW_ADDRESS);
+        globalConfChecker.checkGlobalConf();
+        globalConfChecker.checkGlobalConf();
+        verifySyncSkipped();
+    }
+    private void verifySyncRan() {
+        assertEquals(Client.STATUS_GLOBALERR, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
+        verify(signerRpcClient).getTokens();
+        verify(globalConfProvider).getApprovedTsps(any());
+    }
+    private void verifySyncSkipped() {
+        assertEquals(Optional.of(NEW_ADDRESS), addressChangeStatus.getAddressChangeRequest());
+        assertEquals(Client.STATUS_REGISTERED, clientService.getLocalClientEntity(SUBSYSTEM).getClientStatus());
+        verify(ownSecurityServerResolver, never()).address(any(SecurityServerId.class));
+        verify(signerRpcClient, never()).getTokens();
+        verify(globalConfProvider, never()).getApprovedTsps(any());
+        verify(globalConfProvider, never()).getServerOwner(any());
     }
 
     @Test

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,48 +23,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.scheduling;
+package org.niis.xroad.serverconf.impl.ownserver;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 /**
- * Helper class for Scheduled jobs.
- * This class does not require authentication, because its
- * methods are accessed from a scheduled job that's run
- * unauthenticated.
+ * This Security Server as global configuration knows it: its identifier and registered address.
+ * Every reason an answer is missing is a distinct result state; database failures propagate.
  */
-@Slf4j
-@Service
-@Transactional
-class ScheduledJobHelper {
-    private final ServerConfRepository serverConfRepository;
+@RequiredArgsConstructor
+public class OwnSecurityServerResolver {
 
-    @Autowired
-    ScheduledJobHelper(ServerConfRepository serverConfRepository) {
-        this.serverConfRepository = serverConfRepository;
+    private final OwnServerIdentitySource identitySource;
+    private final GlobalConfProvider globalConfProvider;
+
+    public OwnIdentity identity() {
+        return identitySource.read();
     }
 
-    /**
-     * Get the Security Server's ServerConf
-     * @return ServerConfEntity
-     */
-    ServerConfEntity getServerConf() {
-        return serverConfRepository.getServerConf();
+    public OwnAddress address() {
+        return switch (identity()) {
+            case OwnIdentity.Known(var id) -> address(id);
+            case OwnIdentity.OwnerNotInitialised ignored -> new OwnAddress.OwnerNotInitialised();
+            case OwnIdentity.GlobalConfUnavailable(var cause) -> new OwnAddress.GlobalConfUnavailable(null, cause);
+        };
     }
 
-    /**
-     * Get the Security Server's id
-     * @return SecurityServerId.Conf
-     */
-    SecurityServerId.Conf getSecurityServerId() {
-        ServerConfEntity serverConf = getServerConf();
-        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
+    public OwnAddress address(SecurityServerId id) {
+        try {
+            var address = globalConfProvider.getSecurityServerAddress(id);
+            if (address == null || address.isBlank()) {
+                return new OwnAddress.NotRegistered(id);
+            }
+            return new OwnAddress.Registered(id, address);
+        } catch (XrdRuntimeException e) {
+            return new OwnAddress.GlobalConfUnavailable(id, e);
+        }
     }
 }

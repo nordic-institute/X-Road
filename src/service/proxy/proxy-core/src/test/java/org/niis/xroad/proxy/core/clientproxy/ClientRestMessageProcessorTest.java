@@ -60,6 +60,8 @@ import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ProxyOwnServerIdentitySource;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 
 import java.net.URI;
 import java.util.List;
@@ -109,7 +111,8 @@ class ClientRestMessageProcessorTest {
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .build());
-        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,
+                new OwnSecurityServerResolver(new ProxyOwnServerIdentitySource(serverConfProvider), globalConfProvider));
         var httpSenderProvider = mock(HttpSenderProvider.class);
         var messageSigningService = mock(MessageSigningService.class);
         var clientVerificationService = mock(ClientVerificationService.class);
@@ -291,7 +294,8 @@ class ClientRestMessageProcessorTest {
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .build());
-        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,
+                new OwnSecurityServerResolver(new ProxyOwnServerIdentitySource(serverConfProvider), globalConfProvider));
         var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
 

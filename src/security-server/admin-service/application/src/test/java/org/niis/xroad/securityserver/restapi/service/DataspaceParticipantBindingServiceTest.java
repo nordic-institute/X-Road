@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,8 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
@@ -59,6 +62,7 @@ class DataspaceParticipantBindingServiceTest {
 
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "ORG", "OTHER");
+    private static final SecurityServerId SERVER_ID = SecurityServerId.Conf.create(MEMBER, "SS1");
     private static final String SS_HOST = "ss.example.test:7183";
 
     @Mock
@@ -76,7 +80,7 @@ class DataspaceParticipantBindingServiceTest {
     void setUp() {
         lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        lenient().when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of("ss.example.test"));
+        lenient().when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, "ss.example.test"));
 
         service = new DataspaceParticipantBindingService(dsParticipantRepository,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
@@ -139,7 +143,7 @@ class DataspaceParticipantBindingServiceTest {
     @Test
     void reportsAnUnknownRegisteredAddressInsteadOfPropagating() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-        when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.empty());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(SERVER_ID));
 
         assertThat(service.bindMembersIfAbsent(List.of(MEMBER), true)).isZero();
 

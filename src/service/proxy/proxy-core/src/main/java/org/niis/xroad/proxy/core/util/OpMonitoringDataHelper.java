@@ -42,11 +42,14 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Operational monitoring helper providing security server address and request metadata.
@@ -58,10 +61,11 @@ public class OpMonitoringDataHelper {
 
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     public void updateOpMonitoringClientSecurityServerAddress(OpMonitoringData opMonitoringData) {
         try {
-            opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
+            setOwnAddress(opMonitoringData::setClientSecurityServerAddress);
         } catch (Exception e) {
             log.error(OpMonitoringData.ERROR_FAILED_TO_ASSIGN_FIELD, OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
@@ -69,7 +73,7 @@ public class OpMonitoringDataHelper {
 
     public void updateOpMonitoringServiceSecurityServerAddress(OpMonitoringData opMonitoringData) {
         try {
-            opMonitoringData.setServiceSecurityServerAddress(getSecurityServerAddress());
+            setOwnAddress(opMonitoringData::setServiceSecurityServerAddress);
         } catch (Exception e) {
             log.error(OpMonitoringData.ERROR_FAILED_TO_ASSIGN_FIELD, OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
         }
@@ -167,7 +171,13 @@ public class OpMonitoringDataHelper {
                 .orElse(servicePath);
     }
 
-    private String getSecurityServerAddress() {
-        return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
+    private void setOwnAddress(Consumer<String> setter) {
+        var ownAddress = ownSecurityServerResolver.address();
+        if (ownAddress instanceof OwnAddress.Registered registered) {
+            setter.accept(registered.address());
+        } else {
+            log.debug("Own security server address is not available for operational monitoring: {}",
+                    ownAddress.getClass().getSimpleName());
+        }
     }
 }

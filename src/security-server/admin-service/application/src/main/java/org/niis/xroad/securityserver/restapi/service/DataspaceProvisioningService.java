@@ -41,6 +41,8 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
@@ -410,13 +412,12 @@ public class DataspaceProvisioningService {
      */
     @Transactional(readOnly = true)
     public List<ParticipantContext> participantContexts() {
-        var ownerId = ownSecurityServerResolver.owner();
-        var owner = ownerId.orElse(null);
+        ClientId owner = ownSecurityServerResolver.identity() instanceof OwnIdentity.Known(var id) ? id.getOwner() : null;
 
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner));
 
-        if (ownerId.isEmpty()) {
+        if (owner == null) {
             // serverconf is not initialised: reading local clients would throw MALFORMED_SERVERCONF
             return contexts;
         }

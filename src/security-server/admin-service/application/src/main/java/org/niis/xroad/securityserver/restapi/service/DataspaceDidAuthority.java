@@ -34,6 +34,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -109,6 +111,8 @@ public class DataspaceDidAuthority {
 
     private Optional<String> find() {
         var didPort = adminServiceProperties.getDataspace().getIdentityHubDidPort();
-        return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
+        return ownSecurityServerResolver.address() instanceof OwnAddress.Registered(_, var address)
+                ? Optional.of(DspConventions.didAuthority(address, didPort))
+                : Optional.empty();
     }
 }

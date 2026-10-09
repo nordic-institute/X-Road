@@ -39,25 +39,30 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -69,8 +74,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class XRoadDataPlaneManagerTest {
 
+    private static final SecurityServerId.Conf OWN_ID = SecurityServerId.Conf.create("DEV", "COM", "1234", "SS0");
     private static final String OWN_ADDRESS = "provider.example.org";
     private static final String SERVERPROXY_ENDPOINT = "https://provider.example.org:5500";
+    private static final String FALLBACK_ENDPOINT = "https://fallback.example.org:5500";
 
     private static final ClientId CONSUMER = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
     private static final ServiceId SERVICE = ServiceId.Conf.create("DEV", "COM", "333", "PROVIDER", "getData", "v1");
@@ -80,7 +87,7 @@ class XRoadDataPlaneManagerTest {
     @Mock
     private DataPlaneServerProperties properties;
     @Mock
-    private GlobalConfProvider globalConfProvider;
+    private OwnSecurityServerResolver ownSecurityServerResolver;
     @Mock
     private ServerConfProvider serverConfProvider;
     @Mock
@@ -96,9 +103,8 @@ class XRoadDataPlaneManagerTest {
 
     @BeforeEach
     void setUp() {
-        var ownId = SecurityServerId.Conf.create("DEV", "COM", "1234", "SS0");
-        lenient().when(serverConfProvider.getIdentifier()).thenReturn(ownId);
-        lenient().when(globalConfProvider.getSecurityServerAddress(ownId)).thenReturn(OWN_ADDRESS);
+        lenient().when(serverConfProvider.getIdentifier()).thenReturn(OWN_ID);
+        lenient().when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_ID, OWN_ADDRESS));
         lenient().when(proxyProperties.sslEnabled()).thenReturn(true);
         lenient().when(proxyProperties.serverProxyPort()).thenReturn(5500);
 
@@ -109,7 +115,7 @@ class XRoadDataPlaneManagerTest {
 
         agreementTokenIssuer = new AgreementTokenIssuer(grantRpcClient, serverConfProvider, keyMaterial, TOKEN_PROPERTIES);
         flowStateStore = new InMemoryDataFlowStateStore();
-        manager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties, flowStateStore,
+        manager = new XRoadDataPlaneManager(properties, ownSecurityServerResolver, proxyProperties, flowStateStore,
                 agreementTokenIssuer);
     }
 
@@ -153,6 +159,36 @@ class XRoadDataPlaneManagerTest {
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
         assertThat(result.getDataAddress().getEndpointType()).isEqualTo("https");
         assertThat(result.getState()).isEqualTo(DataFlowStates.PROVISIONED.toString());
+    }
+
+    @ParameterizedTest
+    @MethodSource("unavailableOwnAddresses")
+    void startAdvertisesFallbackEndpointWhenOwnAddressIsNotAvailable(OwnAddress ownAddress) {
+        when(ownSecurityServerResolver.address()).thenReturn(ownAddress);
+        when(properties.serverproxyEndpoint()).thenReturn(FALLBACK_ENDPOINT);
+        var result = manager.start(buildStartMessage("flow-fallback-start"));
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(FALLBACK_ENDPOINT);
+        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
+    }
+
+    @ParameterizedTest
+    @MethodSource("unavailableOwnAddresses")
+    void prepareAdvertisesFallbackEndpointWhenOwnAddressIsNotAvailable(OwnAddress ownAddress) {
+        when(ownSecurityServerResolver.address()).thenReturn(ownAddress);
+        when(properties.serverproxyEndpoint()).thenReturn(FALLBACK_ENDPOINT);
+        var result = manager.prepare(buildPrepareMessage("flow-fallback-prepare"));
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(FALLBACK_ENDPOINT);
+        assertThat(result.getState()).isEqualTo(DataFlowStates.PROVISIONED.toString());
+    }
+
+    @Test
+    void startAdvertisesFallbackEndpointWhenOwnAddressLookupFailsOnDatabase() {
+        when(ownSecurityServerResolver.address())
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR, "database down"));
+        when(properties.serverproxyEndpoint()).thenReturn(FALLBACK_ENDPOINT);
+        var result = manager.start(buildStartMessage("flow-fallback-db"));
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(FALLBACK_ENDPOINT);
+        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
     }
 
     @Test
@@ -288,7 +324,7 @@ class XRoadDataPlaneManagerTest {
 
     @Test
     void flowStartedOnOneNodeIsVisibleOnAnotherNodeSharingTheStore() {
-        var otherNodeManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
+        var otherNodeManager = new XRoadDataPlaneManager(properties, ownSecurityServerResolver,
                 proxyProperties, flowStateStore, agreementTokenIssuer);
 
         manager.start(buildStartMessage("flow-shared"));
@@ -299,7 +335,7 @@ class XRoadDataPlaneManagerTest {
     @Test
     void lifecycleTransitionOnOneNodeUpdatesTheSharedRecordSeenByAnother() {
         var nodeA = manager;
-        var nodeB = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
+        var nodeB = new XRoadDataPlaneManager(properties, ownSecurityServerResolver,
                 proxyProperties, flowStateStore, agreementTokenIssuer);
 
         nodeA.start(buildStartMessage("flow-cluster"));
@@ -310,6 +346,13 @@ class XRoadDataPlaneManagerTest {
 
         nodeA.terminate("flow-cluster");
         assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowStates.TERMINATED);
+    }
+
+    private static Stream<OwnAddress> unavailableOwnAddresses() {
+        return Stream.of(
+                new OwnAddress.NotRegistered(OWN_ID),
+                new OwnAddress.GlobalConfUnavailable(OWN_ID, new IllegalStateException("global conf unreadable")),
+                new OwnAddress.OwnerNotInitialised());
     }
 
     private DataFlowStartMessage buildStartMessage(String processId) {
