@@ -42,9 +42,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -76,13 +78,23 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
     }
 
     @Test
-    void evaluateInOperatorWhenMemberReturnsTrue() {
+    void evaluateIsPartOfWireOperatorWhenMemberReturnsTrue() {
         when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(Operator.IN, "myLocalGroup", permission, context);
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), "myLocalGroup", permission, context);
 
         assertThat(result).isTrue();
+    }
+
+    @Test
+    void evaluateIsPartOfWireOperatorWhenNotMemberReturnsFalse() {
+        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), "myLocalGroup", permission, context);
+
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -113,6 +125,13 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
+    }
+
+    private static Operator operatorFromWire(String wireValue) {
+        return Arrays.stream(Operator.values())
+                .filter(it -> it.getOdrlRepresentation().equals(ODRL_SCHEMA + wireValue))
+                .findFirst()
+                .orElseThrow();
     }
 
     private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {

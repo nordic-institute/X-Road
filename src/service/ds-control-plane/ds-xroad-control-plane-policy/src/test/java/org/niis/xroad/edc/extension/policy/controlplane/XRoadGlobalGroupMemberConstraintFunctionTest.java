@@ -42,9 +42,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -76,13 +78,23 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
     }
 
     @Test
-    void evaluateInOperatorWhenMemberReturnsTrue() {
+    void evaluateIsPartOfWireOperatorWhenMemberReturnsTrue() {
         when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(Operator.IN, "CS:myGlobalGroup", permission, context);
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), "CS:myGlobalGroup", permission, context);
 
         assertThat(result).isTrue();
+    }
+
+    @Test
+    void evaluateIsPartOfWireOperatorWhenNotMemberReturnsFalse() {
+        when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(false);
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), "CS:myGlobalGroup", permission, context);
+
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -113,6 +125,13 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
+    }
+
+    private static Operator operatorFromWire(String wireValue) {
+        return Arrays.stream(Operator.values())
+                .filter(it -> it.getOdrlRepresentation().equals(ODRL_SCHEMA + wireValue))
+                .findFirst()
+                .orElseThrow();
     }
 
     private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {

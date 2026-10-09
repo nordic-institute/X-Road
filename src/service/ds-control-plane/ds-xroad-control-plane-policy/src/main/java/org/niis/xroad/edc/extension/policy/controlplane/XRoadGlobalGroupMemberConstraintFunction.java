@@ -68,7 +68,7 @@ public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgent
             return PolicyContextHelper.findMemberIdFromContext(context)
                     .map(memberId -> {
                         var result = switch (operator) {
-                            case EQ, IN -> globalConfProvider.isSubjectInGlobalGroup(memberId, globalGroupId);
+                            case EQ, IS_PART_OF -> globalConfProvider.isSubjectInGlobalGroup(memberId, globalGroupId);
                             default -> {
                                 context.reportProblem("Unsupported operator: " + operator);
                                 yield false;
