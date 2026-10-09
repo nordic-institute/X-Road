@@ -29,11 +29,19 @@ package org.niis.xroad.globalconf.model;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.xml.bind.JAXBElement;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberClassType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberDidType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
+
+import javax.xml.namespace.QName;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -129,7 +137,14 @@ class SharedParametersV7ConverterTest {
                 server("s0", "s1", "ss0", "", null, null),
                 server("s1", "m0", "ss1", "", null, null));
 
-        assertRejected(xml, ErrorCode.GLOBAL_CONF_OWNER_REFERENCES_SERVER, "owner", "s1");
+        assertRejected(xml, ErrorCode.GLOBAL_CONF_OWNER_REFERENCES_NON_MEMBER, "owner", "s1");
+    }
+
+    @Test
+    void shouldRejectOwnerPointingAtSubsystem() {
+        var xml = document("", server("s0", "sub0", "ss0", "", null, null));
+
+        assertRejected(xml, ErrorCode.GLOBAL_CONF_OWNER_REFERENCES_NON_MEMBER, "owner", "sub0");
     }
 
     @Test
@@ -242,6 +257,43 @@ class SharedParametersV7ConverterTest {
     }
 
     @Test
+    void shouldReadPaddedDidAsTrimmedValue() {
+        var parameters = read(document("<did securityServer=\"s0\">\n  " + MEMBER_DID_0 + "  \n</did>",
+                server("s0", "m0", "ss0", "", null, null)));
+
+        assertThat(parameters.getMembers()).singleElement().satisfies(member ->
+                assertThat(member.getDids()).containsExactly(new SharedParameters.MemberDid(SERVER_0, MEMBER_DID_0)));
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldRejectUnresolvedOwnerWithoutSchemaValidation() {
+        var source = graph();
+        source.getSecurityServer().getFirst().setOwner(null);
+
+        assertUnresolved(source, "owner");
+    }
+
+    @Test
+    void shouldRejectUnresolvedClientWithoutSchemaValidation() {
+        var source = graph();
+        source.getSecurityServer().getFirst().getClient().add(new JAXBElement<>(new QName("client"), Object.class, null));
+
+        assertUnresolved(source, "client");
+    }
+
+    @Test
+    void shouldRejectUnresolvedDidServerWithoutSchemaValidation() {
+        var source = graph();
+        var did = new MemberDidType();
+        did.setValue(MEMBER_DID_0);
+        did.setSecurityServer(null);
+        source.getMember().getFirst().getDid().add(did);
+
+        assertUnresolved(source, "did");
+    }
+
+    @Test
     void shouldReadUnknownDidSchemeVersionUnchanged() {
         var did = "did:web:ss0.example.org%3A7183:v2:EE:BUSINESS:producer";
 
@@ -263,6 +315,32 @@ class SharedParametersV7ConverterTest {
                     assertThat(e.getErrorCode()).isEqualTo(code.code());
                     assertThat(e.getErrorCodeMetadata()).containsExactly(element, id);
                 });
+    }
+
+    private static void assertUnresolved(SharedParametersTypeV7 source, String element) {
+        assertThatThrownBy(() -> new SharedParametersV7Converter().convert(source))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.getErrorCode()).isEqualTo(ErrorCode.MALFORMED_GLOBALCONF.code());
+                    assertThat(e.getErrorCodeMetadata()).containsExactly(element);
+                });
+    }
+
+    private static SharedParametersTypeV7 graph() {
+        var memberClass = new MemberClassType();
+        memberClass.setCode("BUSINESS");
+        var member = new MemberType();
+        member.setId("m0");
+        member.setMemberClass(memberClass);
+        member.setMemberCode("producer");
+        var server = new SecurityServerType();
+        server.setId("s0");
+        server.setOwner(member);
+        server.setServerCode("ss0");
+        var source = new SharedParametersTypeV7();
+        source.setInstanceIdentifier("EE");
+        source.getMember().add(member);
+        source.getSecurityServer().add(server);
+        return source;
     }
 
     private static void assertMalformed(String xml) {

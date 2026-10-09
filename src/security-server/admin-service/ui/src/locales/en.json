@@ -493,7 +493,7 @@
     "global_conf_missing_signed_data_expiration_date": "Global configuration signed data is missing expiration date",
     "global_conf_missing_verification_cert": "Cannot find verification certificate (certificate hash {0}) to verify signature of global configuration",
     "global_conf_outdated": "Global configuration is outdated",
-    "global_conf_owner_references_server": "Global configuration element {0} references security server {1}, but must reference a member",
+    "global_conf_owner_references_non_member": "Global configuration element {0} references {1}, which is not a member",
     "global_conf_parsing_downloaded_conf_directory_failure": "Failed to parse downloaded global configuration directory from {0}",
     "global_conf_part_download_failure": "Failed to download global configuration part",
     "global_conf_part_downloaded_file_integrity_failure": "Failed to verify downloaded global configuration part integrity of {0}",

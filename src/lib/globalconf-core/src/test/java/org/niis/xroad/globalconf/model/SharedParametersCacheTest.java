@@ -117,6 +117,27 @@ class SharedParametersCacheTest {
     }
 
     @Test
+    void shouldDropDuplicateMemberDidsOfOneServer() {
+        var owner = ClientId.Conf.create("DEV", "COM", "222");
+        var serverOne = SecurityServerId.Conf.create(owner, "ss1");
+        var serverTwo = SecurityServerId.Conf.create(owner, "ss2");
+
+        var cache = new SharedParametersCache(SharedParameters.builder()
+                .instanceIdentifier("DEV")
+                .approvedCAs(List.of())
+                .members(List.of(member(owner,
+                        new SharedParameters.MemberDid(serverOne, "did:web:ss1.example.org:v1:DEV:COM:222"),
+                        new SharedParameters.MemberDid(serverOne, "did:web:ss1.example.org:v2:DEV:COM:222"),
+                        new SharedParameters.MemberDid(serverTwo, "did:web:ss2.example.org:v1:DEV:COM:222"))))
+                .securityServers(List.of())
+                .build());
+
+        assertThat(cache.getMemberDids().get(owner))
+                .doesNotContainKey(serverOne)
+                .containsEntry(serverTwo, "did:web:ss2.example.org:v1:DEV:COM:222");
+    }
+
+    @Test
     void shouldNotCacheSystemValuesOfServerWithoutBothValues() {
         var owner = ClientId.Conf.create("DEV", "COM", "222");
 

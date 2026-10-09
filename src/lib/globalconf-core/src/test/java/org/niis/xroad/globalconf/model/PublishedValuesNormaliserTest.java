@@ -177,6 +177,15 @@ class PublishedValuesNormaliserTest {
         assertThat(warnings).hasSize(1);
     }
 
+    @Test
+    void shouldTrimMemberDids() {
+        var dids = List.of(new SharedParameters.MemberDid(SERVER_0, " " + MEMBER_DID_0 + "\n"));
+
+        assertThat(PublishedValuesNormaliser.normaliseMemberDids(MEMBER, dids))
+                .containsExactly(new SharedParameters.MemberDid(SERVER_0, MEMBER_DID_0));
+        assertThat(warnings).isEmpty();
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t\n"})

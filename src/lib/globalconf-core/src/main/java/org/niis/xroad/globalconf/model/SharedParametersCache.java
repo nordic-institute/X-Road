@@ -170,7 +170,7 @@ public class SharedParametersCache {
             return;
         }
         for (SharedParameters.Member member : sharedParameters.getMembers()) {
-            for (SharedParameters.MemberDid memberDid : member.getDids()) {
+            for (var memberDid : PublishedValuesNormaliser.normaliseMemberDids(member.getId(), member.getDids())) {
                 memberDids.computeIfAbsent(member.getId(), k -> new HashMap<>())
                         .put(memberDid.serverId(), memberDid.did());
             }

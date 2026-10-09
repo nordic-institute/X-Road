@@ -257,11 +257,11 @@ public class SharedParametersV7Converter {
     }
 
     private SharedParameters.MemberDid toMemberDid(String instanceIdentifier, MemberDidType source) {
-        if (!(source.getSecurityServer() instanceof SecurityServerType server)) {
+        var referenced = requireResolved("did", source.getSecurityServer());
+        if (!(referenced instanceof SecurityServerType server)) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MEMBER_DID_REFERENCES_NON_SERVER)
-                    .details("Element did references %s, which is not a security server"
-                            .formatted(idOf(source.getSecurityServer())))
-                    .metadataItems("did", idOf(source.getSecurityServer()))
+                    .details("Element did references %s, which is not a security server".formatted(idOf(referenced)))
+                    .metadataItems("did", idOf(referenced))
                     .build();
         }
         return new SharedParameters.MemberDid(toServerId(instanceIdentifier, server), source.getValue());
@@ -272,13 +272,24 @@ public class SharedParametersV7Converter {
     }
 
     private ClientId toOwnerId(String instanceIdentifier, SecurityServerType source) {
-        if (source.getOwner() instanceof SecurityServerType referenced) {
-            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OWNER_REFERENCES_SERVER)
-                    .details("Element owner references security server %s".formatted(referenced.getId()))
-                    .metadataItems("owner", referenced.getId())
+        var referenced = requireResolved("owner", source.getOwner());
+        if (!(referenced instanceof MemberType owner)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OWNER_REFERENCES_NON_MEMBER)
+                    .details("Element owner references %s, which is not a member".formatted(idOf(referenced)))
+                    .metadataItems("owner", idOf(referenced))
                     .build();
         }
-        return toClientId(instanceIdentifier, (MemberType) source.getOwner());
+        return toClientId(instanceIdentifier, owner);
+    }
+
+    private static Object requireResolved(String element, Object referenced) {
+        if (referenced == null) {
+            throw XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF)
+                    .details("Element %s references an unknown id".formatted(element))
+                    .metadataItems(element)
+                    .build();
+        }
+        return referenced;
     }
 
     private static String idOf(Object referenced) {
@@ -319,7 +330,7 @@ public class SharedParametersV7Converter {
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {
-                switch (client.getValue()) {
+                switch (requireResolved("client", client.getValue())) {
                     case MemberType member -> clients.add(toClientId(instanceIdentifier, member));
                     case SubsystemType subsystem -> clients.add(clientIds.get(subsystem.getId()));
                     default -> throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_CLIENT_REFERENCES_SERVER)

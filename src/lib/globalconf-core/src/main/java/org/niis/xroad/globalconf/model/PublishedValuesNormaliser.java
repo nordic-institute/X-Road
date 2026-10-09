@@ -61,8 +61,10 @@ final class PublishedValuesNormaliser {
     static List<SharedParameters.MemberDid> normaliseMemberDids(ClientId memberId, List<SharedParameters.MemberDid> dids) {
         Map<SecurityServerId, List<SharedParameters.MemberDid>> byServer = new LinkedHashMap<>();
         for (var memberDid : dids) {
-            if (StringUtils.isNotBlank(memberDid.did())) {
-                byServer.computeIfAbsent(memberDid.serverId(), id -> new ArrayList<>()).add(memberDid);
+            var did = StringUtils.trimToNull(memberDid.did());
+            if (did != null) {
+                byServer.computeIfAbsent(memberDid.serverId(), id -> new ArrayList<>())
+                        .add(new SharedParameters.MemberDid(memberDid.serverId(), did));
             }
         }
         var normalised = new ArrayList<SharedParameters.MemberDid>();
