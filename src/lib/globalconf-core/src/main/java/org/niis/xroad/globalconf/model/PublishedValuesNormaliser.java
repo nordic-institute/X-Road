@@ -48,11 +48,11 @@ final class PublishedValuesNormaliser {
                                                               String dspBaseUrl) {
         var did = StringUtils.trimToNull(systemDid);
         var url = StringUtils.trimToNull(dspBaseUrl);
-        if (did == null && url == null) {
-            return Optional.empty();
-        }
         if (did == null || url == null) {
-            log.warn("Security server {} has only one of systemDid and dspBaseUrl, treating both as not published", serverId);
+            if (systemDid != null || dspBaseUrl != null) {
+                log.warn("Security server {} has an incomplete systemDid and dspBaseUrl pair, treating both as not published",
+                        serverId);
+            }
             return Optional.empty();
         }
         return Optional.of(new ServerSystemValues(did, url));
@@ -65,6 +65,9 @@ final class PublishedValuesNormaliser {
             if (did != null) {
                 byServer.computeIfAbsent(memberDid.serverId(), id -> new ArrayList<>())
                         .add(new SharedParameters.MemberDid(memberDid.serverId(), did));
+            } else if (memberDid.did() != null) {
+                log.warn("Member {} has a blank did entry for security server {}, treating it as not published",
+                        memberId, memberDid.serverId());
             }
         }
         var normalised = new ArrayList<SharedParameters.MemberDid>();

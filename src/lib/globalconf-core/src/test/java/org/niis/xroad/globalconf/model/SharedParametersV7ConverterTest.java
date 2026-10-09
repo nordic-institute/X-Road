@@ -211,13 +211,47 @@ class SharedParametersV7ConverterTest {
     }
 
     @Test
-    void shouldReadBlankSystemValuesAsAbsent() {
+    void shouldReadBlankSystemValuesAsAbsentAndWarnOnce() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", "  ", " ")));
 
         assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
             assertThat(server.getSystemDid()).isNull();
             assertThat(server.getDspBaseUrl()).isNull();
         });
+        assertThat(warnings).hasSize(1);
+    }
+
+    @Test
+    void shouldReadEmptySystemDidElementAsAbsentAndWarnOnce() {
+        var parameters = read(document("", server("s0", "m0", "ss0", "", null, "")));
+
+        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
+            assertThat(server.getSystemDid()).isNull();
+            assertThat(server.getDspBaseUrl()).isNull();
+        });
+        assertThat(warnings).hasSize(1);
+    }
+
+    @Test
+    void shouldReadBlankDspBaseUrlElementAsAbsentAndWarnOnce() {
+        var parameters = read(document("", server("s0", "m0", "ss0", "", "  ", null)));
+
+        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
+            assertThat(server.getSystemDid()).isNull();
+            assertThat(server.getDspBaseUrl()).isNull();
+        });
+        assertThat(warnings).hasSize(1);
+    }
+
+    @Test
+    void shouldReadBlankDspBaseUrlWithSystemDidAsHalfPairAndWarnOnce() {
+        var parameters = read(document("", server("s0", "m0", "ss0", "", "  ", SYSTEM_DID)));
+
+        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
+            assertThat(server.getSystemDid()).isNull();
+            assertThat(server.getDspBaseUrl()).isNull();
+        });
+        assertThat(warnings).hasSize(1);
     }
 
     @Test
@@ -249,11 +283,21 @@ class SharedParametersV7ConverterTest {
     }
 
     @Test
-    void shouldReadBlankDidAsAbsent() {
+    void shouldReadBlankDidAsAbsentAndWarnOnce() {
         var parameters = read(document("<did securityServer=\"s0\">  </did>",
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member -> assertThat(member.getDids()).isEmpty());
+        assertThat(warnings).hasSize(1);
+    }
+
+    @Test
+    void shouldReadEmptyDidElementAsAbsentAndWarnOnce() {
+        var parameters = read(document("<did securityServer=\"s0\"/>",
+                server("s0", "m0", "ss0", "", null, null)));
+
+        assertThat(parameters.getMembers()).singleElement().satisfies(member -> assertThat(member.getDids()).isEmpty());
+        assertThat(warnings).hasSize(1);
     }
 
     @Test

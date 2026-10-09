@@ -143,10 +143,29 @@ class PublishedValuesNormaliserTest {
         assertThat(warnings).hasSize(1);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "\t\n"})
+    void shouldWarnOnceForSuppliedBlankSystemDidWithoutDspBaseUrl(String blank) {
+        assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, blank, null))
+                .isEmpty();
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst().getParameters()).contains(SERVER_0);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "\t\n"})
+    void shouldWarnOnceForSuppliedBlankDspBaseUrlWithoutSystemDid(String blank) {
+        assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, null, blank))
+                .isEmpty();
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst().getParameters()).contains(SERVER_0);
+    }
+
     @Test
-    void shouldCountBlankSystemValuesAsNotPublished() {
+    void shouldWarnOnceForBothSuppliedBlankSystemValues() {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, " ", ""))
                 .isEmpty();
+        assertThat(warnings).hasSize(1);
     }
 
     @Test
@@ -187,13 +206,23 @@ class PublishedValuesNormaliserTest {
     }
 
     @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {" ", "\t\n"})
-    void shouldCountBlankDidAsAbsent(String blank) {
+    @ValueSource(strings = {"", " ", "\t\n"})
+    void shouldCountSuppliedBlankDidAsAbsentAndWarnOnce(String blank) {
         var other = new SharedParameters.MemberDid(SERVER_1, MEMBER_DID_1);
         var dids = List.of(new SharedParameters.MemberDid(SERVER_0, blank), other);
 
         assertThat(PublishedValuesNormaliser.normaliseMemberDids(MEMBER, dids)).containsExactly(other);
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst().getParameters()).contains(MEMBER, SERVER_0);
+    }
+
+    @Test
+    void shouldCountAbsentDidAsAbsentWithoutWarning() {
+        var other = new SharedParameters.MemberDid(SERVER_1, MEMBER_DID_1);
+        var dids = List.of(new SharedParameters.MemberDid(SERVER_0, null), other);
+
+        assertThat(PublishedValuesNormaliser.normaliseMemberDids(MEMBER, dids)).containsExactly(other);
+        assertThat(warnings).isEmpty();
     }
 
     @Test
@@ -202,6 +231,6 @@ class PublishedValuesNormaliserTest {
         var dids = List.of(new SharedParameters.MemberDid(SERVER_0, " "), kept);
 
         assertThat(PublishedValuesNormaliser.normaliseMemberDids(MEMBER, dids)).containsExactly(kept);
-        assertThat(warnings).isEmpty();
+        assertThat(warnings).hasSize(1);
     }
 }
