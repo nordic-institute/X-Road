@@ -162,6 +162,30 @@
                 </template>
               </v-chip>
               <v-chip
+                v-if="subitem.status === 'REVOKED'"
+                class="xrd font-weight-medium"
+                color="error-container"
+                variant="flat"
+                size="small"
+                :text="$t('securityServers.revoked')"
+              >
+                <template #prepend>
+                  <v-icon class="status-icon" icon="cancel" color="error" filled />
+                </template>
+              </v-chip>
+              <v-chip
+                v-if="subitem.status === 'DECLINED'"
+                class="xrd font-weight-medium"
+                color="error-container"
+                variant="flat"
+                size="small"
+                :text="$t('securityServers.declined')"
+              >
+                <template #prepend>
+                  <v-icon class="status-icon" icon="cancel" color="error" filled />
+                </template>
+              </v-chip>
+              <v-chip
                 v-if="subitem.status === undefined"
                 class="xrd font-weight-medium"
                 color="error-container"
