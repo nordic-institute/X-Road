@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -33,6 +32,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +43,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.opmonitor.api.AccessScope;
@@ -53,6 +52,7 @@ import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -61,6 +61,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,6 +76,7 @@ import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOp
  * and health data.
  */
 class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 10;
     private static final String HEALTH_DATA_REQUEST = "src/test/resources/healthdata.request";
     private static final String OPERATIONAL_DATA_REQUEST = "src/test/resources/operationaldata.request";
     private static final String HEALTH_DATA_RESPONSE_ELEMENT = "getSecurityServerHealthDataResponse";
@@ -87,7 +89,7 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     private final HealthDataMetrics healthDataMetrics = new HealthDataMetrics(OP_MONITOR_PROPERTIES);
     private final HealthDataRegistry healthDataRegistry = new HealthDataRegistry(healthDataMetrics);
 
-    private RpcServer rpcServer;
+    private io.grpc.Server grpcServer;
     private ManagedChannel channel;
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub;
     private Server httpServer;
@@ -110,7 +112,7 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     @AfterEach
     void tearDown() throws Exception {
         channel.shutdownNow();
-        rpcServer.destroy();
+        grpcServer.shutdownNow().awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         httpServer.stop();
     }
 
@@ -160,7 +162,7 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
         var fault = new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, response.getResponse().newInput());
         assertThat(fault).isInstanceOfSatisfying(SoapFault.class, f -> {
             assertThat(f.getCode()).isEqualTo(SERVER_SERVER_PROXY_OPMONITOR_X + ".invalid_content_type");
-            assertThat(f.getString()).contains("Invalid content type " + MimeTypes.TEXT_PLAIN_UTF8 + ", expecting " + MimeTypes.TEXT_XML);
+            assertThat(f.getString()).contains("Invalid content type text/plain; charset=utf-8, expecting " + MimeTypes.TEXT_XML);
         });
     }
 
@@ -195,10 +197,11 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     }
 
     private void startRpcServer(OpMonitorRpcService service) throws IOException {
-        int port = TestPortUtils.findRandomPort();
-        rpcServer = new RpcServer("127.0.0.1", port, credentials.createServerCredentials(), builder -> builder.addService(service));
-        rpcServer.init();
-        channel = new RpcChannelFactory(credentials).createChannel(channelProperties(port));
+        grpcServer = NettyServerBuilder.forAddress(new InetSocketAddress("127.0.0.1", 0), credentials.createServerCredentials())
+                .addService(service)
+                .build()
+                .start();
+        channel = new RpcChannelFactory(credentials).createChannel(channelProperties(grpcServer.getPort()));
         stub = OpMonitorServiceGrpc.newBlockingStub(channel);
     }
 

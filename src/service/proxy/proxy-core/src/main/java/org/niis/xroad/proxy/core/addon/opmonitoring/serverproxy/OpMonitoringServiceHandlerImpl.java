@@ -29,10 +29,13 @@ package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.RequestWrapper;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
@@ -45,6 +48,8 @@ import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 
@@ -104,17 +109,53 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
         try {
             var query = writeQuery(proxyRequestMessage);
-
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
-
-            var response = opMonitorClient().queryOperationalData(query, proxyRequestMessage.getSoapContentType());
-
-            opMonitoringData.setResponseInTs(getEpochMillisecond());
+            var response = sendQuery(query, proxyRequestMessage.getSoapContentType(), opMonitoringData);
 
             return new ServiceHandlerResult(response.getContentType(), response.getResponse().newInput());
         } catch (Exception ex) {
             throw XrdRuntimeException.systemException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
+    }
+
+    private QueryOperationalDataResp sendQuery(byte[] query, String contentType, OpMonitoringData opMonitoringData) {
+        var client = opMonitorClient();
+
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
+
+        QueryOperationalDataResp response;
+        try {
+            response = client.queryOperationalData(query, contentType);
+        } catch (StatusRuntimeException ex) {
+            if (isTransportFailure(ex.getStatus().getCode())) {
+                throw networkError(ex, ex.getStatus().toString());
+            }
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+            throw ex;
+        } catch (XrdRuntimeException ex) {
+            if (ex.isCausedBy(NETWORK_ERROR)) {
+                throw networkError(ex, ex.getDetails());
+            }
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+            throw ex;
+        }
+
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
+
+        if (response.getContentType().isEmpty()) {
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE, "Could not get content type from response");
+        }
+        return response;
+    }
+
+    private static boolean isTransportFailure(Status.Code code) {
+        return code == Status.Code.UNAVAILABLE || code == Status.Code.DEADLINE_EXCEEDED || code == Status.Code.CANCELLED;
+    }
+
+    private static XrdRuntimeException networkError(Exception cause, String details) {
+        return XrdRuntimeException.systemException(NETWORK_ERROR)
+                .cause(cause)
+                .details(details)
+                .build();
     }
 
     private static byte[] writeQuery(ProxyMessage proxyRequestMessage) throws IOException {

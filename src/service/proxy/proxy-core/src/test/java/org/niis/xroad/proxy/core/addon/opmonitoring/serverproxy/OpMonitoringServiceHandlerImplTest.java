@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 
+import ee.ria.xroad.common.message.SoapMessageImpl;
+
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -35,8 +37,12 @@ import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
@@ -51,6 +57,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -67,9 +74,12 @@ class OpMonitoringServiceHandlerImplTest {
     private static final String QUERY_CONTENT_TYPE = "text/xml; charset=UTF-8";
     private static final String RESPONSE = "<response/>";
     private static final String RESPONSE_CONTENT_TYPE = "text/xml;charset=utf-8";
+    private static final String TMP_DIR = "build/tmp";
 
     private final AtomicReference<QueryOperationalDataReq> received = new AtomicReference<>();
     private volatile Status failure;
+    private volatile XrdRuntimeException answeredError;
+    private volatile String responseContentType = RESPONSE_CONTENT_TYPE;
     private Server server;
     private ManagedChannel channel;
     private OpMonitorClient opMonitorClient;
@@ -87,9 +97,13 @@ class OpMonitoringServiceHandlerImplTest {
                             responseObserver.onError(failure.asRuntimeException());
                             return;
                         }
+                        if (answeredError != null) {
+                            new RpcResponseHandler().handleException(answeredError, responseObserver);
+                            return;
+                        }
                         responseObserver.onNext(QueryOperationalDataResp.newBuilder()
                                 .setResponse(ByteString.copyFromUtf8(RESPONSE))
-                                .setContentType(RESPONSE_CONTENT_TYPE)
+                                .setContentType(responseContentType)
                                 .build());
                         responseObserver.onCompleted();
                     }
@@ -130,8 +144,24 @@ class OpMonitoringServiceHandlerImplTest {
     }
 
     @Test
-    void failedQueryIsReportedAsServiceFailureWithoutResponseTimestamp() {
-        failure = Status.INTERNAL;
+    void queryContentTypeIsTheOneOfTheProxyMessageAndResponseContentTypeIsReturnedAsReceived() throws Exception {
+        var proxyMessage = new ProxyMessage("application/xml", TMP_DIR);
+        var soap = mock(SoapMessageImpl.class);
+        when(soap.getBytes()).thenReturn(QUERY.getBytes(StandardCharsets.UTF_8));
+        proxyMessage.soap(soap, Map.of());
+        responseContentType = "text/xml; charset=utf-8";
+
+        var result = handler.startHandling(null, proxyMessage, new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L));
+
+        assertThat(received.get().getContentType()).isEqualTo("text/xml; charset=UTF-8");
+        assertThat(received.get().getSoapQuery().toStringUtf8()).isEqualTo(QUERY);
+        assertThat(result.responseContentType()).isEqualTo("text/xml; charset=utf-8");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Status.Code.class, names = {"INTERNAL", "UNKNOWN", "UNIMPLEMENTED", "RESOURCE_EXHAUSTED", "INVALID_ARGUMENT"})
+    void errorStatusAnsweredByOpMonitorIsReportedAsServiceFailureWithResponseTimestamp(Status.Code code) {
+        failure = code.toStatus();
         var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
 
         assertThatThrownBy(() -> handler.startHandling(null, proxyMessage(), opMonitoringData))
@@ -140,10 +170,49 @@ class OpMonitoringServiceHandlerImplTest {
 
         var record = opMonitoringData.toProto();
         assertThat(record.hasRequestOutTs()).isTrue();
+        assertThat(record.hasResponseInTs()).isTrue();
+    }
+
+    @Test
+    void errorAnsweredByOpMonitorKeepsItsErrorCodeAndSetsResponseTimestamp() {
+        answeredError = XrdRuntimeException.systemException(ErrorCode.DATABASE_ERROR).details("op-monitor database is down").build();
+        var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
+
+        assertThatThrownBy(() -> handler.startHandling(null, proxyMessage(), opMonitoringData))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(X_SERVICE_FAILED_X + ".op_monitor." + ErrorCode.DATABASE_ERROR.code()));
+
+        assertThat(opMonitoringData.toProto().hasResponseInTs()).isTrue();
+    }
+
+    @Test
+    void responseWithoutContentTypeIsReportedAsInvalidContentTypeWithResponseTimestamp() {
+        responseContentType = "";
+        var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
+
+        assertThatThrownBy(() -> handler.startHandling(null, proxyMessage(), opMonitoringData))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(X_SERVICE_FAILED_X + "." + ErrorCode.INVALID_CONTENT_TYPE.code()));
+
+        assertThat(opMonitoringData.toProto().hasResponseInTs()).isTrue();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Status.Code.class, names = {"UNAVAILABLE", "DEADLINE_EXCEEDED", "CANCELLED"})
+    void transportStatusIsReportedAsNetworkErrorWithoutResponseTimestamp(Status.Code code) {
+        failure = code.toStatus();
+        var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
+
+        assertThatThrownBy(() -> handler.startHandling(null, proxyMessage(), opMonitoringData))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(X_SERVICE_FAILED_X + "." + ErrorCode.NETWORK_ERROR.code()));
+
+        var record = opMonitoringData.toProto();
+        assertThat(record.hasRequestOutTs()).isTrue();
         assertThat(record.hasResponseInTs()).isFalse();
     }
 
-    private static ProxyMessage proxyMessage() throws IOException {
+    static ProxyMessage proxyMessage() throws IOException {
         var proxyMessage = mock(ProxyMessage.class, RETURNS_DEEP_STUBS);
         when(proxyMessage.getSoapContentType()).thenReturn(QUERY_CONTENT_TYPE);
         doAnswer(invocation -> {

@@ -59,10 +59,11 @@ class OperationalDataQueryService {
     record Response(byte[] body, String contentType) {
     }
 
-    Response query(byte[] soapQuery, String contentType) {
+    Response query(byte[] soapQuery, String queryContentType) {
         var responseBody = new ByteArrayOutputStream();
         var responseContentType = new AtomicReference<String>();
         try {
+            var contentType = QueryContentType.spell(queryContentType);
             QueryRequestProcessor.checkContentType(contentType);
 
             new QueryRequestProcessor(globalConfProvider, healthDataRegistry.getRegistry(), operationalDataRecordManager,
