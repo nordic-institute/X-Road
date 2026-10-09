@@ -145,6 +145,22 @@ class MemberCredentialRevocationServiceTest {
     }
 
     @Test
+    @DisplayName("Derives the holder DID from the canonical lowercase form of a mixed-case server address")
+    void revokesWithCanonicalHolderDidForMixedCaseAddress() {
+        server.setAddress("SS1.Example.ORG");
+        when(securityServers.findBy(securityServerId)).thenReturn(Optional.of(server));
+        when(members.findMember(memberId)).thenReturn(Optional.of(member));
+        when(member.getSubsystems()).thenReturn(Set.of());
+        when(serverClients.countBySecurityServerAndSecurityServerClientIn(eq(server), any())).thenReturn(0L);
+        when(rpcClient.revokeCredential(eq(ISSUER_PARTICIPANT_ID), anyString(), eq(CUTOFF))).thenReturn(1);
+
+        service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
+
+        verify(rpcClient).revokeCredential(eq(ISSUER_PARTICIPANT_ID),
+                eq(ParticipantIdentifierScheme.memberDid(memberId, "ss1.example.org:7183").toString()), eq(CUTOFF));
+    }
+
+    @Test
     @DisplayName("Does not revoke when the member itself still has a registered client row")
     void doesNotRevokeWhenMemberHasRemainingClientRow() {
         when(securityServers.findBy(securityServerId)).thenReturn(Optional.of(server));

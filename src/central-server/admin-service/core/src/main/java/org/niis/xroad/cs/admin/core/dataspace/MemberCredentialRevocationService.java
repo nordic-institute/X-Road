@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,8 @@ public class MemberCredentialRevocationService {
      * DID documents are served from the registered server address.
      */
     static final String INTERIM_IDENTITY_HUB_DID_PORT = "7183";
+
+    private static final int INTERIM_DID_PORT = Integer.parseInt(INTERIM_IDENTITY_HUB_DID_PORT);
 
     private final SecurityServerRepository securityServers;
     private final XRoadMemberRepository members;
@@ -107,7 +110,7 @@ public class MemberCredentialRevocationService {
         }
 
         String holderDid = ParticipantIdentifierScheme.memberDid(
-                event.memberId(), server.getAddress() + ":" + INTERIM_IDENTITY_HUB_DID_PORT).toString();
+                event.memberId(), DspConventions.didAuthority(server.getAddress(), INTERIM_DID_PORT)).toString();
         log.info("Dataspace credential revocation: revoking credentials for holder {} issued before {}",
                 holderDid, event.removedAt());
         int revokedCount = rpcClient.revokeCredential(ISSUER_PARTICIPANT_ID, holderDid, event.removedAt());
