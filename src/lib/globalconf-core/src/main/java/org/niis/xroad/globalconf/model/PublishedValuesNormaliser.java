@@ -38,26 +38,24 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class PublishedValuesNormaliser {
 
-    record SystemValues(String systemDid, String dspBaseUrl) {
-        static final SystemValues NONE = new SystemValues(null, null);
-    }
-
-    static SystemValues normaliseSystemValues(SecurityServerId serverId, String systemDid, String dspBaseUrl) {
+    static Optional<ServerSystemValues> normaliseSystemValues(SecurityServerId serverId, String systemDid,
+                                                              String dspBaseUrl) {
         var did = StringUtils.trimToNull(systemDid);
         var url = StringUtils.trimToNull(dspBaseUrl);
         if (did == null && url == null) {
-            return SystemValues.NONE;
+            return Optional.empty();
         }
         if (did == null || url == null) {
             log.warn("Security server {} has only one of systemDid and dspBaseUrl, treating both as not published", serverId);
-            return SystemValues.NONE;
+            return Optional.empty();
         }
-        return new SystemValues(systemDid, dspBaseUrl);
+        return Optional.of(new ServerSystemValues(did, url));
     }
 
     static List<SharedParameters.MemberDid> normaliseMemberDids(ClientId memberId, List<SharedParameters.MemberDid> dids) {

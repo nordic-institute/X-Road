@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.niis.xroad.globalconf.model.PublishedValuesNormaliser.SystemValues;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,28 +93,35 @@ class PublishedValuesNormaliserTest {
     @Test
     void shouldKeepCompleteSystemValuesWithoutWarning() {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, SYSTEM_DID, DSP_BASE_URL))
-                .isEqualTo(new SystemValues(SYSTEM_DID, DSP_BASE_URL));
+                .contains(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL));
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldTrimSystemValues() {
+        assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, " " + SYSTEM_DID + " ", DSP_BASE_URL + "\n"))
+                .contains(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL));
         assertThat(warnings).isEmpty();
     }
 
     @Test
     void shouldReadNeitherSystemValueAsNotPublishedWithoutWarning() {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, null, null))
-                .isEqualTo(new SystemValues(null, null));
+                .isEmpty();
         assertThat(warnings).isEmpty();
     }
 
     @Test
     void shouldDropSystemDidWithoutDspBaseUrlAndWarn() {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, SYSTEM_DID, null))
-                .isEqualTo(new SystemValues(null, null));
+                .isEmpty();
         assertThat(warnings).hasSize(1);
     }
 
     @Test
     void shouldDropDspBaseUrlWithoutSystemDidAndWarn() {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, null, DSP_BASE_URL))
-                .isEqualTo(new SystemValues(null, null));
+                .isEmpty();
         assertThat(warnings).hasSize(1);
     }
 
@@ -124,7 +130,7 @@ class PublishedValuesNormaliserTest {
     @ValueSource(strings = {" ", "\t\n"})
     void shouldCountBlankDspBaseUrlAsAbsent(String blank) {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, SYSTEM_DID, blank))
-                .isEqualTo(new SystemValues(null, null));
+                .isEmpty();
         assertThat(warnings).hasSize(1);
     }
 
@@ -133,14 +139,14 @@ class PublishedValuesNormaliserTest {
     @ValueSource(strings = {" ", "\t\n"})
     void shouldCountBlankSystemDidAsAbsent(String blank) {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, blank, DSP_BASE_URL))
-                .isEqualTo(new SystemValues(null, null));
+                .isEmpty();
         assertThat(warnings).hasSize(1);
     }
 
     @Test
     void shouldCountBlankSystemValuesAsNotPublished() {
         assertThat(PublishedValuesNormaliser.normaliseSystemValues(SERVER_0, " ", ""))
-                .isEqualTo(new SystemValues(null, null));
+                .isEmpty();
     }
 
     @Test

@@ -39,6 +39,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
@@ -346,5 +347,15 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
         return globalConfProvider.getMemberDid(memberId, serverId);
+    }
+
+    @Override
+    public Collection<ApprovedConnectorTlsCAInfo> getApprovedConnectorTlsCAs(String instanceIdentifier) {
+        return globalConfProvider.getApprovedConnectorTlsCAs(instanceIdentifier);
+    }
+
+    @Override
+    public Collection<String> getCredentialIssuerDids(String instanceIdentifier) {
+        return globalConfProvider.getCredentialIssuerDids(instanceIdentifier);
     }
 }

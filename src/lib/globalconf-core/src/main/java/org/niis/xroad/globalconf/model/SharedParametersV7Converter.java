@@ -312,8 +312,8 @@ public class SharedParametersV7Converter {
         var systemValues = PublishedValuesNormaliser.normaliseSystemValues(
                 SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()),
                 source.getSystemDid(), source.getDspBaseUrl());
-        target.setSystemDid(systemValues.systemDid());
-        target.setDspBaseUrl(systemValues.dspBaseUrl());
+        target.setSystemDid(systemValues.map(ServerSystemValues::systemDid).orElse(null));
+        target.setDspBaseUrl(systemValues.map(ServerSystemValues::dspBaseUrl).orElse(null));
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
 
         if (source.getClient() != null) {

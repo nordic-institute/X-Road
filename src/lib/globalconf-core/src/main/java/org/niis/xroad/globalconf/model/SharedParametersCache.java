@@ -158,10 +158,7 @@ public class SharedParametersCache {
                     securityServer.getOwner().getMemberCode(), securityServer.getServerCode()
             );
             securityServersById.put(securityServerId, securityServer);
-            if (securityServer.getSystemDid() != null && securityServer.getDspBaseUrl() != null) {
-                systemValuesByServerId.put(securityServerId,
-                        new ServerSystemValues(securityServer.getSystemDid(), securityServer.getDspBaseUrl()));
-            }
+            securityServer.systemValues().ifPresent(values -> systemValuesByServerId.put(securityServerId, values));
             securityServersByAddress.put(securityServer.getAddress(), securityServer);
 
             securityServer.getClients().forEach(client -> addServerClient(client, securityServer));
@@ -173,10 +170,8 @@ public class SharedParametersCache {
             return;
         }
         for (SharedParameters.Member member : sharedParameters.getMembers()) {
-            ClientId memberId = ClientId.Conf.create(sharedParameters.getInstanceIdentifier(),
-                    member.getMemberClass().getCode(), member.getMemberCode());
             for (SharedParameters.MemberDid memberDid : member.getDids()) {
-                memberDids.computeIfAbsent(memberId, k -> new HashMap<>())
+                memberDids.computeIfAbsent(member.getId(), k -> new HashMap<>())
                         .put(memberDid.serverId(), memberDid.did());
             }
         }

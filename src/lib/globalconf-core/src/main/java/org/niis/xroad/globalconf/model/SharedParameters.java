@@ -37,6 +37,7 @@ import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.SortableByCostType;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class SharedParameters {
@@ -204,6 +205,12 @@ public class SharedParameters {
         private MaintenanceMode maintenanceMode;
         private String systemDid;
         private String dspBaseUrl;
+
+        public Optional<ServerSystemValues> systemValues() {
+            return systemDid != null && dspBaseUrl != null
+                    ? Optional.of(new ServerSystemValues(systemDid, dspBaseUrl))
+                    : Optional.empty();
+        }
     }
 
     public record MaintenanceMode(boolean enabled, String message) {

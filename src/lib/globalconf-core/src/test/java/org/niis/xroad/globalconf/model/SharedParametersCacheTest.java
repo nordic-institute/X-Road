@@ -78,7 +78,7 @@ class SharedParametersCacheTest {
         var cache = new SharedParametersCache(SharedParameters.builder()
                 .instanceIdentifier("DEV")
                 .approvedCAs(List.of())
-                .members(List.of(member("COM", "222",
+                .members(List.of(member(owner,
                         new SharedParameters.MemberDid(serverOne, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222"),
                         new SharedParameters.MemberDid(serverTwo, "did:web:ss0.example.org%3A7283:v1:DEV:COM:222"))))
                 .securityServers(List.of(
@@ -107,8 +107,8 @@ class SharedParametersCacheTest {
         var cache = new SharedParametersCache(SharedParameters.builder()
                 .instanceIdentifier("DEV")
                 .approvedCAs(List.of())
-                .members(List.of(member("COM", "222"),
-                        member("COM", "333", new SharedParameters.MemberDid(server, "did:web:ss0.example.org:v1"))))
+                .members(List.of(member(owner),
+                        member(otherMember, new SharedParameters.MemberDid(server, "did:web:ss0.example.org:v1"))))
                 .securityServers(List.of(server(owner, "ss1", "ss0.example.org", null, null)))
                 .build());
 
@@ -132,11 +132,11 @@ class SharedParametersCacheTest {
         assertThat(cache.getSystemValuesByServerId()).isEmpty();
     }
 
-    private static SharedParameters.Member member(String memberClass, String memberCode,
-                                                  SharedParameters.MemberDid... dids) {
+    private static SharedParameters.Member member(ClientId id, SharedParameters.MemberDid... dids) {
         var member = new SharedParameters.Member();
-        member.setMemberClass(new SharedParameters.MemberClass(memberClass, memberClass));
-        member.setMemberCode(memberCode);
+        member.setId(id);
+        member.setMemberClass(new SharedParameters.MemberClass(id.getMemberClass(), id.getMemberClass()));
+        member.setMemberCode(id.getMemberCode());
         member.setDids(List.of(dids));
         return member;
     }
