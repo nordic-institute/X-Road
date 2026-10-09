@@ -50,7 +50,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_CERTIFIC
  * Checks that the chain parses, that the leaf certificate's validity window covers the current time, and that
  * the leaf certificate's public key equals the expected (stored) public key.
  * <p>
- * Deliberately does not verify that the chain is signed by a designated {@code approvedDsTlsCa} entry -
+ * Deliberately does not verify that the chain is signed by a designated {@code approvedConnectorTlsCA} entry -
  * peers enforce that trust, the upload only needs to be internally consistent.
  */
 @Component

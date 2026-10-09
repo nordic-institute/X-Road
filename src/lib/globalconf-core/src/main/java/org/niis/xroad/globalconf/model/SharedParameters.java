@@ -26,6 +26,7 @@
 package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +37,7 @@ import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.SortableByCostType;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class SharedParameters {
@@ -90,6 +92,10 @@ public class SharedParameters {
         private String name;
         private List<Subsystem> subsystems;
         private ClientId id;
+        private List<MemberDid> dids = List.of();
+    }
+
+    public record MemberDid(SecurityServerId serverId, String did) {
     }
 
     @Data
@@ -197,6 +203,14 @@ public class SharedParameters {
         private List<CertHash> authCertHashes;
         private List<ClientId> clients;
         private MaintenanceMode maintenanceMode;
+        private String systemDid;
+        private String dspBaseUrl;
+
+        public Optional<ServerSystemValues> systemValues() {
+            return systemDid != null && dspBaseUrl != null
+                    ? Optional.of(new ServerSystemValues(systemDid, dspBaseUrl))
+                    : Optional.empty();
+        }
     }
 
     public record MaintenanceMode(boolean enabled, String message) {

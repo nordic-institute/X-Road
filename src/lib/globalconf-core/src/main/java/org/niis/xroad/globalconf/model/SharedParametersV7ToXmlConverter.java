@@ -29,8 +29,10 @@ package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBElement;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -45,6 +47,7 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.CredentialIssuerType
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalSettingsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MaintenanceMode;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberDidType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
@@ -54,14 +57,16 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.SubsystemType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 abstract class SharedParametersV7ToXmlConverter {
     public static final SharedParametersV7ToXmlConverter INSTANCE = Mappers.getMapper(SharedParametersV7ToXmlConverter.class);
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     SharedParametersTypeV7 convert(SharedParameters sharedParameters) {
-        return sharedParameters == null ? null : convert(sharedParameters, createClientIdMap(sharedParameters));
+        return sharedParameters == null ? null : convert(sharedParameters, createReferenceTargets(sharedParameters));
     }
 
     @Mapping(source = "sources", target = "source")
@@ -74,7 +79,7 @@ abstract class SharedParametersV7ToXmlConverter {
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
     @Mapping(target = "any", ignore = true)
-    abstract SharedParametersTypeV7 convert(SharedParameters sharedParameters, @Context Map<ClientId, Object> clientMap);
+    abstract SharedParametersTypeV7 convert(SharedParameters sharedParameters, @Context ReferenceTargets targets);
 
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
@@ -91,24 +96,31 @@ abstract class SharedParametersV7ToXmlConverter {
 
     abstract AcmeServer convert(SharedParameters.AcmeServer acmeServer);
 
-    @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
-    @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
-    @Mapping(target = "owner", qualifiedByName = "clientById")
-    @Mapping(source = "maintenanceMode", target = "inMaintenanceMode")
-    abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);
+    @Mapping(source = "securityServer.authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
+    @Mapping(source = "securityServer.clients", target = "client", qualifiedByName = "clientsById")
+    @Mapping(source = "securityServer.owner", target = "owner", qualifiedByName = "clientById")
+    @Mapping(source = "securityServer.maintenanceMode", target = "inMaintenanceMode")
+    @Mapping(source = "id", target = "id")
+    abstract SecurityServerType convertServer(SharedParameters.SecurityServer securityServer, String id,
+                                              @Context ReferenceTargets targets);
 
     @Mapping(source = "groupMembers", target = "groupMember")
     abstract GlobalGroupType convert(SharedParameters.GlobalGroup globalGroup);
 
     @Mapping(target = "subsystem", ignore = true)
+    @Mapping(target = "did", ignore = true)
     @Mapping(source = "id", target = "id")
     abstract MemberType convertMember(SharedParameters.Member member, String id);
 
     @Mapping(source = "id", target = "id")
     abstract SubsystemType convertSubsystem(SharedParameters.Subsystem subsystem, String id);
 
-    MemberType convertMember(SharedParameters.Member member, @Context Map<ClientId, Object> clientMap) {
-        return (MemberType) clientMap.get(member.getId());
+    MemberType convertMember(SharedParameters.Member member, @Context ReferenceTargets targets) {
+        return (MemberType) targets.clients().get(member.getId());
+    }
+
+    SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context ReferenceTargets targets) {
+        return targets.servers().get(serverId(securityServer));
     }
 
     CredentialIssuerType toCredentialIssuer(String did) {
@@ -128,17 +140,17 @@ abstract class SharedParametersV7ToXmlConverter {
     }
 
     @Named("clientById")
-    Object xmlClientId(ClientId value, @Context Map<ClientId, Object> clientMap) {
-        return clientMap.get(value);
+    Object xmlClientId(ClientId value, @Context ReferenceTargets targets) {
+        return targets.clients().get(value);
     }
 
     @Named("clientsById")
-    List<JAXBElement<Object>> xmlClientIds(List<ClientId> clientIds, @Context Map<ClientId, Object> clientMap) {
+    List<JAXBElement<Object>> xmlClientIds(List<ClientId> clientIds, @Context ReferenceTargets targets) {
         if (clientIds == null) {
             return List.of();
         }
         return clientIds.stream()
-                .map(clientId -> OBJECT_FACTORY.createOriginalSecurityServerTypeClient(xmlClientId(clientId, clientMap)))
+                .map(clientId -> OBJECT_FACTORY.createOriginalSecurityServerTypeClient(xmlClientId(clientId, targets)))
                 .toList();
     }
 
@@ -153,23 +165,58 @@ abstract class SharedParametersV7ToXmlConverter {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }
 
-    private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {
-        if (sharedParameters.getMembers() == null) {
-            return Map.of();
+    private static Optional<MemberDidType> toMemberDid(ClientId memberId, SharedParameters.MemberDid memberDid,
+                                                       ReferenceTargets targets) {
+        var server = targets.servers().get(memberDid.serverId());
+        if (server == null) {
+            log.warn("Member {} has a did for security server {}, which is not in the server list, leaving it out",
+                    memberId, memberDid.serverId());
+            return Optional.empty();
         }
-        Map<ClientId, Object> clientMap = new HashMap<>();
+        var memberDidType = OBJECT_FACTORY.createMemberDidType();
+        memberDidType.setValue(memberDid.did());
+        memberDidType.setSecurityServer(server);
+        return Optional.of(memberDidType);
+    }
+
+    private static SecurityServerId serverId(SharedParameters.SecurityServer securityServer) {
+        return SecurityServerId.Conf.create(securityServer.getOwner(), securityServer.getServerCode());
+    }
+
+    private ReferenceTargets createReferenceTargets(SharedParameters sharedParameters) {
+        var targets = new ReferenceTargets(new HashMap<>(), new HashMap<>());
         var sequence = new IdSequence();
 
-        for (SharedParameters.Member member : sharedParameters.getMembers()) {
-            var memberType = convertMember(member, sequence.nextValue());
-            clientMap.put(member.getId(), memberType);
-            for (SharedParameters.Subsystem subsystem : member.getSubsystems()) {
-                var subsystemType = convertSubsystem(subsystem, sequence.nextValue());
-                clientMap.put(subsystem.getId(), subsystemType);
-                memberType.getSubsystem().add(subsystemType);
+        if (sharedParameters.getMembers() != null) {
+            for (SharedParameters.Member member : sharedParameters.getMembers()) {
+                var memberType = convertMember(member, sequence.nextValue());
+                targets.clients().put(member.getId(), memberType);
+                for (SharedParameters.Subsystem subsystem : member.getSubsystems()) {
+                    var subsystemType = convertSubsystem(subsystem, sequence.nextValue());
+                    targets.clients().put(subsystem.getId(), subsystemType);
+                    memberType.getSubsystem().add(subsystemType);
+                }
             }
         }
-        return clientMap;
+        if (sharedParameters.getSecurityServers() != null) {
+            for (SharedParameters.SecurityServer securityServer : sharedParameters.getSecurityServers()) {
+                targets.servers().put(serverId(securityServer),
+                        convertServer(securityServer, sequence.nextValue(), targets));
+            }
+        }
+        if (sharedParameters.getMembers() != null) {
+            for (SharedParameters.Member member : sharedParameters.getMembers()) {
+                var memberType = (MemberType) targets.clients().get(member.getId());
+                member.getDids().stream()
+                        .map(memberDid -> toMemberDid(member.getId(), memberDid, targets))
+                        .flatMap(Optional::stream)
+                        .forEach(memberType.getDid()::add);
+            }
+        }
+        return targets;
+    }
+
+    record ReferenceTargets(Map<ClientId, Object> clients, Map<SecurityServerId, SecurityServerType> servers) {
     }
 
     private static final class IdSequence {

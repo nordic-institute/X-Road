@@ -23,6 +23,23 @@
             </complexContent>
         </complexType>
 
+        <complexType name="MemberType">
+            <complexContent>
+                <extension base="tns:MemberType">
+                    <sequence>
+                        <element name="did" type="tns:MemberDidType" minOccurs="0" maxOccurs="unbounded">
+                            <annotation>
+                                <documentation>
+                                    DID of this member on one of the security servers that serve it. One entry per
+                                    serving security server.
+                                </documentation>
+                            </annotation>
+                        </element>
+                    </sequence>
+                </extension>
+            </complexContent>
+        </complexType>
+
         <complexType name="SecurityServerType">
             <complexContent>
                 <extension base="tns:SecurityServerType">
@@ -34,7 +51,22 @@
                                 </documentation>
                             </annotation>
                         </element>
+                        <element name="dspBaseUrl" type="string" minOccurs="0">
+                            <annotation>
+                                <documentation>
+                                    Base URL of the Dataspace Protocol endpoint of this security server.
+                                </documentation>
+                            </annotation>
+                        </element>
+                        <element name="systemDid" type="string" minOccurs="0">
+                            <annotation>
+                                <documentation>
+                                    DID of the SYSTEM context of this security server.
+                                </documentation>
+                            </annotation>
+                        </element>
                     </sequence>
+                    <attribute name="id" type="ID"/>
                 </extension>
             </complexContent>
         </complexType>
@@ -80,6 +112,20 @@
             </documentation>
         </annotation>
     </element>
+
+    <complexType name="MemberDidType">
+        <simpleContent>
+            <extension base="string">
+                <attribute name="securityServer" type="IDREF" use="required">
+                    <annotation>
+                        <documentation>
+                            The security server on which the member holds this DID.
+                        </documentation>
+                    </annotation>
+                </attribute>
+            </extension>
+        </simpleContent>
+    </complexType>
 
     <complexType name="MaintenanceMode">
         <sequence>
