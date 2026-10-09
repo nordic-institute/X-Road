@@ -29,91 +29,78 @@ package org.niis.xroad.proxy.dataplane;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.spi.result.StoreResult;
+import org.hibernate.Session;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
-import java.util.EnumSet;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * {@link DataFlowStateStore} backed by the {@code dataflow_state} table in the serverconf
  * database, the database every proxy node of a clustered Security Server already shares.
+ * A transition's legality is checked and its target state written inside one transaction that holds
+ * the flow's row locked ({@code SELECT ... FOR UPDATE}), so a node that lost a race on the same flow
+ * validates against the state the winner committed, never against what it read before the race.
  */
 @ApplicationScoped
 @RequiredArgsConstructor
 public class SharedDataFlowStateStore implements DataFlowStateStore {
 
-    /** States {@link XRoadDataPlaneManager} never transitions out of. */
-    private static final Set<DataFlowLifecycleState> TERMINAL_STATES =
-            EnumSet.of(DataFlowLifecycleState.COMPLETED, DataFlowLifecycleState.TERMINATED);
-
     private final ServerConfDatabaseCtx databaseCtx;
     private final DataFlowStateDAOImpl dao = new DataFlowStateDAOImpl();
 
     @Override
-    public StoreResult<Void> save(String flowId, DataFlowStates state) {
+    public DataFlowStates apply(String flowId, DataFlowTransition transition) {
+        LockedTransition attempt;
         try {
-            upsert(flowId, state);
+            attempt = transitionInTransaction(flowId, transition);
         } catch (XrdRuntimeException e) {
-            // Two nodes can race on the first insert for a new flowId; the loser hits
-            // uniq_dataflow_state_flow_id. If the row exists now, retry via the update branch;
-            // otherwise this is a genuine failure.
-            if (!rowExists(flowId)) {
+            // A flow with no row yet cannot be locked, so two nodes can race on its first insert; the loser
+            // hits uniq_dataflow_state_flow_id. If the row exists now, retry against it, which locks it.
+            if (!find(flowId).isPresent()) {
                 throw e;
             }
-            upsert(flowId, state);
+            attempt = transitionInTransaction(flowId, transition);
         }
-        return StoreResult.success();
-    }
-
-    private void upsert(String flowId, DataFlowStates state) {
-        var lifecycleState = DataFlowLifecycleState.valueOf(state.name());
-        databaseCtx.doInTransaction(session -> {
-            dao.upsertState(session, flowId, lifecycleState, SharedDataFlowStateStore::isTransitionAllowed);
-            return null;
-        });
-    }
-
-    private boolean rowExists(String flowId) {
-        return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId)).isPresent();
-    }
-
-    /**
-     * A terminal state never transitions again; otherwise a move is allowed only if it does not
-     * regress {@link #lifecycleRank}, dropping a write that lost the race to a more advanced state.
-     */
-    private static boolean isTransitionAllowed(DataFlowLifecycleState current, DataFlowLifecycleState next) {
-        if (current == next) {
-            return true;
+        if (!attempt.applied()) {
+            throw transition.illegalFrom(attempt.stateBefore());
         }
-        if (TERMINAL_STATES.contains(current)) {
-            return false;
-        }
-        return lifecycleRank(next) >= lifecycleRank(current);
-    }
-
-    /**
-     * Not {@link DataFlowStates#code()}: EDC's numbering puts {@code SUSPENDED} between
-     * {@code COMPLETED} and {@code TERMINATED}, which would block a legitimate completion arriving
-     * after a suspend. Here {@code SUSPENDED} ranks as a side branch of {@code STARTED}, not a step
-     * beyond it.
-     */
-    private static int lifecycleRank(DataFlowLifecycleState state) {
-        return switch (state) {
-            case PROVISIONED -> 0;
-            case STARTED, SUSPENDED -> 1;
-            case COMPLETED, TERMINATED -> 2;
-        };
+        return transition.targetState();
     }
 
     @Override
     public Optional<DataFlowStates> find(String flowId) {
         return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId))
-                .map(entity -> DataFlowStates.valueOf(entity.getState().name()));
+                .map(entity -> toEdcState(entity.getState()));
+    }
+
+    private LockedTransition transitionInTransaction(String flowId, DataFlowTransition transition) {
+        return databaseCtx.doInTransaction(session -> transitionLockedRow(session, flowId, transition));
+    }
+
+    private LockedTransition transitionLockedRow(Session session, String flowId, DataFlowTransition transition) {
+        var row = dao.findByFlowIdForUpdate(session, flowId);
+        var stateBefore = row.map(entity -> toEdcState(entity.getState()));
+        if (!transition.isLegalFrom(stateBefore)) {
+            return new LockedTransition(stateBefore, false);
+        }
+        var nextState = toLifecycleState(transition.targetState());
+        row.ifPresentOrElse(entity -> entity.setState(nextState), () -> dao.insert(session, flowId, nextState));
+        return new LockedTransition(stateBefore, true);
+    }
+
+    private static DataFlowStates toEdcState(DataFlowLifecycleState state) {
+        return DataFlowStates.valueOf(state.name());
+    }
+
+    private static DataFlowLifecycleState toLifecycleState(DataFlowStates state) {
+        return DataFlowLifecycleState.valueOf(state.name());
+    }
+
+    /** What one locked read-then-write found and did: the state before it, and whether it wrote the transition. */
+    private record LockedTransition(Optional<DataFlowStates> stateBefore, boolean applied) {
     }
 
 }

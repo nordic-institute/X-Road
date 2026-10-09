@@ -85,7 +85,8 @@ public class XRoadDataPlaneSignalingApiController {
     }
 
     /**
-     * Starts a new data flow (provider-side).
+     * Starts a new data flow (provider-side), or resumes a suspended one: EDC's control plane resumes a
+     * transfer by sending start again.
      *
      * @param message plain-JSON {@code DataFlowStartMessage}
      * @return {@code DataFlowStatusMessage} with {@code dataAddress.endpoint}

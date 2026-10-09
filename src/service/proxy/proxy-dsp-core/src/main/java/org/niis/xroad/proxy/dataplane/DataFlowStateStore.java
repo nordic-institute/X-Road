@@ -27,28 +27,28 @@
 package org.niis.xroad.proxy.dataplane;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Optional;
 
 /**
  * Stores the lifecycle state of proxy data-plane flows, shared by every proxy node of a
  * clustered Security Server.
- *
- * <p>Returns {@link StoreResult}, matching EDC's own store SPIs, for consistency with other
- * EDC-facing stores here (e.g. {@code AssetIndexServerConfStore}) despite being backed by
- * serverconf/Hibernate rather than EDC's SQL store.
  */
 public interface DataFlowStateStore {
 
     /**
-     * Creates or updates the state of a flow.
+     * Applies a transition to a flow as one operation: the current state is read and the new state written
+     * under one lock on the flow's record, so transitions racing on the same flow — from two threads or two
+     * nodes — serialize, and each is validated against what the previous one committed rather than against a
+     * stale read.
      *
-     * @param flowId the flow's process ID
-     * @param state  the new state
-     * @return {@link StoreResult#success()} once the write is durable
+     * @param flowId     the flow's process ID
+     * @param transition the transition to apply
+     * @return the state the flow holds afterwards
+     * @throws XrdRuntimeException if the transition is illegal from the flow's current state; nothing is written
      */
-    StoreResult<Void> save(String flowId, DataFlowStates state);
+    DataFlowStates apply(String flowId, DataFlowTransition transition);
 
     /**
      * Finds the current state of a flow.

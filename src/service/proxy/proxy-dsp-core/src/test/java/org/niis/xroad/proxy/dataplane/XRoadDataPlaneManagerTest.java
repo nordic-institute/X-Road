@@ -35,7 +35,6 @@ import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.constants.CoreConstants;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -211,9 +210,100 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
+    void startOnASuspendedFlowResumesIt() {
+        manager.start(buildStartMessage("flow-resume"));
+        manager.suspend("flow-resume", "maintenance");
+
+        var result = manager.start(buildStartMessage("flow-resume"));
+
+        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
+        assertThat(manager.state("flow-resume")).isEqualTo(DataFlowStates.STARTED);
+    }
+
+    @Test
+    void suspendOnANonStartedFlowIsRejected() {
+        manager.prepare(buildPrepareMessage("flow-illegal-suspend"));
+
+        assertThatThrownBy(() -> manager.suspend("flow-illegal-suspend", null))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void suspendOnUnknownFlowIsRejected() {
+        assertThatThrownBy(() -> manager.suspend("never-seen-flow", null))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void startOnTerminalFlowIsRejected() {
+        manager.start(buildStartMessage("flow-illegal-start"));
+        manager.completed("flow-illegal-start");
+
+        assertThatThrownBy(() -> manager.start(buildStartMessage("flow-illegal-start")))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
     void stateReturnsFailedForUnknownFlow() {
         assertThat(manager.state("unknown")).isEqualTo(DataFlowStates.FAILED);
     }
+
+
+
+
+
+    @Test
+    void repeatedStartIsAnsweredLikeTheOriginal() {
+        var first = manager.start(buildStartMessage("flow-retry-start"));
+
+        var retry = manager.start(buildStartMessage("flow-retry-start"));
+
+        assertThat(retry.getState()).isEqualTo(first.getState());
+        assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
+        assertThat(manager.state("flow-retry-start")).isEqualTo(DataFlowStates.STARTED);
+    }
+
+    @Test
+    void repeatedPrepareIsAnsweredLikeTheOriginal() {
+        var first = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
+
+        var retry = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
+
+        assertThat(retry.getState()).isEqualTo(first.getState());
+        assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
+        assertThat(manager.state("flow-retry-prepare")).isEqualTo(DataFlowStates.PROVISIONED);
+    }
+
+    @Test
+    void repeatedCompletedAndTerminateAreAccepted() {
+        manager.start(buildStartMessage("flow-retry-complete"));
+        manager.completed("flow-retry-complete");
+        manager.start(buildStartMessage("flow-retry-terminate"));
+        manager.terminate("flow-retry-terminate");
+
+        manager.completed("flow-retry-complete");
+        manager.terminate("flow-retry-terminate");
+
+        assertThat(manager.state("flow-retry-complete")).isEqualTo(DataFlowStates.COMPLETED);
+        assertThat(manager.state("flow-retry-terminate")).isEqualTo(DataFlowStates.TERMINATED);
+    }
+
+    @Test
+    void startRejectedByTheStoreFailsTheSignal() {
+        var racedStore = mock(DataFlowStateStore.class);
+        when(racedStore.apply("flow-raced", DataFlowTransition.START))
+                .thenThrow(DataFlowTransition.START.illegalFrom(Optional.of(DataFlowStates.TERMINATED)));
+        var racedManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties,
+                racedStore, agreementTokenIssuer);
+
+        assertThatThrownBy(() -> racedManager.start(buildStartMessage("flow-raced")))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+
+
+
 
     @Test
     void startAndPrepareCarryAuthorizationTokenWhenGrantAndLiveAclMatch() {
@@ -362,16 +452,17 @@ class XRoadDataPlaneManagerTest {
 
     /**
      * A shared-map fake for {@link SharedDataFlowStateStore}, handed to every manager in a test so
-     * it models one record visible to every node.
+     * it models one record visible to every node. Single-threaded: it validates and writes in two steps.
      */
     private static final class InMemoryDataFlowStateStore implements DataFlowStateStore {
 
         private final ConcurrentHashMap<String, DataFlowStates> states = new ConcurrentHashMap<>();
 
         @Override
-        public StoreResult<Void> save(String flowId, DataFlowStates state) {
-            states.put(flowId, state);
-            return StoreResult.success();
+        public DataFlowStates apply(String flowId, DataFlowTransition transition) {
+            var stateAfter = transition.apply(Optional.ofNullable(states.get(flowId)));
+            states.put(flowId, stateAfter);
+            return stateAfter;
         }
 
         @Override
