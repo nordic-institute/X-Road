@@ -89,6 +89,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SECURITY_SERVER_NOT
 @RequiredArgsConstructor
 public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
+    private static final String OWNER_NOT_SET_MESSAGE = "Security Server owner is not set";
+
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
@@ -244,7 +246,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             case OwnIdentity.Known known ->
                     setRenewalErrorAndSendFailureNotification(cert, errorDescription, known.id().getOwner().asEncodedId());
             case OwnIdentity.OwnerNotInitialised ignored ->
-                    setRenewalErrorWithoutNotification(cert, errorDescription, "Security Server owner is not set");
+                    setRenewalErrorWithoutNotification(cert, errorDescription, OWNER_NOT_SET_MESSAGE);
             case OwnIdentity.GlobalConfUnavailable ignored ->
                     setRenewalErrorWithoutNotification(cert, errorDescription, "global configuration is unavailable");
         }
@@ -259,7 +261,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             case OwnIdentity.Known known ->
                     mailNotificationHelper.sendFailureNotification(memberId, cert, toConf(known), errorDescription);
             case OwnIdentity.OwnerNotInitialised ignored ->
-                    logSkippedFailureNotification(cert, "Security Server owner is not set");
+                    logSkippedFailureNotification(cert, OWNER_NOT_SET_MESSAGE);
             case OwnIdentity.GlobalConfUnavailable ignored ->
                     logSkippedFailureNotification(cert, "global configuration is unavailable");
         }
@@ -280,7 +282,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         return switch (ownSecurityServerResolver.identity()) {
             case OwnIdentity.Known known -> toConf(known);
             case OwnIdentity.OwnerNotInitialised ignored -> throw XrdRuntimeException.systemException(
-                    MALFORMED_SERVERCONF, "Security Server owner is not set");
+                    MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE);
             case OwnIdentity.GlobalConfUnavailable unavailable -> throw XrdRuntimeException.systemException(unavailable.cause());
         };
     }
@@ -467,7 +469,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                     SECURITY_SERVER_NOT_FOUND, "Security Server is not registered in GlobalConf");
             case OwnAddress.GlobalConfUnavailable unavailable -> throw XrdRuntimeException.systemException(unavailable.cause());
             case OwnAddress.OwnerNotInitialised ignored -> throw XrdRuntimeException.systemException(
-                    MALFORMED_SERVERCONF, "Security Server owner is not set");
+                    MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE);
         };
     }
 
