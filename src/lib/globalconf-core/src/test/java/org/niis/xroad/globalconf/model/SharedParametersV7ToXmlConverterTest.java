@@ -36,25 +36,29 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.CostType;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
 
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
 class SharedParametersV7ToXmlConverterTest {
@@ -77,6 +81,41 @@ class SharedParametersV7ToXmlConverterTest {
             entry("groupMember", "groupMembers"),
             entry("inMaintenanceMode", "maintenanceMode")
     );
+
+    private final Logger logger = Logger.getLogger("org.niis.xroad.globalconf.model");
+    private final List<LogRecord> warnings = new ArrayList<>();
+    private Level originalLevel;
+    private final Handler handler = new Handler() {
+        @Override
+        public void publish(LogRecord logRecord) {
+            if (logRecord.getLevel().intValue() >= Level.WARNING.intValue()) {
+                warnings.add(logRecord);
+            }
+        }
+
+        @Override
+        public void flush() {
+            // records are kept in memory
+        }
+
+        @Override
+        public void close() {
+            // nothing to release
+        }
+    };
+
+    @BeforeEach
+    void attachHandler() {
+        originalLevel = logger.getLevel();
+        logger.setLevel(Level.ALL);
+        logger.addHandler(handler);
+    }
+
+    @AfterEach
+    void detachHandler() {
+        logger.removeHandler(handler);
+        logger.setLevel(originalLevel);
+    }
 
     @Test
     void shouldConvertAllFields() {
@@ -213,6 +252,7 @@ class SharedParametersV7ToXmlConverterTest {
         assertThat(new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters())
                 .usingRecursiveComparison()
                 .isEqualTo(sharedParameters);
+        assertThat(warnings).isEmpty();
     }
 
     @Test
@@ -237,17 +277,28 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     @Test
-    void shouldRejectMemberDidWhoseServerIsNotInTheServerList() {
+    void shouldLeaveOutMemberDidWhoseServerIsNotInTheServerList() {
         var sharedParameters = xrdAdr44Example();
         var member = sharedParameters.getMembers().getFirst();
+        var listedServerId = SecurityServerId.Conf.create(member.getId(), "ss0");
         var unlistedServerId = SecurityServerId.Conf.create(member.getId(), "unlisted");
-        member.setDids(List.of(new SharedParameters.MemberDid(unlistedServerId, "did:web:ss9.example.org%3A7183:v1:DEV:COM:222")));
+        var listedDid = "did:web:ss0.example.org%3A7183:v1:DEV:COM:222";
+        member.setDids(List.of(
+                new SharedParameters.MemberDid(unlistedServerId, "did:web:ss9.example.org%3A7183:v1:DEV:COM:222"),
+                new SharedParameters.MemberDid(listedServerId, listedDid)));
 
-        assertThatThrownBy(() -> SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters))
-                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
-                    assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
-                    assertThat(e.getDetails()).contains(member.getId().toString(), unlistedServerId.toString());
-                });
+        var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
+
+        var server = xmlType.getSecurityServer().getFirst();
+        assertThat(xmlType.getMember().getFirst().getDid()).singleElement().satisfies(did -> {
+            assertThat(did.getValue()).isEqualTo(listedDid);
+            assertThat(did.getSecurityServer()).isSameAs(server);
+        });
+        assertThat(warnings).singleElement().satisfies(warning -> {
+            assertThat(warning.getLevel()).isEqualTo(Level.WARNING);
+            assertThat(warning.getMessage()).contains(member.getId().toString(), unlistedServerId.toString());
+        });
+        assertThatNoException().isThrownBy(() -> new SharedParametersV7Marshaller().marshall(sharedParameters));
     }
 
     private static SharedParameters xrdAdr44Example() {

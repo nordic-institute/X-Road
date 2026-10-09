@@ -32,13 +32,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBElement;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedCATypeV4;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedConnectorTlsCAType;
@@ -57,7 +57,9 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.SubsystemType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 abstract class SharedParametersV7ToXmlConverter {
     public static final SharedParametersV7ToXmlConverter INSTANCE = Mappers.getMapper(SharedParametersV7ToXmlConverter.class);
@@ -163,17 +165,18 @@ abstract class SharedParametersV7ToXmlConverter {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }
 
-    private static MemberDidType toMemberDid(ClientId memberId, SharedParameters.MemberDid memberDid,
-                                            ReferenceTargets targets) {
+    private static Optional<MemberDidType> toMemberDid(ClientId memberId, SharedParameters.MemberDid memberDid,
+                                                       ReferenceTargets targets) {
         var server = targets.servers().get(memberDid.serverId());
         if (server == null) {
-            throw XrdRuntimeException.systemInternalError("Member %s has a did for security server %s, which is not in the server list"
-                    .formatted(memberId, memberDid.serverId()));
+            log.warn("Member {} has a did for security server {}, which is not in the server list, leaving it out",
+                    memberId, memberDid.serverId());
+            return Optional.empty();
         }
         var memberDidType = OBJECT_FACTORY.createMemberDidType();
         memberDidType.setValue(memberDid.did());
         memberDidType.setSecurityServer(server);
-        return memberDidType;
+        return Optional.of(memberDidType);
     }
 
     private static SecurityServerId serverId(SharedParameters.SecurityServer securityServer) {
@@ -204,7 +207,10 @@ abstract class SharedParametersV7ToXmlConverter {
         if (sharedParameters.getMembers() != null) {
             for (SharedParameters.Member member : sharedParameters.getMembers()) {
                 var memberType = (MemberType) targets.clients().get(member.getId());
-                member.getDids().forEach(memberDid -> memberType.getDid().add(toMemberDid(member.getId(), memberDid, targets)));
+                member.getDids().stream()
+                        .map(memberDid -> toMemberDid(member.getId(), memberDid, targets))
+                        .flatMap(Optional::stream)
+                        .forEach(memberType.getDid()::add);
             }
         }
         return targets;
