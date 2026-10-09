@@ -35,6 +35,7 @@ import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
@@ -46,6 +47,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -117,33 +120,62 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * to {@code ds_participant} is one the identity hub has just confirmed or been created with. A
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
      * configuration the DID is derived from.
+     *
+     * <p>Whether this call returns normally or throws, one INFO summary line is logged for the cycle
+     * with its start timestamp, duration and the counts reached before it ended — see
+     * {@link #logCycleSummary}.
      */
     public void provisionParticipant() {
-        teardownDecommissioned();
+        var cycleStart = Instant.now();
+        int contextCount = 0;
+        int createdCount = 0;
+        int issuedCount = 0;
+        try {
+            teardownDecommissioned();
 
-        var contexts = dataspaceProvisioningService.participantContexts(true);
-        if (ownerUnknown(contexts)) {
-            log.debug("Dataspace provisioning: SS owner not yet known, skipping");
-            return;
+            var contexts = dataspaceProvisioningService.participantContexts(true);
+            contextCount = contexts.size();
+            if (ownerUnknown(contexts)) {
+                log.debug("Dataspace provisioning: SS owner not yet known, skipping");
+                return;
+            }
+            if (!dataspaceProvisioningService.registeredAddressKnown()) {
+                log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
+                return;
+            }
+
+            boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
+            log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
+
+            var ensureOutcome = ensureContexts(contexts);
+            createdCount = ensureOutcome.createdCount();
+            var ensuredContexts = ensureOutcome.ensured();
+
+            participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
+
+            if (!authCertRegistered) {
+                log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
+                return;
+            }
+
+            issuedCount = ensureCredentials(ensuredContexts);
+        } finally {
+            logCycleSummary(cycleStart, contextCount, createdCount, issuedCount);
         }
-        if (!dataspaceProvisioningService.registeredAddressKnown()) {
-            log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
-            return;
-        }
+    }
 
-        boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
-
-        var ensuredContexts = ensureContexts(contexts);
-
-        participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
-
-        if (!authCertRegistered) {
-            log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
-            return;
-        }
-
-        ensureCredentials(ensuredContexts);
+    /**
+     * Logs the fixed-format cycle summary line the perftest pipeline parses: the cycle's start
+     * timestamp, its duration in milliseconds, the number of participant contexts enumerated, how
+     * many of them were created (an {@link DataspaceProvisioningService#ensureParticipantContext}
+     * call that did not throw), and how many currently hold an {@link CredentialStatus#ISSUED}
+     * membership credential. Logged exactly once per cycle, regardless of outcome.
+     */
+    private void logCycleSummary(Instant cycleStart, int contextCount, int createdCount, int issuedCount) {
+        long durationMs = Duration.between(cycleStart, Instant.now()).toMillis();
+        log.info("Dataspace provisioning: cycle summary cycleStart={} durationMs={} contexts={} contextsCreated={} "
+                        + "credentialsIssued={}",
+                cycleStart, durationMs, contextCount, createdCount, issuedCount);
     }
 
     private static List<ClientId> memberIdsOf(List<ParticipantContext> contexts) {
@@ -177,17 +209,28 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     }
 
     /**
-     * Ensures every context, then returns only those eligible for the credential pass in this tick:
+     * The outcome of {@link #ensureContexts}: the contexts eligible for the credential pass in this
+     * tick, and how many contexts were created (an {@link DataspaceProvisioningService#ensureParticipantContext}
+     * call that did not throw, whether or not it is also credential-eligible).
+     */
+    private record EnsureOutcome(List<ParticipantContext> ensured, int createdCount) {
+    }
+
+    /**
+     * Ensures every context, then returns those eligible for the credential pass in this tick:
      * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
      * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
      * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
      * still created/updated as usual, only its credential request is deferred to a later tick.
      */
-    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
+    private EnsureOutcome ensureContexts(List<ParticipantContext> contexts) {
         List<ParticipantContext> ensured = new ArrayList<>();
+        int createdCount = 0;
         for (var context : contexts) {
             try {
-                if (dataspaceProvisioningService.ensureParticipantContext(context)) {
+                boolean credentialEligible = dataspaceProvisioningService.ensureParticipantContext(context);
+                createdCount++;
+                if (credentialEligible) {
                     ensured.add(context);
                 } else {
                     log.debug("Dataspace provisioning: deferring credential issuance for participant {} until the "
@@ -198,18 +241,26 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
                         context.participantId(), e);
             }
         }
-        return ensured;
+        return new EnsureOutcome(ensured, createdCount);
     }
 
-    private void ensureCredentials(List<ParticipantContext> contexts) {
+    /**
+     * Requests or checks the membership credential for every given context, and returns how many of
+     * them now hold an {@link CredentialStatus#ISSUED} credential.
+     */
+    private int ensureCredentials(List<ParticipantContext> contexts) {
+        int issuedCount = 0;
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureMembershipCredential(context);
+                if (dataspaceProvisioningService.ensureMembershipCredential(context) == CredentialStatus.ISSUED) {
+                    issuedCount++;
+                }
             } catch (Exception e) {
                 log.error("Dataspace provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
             }
         }
+        return issuedCount;
     }
 
     static class IsActive implements Condition {

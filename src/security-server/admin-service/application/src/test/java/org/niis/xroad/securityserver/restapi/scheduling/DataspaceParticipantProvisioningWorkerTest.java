@@ -28,6 +28,11 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,10 +43,12 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -86,10 +93,23 @@ class DataspaceParticipantProvisioningWorkerTest {
     @InjectMocks
     private DataspaceParticipantProvisioningWorker worker;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class);
+
     @BeforeEach
     void setUp() {
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.INFO);
+    }
+
+    @AfterEach
+    void tearDownLogging() {
+        logger.detachAppender(appender);
+        appender.stop();
+        logger.setLevel(null);
     }
 
     @Test
@@ -262,6 +282,56 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
+    }
+
+    // --- cycle summary ---
+
+    @Test
+    void provisionParticipantLogsExactlyOneCycleSummaryWithMatchingCounts() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true))
+                .thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.ensureParticipantContext(HOST_CONTEXT)).thenReturn(true);
+        when(dataspaceProvisioningService.ensureParticipantContext(MGMT_CONTEXT)).thenReturn(true);
+        doThrow(new RuntimeException("DID drift"))
+                .when(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        when(dataspaceProvisioningService.ensureMembershipCredential(HOST_CONTEXT)).thenReturn(CredentialStatus.ISSUED);
+        when(dataspaceProvisioningService.ensureMembershipCredential(MGMT_CONTEXT)).thenReturn(CredentialStatus.PENDING);
+
+        worker.provisionParticipant();
+
+        var summaries = appender.list.stream()
+                .filter(event -> event.getLevel() == Level.INFO)
+                .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains("cycle summary"))
+                .toList();
+
+        assertThat(summaries).hasSize(1);
+        assertThat(summaries.getFirst())
+                .containsPattern("cycleStart=\\S+")
+                .containsPattern("durationMs=\\d+")
+                .contains("contexts=3")
+                .contains("contextsCreated=2")
+                .contains("credentialsIssued=1");
+    }
+
+    @Test
+    void provisionParticipantLogsOneCycleSummaryEvenWhenParticipantContextsFails() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenThrow(new RuntimeException("boom"));
+
+        assertThatCode(() -> worker.provisionParticipant()).isInstanceOf(RuntimeException.class);
+
+        var summaries = appender.list.stream()
+                .filter(event -> event.getLevel() == Level.INFO)
+                .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains("cycle summary"))
+                .toList();
+
+        assertThat(summaries).hasSize(1);
+        assertThat(summaries.getFirst())
+                .contains("contexts=0")
+                .contains("contextsCreated=0")
+                .contains("credentialsIssued=0");
     }
 
     // --- teardown ---
