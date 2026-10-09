@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.DerSubjectCertUtil;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -215,6 +216,50 @@ public class CertUtilsTest {
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
         String serialNumber = CertUtils.getSubjectSerialNumber(cert);
         assertNull(serialNumber);
+    }
+
+    @Test
+    public void getCommonNamesOfSubjectWithThreeLetterCountry() {
+        X509Certificate cert = DerSubjectCertUtil.selfSignedCertificate(
+                DerSubjectCertUtil.derName("C", "DEV", "O", "COM", "CN", "222"));
+
+        assertEquals("222", CertUtils.getSubjectCommonName(cert));
+        assertEquals("222", CertUtils.getIssuerCommonName(cert));
+    }
+
+    @Test
+    public void getCommonNamesOfSubjectWithLongCommonName() {
+        String longName = "x".repeat(65);
+        X509Certificate cert = DerSubjectCertUtil.selfSignedCertificate(
+                DerSubjectCertUtil.derName("C", "FI", "O", "COM", "CN", longName));
+
+        assertEquals(longName, CertUtils.getSubjectCommonName(cert));
+        assertEquals(longName, CertUtils.getIssuerCommonName(cert));
+    }
+
+    @Test
+    public void getCommonNamesOfSubjectWithRepeatedCommonNameReturnMostSpecific() {
+        X509Certificate cert = DerSubjectCertUtil.selfSignedCertificate(
+                DerSubjectCertUtil.derName("C", "FI", "O", "COM", "CN", "outer", "CN", "inner"));
+
+        assertEquals("inner", CertUtils.getSubjectCommonName(cert));
+        assertEquals("inner", CertUtils.getIssuerCommonName(cert));
+    }
+
+    @Test
+    public void getSubjectSerialNumberOfSubjectWithRepeatedSerialNumberReturnsMostSpecific() {
+        X509Certificate cert = DerSubjectCertUtil.selfSignedCertificate(
+                DerSubjectCertUtil.derName("C", "FI", "serialNumber", "1", "serialNumber", "2", "CN", "x"));
+
+        assertEquals("2", CertUtils.getSubjectSerialNumber(cert));
+    }
+
+    @Test
+    public void getSubjectSerialNumberOfSubjectWithThreeLetterCountry() {
+        X509Certificate cert = DerSubjectCertUtil.selfSignedCertificate(
+                DerSubjectCertUtil.derName("C", "DEV", "serialNumber", "47101010033", "CN", "x".repeat(65)));
+
+        assertEquals("47101010033", CertUtils.getSubjectSerialNumber(cert));
     }
 
     @Test

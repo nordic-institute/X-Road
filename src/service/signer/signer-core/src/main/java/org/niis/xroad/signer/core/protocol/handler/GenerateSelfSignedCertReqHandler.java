@@ -29,6 +29,7 @@ import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.X500Names;
 
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -126,7 +127,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
         X509Certificate build(TokenAndKey tokenAndKey, GenerateSelfSignedCertReq message, PublicKey publicKey,
                               SignAlgorithm signAlgoId) throws CertIOException, CertificateException {
-            X500Name subject = new X500Name("CN=" + message.getCommonName());
+            X500Name subject = X500Names.fromString("CN=" + message.getCommonName());
 
             JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,
                     fromUnixTimestamp(message.getDateNotBefore()),

@@ -27,8 +27,8 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -119,21 +119,6 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
     @Override
     public StoreResult<Void> save(DataPlaneInstance entity) {
         throw unsupported("save");
-    }
-
-    @Override
-    public List<DataPlaneInstance> nextNotLeased(int max, Criterion... criteria) {
-        throw unsupported("nextNotLeased");
-    }
-
-    @Override
-    public StoreResult<DataPlaneInstance> findByIdAndLease(String id) {
-        throw unsupported("findByIdAndLease");
-    }
-
-    @Override
-    public StoreResult<Void> breakLease(DataPlaneInstance entity) {
-        throw unsupported("breakLease");
     }
 
     private static void rejectDuplicateIds(List<Config> entries) {

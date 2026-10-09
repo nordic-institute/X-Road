@@ -5,6 +5,11 @@ plugins {
   id("xroad.edc-owned-jetty-conventions")
 }
 
+configurations.named("runtimeClasspath") {
+  // jnats, pulled in by EDC core-lib and unused, would add a second BouncyCastle provider jar
+  exclude(group = "org.bouncycastle", module = "bcprov-lts8on")
+}
+
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
@@ -43,10 +48,10 @@ dependencies {
   runtimeOnly(libs.edc.ih.sts.api)
   runtimeOnly(libs.edc.ih.api.core)
   runtimeOnly(libs.edc.core.token)
-  runtimeOnly(libs.edc.lib.token)
+  runtimeOnly(libs.edc.lib.core)
   runtimeOnly(libs.edc.transaction.local)
   runtimeOnly(libs.edc.boot)
-  runtimeOnly(libs.edc.core.connector)
+  runtimeOnly(libs.edc.core.security)
   runtimeOnly(libs.edc.core.runtime)
   runtimeOnly(libs.edc.http)
   runtimeOnly(libs.edc.api.observability)

@@ -38,7 +38,13 @@ xroad:
     boot:
       # jetty-core is also excluded from the runtime classpath entirely (see
       # xroad.edc-owned-jetty-conventions); this setting is defense in depth.
-      excluded-service-extensions: org.eclipse.edc.web.jetty.JettyExtension
+      # StsClientTokenGeneratorExtension is excluded because it builds the STS token generator over
+      # ParticipantSecureTokenService, which resolves to the X-Road claim-aware wrapper and would add
+      # the large xroadMemberClaim to DSP tokens. XRoadClaimSignerExtension provides
+      # StsClientTokenGeneratorService over the unwrapped embedded service instead.
+      excluded-service-extensions: >-
+        org.eclipse.edc.web.jetty.JettyExtension,
+        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension
   ds:
     rpc:
       host: "0.0.0.0"

@@ -26,6 +26,7 @@
 package org.niis.xroad.globalconf.util;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.X500Names;
 
 import lombok.experimental.UtilityClass;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -48,7 +49,7 @@ public class CertSubjectUtils {
      */
     public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
-        X500Name x500name = new X500Name(principal.getName());
+        X500Name x500name = X500Names.fromPrincipal(principal);
 
         String c = getRDNValue(x500name, BCStyle.C);
 

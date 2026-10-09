@@ -64,8 +64,8 @@ class XRoadDataPlaneSignalingApiControllerTest {
     @Test
     void prepareDelegatesToManagerAndReturnsStatusMessage() {
         var prepareMessage = DataFlowPrepareMessage.Builder.newInstance()
-                .processId("flow-6")
-                .transferType("Xrd-PULL")
+                .dataFlowId("flow-6")
+                .profile("Xrd-PULL")
                 .build();
         var statusMessage = buildStatusMessage(DataFlowLifecycleState.PROVISIONED);
 
@@ -183,8 +183,8 @@ class XRoadDataPlaneSignalingApiControllerTest {
     }
     private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
-                .processId(processId)
-                .transferType("Xrd-PULL")
+                .dataFlowId(processId)
+                .profile("Xrd-PULL")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();

@@ -48,7 +48,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Read-only {@link AssetIndex} backed by live {@link ServerConfProvider} reads. Also serves
- * as {@code DataAddressResolver} since EDC 0.16 folds it into the {@code AssetIndex} contract.
+ * as {@code DataAddressResolver}, which the {@code AssetIndex} contract folds in. Lookups and deletes
+ * are scoped to the participant context EDC passes; a null context resolves nothing.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -62,7 +63,6 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
     private final ServiceContextResolver serviceContextResolver;
-    private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
 
     @Override
@@ -121,21 +121,25 @@ class AssetIndexServerConfStore implements AssetIndex {
 
     @Override
     @Nullable
-    public Asset findById(String assetId) {
-        var requested = requestedParticipantContext.get();
-        return cache.findById(assetId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
-                () -> findByIdInternal(assetId));
+    public Asset findById(@Nullable String participantContextId, String assetId) {
+        if (participantContextId == null) {
+            log.trace("findById assetId={} has no participant context, returning null", assetId);
+            return null;
+        }
+        return cache.findById(participantContextId, assetId,
+                serviceContextResolver.isCacheableRequestedContext(participantContextId),
+                () -> findByIdInternal(participantContextId, assetId));
     }
 
     @Nullable
-    private Asset findByIdInternal(String assetId) {
+    private Asset findByIdInternal(String participantContextId, String assetId) {
         log.trace("findById assetId={}", assetId);
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
             return AssetMapper.toAsset(builtinServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
-        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+        if (serviceContextResolver.isSystemAddressed(participantContextId)) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
             if (systemServiceId == null || !serviceContextResolver.isSystemPublished(systemServiceId)) {
                 return null;
@@ -155,7 +159,7 @@ class AssetIndexServerConfStore implements AssetIndex {
             return null;
         }
         var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
-        var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        var ctxId = ServiceContextResolver.select(resolvedContexts, participantContextId);
         if (ctxId == null) {
             log.trace("findById assetId={} has no provisioned context, returning null", assetId);
             return null;
@@ -165,19 +169,23 @@ class AssetIndexServerConfStore implements AssetIndex {
 
     @Override
     @Nullable
-    public DataAddress resolveForAsset(String assetId) {
+    public DataAddress resolveForAsset(@Nullable String participantContextId, String assetId) {
+        if (participantContextId == null) {
+            log.trace("resolveForAsset assetId={} has no participant context, returning null", assetId);
+            return null;
+        }
         log.trace("resolveForAsset assetId={}", assetId);
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("resolveForAsset assetId={} matched builtin, baseUrl={}", assetId, builtinServiceCatalog.serverProxyUrl());
             return buildHttpDataTypeAddress(builtinServiceCatalog.serverProxyUrl());
         }
-        var cached = cache.getDataAddress(assetId);
+        var cached = cache.getDataAddress(participantContextId, assetId);
         if (cached != null) {
             return cached;
         }
         var result = resolveForAssetInternal(assetId);
-        cache.cacheDataAddress(assetId, result);
+        cache.cacheDataAddress(participantContextId, assetId, result);
         return result;
     }
 
@@ -235,7 +243,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Asset> deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String participantContextId, String assetId) {
         log.trace("deleteById assetId={} read-only, returning notFound", assetId);
         return StoreResult.notFound(READ_ONLY_MESSAGE);
     }

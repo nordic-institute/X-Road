@@ -121,17 +121,9 @@ separate namespaces. Only the `.Release.Name`-prefixed resources
 setting. The issuer trust anchor — the complete set of Issuer DIDs a
 Central Server (cluster) publishes — arrives through signed globalconf
 (`dataspaceParameters`, shared-parameters v7) and is loaded by
-`XRoadIssuerTrustAnchorExtension` at runtime; the chart has no
+`XRoadIssuerTrustAnchorExtension` at runtime, which sets it as the
+trusted issuers of the dataspace profile; the chart has no
 corresponding value or env var.
-
-The seeded EDC extension that used to consume a per-deployment
-trusted-issuer setting (`TrustedIssuerConfigurationExtension`) is
-excluded from boot (`xroad.edc.boot.excluded-service-extensions`), so
-`XRoadIssuerTrustAnchorExtension` remains the sole populator of the
-trust registry. No config key backs the old setting any more — it was
-retired along with the per-environment env var that used to carry it
-and, before that, the `configuration_properties` row a
-`post-install,post-upgrade` hook Job used to seed.
 
 ## 8. OpenBao (secret store) TLS trust
 

@@ -29,10 +29,10 @@ import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.common.util.X500Names;
 
 import iaik.pkcs.pkcs11.TokenException;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
@@ -201,11 +201,11 @@ public abstract class AbstractTokenWorker extends SignReqHandler implements Toke
             throws CertIOException {
         JcaX509v3CertificateBuilder certificateBuilder =
                 new JcaX509v3CertificateBuilder(
-                        new X500Name(issuerX509Certificate.getSubjectX500Principal().getName()),
+                        X500Names.fromPrincipal(issuerX509Certificate.getSubjectX500Principal()),
                         BigInteger.ONE,
                         issuerX509Certificate.getNotBefore(),
                         issuerX509Certificate.getNotAfter(),
-                        new X500Name(subjectName),
+                        X500Names.fromString(subjectName),
                         publicKey
                 );
         certificateBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));

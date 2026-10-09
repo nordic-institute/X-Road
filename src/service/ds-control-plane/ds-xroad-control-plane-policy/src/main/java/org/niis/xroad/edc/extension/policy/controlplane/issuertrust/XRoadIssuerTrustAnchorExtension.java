@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.edc.extension.policy.controlplane.issuertrust;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -45,19 +44,15 @@ import java.util.concurrent.TimeUnit;
 import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoadIssuerTrustAnchorExtension.EXTENSION_NAME;
 
 /**
- * Populates the DCP {@link TrustedIssuerRegistry} from the dataspace issuer trust anchor distributed in
- * globalconf. Every distributed Issuer DID becomes a trusted issuer for every credential type, so a
- * credential issued by any Central Server node verifies.
+ * Makes the dataspace issuer trust anchor distributed in globalconf the trusted issuers of the dataspace profile.
+ * Every distributed Issuer DID is trusted for every credential type, so a credential issued by any Central Server
+ * node verifies.
  *
  * <p>{@link GlobalConfProvider#getIssuerDids(String)} is an in-memory read over parsed globalconf, and
- * globalconf refreshes itself on the same basis the proxy relies on for every message — no TTL caching is
- * needed here. This extension exposes its own {@link XRoadTrustedIssuerRegistry} via an explicit
- * {@link Provider} method rather than relying on EDC's built-in additive-only registry, so a DID dropped
- * from globalconf (a compromised issuer removed by the Central Server operator) loses trust within one
- * refresh cycle instead of surviving until process restart. An explicit, non-default {@code @Provider} is
- * resolved by EDC ahead of any {@code isDefault} provider for the same type (the default in-memory registry
- * is registered lazily, only as a last-resort fallback for an injection point still unsatisfied at resolve
- * time), so every consumer that injects {@link TrustedIssuerRegistry} sees this implementation.
+ * globalconf refreshes itself on the same basis the proxy relies on for every message, so no TTL caching is
+ * needed here. Each refresh replaces the trusted issuers wholesale, so a DID dropped from globalconf (a
+ * compromised issuer removed by the Central Server operator) loses trust within one refresh cycle instead of
+ * surviving until process restart.
  */
 @Extension(value = EXTENSION_NAME)
 public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
@@ -77,13 +72,15 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     private GlobalConfProvider globalConfProvider;
 
     @Inject
+    private DataspaceProfileContextRegistry profileRegistry;
+
+    @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
     @Inject
     private Monitor monitor;
 
-    private final XRoadTrustedIssuerRegistry issuerRegistry = new XRoadTrustedIssuerRegistry();
-
+    private DataspaceIssuerTrust issuerTrust;
     private volatile Set<String> currentDids;
     private ScheduledExecutorService scheduledExecutorService;
 
@@ -94,9 +91,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        currentDids = loadTrustedIssuerDids();
-        replaceTrustedIssuers(currentDids);
-        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, currentDids.size()));
+        issuerTrust = new DataspaceProfileIssuerTrust(profileRegistry);
 
         if (refreshIntervalSeconds > 0) {
             scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), EXTENSION_NAME);
@@ -105,17 +100,12 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         }
     }
 
-    /**
-     * Exposes this extension's {@link XRoadTrustedIssuerRegistry} as the {@link TrustedIssuerRegistry} EDC
-     * resolves, ahead of its built-in {@code isDefault} in-memory registry.
-     */
-    @Provider
-    public TrustedIssuerRegistry trustedIssuerRegistry() {
-        return issuerRegistry;
-    }
-
     @Override
     public void start() {
+        currentDids = loadTrustedIssuerDids();
+        issuerTrust.trustOnly(currentDids);
+        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, currentDids.size()));
+
         if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
             scheduledExecutorService.scheduleAtFixedRate(this::refreshSafely, refreshIntervalSeconds, refreshIntervalSeconds,
                     TimeUnit.SECONDS);
@@ -133,7 +123,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         try {
             var dids = loadTrustedIssuerDids();
             if (!dids.equals(currentDids)) {
-                replaceTrustedIssuers(dids);
+                issuerTrust.trustOnly(dids);
                 currentDids = dids;
                 monitor.info("%s: trusted issuer set changed, now %d DID(s)".formatted(EXTENSION_NAME, dids.size()));
             }
@@ -151,9 +141,5 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
                     + "dataspace issuance and trust are not enabled").formatted(EXTENSION_NAME, instanceIdentifier));
         }
         return dids;
-    }
-
-    private void replaceTrustedIssuers(Set<String> dids) {
-        issuerRegistry.replaceAll(dids, TrustedIssuerRegistry.WILDCARD);
     }
 }

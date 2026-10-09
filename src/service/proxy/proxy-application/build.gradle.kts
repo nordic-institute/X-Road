@@ -8,6 +8,11 @@ configurations.named("runtimeClasspath") {
   exclude(group = "xml-apis", module = "xml-apis")
 }
 
+configurations.named("runtimeClasspath") {
+  // jnats, pulled in by EDC core-lib and unused, would add a second BouncyCastle provider jar
+  exclude(group = "org.bouncycastle", module = "bcprov-lts8on")
+}
+
 dependencies {
   implementation(platform(libs.quarkus.bom))
 

@@ -144,8 +144,8 @@ class XRoadDataPlaneManagerTest {
     @Test
     void prepareAdvertisesServerproxyEndpoint() {
         var message = DataFlowPrepareMessage.Builder.newInstance()
-                .processId("flow-4")
-                .transferType("Xrd-PULL")
+                .dataFlowId("flow-4")
+                .profile("Xrd-PULL")
                 .build();
 
         var result = manager.prepare(message);
@@ -158,8 +158,8 @@ class XRoadDataPlaneManagerTest {
     @Test
     void startRejectsNonXrdPullTransferType() {
         var message = DataFlowStartMessage.Builder.newInstance()
-                .processId("flow-5")
-                .transferType("Http-PUSH")
+                .dataFlowId("flow-5")
+                .profile("Http-PUSH")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();
@@ -172,8 +172,8 @@ class XRoadDataPlaneManagerTest {
     @Test
     void startedTransitionsFlowToStartedAndReturnsStateOnlyStatus() {
         manager.prepare(DataFlowPrepareMessage.Builder.newInstance()
-                .processId("flow-9")
-                .transferType("Xrd-PULL")
+                .dataFlowId("flow-9")
+                .profile("Xrd-PULL")
                 .build());
 
         var result = manager.started("flow-9");
@@ -314,8 +314,8 @@ class XRoadDataPlaneManagerTest {
 
     private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
-                .processId(processId)
-                .transferType("Xrd-PULL")
+                .dataFlowId(processId)
+                .profile("Xrd-PULL")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();
@@ -323,8 +323,8 @@ class XRoadDataPlaneManagerTest {
 
     private DataFlowPrepareMessage buildPrepareMessage(String processId) {
         return DataFlowPrepareMessage.Builder.newInstance()
-                .processId(processId)
-                .transferType("Xrd-PULL")
+                .dataFlowId(processId)
+                .profile("Xrd-PULL")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();

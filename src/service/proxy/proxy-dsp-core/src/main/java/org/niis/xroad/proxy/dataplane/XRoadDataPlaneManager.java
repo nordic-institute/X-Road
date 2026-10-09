@@ -81,8 +81,8 @@ public class XRoadDataPlaneManager {
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
      */
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
-        log.info("Preparing data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowLifecycleState.PROVISIONED);
+        log.info("Preparing data flow for process {}", message.getDataFlowId());
+        storeState(message.getDataFlowId(), DataFlowLifecycleState.PROVISIONED);
         return buildStatusMessage(DataFlowLifecycleState.PROVISIONED, message.getAgreementId());
     }
 
@@ -97,8 +97,8 @@ public class XRoadDataPlaneManager {
      */
     public DataFlowStatusMessage start(DataFlowStartMessage message) {
         validateXrdPull(message);
-        log.info("Starting Xrd-PULL data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowLifecycleState.STARTED);
+        log.info("Starting Xrd-PULL data flow for process {}", message.getDataFlowId());
+        storeState(message.getDataFlowId(), DataFlowLifecycleState.STARTED);
         return buildStatusMessage(DataFlowLifecycleState.STARTED, message.getAgreementId());
     }
 
@@ -159,10 +159,10 @@ public class XRoadDataPlaneManager {
     }
 
     private void validateXrdPull(DataFlowStartMessage message) {
-        var transferType = message.getTransferType();
-        if (!XRD_PULL_TRANSFER_TYPE.equals(transferType)) {
+        var profile = message.getProfile();
+        if (!XRD_PULL_TRANSFER_TYPE.equals(profile)) {
             throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
-                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(transferType));
+                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(profile));
         }
     }
 

@@ -9,11 +9,9 @@ dependencies {
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.identityhub.participantcontext)
-  implementation(libs.edc.spi.identity.did)
   implementation(libs.edc.spi.identityhub.vc)
   implementation(libs.edc.spi.identityhub.holdercredentialrequest)
-  implementation(libs.edc.lib.sql)
-  implementation(libs.edc.spi.transaction.datasource)
+  implementation(libs.edc.lib.core)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
@@ -21,8 +19,8 @@ dependencies {
   testImplementation(libs.edc.junit)
   testImplementation(libs.edc.spi.identityhub)
   testImplementation(libs.edc.spi.keypair)
-  testImplementation(libs.edc.spi.participantcontext.config)
-  testImplementation(libs.edc.lib.query)
+  testImplementation(libs.edc.spi.controlplane)
+  testImplementation(libs.edc.lib.core)
   testImplementation(libs.edc.ih.participants)
   testImplementation(libs.edc.ih.participant.context.core)
   testImplementation(libs.edc.ih.did)

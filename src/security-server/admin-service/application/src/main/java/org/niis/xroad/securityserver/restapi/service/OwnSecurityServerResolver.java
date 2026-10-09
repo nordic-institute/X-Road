@@ -65,10 +65,13 @@ public class OwnSecurityServerResolver {
     }
 
     @Transactional(readOnly = true)
+    public Optional<SecurityServerId.Conf> serverId() {
+        return serverConf().flatMap(OwnSecurityServerResolver::serverIdOf);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<String> registeredAddress() {
-        return serverConf()
-                .flatMap(conf -> ownerOf(conf).map(owner -> SecurityServerId.Conf.create(owner, conf.getServerCode())))
-                .flatMap(this::registeredAddressOf);
+        return serverConf().flatMap(OwnSecurityServerResolver::serverIdOf).flatMap(this::registeredAddressOf);
     }
 
     private Optional<ServerConfEntity> serverConf() {
@@ -84,6 +87,10 @@ public class OwnSecurityServerResolver {
 
     private static Optional<ClientId> ownerOf(ServerConfEntity conf) {
         return Optional.ofNullable(conf.getOwner()).map(owner -> (ClientId) owner.getIdentifier());
+    }
+
+    private static Optional<SecurityServerId.Conf> serverIdOf(ServerConfEntity conf) {
+        return ownerOf(conf).map(owner -> SecurityServerId.Conf.create(owner, conf.getServerCode()));
     }
 
     private Optional<String> registeredAddressOf(SecurityServerId serverId) {

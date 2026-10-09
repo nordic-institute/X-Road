@@ -28,9 +28,9 @@ package org.niis.xroad.cs.admin.core.converter;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
+import ee.ria.xroad.common.util.X500Names;
 
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -139,7 +139,7 @@ public class CertificateConverter {
 
     private String getSubjectCommonNameOrNull(X509Certificate certificate) {
         return CertUtils.getRDNValue(
-                new X500Name(certificate.getSubjectX500Principal().getName()),
+                X500Names.fromPrincipal(certificate.getSubjectX500Principal()),
                 BCStyle.CN);
     }
 
