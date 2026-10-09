@@ -49,7 +49,7 @@ import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoad
  * globalconf. Every distributed Issuer DID becomes a trusted issuer for every credential type, so a
  * credential issued by any Central Server node verifies.
  *
- * <p>{@link GlobalConfProvider#getIssuerDids(String)} is an in-memory read over parsed globalconf, and
+ * <p>{@link GlobalConfProvider#getCredentialIssuerDids(String)} is an in-memory read over parsed globalconf, and
  * globalconf refreshes itself on the same basis the proxy relies on for every message — no TTL caching is
  * needed here. This extension exposes its own {@link XRoadTrustedIssuerRegistry} via an explicit
  * {@link Provider} method rather than relying on EDC's built-in additive-only registry, so a DID dropped
@@ -145,9 +145,9 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
 
     private Set<String> loadTrustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
+        var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
-            monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no dataspaceParameters in globalconf); "
+            monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no credentialIssuer in globalconf); "
                     + "dataspace issuance and trust are not enabled").formatted(EXTENSION_NAME, instanceIdentifier));
         }
         return dids;

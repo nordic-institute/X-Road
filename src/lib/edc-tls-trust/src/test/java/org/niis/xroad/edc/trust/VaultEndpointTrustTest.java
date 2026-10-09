@@ -126,7 +126,7 @@ class VaultEndpointTrustTest {
      * {@code URI.getHost()} keeps an IPv6 literal's brackets ({@code "[::1]"}), but OkHttp hands the socket
      * factory the unbracketed form ({@code "::1"}) — that is what {@code SSLSession.getPeerHost()} reports to
      * the trust manager
-     * ({@link DsTlsCompositeTrustManagerTest#aVaultCaAddressedByAnIpv6LiteralAcceptsTheUnbracketedPeerHost()}
+     * ({@link ConnectorTlsCompositeTrustManagerTest#aVaultCaAddressedByAnIpv6LiteralAcceptsTheUnbracketedPeerHost()}
      * exercises this with a real client/server handshake). The unbracketed form is therefore the one that must
      * match; the bracketed form is also accepted, in case some other caller passes one.
      */

@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeOrderResult;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateAcmeProvider;
@@ -44,21 +44,21 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CA_NOT_FOUND
 
 /**
  * Implements {@link DsTlsCertificateAcmeProvider} on top of the existing DS TLS ACME engine ({@link
- * DsTlsAcmeService}) and this product's {@link DsTlsAcmeHostContext}. Deliberately does not depend on {@code
+ * ConnectorTlsAcmeService}) and this product's {@link ConnectorTlsAcmeHostContext}. Deliberately does not depend on {@code
  * DsTlsCertificateService} — the shared key, current certificate and next-renewal bookkeeping all cross this
  * boundary as plain parameters/return values instead, so that {@code DsTlsCertificateService} can resolve this
  * bean at call time without ever forming a construction cycle back into it.
  */
 @Component
 @RequiredArgsConstructor
-class DsTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
+class ConnectorTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
 
-    private final DsTlsAcmeHostContext hostContext;
-    private final DsTlsAcmeService dsTlsAcmeService;
+    private final ConnectorTlsAcmeHostContext hostContext;
+    private final ConnectorTlsAcmeService connectorTlsAcmeService;
 
     @Override
     public DsTlsAcmeAvailability getAvailability() {
-        List<String> caNames = acmeCapableCas().stream().map(ApprovedDsTlsCaInfo::getName).toList();
+        List<String> caNames = acmeCapableCas().stream().map(ApprovedConnectorTlsCAInfo::getName).toList();
         String hostname = resolvePublicHostnameOrNull();
         return new DsTlsAcmeAvailability(!caNames.isEmpty() && hostname != null, caNames, hostname);
     }
@@ -66,7 +66,7 @@ class DsTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
     @Override
     public DsTlsAcmeOrderResult order(String caName, String distinguishedName, String subjectAltName,
                                       PrivateKey privateKey, PublicKey publicKey, X509Certificate currentCertificate) {
-        ApprovedDsTlsCaInfo caInfo = acmeCapableCas().stream()
+        ApprovedConnectorTlsCAInfo caInfo = acmeCapableCas().stream()
                 .filter(ca -> ca.getName().equals(caName))
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException(DS_TLS_CA_NOT_FOUND.build(caName)));
@@ -74,18 +74,18 @@ class DsTlsAcmeOrderProvider implements DsTlsCertificateAcmeProvider {
         byte[] certRequest = DsTlsCsrBuilder.buildDer(privateKey, publicKey, distinguishedName, subjectAltName);
 
         List<X509Certificate> chain = currentCertificate == null
-                ? dsTlsAcmeService.enroll(caInfo, subjectAltName, certRequest)
-                : dsTlsAcmeService.renew(caInfo, subjectAltName, currentCertificate, certRequest);
+                ? connectorTlsAcmeService.enroll(caInfo, subjectAltName, certRequest)
+                : connectorTlsAcmeService.renew(caInfo, subjectAltName, currentCertificate, certRequest);
         if (chain == null || chain.isEmpty()) {
             throw new IllegalStateException("The ACME server returned no certificate");
         }
 
         X509Certificate leaf = chain.get(0);
-        return new DsTlsAcmeOrderResult(chain, dsTlsAcmeService.getNextRenewalTime(caInfo, leaf));
+        return new DsTlsAcmeOrderResult(chain, connectorTlsAcmeService.getNextRenewalTime(caInfo, leaf));
     }
 
-    private List<ApprovedDsTlsCaInfo> acmeCapableCas() {
-        return hostContext.getDsTlsCertificationAuthorities().stream()
+    private List<ApprovedConnectorTlsCAInfo> acmeCapableCas() {
+        return hostContext.getConnectorTlsCertificationAuthorities().stream()
                 .filter(ca -> isNotBlank(ca.getAcmeServerDirectoryUrl()))
                 .toList();
     }

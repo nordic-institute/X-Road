@@ -35,7 +35,7 @@ import java.util.List;
 
 /**
  * An approved DS TLS certification authority, including the fields the globalconf generator needs to emit an
- * {@code approvedDsTlsCa} entry. Only {@code acmeServerDirectoryUrl} and {@code dsTlsCertificateProfileId} are exposed
+ * {@code approvedConnectorTlsCA} entry. Only {@code acmeServerDirectoryUrl} and {@code dsTlsCertificateProfileId} are exposed
  * for the ACME server - the shared ACME type's auth/sign profile ids are meaningless for DS TLS and never surface here.
  */
 @Data

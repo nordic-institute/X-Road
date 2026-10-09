@@ -32,12 +32,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.xml.bind.JAXBElement;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedCATypeV4;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedDsTlsCaType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedConnectorTlsCAType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedTSAType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.CaInfoType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConfigurationSourceType;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.DataspaceIssuerType;
-import org.niis.xroad.globalconf.schema.sharedparameters.v7.DataspaceParametersType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.CredentialIssuerType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalSettingsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberClassType;
@@ -63,14 +62,15 @@ public class SharedParametersV7Converter {
         List<SharedParameters.ConfigurationSource> configurationSources = getConfigurationSources(source.getSource());
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
-        List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas = getApprovedDsTlsCas(source.getApprovedDsTlsCa());
-        List<String> issuerDids = getIssuerDids(source.getDataspaceParameters());
+        List<SharedParameters.ApprovedConnectorTlsCA> approvedConnectorTlsCAs =
+                getApprovedConnectorTlsCAs(source.getApprovedConnectorTlsCA());
+        List<String> credentialIssuerDids = getCredentialIssuerDids(source.getCredentialIssuer());
         List<SharedParameters.Member> members = getMembers(instanceIdentifier, source.getMember());
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
-        return new SharedParameters(instanceIdentifier, configurationSources, approvedCAs, approvedTSAs, approvedDsTlsCas,
-                issuerDids, members, securityServers, globalGroups, globalSettings);
+        return new SharedParameters(instanceIdentifier, configurationSources, approvedCAs, approvedTSAs,
+                approvedConnectorTlsCAs, credentialIssuerDids, members, securityServers, globalGroups, globalSettings);
     }
 
     private List<SharedParameters.ConfigurationSource> getConfigurationSources(List<ConfigurationSourceType> sources) {
@@ -98,19 +98,21 @@ public class SharedParametersV7Converter {
         return approvedTSAs;
     }
 
-    private List<SharedParameters.ApprovedDsTlsCa> getApprovedDsTlsCas(List<ApprovedDsTlsCaType> approvedDsTlsCaTypes) {
-        List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas = new ArrayList<>();
-        if (approvedDsTlsCaTypes != null) {
-            approvedDsTlsCas.addAll(approvedDsTlsCaTypes.stream().map(this::toApprovedDsTlsCa).toList());
+    private List<SharedParameters.ApprovedConnectorTlsCA> getApprovedConnectorTlsCAs(
+            List<ApprovedConnectorTlsCAType> approvedConnectorTlsCATypes) {
+        List<SharedParameters.ApprovedConnectorTlsCA> approvedConnectorTlsCAs = new ArrayList<>();
+        if (approvedConnectorTlsCATypes != null) {
+            approvedConnectorTlsCAs.addAll(
+                    approvedConnectorTlsCATypes.stream().map(this::toApprovedConnectorTlsCA).toList());
         }
-        return approvedDsTlsCas;
+        return approvedConnectorTlsCAs;
     }
 
-    private List<String> getIssuerDids(DataspaceParametersType dataspaceParameters) {
-        if (dataspaceParameters == null || dataspaceParameters.getIssuer() == null) {
+    private List<String> getCredentialIssuerDids(List<CredentialIssuerType> credentialIssuers) {
+        if (credentialIssuers == null) {
             return List.of();
         }
-        return dataspaceParameters.getIssuer().stream().map(DataspaceIssuerType::getDid).toList();
+        return credentialIssuers.stream().map(CredentialIssuerType::getDid).toList();
     }
 
     private List<SharedParameters.Member> getMembers(String instanceIdentifier, List<MemberType> memberTypes) {
@@ -184,8 +186,8 @@ public class SharedParametersV7Converter {
         return target;
     }
 
-    private SharedParameters.ApprovedDsTlsCa toApprovedDsTlsCa(ApprovedDsTlsCaType source) {
-        var target = new SharedParameters.ApprovedDsTlsCa();
+    private SharedParameters.ApprovedConnectorTlsCA toApprovedConnectorTlsCA(ApprovedConnectorTlsCAType source) {
+        var target = new SharedParameters.ApprovedConnectorTlsCA();
         target.setName(source.getName());
         if (source.getTopCA() != null) {
             target.setTopCA(toCaInfo(source.getTopCA()));
@@ -205,7 +207,7 @@ public class SharedParametersV7Converter {
         acmeServer.setIpAddress(source.getIpAddress());
         acmeServer.setAuthenticationCertificateProfileId(source.getAuthenticationCertificateProfileId());
         acmeServer.setSigningCertificateProfileId(source.getSigningCertificateProfileId());
-        acmeServer.setDsTlsCertificateProfileId(source.getDsTlsCertificateProfileId());
+        acmeServer.setConnectorTlsCertificateProfileId(source.getConnectorTlsCertificateProfileId());
         return acmeServer;
     }
 

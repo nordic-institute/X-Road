@@ -23,12 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.securityserver.restapi.connectortls;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
+import org.niis.xroad.common.acme.spring.connectortls.ConnectorTlsAcmeHostContext;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -41,15 +41,15 @@ import static java.util.Objects.requireNonNullElse;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- * The Security Server's own {@link DsTlsAcmeHostContext}: the public hostname comes from the configured
+ * The Security Server's own {@link ConnectorTlsAcmeHostContext}: the public hostname comes from the configured
  * DataSpace IdentityHub URL, the ACME account/EAB alias is the fixed {@value #DS_TLS_ACME_ALIAS}, and outcomes
  * are reported via email through {@link MailNotificationHelper}. Whether the renewal scheduler runs at all is a
- * separate, bean-wiring-time decision made by {@link DsTlsAcmeCertificateRenewalSchedulingConfig}, not this
+ * separate, bean-wiring-time decision made by {@link ConnectorTlsAcmeCertificateRenewalSchedulingConfig}, not this
  * class.
  */
 @Component
 @RequiredArgsConstructor
-class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
+class SecurityServerConnectorTlsAcmeHostContext implements ConnectorTlsAcmeHostContext {
 
     static final String DS_TLS_ACME_ALIAS = "dataspace-tls";
 
@@ -58,7 +58,7 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
     private final AdminServiceProperties adminServiceProperties;
     private final MailNotificationHelper mailNotificationHelper;
     private final GlobalConfProvider globalConfProvider;
-    private final DsTlsCertificateService dsTlsCertificateService;
+    private final DsTlsCertificateService connectorTlsCertificateService;
 
     /**
      * @return the host component of the configured DataSpace IdentityHub URL, or {@code null} when DataSpace
@@ -89,8 +89,8 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
      *     {@code CertificateAuthorityService} and the DS TLS trust manager already read.
      */
     @Override
-    public List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities() {
-        return List.copyOf(globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier()));
+    public List<ApprovedConnectorTlsCAInfo> getConnectorTlsCertificationAuthorities() {
+        return List.copyOf(globalConfProvider.getApprovedConnectorTlsCAs(globalConfProvider.getInstanceIdentifier()));
     }
 
     @Override
@@ -110,7 +110,7 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
 
     @Override
     public void notifyEnrollmentFailure(String hostname, String errorDescription) {
-        boolean isRenewal = dsTlsCertificateService.getEnrollmentStatus().method() != null;
+        boolean isRenewal = connectorTlsCertificateService.getEnrollmentStatus().method() != null;
         mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, isRenewal, errorDescription);
     }
 }

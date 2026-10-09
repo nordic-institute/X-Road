@@ -23,14 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
 import org.niis.xroad.restapi.dstls.DsTlsAcmeOrderResult;
 
@@ -51,22 +51,22 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CA_NOT_FOUND;
 
 @ExtendWith(MockitoExtension.class)
-class DsTlsAcmeOrderProviderTest {
+class ConnectorTlsAcmeOrderProviderTest {
 
     private static final String HOSTNAME = "ss.example.org";
 
     @Mock
-    private DsTlsAcmeHostContext hostContext;
+    private ConnectorTlsAcmeHostContext hostContext;
     @Mock
-    private DsTlsAcmeService dsTlsAcmeService;
+    private ConnectorTlsAcmeService connectorTlsAcmeService;
 
-    private DsTlsAcmeOrderProvider provider() {
-        return new DsTlsAcmeOrderProvider(hostContext, dsTlsAcmeService);
+    private ConnectorTlsAcmeOrderProvider provider() {
+        return new ConnectorTlsAcmeOrderProvider(hostContext, connectorTlsAcmeService);
     }
 
     @Test
     void availabilityShouldBeFalseWhenNoAcmeCapableCaIsDesignated() {
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(nonAcmeCa("No ACME CA")));
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(nonAcmeCa("No ACME CA")));
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
 
         DsTlsAcmeAvailability availability = provider().getAvailability();
@@ -78,7 +78,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void availabilityShouldBeFalseWhenTheHostnameDoesNotResolve() {
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Test CA")));
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Test CA")));
         when(hostContext.getPublicHostname()).thenReturn(null);
 
         DsTlsAcmeAvailability availability = provider().getAvailability();
@@ -90,7 +90,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void availabilityShouldBeFalseWhenHostnameResolutionThrows() {
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Test CA")));
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Test CA")));
         when(hostContext.getPublicHostname()).thenThrow(new IllegalArgumentException("malformed"));
 
         DsTlsAcmeAvailability availability = provider().getAvailability();
@@ -101,7 +101,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void availabilityShouldBeTrueWithOneAcmeCapableCa() {
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Test CA")));
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Test CA")));
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
 
         DsTlsAcmeAvailability availability = provider().getAvailability();
@@ -112,7 +112,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void availabilityShouldListEveryAcmeCapableCaWhenSeveralAreDesignated() {
-        when(hostContext.getDsTlsCertificationAuthorities())
+        when(hostContext.getConnectorTlsCertificationAuthorities())
                 .thenReturn(List.of(acmeCa("CA one"), acmeCa("CA two"), nonAcmeCa("Manual only CA")));
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
 
@@ -124,7 +124,7 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldRejectAnUnknownCaName() throws Exception {
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Known CA")));
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(acmeCa("Known CA")));
         KeyPair keyPair = generateRsaKeyPair();
 
         assertThatThrownBy(() -> provider().order("Unknown CA", "CN=ds.example.org", "ds.example.org",
@@ -132,12 +132,12 @@ class DsTlsAcmeOrderProviderTest {
                 .isInstanceOf(BadRequestException.class)
                 .satisfies(e -> assertThat(((BadRequestException) e).getErrorDeviation().code())
                         .isEqualTo(DS_TLS_CA_NOT_FOUND.code()));
-        verify(dsTlsAcmeService, never()).enroll(any(), any(), any());
+        verify(connectorTlsAcmeService, never()).enroll(any(), any(), any());
     }
 
     @Test
     void orderShouldRejectACaWithoutAnAcmeServer() throws Exception {
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(nonAcmeCa("Manual only CA")));
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(nonAcmeCa("Manual only CA")));
         KeyPair keyPair = generateRsaKeyPair();
 
         assertThatThrownBy(() -> provider().order("Manual only CA", "CN=ds.example.org", "ds.example.org",
@@ -147,46 +147,46 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldEnrollWhenNoCertificateExistsYet() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate issued = mock(X509Certificate.class);
         Instant nextRenewalTime = Instant.now().plusSeconds(3600);
-        when(dsTlsAcmeService.enroll(eq(caInfo), eq("ds.example.org"), any())).thenReturn(List.of(issued));
-        when(dsTlsAcmeService.getNextRenewalTime(caInfo, issued)).thenReturn(nextRenewalTime);
+        when(connectorTlsAcmeService.enroll(eq(caInfo), eq("ds.example.org"), any())).thenReturn(List.of(issued));
+        when(connectorTlsAcmeService.getNextRenewalTime(caInfo, issued)).thenReturn(nextRenewalTime);
 
         DsTlsAcmeOrderResult result = provider().order("Test CA", "CN=ds.example.org", "ds.example.org",
                 keyPair.getPrivate(), keyPair.getPublic(), null);
 
         assertThat(result.certificateChain()).containsExactly(issued);
         assertThat(result.nextRenewalTime()).isEqualTo(nextRenewalTime);
-        verify(dsTlsAcmeService, never()).renew(any(), any(), any(), any());
+        verify(connectorTlsAcmeService, never()).renew(any(), any(), any(), any());
     }
 
     @Test
     void orderShouldRenewWhenACertificateAlreadyExists() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate currentCertificate = mock(X509Certificate.class);
         X509Certificate issued = mock(X509Certificate.class);
-        when(dsTlsAcmeService.renew(eq(caInfo), eq("ds.example.org"), eq(currentCertificate), any()))
+        when(connectorTlsAcmeService.renew(eq(caInfo), eq("ds.example.org"), eq(currentCertificate), any()))
                 .thenReturn(List.of(issued));
-        when(dsTlsAcmeService.getNextRenewalTime(caInfo, issued)).thenReturn(Instant.now());
+        when(connectorTlsAcmeService.getNextRenewalTime(caInfo, issued)).thenReturn(Instant.now());
 
         DsTlsAcmeOrderResult result = provider().order("Test CA", "CN=ds.example.org", "ds.example.org",
                 keyPair.getPrivate(), keyPair.getPublic(), currentCertificate);
 
         assertThat(result.certificateChain()).containsExactly(issued);
-        verify(dsTlsAcmeService, never()).enroll(any(), any(), any());
+        verify(connectorTlsAcmeService, never()).enroll(any(), any(), any());
     }
 
     @Test
     void orderShouldFailFastWhenTheAcmeServerReturnsNoCertificate() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
-        when(dsTlsAcmeService.enroll(eq(caInfo), eq("ds.example.org"), any())).thenReturn(List.of());
+        when(connectorTlsAcmeService.enroll(eq(caInfo), eq("ds.example.org"), any())).thenReturn(List.of());
 
         assertThatThrownBy(() -> provider().order("Test CA", "CN=ds.example.org", "ds.example.org",
                 keyPair.getPrivate(), keyPair.getPublic(), null))
@@ -195,22 +195,22 @@ class DsTlsAcmeOrderProviderTest {
 
     @Test
     void orderShouldPropagateAnInvalidDistinguishedNameAsIs() throws Exception {
-        ApprovedDsTlsCaInfo caInfo = acmeCa("Test CA");
-        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        ApprovedConnectorTlsCAInfo caInfo = acmeCa("Test CA");
+        when(hostContext.getConnectorTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         KeyPair keyPair = generateRsaKeyPair();
 
         assertThatThrownBy(() -> provider().order("Test CA", "not a distinguished name", "ds.example.org",
                 keyPair.getPrivate(), keyPair.getPublic(), null))
                 .isInstanceOf(IllegalArgumentException.class);
-        verify(dsTlsAcmeService, never()).enroll(any(), any(), any());
+        verify(connectorTlsAcmeService, never()).enroll(any(), any(), any());
     }
 
-    private static ApprovedDsTlsCaInfo acmeCa(String name) {
-        return new ApprovedDsTlsCaInfo(name, null, List.of(), "http://testca:8887", null, null);
+    private static ApprovedConnectorTlsCAInfo acmeCa(String name) {
+        return new ApprovedConnectorTlsCAInfo(name, null, List.of(), "http://testca:8887", null, null);
     }
 
-    private static ApprovedDsTlsCaInfo nonAcmeCa(String name) {
-        return new ApprovedDsTlsCaInfo(name, null, List.of(), null, null, null);
+    private static ApprovedConnectorTlsCAInfo nonAcmeCa(String name) {
+        return new ApprovedConnectorTlsCAInfo(name, null, List.of(), null, null, null);
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

@@ -62,7 +62,7 @@ class SharedParametersV7ToXmlConverterTest {
             entry("externalVerificationCert", "externalVerificationCerts"),
             entry("approvedCA", "approvedCAs"),
             entry("approvedTSA", "approvedTSAs"),
-            entry("approvedDsTlsCa", "approvedDsTlsCas"),
+            entry("approvedConnectorTlsCA", "approvedConnectorTlsCAs"),
             entry("member", "members"),
             entry("globalGroup", "globalGroups"),
             entry("intermediateCA", "intermediateCas"),
@@ -88,7 +88,7 @@ class SharedParametersV7ToXmlConverterTest {
                         "members.subsystems.id",
                         "centralService",
                         "any",
-                        "dataspaceParameters"
+                        "credentialIssuer"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
@@ -130,84 +130,86 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     @Test
-    void shouldRoundTripDsTlsCaWithAcmeServerAndIntermediates() {
-        var approvedDsTlsCa = getApprovedDsTlsCa();
+    void shouldRoundTripConnectorTlsCaWithAcmeServerAndIntermediates() {
+        var approvedConnectorTlsCA = getApprovedConnectorTlsCA();
 
-        assertThat(roundTrip(List.of(approvedDsTlsCa)))
+        assertThat(roundTrip(List.of(approvedConnectorTlsCA)))
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(approvedDsTlsCa));
+                .isEqualTo(List.of(approvedConnectorTlsCA));
     }
 
     @Test
-    void shouldRoundTripDsTlsCaWithoutAcmeServer() {
-        var approvedDsTlsCa = getApprovedDsTlsCa();
-        approvedDsTlsCa.setAcmeServer(null);
+    void shouldRoundTripConnectorTlsCaWithoutAcmeServer() {
+        var approvedConnectorTlsCA = getApprovedConnectorTlsCA();
+        approvedConnectorTlsCA.setAcmeServer(null);
 
-        assertThat(roundTrip(List.of(approvedDsTlsCa)))
+        assertThat(roundTrip(List.of(approvedConnectorTlsCA)))
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(approvedDsTlsCa));
+                .isEqualTo(List.of(approvedConnectorTlsCA));
     }
 
     @Test
-    void shouldRoundTripDsTlsCaWithoutIntermediateCas() {
-        var approvedDsTlsCa = getApprovedDsTlsCa();
-        approvedDsTlsCa.setIntermediateCas(List.of());
+    void shouldRoundTripConnectorTlsCaWithoutIntermediateCas() {
+        var approvedConnectorTlsCA = getApprovedConnectorTlsCA();
+        approvedConnectorTlsCA.setIntermediateCas(List.of());
 
-        assertThat(roundTrip(List.of(approvedDsTlsCa)))
+        assertThat(roundTrip(List.of(approvedConnectorTlsCA)))
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(approvedDsTlsCa));
+                .isEqualTo(List.of(approvedConnectorTlsCA));
     }
 
     @Test
-    void shouldRoundTripEmptyDsTlsCaList() {
+    void shouldRoundTripEmptyConnectorTlsCaList() {
         assertThat(roundTrip(List.of())).isEmpty();
     }
 
     @Test
     void shouldRoundTripSingleIssuerDid() {
-        assertThat(roundTripIssuerDids(List.of("did:web:cs1.example%3A443:issuer")))
+        assertThat(roundTripCredentialIssuerDids(List.of("did:web:cs1.example%3A443:issuer")))
                 .containsExactly("did:web:cs1.example%3A443:issuer");
     }
 
     @Test
     void shouldRoundTripMultipleIssuerDids() {
-        var issuerDids = List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
+        var credentialIssuerDids = List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
 
-        assertThat(roundTripIssuerDids(issuerDids)).containsExactlyElementsOf(issuerDids);
+        assertThat(roundTripCredentialIssuerDids(credentialIssuerDids)).containsExactlyElementsOf(credentialIssuerDids);
     }
 
     @Test
     void shouldRoundTripEmptyIssuerDidListAsNotDataspaceEnabled() {
         var xml = new SharedParametersV7Marshaller().marshall(minimalSharedParameters(List.of()));
 
-        assertThat(xml).doesNotContain("dataspaceParameters", "issuer", "did");
-        assertThat(roundTripIssuerDids(List.of())).isEmpty();
+        assertThat(xml).doesNotContain("credentialIssuer", "did");
+        assertThat(roundTripCredentialIssuerDids(List.of())).isEmpty();
     }
 
-    private static List<SharedParameters.ApprovedDsTlsCa> roundTrip(List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas) {
-        var sharedParameters = minimalSharedParameters(approvedDsTlsCas);
+    private static List<SharedParameters.ApprovedConnectorTlsCA> roundTrip(
+            List<SharedParameters.ApprovedConnectorTlsCA> approvedConnectorTlsCAs) {
+        var sharedParameters = minimalSharedParameters(approvedConnectorTlsCAs);
         var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
-        return afterMarshalling.getApprovedDsTlsCas();
+        return afterMarshalling.getApprovedConnectorTlsCAs();
     }
 
-    private static List<String> roundTripIssuerDids(List<String> issuerDids) {
+    private static List<String> roundTripCredentialIssuerDids(List<String> credentialIssuerDids) {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(getConfigurationSources());
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
-        sharedParamsBuilder.issuerDids(issuerDids);
+        sharedParamsBuilder.credentialIssuerDids(credentialIssuerDids);
         var xml = new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
-        return afterMarshalling.getIssuerDids();
+        return afterMarshalling.getCredentialIssuerDids();
     }
 
-    private static SharedParameters minimalSharedParameters(List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas) {
+    private static SharedParameters minimalSharedParameters(
+            List<SharedParameters.ApprovedConnectorTlsCA> approvedConnectorTlsCAs) {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(getConfigurationSources());
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
-        sharedParamsBuilder.approvedDsTlsCas(approvedDsTlsCas);
+        sharedParamsBuilder.approvedConnectorTlsCAs(approvedConnectorTlsCAs);
         return sharedParamsBuilder.build();
     }
 
@@ -239,13 +241,13 @@ class SharedParametersV7ToXmlConverterTest {
     private static SharedParameters getSharedParameters() {
         return new SharedParameters("INSTANCE", getConfigurationSources(), List.of(getApprovedCA()),
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8), CostType.PAID)),
-                List.of(getApprovedDsTlsCa()), getIssuerDids(), getMembers(), List.of(getSecurityServer()),
+                List.of(getApprovedConnectorTlsCA()), getCredentialIssuerDids(), getMembers(), List.of(getSecurityServer()),
                 List.of(new SharedParameters.GlobalGroup("group-code",
                 "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
     }
 
-    private static List<String> getIssuerDids() {
+    private static List<String> getCredentialIssuerDids() {
         return List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
     }
 
@@ -269,14 +271,14 @@ class SharedParametersV7ToXmlConverterTest {
         return approvedCA;
     }
 
-    private static SharedParameters.ApprovedDsTlsCa getApprovedDsTlsCa() {
-        var approvedDsTlsCa = new SharedParameters.ApprovedDsTlsCa();
-        approvedDsTlsCa.setName("approved ds tls ca name");
-        approvedDsTlsCa.setTopCA(getCaInfo());
-        approvedDsTlsCa.setIntermediateCas(List.of(getCaInfo()));
-        approvedDsTlsCa.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", "1", "2",
+    private static SharedParameters.ApprovedConnectorTlsCA getApprovedConnectorTlsCA() {
+        var approvedConnectorTlsCA = new SharedParameters.ApprovedConnectorTlsCA();
+        approvedConnectorTlsCA.setName("approved ds tls ca name");
+        approvedConnectorTlsCA.setTopCA(getCaInfo());
+        approvedConnectorTlsCA.setIntermediateCas(List.of(getCaInfo()));
+        approvedConnectorTlsCA.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", "1", "2",
                 "ds-tls-profile"));
-        return approvedDsTlsCa;
+        return approvedConnectorTlsCA;
     }
 
     private static SharedParameters.CaInfo getCaInfo() {

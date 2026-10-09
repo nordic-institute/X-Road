@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.acme.AcmeAccountContext;
 import org.niis.xroad.common.acme.AcmeClient;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -47,7 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DsTlsAcmeServiceTest {
+class ConnectorTlsAcmeServiceTest {
 
     private static final String HOSTNAME = "ss.example.org";
     private static final String EAB_ALIAS = "dataspace-tls";
@@ -55,21 +55,21 @@ class DsTlsAcmeServiceTest {
     @Mock
     private AcmeClient acmeClient;
     @Mock
-    private DsTlsAcmeHostContext hostContext;
+    private ConnectorTlsAcmeHostContext hostContext;
 
-    private DsTlsAcmeService dsTlsAcmeService;
+    private ConnectorTlsAcmeService connectorTlsAcmeService;
 
-    private DsTlsAcmeService service() {
-        if (dsTlsAcmeService == null) {
+    private ConnectorTlsAcmeService service() {
+        if (connectorTlsAcmeService == null) {
             lenient().when(hostContext.getEabAlias()).thenReturn(EAB_ALIAS);
-            dsTlsAcmeService = new DsTlsAcmeService(acmeClient, hostContext);
+            connectorTlsAcmeService = new ConnectorTlsAcmeService(acmeClient, hostContext);
         }
-        return dsTlsAcmeService;
+        return connectorTlsAcmeService;
     }
 
     @Test
     void enrollShouldOrderUnderTheConfiguredAliasWithNoContactsWhenUnconfigured() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = connectorTlsCaInfo("Test CA", "http://testca:8887");
         byte[] certRequest = {1, 2, 3};
         X509Certificate cert = mock(X509Certificate.class);
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
@@ -90,8 +90,9 @@ class DsTlsAcmeServiceTest {
     }
 
     @Test
-    void enrollShouldCarryTheConfiguredDsTlsCertificateProfileIdThrough() {
-        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, "ds-tls-profile-id");
+    void enrollShouldCarryTheConfiguredConnectorTlsCertificateProfileIdThrough() {
+        ApprovedConnectorTlsCAInfo caInfo = new ApprovedConnectorTlsCAInfo("Test CA", null, List.of(), "http://testca:8887",
+                null, "ds-tls-profile-id");
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
 
@@ -104,7 +105,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void enrollShouldPassTheConfiguredAccountContacts() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = connectorTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getAccountContacts()).thenReturn(List.of("dstls@example.org"));
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
@@ -118,7 +119,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void renewShouldReferenceTheCurrentCertificateUnderTheConfiguredAlias() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = connectorTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate currentCertificate = mock(X509Certificate.class);
         byte[] certRequest = {4, 5, 6};
         X509Certificate newCert = mock(X509Certificate.class);
@@ -134,7 +135,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void renewShouldPassTheConfiguredAccountContacts() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = connectorTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getAccountContacts()).thenReturn(List.of("dstls@example.org"));
         when(acmeClient.renew(any(AcmeAccountContext.class), any(), any(), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
@@ -148,7 +149,7 @@ class DsTlsAcmeServiceTest {
 
     @Test
     void getNextRenewalTimeShouldDelegateToTheSharedEngine() {
-        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedConnectorTlsCAInfo caInfo = connectorTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate certificate = mock(X509Certificate.class);
         Instant expected = Instant.now().plusSeconds(3600);
         when(acmeClient.getNextRenewalTime(any(AcmeAccountContext.class), any())).thenReturn(expected);
@@ -162,7 +163,7 @@ class DsTlsAcmeServiceTest {
         assertThat(accountCaptor.getValue().caName()).isEqualTo("Test CA");
     }
 
-    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
-        return new ApprovedDsTlsCaInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
+    private static ApprovedConnectorTlsCAInfo connectorTlsCaInfo(String name, String acmeServerDirectoryUrl) {
+        return new ApprovedConnectorTlsCAInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
     }
 }

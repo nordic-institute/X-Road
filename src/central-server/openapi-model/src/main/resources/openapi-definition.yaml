@@ -3621,7 +3621,7 @@ components:
       type: object
     ApprovedDsTlsCertificationAuthority:
       description: >-
-        approved DS TLS certification authority (globalconf approvedDsTlsCa entry). Only the ACME directory URL and
+        approved DS TLS certification authority (globalconf approvedConnectorTlsCA entry). Only the ACME directory URL and
         the DS TLS certificate profile id are exposed for the ACME server - the shared ACME type's auth/sign
         profile ids are meaningless for these entries and are never surfaced here.
       properties:

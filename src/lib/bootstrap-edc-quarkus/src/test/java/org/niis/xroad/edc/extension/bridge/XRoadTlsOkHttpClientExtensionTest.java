@@ -49,7 +49,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -110,7 +110,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         var acceptedServer = startHttpsServer(issueLeaf(listedCa, "accepted"));
         var rejectedServer = startHttpsServer(issueLeaf(unlistedCa, "rejected"));
 
-        stubContext(List.of(dsTlsCaInfo("listed", listedCa.certificate())));
+        stubContext(List.of(connectorTlsCaInfo("listed", listedCa.certificate())));
         var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
 
         assertThat(get(client, acceptedServer)).isEqualTo(200);
@@ -141,7 +141,7 @@ class XRoadTlsOkHttpClientExtensionTest {
     void theReloadIntervalSettingKeyAndDefaultAreQueriedFromContext() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
-        stubContext(List.of(dsTlsCaInfo("any", ca.certificate())));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
 
         new XRoadTlsOkHttpClientExtension().okHttpClient(context);
 
@@ -152,16 +152,16 @@ class XRoadTlsOkHttpClientExtensionTest {
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
-        stubContext(List.of(dsTlsCaInfo("any", ca.certificate())));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
         var extension = new XRoadTlsOkHttpClientExtension();
         extension.okHttpClient(context);
 
         assertThatCode(extension::shutdown).doesNotThrowAnyException();
     }
 
-    private void stubContext(List<ApprovedDsTlsCaInfo> cas) {
+    private void stubContext(List<ApprovedConnectorTlsCAInfo> cas) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getApprovedDsTlsCas(INSTANCE_IDENTIFIER)).thenReturn(cas);
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER)).thenReturn(cas);
         stubContextServices();
     }
 
@@ -183,8 +183,8 @@ class XRoadTlsOkHttpClientExtensionTest {
         }
     }
 
-    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, X509Certificate certificate) {
-        return new ApprovedDsTlsCaInfo(name, certificate, List.of(), null, null, null);
+    private static ApprovedConnectorTlsCAInfo connectorTlsCaInfo(String name, X509Certificate certificate) {
+        return new ApprovedConnectorTlsCAInfo(name, certificate, List.of(), null, null, null);
     }
 
     private HttpsServer startHttpsServer(TestLeaf leaf) throws Exception {

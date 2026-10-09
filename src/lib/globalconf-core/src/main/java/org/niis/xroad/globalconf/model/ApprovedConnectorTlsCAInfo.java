@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.jetty;
+package org.niis.xroad.globalconf.model;
+
+import lombok.Data;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
- * Signals that the DataSpace TLS certificate could not be loaded from OpenBao into a servable keystore,
- * carrying a message that already tells the operator what to do (provision the vault slot, wait for the
- * certificate, or check vault connectivity) rather than leaving that to the caller.
+ * Value object containing approved connector TLS CA information.
  */
-public class DsTlsKeyStoreLoadException extends RuntimeException {
+@Data
+public class ApprovedConnectorTlsCAInfo {
 
-    public DsTlsKeyStoreLoadException(String message) {
-        super(message);
-    }
+    private final String name;
 
-    public DsTlsKeyStoreLoadException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    private final X509Certificate topCaCert;
+    private final List<X509Certificate> intermediateCaCerts;
+
+    private final String acmeServerDirectoryUrl;
+    private final String acmeServerIpAddress;
+    private final String connectorTlsCertificateProfileId;
 }

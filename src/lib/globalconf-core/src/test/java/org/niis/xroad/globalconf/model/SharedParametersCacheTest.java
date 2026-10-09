@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SharedParametersCacheTest {
 
     @Test
-    void shouldNotCacheApprovedDsTlsCaData() throws Exception {
+    void shouldNotCacheApprovedConnectorTlsCAData() throws Exception {
         var memberCaCert = TestCertUtil.getCaCert();
 
         var approvedCa = new SharedParameters.ApprovedCA();
@@ -46,16 +46,16 @@ class SharedParametersCacheTest {
         approvedCa.setTopCA(new SharedParameters.CaInfo(memberCaCert.getEncoded(), List.of()));
         approvedCa.setIntermediateCas(List.of());
 
-        var dsTlsCa = new SharedParameters.ApprovedDsTlsCa();
-        dsTlsCa.setName("DS TLS CA");
-        dsTlsCa.setTopCA(new SharedParameters.CaInfo("not a real certificate".getBytes(UTF_8), List.of()));
-        dsTlsCa.setIntermediateCas(List.of(
+        var connectorTlsCa = new SharedParameters.ApprovedConnectorTlsCA();
+        connectorTlsCa.setName("DS TLS CA");
+        connectorTlsCa.setTopCA(new SharedParameters.CaInfo("not a real certificate".getBytes(UTF_8), List.of()));
+        connectorTlsCa.setIntermediateCas(List.of(
                 new SharedParameters.CaInfo("not a real intermediate certificate either".getBytes(UTF_8), List.of())));
 
         var sharedParameters = SharedParameters.builder()
                 .instanceIdentifier("CS")
                 .approvedCAs(List.of(approvedCa))
-                .approvedDsTlsCas(List.of(dsTlsCa))
+                .approvedConnectorTlsCAs(List.of(connectorTlsCa))
                 .securityServers(List.of())
                 .build();
 

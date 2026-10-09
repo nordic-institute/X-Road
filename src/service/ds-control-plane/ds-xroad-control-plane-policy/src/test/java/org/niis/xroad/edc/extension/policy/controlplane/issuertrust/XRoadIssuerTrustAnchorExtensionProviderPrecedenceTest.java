@@ -71,7 +71,7 @@ class XRoadIssuerTrustAnchorExtensionProviderPrecedenceTest {
 
         var globalConfProvider = mock(GlobalConfProvider.class);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn("TEST");
-        when(globalConfProvider.getIssuerDids("TEST")).thenReturn(List.of());
+        when(globalConfProvider.getCredentialIssuerDids("TEST")).thenReturn(List.of());
         context.registerService(GlobalConfProvider.class, globalConfProvider);
         context.registerService(CriterionOperatorRegistry.class, mock(CriterionOperatorRegistry.class));
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());

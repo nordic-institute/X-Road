@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.application.dstls;
+package org.niis.xroad.cs.admin.application.connectortls;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
-import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeCertificateRenewalWorker;
+import org.niis.xroad.common.acme.spring.connectortls.ConnectorTlsAcmeCertificateRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
@@ -51,32 +51,33 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * <p>
  * This deliberately stays a product-local class rather than living in {@code lib/acme-spring} alongside the
  * worker/service it wires — see the equivalent Security Server class,
- * {@code SecurityServerDsTlsAcmeHostContext}'s sibling {@code DsTlsAcmeCertificateRenewalSchedulingConfig}, for
+ * {@code SecurityServerConnectorTlsAcmeHostContext}'s sibling {@code ConnectorTlsAcmeCertificateRenewalSchedulingConfig}, for
  * the full reasoning: the {@link Conditional} evaluates before any bean exists, so the gating decision must
- * come from a throwaway config read, never from a live {@code DsTlsAcmeHostContext} bean.
+ * come from a throwaway config read, never from a live {@code ConnectorTlsAcmeHostContext} bean.
  * <p>
  * Like any {@link Conditional} bean, this is evaluated once at context startup: flipping the kill-switch while
  * admin-service is already running does not start or stop this scheduler until the process restarts.
- * {@link DsTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick regardless.
+ * {@link ConnectorTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick regardless.
  */
 @Slf4j
 @Configuration
-public class DsTlsAcmeCertificateRenewalSchedulingConfig {
+public class ConnectorTlsAcmeCertificateRenewalSchedulingConfig {
 
     @Bean
     @Profile("!test")
     @Order(Ordered.LOWEST_PRECEDENCE - 98)
-    @Conditional(IsDsTlsAcmeSchedulingActive.class)
-    CertificateRenewalScheduler dsTlsAcmeCertificateRenewalScheduler(DsTlsAcmeCertificateRenewalWorker dsTlsAcmeCertificateRenewalWorker,
-                                                                     AcmeSchedulingProperties acmeConfig) {
-        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(dsTlsAcmeCertificateRenewalWorker, acmeConfig,
+    @Conditional(IsConnectorTlsAcmeSchedulingActive.class)
+    CertificateRenewalScheduler connectorTlsAcmeCertificateRenewalScheduler(
+            ConnectorTlsAcmeCertificateRenewalWorker connectorTlsAcmeCertificateRenewalWorker,
+            AcmeSchedulingProperties acmeConfig) {
+        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(connectorTlsAcmeCertificateRenewalWorker, acmeConfig,
                 "acme-renewal-ds-tls-");
         scheduler.init();
         return scheduler;
     }
 
     @Slf4j
-    public static class IsDsTlsAcmeSchedulingActive implements Condition {
+    public static class IsConnectorTlsAcmeSchedulingActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var config = SpringConditionConfig.resolve(context.getEnvironment(), DataspaceConfigKeys.instance());

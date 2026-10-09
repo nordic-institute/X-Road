@@ -263,7 +263,7 @@ public class VersionedConfigurationDirectoryTest {
         SharedParameters s7 = dir.findShared("EE").orElseThrow();
 
         assertEquals("EE", s7.getInstanceIdentifier());
-        assertFalse(s7.getApprovedDsTlsCas().isEmpty());
+        assertFalse(s7.getApprovedConnectorTlsCAs().isEmpty());
 
         assertTrue(dir.findPrivate("bar").isEmpty());
         assertTrue(dir.findShared("bar").isPresent());
