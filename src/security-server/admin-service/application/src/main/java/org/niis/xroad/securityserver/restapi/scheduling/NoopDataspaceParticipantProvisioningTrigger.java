@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -35,7 +37,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.stereotype.Component;
 
 /**
- * No-op counterpart to {@link DataspaceParticipantProvisioningWorker}, active on a secondary nodes.
+ * No-op counterpart to {@link DataspaceParticipantProvisioningWorker}, active whenever the worker
+ * itself is not: on a secondary node, or with participant provisioning switched off.
  */
 @Slf4j
 @Component
@@ -44,22 +47,27 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
 
     @Override
     public void provisionParticipantAsync() {
-        log.warn("Dataspace participant provisioning requested on a secondary node, ignoring");
+        log.warn("Dataspace participant provisioning requested while disabled, ignoring");
     }
 
     @Slf4j
     static class IsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return isActive();
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
+            return isActive(config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_PROVISIONING_ENABLED));
         }
 
-        static boolean isActive() {
-            boolean secondary = NodeProperties.isSecondaryNode();
-            if (secondary) {
+        static boolean isActive(boolean participantProvisioningEnabled) {
+            if (NodeProperties.isSecondaryNode()) {
                 log.info("This is a secondary cluster node, dataspace participant provisioning is disabled");
+                return true;
             }
-            return secondary;
+            if (!participantProvisioningEnabled) {
+                log.info("Dataspace participant provisioning is switched off, dataspace participant provisioning is disabled");
+                return true;
+            }
+            return false;
         }
     }
 }
