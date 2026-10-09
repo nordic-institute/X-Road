@@ -51,6 +51,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -173,10 +175,33 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      *
      * <p>Teardown runs first and is gated on nothing: a decommissioned binding must keep converging
      * toward absence even while the owner or the registered address is unknown.
+     *
+     * <p>Whether this call returns normally or throws, one INFO summary line is logged for the cycle
+     * with its start timestamp, duration and the counts reached before it ended — see
+     * {@link #logCycleSummary}.
      */
     public void provisionParticipant() {
-        teardown();
-        ensure();
+        var cycle = new CycleCounts(Instant.now());
+        try {
+            teardown();
+            ensure(cycle);
+        } finally {
+            logCycleSummary(cycle);
+        }
+    }
+    /**
+     * Logs the fixed-format cycle summary line the perftest pipeline parses: the cycle's start
+     * timestamp, its duration in milliseconds, the number of participant contexts enumerated, how
+     * many of them are created (already converged, or an
+     * {@link DataspaceProvisioningService#ensureParticipantContext} call that did not throw), and how
+     * many hold an {@code ISSUED} membership credential. Logged exactly once per cycle, regardless of
+     * outcome.
+     */
+    private void logCycleSummary(CycleCounts cycle) {
+        long durationMs = Duration.between(cycle.start, Instant.now()).toMillis();
+        log.info("Dataspace provisioning: cycle summary cycleStart={} durationMs={} contexts={} contextsCreated={} "
+                        + "credentialsIssued={}",
+                cycle.start, durationMs, cycle.contexts, cycle.created, cycle.issued);
     }
 
     /**
@@ -197,8 +222,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
      * configuration the DID is derived from.
      */
-    private void ensure() {
+    private void ensure(CycleCounts cycle) {
         var contexts = dataspaceProvisioningService.participantContexts();
+        cycle.contexts = contexts.size();
         if (ownerUnknown(contexts)) {
             log.debug("Dataspace provisioning: SS owner not yet known, skipping");
             return;
@@ -213,6 +239,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         for (var context : contexts) {
             var status = statuses.get(context);
             if (converged(status)) {
+                cycle.created++;
+                cycle.issued++;
                 refreshControlPlane(context, status.contextDid());
             } else if (status.contextDidUnreadable()) {
                 log.debug("Dataspace provisioning: identity hub state of participant context {} unreadable, retrying next tick",
@@ -230,7 +258,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
 
-        var ensuredContexts = ensureContexts(nonConverged);
+        var ensuredContexts = ensureContexts(nonConverged, cycle);
 
         participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
 
@@ -239,7 +267,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             return;
         }
 
-        ensureCredentials(ensuredContexts, statuses);
+        ensureCredentials(ensuredContexts, statuses, cycle);
     }
 
     /**
@@ -302,11 +330,12 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
      * still created/updated as usual, only its credential request is deferred to a later tick.
      */
-    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
+    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts, CycleCounts cycle) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
                 boolean anchorConfirmed = dataspaceProvisioningService.ensureParticipantContext(context);
+                cycle.created++;
                 if (anchorConfirmed) {
                     ensured.add(context);
                 } else {
@@ -321,10 +350,14 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         return ensured;
     }
 
-    private void ensureCredentials(List<ParticipantContext> contexts, Map<ParticipantContext, ParticipantContextStatus> statuses) {
+    private void ensureCredentials(List<ParticipantContext> contexts, Map<ParticipantContext, ParticipantContextStatus> statuses,
+                                   CycleCounts cycle) {
         for (var context : contexts) {
             try {
                 var newStatus = dataspaceProvisioningService.ensureMembershipCredential(context);
+                if (newStatus == ISSUED) {
+                    cycle.issued++;
+                }
                 var previousStatus = statuses.get(context).credentialStatus();
                 if (newStatus != previousStatus) {
                     log.info("Dataspace provisioning: participant {} credential {} -> {}",
@@ -337,6 +370,18 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         }
     }
 
+    /**
+     * Counts one provisioning cycle reaches before it ends, read by {@link #logCycleSummary}.
+     */
+    private static final class CycleCounts {
+        private final Instant start;
+        private int contexts;
+        private int created;
+        private int issued;
+        private CycleCounts(Instant start) {
+            this.start = start;
+        }
+    }
     private final class AfterCommitProvisioning implements TransactionSynchronization {
         @Override
         public void afterCommit() {
