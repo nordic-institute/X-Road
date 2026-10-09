@@ -52,7 +52,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public class LxdEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, CsIssuerDbOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, CsIssuerDbOps, DidResolutionOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
@@ -107,6 +107,13 @@ public class LxdEnvSetup extends BaseComposeSetup
     @SneakyThrows
     public String execMessagelogSql(String env, String sql) {
         return execPsql(resolveContainer(env), "messagelog", sql, "PGOPTIONS=" + MESSAGELOG_SEARCH_PATH);
+    }
+
+    /** Fetched from the Security Server host itself, which reaches its own identity hub at its {@code .lxd} name. */
+    @Override
+    public DidDocumentResponse resolveDidDocument(String env, String url) {
+        var result = lxcExecChecked("xrd-" + env, "curl", "-sS", "-k", "-o", "-", "-w", "\n%{http_code}", url);
+        return DidDocumentResponse.fromCurlOutput(result.stdout());
     }
 
     @Override

@@ -43,6 +43,30 @@ class DspConventionsTest {
     private static final ClientId MEMBER = ClientId.Conf.create("DEV", "COM", "222");
 
     @Test
+    void shouldDeriveCredentialServiceEndpoint() {
+        assertThat(DspConventions.credentialServiceId("DEV:COM:222")).isEqualTo("DEV:COM:222-credential-service");
+        assertThat(DspConventions.CREDENTIAL_SERVICE_TYPE).isEqualTo("CredentialService");
+        assertThat(DspConventions.credentialServiceUrl("ss0.example.org", 7185, "DEV:COM:222"))
+                .isEqualTo("https://ss0.example.org:7185/api/credentials/v1/participants/DEV:COM:222");
+    }
+
+    @Test
+    void shouldPercentEncodeCredentialServiceParticipantSegment() {
+        assertThat(DspConventions.credentialServiceUrl("ss0.example.org", 7185, "TEST:ORG:222%2BA"))
+                .endsWith("/api/credentials/v1/participants/TEST:ORG:222%252BA");
+        assertThat(DspConventions.credentialServiceUrl("ss0.example.org", 7185, "a b\u00e4"))
+                .endsWith("/api/credentials/v1/participants/a%20b%C3%A4");
+    }
+
+    @Test
+    void shouldBracketIpv6CredentialServiceHost() {
+        assertThat(DspConventions.credentialServiceUrl("2001:db8::8", 7185, "system"))
+                .isEqualTo("https://[2001:db8::8]:7185/api/credentials/v1/participants/system");
+        assertThat(DspConventions.credentialServiceUrl("[2001:db8::8]", 7185, "system"))
+                .isEqualTo("https://[2001:db8::8]:7185/api/credentials/v1/participants/system");
+    }
+
+    @Test
     void shouldDeriveDidAuthorityFromRegisteredAddress() {
         assertThat(DspConventions.didAuthority("ss0.example.org")).isEqualTo("ss0.example.org:7183");
     }
