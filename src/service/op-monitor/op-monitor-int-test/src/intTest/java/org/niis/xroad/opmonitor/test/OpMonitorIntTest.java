@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.opmonitor.test;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,9 +45,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup.CURL_CONNECTION_REFUSED;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -100,11 +103,39 @@ class OpMonitorIntTest {
             </SOAP-ENV:Envelope>
             """;
 
+    private static final int REMOVED_REST_PORT = 2080;
+    private static final int QUARKUS_HEALTH_PORT = 4099;
+    private static final Pattern STARTUP_TIMESTAMP = Pattern.compile("<om:monitoringStartupTimestamp>(\\d+)<");
+
+    private static Instant stackReadyAt;
+
+    private OpMonitorContainerSetup opMonitorSetup;
     private OpMonitorClient opMonitorClient;
+
+    @BeforeAll
+    static void stackIsReadyBeforeTheFirstQuery() {
+        stackReadyAt = Instant.now();
+    }
 
     @BeforeEach
     void opMonitorClientInitialized(OpMonitorContainerSetup setup) {
-        given("op-monitor client is initialized", () -> opMonitorClient = setup.opMonitorClient());
+        given("op-monitor client is initialized", () -> {
+            opMonitorSetup = setup;
+            opMonitorClient = setup.opMonitorClient();
+        });
+    }
+
+    @Test
+    @DisplayName("Nothing listens on the removed REST port")
+    void nothingListensOnTheRemovedRestPort() {
+        var healthExitCode = when("the Quarkus health port is probed from inside the op-monitor container",
+                () -> opMonitorSetup.probeFromInside(QUARKUS_HEALTH_PORT));
+        var restExitCode = when("the removed REST port " + REMOVED_REST_PORT + " is probed from inside the op-monitor container",
+                () -> opMonitorSetup.probeFromInside(REMOVED_REST_PORT));
+        then("the health port answers and the REST port refuses the connection", () -> {
+            assertThat(healthExitCode).isZero();
+            assertThat(restExitCode).isEqualTo(CURL_CONNECTION_REFUSED);
+        });
     }
 
     @Test
@@ -230,6 +261,8 @@ class OpMonitorIntTest {
             assertThat(response.getContentType()).startsWith("text/xml");
             assertThat(text(response)).contains("getSecurityServerHealthDataResponse").contains("monitoringStartupTimestamp");
         });
+        then("the monitoring start timestamp is the boot time, earlier than the first query", () ->
+                assertThat(monitoringStartupTimestamp(response)).isBefore(stackReadyAt));
     }
 
     @Test
@@ -256,6 +289,12 @@ class OpMonitorIntTest {
                         <om:recordsTo>%d</om:recordsTo>
                     </om:searchCriteria>
                 </om:getSecurityServerOperationalData>""".formatted(Instant.now().getEpochSecond());
+    }
+
+    private static Instant monitoringStartupTimestamp(QueryOperationalDataResp response) {
+        var matcher = STARTUP_TIMESTAMP.matcher(text(response));
+        assertThat(matcher.find()).as("monitoringStartupTimestamp in the health data response").isTrue();
+        return Instant.ofEpochMilli(Long.parseLong(matcher.group(1)));
     }
 
     private static String text(QueryOperationalDataResp response) {

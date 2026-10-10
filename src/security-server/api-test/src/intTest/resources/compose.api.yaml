@@ -67,10 +67,6 @@ services:
         ('xroad.health-check.memory.threshold-percent', '77', now(), now()),
         ('xroad.proxy.message-log.timestamping-prioritization-strategy', 'PAID_FIRST', now(), now()),
         ('xroad.proxy.addon.op-monitor.enabled', 'true', now(), now()),
-        ('xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds', '1', now(), now()),
-        ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', now(), now()),
-        ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', now(), now()),
-        ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', now(), now()),
         ('xroad.configuration-client.update-interval', '3', now(), now()),
         ('xroad.configuration-client.global-conf-tls-cert-verification', 'false', now(), now()),
         ('xroad.configuration-client.global-conf-hostname-verification', 'false', now(), now()),
@@ -118,13 +114,8 @@ services:
         ('xroad.message-log-encryption.db.encryption-enabled', 'true', now(), now()),
         ('xroad.message-log-encryption.db.key-id', 'default', now(), now()),
         ('xroad.message-log-encryption.archive.encryption-enabled', 'true', now(), now()),
-        ('xroad.op-monitor.listen-address', '0.0.0.0', now(), now()),
-        ('xroad.op-monitor.scheme', 'https', now(), now()),
-        ('xroad.op-monitor.tls.client-certificate-refresh-interval', 'PT60S', now(), now()),
         ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', now(), now()),
-        ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now()),
-        ('xroad.op-monitor.tls.certificate-provisioning.common-name', 'op-monitor', now(), now()),
-        ('xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names', '127.0.0.1', now(), now())
+        ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now())
 
         ON CONFLICT DO NOTHING;
         SQL
@@ -219,8 +210,8 @@ services:
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
-      # op-monitor overrides (listen-address, scheme, tls cert-refresh, records offset) moved to the
-      # configuration_properties DB-override layer - see seed service below.
+      # op-monitor overrides (rpc listen-address, records offset) are seeded into the
+      # configuration_properties DB-override layer by the db-serverconf-config-seed service above.
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret

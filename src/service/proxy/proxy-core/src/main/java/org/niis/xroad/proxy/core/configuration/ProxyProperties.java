@@ -30,7 +30,6 @@ package org.niis.xroad.proxy.core.configuration;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorBufferProperties;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorConnectionProperties;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -368,12 +367,10 @@ public class ProxyProperties {
         public static class ProxyAddonOpMonitorProperties {
 
             private final XRoadConfig xRoadConfig;
-            private final OpMonitorConnectionProperties opMonitorConnectionProperties;
             private final OpMonitorBufferProperties opMonitorBufferProperties;
 
             public ProxyAddonOpMonitorProperties(XRoadConfig xRoadConfig) {
                 this.xRoadConfig = xRoadConfig;
-                this.opMonitorConnectionProperties = new OpMonitorConnectionProperties(xRoadConfig);
                 this.opMonitorBufferProperties = new OpMonitorBufferProperties(xRoadConfig);
             }
 
@@ -383,10 +380,6 @@ public class ProxyProperties {
 
             public OpMonitorBufferProperties buffer() {
                 return opMonitorBufferProperties;
-            }
-
-            public OpMonitorConnectionProperties connection() {
-                return opMonitorConnectionProperties;
             }
 
         }

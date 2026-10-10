@@ -85,7 +85,7 @@ class OpMonitorRpcServiceStoreTest extends BaseTestUsingDB {
     }
 
     @Test
-    void storedRecordHasSameFieldValuesAsRestStorePath() {
+    void storedRecordHasTheFieldValuesOfTheSentRecord() {
         var data = OpMonitoringDataFixtures.fullyPopulated(PRODUCER);
 
         store(data);
@@ -98,17 +98,13 @@ class OpMonitorRpcServiceStoreTest extends BaseTestUsingDB {
     }
 
     @Test
-    void oversizedTextIsStoredInOneCallWithTheSameRowAsRestStorePath() throws Exception {
+    void oversizedTextIsStoredInOneCallTruncatedToTheColumnLimit() {
         var data = OpMonitoringDataFixtures.withOversizedText(PRODUCER);
 
         store(data);
-        var viaGrpc = operationalDataRecordManager.queryAllRecords().getRecords().getFirst();
-        DATABASE_CTX.doInTransaction(session -> session.createMutationQuery("delete OperationalDataRecordEntity").executeUpdate());
-        new StoreRequestProcessor(StoreRequestProcessorTest.jsonRequest(data), operationalDataStore).process();
-        var viaRest = operationalDataRecordManager.queryAllRecords().getRecords().getFirst();
 
-        assertThat(viaGrpc).usingRecursiveComparison().ignoringFields("id", "monitoringDataTs").isEqualTo(viaRest);
-        assertThat(viaGrpc.getMessageUserId()).hasSize(255);
+        var stored = operationalDataRecordManager.queryAllRecords().getRecords().getFirst();
+        assertThat(stored.getMessageUserId()).hasSize(255);
     }
 
     @Test

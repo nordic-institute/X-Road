@@ -1206,17 +1206,7 @@
                   "size": "Maximum number of records buffered before sending to the operational monitor.",
                   "max-records-in-message": "Maximum number of operational data records in a message sent by the operational monitoring buffer to the operational monitoring daemon.",
                   "max-message-size": "Maximum size in bytes of one store request sent by the operational monitoring buffer to the operational monitoring daemon. Larger batches are split into several requests. The minimum is 65536. Keep it below the daemon's xroad.op-monitor.rpc.max-inbound-message-size (gRPC default 4 MiB).",
-                  "sending-interval-seconds": "The interval in seconds at which the operational monitoring buffer (re)tries to send records to the operational monitoring daemon. Normally, the buffer triggers the sending mechanism immediately when it receives a new record. In case of heavy load or sending failures the records are accumulating in the buffer and need periodical attention.",
-                  "socket-timeout-seconds": "The socket timeout (SO_TIMEOUT) of sending operational monitoring records from the operational monitoring buffer to the operational monitoring daemon in seconds.",
-                  "connection-timeout-seconds": "HTTP client connection timeout in seconds."
-                },
-                "connection": {
-                  "host": "The host address on which the operational monitoring daemon listens.",
-                  "port": "TCP port on which the operational monitoring daemon listens.",
-                  "scheme": "The URI scheme name of the operational monitoring daemon. Possible values are http and https.",
-                  "socket-timeout-seconds": "HTTP client connection timeout in seconds.",
-                  "connection-timeout-seconds": "The socket timeout (SO_TIMEOUT) of sending the operational data request to the operational monitoring daemon in seconds.",
-                  "xroad-tls-ciphers": "TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers, and between operational monitoring daemon and client. (since version 6.20)"
+                  "sending-interval-seconds": "The interval in seconds at which the operational monitoring buffer (re)tries to send records to the operational monitoring daemon. Normally, the buffer triggers the sending mechanism immediately when it receives a new record. In case of heavy load or sending failures the records are accumulating in the buffer and need periodical attention."
                 }
               }
             },
@@ -1427,31 +1417,15 @@
             }
           },
           "op-monitor": {
-            "listen-address": "IP address on which the operational monitoring daemon listens.",
-            "port": "TCP port on which the operational monitoring daemon listens.",
-            "scheme": "URI scheme of the operational monitoring daemon. Possible values are http and https.",
-            "xroad-tls-ciphers": "TLS ciphers (comma-separated list in preferred order) accepted on connections to the operational monitoring daemon.",
             "keep-records-for-days": "Number of days to retain operational monitoring records before they are deleted.",
             "clean-interval": "Cron expression controlling when old operational monitoring records are cleaned up.",
             "max-records-in-payload": "Maximum number of operational monitoring records returned in a single response payload.",
             "records-available-timestamp-offset-seconds": "Offset in seconds subtracted from the current time when determining the upper bound for available records.",
             "health-statistics-period-seconds": "Period in seconds over which health statistics are aggregated.",
             "rpc": {
-              "enabled": "Enable the operational monitoring daemon gRPC server.",
               "listen-address": "IP address on which the operational monitoring daemon gRPC server listens.",
               "port": "Port on which the operational monitoring daemon gRPC server listens.",
               "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Vault PKI role name used when provisioning the operational monitoring daemon TLS certificate.",
-                "common-name": "Common name set on the provisioned operational monitoring daemon TLS certificate.",
-                "alt-names": "DNS subject alternative names included in the provisioned operational monitoring daemon TLS certificate.",
-                "ip-subject-alt-names": "IP subject alternative names included in the provisioned operational monitoring daemon TLS certificate.",
-                "ttl": "Time-to-live of the provisioned operational monitoring daemon TLS certificate (e.g. 3650D).",
-                "secret-store-pki-path": "Vault PKI secrets engine mount path for operational monitoring daemon TLS certificate provisioning."
-              },
-              "client-certificate-refresh-interval": "Interval at which the operational monitoring daemon refreshes its client TLS certificate (e.g. 0S to disable)."
             }
           },
           "message-log-archiver": {

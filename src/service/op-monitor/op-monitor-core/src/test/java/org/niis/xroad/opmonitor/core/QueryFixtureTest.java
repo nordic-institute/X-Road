@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -37,8 +38,9 @@ import java.util.Locale;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Compares the answers of the gRPC query method with the recorded answers of the HTTP query handler. The comparison
- * does not use the HTTP query handler.
+ * Compares the answers of the gRPC query method with recorded reference answers.
+ * <p>The files under {@code query-fixtures/} are responses recorded from the former REST query handler. They can no
+ * longer be regenerated and change only by hand, for an approved change to the query response.
  */
 class QueryFixtureTest extends AbstractQueryTest {
     static final String FIXTURE_DIRECTORY = "src/test/resources/query-fixtures";
@@ -67,5 +69,16 @@ class QueryFixtureTest extends AbstractQueryTest {
         assertThat(QueryResponses.normalised(answer).contentType()).isEqualTo(QueryResponses.expectedContentType(queryCase));
         assertThat(QueryResponses.partHeaders(answer)).containsExactlyElementsOf(QueryResponses.expectedPartHeaders(queryCase));
         assertThat(QueryResponses.soapElements(answer)).containsExactlyElementsOf(QueryResponses.expectedSoapElements(queryCase));
+    }
+
+    @Test
+    void queryHandlerFailureIsAnsweredWithSoapFaultAsPayload() throws Exception {
+        var answer = queryOverGrpc(operationalDataQueryWithInvertedTimeRange());
+
+        assertThat(QueryResponses.normalised(answer).contentType())
+                .isEqualTo(QueryResponses.expectedContentType(QueryCase.FAULT_INVALID_SOAP));
+        assertThat(new String(answer.body(), StandardCharsets.UTF_8))
+                .contains("<faultcode>server.serverproxy.opmonitor.client.invalid_request</faultcode>")
+                .contains("Records to timestamp is earlier than records from timestamp");
     }
 }

@@ -28,15 +28,12 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import tools.jackson.databind.ObjectWriter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 
@@ -92,24 +89,6 @@ public class OperationalDataRecordsTest {
         recordList.add(new OperationalDataRecord());
 
         assertEquals("{\"records\":[{},{}]}", records.getPayload(OBJECT_WRITER));
-    }
-
-    @Test
-    public void deserializeErrorResponse() {
-        String errorJson = "{\"errorMessage\": \"Error Message\"}";
-        StoreOpMonitoringDataResponse response = OBJECT_READER
-                .forType(StoreOpMonitoringDataResponse.class).readValue(errorJson);
-        assertEquals("Error", response.getStatus());
-        assertNotNull(response.getErrorMessage());
-    }
-
-    @Test
-    public void deserializeOkResponse() {
-        String okJson = "{\"status\": \"OK\"}";
-        StoreOpMonitoringDataResponse response = OBJECT_READER
-                .forType(StoreOpMonitoringDataResponse.class).readValue(okJson);
-        assertEquals("OK", response.getStatus());
-        assertNull(response.getErrorMessage());
     }
 
     /**

@@ -33,8 +33,6 @@ import ee.ria.xroad.common.util.MimeUtils;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,10 +51,6 @@ import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,13 +61,11 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.QUERY_DATA_PATH;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 
 /**
- * Queries answered through the gRPC method and through the HTTP query handler, over the same database
- * and health data.
+ * Queries answered through the gRPC method over a database and health data.
  */
 class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 10;
@@ -81,8 +73,6 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     private static final String OPERATIONAL_DATA_REQUEST = "src/test/resources/operationaldata.request";
     private static final String HEALTH_DATA_RESPONSE_ELEMENT = "getSecurityServerHealthDataResponse";
     private static final String QUERY_CONTENT_TYPE = "text/xml; charset=utf-8";
-    private static final String BOUNDARY_PATTERN = "xroad[A-Za-z]{30}";
-    private static final String NORMALISED_BOUNDARY = "xroadBOUNDARY";
 
     private final InsecureRpcCredentialsConfigurer credentials = new InsecureRpcCredentialsConfigurer();
     private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
@@ -92,8 +82,6 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     private io.grpc.Server grpcServer;
     private ManagedChannel channel;
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub;
-    private Server httpServer;
-    private int httpPort;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -105,15 +93,12 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
         var queryService = new OperationalDataQueryService(globalConfProvider, healthDataRegistry, operationalDataRecordManager,
                 OP_MONITOR_PROPERTIES);
         startRpcServer(new OpMonitorRpcService(operationalDataRecordManager, operationalDataStore, queryService));
-        startHttpServer(new OpMonitorDaemonRequestHandler(OP_MONITOR_PROPERTIES, globalConfProvider,
-                healthDataRegistry.getRegistry(), operationalDataRecordManager, operationalDataStore));
     }
 
     @AfterEach
     void tearDown() throws Exception {
         channel.shutdownNow();
         grpcServer.shutdownNow().awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        httpServer.stop();
     }
 
     @ParameterizedTest
@@ -121,16 +106,13 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
             HEALTH_DATA_REQUEST + ", text/xml",
             OPERATIONAL_DATA_REQUEST + ", multipart/related"
     })
-    void responseIsIdenticalToTheHttpQueryHandlerResponse(String requestFile, String expectedBaseContentType) throws Exception {
+    void responseIsTheQueriedDataAndNotAFault(String requestFile, String expectedBaseContentType) throws Exception {
         var query = Files.readAllBytes(Path.of(requestFile));
 
-        var viaGrpc = query(query, QUERY_CONTENT_TYPE, AccessScope.ACCESS_SCOPE_UNSPECIFIED);
-        var viaHttp = queryOverHttp(query, QUERY_CONTENT_TYPE);
+        var response = query(query, QUERY_CONTENT_TYPE, AccessScope.ACCESS_SCOPE_UNSPECIFIED);
 
-        assertThat(MimeUtils.getBaseContentType(viaGrpc.getContentType())).isEqualTo(expectedBaseContentType);
-        assertThat(isFault(viaGrpc.getResponse().toByteArray())).isFalse();
-        assertThat(normalised(viaGrpc.getContentType())).isEqualTo(normalised(viaHttp.headers().firstValue("Content-Type").orElseThrow()));
-        assertThat(normalised(viaGrpc.getResponse().toByteArray())).isEqualTo(normalised(viaHttp.body()));
+        assertThat(MimeUtils.getBaseContentType(response.getContentType())).isEqualTo(expectedBaseContentType);
+        assertThat(isFault(response.getResponse().toByteArray())).isFalse();
     }
 
     @Test
@@ -174,26 +156,8 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
                 .build());
     }
 
-    private HttpResponse<byte[]> queryOverHttp(byte[] query, String contentType) throws IOException, InterruptedException {
-        try (var httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {
-            var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + httpPort + QUERY_DATA_PATH))
-                    .header("Content-Type", contentType)
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(query))
-                    .build();
-            return httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
-        }
-    }
-
     private static boolean isFault(byte[] response) {
         return new String(response, StandardCharsets.ISO_8859_1).contains("Fault>");
-    }
-
-    private static String normalised(byte[] body) {
-        return normalised(new String(body, StandardCharsets.ISO_8859_1));
-    }
-
-    private static String normalised(String value) {
-        return value.replaceAll(BOUNDARY_PATTERN, NORMALISED_BOUNDARY);
     }
 
     private void startRpcServer(OpMonitorRpcService service) throws IOException {
@@ -203,16 +167,6 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
                 .start();
         channel = new RpcChannelFactory(credentials).createChannel(channelProperties(grpcServer.getPort()));
         stub = OpMonitorServiceGrpc.newBlockingStub(channel);
-    }
-
-    private void startHttpServer(OpMonitorDaemonRequestHandler handler) throws Exception {
-        httpServer = new Server();
-        var connector = new ServerConnector(httpServer);
-        connector.setHost("127.0.0.1");
-        httpServer.addConnector(connector);
-        httpServer.setHandler(handler);
-        httpServer.start();
-        httpPort = connector.getLocalPort();
     }
 
     private static OperationalDataRecord producerRecord(boolean succeeded) {

@@ -68,6 +68,45 @@ class OpMonitorServerPropertiesTest {
         assertThat(properties.maxInboundMessageSize()).contains(65_536);
     }
 
+    @Test
+    void grpcServerIsEnabledWithoutAnyRow() {
+        var properties = new OpMonitorServerProperties(config(Map.of()));
+
+        assertThat(properties.enabled()).isTrue();
+    }
+
+    @Test
+    void grpcServerIsEnabledWithStaleDisabledRow() {
+        var properties = new OpMonitorServerProperties(config(Map.of("xroad.op-monitor.rpc.enabled", "false")));
+
+        assertThat(properties.enabled()).isTrue();
+    }
+
+    @Test
+    void staleRowsOfRemovedKeysDoNotAffectTheRegisteredKeys() {
+        var staleRows = Map.of(
+                "xroad.op-monitor.tls.certificate-provisioning.common-name", "op-monitor",
+                "xroad.op-monitor.tls.certificate-provisioning.alt-names", "",
+                "xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names", "127.0.0.1",
+                "xroad.op-monitor.tls.client-certificate-refresh-interval", "60S",
+                "xroad.op-monitor.listen-address", "0.0.0.0",
+                "xroad.op-monitor.scheme", "https",
+                "xroad.op-monitor.xroad-tls-ciphers", "TLS_AES_128_GCM_SHA256",
+                "xroad.op-monitor.rpc.enabled", "false",
+                "xroad.op-monitor.port", "abc");
+        var config = config(staleRows);
+
+        var serverProperties = new OpMonitorServerProperties(config);
+        var properties = new OpMonitorProperties(config);
+
+        assertThat(serverProperties.listenAddress()).isEqualTo("127.0.0.1");
+        assertThat(serverProperties.port()).isEqualTo(2081);
+        assertThat(serverProperties.maxInboundMessageSize()).isEmpty();
+        assertThat(properties.keepRecordsForDays()).isEqualTo(7);
+        assertThat(properties.maxRecordsInPayload()).isEqualTo(10000);
+        assertThat(properties.healthStatisticsPeriodSeconds()).isEqualTo(600);
+    }
+
     private static XRoadConfig config(Map<String, String> overrides) {
         return XRoadConfigBuilder.create().register(OpMonitorConfigKeys.instance()).overrides(overrides).build();
     }

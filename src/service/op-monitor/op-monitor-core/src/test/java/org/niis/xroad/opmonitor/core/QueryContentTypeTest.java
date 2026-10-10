@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Locale;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryContentTypeTest {
@@ -39,6 +41,26 @@ class QueryContentTypeTest {
             "text/xml; charset=ISO-8859-1", "text/xml", "Text/Xml", "text/plain; charset=UTF-8", "application/json;charset=UTF-8"})
     void commonMediaTypeAndCharsetCombinationsAreSpelledInLowerCase(String contentType) {
         assertThat(QueryContentType.spell(contentType)).isEqualTo(contentType.toLowerCase());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "application/json", "application/json; charset=iso-8859-1", "application/json; charset=utf-8",
+            "application/json;charset=iso-8859-1", "application/json;charset=utf-8",
+            "application/x-www-form-urlencoded", "application/x-www-form-urlencoded; charset=iso-8859-1",
+            "application/x-www-form-urlencoded; charset=utf-8", "application/x-www-form-urlencoded;charset=iso-8859-1",
+            "application/x-www-form-urlencoded;charset=utf-8",
+            "message/http", "multipart/byteranges", "multipart/form-data",
+            "text/html", "text/html; charset=iso-8859-1", "text/html; charset=utf-8",
+            "text/html;charset=iso-8859-1", "text/html;charset=utf-8",
+            "text/json", "text/json; charset=iso-8859-1", "text/json; charset=utf-8",
+            "text/json;charset=iso-8859-1", "text/json;charset=utf-8",
+            "text/plain", "text/plain; charset=iso-8859-1", "text/plain; charset=utf-8",
+            "text/plain;charset=iso-8859-1", "text/plain;charset=utf-8",
+            "text/xml", "text/xml; charset=iso-8859-1", "text/xml; charset=utf-8",
+            "text/xml;charset=iso-8859-1", "text/xml;charset=utf-8"})
+    void everyContentTypeSpellingOfTheFormerHttpServerIsReproducedFromUpperCase(String httpServerSpelling) {
+        assertThat(QueryContentType.spell(httpServerSpelling.toUpperCase(Locale.ROOT))).isEqualTo(httpServerSpelling);
     }
 
     @ParameterizedTest

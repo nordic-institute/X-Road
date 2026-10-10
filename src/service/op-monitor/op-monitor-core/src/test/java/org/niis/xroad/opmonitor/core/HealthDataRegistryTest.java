@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import io.quarkus.runtime.Startup;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
@@ -50,5 +51,10 @@ class HealthDataRegistryTest {
                 .isBetween(before, getEpochMillisecond());
         assertThat(findGauge(registry, STATISTICS_PERIOD_SECONDS).getValue())
                 .isEqualTo(OP_MONITOR_PROPERTIES.healthStatisticsPeriodSeconds());
+    }
+
+    @Test
+    void registryIsCreatedAtApplicationStartup() {
+        assertThat(HealthDataRegistry.class.isAnnotationPresent(Startup.class)).isTrue();
     }
 }

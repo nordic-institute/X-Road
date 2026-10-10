@@ -42,8 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
 
 /**
- * Answers operational data and health data queries given as SOAP messages. A failure is answered with a SOAP fault
- * in the same way as the HTTP query handler does.
+ * Answers operational data and health data queries given as SOAP messages. A failure is answered with a SOAP fault.
  */
 @Slf4j
 @ApplicationScoped

@@ -33,34 +33,14 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CLEAN_INTERVAL;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.HEALTH_STATISTICS_PERIOD_SECONDS;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.KEEP_RECORDS_FOR_DAYS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.LISTEN_ADDRESS;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.MAX_RECORDS_IN_PAYLOAD;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.PORT;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.SCHEME;
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.XROAD_TLS_CIPHERS;
 
 @RequiredArgsConstructor
 public class OpMonitorProperties {
     private static final String DEFAULT_MAX_RECORDS_IN_PAYLOAD = "10000";
 
     private final XRoadConfig xRoadConfig;
-
-    public String listenAddress() {
-        return xRoadConfig.value(LISTEN_ADDRESS);
-    }
-
-    public int port() {
-        return xRoadConfig.value(PORT);
-    }
-
-    public String scheme() {
-        return xRoadConfig.value(SCHEME);
-    }
-
-    public String[] xroadTlsCiphers() {
-        return xRoadConfig.value(XROAD_TLS_CIPHERS);
-    }
 
     /**
      * The period in days for keeping operational data records in the database.

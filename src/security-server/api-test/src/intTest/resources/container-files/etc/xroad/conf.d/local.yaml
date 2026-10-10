@@ -26,9 +26,8 @@ xroad:
   # scope=NULL/global, shared by proxy + message-log-archiver), seeded by the
   # db-serverconf-message-log-encryption-config-seed service in compose.systemtest.yaml. The DSL resolves
   # them via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.
-  # xroad.op-monitor.* overrides (incl. scheme=https for vault-powered mTLS) are seeded into the
-  # DB-override layer (configuration_properties) by the
-  # db-serverconf-opmonitor-config-seed service; the daemon resolves them via XRoadConfig, not local.yaml.
+  # xroad.op-monitor.* overrides are seeded into the DB-override layer (configuration_properties) by the
+  # db-serverconf-config-seed service in compose.api.yaml; the daemon resolves them via XRoadConfig, not local.yaml.
   # xroad.auxiliary-service.backup.* overrides moved to the DB-override layer (configuration_properties,
   # scope='auxiliary-service'), seeded by the db-serverconf-auxiliary-service-config-seed service in
   # compose.systemtest.yaml. BackupProperties now resolves via XRoadConfig (DB overrides + DSL defaults),
