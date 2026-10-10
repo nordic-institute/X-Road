@@ -228,6 +228,9 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_CHARACTERS("invalid_characters"),
     INVALID_PEM_CSR("invalid_pem_csr"),
 
+    // ===== DIAGNOSTICS ERRORS =====
+    OPERATIONAL_DATA_INTERVALS_OUT_OF_RANGE("operational_data_intervals_out_of_range"),
+
     // ===== BUSINESS LOGIC ERRORS =====
     DUPLICATE_ENTRY("duplicate_entry"),
     ACTION_NOT_POSSIBLE("action_not_possible"),

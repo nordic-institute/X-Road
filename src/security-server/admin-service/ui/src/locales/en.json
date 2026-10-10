@@ -572,6 +572,7 @@
     "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
     "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "openapi_parsing_error": "Parsing OpenApi3 description failed",
+    "operational_data_intervals_out_of_range": "The selected time period is invalid. Set the end date and time to the start or later. If needed, shorten the selected period.",
     "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "pin_code_exists": "PIN code exists",
     "pin_code_not_provided": "PIN code is not provided",

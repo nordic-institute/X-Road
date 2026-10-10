@@ -27,6 +27,7 @@ package org.niis.xroad.opmonitor.core;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsResp;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
+import org.niis.xroad.opmonitor.api.OperationalDataIntervalsRequestValidator;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
@@ -85,6 +87,14 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
     @Override
     public void getOperationalDataIntervals(GetOperationalDataIntervalsReq request,
                                             StreamObserver<GetOperationalDataIntervalsResp> responseObserver) {
+        try {
+            OperationalDataIntervalsRequestValidator.validate(request.getRecordsFrom(), request.getRecordsTo(),
+                    request.getIntervalInMinutes());
+        } catch (IllegalArgumentException e) {
+            log.warn("getOperationalDataIntervals rejected: {}", e.getMessage());
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+            return;
+        }
         try {
             responseObserver.onNext(handleGetMonitoringDataRequest(request));
             responseObserver.onCompleted();
