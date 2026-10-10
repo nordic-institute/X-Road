@@ -40,8 +40,12 @@ public abstract class BasePropertiesToDbMigrator {
 
     abstract Map<String, String> loadProperties(String filePath);
 
+    Map<String, String> loadProperties(String filePath, String dbPropertiesPath) {
+        return loadProperties(filePath);
+    }
+
     public void migrate(String filePath, String dbPropertiesPath) {
-        Map<String, String> properties = new TreeMap<>(loadProperties(filePath));
+        Map<String, String> properties = new TreeMap<>(loadProperties(filePath, dbPropertiesPath));
 
         if (log.isDebugEnabled()) {
             log.debug("Loaded properties from file {}:", filePath);

@@ -31,17 +31,38 @@ import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class IniUtil {
+
+    private static final String OP_MONITOR_SECTION = "op-monitor";
+    private static final String HOST_KEY = "host";
+    private static final String LOCAL_INI = "local.ini";
+    private static final String OVERRIDE_INI_PREFIX = "override-";
+    private static final String INI_SUFFIX = ".ini";
+
+    private final OpMonitorHostRule opMonitorHostRule;
+
+    public IniUtil() {
+        this(OpMonitorHostRule.LocalAddressResolver.system());
+    }
+
+    IniUtil(OpMonitorHostRule.LocalAddressResolver localAddressResolver) {
+        this.opMonitorHostRule = new OpMonitorHostRule(localAddressResolver);
+    }
 
     public LoadedIniFile load(String filePath) {
         try {
@@ -60,6 +81,13 @@ public class IniUtil {
     }
 
     public Map<String, Object> loadToNestedMap(String filePath, String rootPrefix) {
+        return loadToNestedMap(filePath, rootPrefix, key -> null);
+    }
+
+    /**
+     * @param existing returns the current value of a legacy-shaped key, or {@code null}
+     */
+    Map<String, Object> loadToNestedMap(String filePath, String rootPrefix, Function<String, String> existing) {
         var ini = load(filePath);
 
         Map<String, Object> properties = new HashMap<>();
@@ -78,6 +106,8 @@ public class IniUtil {
                 }
             }
         }
+        deriveOpMonitorHostRows(filePath, existing).forEach((key, value) ->
+                insertNestedProperty(properties, key.split("\\."), value));
 
         Map<String, Object> root = new HashMap<>();
         insertNestedProperty(root, rootPrefix.split("\\."), properties);
@@ -100,6 +130,14 @@ public class IniUtil {
     }
 
     public Map<String, String> loadToFlatMap(String filePath, String rootPrefix) {
+        return loadToFlatMap(filePath, rootPrefix, key -> null);
+    }
+
+    /**
+     * @param existing returns the current value of a key as written to the output (with the root prefix),
+     *                 or {@code null}
+     */
+    Map<String, String> loadToFlatMap(String filePath, String rootPrefix, Function<String, String> existing) {
         var ini = load(filePath);
 
         Map<String, String> properties = new HashMap<>();
@@ -118,8 +156,56 @@ public class IniUtil {
                 }
             }
         }
+        deriveOpMonitorHostRows(filePath, key -> existing.apply(String.join(".", rootPrefix, key))).forEach((key, value) ->
+                properties.put(String.join(".", rootPrefix, key), value));
 
         return properties;
+    }
+
+    /**
+     * The rows are derived only for a file that sets {@code [op-monitor] host}. The host value used is the one
+     * that wins when the operator files are applied in order: {@code override-*.ini} alphabetically, then
+     * {@code local.ini}.
+     */
+    private Map<String, String> deriveOpMonitorHostRows(String filePath, Function<String, String> existing) {
+        if (readOpMonitorHost(load(filePath)) == null) {
+            return Map.of();
+        }
+        String effectiveHost = null;
+        for (Path file : operatorIniChain(Paths.get(filePath))) {
+            var host = readOpMonitorHost(load(file.toString()));
+            if (host != null) {
+                effectiveHost = host;
+            }
+        }
+        return opMonitorHostRule.derive(effectiveHost, existing).rows();
+    }
+
+    private static String readOpMonitorHost(LoadedIniFile ini) {
+        if (!ini.parsedContent().getSections().contains(OP_MONITOR_SECTION)) {
+            return null;
+        }
+        return ini.parsedContent().getSection(OP_MONITOR_SECTION).getString(HOST_KEY);
+    }
+
+    private static List<Path> operatorIniChain(Path file) {
+        var name = file.getFileName().toString();
+        var isOverride = name.startsWith(OVERRIDE_INI_PREFIX) && name.endsWith(INI_SUFFIX);
+        if (!isOverride && !LOCAL_INI.equals(name)) {
+            return List.of(file);
+        }
+        var directory = file.toAbsolutePath().getParent();
+        try (Stream<Path> siblings = Files.list(directory)) {
+            var chain = new ArrayList<>(siblings
+                    .filter(p -> p.getFileName().toString().startsWith(OVERRIDE_INI_PREFIX)
+                            && p.getFileName().toString().endsWith(INI_SUFFIX))
+                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                    .toList());
+            chain.add(directory.resolve(LOCAL_INI));
+            return chain.stream().filter(Files::isRegularFile).toList();
+        } catch (IOException e) {
+            throw new MigrationException("Failed to list INI files in %s".formatted(directory), e);
+        }
     }
 
     @SuppressWarnings("unchecked")

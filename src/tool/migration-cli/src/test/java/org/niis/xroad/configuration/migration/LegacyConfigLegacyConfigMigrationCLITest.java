@@ -56,7 +56,7 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     private final YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
 
     @Test
-    void testPropertyCopy() {
+    void shouldMapKeepAndDropOpMonitorRows() {
         LegacyConfigMigrationCLI.main(new String[]{
                 "config",
                 INPUT_INI,
@@ -64,14 +64,20 @@ class LegacyConfigLegacyConfigMigrationCLITest {
 
         var result = loadYaml("build/local.yml");
 
-        assertEquals("test-scheme", result.getProperty("xroad.proxy.addon.op-monitor.connection.scheme"));
-        assertEquals("test-scheme", result.getProperty("xroad.op-monitor.scheme"));
-        assertEquals(1313, result.getProperty("xroad.proxy.addon.op-monitor.connection.port"));
-        assertEquals(1313, result.getProperty("xroad.op-monitor.port"));
-
+        assertEquals("127.0.0.1", result.getProperty("xroad.common-rpc.channel.op-monitor.host"));
+        assertNull(result.getProperty("xroad.op-monitor.rpc.listen-address"));
+        assertEquals(2181, result.getProperty("xroad.op-monitor.rpc.port"));
+        assertEquals(2181, result.getProperty("xroad.common-rpc.channel.op-monitor.port"));
+        assertEquals(45000, result.getProperty("xroad.common-rpc.channel.op-monitor.deadline-after"));
         assertEquals("test1,test2,test3", result.getProperty("xroad.proxy.xroad-tls-ciphers"));
-        assertEquals("test1,test2,test3", result.getProperty("xroad.op-monitor.xroad-tls-ciphers"));
-        assertEquals("test1,test2,test3", result.getProperty("xroad.proxy.addon.op-monitor.connection.xroad-tls-ciphers"));
+
+        assertNull(result.getProperty("xroad.op-monitor.scheme"));
+        assertNull(result.getProperty("xroad.op-monitor.port"));
+        assertNull(result.getProperty("xroad.op-monitor.xroad-tls-ciphers"));
+        assertNull(result.getProperty("xroad.proxy.addon.op-monitor.connection.scheme"));
+        assertNull(result.getProperty("xroad.proxy.addon.op-monitor.connection.port"));
+        assertNull(result.getProperty("xroad.proxy.addon.op-monitor.connection.host"));
+        assertNull(result.getProperty("xroad.proxy.addon.op-monitor.connection.xroad-tls-ciphers"));
     }
 
     @Test

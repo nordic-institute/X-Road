@@ -34,12 +34,32 @@ import java.util.Map;
 @Slf4j
 public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
-    private final IniUtil iniUtil = new IniUtil();
+    private final IniUtil iniUtil;
+
+    public IniToDbMigrator() {
+        this(new IniUtil());
+    }
+
+    IniToDbMigrator(IniUtil iniUtil) {
+        this.iniUtil = iniUtil;
+    }
 
     @Override
     Map<String, String> loadProperties(String filePath) {
         log.info("Loading INI properties from [{}]", filePath);
         return iniUtil.loadToFlatMap(filePath, "xroad");
+    }
+
+    @Override
+    Map<String, String> loadProperties(String filePath, String dbPropertiesPath) {
+        log.info("Loading INI properties from [{}]", filePath);
+        return iniUtil.loadToFlatMap(filePath, "xroad", key -> readExisting(dbPropertiesPath, key));
+    }
+
+    private static String readExisting(String dbPropertiesPath, String key) {
+        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
+            return dbRepo.findProperty(key);
+        }
     }
 
     public static void main(String[] args) {
