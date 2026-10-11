@@ -31,6 +31,8 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OpMonitorRpcChannelPropertiesTest {
@@ -43,6 +45,22 @@ class OpMonitorRpcChannelPropertiesTest {
     @Test
     void emptyContainerConfigurationGivesTheChannelDeadlineOfSixtySeconds() {
         assertThat(new OpMonitorRpcChannelProperties(emptyConfig(DeploymentMode.CONTAINERIZED)).deadlineAfter()).isEqualTo(60_000);
+    }
+
+    @Test
+    void emptyConfigurationGivesTheChannelMessageLimitDefault() {
+        assertThat(new OpMonitorRpcChannelProperties(emptyConfig(DeploymentMode.NATIVE)).maxInboundMessageSize())
+                .contains(CommonRpcConfigKeys.CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE.convertedDefaultValue());
+    }
+
+    @Test
+    void configuredChannelMessageLimitIsPassedToTheChannel() {
+        var config = XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
+                .overrides(Map.of("xroad.common-rpc.channel.op-monitor.max-inbound-message-size", "33554432"))
+                .build();
+
+        assertThat(new OpMonitorRpcChannelProperties(config).maxInboundMessageSize()).contains(33_554_432);
     }
 
     private static XRoadConfig emptyConfig(DeploymentMode deploymentMode) {

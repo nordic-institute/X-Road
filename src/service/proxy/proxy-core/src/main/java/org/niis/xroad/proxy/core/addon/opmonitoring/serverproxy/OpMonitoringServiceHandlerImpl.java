@@ -37,6 +37,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.proxy.core.addon.opmonitoring.InboundMessageSizeRejection;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerResult;
@@ -50,6 +51,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.OPERATIONAL_DATA_RESPONSE_TOO_LARGE;
+import static org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys.CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.MAX_RECORDS_IN_PAYLOAD;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 
@@ -130,6 +134,10 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
                 throw networkError(ex, ex.getStatus().toString());
             }
             opMonitoringData.setResponseInTs(getEpochMillisecond());
+            var rejection = InboundMessageSizeRejection.from(ex.getStatus());
+            if (rejection.isPresent()) {
+                throw responseTooLarge(rejection.get(), ex);
+            }
             throw ex;
         } catch (XrdRuntimeException ex) {
             if (ex.isCausedBy(NETWORK_ERROR)) {
@@ -155,6 +163,15 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         return XrdRuntimeException.systemException(NETWORK_ERROR)
                 .cause(cause)
                 .details(details)
+                .build();
+    }
+
+    private static XrdRuntimeException responseTooLarge(InboundMessageSizeRejection rejection, Exception cause) {
+        return XrdRuntimeException.systemException(OPERATIONAL_DATA_RESPONSE_TOO_LARGE)
+                .cause(cause)
+                .details("The op-monitor response of %d bytes exceeds the limit of %d bytes set by %s. Lower %s or raise the limit."
+                        .formatted(rejection.size(), rejection.limit(), CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE.key(),
+                                MAX_RECORDS_IN_PAYLOAD.key()))
                 .build();
     }
 

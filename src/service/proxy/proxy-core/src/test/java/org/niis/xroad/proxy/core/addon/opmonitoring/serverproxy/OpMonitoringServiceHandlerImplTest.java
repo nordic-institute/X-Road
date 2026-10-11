@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 
+import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import com.google.protobuf.ByteString;
@@ -41,6 +42,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -75,11 +78,13 @@ class OpMonitoringServiceHandlerImplTest {
     private static final String RESPONSE = "<response/>";
     private static final String RESPONSE_CONTENT_TYPE = "text/xml;charset=utf-8";
     private static final String TMP_DIR = "build/tmp";
+    private static final int CHANNEL_LIMIT = 1000;
 
     private final AtomicReference<QueryOperationalDataReq> received = new AtomicReference<>();
     private volatile Status failure;
     private volatile XrdRuntimeException answeredError;
     private volatile String responseContentType = RESPONSE_CONTENT_TYPE;
+    private volatile int responseSerializedSize;
     private Server server;
     private ManagedChannel channel;
     private OpMonitorClient opMonitorClient;
@@ -101,16 +106,19 @@ class OpMonitoringServiceHandlerImplTest {
                             new RpcResponseHandler().handleException(answeredError, responseObserver);
                             return;
                         }
-                        responseObserver.onNext(QueryOperationalDataResp.newBuilder()
-                                .setResponse(ByteString.copyFromUtf8(RESPONSE))
-                                .setContentType(responseContentType)
-                                .build());
+                        responseObserver.onNext(responseSerializedSize > 0
+                                ? responseOfSerializedSize(responseSerializedSize)
+                                : QueryOperationalDataResp.newBuilder()
+                                        .setResponse(ByteString.copyFromUtf8(RESPONSE))
+                                        .setContentType(responseContentType)
+                                        .build());
                         responseObserver.onCompleted();
                     }
                 })
                 .build()
                 .start();
-        channel = ManagedChannelBuilder.forAddress("localhost", server.getPort()).usePlaintext().build();
+        channel = ManagedChannelBuilder.forAddress("localhost", server.getPort()).usePlaintext()
+                .maxInboundMessageSize(CHANNEL_LIMIT).build();
         var channelFactory = mock(RpcChannelFactory.class);
         var channelProperties = mock(OpMonitorRpcChannelProperties.class);
         when(channelFactory.createChannel(channelProperties)).thenReturn(channel);
@@ -197,6 +205,50 @@ class OpMonitoringServiceHandlerImplTest {
         assertThat(opMonitoringData.toProto().hasResponseInTs()).isTrue();
     }
 
+    @Test
+    void responseOfExactlyTheChannelLimitIsReturned() throws IOException {
+        responseSerializedSize = CHANNEL_LIMIT;
+
+        var result = handler.startHandling(null, proxyMessage(), new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L));
+
+        assertThat(result.responseContent().readAllBytes()).hasSize(responseOfSerializedSize(CHANNEL_LIMIT).getResponse().size());
+    }
+
+    @Test
+    void responseOneByteOverTheChannelLimitIsReportedAsTooLargeWithTheLimitAndTheSize() {
+        responseSerializedSize = CHANNEL_LIMIT + 1;
+        var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
+
+        assertThatThrownBy(() -> handler.startHandling(null, proxyMessage(), opMonitoringData))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo(X_SERVICE_FAILED_X + "." + ErrorCode.OPERATIONAL_DATA_RESPONSE_TOO_LARGE.code());
+                    assertThat(e.getDetails())
+                            .contains("1001 bytes")
+                            .contains("1000 bytes")
+                            .contains(CommonRpcConfigKeys.CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE.key())
+                            .contains(OpMonitorConfigKeys.MAX_RECORDS_IN_PAYLOAD.key());
+                    assertThat(SoapFault.createFaultXml(e)).contains(e.getDetails());
+                });
+
+        var record = opMonitoringData.toProto();
+        assertThat(record.hasRequestOutTs()).isTrue();
+        assertThat(record.hasResponseInTs()).isTrue();
+    }
+
+    @Test
+    void resourceExhaustedWithoutTheSizeTextKeepsItsMapping() {
+        failure = Status.RESOURCE_EXHAUSTED.withDescription("quota exceeded");
+        var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
+
+        assertThatThrownBy(() -> handler.startHandling(null, proxyMessage(), opMonitoringData))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.getCode()).startsWith(X_SERVICE_FAILED_X + ".");
+                    assertThat(e.getCode()).doesNotContain(ErrorCode.OPERATIONAL_DATA_RESPONSE_TOO_LARGE.code());
+                });
+
+        assertThat(opMonitoringData.toProto().hasResponseInTs()).isTrue();
+    }
+
     @ParameterizedTest
     @EnumSource(value = Status.Code.class, names = {"UNAVAILABLE", "DEADLINE_EXCEEDED", "CANCELLED"})
     void transportStatusIsReportedAsNetworkErrorWithoutResponseTimestamp(Status.Code code) {
@@ -210,6 +262,16 @@ class OpMonitoringServiceHandlerImplTest {
         var record = opMonitoringData.toProto();
         assertThat(record.hasRequestOutTs()).isTrue();
         assertThat(record.hasResponseInTs()).isFalse();
+    }
+
+    private static QueryOperationalDataResp responseOfSerializedSize(int serializedSize) {
+        var empty = QueryOperationalDataResp.newBuilder().setContentType(RESPONSE_CONTENT_TYPE).build();
+        int responseBytes = serializedSize - empty.getSerializedSize() - 3;
+        var response = QueryOperationalDataResp.newBuilder(empty)
+                .setResponse(ByteString.copyFrom(new byte[responseBytes]))
+                .build();
+        assertThat(response.getSerializedSize()).isEqualTo(serializedSize);
+        return response;
     }
 
     static ProxyMessage proxyMessage() throws IOException {

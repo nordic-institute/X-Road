@@ -1360,7 +1360,8 @@
               "op-monitor": {
                 "host": "Hostname used to connect to the operational monitoring daemon gRPC server.",
                 "port": "Port used to connect to the operational monitoring daemon gRPC server.",
-                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out."
+                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out.",
+                "max-inbound-message-size": "Maximum size in bytes of a response the operational monitoring daemon channel accepts, for example the response of a monitoring query. The minimum is 4194304 (4 MiB). A query response over the limit fails with an error; lower xroad.op-monitor.max-records-in-payload or raise this limit."
               }
             }
           },

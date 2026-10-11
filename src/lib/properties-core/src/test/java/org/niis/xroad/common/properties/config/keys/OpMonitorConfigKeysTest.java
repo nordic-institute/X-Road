@@ -68,7 +68,8 @@ class OpMonitorConfigKeysTest {
             "xroad.op-monitor.rpc.max-inbound-message-size",
             "xroad.common-rpc.channel.op-monitor.host",
             "xroad.common-rpc.channel.op-monitor.port",
-            "xroad.common-rpc.channel.op-monitor.deadline-after");
+            "xroad.common-rpc.channel.op-monitor.deadline-after",
+            "xroad.common-rpc.channel.op-monitor.max-inbound-message-size");
 
     private final List<String> catalogueKeys = ConfigCatalogue.from(ConfigKeyProviders.allProviders()).stream()
             .map(ConfigCatalogue.Entry::key)
