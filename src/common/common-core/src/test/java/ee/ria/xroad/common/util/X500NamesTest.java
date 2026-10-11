@@ -89,7 +89,7 @@ class X500NamesTest {
     }
 
     @Test
-    void fromPrincipalEncodesRepeatedAttributeSubjectAsStringParsingDid() throws Exception {
+    void fromPrincipalKeepsRepeatedAttributeSubjectInReversedOrder() throws Exception {
         X500Name original = derName("C", "FI", "O", "Org", "CN", "outer", "CN", "inner");
         X500Name name = X500Names.fromPrincipal(new X500Principal(original.getEncoded()));
         assertArrayEquals(
@@ -99,13 +99,18 @@ class X500NamesTest {
     }
 
     @Test
-    void fromPrincipalEncodesStringValuesAsStringParsingDid() throws Exception {
+    void fromPrincipalKeepsOriginalStringTypes() throws Exception {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
         builder.addRDN(BCStyle.C, new DERPrintableString("FI"));
         builder.addRDN(BCStyle.O, new DERPrintableString("Org"));
         builder.addRDN(BCStyle.CN, new DERPrintableString("host"));
         X500Name name = X500Names.fromPrincipal(new X500Principal(builder.build().getEncoded()));
-        assertArrayEquals(derName("CN", "host", "O", "Org", "C", "FI").getEncoded(), name.getEncoded());
+
+        X500NameBuilder reversed = new X500NameBuilder(BCStyle.INSTANCE);
+        reversed.addRDN(BCStyle.CN, new DERPrintableString("host"));
+        reversed.addRDN(BCStyle.O, new DERPrintableString("Org"));
+        reversed.addRDN(BCStyle.C, new DERPrintableString("FI"));
+        assertArrayEquals(reversed.build().getEncoded(), name.getEncoded());
     }
 
     @Test

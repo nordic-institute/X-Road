@@ -44,7 +44,7 @@ class AbstractTokenWorkerCertificateBuilderTest {
             "302a310c300a06035504061303444556310c300a060355040a0c03434f4d310c300a06035504030c03323232";
 
     @Test
-    void subjectWithCountryThatIsNotTwoCharactersAndIssuerWithLongCommonNameKeepDerEncoding() throws Exception {
+    void issuerEqualsCaSubjectAndSubjectKeepsDerEncodingForCountryThatIsNotTwoCharacters() throws Exception {
         String longName = "x".repeat(65);
         X509Certificate issuer = selfSignedCertificate(derName("C", "DEV", "O", "COM", "CN", longName));
         var generator = KeyPairGenerator.getInstance("EC");
@@ -59,6 +59,7 @@ class AbstractTokenWorkerCertificateBuilderTest {
         assertThat(certificate.getSubject().getEncoded())
                 .isEqualTo(Hex.decode(DER_COUNTRY_DEV_ORG_COM_CN_222));
         assertThat(certificate.getIssuer().getEncoded())
-                .isEqualTo(derName("CN", longName, "O", "COM", "C", "DEV").getEncoded());
+                .isEqualTo(issuer.getSubjectX500Principal().getEncoded())
+                .isEqualTo(derName("C", "DEV", "O", "COM", "CN", longName).getEncoded());
     }
 }

@@ -201,7 +201,7 @@ public abstract class AbstractTokenWorker extends SignReqHandler implements Toke
             throws CertIOException {
         JcaX509v3CertificateBuilder certificateBuilder =
                 new JcaX509v3CertificateBuilder(
-                        X500Names.fromPrincipal(issuerX509Certificate.getSubjectX500Principal()),
+                        issuerX509Certificate,
                         BigInteger.ONE,
                         issuerX509Certificate.getNotBefore(),
                         issuerX509Certificate.getNotAfter(),

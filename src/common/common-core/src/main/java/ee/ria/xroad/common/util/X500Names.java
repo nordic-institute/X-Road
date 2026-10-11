@@ -28,11 +28,9 @@ package ee.ria.xroad.common.util;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1String;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERUTF8String;
-import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -60,27 +58,16 @@ public final class X500Names {
 
     /**
      * Reads the name from its DER encoding, so no string parsing or validation takes place.
-     * The RDNs are ordered as in {@link X500Principal#getName()}, the most specific one first, and string values are
-     * encoded as {@link #fromString(String)} encodes them.
+     * The RDNs are ordered as in {@link X500Principal#getName()}, the most specific one first, and every attribute
+     * type and value is the original ASN.1 object of the principal.
      */
     public static X500Name fromPrincipal(X500Principal principal) {
         RDN[] derOrder = X500Name.getInstance(principal.getEncoded()).getRDNs();
         RDN[] reversed = new RDN[derOrder.length];
         for (int i = 0; i < derOrder.length; i++) {
-            reversed[derOrder.length - 1 - i] = reencode(derOrder[i]);
+            reversed[derOrder.length - 1 - i] = derOrder[i];
         }
         return new X500Name(LENIENT_STYLE, reversed);
-    }
-
-    private static RDN reencode(RDN rdn) {
-        AttributeTypeAndValue[] attributes = rdn.getTypesAndValues();
-        for (int i = 0; i < attributes.length; i++) {
-            if (attributes[i].getValue() instanceof ASN1String value) {
-                attributes[i] = new AttributeTypeAndValue(attributes[i].getType(),
-                        LENIENT_STYLE.encodeStringValue(attributes[i].getType(), value.getString()));
-            }
-        }
-        return new RDN(attributes);
     }
 
     private static final class LenientBcStyle extends BCStyle {
