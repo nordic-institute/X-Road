@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.1
+Version: 1.2
 Doc. ID: IG-SS-8
 
 ---
@@ -13,6 +13,7 @@ Doc. ID: IG-SS-8
 |------------|---------|----------------------------------------------------------------------|-----------------|
 | 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
 | 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
+| 11.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
 
 ## License
 
@@ -111,7 +112,7 @@ The software can be installed both on physical and virtualized hardware.
 | &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
 | 1.8     | **Outbound ports to internal network**                                                                               | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
 | &nbsp;  | TCP 80, 443, *other*                                                                                                 | Producer information system endpoints                                                                                                                                                                                                                                                      |
-| &nbsp;  | TCP 2080                                                                                                             | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+| &nbsp;  | TCP 2081                                                                                                             | gRPC connection between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
 | 1.9     |                                                                                                                      | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
 | 1.10     |                                                                                                                      | Security Server public IP address, NAT address                                                                                                                                                                                                                                             |
 | 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
@@ -147,7 +148,7 @@ The table below lists the open ports for Security Server components utilizing th
 | **Component**            | **Ports** | **Protocol** | **Note**                                  |
 |--------------------------|-----------|--------------|-------------------------------------------|
 | PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port                   |
-| OP Monitoring daemon     | 2080      | tcp          |                                           |
+| OP Monitoring daemon     | 2081      | tcp          | Operational monitoring gRPC server port   |
 | Environmental monitoring | 2552      | tcp          | Environmental monitoring gRPC server port |
 | Signer                   | 5560      | tcp          | Signer gRPC port                          |
 | Proxy                    | 5566      | tcp          | Proxy admin port                          |

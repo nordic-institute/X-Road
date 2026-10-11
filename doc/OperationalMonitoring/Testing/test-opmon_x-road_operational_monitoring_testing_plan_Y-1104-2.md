@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.11  
+Version: 0.12  
 Doc ID: TEST-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -12,6 +12,7 @@ Doc ID: TEST-OPMON
 | 25.06.2020 | 0.9     | Update information about the JMX interface.                          | Petteri Kivimäki |
 | 01.06.2023 | 0.10    | Update references                                                    | Petteri Kivimäki |
 | 11.11.2025 | 0.11    | Drop JMX interface                                                   | Justas Samuolis  |
+| 11.10.2026 | 0.12    | Store and query over gRPC                                            | Eneli Reimets    |
 
 ## Table of Contents
 <!-- toc -->
@@ -35,7 +36,6 @@ Doc ID: TEST-OPMON
     - [6.3 Run Operational Monitoring Data Cleanup](#63-run-operational-monitoring-data-cleanup)
     - [6.4 Receive Operational Data in Multiple Batches](#64-receive-operational-data-in-multiple-batches)
     - [6.5 Configure an External Monitoring Daemon](#65-configure-an-external-monitoring-daemon)
-    - [6.6 Use Invalid Certificates for TLS Connection](#66-use-invalid-certificates-for-tls-connection)
 
 <!-- tocstop -->
 
@@ -97,10 +97,12 @@ The operational monitoring service receives and processes operational and health
 ## 3 The Protocols and Interfaces used in the Operational Monitoring System in the Context of Testing
 
 The operational monitoring system supports the following protocols and interfaces:
-* Store Operational Data (JSON)
-* X-Road Message Protocol (SOAP, both regular X-Road messages and operational monitoring query requests)
+* Store Operational Data, Operational Monitoring Query and Operational Monitoring Query in Fixed Intervals (gRPC, the three methods of the operational monitoring gRPC service)
+* X-Road Message Protocol (SOAP, both regular X-Road messages and operational monitoring query requests; the operational monitoring query messages are carried over gRPC between the security server and the monitoring daemon)
 
-The JSON and SOAP-based interfaces are tested as part of the build-time unit tests as well as during automated integration testing. Within the set of unit tests, the focus is on low-level error handling, as opposed to the integration tests which focus on expected behavior in both successful and unsuccessful situations.
+The gRPC and SOAP-based interfaces are tested as part of the build-time unit tests as well as during automated integration testing. Within the set of unit tests, the focus is on low-level error handling, such as a query to a monitoring daemon that is stopped (it fails when the gRPC deadline expires) and a response that is larger than the message size limit of the gRPC channel, as opposed to the integration tests which focus on expected behavior in both successful and unsuccessful situations.
+
+The TLS connection between the security server and the monitoring daemon uses the shared internal gRPC identity of the security server, so the operational monitoring system has no TLS certificates of its own to test.
 
 ## 4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing
 
@@ -268,104 +270,3 @@ Test case for verifying that it is possible to configure a secure connection bet
 * Send a health data request to security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/health_data_ss2.query`.
 
   **Expected output:** A health data response is received. The health data response contains the health data about the service that was queried in the first X-Road request as well as the health data about the service 'getSecurityServerOperationalData'.
-
-### 6.6 Use Invalid Certificates for TLS Connection
-Test case for verifying that the secure connection between the security server and the external operational monitoring daemon fails in case invalid certificates are configured for the TLS connection.
-
-**Preconditions:**
-* A secure connection has been configured between security server *xtee10.ci.kit* and external monitoring daemon *xtee11.ci.kit*. Note that the correct operational monitoring TLS certificate should be kept in security server *xtee10.ci.kit* for use after scenarios 1, 2 and 3 have been carried out.
-
-**Test scenarios:**
-1. Configure an invalid operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.
-  * Replace the value of the parameter `tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `src/systemtest/op-monitoring/misc/invalid_certificate.crt`.
-  * Restart the proxy (`sudo service xroad-proxy restart`).
-  * Send a health data request to security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/health_data_ss2.query`.
-
-  **Expected output:**
-  * A SOAP fault is received as a health data query response (faultstring: java.security.cert.CertificateException: Operational monitoring daemon certificate not loaded, cannot verify server).
-  * After restarting the proxy the following error is logged once in the proxy log in security server *xtee10.ci.kit*:
-    * Could not load operational monitoring daemon certificate '&lt;file path&gt;'.
-  * The following error messages are logged in the proxy log in security server *xtee10.ci.kit*:
-    * Request processing error;
-    * Sending operational monitoring data failed;
-    * Operational monitoring daemon certificate not loaded, cannot verify server.
-  * The following warning is logged in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
-    * Received fatal alert: certificate_unknown.
-
-2. Configure an incorrect operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.
-  * Generate the monitoring daemon certificate in security server *xtee9.ci.kit* (use the command `generate-opmonitor-certificate`).
-  * In security server *xtee10.ci.kit*, replace the value of the parameter `tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to the monitoring daemon certificate of security server *xtee9.ci.kit* generated in the previous step.
-  * Restart the proxy (`sudo service xroad-proxy restart`).
-  * Send a health data request to security server *xtee10.ci.kit*.
-
-  **Expected output:**
-  * A SOAP fault is received as a health data query response (faultstring: java.security.cert.CertificateException: Server TLS certificate does not match expected operational monitoring daemon certificate).
-  * The following error messages are logged in the proxy log in security server *xtee10.ci.kit*:
-    * Request processing error;
-    * Sending operational monitoring data failed;
-    * Server TLS certificate does not match expected operational monitoring daemon certificate.
-  * The following warning is logged in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
-    * Received fatal alert: certificate_unknown.
-
-3. Configure a non-existent operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.
-  * In security server *xtee10.ci.kit*, replace the value of the parameter `tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to a non-existent file.
-  * Restart the proxy (`sudo service xroad-proxy restart`).
-  * Send a health data request to security server *xtee10.ci.kit*.
-
-  **Expected output:**
-  * A SOAP fault is received as a health data query response (faultstring: java.security.cert.CertificateException: Operational monitoring daemon certificate not loaded, cannot verify server).
-  * After restarting the proxy the following error is logged once in the proxy log in security server *xtee10.ci.kit*:
-    * Could not load operational monitoring daemon certificate '&lt;file path&gt;' (No such file or directory)
-  * The following error messages are logged in the proxy log in security server *xtee10.ci.kit*:
-    * Request processing error;
-    * Sending operational monitoring data failed;
-    * Operational monitoring daemon certificate not loaded, cannot verify server.
-  * The following warning is logged in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
-    * Received fatal alert: certificate_unknown.
-
-  *After this test, restore the communication between the security server and the operational monitoring daemon (to achieve the precondition of this test case).*
-    * Configure the correct operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*
-    * Restart the proxy (`sudo service xroad-proxy restart`).
-
-4. Configure an invalid security server TLS certificate in operational monitoring daemon *xtee11.ci.kit*.
-  * Replace the value of the parameter `client-tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `src/systemtest/op-monitoring/misc/invalid_certificate.crt`.
-  * Restart the monitoring daemon (`sudo service xroad-opmonitor restart`).
-  * Send a health data request to security server *xtee10.ci.kit*.
-
-  **Expected output:**
-  * A SOAP fault is received as a health data query response (faultstring: Remote host closed connection during handshake).
-  * The following error messages are logged in the proxy log in security server *xtee10.ci.kit*:
-    * Request processing error;
-    * Sending operational monitoring data failed;
-    * Remote host closed connection during handshake.
-  * After restarting the monitoring daemon the following error is logged once in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
-    * Could not load client certificate '&lt;file path&gt;'
-
-5. Configure an incorrect security server TLS certificate in operational monitoring daemon *xtee11.ci.kit*.
-  * In security server *xtee9.ci.kit*, the security server internal certificate can be found in `/etc/xroad/ssl/internal.crt`.
-  * In monitoring daemon *xtee11.ci.kit*, replace the value of the parameter `client-tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with the path to the security server certificate of security server *xtee9.ci.kit* refered to in the previous step.
-  * Restart the monitoring daemon (`sudo service xroad-opmonitor restart`).
-  * Send a health data request to security server *xtee10.ci.kit*.
-
-  **Expected output:**
-  * A SOAP fault is received as a health data query response (faultstring: Remote host closed connection during handshake).
-  * The following error messages are logged in the proxy log in security server *xtee10.ci.kit*:
-    * Request processing error;
-    * Sending operational monitoring data failed;
-    * Remote host closed connection during handshake.
-  * The following warning is logged in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
-    * General SSLEngine problem.
-
-6. Configure a non-existent security server TLS certificate in operational monitoring daemon *xtee11.ci.kit*.
-  *  In monitoring daemon *xtee11.ci.kit*, replace the value of the parameter `client-tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to a non-existent file.
-  * Restart the monitoring daemon (`sudo service xroad-opmonitor restart`).
-  * Send a health data request to security server *xtee10.ci.kit*.
-
-  **Expected output:**
-  * A SOAP fault is received as a health data query response (faultstring: Remote host closed connection during handshake).
-  * The following error messages are logged in the proxy log in security server *xtee10.ci.kit*:
-    * Request processing error;
-    * Sending operational monitoring data failed;
-    * Remote host closed connection during handshake.
-  * After restarting the monitoring daemon the following error is logged once in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
-    * Could not load client certificate '&lt;file path&gt;' (No such file or directory)
