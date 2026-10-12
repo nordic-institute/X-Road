@@ -62,6 +62,7 @@ import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKey
 import DsTlsCertificateView from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateView.vue';
 import DsTlsCertificateDetails from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateDetails.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
+import OpMonitorTrustView from '@/views/KeysAndCertificates/OpMonitorTrust/OpMonitorTrustView.vue';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
 import LocalGroup from '@/views/Clients/LocalGroups/LocalGroup/LocalGroup.vue';
@@ -157,6 +158,12 @@ const routes: RouteRecordRaw[] = [
             component: DsTlsCertificateView,
             props: true,
             meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
+          },
+          {
+            name: RouteName.OpMonitorTrust,
+            path: 'op-monitor-trust',
+            component: OpMonitorTrustView,
+            meta: { permissions: [Permissions.VIEW_INTERNAL_RPC_CA] },
           },
         ],
       },

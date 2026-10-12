@@ -512,6 +512,7 @@
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
+    "internal_rpc_ca_not_available": "The internal RPC CA is not available",
     "invalid_characters_pin": "PIN has invalid characters",
     "invalid_dn_parameter": "Invalid DN parameter",
     "invalid_https_url": "URL does not use HTTPS",
@@ -874,6 +875,14 @@
     "noLocalGroups": "No local groups",
     "noServiceClients": "No service clients",
     "noTimestampingServices": "No timestamping services"
+  },
+  "opMonitorTrust": {
+    "internalRpcCa": {
+      "description": "The internal RPC CA signs the certificates of the internal connections of this Security Server. Download it and install it on the operational monitoring daemon (op-monitor) host, so that the host trusts this Security Server.",
+      "download": "Download",
+      "title": "Internal RPC CA",
+      "unavailable": "The internal RPC CA is not available"
+    }
   },
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
@@ -1501,6 +1510,7 @@
     },
     "keys": {
       "apiKey": "API Keys",
+      "opMonitorTrust": "Op-monitor Trust",
       "signAndAuthKeys": "SIGN and AUTH Keys",
       "ssTlsCertificate": "Security Server TLS Key",
       "dsTlsCertificate": "Dataspace TLS Certificate"

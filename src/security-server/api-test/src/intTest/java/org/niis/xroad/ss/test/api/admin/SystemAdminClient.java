@@ -100,4 +100,22 @@ public class SystemAdminClient {
                 .post("/system/certificate/import")
                 .then();
     }
+
+    /**
+     * Gets the internal RPC CA details.
+     */
+    public ValidatableResponse getInternalRpcCa() {
+        return session.given()
+                .get("/system/internal-rpc-ca")
+                .then();
+    }
+
+    /**
+     * Downloads the internal RPC CA as a PEM file.
+     */
+    public ValidatableResponse downloadInternalRpcCa() {
+        return session.given()
+                .get("/system/internal-rpc-ca/download")
+                .then();
+    }
 }

@@ -4902,6 +4902,81 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/internal-rpc-ca:
+    get:
+      tags:
+        - system
+      summary: view the internal RPC CA details
+      operationId: getInternalRpcCa
+      description: <h3>Administrator views the details of the internal RPC CA, the certificate authority that signs the
+        Security Server's internal RPC certificates.</h3>
+      responses:
+        '200':
+          description: internal RPC CA details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: the internal RPC CA is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '500':
+          description: the internal RPC CA could not be read from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+  /system/internal-rpc-ca/download:
+    get:
+      tags:
+        - system
+      summary: download the internal RPC CA as a PEM file
+      operationId: downloadInternalRpcCa
+      description: <h3>Administrator downloads the internal RPC CA as one PEM encoded certificate.</h3>
+      responses:
+        '200':
+          description: internal RPC CA certificate in PEM format
+          content:
+            application/x-pem-file:
+              schema:
+                type: string
+                format: binary
+                description: PEM file with exactly one certificate
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: the internal RPC CA is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '500':
+          description: the internal RPC CA could not be read from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
   /system/server-address:
     get:
       tags:

@@ -65,6 +65,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritization
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
+import org.niis.xroad.securityserver.restapi.service.InternalRpcCaService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
@@ -72,6 +73,7 @@ import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -91,7 +93,11 @@ import java.util.Set;
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SystemApiController implements SystemApi, ConfigurablePropertiesApi {
+    private static final String INTERNAL_RPC_CA_FILENAME = "internal-rpc-ca.pem";
+    private static final MediaType PEM_FILE = MediaType.parseMediaType("application/x-pem-file");
+
     private final InternalTlsCertificateService internalTlsCertificateService;
+    private final InternalRpcCaService internalRpcCaService;
     private final ConfigurablePropertiesService configurablePropertiesService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
@@ -128,6 +134,19 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
         CertificateDetailsDto certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_INTERNAL_RPC_CA')")
+    public ResponseEntity<CertificateDetailsDto> getInternalRpcCa() {
+        return ResponseEntity.ok(certificateDetailsConverter.convert(internalRpcCaService.getInternalRpcCa()));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DOWNLOAD_INTERNAL_RPC_CA')")
+    public ResponseEntity<Resource> downloadInternalRpcCa() {
+        return ControllerUtil.createAttachmentResourceResponse(
+                internalRpcCaService.downloadInternalRpcCa(), INTERNAL_RPC_CA_FILENAME, PEM_FILE);
     }
 
     @Override

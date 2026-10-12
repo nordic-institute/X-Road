@@ -47,6 +47,7 @@ import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
+import org.niis.xroad.securityserver.restapi.service.InternalRpcCaService;
 import org.niis.xroad.securityserver.restapi.service.InternalServerTestService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
@@ -99,6 +100,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     SystemService systemService;
     @MockitoBean
     InternalTlsCertificateService internalTlsCertificateService;
+    @MockitoBean
+    InternalRpcCaService internalRpcCaService;
     @MockitoBean
     ConfigurablePropertiesService configurablePropertiesService;
     @MockitoBean

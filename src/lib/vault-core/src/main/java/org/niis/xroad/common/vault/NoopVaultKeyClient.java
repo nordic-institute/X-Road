@@ -26,9 +26,17 @@
  */
 package org.niis.xroad.common.vault;
 
+import java.security.cert.X509Certificate;
+import java.util.Optional;
+
 public class NoopVaultKeyClient implements VaultKeyClient {
     @Override
     public VaultKeyData provisionNewCerts() {
         return new VaultKeyData(null, null, null);
+    }
+
+    @Override
+    public Optional<X509Certificate> readInternalRpcCa() {
+        return Optional.empty();
     }
 }

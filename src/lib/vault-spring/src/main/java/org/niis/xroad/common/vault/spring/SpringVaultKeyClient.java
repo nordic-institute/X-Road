@@ -36,12 +36,17 @@ import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
+import org.springframework.vault.support.VaultResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -70,6 +75,30 @@ public class SpringVaultKeyClient implements VaultKeyClient {
         } else {
             throw XrdRuntimeException.systemInternalError("Failed to get certificate from Vault. Data is null.");
         }
+    }
+
+    @Override
+    public Optional<X509Certificate> readInternalRpcCa() {
+        String pem = readInternalRpcCaPem();
+        try {
+            return Optional.of(CryptoUtils.readCertificate(pem.getBytes(StandardCharsets.UTF_8)));
+        } catch (XrdRuntimeException e) {
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e, INTERNAL_RPC_CA_READ_FAILED);
+        }
+    }
+
+    private String readInternalRpcCaPem() {
+        VaultResponse response;
+        try {
+            response = vaultTemplate.read(properties.secretStorePkiPath() + "/cert/ca");
+        } catch (RuntimeException e) {
+            throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED, e);
+        }
+        Object certificate = response == null || response.getData() == null ? null : response.getData().get("certificate");
+        if (certificate instanceof String pem && !pem.isBlank()) {
+            return pem;
+        }
+        throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED);
     }
 
     private VaultCertificateRequest buildVaultCertificateRequest() {
