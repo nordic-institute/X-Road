@@ -18,4 +18,5 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.core.connector)
     testImplementation(libs.edc.lib.core)
+    testImplementation(libs.edc.lib.controlplane.transform)
 }

@@ -6,8 +6,8 @@ plugins {
 }
 
 configurations.named("runtimeClasspath") {
-  // jnats, pulled in by EDC core-lib and unused, would add a second BouncyCastle provider jar
-  exclude(group = "org.bouncycastle", module = "bcprov-lts8on")
+  // jnats is unused, pulled in by EDC core-lib
+  exclude(group = "io.nats", module = "jnats")
 }
 
 dependencies {

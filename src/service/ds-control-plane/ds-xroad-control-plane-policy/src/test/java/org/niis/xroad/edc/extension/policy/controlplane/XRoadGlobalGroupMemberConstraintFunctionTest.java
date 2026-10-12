@@ -30,11 +30,14 @@ package org.niis.xroad.edc.extension.policy.controlplane;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
+import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToOperatorTransformer;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,12 +45,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -128,10 +132,8 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
     }
 
     private static Operator operatorFromWire(String wireValue) {
-        return Arrays.stream(Operator.values())
-                .filter(it -> it.getOdrlRepresentation().equals(ODRL_SCHEMA + wireValue))
-                .findFirst()
-                .orElseThrow();
+        var jsonOperator = Json.createObjectBuilder().add(ID, ODRL_SCHEMA + wireValue).build();
+        return new JsonObjectToOperatorTransformer().transform(jsonOperator, mock(TransformerContext.class));
     }
 
     private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {
