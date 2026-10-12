@@ -167,6 +167,11 @@ class DataspaceProvisioningServiceTest {
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties, dspPortReader));
     }
 
+    private DataspaceDidAuthority didAuthority() {
+        return new DataspaceDidAuthority(new OwnSecurityServerResolver(serverConfRepository, globalConfProvider),
+                adminServiceProperties, dspPortReader);
+    }
+
     @AfterEach
     void tearDownLogging() {
         logger.detachAppender(appender);
@@ -569,6 +574,25 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.participantContextId()).isEqualTo(ctxId);
         assertThat(request.did()).isEqualTo(expectedDid);
+    }
+
+    @Test
+    void dspBaseUrlUsesRegisteredAddressAndDefaultDspPort() {
+        assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:8183/api/dsp");
+    }
+
+    @Test
+    void dspBaseUrlUsesConfiguredDspPort() {
+        when(dspPortReader.read()).thenReturn(new DspPorts(7183, 18183));
+
+        assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:18183/api/dsp");
+    }
+
+    @Test
+    void dspBaseUrlIsEmptyWithoutRegisteredAddress() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThat(didAuthority().dspBaseUrl()).isEmpty();
     }
 
     @Test

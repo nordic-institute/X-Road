@@ -32,7 +32,7 @@ web:
   http:
     port: 8181
     protocol:
-      port: 8183
+      port: ${xroad.dsp.dsp-port}
       path: /api/dsp
       virtual: true
     control:

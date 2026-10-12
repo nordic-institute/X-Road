@@ -108,6 +108,17 @@ public class DataspaceDidAuthority {
         return host;
     }
 
+    /**
+     * @return the DSP base URL of this server's control plane, built from the registered address and the
+     *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if a stored DID or DSP port is outside 1-65535,
+     *                             or the registered address is not ASCII
+     */
+    public Optional<String> dspBaseUrl() {
+        var dspPort = dspPortReader.read().dspPort();
+        return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.dspBaseUrl(address, dspPort));
+    }
+
     private Optional<String> find() {
         var didPort = dspPortReader.read().didPort();
         return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
