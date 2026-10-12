@@ -76,7 +76,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
     private final GlobalConfProvider globalConfProvider;
     private final MetricRegistry healthMetricRegistry;
     private final OperationalDataRecordManager operationalDataRecordManager;
-    private final HealthDataMetrics healthDataMetrics;
+    private final OperationalDataStore operationalDataStore;
 
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws IOException {
@@ -146,8 +146,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
             log.info("Received store request from {}", getRemoteAddr(request));
 
-            new StoreRequestProcessor(
-                    RequestWrapper.of(request), healthMetricRegistry, healthDataMetrics, operationalDataRecordManager).process();
+            new StoreRequestProcessor(RequestWrapper.of(request), operationalDataStore).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling data store request", t);
 

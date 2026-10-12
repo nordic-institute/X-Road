@@ -1,31 +1,28 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
+. /usr/share/xroad/scripts/write_tls_config.sh
+
+abort() {
+  local rc=$?
+  echo "xroad-proxy: FATAL: $*" >&2
+  exit $((rc == 0 ? 1 : rc))
+}
 log () { echo >&2 "$@"; }
 
-get_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
-}
-
-prepare_tls_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-
-  if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.common-name') && \
-        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.alt-names') && \
-        -z $(get_prop "$CONFIG_FILE" 'xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
-    log "Preparing proxy internal TLS settings"
-
-    db_get xroad-common/service-subject
-    cn="${RET#/CN=}"
-    db_get xroad-common/service-altsubject
-    altn="$RET"
-
-    # Use the shared write_tls_config.sh script
-    . /usr/share/xroad/scripts/write_tls_config.sh
-    write_tls_settings "$CONFIG_FILE" "proxy" "$cn" "$altn"
-  else
-    log "proxy internal TLS settings exists, skipping"
+store_tls_identity() {
+  local mode=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    mode="reconfigure"
   fi
+
+  local subject altn
+  db_get xroad-common/service-subject
+  subject="$RET"
+  db_get xroad-common/service-altsubject
+  altn="$RET"
+  write_tls_identity_rows proxy "$subject" "$altn" "$mode" \
+    || abort "Failed to store proxy TLS identity. ABORTING."
 }
 
 function handle_error() {
@@ -96,7 +93,7 @@ case "$1" in
     fi
   done
 
-  prepare_tls_settings
+  store_tls_identity "$1"
 
   db_stop
 

@@ -69,10 +69,12 @@ import java.security.cert.X509Certificate;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SERVICE_TYPE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
@@ -95,6 +97,7 @@ public class ServerRestMessageProcessor {
     private final OcspVerifierFactory ocspVerifierFactory;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final IdentifierValidationService identifierValidationService;
+    private final AgreementTokenAccessCheck agreementTokenAccessCheck;
 
     /**
      * Processes a server-side REST request.
@@ -212,7 +215,7 @@ public class ServerRestMessageProcessor {
         var handler = getServiceHandler(requestMessage, requestServiceId);
         log.trace("handler={}", handler);
         if (handler.shouldVerifyAccess()) {
-            verifyAccess(requestServiceId, requestMessage);
+            verifyAccess(requestServiceId, requestMessage, jRequest.getHeaders().get(HEADER_AGREEMENT_TOKEN));
         }
         if (handler.shouldVerifySignature()) {
             requestMessage.verifySignature();
@@ -225,7 +228,7 @@ public class ServerRestMessageProcessor {
         return new HandleResult(result.restResponse(), result.restResponseBody());
     }
 
-    private void verifyAccess(ServiceId requestServiceId, VerifyingProxyMessage requestMessage) {
+    void verifyAccess(ServiceId requestServiceId, VerifyingProxyMessage requestMessage, String agreementToken) {
         log.trace("verifyAccess()");
 
         if (!serverConfProvider.serviceExists(requestServiceId)) {
@@ -239,11 +242,16 @@ public class ServerRestMessageProcessor {
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
-        if (!serverConfProvider.isQueryAllowed(
-                requestMessage.getRest().getClientId(),
-                requestServiceId,
-                requestMessage.getRest().getVerb().name(),
-                requestMessage.getRest().getServicePath())) {
+        var rest = requestMessage.getRest();
+        var decision = agreementTokenAccessCheck.decide(
+                agreementToken, rest.getClientId(), requestServiceId, rest.getVerb().name(), rest.getServicePath());
+        if (decision instanceof AgreementTokenAccessCheck.Decision.Rejected(var reasonClass)) {
+            throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
+                    "Agreement token rejected: %s".formatted(reasonClass));
+        }
+        var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
+        if (!aclSkipped && !serverConfProvider.isQueryAllowed(
+                rest.getClientId(), requestServiceId, rest.getVerb().name(), rest.getServicePath())) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
         }
 

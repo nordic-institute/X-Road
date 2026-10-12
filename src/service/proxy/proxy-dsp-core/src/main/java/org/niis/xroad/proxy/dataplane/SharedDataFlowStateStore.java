@@ -28,11 +28,11 @@ package org.niis.xroad.proxy.dataplane;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.hibernate.Session;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Optional;
@@ -52,7 +52,7 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     private final DataFlowStateDAOImpl dao = new DataFlowStateDAOImpl();
 
     @Override
-    public DataFlowStates apply(String flowId, DataFlowTransition transition) {
+    public DataFlowLifecycleState apply(String flowId, DataFlowTransition transition) {
         LockedTransition attempt;
         try {
             attempt = transitionInTransaction(flowId, transition);
@@ -71,9 +71,9 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     }
 
     @Override
-    public Optional<DataFlowStates> find(String flowId) {
+    public Optional<DataFlowLifecycleState> find(String flowId) {
         return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId))
-                .map(entity -> toEdcState(entity.getState()));
+                .map(DataFlowStateEntity::getState);
     }
 
     private LockedTransition transitionInTransaction(String flowId, DataFlowTransition transition) {
@@ -82,25 +82,19 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
 
     private LockedTransition transitionLockedRow(Session session, String flowId, DataFlowTransition transition) {
         var row = dao.findByFlowIdForUpdate(session, flowId);
-        var stateBefore = row.map(entity -> toEdcState(entity.getState()));
+        var stateBefore = row.map(DataFlowStateEntity::getState);
         if (!transition.isLegalFrom(stateBefore)) {
             return new LockedTransition(stateBefore, false);
         }
-        var nextState = toLifecycleState(transition.targetState());
+        var nextState = transition.targetState();
         row.ifPresentOrElse(entity -> entity.setState(nextState), () -> dao.insert(session, flowId, nextState));
         return new LockedTransition(stateBefore, true);
     }
 
-    private static DataFlowStates toEdcState(DataFlowLifecycleState state) {
-        return DataFlowStates.valueOf(state.name());
-    }
 
-    private static DataFlowLifecycleState toLifecycleState(DataFlowStates state) {
-        return DataFlowLifecycleState.valueOf(state.name());
-    }
 
     /** What one locked read-then-write found and did: the state before it, and whether it wrote the transition. */
-    private record LockedTransition(Optional<DataFlowStates> stateBefore, boolean applied) {
+    private record LockedTransition(Optional<DataFlowLifecycleState> stateBefore, boolean applied) {
     }
 
 }

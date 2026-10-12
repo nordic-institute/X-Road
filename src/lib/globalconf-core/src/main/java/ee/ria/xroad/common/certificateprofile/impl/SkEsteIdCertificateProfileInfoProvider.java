@@ -33,6 +33,7 @@ import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.X500Names;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -102,7 +103,7 @@ public class SkEsteIdCertificateProfileInfoProvider
 
         @Override
         public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
-            return getSubjectIdentifier(new X500Name(certificate.getSubjectX500Principal().getName()));
+            return getSubjectIdentifier(X500Names.fromPrincipal(certificate.getSubjectX500Principal()));
         }
 
         ClientId.Conf getSubjectIdentifier(X500Name x500name) {

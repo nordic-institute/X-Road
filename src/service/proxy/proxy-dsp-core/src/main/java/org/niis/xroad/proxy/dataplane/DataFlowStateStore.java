@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Optional;
 
@@ -48,7 +48,7 @@ public interface DataFlowStateStore {
      * @return the state the flow holds afterwards
      * @throws XrdRuntimeException if the transition is illegal from the flow's current state; nothing is written
      */
-    DataFlowStates apply(String flowId, DataFlowTransition transition);
+    DataFlowLifecycleState apply(String flowId, DataFlowTransition transition);
 
     /**
      * Finds the current state of a flow.
@@ -56,6 +56,6 @@ public interface DataFlowStateStore {
      * @param flowId the flow's process ID
      * @return the current state, or empty if the flow is not known
      */
-    Optional<DataFlowStates> find(String flowId);
+    Optional<DataFlowLifecycleState> find(String flowId);
 
 }

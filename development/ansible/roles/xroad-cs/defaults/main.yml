@@ -1,6 +1,6 @@
 ---
-# Routable host name used for TLS certificate subjects/SANs and the CS
-# management/registration-service XROAD_HOST env var. LXD dev containers only
+# Routable host name used for the TLS certificate subjects/SANs preseeded into
+# the xroad-center debconf answers. LXD dev containers only
 # have a short hostname, hence the ".lxd" suffix; hosts whose inventory_hostname
 # is already a routable FQDN (e.g. perftest) override this to inventory_hostname
 # itself.

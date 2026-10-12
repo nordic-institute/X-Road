@@ -26,28 +26,28 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.niis.xroad.proxy.dataplane.DataFlowTransition.COMPLETE;
 import static org.niis.xroad.proxy.dataplane.DataFlowTransition.NOTIFY_STARTED;
 import static org.niis.xroad.proxy.dataplane.DataFlowTransition.PREPARE;
 import static org.niis.xroad.proxy.dataplane.DataFlowTransition.START;
 import static org.niis.xroad.proxy.dataplane.DataFlowTransition.SUSPEND;
 import static org.niis.xroad.proxy.dataplane.DataFlowTransition.TERMINATE;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.COMPLETED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.PROVISIONED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.STARTED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.SUSPENDED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.TERMINATED;
 
 class DataFlowTransitionTest {
 
@@ -136,7 +136,7 @@ class DataFlowTransitionTest {
     @EnumSource(DataFlowTransition.class)
     void applyThrowsExactlyWhereIsLegalFromSaysNo(DataFlowTransition transition) {
         assertThat(transition.isLegalFrom(Optional.empty())).isEqualTo(applies(transition, Optional.empty()));
-        for (var state : DataFlowStates.values()) {
+        for (var state : DataFlowLifecycleState.values()) {
             assertThat(transition.isLegalFrom(Optional.of(state))).isEqualTo(applies(transition, Optional.of(state)));
         }
     }
@@ -144,7 +144,7 @@ class DataFlowTransitionTest {
 
 
 
-    private static boolean applies(DataFlowTransition transition, Optional<DataFlowStates> from) {
+    private static boolean applies(DataFlowTransition transition, Optional<DataFlowLifecycleState> from) {
         try {
             transition.apply(from);
             return true;
@@ -158,7 +158,7 @@ class DataFlowTransitionTest {
                 .isInstanceOf(XrdRuntimeException.class);
     }
 
-    private static void assertIllegal(DataFlowTransition transition, DataFlowStates from) {
+    private static void assertIllegal(DataFlowTransition transition, DataFlowLifecycleState from) {
         assertThatThrownBy(() -> transition.apply(Optional.of(from)))
                 .isInstanceOf(XrdRuntimeException.class);
     }

@@ -5,6 +5,11 @@ plugins {
   id("xroad.edc-owned-jetty-conventions")
 }
 
+configurations.named("runtimeClasspath") {
+  // jnats is unused, pulled in by EDC core-lib
+  exclude(group = "io.nats", module = "jnats")
+}
+
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
@@ -30,18 +35,13 @@ dependencies {
 
   implementation(libs.bundles.quarkus.containerized)
 
-  testImplementation(libs.smallrye.config.yaml)
-  testImplementation(libs.junit.jupiter.params)
-  testImplementation(libs.assertj.core)
-
   runtimeOnly(libs.edc.core.controlplane) {
-    // EDC 0.17 ships two mutually-exclusive state-machine drivers: classic Manager
+    // EDC ships two mutually-exclusive state-machine drivers: classic Manager
     // (control-plane-{contract,transfer}-manager) and task-based (control-plane-
-    // {contract,transfer}-task-executor). control-plane-core transitively pulls
-    // the Manager modules. We use the task-based driver (TaskPollExecutor below),
-    // so the Manager modules are excluded to prevent dual state-machine execution
-    // (duplicate state transitions, duplicate protocol message sends, 409s on
-    // verification/finalization).
+    // {contract,transfer}-task-executor). We use the task-based driver
+    // (TaskPollExecutor below), so the Manager modules are excluded to prevent
+    // dual state-machine execution (duplicate state transitions, duplicate
+    // protocol message sends, 409s on verification/finalization).
     exclude("org.eclipse.edc", "control-plane-contract-manager")
     exclude("org.eclipse.edc", "control-plane-transfer-manager")
   }
@@ -59,18 +59,13 @@ dependencies {
   runtimeOnly(project(":lib:edc-jetty-tls"))
   runtimeOnly(libs.edc.core.policy.monitor)
   runtimeOnly(libs.edc.api.observability)
-  runtimeOnly(libs.edc.core.dataplane.selector)
   runtimeOnly(libs.edc.configuration.filesystem)
 
   runtimeOnly(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
-  runtimeOnly(libs.edc.core.edrstore)
-  runtimeOnly(libs.edc.edrstore.receiver)
   runtimeOnly(libs.edc.vault.hashicorp)
 
   runtimeOnly(libs.edc.dataplane.signaling)
-  runtimeOnly(libs.edc.dataplane.signaling.client)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)
-  runtimeOnly(libs.edc.contolplane.api.config)
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   runtimeOnly(libs.edc.core.sql.bootstrapper)

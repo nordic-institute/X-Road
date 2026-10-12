@@ -28,83 +28,41 @@ package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.http.Header;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.protocol.HttpContext;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests operational monitoring buffer.
  */
 @Slf4j
-@ExtendWith(MockitoExtension.class)
 class OpMonitoringBufferImplTest {
-    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
-    @Mock
-    private CloseableHttpClient httpClient;
+    private final FakeOperationalDataStoreClient client = new FakeOperationalDataStoreClient();
 
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBufferImpl extends OpMonitoringBufferImpl {
-        TestOpMonitoringBufferImpl(
-                ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties) throws Exception {
-            super(mock(ServerConfProvider.class), opMonitorProperties, mock(VaultClient.class), false);
-        }
-
-        @Override
-        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                              ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
-                                              VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
-                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-                NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorProperties,
-                    vaultClient, isEnabledPooledConnectionReuse) {
-                @Override
-                CloseableHttpClient createHttpClient() {
-                    return httpClient;
-                }
-            };
+        TestOpMonitoringBufferImpl(ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties) {
+            super(mock(ServerConfProvider.class), opMonitorProperties, () -> client);
         }
 
         @Override
@@ -121,112 +79,147 @@ class OpMonitoringBufferImplTest {
     }
 
     @Test
-    void bufferSaturatesUnderLoad() throws Exception {
-
-        when(httpClient.execute(any(HttpRequestBase.class), any(HttpContext.class))).thenAnswer(invocation -> {
-            doSleep(20, 80);
-
-            CloseableHttpResponse response = mock(CloseableHttpResponse.class, RETURNS_DEEP_STUBS);
-            when(response.getStatusLine().getStatusCode()).thenReturn(200);
-            when(response.getAllHeaders()).thenReturn(new Header[0]);
-
-            when(response.getEntity().getContent())
-                    .thenReturn(IOUtils.toInputStream(objectMapper.writeValueAsString(new StoreOpMonitoringDataResponse()), UTF_8));
-            return response;
-        });
-
-        ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties =
-                new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(Map.of(
-                        "xroad.proxy.addon.op-monitor.buffer.size", "10000"
-                )).build()).addon().opMonitor();
-
-        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties);
+    void bufferSaturatesUnderLoad() {
+        var opMonitoringBuffer = new TestOpMonitoringBufferImpl(properties(Map.of("xroad.proxy.addon.op-monitor.buffer.size", "10000")));
         int requestCount = 30_000;
         AtomicInteger processedCounter = new AtomicInteger();
         try (ExecutorService executorService = Executors.newFixedThreadPool(80)) {
             IntStream.range(0, requestCount).forEach(index -> executorService.execute(() -> {
                 doSleep(0, 50);
-                OpMonitoringData opMonitoringData = new OpMonitoringData(
-                        OpMonitoringData.SecurityServerType.CLIENT, RandomUtils.secure().randomLong());
-
-                try {
-                    opMonitoringBuffer.store(opMonitoringData);
-                    processedCounter.incrementAndGet();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-                if (index % 10000 == 0) {
-                    log.info("Current execution {}+", index);
-                }
+                opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT,
+                        RandomUtils.secure().randomLong()));
+                processedCounter.incrementAndGet();
             }));
 
             Awaitility.await()
                     .atMost(Duration.ofSeconds(120))
                     .pollDelay(Duration.ofSeconds(1))
                     .untilAsserted(() -> {
-                        assertEquals(requestCount, processedCounter.get());
-                        assertEquals(0, opMonitoringBuffer.getCurrentBufferSize());
+                        assertThat(processedCounter.get()).isEqualTo(requestCount);
+                        assertThat(opMonitoringBuffer.getCurrentBufferSize()).isZero();
+                        assertThat(client.storedRecords()).hasSize(requestCount);
                     });
+        } finally {
+            opMonitoringBuffer.destroy();
         }
     }
 
     @Test
-    void bufferOverflow() throws Exception {
-        ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties =
-                new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(Map.of(
-                        "xroad.proxy.addon.op-monitor.buffer.size", "2"
-                )).build()).addon().opMonitor();
+    void bufferOverflow() {
+        client.holdUntil(new CountDownLatch(1));
+        var opMonitoringBuffer = new TestOpMonitoringBufferImpl(properties(Map.of("xroad.proxy.addon.op-monitor.buffer.size", "2")));
+        var first = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 100);
+        var second = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 200);
+        var third = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 300);
+        var fourth = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 400);
 
-        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties) {
-            @Override
-            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                                  ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
-                                                  VaultClient vaultTlsCredentialsProvider,
-                                                  boolean isEnabledPooledConnectionReuse) {
-                var mockedSender = mock(OpMonitoringDaemonSender.class);
-                when(mockedSender.isReady()).thenReturn(false);
-                return mockedSender;
-            }
-        };
-        OpMonitoringData opMonitoringData1 = new OpMonitoringData(
-                OpMonitoringData.SecurityServerType.CLIENT, 100);
-        OpMonitoringData opMonitoringData2 = new OpMonitoringData(
-                OpMonitoringData.SecurityServerType.CLIENT, 200);
-        OpMonitoringData opMonitoringData3 = new OpMonitoringData(
-                OpMonitoringData.SecurityServerType.CLIENT, 300);
-
-        opMonitoringBuffer.store(opMonitoringData1);
-        opMonitoringBuffer.store(opMonitoringData2);
-        opMonitoringBuffer.store(opMonitoringData3);
+        opMonitoringBuffer.store(first);
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> !client.attempts().isEmpty());
+        opMonitoringBuffer.store(second);
+        opMonitoringBuffer.store(third);
+        opMonitoringBuffer.store(fourth);
 
         Awaitility.await()
                 .atMost(Duration.ofSeconds(20))
-                .pollDelay(Duration.ofSeconds(1))
-                .untilAsserted(() -> {
-                    assertEquals(2, opMonitoringBuffer.buffer.size());
-                    assertFalse(opMonitoringBuffer.buffer.contains(opMonitoringData1));
-                    assertTrue(opMonitoringBuffer.buffer.contains(opMonitoringData2));
-                    assertTrue(opMonitoringBuffer.buffer.contains(opMonitoringData3));
-                });
+                .untilAsserted(() -> assertThat(opMonitoringBuffer.buffer).containsExactly(third, fourth));
+        opMonitoringBuffer.destroy();
     }
 
     @Test
-    void noOpMonitoringDataIsStored() throws Exception {
+    void failedRecordIsRetriedBySchedulerWithoutFurtherStores() {
+        client.script(FakeOperationalDataStoreClient.Outcome.FAIL);
+        var opMonitoringBuffer = new TestOpMonitoringBufferImpl(properties(Map.of(
+                "xroad.proxy.addon.op-monitor.buffer.sending-interval-seconds", "1")));
+        opMonitoringBuffer.init();
+        var data = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 100);
+
+        opMonitoringBuffer.store(data);
+
+        Awaitility.await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> assertThat(client.storedRecords()).containsExactly(data.toProto()));
+        assertThat(client.attempts()).hasSize(2);
+        assertThat(opMonitoringBuffer.getCurrentBufferSize()).isZero();
+        opMonitoringBuffer.destroy();
+    }
+
+    @Test
+    void batchesHoldAtMostMaxRecordsInMessage() {
+        var hold = new CountDownLatch(1);
+        client.holdUntil(hold);
+        var opMonitoringBuffer = new TestOpMonitoringBufferImpl(properties(Map.of(
+                "xroad.proxy.addon.op-monitor.buffer.max-records-in-message", "5")));
+        opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 0));
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> !client.attempts().isEmpty());
+        IntStream.range(1, 13).forEach(i -> opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, i)));
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> opMonitoringBuffer.getCurrentBufferSize() == 12);
+
+        hold.countDown();
+
+        Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertThat(client.storedRecords()).hasSize(13));
+        assertThat(client.storedBatches()).allSatisfy(batch -> assertThat(batch).hasSizeLessThanOrEqualTo(5));
+        opMonitoringBuffer.destroy();
+    }
+
+    @Test
+    void failedRecordsAreRequeuedAtTheHeadInReverseOrder() {
+        client.holdUntil(new CountDownLatch(1));
+        var opMonitoringBuffer = new TestOpMonitoringBufferImpl(properties(Map.of()));
+        var queued = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 0);
+        opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, -1));
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> !client.attempts().isEmpty());
+        opMonitoringBuffer.store(queued);
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> opMonitoringBuffer.getCurrentBufferSize() == 1);
+        var first = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 1);
+        var second = new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 2);
+
+        opMonitoringBuffer.sendingFailure(List.of(first, second));
+
+        assertThat(opMonitoringBuffer.buffer).containsExactly(second, first, queued);
+        opMonitoringBuffer.destroy();
+    }
+
+    @Test
+    void shutdownWhileSendingClosesTheStoreClientAndDoesNotFlushBufferedRecords() {
+        var hold = new CountDownLatch(1);
+        client.holdUntil(hold);
+        var opMonitoringBuffer = new TestOpMonitoringBufferImpl(properties(Map.of()));
+        opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 0));
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> !client.attempts().isEmpty());
+        opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 1));
+        Awaitility.await().atMost(Duration.ofSeconds(10)).until(() -> opMonitoringBuffer.getCurrentBufferSize() == 1);
+
+        opMonitoringBuffer.destroy();
+        hold.countDown();
+        opMonitoringBuffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 2));
+
+        assertThat(client.isClosed()).isTrue();
+        assertThat(client.attempts()).hasSize(1);
+        assertThat(opMonitoringBuffer.getCurrentBufferSize()).isEqualTo(1);
+    }
+
+    @Test
+    void noOpMonitoringDataIsStored() {
         var serverConfProvider = mock(ServerConfProvider.class);
-        var vaultTlsCredentialsProvider = mock(VaultClient.class);
-        new OpMonitoringBufferImpl(serverConfProvider,
-                new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(Map.of(
-                        "xroad.proxy.addon.op-monitor.buffer.size", "0"
-                )).build()).addon().opMonitor(),
-                vaultTlsCredentialsProvider, false);
+        var clientRequested = new AtomicBoolean();
+
+        new OpMonitoringBufferImpl(serverConfProvider, properties(Map.of("xroad.proxy.addon.op-monitor.buffer.size", "0")),
+                () -> {
+                    clientRequested.set(true);
+                    return client;
+                });
+
         verifyNoInteractions(serverConfProvider);
+        assertThat(clientRequested).isFalse();
+    }
+
+    static ProxyProperties.Addon.ProxyAddonOpMonitorProperties properties(Map<String, String> overrides) {
+        return new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(overrides).build())
+                .addon().opMonitor();
     }
 
     @SneakyThrows
     @SuppressWarnings("squid:S2925")
-    private void doSleep(long min, long max) {
-        var sleep = RandomUtils.secure().randomLong(min, max);
-        Thread.sleep(sleep);
+    private static void doSleep(long min, long max) {
+        Thread.sleep(RandomUtils.secure().randomLong(min, max));
     }
 }

@@ -100,7 +100,7 @@ public final class XRoadJettyService implements WebServer {
         try {
             contextFactory.start();
         } catch (Exception e) {
-            throw new DsTlsKeyStoreLoadException(
+            throw new ConnectorTlsKeyStoreLoadException(
                     "Failed to initialize the DataSpace TLS SSL context from the certificate stored in OpenBao", e);
         }
         return contextFactory;
@@ -115,7 +115,7 @@ public final class XRoadJettyService implements WebServer {
         try {
             sslContextFactory.reload(factory -> factory.setKeyStore(keyStore));
         } catch (Exception e) {
-            throw new DsTlsKeyStoreLoadException("Failed to apply the reloaded DataSpace TLS keystore", e);
+            throw new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded DataSpace TLS keystore", e);
         }
     }
 

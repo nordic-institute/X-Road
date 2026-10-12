@@ -31,13 +31,13 @@ import ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialect;
 import liquibase.Scope;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -113,7 +113,7 @@ class SharedDataFlowStateStorePostgresTest {
 
         nodeA.apply(flowId, START);
 
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.STARTED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.STARTED);
     }
 
     @Test
@@ -121,13 +121,13 @@ class SharedDataFlowStateStorePostgresTest {
         var flowId = uniqueFlowId();
 
         nodeA.apply(flowId, PREPARE);
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.PROVISIONED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.PROVISIONED);
 
         nodeB.apply(flowId, START);
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.STARTED);
 
         nodeA.apply(flowId, SUSPEND);
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.SUSPENDED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.SUSPENDED);
     }
 
     @Test
@@ -140,7 +140,7 @@ class SharedDataFlowStateStorePostgresTest {
         nodeB.apply(flowId, START);
         nodeA.apply(flowId, TERMINATE);
 
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
@@ -154,8 +154,8 @@ class SharedDataFlowStateStorePostgresTest {
         nodeB.apply(completedFlowId, START);
         nodeA.apply(completedFlowId, COMPLETE);
 
-        assertThat(nodeA.find(terminatedFlowId)).contains(DataFlowStates.TERMINATED);
-        assertThat(nodeB.find(completedFlowId)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(terminatedFlowId)).contains(DataFlowLifecycleState.TERMINATED);
+        assertThat(nodeB.find(completedFlowId)).contains(DataFlowLifecycleState.COMPLETED);
         assertThat(countRows(terminatedFlowId)).isEqualTo(1);
         assertThat(countRows(completedFlowId)).isEqualTo(1);
     }
@@ -168,9 +168,9 @@ class SharedDataFlowStateStorePostgresTest {
         var repeat = nodeB.apply(flowId, START);
         var suspend = nodeA.apply(flowId, SUSPEND);
 
-        assertThat(first).isEqualTo(DataFlowStates.STARTED);
-        assertThat(repeat).isEqualTo(DataFlowStates.STARTED);
-        assertThat(suspend).isEqualTo(DataFlowStates.SUSPENDED);
+        assertThat(first).isEqualTo(DataFlowLifecycleState.STARTED);
+        assertThat(repeat).isEqualTo(DataFlowLifecycleState.STARTED);
+        assertThat(suspend).isEqualTo(DataFlowLifecycleState.SUSPENDED);
     }
 
     @Test
@@ -181,7 +181,7 @@ class SharedDataFlowStateStorePostgresTest {
 
         assertThatThrownBy(() -> nodeB.apply(flowId, START)).isInstanceOf(XrdRuntimeException.class);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.TERMINATED);
     }
 
     @Test
@@ -192,7 +192,7 @@ class SharedDataFlowStateStorePostgresTest {
 
         assertThatThrownBy(() -> nodeB.apply(flowId, SUSPEND)).isInstanceOf(XrdRuntimeException.class);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.COMPLETED);
     }
 
     @Test
@@ -203,7 +203,7 @@ class SharedDataFlowStateStorePostgresTest {
 
         var repeat = nodeB.apply(flowId, TERMINATE);
 
-        assertThat(repeat).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(repeat).isEqualTo(DataFlowLifecycleState.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
@@ -214,11 +214,11 @@ class SharedDataFlowStateStorePostgresTest {
         nodeA.apply(flowId, SUSPEND);
 
         assertThatThrownBy(() -> nodeB.apply(flowId, COMPLETE)).isInstanceOf(XrdRuntimeException.class);
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.SUSPENDED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.SUSPENDED);
 
         nodeB.apply(flowId, START);
         nodeB.apply(flowId, COMPLETE);
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.COMPLETED);
     }
 
     /**
@@ -242,7 +242,7 @@ class SharedDataFlowStateStorePostgresTest {
                 }
             }
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -267,7 +267,7 @@ class SharedDataFlowStateStorePostgresTest {
                 prepare.get(10, TimeUnit.SECONDS);
             }
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -296,7 +296,7 @@ class SharedDataFlowStateStorePostgresTest {
                 var suspended = suspend.get(10, TimeUnit.SECONDS);
 
                 assertThat(completed ^ suspended).isTrue();
-                assertThat(nodeA.find(flowId)).contains(completed ? DataFlowStates.COMPLETED : DataFlowStates.SUSPENDED);
+                assertThat(nodeA.find(flowId)).contains(completed ? DataFlowLifecycleState.COMPLETED : DataFlowLifecycleState.SUSPENDED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {

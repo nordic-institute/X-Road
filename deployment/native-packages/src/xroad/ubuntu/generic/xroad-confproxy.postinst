@@ -2,10 +2,14 @@
 set -e
 . /usr/share/debconf/confmodule
 
+. /usr/share/xroad/scripts/write_tls_config.sh
+
 log () { echo >&2 "$@"; }
 
-get_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+abort() {
+  local rc=$?
+  echo "xroad-confproxy: FATAL: $*" >&2
+  exit $((rc == 0 ? 1 : rc))
 }
 
 handle_error() {
@@ -27,65 +31,53 @@ handle_error() {
   echo "Retrying certificate generation"
 }
 
-prepare_tls_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-
-  if [[ -z $(get_prop "$CONFIG_FILE" 'xroad.configuration-proxy.tls.certificate-provisioning.common-name') && \
-        -z $(get_prop "$CONFIG_FILE" 'xroad.configuration-proxy.tls.certificate-provisioning.alt-names') && \
-        -z $(get_prop "$CONFIG_FILE" 'xroad.configuration-proxy.tls.certificate-provisioning.ip-subject-alt-names') ]]; then
-      log "Preparing configuration-proxy TLS settings"
-
-      db_get xroad-common/confproxy-subject
-      cn="${RET#/CN=}"
-      db_get xroad-common/confproxy-altsubject
-      altn="$RET"
-
-      # Use the shared write_tls_config.sh script
-      . /usr/share/xroad/scripts/write_tls_config.sh
-      write_tls_settings "$CONFIG_FILE" "configuration-proxy" "$cn" "$altn"
-  else
-    log "configuration-proxy TLS settings exists, skipping"
+prompt_tls_identity() {
+  local host alt list i
+  host=$(hostname -f)
+  if ((${#host} > 64)); then
+    host="$(hostname -s)"
   fi
+
+  list=
+  for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do list+="IP:$i,"; done
+  alt="${list}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+  db_subst xroad-common/confproxy-subject HOST "$host"
+  db_subst xroad-common/confproxy-altsubject ALT "$alt"
+
+  db_get xroad-common/confproxy-subject
+  [ -z "$RET" ] && db_set xroad-common/confproxy-subject "/CN=$host"
+  db_get xroad-common/confproxy-altsubject
+  [ -z "$RET" ] && db_set xroad-common/confproxy-altsubject "$alt"
+
+  db_beginblock
+  db_input critical xroad-common/confproxy-subject || true
+  db_input critical xroad-common/confproxy-altsubject || true
+  db_endblock
+  db_go
+
+  db_get xroad-common/confproxy-subject
+  TLS_SUBJECT="$RET"
+  db_get xroad-common/confproxy-altsubject
+  TLS_ALT_NAMES="$RET"
 }
 
 create_conf_proxy_certificate() {
+  local need_certificate=false
   if [[ ! -r /etc/xroad/ssl/confproxy.crt || ! -r /etc/xroad/ssl/confproxy.key || ! -r /etc/xroad/ssl/confproxy.p12 ]]; then
-    echo "Generating new confproxy.[crt|key|p12] files "
-    HOST=$(hostname -f)
-    if ((${#HOST} > 64)); then
-      HOST="$(hostname -s)"
+    need_certificate=true
+  fi
+
+  while :; do
+    prompt_tls_identity
+    if [[ -z "$TLS_SUBJECT" || -z "$TLS_ALT_NAMES" ]]; then
+      handle_error "Subject or subject alternative names empty"
+      continue
     fi
 
-    LIST=
-    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done
-    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
-
-    db_subst xroad-common/confproxy-subject HOST "$HOST"
-    db_subst xroad-common/confproxy-altsubject ALT "$ALT"
-
-    while :; do
-      db_get xroad-common/confproxy-subject
-      [ -z "$RET" ] && db_set xroad-common/confproxy-subject "/CN=$HOST"
-      db_get xroad-common/confproxy-altsubject
-      [ -z "$RET" ] && db_set xroad-common/confproxy-altsubject "$ALT"
-
-      db_beginblock
-      db_input critical xroad-common/confproxy-subject || true
-      db_input critical xroad-common/confproxy-altsubject || true
-      db_endblock
-      db_go
-
-      db_get xroad-common/confproxy-subject
-      subj="$RET"
-      db_get xroad-common/confproxy-altsubject
-      altn="$RET"
-      if [[ -z "$subj" || -z "$altn" ]]; then
-        handle_error "Subject or subject alternative names empty"
-        continue
-      fi
-
-      echo "generating new global configuration TLS key self-signed-certificate with $subj and $altn"
-      if ! /usr/share/xroad/scripts/generate_certificate.sh -n confproxy -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err; then
+    if [[ "$need_certificate" == true ]]; then
+      echo "generating new global configuration TLS key self-signed-certificate with $TLS_SUBJECT and $TLS_ALT_NAMES"
+      if ! /usr/share/xroad/scripts/generate_certificate.sh -n confproxy -s "${TLS_SUBJECT}" -a "${TLS_ALT_NAMES}" -p 2>/tmp/cert.err; then
         ERR=$(</tmp/cert.err)
         rm -f /tmp/cert.err
         handle_error "$ERR"
@@ -93,11 +85,20 @@ create_conf_proxy_certificate() {
         db_fset xroad-common/confproxy-altsubject seen false
         continue
       fi
+    fi
 
-      break
+    break
+  done
+}
 
-    done
+store_tls_identity() {
+  local mode=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    mode="reconfigure"
   fi
+
+  write_tls_identity_rows configuration-proxy "$TLS_SUBJECT" "$TLS_ALT_NAMES" "$mode" \
+    || abort "Failed to store configuration-proxy TLS identity. ABORTING."
 }
 
 configure_db() {
@@ -111,7 +112,6 @@ configure_db() {
 case "$1" in
   configure | reconfigure)
     create_conf_proxy_certificate
-    prepare_tls_settings
 
     mkdir -p /var/lib/xroad/public
     chmod 755 /var/lib/xroad/public
@@ -135,6 +135,7 @@ case "$1" in
     fi
 
     configure_db
+    store_tls_identity "$1"
 
     invoke-rc.d --quiet rsyslog try-restart || true
     invoke-rc.d --quiet nginx try-restart || true

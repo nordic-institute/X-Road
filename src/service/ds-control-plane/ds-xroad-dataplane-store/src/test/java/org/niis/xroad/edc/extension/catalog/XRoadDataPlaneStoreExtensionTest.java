@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

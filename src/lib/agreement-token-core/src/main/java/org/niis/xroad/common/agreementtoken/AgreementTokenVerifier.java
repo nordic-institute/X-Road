@@ -159,7 +159,8 @@ public final class AgreementTokenVerifier {
             return Optional.of(rejected(MALFORMED_TOKEN, "token carries no expiry"));
         }
         var expiresAt = expirationTime.toInstant();
-        if (!Instant.now(clock).isBefore(expiresAt)) {
+        var acceptUntil = expiresAt.plus(properties.expiryLeeway());
+        if (!Instant.now(clock).isBefore(acceptUntil)) {
             return Optional.of(rejected(EXPIRED, "token expired at " + expiresAt));
         }
 

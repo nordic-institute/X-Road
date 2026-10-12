@@ -9,7 +9,7 @@ dependencies {
   implementation(project(":lib:edc-tls-trust"))
 
   implementation(libs.edc.boot)
-  implementation(libs.edc.lib.http)
+  implementation(libs.edc.lib.core)
   implementation(libs.edc.spi.core)
   implementation(libs.bundles.quarkus.core)
 

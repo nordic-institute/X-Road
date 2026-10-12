@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ -r /etc/xroad/db.properties ]; then
-  source /usr/share/xroad/scripts/read_db_properties.sh
+  source /usr/share/xroad/scripts/read_serverconf_db_properties.sh
   read_serverconf_database_properties /etc/xroad/db.properties
 
   # Reading custom libpq ENV variables

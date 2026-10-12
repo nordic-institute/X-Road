@@ -500,11 +500,11 @@ main() {
   select_tls_settings
   log_message ""
 
-  # Step: Configure TLS Settings
+  # Step: Preseed TLS Settings (Debian family; the packages store the identity rows)
   if [[ -f "$SCRIPT_DIR/tasks/configure_tls.sh" ]]; then
     if ! XROAD_TLS_HOSTNAME="$XROAD_TLS_HOSTNAME" \
        XROAD_TLS_ALT_NAMES="$XROAD_TLS_ALT_NAMES" \
-       bash "$SCRIPT_DIR/tasks/configure_tls.sh"; then
+       bash "$SCRIPT_DIR/tasks/configure_tls.sh" preseed; then
       log_die "TLS configuration failed"
     fi
   else
@@ -537,6 +537,11 @@ main() {
     fi
   fi
 
+  local ss_preinstalled=false
+  if [[ "$OS_FAMILY" == "rhel" ]] && rpm -q --quiet xroad-proxy; then
+    ss_preinstalled=true
+  fi
+
   if [[ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]]; then
     if ! XROAD_SS_PACKAGE="$XROAD_SS_PACKAGE" \
        XROAD_ADMIN_USERNAME="$XROAD_ADMIN_USERNAME" \
@@ -549,6 +554,15 @@ main() {
     fi
   else
     log_die "install_security_server.sh not found"
+  fi
+  log_message ""
+
+  # Step: Store TLS identity rows (RHEL family; the packages do it on Debian)
+  if ! XROAD_TLS_HOSTNAME="$XROAD_TLS_HOSTNAME" \
+     XROAD_TLS_ALT_NAMES="$XROAD_TLS_ALT_NAMES" \
+     XROAD_SS_PREINSTALLED="$ss_preinstalled" \
+     bash "$SCRIPT_DIR/tasks/configure_tls.sh" write; then
+    log_die "TLS configuration failed"
   fi
   log_message ""
 

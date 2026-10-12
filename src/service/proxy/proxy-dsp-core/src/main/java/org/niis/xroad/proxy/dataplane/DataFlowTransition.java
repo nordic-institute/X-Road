@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.COMPLETED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.PROVISIONED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.STARTED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.SUSPENDED;
+import static org.niis.xroad.serverconf.model.DataFlowLifecycleState.TERMINATED;
 
 /**
  * The provider data plane's lifecycle state machine, one entry per signal of the data-flow signaling API.
@@ -51,14 +51,14 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
  * transition is also legal from its own target state and then leaves the flow as it is.
  *
  * <p>There is no separate resume signal: EDC's control plane resumes a suspended transfer by sending
- * {@code start} again, so {@link #START} is legal from {@link DataFlowStates#SUSPENDED}.
+ * {@code start} again, so {@link #START} is legal from {@link DataFlowLifecycleState#SUSPENDED}.
  *
  * <p>{@code PROVISIONED} is this runtime's EDC state for what the data-flow table calls {@code PREPARED}; no
- * separate {@code PREPARED} constant exists in {@link DataFlowStates}.
+ * separate {@code PREPARED} constant exists in {@link DataFlowLifecycleState}.
  */
 public enum DataFlowTransition {
 
-    PREPARE(PROVISIONED, true, EnumSet.noneOf(DataFlowStates.class)),
+    PREPARE(PROVISIONED, true, EnumSet.noneOf(DataFlowLifecycleState.class)),
     /** Starts a new or prepared flow, and resumes a suspended one. */
     START(STARTED, true, EnumSet.of(PROVISIONED, SUSPENDED)),
     /** The control plane's own started notification to this data plane; unlike {@link #START} it resumes nothing. */
@@ -67,11 +67,11 @@ public enum DataFlowTransition {
     COMPLETE(COMPLETED, false, EnumSet.of(STARTED)),
     TERMINATE(TERMINATED, false, EnumSet.of(PROVISIONED, STARTED, SUSPENDED));
 
-    private final DataFlowStates targetState;
+    private final DataFlowLifecycleState targetState;
     private final boolean legalFromUnknownFlow;
-    private final Set<DataFlowStates> legalPredecessors;
+    private final Set<DataFlowLifecycleState> legalPredecessors;
 
-    DataFlowTransition(DataFlowStates targetState, boolean legalFromUnknownFlow, Set<DataFlowStates> legalPredecessors) {
+    DataFlowTransition(DataFlowLifecycleState targetState, boolean legalFromUnknownFlow, Set<DataFlowLifecycleState> legalPredecessors) {
         this.targetState = targetState;
         this.legalFromUnknownFlow = legalFromUnknownFlow;
         this.legalPredecessors = legalPredecessors;
@@ -80,7 +80,7 @@ public enum DataFlowTransition {
     /**
      * @return the state a flow is in once this transition succeeds
      */
-    public DataFlowStates targetState() {
+    public DataFlowLifecycleState targetState() {
         return targetState;
     }
 
@@ -88,7 +88,7 @@ public enum DataFlowTransition {
      * @param currentState the flow's current state, or empty for a flow id never seen before
      * @return whether this transition may be applied to a flow in {@code currentState}
      */
-    public boolean isLegalFrom(Optional<DataFlowStates> currentState) {
+    public boolean isLegalFrom(Optional<DataFlowLifecycleState> currentState) {
         return currentState
                 .map(state -> state == targetState || legalPredecessors.contains(state))
                 .orElse(legalFromUnknownFlow);
@@ -101,7 +101,7 @@ public enum DataFlowTransition {
      * @return {@link #targetState()}
      * @throws XrdRuntimeException if {@code currentState} is not a legal predecessor of this transition
      */
-    public DataFlowStates apply(Optional<DataFlowStates> currentState) {
+    public DataFlowLifecycleState apply(Optional<DataFlowLifecycleState> currentState) {
         if (!isLegalFrom(currentState)) {
             throw illegalFrom(currentState);
         }
@@ -112,7 +112,7 @@ public enum DataFlowTransition {
      * @param currentState the flow's current state, or empty for a flow id never seen before
      * @return the exception that rejects this transition from {@code currentState}
      */
-    public XrdRuntimeException illegalFrom(Optional<DataFlowStates> currentState) {
+    public XrdRuntimeException illegalFrom(Optional<DataFlowLifecycleState> currentState) {
         return XrdRuntimeException.systemException(ErrorCode.INVALID_REQUEST)
                 .details("Cannot apply transition %s to a data flow in state %s"
                         .formatted(this, currentState.map(Enum::name).orElse("UNKNOWN")))

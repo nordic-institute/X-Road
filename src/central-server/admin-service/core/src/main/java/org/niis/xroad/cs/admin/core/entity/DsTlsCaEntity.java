@@ -44,7 +44,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * An approved DS TLS certification authority (globalconf {@code approvedDsTlsCa} entry). Kept fully separate from
+ * An approved DS TLS certification authority (globalconf {@code approvedConnectorTlsCA} entry). Kept fully separate from
  * {@link ApprovedCaEntity}/{@link CaInfoEntity}: member-cert validation never reads these tables.
  */
 @Entity

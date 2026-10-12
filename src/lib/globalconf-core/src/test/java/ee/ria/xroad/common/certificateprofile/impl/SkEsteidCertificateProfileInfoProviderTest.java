@@ -36,6 +36,8 @@ import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
 
+import static ee.ria.xroad.common.DerSubjectCertUtil.derName;
+import static ee.ria.xroad.common.DerSubjectCertUtil.selfSignedCertificate;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -72,6 +74,21 @@ public class SkEsteidCertificateProfileInfoProviderTest {
         id("C=x");
     }
 
+    @Test
+    public void getSubjectIdentifierFromCertificateWithRepeatedSerialNumberUsesMostSpecificValue() throws Exception {
+        X509Certificate cert = selfSignedCertificate(derName(
+                "C", "FI", "CN", "name", "serialNumber", "outer", "serialNumber", "foobar"));
+        assertEquals(ClientId.Conf.create("XX", "PERSON", "foobar"), id(cert));
+    }
+
+    @Test
+    public void getSubjectIdentifierFromCertificateWithCountryDevAndLongCommonName() throws Exception {
+        X509Certificate cert = selfSignedCertificate(derName(
+                "C", "DEV", "CN", "x".repeat(65), "serialNumber", "foobar"));
+
+        assertEquals(ClientId.Conf.create("XX", "PERSON", "foobar"), id(cert));
+    }
+
     private ClientId id(String name) throws Exception {
         X509Certificate mockCert = Mockito.mock(X509Certificate.class);
 
@@ -79,6 +96,10 @@ public class SkEsteidCertificateProfileInfoProviderTest {
                 new X500Principal(name)
         );
 
+        return id(mockCert);
+    }
+
+    private ClientId id(X509Certificate cert) throws Exception {
         return new SkEsteIdCertificateProfileInfoProvider().getSignCertProfile(
                 new SignCertificateProfileInfo.Parameters() {
                     @Override
@@ -96,6 +117,6 @@ public class SkEsteidCertificateProfileInfoProviderTest {
                         return null;
                     }
                 }
-        ).getSubjectIdentifier(mockCert);
+        ).getSubjectIdentifier(cert);
     }
 }

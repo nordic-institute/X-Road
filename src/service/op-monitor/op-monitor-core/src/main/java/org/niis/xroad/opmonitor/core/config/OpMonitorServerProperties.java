@@ -29,8 +29,11 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
+import java.util.Optional;
+
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
 
 @RequiredArgsConstructor
@@ -51,5 +54,10 @@ public class OpMonitorServerProperties implements RpcServerProperties {
     @Override
     public int port() {
         return xRoadConfig.value(RPC_PORT);
+    }
+
+    @Override
+    public Optional<Integer> maxInboundMessageSize() {
+        return xRoadConfig.valueOpt(RPC_MAX_INBOUND_MESSAGE_SIZE);
     }
 }

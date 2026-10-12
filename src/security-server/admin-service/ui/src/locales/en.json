@@ -1205,6 +1205,7 @@
                 "buffer": {
                   "size": "Maximum number of records buffered before sending to the operational monitor.",
                   "max-records-in-message": "Maximum number of operational data records in a message sent by the operational monitoring buffer to the operational monitoring daemon.",
+                  "max-message-size": "Maximum size in bytes of one store request sent by the operational monitoring buffer to the operational monitoring daemon. Larger batches are split into several requests. The minimum is 65536. Keep it below the daemon's xroad.op-monitor.rpc.max-inbound-message-size (gRPC default 4 MiB).",
                   "sending-interval-seconds": "The interval in seconds at which the operational monitoring buffer (re)tries to send records to the operational monitoring daemon. Normally, the buffer triggers the sending mechanism immediately when it receives a new record. In case of heavy load or sending failures the records are accumulating in the buffer and need periodical attention.",
                   "socket-timeout-seconds": "The socket timeout (SO_TIMEOUT) of sending operational monitoring records from the operational monitoring buffer to the operational monitoring daemon in seconds.",
                   "connection-timeout-seconds": "HTTP client connection timeout in seconds."
@@ -1438,7 +1439,8 @@
             "rpc": {
               "enabled": "Enable the operational monitoring daemon gRPC server.",
               "listen-address": "IP address on which the operational monitoring daemon gRPC server listens.",
-              "port": "Port on which the operational monitoring daemon gRPC server listens."
+              "port": "Port on which the operational monitoring daemon gRPC server listens.",
+              "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size."
             },
             "tls": {
               "certificate-provisioning": {

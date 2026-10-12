@@ -34,6 +34,7 @@ option java_multiple_files = true;
 
 service OpMonitorService {
   rpc GetOperationalDataIntervals(GetOperationalDataIntervalsReq) returns (GetOperationalDataIntervalsResp) {}
+  rpc StoreOperationalData(StoreOperationalDataReq) returns (StoreOperationalDataResp) {}
 }
 
 message GetOperationalDataIntervalsReq {
@@ -59,4 +60,56 @@ message OperationalDataIntervalProto {
   google.protobuf.Timestamp timeIntervalStart = 1;
   int64 successCount = 2;
   int64 failureCount = 3;
+}
+
+message StoreOperationalDataReq {
+  repeated OperationalDataRecordProto records = 1;
+}
+
+message StoreOperationalDataResp {
+}
+
+// One operational monitoring record as sent by the Security Server.
+// The record ID and the monitoring data timestamp are assigned by op-monitor when storing.
+// Timestamps are Unix epoch milliseconds.
+message OperationalDataRecordProto {
+  optional string security_server_internal_ip = 1;
+  optional SecurityServerType security_server_type = 2;
+  optional int64 request_in_ts = 3;
+  optional int64 request_out_ts = 4;
+  optional int64 response_in_ts = 5;
+  optional int64 response_out_ts = 6;
+  optional string client_xroad_instance = 7;
+  optional string client_member_class = 8;
+  optional string client_member_code = 9;
+  optional string client_subsystem_code = 10;
+  optional string service_xroad_instance = 11;
+  optional string service_member_class = 12;
+  optional string service_member_code = 13;
+  optional string service_subsystem_code = 14;
+  optional string service_code = 15;
+  optional string service_version = 16;
+  optional string rest_method = 17;
+  optional string rest_path = 18;
+  optional string xroad_version = 19;
+  optional string represented_party_class = 20;
+  optional string represented_party_code = 21;
+  optional string message_id = 22;
+  optional string message_user_id = 23;
+  optional string message_issue = 24;
+  optional string message_protocol_version = 25;
+  optional string client_security_server_address = 26;
+  optional string service_security_server_address = 27;
+  optional int64 request_size = 28;
+  optional int64 response_size = 29;
+  optional int64 request_mime_size = 30;
+  optional int32 request_attachment_count = 31;
+  optional int64 response_mime_size = 32;
+  optional int32 response_attachment_count = 33;
+  optional bool succeeded = 34;
+  optional string fault_code = 35;
+  optional string fault_string = 36;
+  optional string x_request_id = 37;
+  optional int32 status_code = 38;
+  optional string service_type = 39;
 }

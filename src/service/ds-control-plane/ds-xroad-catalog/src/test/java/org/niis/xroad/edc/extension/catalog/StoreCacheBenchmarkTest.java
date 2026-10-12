@@ -132,13 +132,13 @@ class StoreCacheBenchmarkTest {
 
         var storeDisabled = buildStore(fakeProvider, false);
         for (int i = 0; i < WARMUP; i++) {
-            storeDisabled.findById(firstId);
+            storeDisabled.findById(BENCH_MEMBER_CTX, firstId);
         }
         var timesDisabled = measureFindById(storeDisabled, firstId);
 
         var storeEnabled = buildStore(fakeProvider, true);
         for (int i = 0; i < WARMUP; i++) {
-            storeEnabled.findById(firstId);
+            storeEnabled.findById(BENCH_MEMBER_CTX, firstId);
         }
         var timesEnabled = measureFindById(storeEnabled, firstId);
 
@@ -164,13 +164,13 @@ class StoreCacheBenchmarkTest {
 
         var storeDisabled = buildStore(fakeProvider, false);
         for (int i = 0; i < WARMUP; i++) {
-            storeDisabled.resolveForAsset(firstId);
+            storeDisabled.resolveForAsset(BENCH_MEMBER_CTX, firstId);
         }
         var timesDisabled = measureResolveForAsset(storeDisabled, firstId);
 
         var storeEnabled = buildStore(fakeProvider, true);
         for (int i = 0; i < WARMUP; i++) {
-            storeEnabled.resolveForAsset(firstId);
+            storeEnabled.resolveForAsset(BENCH_MEMBER_CTX, firstId);
         }
         var timesEnabled = measureResolveForAsset(storeEnabled, firstId);
 
@@ -184,7 +184,7 @@ class StoreCacheBenchmarkTest {
         var times = new long[K];
         for (int i = 0; i < K; i++) {
             long t = System.nanoTime();
-            store.resolveForAsset(id);
+            store.resolveForAsset(BENCH_MEMBER_CTX, id);
             times[i] = System.nanoTime() - t;
         }
         return times;
@@ -194,7 +194,7 @@ class StoreCacheBenchmarkTest {
         var times = new long[K];
         for (int i = 0; i < K; i++) {
             long t = System.nanoTime();
-            store.findById(id);
+            store.findById(BENCH_MEMBER_CTX, id);
             times[i] = System.nanoTime() - t;
         }
         return times;
@@ -215,7 +215,7 @@ class StoreCacheBenchmarkTest {
         return new AssetIndexServerConfStore(provider,
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),
-                cache, serviceContextResolver, new ThreadLocalRequestedParticipantContext());
+                cache, serviceContextResolver);
     }
 
     static long median(long[] times) {
