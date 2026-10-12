@@ -68,9 +68,7 @@ public class MemberCredentialRevocationService {
      * Assumes every server runs the identity hub's default {@code web.http.did.port}. Remove once
      * DID documents are served from the registered server address.
      */
-    static final String INTERIM_IDENTITY_HUB_DID_PORT = "7183";
-
-    private static final int INTERIM_DID_PORT = Integer.parseInt(INTERIM_IDENTITY_HUB_DID_PORT);
+    static final int INTERIM_DID_PORT = 7183;
 
     private final SecurityServerRepository securityServers;
     private final XRoadMemberRepository members;

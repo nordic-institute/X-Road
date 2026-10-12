@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -84,7 +85,7 @@ class MemberCredentialRevocationServiceTest {
     private static final String SERVER_CODE = "SERVER";
     private static final String SS_ADDRESS = "ss1.example.test";
     private static final String SS_DID_AUTHORITY =
-            SS_ADDRESS + ":" + MemberCredentialRevocationService.INTERIM_IDENTITY_HUB_DID_PORT;
+            DspConventions.didAuthority(SS_ADDRESS, MemberCredentialRevocationService.INTERIM_DID_PORT);
     private static final long CUTOFF = 9_000L;
 
     private final ClientId memberId = ClientId.Conf.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
