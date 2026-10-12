@@ -120,11 +120,7 @@ edc:
   sql:
     schema:
       autocreate: true
-  participant:
-    did: "did:web:${HOSTNAME:localhost}%3A7183"
   iam:
-    issuer:
-      id: "did:web:${HOSTNAME:localhost}%3A7183"
     dcp:
       scopes:
         membership:
