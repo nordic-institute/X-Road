@@ -621,6 +621,21 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void ensureParticipantContextRefusesNonAsciiRegisteredAddressBeforeAnythingIsWritten() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("b\u00fccher.example");
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(MEMBER_CONTEXT))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()))
+                .hasMessageContaining("'b\u00fccher.example'");
+
+        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+        verify(identityHubClient, never()).createParticipantContext(any());
+    }
+
+    @Test
     void ensureParticipantContextRefusesToProvisionWhenIdentityHubUrlHasNoHost() {
         when(dataspace.getIdentityHubUrl()).thenReturn("identity-hub-placeholder");
 
@@ -718,6 +733,20 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
         assertThat(request.reanchorMemberIdOnConflict()).isTrue();
+    }
+
+    @Test
+    void ensureParticipantContextRefusesNonAsciiRegisteredAddressForSystemContextBeforeAnythingIsWritten() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("b\u00fccher.example");
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(SYSTEM_CONTEXT))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()))
+                .hasMessageContaining("'b\u00fccher.example'");
+
+        verify(identityHubClient, never()).createParticipantContext(any());
     }
 
     @Test

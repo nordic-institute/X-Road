@@ -35,8 +35,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
  * Reads the stored DID and DSP ports ({@link DspConfigKeys#DID_PORT}, {@link DspConfigKeys#DSP_PORT}) and
- * checks that each is a valid TCP port. The check lives here, not in a config validator, so that a bad
- * stored value is reported to the caller instead of failing the whole process at start.
+ * checks that each is between 1 and 65535.
  */
 public final class DspPortReader {
 

@@ -32,6 +32,7 @@ import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.keys.DspPortReader;
+import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -87,10 +88,20 @@ public class DataspaceDidAuthority {
     /**
      * @param member the X-Road member identifier
      * @return the member's freshly derived DID for the current authority
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded, or
+     *                             the registered address is not ASCII
      */
     public Did memberDid(ClientId member) {
-        return ParticipantIdentifierScheme.memberDid(member, current());
+        return ParticipantIdentifierScheme.memberDid(member, mintAuthority());
+    }
+
+    /**
+     * @return the per-server SYSTEM DID freshly derived for the current authority
+     * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII
+     */
+    public Did systemDid() {
+        return ParticipantIdentifierScheme.systemDid(mintAuthority());
     }
 
     /**
@@ -117,6 +128,11 @@ public class DataspaceDidAuthority {
     public Optional<String> dspBaseUrl() {
         var dspPort = dspPortReader.read().dspPort();
         return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.dspBaseUrl(address, dspPort));
+    }
+
+    private String mintAuthority() {
+        ownSecurityServerResolver.registeredAddress().ifPresent(DidAuthority::requireAscii);
+        return current();
     }
 
     private Optional<String> find() {

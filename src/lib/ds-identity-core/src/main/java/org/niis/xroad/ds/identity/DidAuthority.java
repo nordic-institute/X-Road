@@ -44,6 +44,21 @@ public class DidAuthority {
     /** The port a {@code did:web} authority omits. */
     public static final int DEFAULT_HTTPS_PORT = 443;
 
+    private static final int NON_ASCII_START = 0x80;
+
+    /**
+     * Checks that a registered address, as stored and before any conversion, contains only ASCII characters.
+     *
+     * @param address the registered address, without a port
+     * @throws XrdRuntimeException if the address contains a non-ASCII character
+     */
+    public static void requireAscii(String address) {
+        if (!address.chars().allMatch(c -> c < NON_ASCII_START)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "address '%s' must contain only ASCII characters", address);
+        }
+    }
+
     /**
      * Canonical form of a host: lowercase, an international name converted to its ASCII ({@code xn--})
      * form, a bare IPv6 literal bracketed.

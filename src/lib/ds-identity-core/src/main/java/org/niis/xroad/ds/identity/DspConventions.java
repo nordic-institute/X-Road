@@ -62,7 +62,6 @@ public class DspConventions {
 
     private static final int MIN_PORT = 1;
     private static final int MAX_PORT = 65535;
-    private static final int NON_ASCII_START = 0x80;
 
     /**
      * DSP profile id segment of the provider DSP URL, and the profile registered by the
@@ -112,10 +111,7 @@ public class DspConventions {
         if (ssAddress == null || ssAddress.isBlank()) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR, "DSP address must not be blank");
         }
-        if (!ssAddress.chars().allMatch(c -> c < NON_ASCII_START)) {
-            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
-                    "DSP address '%s' must contain only ASCII characters", ssAddress);
-        }
+        DidAuthority.requireAscii(ssAddress);
         if (dspPort < MIN_PORT || dspPort > MAX_PORT) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR,
                     "DSP port '%d' must be between %d and %d", dspPort, MIN_PORT, MAX_PORT);

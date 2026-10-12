@@ -71,4 +71,18 @@ class DidAuthorityTest {
     void shouldRefuseBlankHost(String host) {
         assertThatThrownBy(() -> DidAuthority.canonicalHost(host)).isInstanceOf(XrdRuntimeException.class);
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"b\u00fccher.example", "ss0.example.org\u00e9", "\u4f8b\u3048.jp"})
+    void shouldRefuseNonAsciiAddressNamingIt(String address) {
+        assertThatThrownBy(() -> DidAuthority.requireAscii(address))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("'" + address + "'");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ss0.example.org", "xn--bcher-kva.example", "2001:db8::1"})
+    void shouldAcceptAsciiAddress(String address) {
+        DidAuthority.requireAscii(address);
+    }
 }
