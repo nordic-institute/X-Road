@@ -5,8 +5,6 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
-
   implementation(platform(libs.jackson.bom))
   implementation("tools.jackson.core:jackson-databind")
 

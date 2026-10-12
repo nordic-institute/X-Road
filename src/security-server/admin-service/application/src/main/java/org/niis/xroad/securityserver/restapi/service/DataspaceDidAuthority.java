@@ -68,7 +68,7 @@ public class DataspaceDidAuthority {
      * @return whether the registered address the authority derives from is resolvable yet
      */
     public boolean isKnown() {
-        return find().isPresent();
+        return ownSecurityServerResolver.registeredAddress().isPresent();
     }
 
     /**
