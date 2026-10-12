@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.config.keys.DspPortReader;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -64,11 +63,9 @@ public class DataspaceDidAuthority {
 
     private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final AdminServiceProperties adminServiceProperties;
-    private final DspPortReader dspPortReader;
 
     /**
      * @return whether the registered address the authority derives from is resolvable yet
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if a stored DID or DSP port is outside 1-65535
      */
     public boolean isKnown() {
         return find().isPresent();
@@ -77,7 +74,6 @@ public class DataspaceDidAuthority {
     /**
      * @return the authority as {@code host:port}, as embedded in derived DIDs
      * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if a stored DID or DSP port is outside 1-65535
      */
     public String current() {
         return find().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
@@ -122,11 +118,10 @@ public class DataspaceDidAuthority {
     /**
      * @return the DSP base URL of this server's control plane, built from the registered address and the
      *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if a stored DID or DSP port is outside 1-65535,
-     *                             or the registered address is not ASCII
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII
      */
     public Optional<String> dspBaseUrl() {
-        var dspPort = dspPortReader.read().dspPort();
+        var dspPort = adminServiceProperties.getDataspace().getDspPort();
         return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.dspBaseUrl(address, dspPort));
     }
 
@@ -136,7 +131,7 @@ public class DataspaceDidAuthority {
     }
 
     private Optional<String> find() {
-        var didPort = dspPortReader.read().didPort();
+        var didPort = adminServiceProperties.getDataspace().getDidPort();
         return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
     }
 }

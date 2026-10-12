@@ -34,6 +34,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DspConfigKeysTest {
 
     @Test
+    void didPortRejectsOutOfRangeAndAcceptsInRange() {
+        assertThat(DspConfigKeys.DID_PORT.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.DID_PORT.validate(65536).valid()).isFalse();
+        assertThat(DspConfigKeys.DID_PORT.validate(7183).valid()).isTrue();
+    }
+
+    @Test
+    void dspPortRejectsOutOfRangeAndAcceptsInRange() {
+        assertThat(DspConfigKeys.DSP_PORT.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.DSP_PORT.validate(65536).valid()).isFalse();
+        assertThat(DspConfigKeys.DSP_PORT.validate(8183).valid()).isTrue();
+    }
+
+    @Test
     void ttlSecondsRejectsZeroNegativeAndNull() {
         assertThat(DspConfigKeys.CATALOG_CACHE_TTL_SECONDS.validate(0L).valid()).isFalse();
         assertThat(DspConfigKeys.CATALOG_CACHE_TTL_SECONDS.validate(-5L).valid()).isFalse();

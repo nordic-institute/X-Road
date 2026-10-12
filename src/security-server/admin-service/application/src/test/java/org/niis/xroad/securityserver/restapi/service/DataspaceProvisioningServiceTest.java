@@ -46,8 +46,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
-import org.niis.xroad.common.properties.config.keys.DspPortReader;
-import org.niis.xroad.common.properties.config.keys.DspPortReader.DspPorts;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -119,8 +117,6 @@ class DataspaceProvisioningServiceTest {
     @Mock
     private Dataspace dataspace;
     @Mock
-    private DspPortReader dspPortReader;
-    @Mock
     private IdentityHubProvisioningClient identityHubClient;
     @Mock
     private ControlPlaneProvisioningClient controlPlaneClient;
@@ -146,7 +142,8 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        lenient().when(dspPortReader.read()).thenReturn(new DspPorts(7183, 8183));
+        lenient().when(dataspace.getDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getDspPort()).thenReturn(8183);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -164,12 +161,12 @@ class DataspaceProvisioningServiceTest {
         var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties, dspPortReader));
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
     }
 
     private DataspaceDidAuthority didAuthority() {
         return new DataspaceDidAuthority(new OwnSecurityServerResolver(serverConfRepository, globalConfProvider),
-                adminServiceProperties, dspPortReader);
+                adminServiceProperties);
     }
 
     @AfterEach
@@ -564,7 +561,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextMintsDidUnderConfiguredDidPort() {
-        when(dspPortReader.read()).thenReturn(new DspPorts(8183, 8183));
+        when(dataspace.getDidPort()).thenReturn(8183);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_ADDRESS + ":8183");
@@ -583,7 +580,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void dspBaseUrlUsesConfiguredDspPort() {
-        when(dspPortReader.read()).thenReturn(new DspPorts(7183, 18183));
+        when(dataspace.getDspPort()).thenReturn(18183);
 
         assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:18183/api/dsp");
     }

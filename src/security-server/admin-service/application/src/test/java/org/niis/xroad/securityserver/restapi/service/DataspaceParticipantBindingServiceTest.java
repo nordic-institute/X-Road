@@ -33,8 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.config.keys.DspPortReader;
-import org.niis.xroad.common.properties.config.keys.DspPortReader.DspPorts;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
@@ -68,8 +66,6 @@ class DataspaceParticipantBindingServiceTest {
     @Mock
     private Dataspace dataspace;
     @Mock
-    private DspPortReader dspPortReader;
-    @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private OwnSecurityServerResolver ownSecurityServerResolver;
@@ -78,12 +74,12 @@ class DataspaceParticipantBindingServiceTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(dspPortReader.read()).thenReturn(new DspPorts(7183, 8183));
+        lenient().when(dataspace.getDidPort()).thenReturn(7183);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of("ss.example.test"));
 
         service = new DataspaceParticipantBindingService(dsParticipantRepository,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties, dspPortReader));
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
     }
 
     @Test

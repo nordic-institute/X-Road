@@ -44,7 +44,8 @@ import static org.niis.xroad.common.properties.config.Validator.range;
  * <p>A key is consumed in one of three ways. The control-plane extensions read a key through
  * {@code ServiceExtensionContext.getSetting}: the catalog cache keys, the built-in services keys and the
  * issuer-trust refresh interval. An X-Road process reads a key through {@code XRoadConfig}: the admin
- * service reads both port keys through {@code DspPortReader}. An application configuration interpolates a
+ * service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
+ * {@code getDspPort()}. An application configuration interpolates a
  * key with {@code ${...}}: the identity hub's DID web context port uses {@code ${xroad.dsp.did-port}}.
  *
  * <p>{@code publishedToFramework()} is set on every key so that the packaged default and a stored row both
@@ -64,6 +65,7 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> DID_PORT = DSP
             .integer("did-port")
             .withDefaultValue(7183)
+            .withValidator(range(1, 65535))
             .publishedToFramework()
             .build();
 
@@ -71,6 +73,7 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> DSP_PORT = DSP
             .integer("dsp-port")
             .withDefaultValue(8183)
+            .withValidator(range(1, 65535))
             .publishedToFramework()
             .build();
 

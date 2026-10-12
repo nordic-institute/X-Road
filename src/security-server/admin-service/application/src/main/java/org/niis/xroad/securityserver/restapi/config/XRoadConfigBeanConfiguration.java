@@ -35,7 +35,6 @@ import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
-import org.niis.xroad.common.properties.config.keys.DspPortReader;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
@@ -81,11 +80,6 @@ public class XRoadConfigBeanConfiguration {
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
-    }
-
-    @Bean
-    DspPortReader dspPortReader(XRoadConfig xRoadConfig) {
-        return new DspPortReader(xRoadConfig);
     }
 
     @Bean
