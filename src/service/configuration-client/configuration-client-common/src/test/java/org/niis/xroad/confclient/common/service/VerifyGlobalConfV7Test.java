@@ -27,12 +27,14 @@
 package org.niis.xroad.confclient.common.service;
 
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.niis.xroad.confclient.common.domain.ConfigurationFile;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.SharedParametersV7;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,24 +45,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 
 class VerifyGlobalConfV7Test {
-    private static final String CONF_ROOT = "src/test/resources/nginx-container-files/var/lib/xroad/public";
     private static final String ANCHOR_PATH = "src/test/resources/files/trusted-anchor/configuration_anchor_CS_internal.xml";
 
     @Mock
     private static HttpUrlConnectionConfigurer connectionConfigurer;
 
-    @Test
-    void verifyV7GlobalConfiguration(@TempDir Path confDownloadDir) {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("org.niis.xroad.confclient.common.service.GlobalConfFixtureSet#version7")
+    void verifyV7GlobalConfiguration(GlobalConfFixtureSet fixtureSet, @TempDir Path confDownloadDir) throws IOException {
         var anchor = new ConfigurationAnchor(ANCHOR_PATH);
         assertThat(anchor.getLocations()).isNotEmpty();
 
-        var downloader = new MockConfigurationDownloader(confDownloadDir.toString(), 7);
+        var downloader = new MockConfigurationDownloader(fixtureSet, confDownloadDir.toString());
         var downloadResult = downloader.download(anchor);
         assertThat(downloadResult.isSuccess())
-                .withFailMessage("Configuration validation failed for the v7 fixture.")
+                .withFailMessage("Configuration validation failed for the v7 fixture '%s'.", fixtureSet)
                 .isTrue();
 
         assertThat(downloadResult.getConfiguration().getFiles())
@@ -68,18 +72,26 @@ class VerifyGlobalConfV7Test {
                 .singleElement()
                 .extracting(ConfigurationFile::getConfigurationVersion)
                 .isEqualTo("7");
+
+        assertThat(Files.readString(fixtureSet.signedIndexPath()))
+                .contains("Expire-date: " + fixtureSet.expireDate());
+        assertThatNoException().isThrownBy(() -> new SharedParametersV7(
+                Files.readAllBytes(fixtureSet.partsDirectory().resolve(FILE_NAME_SHARED_PARAMETERS))));
     }
 
     private static class MockConfigurationDownloader extends ConfigurationDownloader {
 
-        MockConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
-            super(connectionConfigurer, globalConfigurationDir, configurationVersion);
+        private final GlobalConfFixtureSet fixtureSet;
+
+        MockConfigurationDownloader(GlobalConfFixtureSet fixtureSet, String globalConfigurationDir) {
+            super(connectionConfigurer, globalConfigurationDir, fixtureSet.version());
+            this.fixtureSet = fixtureSet;
         }
 
         @Override
         protected byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
             try {
-                return Files.readAllBytes(Path.of(CONF_ROOT, file.getContentLocation()));
+                return Files.readAllBytes(Path.of(fixtureSet.confRoot(), file.getContentLocation()));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -91,7 +103,7 @@ class VerifyGlobalConfV7Test {
                 @Override
                 @SneakyThrows
                 protected InputStream getInputStream() {
-                    return new FileInputStream(Path.of(CONF_ROOT, "V7/internalconf").toFile());
+                    return new FileInputStream(fixtureSet.signedIndexPath().toFile());
                 }
             };
         }

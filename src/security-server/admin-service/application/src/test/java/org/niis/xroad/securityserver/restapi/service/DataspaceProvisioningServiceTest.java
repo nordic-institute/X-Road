@@ -155,7 +155,7 @@ class DataspaceProvisioningServiceTest {
         lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         lenient().when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS);
         lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        lenient().when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
+        lenient().when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
         var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
@@ -237,7 +237,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureMembershipCredentialReturnsAbsentAndAttemptsNothingWhenNotDataspaceEnabled() {
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
         assertThat(service.ensureMembershipCredential(GENERIC_CONTEXT)).isEqualTo(CredentialStatus.ABSENT);
 
@@ -248,7 +248,7 @@ class DataspaceProvisioningServiceTest {
     @Test
     void ensureMembershipCredentialPassesTheFullTrustedIssuerSetToTheIdentityHub() {
         var trustedDids = Set.of("did:web:cs1.example.test%3A6183:issuer", "did:web:cs2.example.test%3A6183:issuer");
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.copyOf(trustedDids));
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.copyOf(trustedDids));
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
 
         service.ensureMembershipCredential(GENERIC_CONTEXT);

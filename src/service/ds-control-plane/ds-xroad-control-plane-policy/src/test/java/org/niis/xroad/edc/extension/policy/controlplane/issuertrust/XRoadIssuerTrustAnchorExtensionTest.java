@@ -97,7 +97,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
     @Test
     void startTrustsEveryDistributedIssuerDid(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1, DID_2));
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1, DID_2));
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
@@ -111,7 +111,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
     @Test
     void startTrustsNothingWhenNotDataspaceEnabled(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
@@ -123,7 +123,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
     @Test
     void shutdownIsSafeAfterStart(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1));
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1));
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
@@ -137,7 +137,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(
                 Map.of(XRoadIssuerTrustAnchorExtension.SETTING_REFRESH_INTERVAL_SECONDS, "1")));
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of(DID_1))
                 .thenReturn(List.of(DID_2));
 

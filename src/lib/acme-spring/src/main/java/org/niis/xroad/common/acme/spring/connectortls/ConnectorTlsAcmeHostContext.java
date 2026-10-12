@@ -23,9 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ import java.util.List;
  * worker and its supporting classes stay free of any Security-Server- or Central-Server-specific config,
  * hostname source, or notification mechanism. Each product supplies its own implementation.
  */
-public interface DsTlsAcmeHostContext {
+public interface ConnectorTlsAcmeHostContext {
 
     /**
      * @return this server's public DataSpace-facing hostname, used as both the CSR's subject CN and its DNS
@@ -61,7 +61,7 @@ public interface DsTlsAcmeHostContext {
      *     product-specific data source (globalconf distribution for the Security Server, a directly-read
      *     database table for the Central Server).
      */
-    List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities();
+    List<ApprovedConnectorTlsCAInfo> getConnectorTlsCertificationAuthorities();
 
     /**
      * @return the raw, possibly-unparseable configuration value {@link #getPublicHostname()} resolves from,

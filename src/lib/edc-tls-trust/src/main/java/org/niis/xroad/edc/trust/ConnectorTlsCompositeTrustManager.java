@@ -47,12 +47,12 @@ import java.util.Objects;
  * session does not yet expose a peer — the vault exception is skipped and the list-derived trust decides, so an
  * indeterminate peer can never accidentally land in the narrower vault-only path.
  */
-public final class DsTlsCompositeTrustManager extends X509ExtendedTrustManager {
+public final class ConnectorTlsCompositeTrustManager extends X509ExtendedTrustManager {
 
     private final VaultEndpointTrust vaultTrust;
     private final X509ExtendedTrustManager listTrustManager;
 
-    public DsTlsCompositeTrustManager(VaultEndpointTrust vaultTrust, X509ExtendedTrustManager listTrustManager) {
+    public ConnectorTlsCompositeTrustManager(VaultEndpointTrust vaultTrust, X509ExtendedTrustManager listTrustManager) {
         this.vaultTrust = vaultTrust;
         this.listTrustManager = Objects.requireNonNull(listTrustManager);
     }

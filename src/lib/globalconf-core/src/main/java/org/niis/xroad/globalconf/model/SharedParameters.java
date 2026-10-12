@@ -43,8 +43,8 @@ public class SharedParameters {
     private final List<ConfigurationSource> sources;
     private final List<ApprovedCA> approvedCAs;
     private final List<ApprovedTSA> approvedTSAs;
-    private final List<ApprovedDsTlsCa> approvedDsTlsCas;
-    private final List<String> issuerDids;
+    private final List<ApprovedConnectorTlsCA> approvedConnectorTlsCAs;
+    private final List<String> credentialIssuerDids;
     private final List<Member> members;
     private final List<SecurityServer> securityServers;
     private final List<GlobalGroup> globalGroups;
@@ -59,15 +59,16 @@ public class SharedParameters {
 
     @Builder(toBuilder = true)
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
-                            List<ApprovedTSA> approvedTSAs, List<ApprovedDsTlsCa> approvedDsTlsCas, List<String> issuerDids,
-                            List<Member> members, List<SecurityServer> securityServers, List<GlobalGroup> globalGroups,
+                            List<ApprovedTSA> approvedTSAs, List<ApprovedConnectorTlsCA> approvedConnectorTlsCAs,
+                            List<String> credentialIssuerDids, List<Member> members,
+                            List<SecurityServer> securityServers, List<GlobalGroup> globalGroups,
                             GlobalSettings globalSettings) {
         this.instanceIdentifier = instanceIdentifier;
         this.sources = sources;
         this.approvedCAs = approvedCAs;
         this.approvedTSAs = approvedTSAs;
-        this.approvedDsTlsCas = approvedDsTlsCas != null ? approvedDsTlsCas : List.of();
-        this.issuerDids = issuerDids != null ? issuerDids : List.of();
+        this.approvedConnectorTlsCAs = approvedConnectorTlsCAs != null ? approvedConnectorTlsCAs : List.of();
+        this.credentialIssuerDids = credentialIssuerDids != null ? credentialIssuerDids : List.of();
         this.members = members;
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;
@@ -134,7 +135,7 @@ public class SharedParameters {
         private String ipAddress;
         private String authenticationCertificateProfileId;
         private String signingCertificateProfileId;
-        private String dsTlsCertificateProfileId;
+        private String connectorTlsCertificateProfileId;
 
         public AcmeServer(String directoryURL, String ipAddress, String authenticationCertificateProfileId,
                           String signingCertificateProfileId) {
@@ -181,7 +182,7 @@ public class SharedParameters {
     }
 
     @Data
-    public static class ApprovedDsTlsCa {
+    public static class ApprovedConnectorTlsCA {
         private String name;
         private CaInfo topCA;
         private List<CaInfo> intermediateCas;

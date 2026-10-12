@@ -152,21 +152,22 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="approvedDsTlsCa" type="tns:ApprovedDsTlsCaType" minOccurs="0" maxOccurs="unbounded">
+            <element name="approvedConnectorTlsCA" type="tns:ApprovedConnectorTlsCAType" minOccurs="0" maxOccurs="unbounded">
                 <annotation>
                     <documentation>
-                        Certification authority approved by the Governing Authority for issuing DataSpace TLS server
+                        Certification authority approved by the Governing Authority for issuing connector TLS server
                         certificates. Separate from approvedCA: trust for member certificates never derives from this
                         list.
                     </documentation>
                 </annotation>
             </element>
-            <element name="dataspaceParameters" type="tns:DataspaceParametersType" minOccurs="0">
+            <element name="credentialIssuer" type="tns:CredentialIssuerType" minOccurs="0" maxOccurs="unbounded">
                 <annotation>
                     <documentation>
-                        Dataspace-wide parameters published by this X-Road instance. Absent when the instance is not
-                        dataspace-enabled, i.e. no Central Server node of this instance has provisioned a data space
-                        issuer.
+                        Credential issuer published by one Central Server node of this X-Road instance. Under a
+                        high-availability Central Server, each node publishes its own; the full set is the distributed
+                        credential issuer trust anchor that Security Servers use to trust issued credentials. Absent
+                        when no Central Server node of this instance has provisioned a credential issuer.
                     </documentation>
                 </annotation>
             </element>
@@ -267,7 +268,7 @@
         </sequence>
     </complexType>
 
-    <complexType name="ApprovedDsTlsCaType">
+    <complexType name="ApprovedConnectorTlsCAType">
         <sequence>
             <element name="name" type="string">
                 <annotation>
@@ -302,26 +303,12 @@
         </sequence>
     </complexType>
 
-    <complexType name="DataspaceParametersType">
-        <sequence>
-            <element name="issuer" type="tns:DataspaceIssuerType" maxOccurs="unbounded">
-                <annotation>
-                    <documentation>
-                        One Central Server node's dataspace credential issuer. Under a high-availability Central
-                        Server, each node publishes its own; the full set is the distributed dataspace issuer
-                        trust anchor that Security Servers use to trust issued credentials.
-                    </documentation>
-                </annotation>
-            </element>
-        </sequence>
-    </complexType>
-
-    <complexType name="DataspaceIssuerType">
+    <complexType name="CredentialIssuerType">
         <sequence>
             <element name="did" type="string">
                 <annotation>
                     <documentation>
-                        Issuer DID (did:web) of this dataspace credential issuer.
+                        Issuer DID (did:web) of this credential issuer.
                     </documentation>
                 </annotation>
             </element>
@@ -365,11 +352,11 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="dsTlsCertificateProfileId" type="string" minOccurs="0">
+            <element name="connectorTlsCertificateProfileId" type="string" minOccurs="0">
                 <annotation>
                     <documentation>
                         Profile ID used for some ACME servers to let them know the certificate usage type when ordering
-                        a DataSpace TLS server certificate.
+                        a connector TLS server certificate.
                     </documentation>
                 </annotation>
             </element>

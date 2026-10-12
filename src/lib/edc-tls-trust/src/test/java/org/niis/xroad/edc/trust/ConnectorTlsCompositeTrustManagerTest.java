@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * of through the full EDC/Quarkus boot path.
  */
 @ExtendWith(MockitoExtension.class)
-class DsTlsCompositeTrustManagerTest {
+class ConnectorTlsCompositeTrustManagerTest {
 
     @Mock
     private Monitor monitor;
@@ -100,13 +100,13 @@ class DsTlsCompositeTrustManagerTest {
 
     @Test
     void aPeerChainingOnlyToAMemberApprovedCaIsRejected() throws Exception {
-        var listedDsTlsCa = TestCa.selfSigned("Listed DS TLS CA");
-        // Represents a CA present in the member approvedCA list, but never entered into approvedDsTlsCa. The DS
+        var listedConnectorTlsCa = TestCa.selfSigned("Listed DS TLS CA");
+        // Represents a CA present in the member approvedCA list, but never entered into approvedConnectorTlsCA. The DS
         // TLS trust manager must never consult the member CA list, so this chain is rejected exactly like any
         // other unlisted CA.
         var memberApprovedCa = TestCa.selfSigned("Member Approved CA");
         var leaf = memberApprovedCa.issueLeaf("ds.example");
-        var trustManager = compositeOf(listOnly(listedDsTlsCa));
+        var trustManager = compositeOf(listOnly(listedConnectorTlsCa));
 
         try (var server = TestTlsServer.start(leaf)) {
             assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", server.port(), trustManager)).isFalse();
@@ -125,14 +125,14 @@ class DsTlsCompositeTrustManagerTest {
     }
 
     @Test
-    void aDsTlsCaListChangeTakesEffectWithoutRebuildingTheTrustManager() throws Exception {
+    void aConnectorTlsCaListChangeTakesEffectWithoutRebuildingTheTrustManager() throws Exception {
         var firstCa = TestCa.selfSigned("First DS TLS CA");
         var secondCa = TestCa.selfSigned("Second DS TLS CA");
         var firstLeaf = firstCa.issueLeaf("ds.example");
         var secondLeaf = secondCa.issueLeaf("ds.example");
 
         var delegating = new DelegatingTrustManager(listOnly(firstCa));
-        var trustManager = new DsTlsCompositeTrustManager(null, delegating);
+        var trustManager = new ConnectorTlsCompositeTrustManager(null, delegating);
 
         try (var firstServer = TestTlsServer.start(firstLeaf); var secondServer = TestTlsServer.start(secondLeaf)) {
             assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", firstServer.port(), trustManager)).isTrue();
@@ -156,7 +156,7 @@ class DsTlsCompositeTrustManagerTest {
         try (var vaultServer = TestTlsServer.start(vaultLeaf); var otherServer = TestTlsServer.start(vaultCaOnAnotherPortLeaf)) {
             var vaultTrust = VaultEndpointTrust.from("https://127.0.0.1:" + vaultServer.port(), writeCaCert(vaultCa), monitor)
                     .orElseThrow();
-            var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+            var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
 
             assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", vaultServer.port(), trustManager)).isTrue();
             assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", otherServer.port(), trustManager)).isFalse();
@@ -175,7 +175,7 @@ class DsTlsCompositeTrustManagerTest {
         try (var server = TestTlsServer.start(vaultLeaf)) {
             var vaultTrust = VaultEndpointTrust.from("https://localhost:" + server.port(), writeCaCert(vaultCa), monitor)
                     .orElseThrow();
-            var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+            var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
 
             assertThat(TestTlsClient.handshakeSucceeds("localhost", server.port(), trustManager)).isTrue();
             assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", server.port(), trustManager)).isFalse();
@@ -196,7 +196,7 @@ class DsTlsCompositeTrustManagerTest {
         try (var server = TestTlsServer.start(vaultLeaf)) {
             var vaultTrust = VaultEndpointTrust.from("https://[::1]:" + server.port(), writeCaCert(vaultCa), monitor)
                     .orElseThrow();
-            var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+            var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
 
             assertThat(TestTlsClient.handshakeSucceeds("::1", server.port(), trustManager)).isTrue();
         }
@@ -206,7 +206,7 @@ class DsTlsCompositeTrustManagerTest {
     void withoutAVaultCaTheCompositeIsPureListOnly() throws Exception {
         var listedCa = TestCa.selfSigned("Listed DS TLS CA");
         var leaf = listedCa.issueLeaf("ds.example");
-        var trustManager = new DsTlsCompositeTrustManager(null, listOnly(listedCa));
+        var trustManager = new ConnectorTlsCompositeTrustManager(null, listOnly(listedCa));
 
         try (var server = TestTlsServer.start(leaf)) {
             assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", server.port(), trustManager)).isTrue();
@@ -220,7 +220,7 @@ class DsTlsCompositeTrustManagerTest {
         var vaultTrust = VaultEndpointTrust.from("https://vault:8200", writeCaCert(vaultCa), monitor).orElseThrow();
         // A list that would reject the vault CA, so the assertion can tell "routed to the vault exception" apart
         // from "routed to the list": if this overload ever consulted the vault exception, the call would succeed.
-        var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+        var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(vaultLeaf.chain(), "RSA"))
                 .isInstanceOf(CertificateException.class);
@@ -231,7 +231,7 @@ class DsTlsCompositeTrustManagerTest {
         var vaultCa = TestCa.selfSigned("Vault CA");
         var vaultLeaf = vaultCa.issueLeaf("vault");
         var vaultTrust = VaultEndpointTrust.from("https://vault:8200", writeCaCert(vaultCa), monitor).orElseThrow();
-        var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+        var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
 
         try (var plainSocket = new Socket()) {
             assertThatThrownBy(() -> trustManager.checkServerTrusted(vaultLeaf.chain(), "RSA", plainSocket))
@@ -239,8 +239,8 @@ class DsTlsCompositeTrustManagerTest {
         }
     }
 
-    private static DsTlsCompositeTrustManager compositeOf(X509ExtendedTrustManager listTrustManager) {
-        return new DsTlsCompositeTrustManager(null, listTrustManager);
+    private static ConnectorTlsCompositeTrustManager compositeOf(X509ExtendedTrustManager listTrustManager) {
+        return new ConnectorTlsCompositeTrustManager(null, listTrustManager);
     }
 
     private static X509ExtendedTrustManager listOnly(TestCa... approvedCas) throws Exception {

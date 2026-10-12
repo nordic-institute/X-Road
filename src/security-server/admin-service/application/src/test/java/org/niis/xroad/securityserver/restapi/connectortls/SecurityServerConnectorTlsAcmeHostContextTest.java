@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.securityserver.restapi.connectortls;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -47,7 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SecurityServerDsTlsAcmeHostContextTest {
+class SecurityServerConnectorTlsAcmeHostContextTest {
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -58,15 +58,15 @@ class SecurityServerDsTlsAcmeHostContextTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
     @Mock
-    private DsTlsCertificateService dsTlsCertificateService;
+    private DsTlsCertificateService connectorTlsCertificateService;
 
-    private SecurityServerDsTlsAcmeHostContext hostContext;
+    private SecurityServerConnectorTlsAcmeHostContext hostContext;
 
     @BeforeEach
     void setUp() {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        hostContext = new SecurityServerDsTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper, globalConfProvider,
-                dsTlsCertificateService);
+        hostContext = new SecurityServerConnectorTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper, globalConfProvider,
+                connectorTlsCertificateService);
     }
 
     @Test
@@ -105,8 +105,8 @@ class SecurityServerDsTlsAcmeHostContextTest {
     }
 
     @Test
-    void getEabAliasShouldBeTheFixedDsTlsAlias() {
-        assertThat(hostContext.getEabAlias()).isEqualTo(SecurityServerDsTlsAcmeHostContext.DS_TLS_ACME_ALIAS);
+    void getEabAliasShouldBeTheFixedConnectorTlsAlias() {
+        assertThat(hostContext.getEabAlias()).isEqualTo(SecurityServerConnectorTlsAcmeHostContext.DS_TLS_ACME_ALIAS);
     }
 
     @Test
@@ -122,12 +122,12 @@ class SecurityServerDsTlsAcmeHostContextTest {
     }
 
     @Test
-    void getDsTlsCertificationAuthoritiesShouldReturnTheOnesApprovedInGlobalconf() {
+    void getConnectorTlsCertificationAuthoritiesShouldReturnTheOnesApprovedInGlobalconf() {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
-        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, null);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        ApprovedConnectorTlsCAInfo caInfo = new ApprovedConnectorTlsCAInfo("Test CA", null, List.of(), "http://testca:8887", null, null);
+        when(globalConfProvider.getApprovedConnectorTlsCAs("DEV")).thenReturn(List.of(caInfo));
 
-        assertThat(hostContext.getDsTlsCertificationAuthorities()).containsExactly(caInfo);
+        assertThat(hostContext.getConnectorTlsCertificationAuthorities()).containsExactly(caInfo);
     }
 
     @Test
@@ -139,7 +139,7 @@ class SecurityServerDsTlsAcmeHostContextTest {
 
     @Test
     void notifyEnrollmentFailureShouldReportAnEnrollmentFailureWhenNoCertificateIsStoredYet() {
-        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "boom"));
+        when(connectorTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "boom"));
 
         hostContext.notifyEnrollmentFailure("ds.example.org", "boom");
 
@@ -148,7 +148,7 @@ class SecurityServerDsTlsAcmeHostContextTest {
 
     @Test
     void notifyEnrollmentFailureShouldReportARenewalFailureWhenACertificateIsAlreadyStored() {
-        when(dsTlsCertificateService.getEnrollmentStatus())
+        when(connectorTlsCertificateService.getEnrollmentStatus())
                 .thenReturn(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "boom"));
 
         hostContext.notifyEnrollmentFailure("ds.example.org", "boom");

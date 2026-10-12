@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.application.dstls;
+package org.niis.xroad.cs.admin.application.connectortls;
 
 import ee.ria.xroad.common.TestCertUtil;
 
@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -45,18 +45,18 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CentralServerDsTlsAcmeHostContextTest {
+class CentralServerConnectorTlsAcmeHostContextTest {
 
     @Mock
     private DataspaceIssuerProperties dataspaceIssuerProperties;
     @Mock
-    private DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
+    private DsTlsCertificationAuthoritiesService connectorTlsCertificationAuthoritiesService;
 
-    private CentralServerDsTlsAcmeHostContext hostContext;
+    private CentralServerConnectorTlsAcmeHostContext hostContext;
 
     @BeforeEach
     void setUp() {
-        hostContext = new CentralServerDsTlsAcmeHostContext(dataspaceIssuerProperties, dsTlsCertificationAuthoritiesService);
+        hostContext = new CentralServerConnectorTlsAcmeHostContext(dataspaceIssuerProperties, connectorTlsCertificationAuthoritiesService);
     }
 
     @Test
@@ -74,8 +74,8 @@ class CentralServerDsTlsAcmeHostContextTest {
     }
 
     @Test
-    void getEabAliasShouldBeTheFixedDsTlsAlias() {
-        assertThat(hostContext.getEabAlias()).isEqualTo(CentralServerDsTlsAcmeHostContext.DS_TLS_ACME_ALIAS)
+    void getEabAliasShouldBeTheFixedConnectorTlsAlias() {
+        assertThat(hostContext.getEabAlias()).isEqualTo(CentralServerConnectorTlsAcmeHostContext.DS_TLS_ACME_ALIAS)
                 .isEqualTo("dataspace-tls");
     }
 
@@ -85,7 +85,7 @@ class CentralServerDsTlsAcmeHostContextTest {
     }
 
     @Test
-    void getDsTlsCertificationAuthoritiesShouldReadFromTheCsOwnServiceNotGlobalconf() throws Exception {
+    void getConnectorTlsCertificationAuthoritiesShouldReadFromTheCsOwnServiceNotGlobalconf() throws Exception {
         X509Certificate caCertificate = TestCertUtil.getCa().certChain[0];
         DsTlsCertificationAuthority ca = new DsTlsCertificationAuthority()
                 .setName("Test DS TLS CA")
@@ -93,24 +93,24 @@ class CentralServerDsTlsAcmeHostContextTest {
                 .setIntermediateCas(List.of())
                 .setAcmeServerDirectoryUrl("http://testca:8887")
                 .setDsTlsCertificateProfileId("ds-tls-profile");
-        when(dsTlsCertificationAuthoritiesService.findAll()).thenReturn(List.of(ca));
+        when(connectorTlsCertificationAuthoritiesService.findAll()).thenReturn(List.of(ca));
 
-        List<ApprovedDsTlsCaInfo> result = hostContext.getDsTlsCertificationAuthorities();
+        List<ApprovedConnectorTlsCAInfo> result = hostContext.getConnectorTlsCertificationAuthorities();
 
         assertThat(result).hasSize(1);
-        ApprovedDsTlsCaInfo caInfo = result.getFirst();
+        ApprovedConnectorTlsCAInfo caInfo = result.getFirst();
         assertThat(caInfo.getName()).isEqualTo("Test DS TLS CA");
         assertThat(caInfo.getTopCaCert()).isEqualTo(caCertificate);
         assertThat(caInfo.getIntermediateCaCerts()).isEmpty();
         assertThat(caInfo.getAcmeServerDirectoryUrl()).isEqualTo("http://testca:8887");
-        assertThat(caInfo.getDsTlsCertificateProfileId()).isEqualTo("ds-tls-profile");
+        assertThat(caInfo.getConnectorTlsCertificateProfileId()).isEqualTo("ds-tls-profile");
     }
 
     @Test
-    void getDsTlsCertificationAuthoritiesShouldReturnEmptyWhenNoneDesignated() {
-        when(dsTlsCertificationAuthoritiesService.findAll()).thenReturn(List.of());
+    void getConnectorTlsCertificationAuthoritiesShouldReturnEmptyWhenNoneDesignated() {
+        when(connectorTlsCertificationAuthoritiesService.findAll()).thenReturn(List.of());
 
-        assertThat(hostContext.getDsTlsCertificationAuthorities()).isEmpty();
+        assertThat(hostContext.getConnectorTlsCertificationAuthorities()).isEmpty();
     }
 
     @Test

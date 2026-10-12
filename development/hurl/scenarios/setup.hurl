@@ -187,7 +187,7 @@ cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 
-# Register the DataSpace TLS CA in globalconf's approvedDsTlsCa — a list separate from the
+# Register the DataSpace TLS CA in globalconf's approvedConnectorTlsCA — a list separate from the
 # certification-services (member approvedCA) registration above; ds-* outbound HTTPS trust is never
 # derived from the member CA list. `ds_tls_ca_file` is environment-supplied (compose/ansible variable)
 # since the right trust anchor differs per environment: a self-signed leaf in Docker e2e, the shared

@@ -23,14 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.common.acme.spring.connectortls;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.AcmeAccountContext;
 import org.niis.xroad.common.acme.AcmeClient;
 import org.niis.xroad.common.acme.AcmeKeyPurpose;
 import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
@@ -41,27 +41,27 @@ import java.util.List;
  * Thin DS TLS-specific wrapper around the shared {@link AcmeClient} engine (order, renew, ARI-aware renewal
  * timing) — no signer, no member id, no {@code KeyUsageInfo}.
  * <p>
- * Every call is made under a fixed, non-member ACME account alias supplied by {@link DsTlsAcmeHostContext},
+ * Every call is made under a fixed, non-member ACME account alias supplied by {@link ConnectorTlsAcmeHostContext},
  * reusing the existing per-CA/per-member EAB configuration map with a synthetic member slot rather than
  * extending its schema. That alias can never collide with a real encoded {@code ClientId}, because every
  * encoded {@code ClientId} contains a {@code :} separator and this alias does not.
  * <p>
- * This class is the only place that knows {@link ApprovedDsTlsCaInfo} exists — it's translated into a plain
+ * This class is the only place that knows {@link ApprovedConnectorTlsCAInfo} exists — it's translated into a plain
  * {@link AcmeAccountContext} here before ever reaching {@link AcmeClient}, so the shared engine never needs to
  * know this CA-info shape exists at all. This class depends directly on {@link AcmeClient}, never on
  * {@link AcmeService} — that class is member auth/sign's own façade over the same shared engine.
  */
 @Component
 @RequiredArgsConstructor
-class DsTlsAcmeService {
+class ConnectorTlsAcmeService {
 
     private final AcmeClient acmeClient;
-    private final DsTlsAcmeHostContext hostContext;
+    private final ConnectorTlsAcmeHostContext hostContext;
 
     /**
      * Orders a brand-new DS TLS certificate: no certificate exists yet for this CSR's key.
      */
-    List<X509Certificate> enroll(ApprovedDsTlsCaInfo caInfo, String hostname, byte[] certRequest) {
+    List<X509Certificate> enroll(ApprovedConnectorTlsCAInfo caInfo, String hostname, byte[] certRequest) {
         return acmeClient.orderCertificate(hostname, hostname, toAccountContext(caInfo), certRequest);
     }
 
@@ -69,7 +69,8 @@ class DsTlsAcmeService {
      * Renews the currently stored DS TLS certificate, referencing it via ACME Renewal Information where the CA
      * supports it.
      */
-    List<X509Certificate> renew(ApprovedDsTlsCaInfo caInfo, String hostname, X509Certificate currentCertificate, byte[] certRequest) {
+    List<X509Certificate> renew(ApprovedConnectorTlsCAInfo caInfo, String hostname, X509Certificate currentCertificate,
+                                byte[] certRequest) {
         return acmeClient.renew(toAccountContext(caInfo), hostname, currentCertificate, certRequest);
     }
 
@@ -77,12 +78,12 @@ class DsTlsAcmeService {
      * The time {@code certificate} is next due for ACME renewal: the CA's suggested ACME Renewal Information window
      * start where available, otherwise a fixed number of days before the certificate's own expiry.
      */
-    Instant getNextRenewalTime(ApprovedDsTlsCaInfo caInfo, X509Certificate certificate) {
+    Instant getNextRenewalTime(ApprovedConnectorTlsCAInfo caInfo, X509Certificate certificate) {
         return acmeClient.getNextRenewalTime(toAccountContext(caInfo), certificate);
     }
 
-    private AcmeAccountContext toAccountContext(ApprovedDsTlsCaInfo caInfo) {
+    private AcmeAccountContext toAccountContext(ApprovedConnectorTlsCAInfo caInfo) {
         return new AcmeAccountContext(hostContext.getEabAlias(), caInfo.getName(), caInfo.getAcmeServerDirectoryUrl(),
-                caInfo.getDsTlsCertificateProfileId(), AcmeKeyPurpose.AUTHENTICATION, hostContext.getAccountContacts());
+                caInfo.getConnectorTlsCertificateProfileId(), AcmeKeyPurpose.AUTHENTICATION, hostContext.getAccountContacts());
     }
 }
