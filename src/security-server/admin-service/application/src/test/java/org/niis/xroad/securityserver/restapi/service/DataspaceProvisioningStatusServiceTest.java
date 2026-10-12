@@ -37,6 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
+import org.niis.xroad.common.properties.config.keys.DspPortReader;
+import org.niis.xroad.common.properties.config.keys.DspPortReader.DspPorts;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -81,6 +83,8 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private Dataspace dataspace;
     @Mock
+    private DspPortReader dspPortReader;
+    @Mock
     private DataspaceReadinessPredicates readinessPredicates;
     @Mock
     private IdentityHubProvisioningClient identityHubClient;
@@ -103,7 +107,7 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        lenient().when(dspPortReader.read()).thenReturn(new DspPorts(7183, 8183));
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -123,7 +127,7 @@ class DataspaceProvisioningStatusServiceTest {
         var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties, dspPortReader));
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);

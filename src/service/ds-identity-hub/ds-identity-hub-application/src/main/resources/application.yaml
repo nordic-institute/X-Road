@@ -48,7 +48,7 @@ web:
     port: 7181
     path: /api
     did:
-      port: 7183
+      port: ${xroad.dsp.did-port}
       path: /
     sts:
       port: 7184

@@ -39,6 +39,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
+import org.niis.xroad.common.properties.config.keys.DspPortReader;
+import org.niis.xroad.common.properties.config.keys.DspPortReader.DspPorts;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -98,6 +100,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
     @Mock
     private Dataspace dataspace;
     @Mock
+    private DspPortReader dspPortReader;
+    @Mock
     private DataspaceReadinessPredicates readinessPredicates;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
@@ -115,7 +119,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + IDENTITY_HUB_HOST.split(":")[0]);
         when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        when(dspPortReader.read()).thenReturn(new DspPorts(7183, 8183));
         when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -127,7 +131,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         givenServerOwnedBy(OWNER);
 
         var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
-        var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
+        var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties, dspPortReader);
         var service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider, didAuthority);
         worker = new DataspaceParticipantProvisioningWorker(service, readinessPredicates,

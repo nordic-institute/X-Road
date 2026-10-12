@@ -39,15 +39,16 @@ import static org.niis.xroad.common.properties.config.Validator.positiveLong;
 import static org.niis.xroad.common.properties.config.Validator.range;
 
 /**
- * X-Road owned inputs to ds-control-plane's own {@code ServiceExtensionContext} settings
- * ({@code xroad.dsp.*}).
+ * The {@code xroad.dsp.*} keys shared by the dataspace components.
  *
- * <p>Unlike a packaged-yaml-interpolated EDC setting ({@link EdcConfigKeys}), these keys are read
- * directly by ds-control-plane extensions via {@code ServiceExtensionContext.getSetting(key, default)} —
- * the key declared here already is the setting name the extension asks for, so no yaml interpolation
- * hop is needed. {@code publishedToFramework()} still has to be set on every key: it is what copies a
- * stored override into the Quarkus config tree ds-control-plane's {@code QuarkusConfigBridge} exposes to
- * {@code getSetting()}; without it a DB-seeded row would never reach the extension.
+ * <p>A key is consumed in one of three ways. The control-plane extensions read a key through
+ * {@code ServiceExtensionContext.getSetting}: the catalog cache keys, the built-in services keys and the
+ * issuer-trust refresh interval. An X-Road process reads a key through {@code XRoadConfig}: the admin
+ * service reads both port keys through {@code DspPortReader}. An application configuration interpolates a
+ * key with {@code ${...}}: the identity hub's DID web context port uses {@code ${xroad.dsp.did-port}}.
+ *
+ * <p>{@code publishedToFramework()} is set on every key so that the packaged default and a stored row both
+ * reach the framework configuration, which serves the first and the third way.
  */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class DspConfigKeys implements ConfigKeyProvider {
@@ -58,6 +59,20 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     private static final Prefix ISSUER_TRUST = DSP.subPrefix("issuer-trust");
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
+
+    /** {@code xroad.dsp.did-port}. */
+    public static final ConfigKey<Integer> DID_PORT = DSP
+            .integer("did-port")
+            .withDefaultValue(7183)
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.dsp-port}. */
+    public static final ConfigKey<Integer> DSP_PORT = DSP
+            .integer("dsp-port")
+            .withDefaultValue(8183)
+            .publishedToFramework()
+            .build();
 
     /** {@code xroad.dsp.catalog.cache.enabled}. */
     public static final ConfigKey<Boolean> CATALOG_CACHE_ENABLED = CATALOG_CACHE

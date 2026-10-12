@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.keys.DspPortReader;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -47,13 +48,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * derived for it. Single switch point for the provisioning reader and the binding writer, so a
  * bound DID and a freshly derived one can never disagree because of two derivations.
  *
- * <p>Source: the GlobalConf-registered security server address at the configured identity hub DID
- * port — the same coordinates counter-parties derive from their own GlobalConf copy
- * ({@link DspConventions#didAuthority(String)}), so the identity hub must serve DID documents on
- * that authority and the configured port only agrees with peers while it is
- * {@link DspConventions#DID_PORT}. The authority is part of every DID bound in
- * {@code ds_participant}, so changing the registered address or the port after a member's identity
- * has been bound makes that row fail verification.
+ * <p>Source: the GlobalConf-registered security server address at the stored DID port
+ * ({@code xroad.dsp.did-port}), the port the identity hub listens on for DID documents. The authority
+ * is part of every DID bound in {@code ds_participant}, so changing the registered address or the port
+ * after a member's identity has been bound makes that row fail verification.
  *
  * <p>Unknown until the server's owner is initialized, GlobalConf has been downloaded and the
  * server's registration has landed in it — normal states before and during registration, reported
@@ -65,9 +63,11 @@ public class DataspaceDidAuthority {
 
     private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final AdminServiceProperties adminServiceProperties;
+    private final DspPortReader dspPortReader;
 
     /**
      * @return whether the registered address the authority derives from is resolvable yet
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if a stored DID or DSP port is outside 1-65535
      */
     public boolean isKnown() {
         return find().isPresent();
@@ -76,6 +76,7 @@ public class DataspaceDidAuthority {
     /**
      * @return the authority as {@code host:port}, as embedded in derived DIDs
      * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if a stored DID or DSP port is outside 1-65535
      */
     public String current() {
         return find().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
@@ -108,7 +109,7 @@ public class DataspaceDidAuthority {
     }
 
     private Optional<String> find() {
-        var didPort = adminServiceProperties.getDataspace().getIdentityHubDidPort();
+        var didPort = dspPortReader.read().didPort();
         return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
     }
 }

@@ -114,6 +114,9 @@ services:
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
       - DEBUG=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     healthcheck:
       interval: 5s
       retries: 40
@@ -126,6 +129,8 @@ services:
       - "0:9999"
     depends_on:
       db-ds-identity-hub:
+        condition: service_healthy
+      configuration-client:
         condition: service_healthy
 
   db-ds-issuer-service:
