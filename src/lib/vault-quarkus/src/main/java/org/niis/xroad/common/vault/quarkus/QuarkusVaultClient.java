@@ -147,6 +147,11 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
+    public void clearOpMonitorCa() {
+        kvSecretEngine.writeSecret(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 

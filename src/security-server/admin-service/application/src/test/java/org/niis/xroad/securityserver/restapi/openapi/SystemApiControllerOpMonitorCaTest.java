@@ -91,6 +91,21 @@ public class SystemApiControllerOpMonitorCaTest extends AbstractApiControllerTes
     }
 
     @Test
+    @WithMockUser(authorities = {"DELETE_OP_MONITOR_CA"})
+    public void deleteOpMonitorCaClearsTheCaAndReturnsNoContent() {
+        var response = systemApiController.deleteOpMonitorCa();
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(opMonitorCaService).deleteOpMonitorCa();
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_OP_MONITOR_CA", "UPLOAD_OP_MONITOR_CA"})
+    public void deleteOpMonitorCaRequiresDeletePermission() {
+        assertThrows(AccessDeniedException.class, () -> systemApiController.deleteOpMonitorCa());
+        verify(opMonitorCaService, never()).deleteOpMonitorCa();
+    }
+
+    @Test
     @WithMockUser(authorities = {"UPLOAD_OP_MONITOR_CA"})
     public void getOpMonitorCaRequiresViewPermission() {
         assertThrows(AccessDeniedException.class, () -> systemApiController.getOpMonitorCa());

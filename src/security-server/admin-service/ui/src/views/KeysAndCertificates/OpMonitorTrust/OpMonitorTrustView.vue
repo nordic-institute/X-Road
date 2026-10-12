@@ -49,17 +49,33 @@
         <CaCertificateDetails v-if="internalRpcCa" :certificate="internalRpcCa" test-id-prefix="internal-rpc-ca" />
       </XrdCard>
       <XrdCard v-if="canViewOpMonitorCa" class="mt-6" title="opMonitorTrust.opMonitorCa.title">
-        <template v-if="canUploadOpMonitorCa" #title-actions>
-          <XrdFileUpload v-slot="{ upload }" accepts=".der, .crt, .pem, .cer" @file-changed="uploadOpMonitorCaFile">
+        <template v-if="canUploadOpMonitorCa || canDeleteOpMonitorCa" #title-actions>
+          <div class="d-flex flex-row align-center justify-end">
             <XrdBtn
-              data-test="upload-op-monitor-ca-button"
+              v-if="canDeleteOpMonitorCa && opMonitorCa"
+              data-test="delete-op-monitor-ca-button"
               variant="outlined"
-              prepend-icon="upload"
-              :text="opMonitorCa ? 'opMonitorTrust.opMonitorCa.replace' : 'opMonitorTrust.opMonitorCa.upload'"
-              :loading="uploading"
-              @click="upload"
+              prepend-icon="delete"
+              text="opMonitorTrust.opMonitorCa.delete"
+              class="mr-2"
+              @click="confirmDeleteOpMonitorCa = true"
             />
-          </XrdFileUpload>
+            <XrdFileUpload
+              v-if="canUploadOpMonitorCa"
+              v-slot="{ upload }"
+              accepts=".der, .crt, .pem, .cer"
+              @file-changed="uploadOpMonitorCaFile"
+            >
+              <XrdBtn
+                data-test="upload-op-monitor-ca-button"
+                variant="outlined"
+                prepend-icon="upload"
+                :text="opMonitorCa ? 'opMonitorTrust.opMonitorCa.replace' : 'opMonitorTrust.opMonitorCa.upload'"
+                :loading="uploading"
+                @click="upload"
+              />
+            </XrdFileUpload>
+          </div>
         </template>
         <p class="body-regular px-4 pb-4" data-test="op-monitor-ca-description">{{ $t('opMonitorTrust.opMonitorCa.description') }}</p>
         <p class="body-regular px-4 pb-4" data-test="op-monitor-ca-restart-hint">{{ $t('opMonitorTrust.opMonitorCa.restartHint') }}</p>
@@ -68,13 +84,22 @@
         </p>
         <CaCertificateDetails v-if="opMonitorCa" :certificate="opMonitorCa" test-id-prefix="op-monitor-ca" />
       </XrdCard>
+      <XrdConfirmDialog
+        v-if="confirmDeleteOpMonitorCa"
+        data-test="delete-op-monitor-ca-confirm-dialog"
+        title="opMonitorTrust.opMonitorCa.deleteConfirmTitle"
+        text="opMonitorTrust.opMonitorCa.deleteConfirmText"
+        :loading="deleting"
+        @cancel="confirmDeleteOpMonitorCa = false"
+        @accept="deleteOpMonitorCaConfirmed"
+      />
     </XrdSubView>
   </XrdView>
 </template>
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { FileUploadResult, XrdBtn, XrdCard, XrdFileUpload, XrdSubView, XrdView, useNotifications } from '@niis/shared-ui';
+import { FileUploadResult, XrdBtn, XrdCard, XrdConfirmDialog, XrdFileUpload, XrdSubView, XrdView, useNotifications } from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { useOpMonitorTrust } from '@/store/modules/op-monitor-trust';
@@ -83,7 +108,7 @@ import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertific
 import CaCertificateDetails from '@/views/KeysAndCertificates/OpMonitorTrust/CaCertificateDetails.vue';
 
 const { hasPermission } = useUser();
-const { fetchInternalRpcCa, downloadInternalRpcCa, fetchOpMonitorCa, uploadOpMonitorCa } = useOpMonitorTrust();
+const { fetchInternalRpcCa, downloadInternalRpcCa, fetchOpMonitorCa, uploadOpMonitorCa, deleteOpMonitorCa } = useOpMonitorTrust();
 const { addError, addSuccessMessage } = useNotifications();
 
 const internalRpcCa = ref<CertificateDetails | undefined>(undefined);
@@ -93,10 +118,13 @@ const downloading = ref(false);
 const opMonitorCa = ref<CertificateDetails | undefined>(undefined);
 const loadingOpMonitorCa = ref(false);
 const uploading = ref(false);
+const confirmDeleteOpMonitorCa = ref(false);
+const deleting = ref(false);
 
 const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_INTERNAL_RPC_CA));
 const canViewOpMonitorCa = computed(() => hasPermission(Permissions.VIEW_OP_MONITOR_CA));
 const canUploadOpMonitorCa = computed(() => hasPermission(Permissions.UPLOAD_OP_MONITOR_CA));
+const canDeleteOpMonitorCa = computed(() => hasPermission(Permissions.DELETE_OP_MONITOR_CA));
 
 function fetchData(): void {
   loading.value = true;
@@ -135,6 +163,18 @@ function uploadOpMonitorCaFile(event: FileUploadResult): void {
     })
     .catch((error) => addError(error))
     .finally(() => (uploading.value = false));
+}
+
+function deleteOpMonitorCaConfirmed(): void {
+  deleting.value = true;
+  deleteOpMonitorCa()
+    .then(() => {
+      opMonitorCa.value = undefined;
+      confirmDeleteOpMonitorCa.value = false;
+      addSuccessMessage('opMonitorTrust.opMonitorCa.deleted');
+    })
+    .catch((error) => addError(error))
+    .finally(() => (deleting.value = false));
 }
 
 fetchData();

@@ -264,6 +264,83 @@ class OpMonitorCaServiceTest {
         assertThatThrownBy(() -> service.getOpMonitorCa()).isInstanceOf(InternalServerErrorException.class);
     }
 
+    @Test
+    void shouldClearTheStoredCaAndAuditItsFingerprintOnDelete() {
+        stored.set(rootCa);
+        keepVaultState();
+        service.deleteOpMonitorCa();
+        verify(vaultClient).clearOpMonitorCa();
+        verify(auditDataHelper).putCertificateHash(rootCa);
+        assertThat(service.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldSucceedOnDeleteWhenNothingIsStoredAndRepeatedDeletesToo() {
+        keepVaultState();
+        service.deleteOpMonitorCa();
+        service.deleteOpMonitorCa();
+        assertThat(service.getOpMonitorCa()).isEmpty();
+        verify(auditDataHelper, never()).putCertificateHash(any(X509Certificate.class));
+    }
+
+    @Test
+    void shouldAllowAnUploadAfterADelete() throws Exception {
+        keepVaultState();
+        service.uploadOpMonitorCa(pem(rootCa));
+        service.deleteOpMonitorCa();
+        service.uploadOpMonitorCa(pem(otherCa));
+        assertThat(stored.get()).isEqualTo(otherCa);
+    }
+
+    @Test
+    void shouldKeepNothingStoredWhenAnUploadIsRejectedAfterADelete() throws Exception {
+        stored.set(rootCa);
+        keepVaultState();
+        service.deleteOpMonitorCa();
+        assertRejected(pem(leaf), ErrorCode.CA_CERT_NOT_A_CA);
+        assertThat(service.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldLeaveNothingStoredWhenTwoCasAreUploadedAndThenDeleted() throws Exception {
+        keepVaultState();
+        service.uploadOpMonitorCa(pem(rootCa));
+        service.uploadOpMonitorCa(pem(otherCa));
+        service.deleteOpMonitorCa();
+        assertThat(service.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldClearTheCaWithoutAuditingItsFingerprintWhenTheStoredCaCannotBeParsed() {
+        when(vaultClient.getOpMonitorCa()).thenThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR).build());
+        service.deleteOpMonitorCa();
+        verify(vaultClient, times(1)).clearOpMonitorCa();
+        verify(auditDataHelper, never()).putCertificateHash(any(X509Certificate.class));
+    }
+
+    @Test
+    void shouldAnswerInternalErrorWhenTheSecretStoreFailsOnDelete() {
+        doThrow(new IllegalStateException("vault sealed")).when(vaultClient).clearOpMonitorCa();
+        assertThatThrownBy(() -> service.deleteOpMonitorCa())
+                .isInstanceOfSatisfying(InternalServerErrorException.class,
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorCode.INTERNAL_ERROR.code()));
+    }
+
+    @Test
+    void shouldAnswerInternalErrorWhenTheVaultClientCannotClearTheCa() {
+        doThrow(new UnsupportedOperationException("Not supported")).when(vaultClient).clearOpMonitorCa();
+        assertThatThrownBy(() -> service.deleteOpMonitorCa()).isInstanceOf(InternalServerErrorException.class);
+    }
+
+    @Test
+    void shouldKeepTheErrorCodeOfAnXrdRuntimeExceptionFromTheSecretStoreOnDelete() {
+        doThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE).build())
+                .when(vaultClient).clearOpMonitorCa();
+        assertThatThrownBy(() -> service.deleteOpMonitorCa())
+                .isInstanceOfSatisfying(InternalServerErrorException.class,
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE.code()));
+    }
+
     private void assertRejected(byte[] upload, ErrorCode expected) {
         assertThatThrownBy(() -> service.uploadOpMonitorCa(upload))
                 .isInstanceOfSatisfying(BadRequestException.class,
@@ -276,6 +353,10 @@ class OpMonitorCaServiceTest {
             stored.set(invocation.getArgument(0));
             return null;
         }).when(vaultClient).createOpMonitorCa(any());
+        lenient().doAnswer(invocation -> {
+            stored.set(null);
+            return null;
+        }).when(vaultClient).clearOpMonitorCa();
     }
 
     private static KeyPair newKeyPair() throws Exception {

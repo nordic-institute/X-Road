@@ -891,6 +891,10 @@
       "unavailable": "The internal RPC CA is not available"
     },
     "opMonitorCa": {
+      "delete": "Delete",
+      "deleteConfirmText": "Delete the op-monitor CA? This Security Server then trusts only its internal RPC CA, as for an op-monitor on the same host.",
+      "deleteConfirmTitle": "Delete op-monitor CA?",
+      "deleted": "The op-monitor CA is deleted",
       "description": "The CA of an operational monitoring daemon (op-monitor) running on another host. Upload it so that this Security Server trusts that op-monitor. The file must hold exactly one PEM or DER encoded CA certificate and no private key.",
       "empty": "No op-monitor CA is stored",
       "replace": "Replace",

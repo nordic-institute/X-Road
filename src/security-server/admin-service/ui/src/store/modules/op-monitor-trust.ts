@@ -49,5 +49,8 @@ export const useOpMonitorTrust = defineStore('op-monitor-trust', {
         .post<CertificateDetails>('/system/op-monitor-ca', buildFileFormData('certificate', certificate), multipartFormDataConfig())
         .then((res) => res.data);
     },
+    async deleteOpMonitorCa() {
+      return api.remove('/system/op-monitor-ca');
+    },
   },
 });

@@ -147,6 +147,7 @@ describe('SS Op-monitor Trust tab — internal RPC CA (Browser Mode)', () => {
 
 const opMonitorCaViewOnly = [Permissions.VIEW_KEYS, Permissions.VIEW_INTERNAL_RPC_CA, Permissions.VIEW_OP_MONITOR_CA];
 const opMonitorCaViewAndUpload = [...opMonitorCaViewOnly, Permissions.UPLOAD_OP_MONITOR_CA];
+const opMonitorCaViewAndDelete = [...opMonitorCaViewOnly, Permissions.DELETE_OP_MONITOR_CA];
 const OP_MONITOR_HASH = '1122334455667788112233445566778811223344556677881122334455667788';
 const OP_MONITOR_FINGERPRINT = OP_MONITOR_HASH.match(/.{2}/g)!.join(':');
 const opMonitorCa: CertificateDetails = {
@@ -240,6 +241,66 @@ describe('SS Op-monitor Trust tab — op-monitor CA (Browser Mode)', () => {
     });
     await expect.element(page.getByTestId('op-monitor-ca-subject')).toBeVisible();
     await expect.poll(() => page.getByTestId('upload-op-monitor-ca-button').query()).toBeNull();
+  });
+  it('asks for confirmation before deleting and shows the empty state and the restart hint afterwards', async () => {
+    const deleteSpy = vi.fn();
+    await renderRoute(OP_MONITOR_TRUST_PATH, {
+      permissions: opMonitorCaViewAndDelete,
+      msw: [
+        detailsHandler,
+        storedOpMonitorCaHandler,
+        specHttp.untyped.delete('/api/v1/system/op-monitor-ca', () => {
+          deleteSpy();
+          return new HttpResponse(null, { status: 204 });
+        }),
+      ],
+    });
+    await expect.element(page.getByTestId('op-monitor-ca-subject')).toBeVisible();
+    await page.getByTestId('delete-op-monitor-ca-button').click();
+    await expect.element(page.getByTestId('dialog-title')).toHaveTextContent('Delete op-monitor CA?');
+    expect(deleteSpy).not.toHaveBeenCalled();
+    await page.getByTestId('dialog-save-button').click();
+    await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
+    await expect.element(page.getByTestId('op-monitor-ca-empty')).toBeVisible();
+    await expect.element(page.getByTestId('op-monitor-ca-restart-hint')).toHaveTextContent('Restart proxy and admin-service to apply');
+    await expect.poll(() => page.getByTestId('op-monitor-ca-details').query()).toBeNull();
+    await expect.poll(() => page.getByTestId('delete-op-monitor-ca-button').query()).toBeNull();
+  });
+  it('keeps the stored op-monitor CA when the delete confirmation is cancelled', async () => {
+    const deleteSpy = vi.fn();
+    await renderRoute(OP_MONITOR_TRUST_PATH, {
+      permissions: opMonitorCaViewAndDelete,
+      msw: [
+        detailsHandler,
+        storedOpMonitorCaHandler,
+        specHttp.untyped.delete('/api/v1/system/op-monitor-ca', () => {
+          deleteSpy();
+          return new HttpResponse(null, { status: 204 });
+        }),
+      ],
+    });
+    await expect.element(page.getByTestId('op-monitor-ca-subject')).toBeVisible();
+    await page.getByTestId('delete-op-monitor-ca-button').click();
+    await page.getByTestId('dialog-cancel-button').click();
+    await expect.poll(() => page.getByTestId('dialog-title').query()).toBeNull();
+    expect(deleteSpy).not.toHaveBeenCalled();
+    await expect.element(page.getByTestId('op-monitor-ca-subject')).toBeVisible();
+  });
+  it('hides the delete action without the delete permission', async () => {
+    await renderRoute(OP_MONITOR_TRUST_PATH, {
+      permissions: opMonitorCaViewAndUpload,
+      msw: [detailsHandler, storedOpMonitorCaHandler],
+    });
+    await expect.element(page.getByTestId('op-monitor-ca-subject')).toBeVisible();
+    await expect.poll(() => page.getByTestId('delete-op-monitor-ca-button').query()).toBeNull();
+  });
+  it('does not offer delete when no op-monitor CA is stored', async () => {
+    await renderRoute(OP_MONITOR_TRUST_PATH, {
+      permissions: opMonitorCaViewAndDelete,
+      msw: [detailsHandler, noOpMonitorCaHandler],
+    });
+    await expect.element(page.getByTestId('op-monitor-ca-empty')).toBeVisible();
+    await expect.poll(() => page.getByTestId('delete-op-monitor-ca-button').query()).toBeNull();
   });
   it('hides the op-monitor CA card without the view permission', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewOnly, msw: [detailsHandler] });

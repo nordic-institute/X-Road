@@ -5049,6 +5049,30 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
+    delete:
+      tags:
+        - system
+      summary: delete the op-monitor CA
+      operationId: deleteOpMonitorCa
+      description: <h3>Administrator deletes the stored op-monitor CA. The Security Server then trusts only its internal
+        RPC CA, as for an operational monitoring daemon on the same host. Deleting when no op-monitor CA is stored
+        succeeds and changes nothing.</h3>
+      responses:
+        '204':
+          description: no op-monitor CA is stored any more
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: the op-monitor CA could not be deleted from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
   /system/server-address:
     get:
       tags:

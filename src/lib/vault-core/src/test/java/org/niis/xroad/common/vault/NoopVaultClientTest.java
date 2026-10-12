@@ -79,6 +79,13 @@ class NoopVaultClientTest {
     }
 
     @Test
+    void clearOpMonitorCaShouldThrow() {
+        assertThatThrownBy(() -> vaultClient.clearOpMonitorCa())
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessage("Not supported");
+    }
+
+    @Test
     void acmeAccountKeyPathShouldBeSanitizedAndCollisionFreePerAlias() {
         var pathOne = vaultClient.getAcmeAccountKeyPath("auth_CS:ORG:MEMBER1");
         var pathTwo = vaultClient.getAcmeAccountKeyPath("sign_CS:ORG:MEMBER1");

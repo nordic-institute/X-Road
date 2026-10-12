@@ -142,6 +142,11 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
+    public void clearOpMonitorCa() {
+        vaultClient.put(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 

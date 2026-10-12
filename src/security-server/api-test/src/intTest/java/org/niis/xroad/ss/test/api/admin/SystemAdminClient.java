@@ -137,4 +137,13 @@ public class SystemAdminClient {
                 .post("/system/op-monitor-ca")
                 .then();
     }
+
+    /**
+     * Deletes the op-monitor CA; succeeds with 204 also when none is stored.
+     */
+    public ValidatableResponse deleteOpMonitorCa() {
+        return session.given()
+                .delete("/system/op-monitor-ca")
+                .then();
+    }
 }

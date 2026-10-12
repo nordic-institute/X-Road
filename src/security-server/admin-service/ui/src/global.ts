@@ -181,6 +181,7 @@ export enum Permissions {
   DOWNLOAD_INTERNAL_RPC_CA = 'DOWNLOAD_INTERNAL_RPC_CA', // download the internal RPC CA
   VIEW_OP_MONITOR_CA = 'VIEW_OP_MONITOR_CA', // view the op-monitor CA details
   UPLOAD_OP_MONITOR_CA = 'UPLOAD_OP_MONITOR_CA', // upload or replace the op-monitor CA
+  DELETE_OP_MONITOR_CA = 'DELETE_OP_MONITOR_CA', // delete the op-monitor CA
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab

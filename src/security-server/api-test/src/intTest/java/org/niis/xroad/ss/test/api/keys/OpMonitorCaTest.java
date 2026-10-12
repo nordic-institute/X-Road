@@ -35,7 +35,10 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTest;
@@ -67,8 +70,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
-@DisplayName("Op-monitor CA — upload and details")
+@DisplayName("Op-monitor CA — upload, delete and details")
 @ResourceLock("op-monitor-ca")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("checkstyle:magicnumber")
 class OpMonitorCaTest extends SsApiTest {
 
@@ -175,6 +179,104 @@ class OpMonitorCaTest extends SsApiTest {
 
         then("the details show the second CA", () ->
                 client.getOpMonitorCa().statusCode(200).body("hash", equalToIgnoringCase(sha256Hex(second))));
+    }
+
+    @Test
+    @DisplayName("deleting leaves no op-monitor CA, and deleting again succeeds")
+    void deleteIsIdempotent(SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        var ca = selfSignedCa("CN=Delete CA " + unique());
+        given("a CA is stored", () -> client.uploadOpMonitorCa(pem(ca)).statusCode(200));
+        and("the CA is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
+        then("the details report none", () -> client.getOpMonitorCa().statusCode(204));
+        and("the CA is deleted again", () -> client.deleteOpMonitorCa().statusCode(204));
+        then("the details still report none", () -> client.getOpMonitorCa().statusCode(204));
+    }
+
+    @Test
+    @DisplayName("upload, delete, upload stores the second upload")
+    void uploadAfterDeleteIsStored(SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        var first = selfSignedCa("CN=First CA " + unique());
+        var second = selfSignedCa("CN=Second CA " + unique());
+        given("a first CA is stored", () -> client.uploadOpMonitorCa(pem(first)).statusCode(200));
+        and("it is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
+        and("a second CA is uploaded", () -> client.uploadOpMonitorCa(pem(second)).statusCode(200));
+        then("the details show the second CA", () ->
+                client.getOpMonitorCa().statusCode(200).body("hash", equalToIgnoringCase(sha256Hex(second))));
+    }
+
+    @Test
+    @Order(1)
+    @DisplayName("deleting with nothing ever stored succeeds and the details report none")
+    void deleteWithNothingStored(SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        given("the details report no op-monitor CA before anything is deleted", () -> client.getOpMonitorCa().statusCode(204));
+        and("the op-monitor CA is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
+        then("the details report none", () -> client.getOpMonitorCa().statusCode(204));
+        and("the op-monitor CA is deleted again", () -> client.deleteOpMonitorCa().statusCode(204));
+        then("the details still report none", () -> client.getOpMonitorCa().statusCode(204));
+    }
+
+    @Test
+    @DisplayName("a rejected upload after a delete leaves no op-monitor CA stored")
+    void rejectedUploadAfterDeleteStoresNothing(SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        var keyPair = newKeyPair();
+        var stored = ca("CN=Stored CA " + unique(), keyPair, "CN=Stored CA " + unique(), keyPair, new BasicConstraints(true), -1, 365);
+        var leaf = ca("CN=Stored CA", keyPair, "CN=Op-monitor " + unique(), newKeyPair(), new BasicConstraints(false), -1, 365);
+        given("a CA is stored and then deleted", () -> {
+            client.uploadOpMonitorCa(pem(stored)).statusCode(200);
+            client.deleteOpMonitorCa().statusCode(204);
+        });
+        and("a leaf certificate is uploaded", () -> client.uploadOpMonitorCa(pem(leaf)).statusCode(400));
+        then("the details report none", () -> client.getOpMonitorCa().statusCode(204));
+    }
+
+    @Test
+    @DisplayName("upload A, upload B, delete leaves none stored and the internal RPC CA download is unchanged")
+    void deleteAfterReplaceLeavesNoneAndKeepsTheInternalRpcCa(SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        var a = selfSignedCa("CN=CA A " + unique());
+        var b = selfSignedCa("CN=CA B " + unique());
+        var downloadBefore = given("the internal RPC CA is downloaded", () ->
+                client.downloadInternalRpcCa().statusCode(200).extract().body().asString());
+        and("CA A and then CA B are uploaded", () -> {
+            client.uploadOpMonitorCa(pem(a)).statusCode(200);
+            client.uploadOpMonitorCa(pem(b)).statusCode(200);
+        });
+        and("the op-monitor CA is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
+        then("the details report none", () -> client.getOpMonitorCa().statusCode(204));
+        and("the internal RPC CA download is unchanged", () ->
+                assertThat(client.downloadInternalRpcCa().statusCode(200).extract().body().asString()).isEqualTo(downloadBefore));
+    }
+
+    @Test
+    @DisplayName("only the security officer and system administrator may delete the op-monitor CA")
+    void deleteRoleMapping(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
+        var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
+        var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
+        var adminUsers = new AdminUsersAdminClient(seeder.newSession());
+        var ca = selfSignedCa("CN=Delete Role CA " + unique());
+        var password = "T0pSecret!789";
+        given("a CA is stored", () -> new SystemAdminClient(seeder.newSession()).uploadOpMonitorCa(pem(ca)).statusCode(200));
+        for (var role : List.of("XROAD_SECURITYSERVER_OBSERVER", "XROAD_SERVICE_ADMINISTRATOR", "XROAD_REGISTRATION_OFFICER")) {
+            var username = "op-monitor-ca-" + unique();
+            given("a user with only the " + role + " role is created", () ->
+                    adminUsers.createUser(username, password, List.of(role)).statusCode(201));
+            var user = new SystemAdminClient(new AdminApiSession(uiBaseUrl, username, password));
+            then("the user cannot delete the op-monitor CA", () -> user.deleteOpMonitorCa().statusCode(403));
+            and("the op-monitor CA is still stored", () -> user.getOpMonitorCa().statusCode(200));
+            adminUsers.deleteUser(username).statusCode(200);
+        }
+        for (var role : List.of("XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR")) {
+            var username = "op-monitor-ca-" + unique();
+            given("a user with only the " + role + " role is created", () ->
+                    adminUsers.createUser(username, password, List.of(role)).statusCode(201));
+            var user = new SystemAdminClient(new AdminApiSession(uiBaseUrl, username, password));
+            then("the user can delete the op-monitor CA", () -> user.deleteOpMonitorCa().statusCode(204));
+            adminUsers.deleteUser(username).statusCode(200);
+        }
     }
 
     @Test

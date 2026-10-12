@@ -281,6 +281,40 @@ class SpringVaultClientTest {
         verify(vaultKeyValueOperations, never()).delete(anyString());
     }
 
+    @Test
+    void shouldClearTheOpMonitorCaByWritingABlankCertificateField() throws Exception {
+        vaultClient.createOpMonitorCa(selfSignedCa("CN=Op-monitor CA"));
+        vaultClient.clearOpMonitorCa();
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH)).containsOnlyKeys(VaultClient.CERTIFICATE_KEY);
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH).get(VaultClient.CERTIFICATE_KEY)).isEqualTo("");
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldNeverDeleteTheOpMonitorCaSecretWhenClearing() throws Exception {
+        vaultClient.createOpMonitorCa(selfSignedCa("CN=Op-monitor CA"));
+        vaultClient.clearOpMonitorCa();
+        vaultClient.clearOpMonitorCa();
+        verify(vaultKeyValueOperations, never()).delete(anyString());
+    }
+
+    @Test
+    void shouldClearAnOpMonitorCaThatWasNeverStored() {
+        vaultClient.clearOpMonitorCa();
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH)).containsOnlyKeys(VaultClient.CERTIFICATE_KEY);
+    }
+
+    @Test
+    void shouldStoreAnOpMonitorCaAgainAfterItWasCleared() throws Exception {
+        var first = selfSignedCa("CN=First CA");
+        var second = selfSignedCa("CN=Second CA");
+        vaultClient.createOpMonitorCa(first);
+        vaultClient.clearOpMonitorCa();
+        vaultClient.createOpMonitorCa(second);
+        assertThat(vaultClient.getOpMonitorCa()).contains(second);
+    }
+
     private static X509Certificate selfSignedCa(String subjectName) throws Exception {
         var keyPair = generateRsaKeyPair();
         var subject = new X500Name(subjectName);

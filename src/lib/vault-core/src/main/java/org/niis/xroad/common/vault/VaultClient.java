@@ -143,6 +143,12 @@ public interface VaultClient {
      */
     void createOpMonitorCa(X509Certificate certificate);
 
+    /**
+     * Clears the stored op-monitor CA certificate by writing a record whose {@code certificate} field is blank,
+     * never by deleting the secret.
+     */
+    void clearOpMonitorCa();
+
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
     Optional<String> getMLogArchivalSigningSecretKey();
@@ -357,6 +363,15 @@ public interface VaultClient {
         } catch (IOException | CertificateEncodingException e) {
             throw XrdRuntimeException.systemException(e);
         }
+    }
+
+    /**
+     * Builds the raw Vault secret map that marks the op-monitor CA as absent: the {@code certificate} field is kept,
+     * blank. The OpenBao policy for this path grants no delete, so clearing is an ordinary write, and a KV v1 mount
+     * rejects a secret without data fields.
+     */
+    default Map<String, String> toClearedOpMonitorCaSecret() {
+        return Map.of(CERTIFICATE_KEY, "");
     }
 
     private static String presentValue(Map<String, ?> secret, String key) {

@@ -73,6 +73,29 @@ public class OpMonitorCaService {
         return certificate;
     }
 
+    /**
+     * Clears the stored op-monitor CA. Succeeds when none is stored or the stored one cannot be read.
+     */
+    public void deleteOpMonitorCa() {
+        auditStoredCaHash();
+        try {
+            vaultClient.clearOpMonitorCa();
+        } catch (XrdRuntimeException e) {
+            throw new InternalServerErrorException(e, new ErrorDeviation(e.getCode()));
+        } catch (Exception e) {
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+        log.info("Cleared the op-monitor CA");
+    }
+
+    private void auditStoredCaHash() {
+        try {
+            vaultClient.getOpMonitorCa().ifPresent(auditDataHelper::putCertificateHash);
+        } catch (RuntimeException e) {
+            log.warn("Could not read the stored op-monitor CA for the audit record: {}", e.getMessage());
+        }
+    }
+
     private X509Certificate validate(byte[] certificateFileBytes) {
         try {
             return CaCertificateFileValidator.validate(certificateFileBytes);

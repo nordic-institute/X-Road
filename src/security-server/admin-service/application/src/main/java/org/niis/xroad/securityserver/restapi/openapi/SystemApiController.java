@@ -170,6 +170,14 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     }
 
     @Override
+    @PreAuthorize("hasAuthority('DELETE_OP_MONITOR_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_OP_MONITOR_CA)
+    public ResponseEntity<Void> deleteOpMonitorCa() {
+        opMonitorCaService.deleteOpMonitorCa();
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_KEY_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_KEY_CERT)
     public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
