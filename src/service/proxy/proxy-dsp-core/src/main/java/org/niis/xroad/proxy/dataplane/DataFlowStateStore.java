@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.dataplane;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
 
-import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -58,14 +57,5 @@ public interface DataFlowStateStore {
      * @return the current state, or empty if the flow is not known
      */
     Optional<DataFlowStates> find(String flowId);
-
-    /**
-     * Deletes terminal (completed or terminated) flows whose state has not changed for longer than
-     * {@code retention}, measured on the store's own clock.
-     *
-     * @param retention how long a terminal flow is kept after its last change
-     * @return the number of flows deleted
-     */
-    int pruneTerminal(Duration retention);
 
 }
