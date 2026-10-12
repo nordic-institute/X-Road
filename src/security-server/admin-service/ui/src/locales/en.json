@@ -429,6 +429,13 @@
     "anchor_upload_failed": "Anchor upload failed",
     "auth_cert_not_supported": "Authentication certificate is not supported",
     "base_endpoint_not_found": "Base endpoint not found",
+    "ca_cert_empty": "The file is empty",
+    "ca_cert_expired": "The CA certificate has expired",
+    "ca_cert_key_material": "The file contains private key material. Upload the CA certificate only",
+    "ca_cert_multiple_certificates": "The file contains more than one certificate. Upload only the CA certificate that issued the certificate of the operational monitoring daemon (op-monitor)",
+    "ca_cert_not_a_ca": "The certificate is not a CA certificate",
+    "ca_cert_not_a_certificate": "The file is not a PEM or DER encoded certificate",
+    "ca_cert_not_yet_valid": "The CA certificate is not yet valid",
     "ca_cert_status_processing_failure": "CA certificate status processing failed",
     "cannot_delete_owner": "Cannot delete the owner",
     "cannot_register_owner": "Cannot register the owner",
@@ -882,6 +889,15 @@
       "download": "Download",
       "title": "Internal RPC CA",
       "unavailable": "The internal RPC CA is not available"
+    },
+    "opMonitorCa": {
+      "description": "The CA of an operational monitoring daemon (op-monitor) running on another host. Upload it so that this Security Server trusts that op-monitor. The file must hold exactly one PEM or DER encoded CA certificate and no private key.",
+      "empty": "No op-monitor CA is stored",
+      "replace": "Replace",
+      "restartHint": "Restart proxy and admin-service to apply",
+      "title": "Op-monitor CA",
+      "upload": "Upload",
+      "uploaded": "The op-monitor CA is stored"
     }
   },
   "serviceClientType": {

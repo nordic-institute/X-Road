@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdView data-test="op-monitor-trust-view" title="tab.keys.opMonitorTrust" :loading="loading">
+  <XrdView data-test="op-monitor-trust-view" title="tab.keys.opMonitorTrust" :loading="loading || loadingOpMonitorCa">
     <template #tabs>
       <KeysAndCertificatesTabs />
     </template>
@@ -46,30 +46,27 @@
         <p v-if="unavailable" class="body-regular px-4 pb-4 opacity-60" data-test="internal-rpc-ca-unavailable">
           {{ $t('opMonitorTrust.internalRpcCa.unavailable') }}
         </p>
-        <v-table v-if="internalRpcCa" class="xrd bg-surface-container" data-test="internal-rpc-ca-details">
-          <tbody>
-            <tr>
-              <td class="on-surface font-weight-medium">{{ $t('cert.subjectDistinguishedName') }}</td>
-              <td data-test="internal-rpc-ca-subject">{{ internalRpcCa.subject_distinguished_name }}</td>
-            </tr>
-            <tr>
-              <td class="on-surface font-weight-medium">{{ $t('cert.issuerDistinguishedName') }}</td>
-              <td data-test="internal-rpc-ca-issuer">{{ internalRpcCa.issuer_distinguished_name }}</td>
-            </tr>
-            <tr>
-              <td class="on-surface font-weight-medium">{{ $t('cert.hashInfo') }}</td>
-              <td data-test="internal-rpc-ca-fingerprint"><XrdHashValue wrap-friendly :value="internalRpcCa.hash" /></td>
-            </tr>
-            <tr>
-              <td class="on-surface font-weight-medium">{{ $t('cert.notBefore') }}</td>
-              <td data-test="internal-rpc-ca-not-before"><XrdDate :value="internalRpcCa.not_before" /></td>
-            </tr>
-            <tr>
-              <td class="on-surface font-weight-medium">{{ $t('cert.notAfter') }}</td>
-              <td data-test="internal-rpc-ca-not-after"><XrdDate :value="internalRpcCa.not_after" /></td>
-            </tr>
-          </tbody>
-        </v-table>
+        <CaCertificateDetails v-if="internalRpcCa" :certificate="internalRpcCa" test-id-prefix="internal-rpc-ca" />
+      </XrdCard>
+      <XrdCard v-if="canViewOpMonitorCa" class="mt-6" title="opMonitorTrust.opMonitorCa.title">
+        <template v-if="canUploadOpMonitorCa" #title-actions>
+          <XrdFileUpload v-slot="{ upload }" accepts=".der, .crt, .pem, .cer" @file-changed="uploadOpMonitorCaFile">
+            <XrdBtn
+              data-test="upload-op-monitor-ca-button"
+              variant="outlined"
+              prepend-icon="upload"
+              :text="opMonitorCa ? 'opMonitorTrust.opMonitorCa.replace' : 'opMonitorTrust.opMonitorCa.upload'"
+              :loading="uploading"
+              @click="upload"
+            />
+          </XrdFileUpload>
+        </template>
+        <p class="body-regular px-4 pb-4" data-test="op-monitor-ca-description">{{ $t('opMonitorTrust.opMonitorCa.description') }}</p>
+        <p class="body-regular px-4 pb-4" data-test="op-monitor-ca-restart-hint">{{ $t('opMonitorTrust.opMonitorCa.restartHint') }}</p>
+        <p v-if="!opMonitorCa && !loadingOpMonitorCa" class="body-regular px-4 pb-4 opacity-60" data-test="op-monitor-ca-empty">
+          {{ $t('opMonitorTrust.opMonitorCa.empty') }}
+        </p>
+        <CaCertificateDetails v-if="opMonitorCa" :certificate="opMonitorCa" test-id-prefix="op-monitor-ca" />
       </XrdCard>
     </XrdSubView>
   </XrdView>
@@ -77,23 +74,29 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { XrdBtn, XrdCard, XrdDate, XrdHashValue, XrdSubView, XrdView, useNotifications } from '@niis/shared-ui';
+import { FileUploadResult, XrdBtn, XrdCard, XrdFileUpload, XrdSubView, XrdView, useNotifications } from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { useOpMonitorTrust } from '@/store/modules/op-monitor-trust';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
+import CaCertificateDetails from '@/views/KeysAndCertificates/OpMonitorTrust/CaCertificateDetails.vue';
 
 const { hasPermission } = useUser();
-const { fetchInternalRpcCa, downloadInternalRpcCa } = useOpMonitorTrust();
-const { addError } = useNotifications();
+const { fetchInternalRpcCa, downloadInternalRpcCa, fetchOpMonitorCa, uploadOpMonitorCa } = useOpMonitorTrust();
+const { addError, addSuccessMessage } = useNotifications();
 
 const internalRpcCa = ref<CertificateDetails | undefined>(undefined);
 const loading = ref(false);
 const unavailable = ref(false);
 const downloading = ref(false);
+const opMonitorCa = ref<CertificateDetails | undefined>(undefined);
+const loadingOpMonitorCa = ref(false);
+const uploading = ref(false);
 
 const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_INTERNAL_RPC_CA));
+const canViewOpMonitorCa = computed(() => hasPermission(Permissions.VIEW_OP_MONITOR_CA));
+const canUploadOpMonitorCa = computed(() => hasPermission(Permissions.UPLOAD_OP_MONITOR_CA));
 
 function fetchData(): void {
   loading.value = true;
@@ -115,7 +118,29 @@ function download(): void {
     .finally(() => (downloading.value = false));
 }
 
+function fetchOpMonitorCaData(): void {
+  loadingOpMonitorCa.value = true;
+  fetchOpMonitorCa()
+    .then((details) => (opMonitorCa.value = details))
+    .catch((error) => addError(error))
+    .finally(() => (loadingOpMonitorCa.value = false));
+}
+
+function uploadOpMonitorCaFile(event: FileUploadResult): void {
+  uploading.value = true;
+  uploadOpMonitorCa(event.file)
+    .then((details) => {
+      opMonitorCa.value = details;
+      addSuccessMessage('opMonitorTrust.opMonitorCa.uploaded');
+    })
+    .catch((error) => addError(error))
+    .finally(() => (uploading.value = false));
+}
+
 fetchData();
+if (canViewOpMonitorCa.value) {
+  fetchOpMonitorCaData();
+}
 </script>
 
 <style lang="scss" scoped></style>

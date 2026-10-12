@@ -68,6 +68,7 @@ import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalRpcCaService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.OpMonitorCaService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -98,6 +99,7 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
 
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final InternalRpcCaService internalRpcCaService;
+    private final OpMonitorCaService opMonitorCaService;
     private final ConfigurablePropertiesService configurablePropertiesService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
@@ -147,6 +149,24 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     public ResponseEntity<Resource> downloadInternalRpcCa() {
         return ControllerUtil.createAttachmentResourceResponse(
                 internalRpcCaService.downloadInternalRpcCa(), INTERNAL_RPC_CA_FILENAME, PEM_FILE);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_OP_MONITOR_CA')")
+    public ResponseEntity<CertificateDetailsDto> getOpMonitorCa() {
+        return opMonitorCaService.getOpMonitorCa()
+                .map(certificateDetailsConverter::convert)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_OP_MONITOR_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_OP_MONITOR_CA)
+    public ResponseEntity<CertificateDetailsDto> uploadOpMonitorCa(MultipartFile certificate) {
+        byte[] certificateFileBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificate);
+        X509Certificate stored = opMonitorCaService.uploadOpMonitorCa(certificateFileBytes);
+        return ResponseEntity.ok(certificateDetailsConverter.convert(stored));
     }
 
     @Override

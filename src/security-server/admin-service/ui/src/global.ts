@@ -179,6 +179,8 @@ export enum Permissions {
   DOWNLOAD_DS_TLS_CERT = 'DOWNLOAD_DS_TLS_CERT', // download the DataSpace TLS certificate
   VIEW_INTERNAL_RPC_CA = 'VIEW_INTERNAL_RPC_CA', // view the internal RPC CA details
   DOWNLOAD_INTERNAL_RPC_CA = 'DOWNLOAD_INTERNAL_RPC_CA', // download the internal RPC CA
+  VIEW_OP_MONITOR_CA = 'VIEW_OP_MONITOR_CA', // view the op-monitor CA details
+  UPLOAD_OP_MONITOR_CA = 'UPLOAD_OP_MONITOR_CA', // upload or replace the op-monitor CA
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab

@@ -28,7 +28,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
-import { saveResponseAsFile } from '@niis/shared-ui';
+import { buildFileFormData, multipartFormDataConfig, saveResponseAsFile } from '@niis/shared-ui';
 
 export const useOpMonitorTrust = defineStore('op-monitor-trust', {
   state: () => ({}),
@@ -40,6 +40,14 @@ export const useOpMonitorTrust = defineStore('op-monitor-trust', {
     },
     async downloadInternalRpcCa() {
       return api.get('/system/internal-rpc-ca/download', { responseType: 'blob' }).then((res) => saveResponseAsFile(res));
+    },
+    async fetchOpMonitorCa(): Promise<CertificateDetails | undefined> {
+      return api.get<CertificateDetails>('/system/op-monitor-ca').then((res) => (res.status === 204 ? undefined : res.data));
+    },
+    async uploadOpMonitorCa(certificate: File) {
+      return api
+        .post<CertificateDetails>('/system/op-monitor-ca', buildFileFormData('certificate', certificate), multipartFormDataConfig())
+        .then((res) => res.data);
     },
   },
 });

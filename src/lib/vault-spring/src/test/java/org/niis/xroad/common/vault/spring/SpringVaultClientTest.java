@@ -26,6 +26,12 @@
  */
 package org.niis.xroad.common.vault.spring;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,10 +45,13 @@ import org.springframework.vault.VaultException;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.support.VaultResponse;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -208,6 +217,42 @@ class SpringVaultClientTest {
     }
 
     @Test
+    void shouldStoreAndRetrieveOpMonitorCaWithExactlyTheCertificateField() throws Exception {
+        var ca = selfSignedCa("CN=Op-monitor CA");
+
+        vaultClient.createOpMonitorCa(ca);
+
+        assertThat(vaultClient.getOpMonitorCa()).contains(ca);
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH)).containsOnlyKeys(VaultClient.CERTIFICATE_KEY);
+        assertThat(VaultClient.OPMONITOR_CA_PATH).isEqualTo("tls/opmonitor-ca");
+    }
+
+    @Test
+    void shouldReplaceTheStoredOpMonitorCa() throws Exception {
+        var first = selfSignedCa("CN=First CA");
+        var second = selfSignedCa("CN=Second CA");
+
+        vaultClient.createOpMonitorCa(first);
+        vaultClient.createOpMonitorCa(second);
+
+        assertThat(vaultClient.getOpMonitorCa()).contains(second);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenNoOpMonitorCaIsStored() {
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldReadABlankOpMonitorCaRecordAsAbsent() {
+        secretsByPath.put(VaultClient.OPMONITOR_CA_PATH, Map.of(VaultClient.CERTIFICATE_KEY, ""));
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+
+        secretsByPath.put(VaultClient.OPMONITOR_CA_PATH, Map.of(VaultClient.CERTIFICATE_KEY, " \n"));
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
     void shouldPropagateAgreementTokenSigningKeyListingFailureRatherThanReturningEmpty() {
         when(vaultKeyValueOperations.list(any())).thenThrow(new VaultException("vault sealed"));
 
@@ -234,6 +279,16 @@ class SpringVaultClientTest {
 
         verify(vaultKeyValueOperations, never()).delete(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1");
         verify(vaultKeyValueOperations, never()).delete(anyString());
+    }
+
+    private static X509Certificate selfSignedCa(String subjectName) throws Exception {
+        var keyPair = generateRsaKeyPair();
+        var subject = new X500Name(subjectName);
+        var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)), subject, keyPair.getPublic())
+                .addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

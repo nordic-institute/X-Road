@@ -68,6 +68,17 @@ class NoopVaultClientTest {
     }
 
     @Test
+    void getOpMonitorCaShouldReturnEmpty() {
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void createOpMonitorCaShouldThrow() {
+        assertThatThrownBy(() -> vaultClient.createOpMonitorCa(null))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void acmeAccountKeyPathShouldBeSanitizedAndCollisionFreePerAlias() {
         var pathOne = vaultClient.getAcmeAccountKeyPath("auth_CS:ORG:MEMBER1");
         var pathTwo = vaultClient.getAcmeAccountKeyPath("sign_CS:ORG:MEMBER1");

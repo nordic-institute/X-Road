@@ -118,4 +118,23 @@ public class SystemAdminClient {
                 .get("/system/internal-rpc-ca/download")
                 .then();
     }
+
+    /**
+     * Gets the op-monitor CA details, or 204 when none is stored.
+     */
+    public ValidatableResponse getOpMonitorCa() {
+        return session.given()
+                .get("/system/op-monitor-ca")
+                .then();
+    }
+
+    /**
+     * Uploads the op-monitor CA certificate file (PEM or DER bytes).
+     */
+    public ValidatableResponse uploadOpMonitorCa(byte[] certificateFileBytes) {
+        return session.given()
+                .multiPart("certificate", "op-monitor-ca.pem", certificateFileBytes, "application/octet-stream")
+                .post("/system/op-monitor-ca")
+                .then();
+    }
 }
