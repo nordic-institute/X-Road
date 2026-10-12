@@ -41,7 +41,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogServic
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -67,7 +66,6 @@ import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -94,9 +92,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
  * entirely and transfers with the existing agreement.
  *
- * <p>Because several ds-control-plane instances may each acquire access under the same reused agreement,
- * a transfer completing here also completes every other still-running consumer transfer under that agreement,
- * rather than tracking "the current transfer" per instance.
+ * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
+ * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
+ * once its agreement token expires by the periodic sweep in
+ * {@link org.niis.xroad.edc.extension.assetaccess.poller.ExpiredTransferSweeper}.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {
@@ -360,67 +359,15 @@ public class AssetAccessOrchestrator {
         monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
         return completionPoller.awaitTransfer(transferProcessId, transferTimeout)
-                .whenComplete((dataAddress, throwable) ->
-                        onTransferComplete(key, transferProcessId, agreement.getId(), dataAddress, throwable));
+                .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
     }
 
-    private void onTransferComplete(String key, String transferProcessId, String agreementId,
-                                     DataAddress dataAddress, Throwable throwable) {
+    private void onTransferComplete(String key, String transferProcessId, DataAddress dataAddress, Throwable throwable) {
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
         } else if (dataAddress != null) {
             monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
             monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
-            completeSupersededTransfers(key, agreementId, transferProcessId);
-        }
-    }
-
-    /**
-     * Completes every other still-{@code STARTED} consumer transfer under {@code agreementId}, now
-     * superseded by {@code completedTransferProcessId}. Several instances may each acquire access
-     * under the same reused agreement, each starting its own transfer process; only one is needed
-     * going forward. A failed search or a failed completion is logged and otherwise ignored - it never
-     * fails the acquisition that just succeeded.
-     */
-    private void completeSupersededTransfers(String key, String agreementId, String completedTransferProcessId) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(
-                        Criterion.criterion("contractId", "=", agreementId),
-                        Criterion.criterion("type", "=", TransferProcess.Type.CONSUMER.name()),
-                        Criterion.criterion("state", "=", TransferProcessStates.STARTED.code())))
-                .build();
-
-        List<TransferProcess> candidates;
-        try {
-            var result = transferProcessService.search(query);
-            if (result.failed()) {
-                monitor.warning("%s search for superseded transfers failed: agreementId=%s reason=%s"
-                        .formatted(key, agreementId, result.getFailureDetail()));
-                return;
-            }
-            candidates = result.getContent();
-        } catch (Exception e) {
-            monitor.warning("%s search for superseded transfers failed: agreementId=%s".formatted(key, agreementId), e);
-            return;
-        }
-
-        candidates.stream()
-                .map(TransferProcess::getId)
-                .filter(id -> !id.equals(completedTransferProcessId))
-                .forEach(id -> completeSupersededTransfer(key, id));
-    }
-
-    private void completeSupersededTransfer(String key, String transferProcessId) {
-        try {
-            var result = transferProcessService.complete(transferProcessId);
-            if (result.failed()) {
-                monitor.warning("%s completing superseded transfer failed: transferProcessId=%s reason=%s"
-                        .formatted(key, transferProcessId, result.getFailureDetail()));
-            } else {
-                monitor.info("%s superseded transfer completed: transferProcessId=%s".formatted(key, transferProcessId));
-            }
-        } catch (Exception e) {
-            monitor.warning("%s completing superseded transfer failed: transferProcessId=%s".formatted(key, transferProcessId), e);
         }
     }
 

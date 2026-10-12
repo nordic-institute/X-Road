@@ -103,7 +103,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -144,7 +143,6 @@ class AssetAccessOrchestratorTest {
         lenient().when(reusableAgreementLookup.find(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
         lenient().when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> Stream.empty());
         lenient().when(transferProcessStore.findAll(any())).thenAnswer(invocation -> Stream.empty());
-        lenient().when(transferProcessService.search(any())).thenReturn(ServiceResult.success(List.of()));
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
             TransferProcess transferProcess = invocation.getArgument(0);
             var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
@@ -200,99 +198,6 @@ class AssetAccessOrchestratorTest {
         assertThat(logCaptor.getAllValues())
                 .anyMatch(message -> message.contains("reusing agreement") && message.contains("agreementId=agreement-1")
                         && message.contains("matchedByClientId=false"));
-    }
-
-    @Test
-    void supersededStartedTransfersCompletedAfterSuccess() throws Exception {
-        var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
-
-        var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
-                .thenReturn(Optional.of(agreement));
-
-        var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
-        when(transferProcessService.search(any())).thenReturn(ServiceResult.success(List.of(
-                startedConsumerTransfer("tp-1", "agreement-1"),
-                startedConsumerTransfer("tp-2", "agreement-1"),
-                startedConsumerTransfer("tp-3", "agreement-1"))));
-        when(transferProcessService.complete(anyString())).thenReturn(ServiceResult.success());
-
-        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
-
-        var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
-                .property("endpoint", "http://provider/data").build();
-        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(startedTransfer("tp-1", dataAddress)));
-        completionPoller.poll();
-
-        var result = future.get(5, TimeUnit.SECONDS);
-        assertThat(result.succeeded()).isTrue();
-
-        verify(transferProcessService).complete("tp-2");
-        verify(transferProcessService).complete("tp-3");
-        verify(transferProcessService, never()).complete("tp-1");
-
-        var querySpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
-        verify(transferProcessService).search(querySpecCaptor.capture());
-        assertThat(querySpecCaptor.getValue().getFilterExpression())
-                .contains(Criterion.criterion("contractId", "=", "agreement-1"));
-    }
-
-    @Test
-    void nothingCompletedWhenTheSuccessorFails() throws Exception {
-        var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
-
-        var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
-                .thenReturn(Optional.of(agreement));
-
-        var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
-
-        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
-
-        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", "provider rejected")));
-        completionPoller.poll();
-
-        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
-
-        verify(transferProcessService, never()).search(any());
-        verify(transferProcessService, never()).complete(anyString());
-    }
-
-    @Test
-    void aThrowingCompleteLeavesTheAcquisitionSuccessful() throws Exception {
-        var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
-
-        var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
-                .thenReturn(Optional.of(agreement));
-
-        var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
-        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
-        when(transferProcessService.search(any())).thenReturn(ServiceResult.success(List.of(
-                startedConsumerTransfer("tp-1", "agreement-1"),
-                startedConsumerTransfer("tp-2", "agreement-1"))));
-        when(transferProcessService.complete("tp-2")).thenThrow(new EdcException("completion backend unavailable"));
-
-        var future = orchestrator.acquireAssetAccess(participantContext, assetAccessRequest);
-
-        var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
-                .property("endpoint", "http://provider/data").build();
-        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(startedTransfer("tp-1", dataAddress)));
-        completionPoller.poll();
-
-        var result = future.get(5, TimeUnit.SECONDS);
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent()).isSameAs(dataAddress);
-
-        verify(transferProcessService).complete("tp-2");
     }
 
     @Test
@@ -743,15 +648,6 @@ class AssetAccessOrchestratorTest {
         resolvableAddresses.put(id, dataAddress);
         return TransferProcess.Builder.newInstance()
                 .id(id)
-                .state(TransferProcessStates.STARTED.code())
-                .build();
-    }
-
-    private TransferProcess startedConsumerTransfer(String id, String contractId) {
-        return TransferProcess.Builder.newInstance()
-                .id(id)
-                .contractId(contractId)
-                .type(TransferProcess.Type.CONSUMER)
                 .state(TransferProcessStates.STARTED.code())
                 .build();
     }

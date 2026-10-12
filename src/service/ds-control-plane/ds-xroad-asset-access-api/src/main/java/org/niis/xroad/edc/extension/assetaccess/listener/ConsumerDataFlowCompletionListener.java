@@ -36,7 +36,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
  * Notifies the local data plane when a CONSUMER-type transfer completes. Stock EDC only calls
  * {@link DataFlowController#completed(TransferProcess)} on the side that received a completion
  * request from its counterparty ({@code TransferProcessorsImpl#processCompleting}); the consumer
- * side, which actively drives completion of a superseded transfer, never signals its own data plane.
+ * side, which drives completion of its own transfers itself, never signals its own data plane.
  */
 public class ConsumerDataFlowCompletionListener implements TransferProcessListener {
 
