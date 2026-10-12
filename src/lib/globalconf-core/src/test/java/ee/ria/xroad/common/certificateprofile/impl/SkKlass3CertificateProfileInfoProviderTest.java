@@ -40,6 +40,8 @@ import javax.security.auth.x500.X500Principal;
 
 import java.security.cert.X509Certificate;
 
+import static ee.ria.xroad.common.DerSubjectCertUtil.derName;
+import static ee.ria.xroad.common.DerSubjectCertUtil.selfSignedCertificate;
 import static org.bouncycastle.util.Arrays.areEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -182,6 +184,25 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         assertEquals("XX", clientId.getXRoadInstance());
         assertEquals("COM", clientId.getMemberClass());
         assertEquals("10747013", clientId.getMemberCode());
+    }
+
+    @Test
+    public void getSubjectIdentifierFromCertificateWithRepeatedSerialNumberUsesMostSpecificValue() {
+        X509Certificate cert = selfSignedCertificate(derName(
+                "C", "FI", "CN", "name", "serialNumber", "11111111", "serialNumber", "16543212"));
+        ClientId clientId = getSignProfile().getSubjectIdentifier(cert);
+        assertEquals("16543212", clientId.getMemberCode());
+    }
+
+    @Test
+    public void getSubjectIdentifierFromCertificateWithCountryDevAndLongCommonName() {
+        X509Certificate cert = selfSignedCertificate(derName(
+                "C", "DEV", "CN", "x".repeat(65), "serialNumber", "16543212"));
+        ClientId clientId = getSignProfile().getSubjectIdentifier(cert);
+
+        assertEquals("XX", clientId.getXRoadInstance());
+        assertEquals("COM", clientId.getMemberClass());
+        assertEquals("16543212", clientId.getMemberCode());
     }
 
     // ------------------------------------------------------------------------

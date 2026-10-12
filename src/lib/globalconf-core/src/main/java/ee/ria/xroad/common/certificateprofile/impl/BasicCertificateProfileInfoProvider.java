@@ -31,6 +31,7 @@ import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.X500Names;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -128,7 +129,7 @@ public class BasicCertificateProfileInfoProvider
         public ClientId.Conf getSubjectIdentifier(X509Certificate cert) {
 
             X500Principal principal = cert.getSubjectX500Principal();
-            X500Name x500name = new X500Name(principal.getName());
+            X500Name x500name = X500Names.fromPrincipal(principal);
 
             String memberClass = CertUtils.getRDNValue(x500name, BCStyle.BUSINESS_CATEGORY);
             if (memberClass == null) {

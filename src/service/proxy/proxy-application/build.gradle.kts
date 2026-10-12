@@ -8,6 +8,11 @@ configurations.named("runtimeClasspath") {
   exclude(group = "xml-apis", module = "xml-apis")
 }
 
+configurations.named("runtimeClasspath") {
+  // jnats is unused, pulled in by EDC core-lib
+  exclude(group = "io.nats", module = "jnats")
+}
+
 dependencies {
   implementation(platform(libs.quarkus.bom))
 

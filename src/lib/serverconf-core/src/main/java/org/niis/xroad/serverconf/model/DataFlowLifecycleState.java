@@ -27,15 +27,14 @@
 package org.niis.xroad.serverconf.model;
 
 /**
- * Persisted lifecycle state of a proxy data-plane flow. Mirrors, by name, the subset of
- * {@code org.eclipse.edc.connector.dataplane.spi.DataFlowStates} the proxy persists — kept
- * separate so this module has no compile-time dependency on EDC's SPI jar.
- * {@code SharedDataFlowStateStore} converts between the two by name.
+ * Lifecycle state of a proxy data-plane flow. The constant names are the state strings the proxy
+ * reports on the signaling API. {@link #FAILED} is reported for an unknown flow and is never persisted.
  */
 public enum DataFlowLifecycleState {
     PROVISIONED,
     STARTED,
     SUSPENDED,
     COMPLETED,
-    TERMINATED
+    TERMINATED,
+    FAILED
 }

@@ -62,20 +62,23 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
-    private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<ContractDefinition> queryEvaluator =
             new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
 
     @Override
     @Nullable
-    public ContractDefinition findById(String definitionId) {
-        var requested = requestedParticipantContext.get();
-        return cache.findById(definitionId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
-                () -> findByIdInternal(definitionId));
+    public ContractDefinition findById(@Nullable String participantContextId, String definitionId) {
+        if (participantContextId == null) {
+            log.trace("findById definitionId={} has no participant context, returning null", definitionId);
+            return null;
+        }
+        return cache.findById(participantContextId, definitionId,
+                serviceContextResolver.isCacheableRequestedContext(participantContextId),
+                () -> findByIdInternal(participantContextId, definitionId));
     }
 
     @Nullable
-    private ContractDefinition findByIdInternal(String definitionId) {
+    private ContractDefinition findByIdInternal(String participantContextId, String definitionId) {
         log.trace("findById definitionId={}", definitionId);
         if (definitionId == null || definitionId.isBlank()) {
             log.trace("findById definitionId blank, returning null");
@@ -96,7 +99,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById definitionId={} matched builtin", definitionId);
             return toBuiltinContractDefinition(builtinServiceId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
-        var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
+        var systemAddressed = serviceContextResolver.isSystemAddressed(participantContextId);
         if (systemAddressed) {
             var systemResult = findSystemContractDefinition(policyId);
             if (systemResult != null) {
@@ -114,9 +117,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById definitionId={} too few parts={}, returning null", definitionId, parts.length);
             return null;
         }
-        var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, definitionId);
+        var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, participantContextId);
         if (result == null) {
-            result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, definitionId);
+            result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, participantContextId);
         }
         logFindByIdResult(definitionId, result);
         return result;
@@ -197,13 +200,13 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     }
 
     @Override
-    public StoreResult<ContractDefinition> deleteById(String id) {
+    public StoreResult<ContractDefinition> deleteById(String participantContextId, String id) {
         log.trace("deleteById definitionId={} read-only, returning notFound", id);
         return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     @Nullable
-    private ContractDefinition tryDecodeAndMatch(String[] parts, int servicePartCount, String definitionId) {
+    private ContractDefinition tryDecodeAndMatch(String[] parts, int servicePartCount, String participantContextId) {
         if (parts.length <= servicePartCount) {
             return null;
         }
@@ -224,7 +227,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             return null;
         }
         var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
-        var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        var ctxId = ServiceContextResolver.select(resolvedContexts, participantContextId);
         if (ctxId == null) {
             return null;
         }

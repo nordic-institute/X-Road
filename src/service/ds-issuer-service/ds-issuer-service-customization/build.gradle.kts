@@ -9,16 +9,16 @@ dependencies {
   implementation(libs.edc.spi.identityhub.participantcontext)
   implementation(libs.edc.spi.identityhub)
   implementation(libs.edc.spi.core)
-  implementation(libs.edc.spi.token)
-  implementation(libs.edc.spi.jwt)
-  implementation(libs.edc.spi.keys)
-  implementation(libs.edc.lib.token)
+  implementation(libs.edc.lib.core)
   implementation(libs.edc.crypto.verifiablecredentials.jwt)
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:edc-jetty-tls"))
   implementation(libs.nimbus.jose.jwt)
   implementation(libs.jetty.server)
+
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.mockito.core)
 
   constraints {
     implementation(libs.jakarta.validationApi)

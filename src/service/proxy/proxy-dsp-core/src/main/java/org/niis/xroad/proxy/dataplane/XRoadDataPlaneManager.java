@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.dataplane;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
@@ -40,6 +39,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 /**
  * Manager for active data flows in the X-Road proxy data plane.
@@ -81,9 +81,9 @@ public class XRoadDataPlaneManager {
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
      */
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
-        log.info("Preparing data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowStates.PROVISIONED);
-        return buildStatusMessage(DataFlowStates.PROVISIONED, message.getAgreementId());
+        log.info("Preparing data flow for process {}", message.getDataFlowId());
+        storeState(message.getDataFlowId(), DataFlowLifecycleState.PROVISIONED);
+        return buildStatusMessage(DataFlowLifecycleState.PROVISIONED, message.getAgreementId());
     }
 
     /**
@@ -97,9 +97,9 @@ public class XRoadDataPlaneManager {
      */
     public DataFlowStatusMessage start(DataFlowStartMessage message) {
         validateXrdPull(message);
-        log.info("Starting Xrd-PULL data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowStates.STARTED);
-        return buildStatusMessage(DataFlowStates.STARTED, message.getAgreementId());
+        log.info("Starting Xrd-PULL data flow for process {}", message.getDataFlowId());
+        storeState(message.getDataFlowId(), DataFlowLifecycleState.STARTED);
+        return buildStatusMessage(DataFlowLifecycleState.STARTED, message.getAgreementId());
     }
 
     /**
@@ -107,66 +107,66 @@ public class XRoadDataPlaneManager {
      * the transfer and, for {@code Xrd-PULL}, data may now be pulled through the proxy.
      *
      * @param flowId process ID of the flow that started
-     * @return status message with state {@link DataFlowStates#STARTED}
+     * @return status message with state {@link DataFlowLifecycleState#STARTED}
      */
     public DataFlowStatusMessage started(String flowId) {
         log.info("Data flow {} started", flowId);
-        storeState(flowId, DataFlowStates.STARTED);
+        storeState(flowId, DataFlowLifecycleState.STARTED);
         return DataFlowStatusMessage.Builder.newInstance()
-                .state(DataFlowStates.STARTED.toString())
+                .state(DataFlowLifecycleState.STARTED.name())
                 .build();
     }
 
     /**
-     * Completes a data flow, transitioning it to {@link DataFlowStates#COMPLETED}.
+     * Completes a data flow, transitioning it to {@link DataFlowLifecycleState#COMPLETED}.
      *
      * @param flowId process ID of the flow to complete
      */
     public void completed(String flowId) {
         log.info("Completing data flow {}", flowId);
-        storeState(flowId, DataFlowStates.COMPLETED);
+        storeState(flowId, DataFlowLifecycleState.COMPLETED);
     }
 
     /**
-     * Terminates an active data flow, transitioning it to {@link DataFlowStates#TERMINATED}.
+     * Terminates an active data flow, transitioning it to {@link DataFlowLifecycleState#TERMINATED}.
      *
      * @param flowId process ID of the flow to terminate
      */
     public void terminate(String flowId) {
         log.info("Terminating data flow {}", flowId);
-        storeState(flowId, DataFlowStates.TERMINATED);
+        storeState(flowId, DataFlowLifecycleState.TERMINATED);
     }
 
     /**
-     * Suspends an active data flow, transitioning it to {@link DataFlowStates#SUSPENDED}.
+     * Suspends an active data flow, transitioning it to {@link DataFlowLifecycleState#SUSPENDED}.
      *
      * @param flowId  process ID of the flow to suspend
      * @param reason  optional suspend reason (may be null)
      */
     public void suspend(String flowId, String reason) {
         log.info("Suspending data flow {} — reason: {}", flowId, reason);
-        storeState(flowId, DataFlowStates.SUSPENDED);
+        storeState(flowId, DataFlowLifecycleState.SUSPENDED);
     }
 
     /**
      * Returns the current state of a data flow.
      *
      * @param flowId process ID of the flow
-     * @return current {@link DataFlowStates}; {@link DataFlowStates#FAILED} if not found
+     * @return current {@link DataFlowLifecycleState}; {@link DataFlowLifecycleState#FAILED} if not found
      */
-    public DataFlowStates state(String flowId) {
-        return flowStateStore.find(flowId).orElse(DataFlowStates.FAILED);
+    public DataFlowLifecycleState state(String flowId) {
+        return flowStateStore.find(flowId).orElse(DataFlowLifecycleState.FAILED);
     }
 
     private void validateXrdPull(DataFlowStartMessage message) {
-        var transferType = message.getTransferType();
-        if (!XRD_PULL_TRANSFER_TYPE.equals(transferType)) {
+        var profile = message.getProfile();
+        if (!XRD_PULL_TRANSFER_TYPE.equals(profile)) {
             throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
-                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(transferType));
+                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(profile));
         }
     }
 
-    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state, String agreementId) {
+    private DataFlowStatusMessage buildStatusMessage(DataFlowLifecycleState state, String agreementId) {
         var protocol = proxyProperties.sslEnabled() ? "https" : "http";
         var endpoint = resolveServerproxyEndpoint(protocol);
         var dataAddressBuilder = DspDataAddress.Builder.newInstance()
@@ -177,7 +177,7 @@ public class XRoadDataPlaneManager {
                 .property(AUTH_TYPE_PROPERTY, BEARER_AUTH_TYPE));
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddressBuilder.build())
-                .state(state.toString())
+                .state(state.name())
                 .build();
     }
 
@@ -196,7 +196,7 @@ public class XRoadDataPlaneManager {
         return dspProperties.serverproxyEndpoint();
     }
 
-    private void storeState(String processId, DataFlowStates state) {
+    private void storeState(String processId, DataFlowLifecycleState state) {
         flowStateStore.save(processId, state);
     }
 }

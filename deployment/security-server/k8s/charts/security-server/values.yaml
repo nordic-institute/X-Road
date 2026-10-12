@@ -540,8 +540,8 @@ services:
     # application.yaml under src/service/ds-control-plane/ds-control-plane-application):
     #   8181 http       — EDC default web context (framework-internal; no ADR-42 role)
     #   8183 dsp         — cross-host, ADR-42 protocol surface (DSP endpoint)
-    #   8184 control      \_ live listeners (web.http.control/.signaling in application.yaml);
-    #   8185 signaling    /  neither covered nor excluded by ADR-42's HTTPS-surface inventory —
+    #   8185 signaling    — live listener (web.http.signaling in application.yaml); neither covered
+    #                        nor excluded by ADR-42's HTTPS-surface inventory —
     #                        classification pending an ADR-42 amendment (not decided here)
     #   5461 control-plane — internal, xroad.common-rpc.channel.control-plane: X-Road gRPC-over-mTLS
     #                        (XRDADR-38), not DS TLS; provisioning channel, same trust as signer/proxy
@@ -552,8 +552,6 @@ services:
         name: http
       - port: 8183
         name: dsp
-      - port: 8184
-        name: control
       - port: 8185
         name: signaling
       - port: 5461

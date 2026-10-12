@@ -28,7 +28,10 @@ package org.niis.xroad.globalconf.util;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
@@ -47,6 +50,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+import static ee.ria.xroad.common.DerSubjectCertUtil.derName;
+import static ee.ria.xroad.common.DerSubjectCertUtil.selfSignedCertificate;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -178,8 +183,12 @@ public class FISubjectClientIdDecoderTest {
 
     private X509Certificate generateSelfSignedCertificate(String dn, KeyPair pair) throws OperatorCreationException,
                                                                                           CertificateException {
+        return generateSelfSignedCertificate(new X500Name(dn), pair);
+    }
+
+    private X509Certificate generateSelfSignedCertificate(X500Name name, KeyPair pair) throws OperatorCreationException,
+                                                                                              CertificateException {
         ContentSigner signer = new JcaContentSignerBuilder(SignAlgorithm.SHA256_WITH_RSA.name()).build(pair.getPrivate());
-        X500Name name = new X500Name(dn);
         JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(name, BigInteger.ONE, new Date(),
                 new Date(), name, pair.getPublic()
         );
@@ -201,9 +210,37 @@ public class FISubjectClientIdDecoderTest {
      */
     @Test
     public void shouldDecodeClientIdStoneAge() throws GeneralSecurityException, OperatorCreationException {
-        final X509Certificate cert = generateSelfSignedCertificate("C=FI-DEV, O=GOV, CN=0245437-2", keyPair);
+        final X500Name stoneAgeSubject = new X500NameBuilder(BCStyle.INSTANCE)
+                .addRDN(BCStyle.C, new DERPrintableString("FI-DEV"))
+                .addRDN(BCStyle.O, "GOV")
+                .addRDN(BCStyle.CN, "0245437-2")
+                .build();
+        final X509Certificate cert = generateSelfSignedCertificate(stoneAgeSubject, keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 
         assertEquals(ClientId.Conf.create("FI-DEV", "GOV", "0245437-2"), clientId);
+    }
+
+    @Test
+    public void shouldUseMostSpecificValuesOfRepeatedAttributesInLegacyName() {
+        var cert = selfSignedCertificate(derName(
+                "C", "FI", "O", "DEV", "OU", "OUTER", "OU", "COM", "CN", "outer", "CN", "222"));
+
+        assertEquals(ClientId.Conf.create("DEV", "COM", "222"), FISubjectClientIdDecoder.getSubjectClientId(cert));
+    }
+
+    @Test
+    public void shouldUseMostSpecificCommonNameOfRepeatedAttributeWithSerialNumber() {
+        var cert = selfSignedCertificate(derName(
+                "C", "FI", "O", "Org", "CN", "outer", "CN", "222", "serialNumber", "DEV/server/COM"));
+
+        assertEquals(ClientId.Conf.create("DEV", "COM", "222"), FISubjectClientIdDecoder.getSubjectClientId(cert));
+    }
+
+    @Test
+    public void shouldUseMostSpecificValuesOfRepeatedAttributesWithoutOrganizationUnit() {
+        var cert = selfSignedCertificate(derName("C", "FI", "O", "outer", "O", "DEV", "CN", "outer", "CN", "222"));
+
+        assertEquals(ClientId.Conf.create("FI", "DEV", "222"), FISubjectClientIdDecoder.getSubjectClientId(cert));
     }
 }

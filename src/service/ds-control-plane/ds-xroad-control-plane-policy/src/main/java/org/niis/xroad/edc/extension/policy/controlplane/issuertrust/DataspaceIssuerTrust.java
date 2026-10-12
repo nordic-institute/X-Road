@@ -24,19 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.catalog;
+package org.niis.xroad.edc.extension.policy.controlplane.issuertrust;
 
-import jakarta.annotation.Nullable;
+import java.util.Set;
 
 /**
- * Read access to the participant context a DSP protocol request was addressed to, captured
- * per request by {@link ParticipantContextCaptureFilter}. Returns {@code null} for callers
- * outside the DSP protocol request path — internal, management and diagnostic callers — which
- * the catalog stores treat as "no addressed context", selecting the first resolved context
- * instead ({@link ServiceContextResolver#select}).
+ * Decides which issuer DIDs the dataspace trusts.
  */
-interface RequestedParticipantContext {
+interface DataspaceIssuerTrust {
 
-    @Nullable
-    String get();
+    /**
+     * Makes exactly {@code issuerDids} trusted, for every credential type. An issuer DID missing from the set is
+     * no longer trusted once this call returns; an empty set drops all trust.
+     *
+     * @param issuerDids the issuer DIDs to trust
+     */
+    void trustOnly(Set<String> issuerDids);
 }

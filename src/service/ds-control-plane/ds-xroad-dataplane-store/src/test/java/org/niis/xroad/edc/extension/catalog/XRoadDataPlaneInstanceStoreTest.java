@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -195,10 +195,7 @@ class XRoadDataPlaneInstanceStoreTest {
         return Stream.of(
                 Arguments.of("getAll", (StoreCall) store -> store.getAll()),
                 Arguments.of("save", (StoreCall) store -> store.save(instance)),
-                Arguments.of("deleteById", (StoreCall) store -> store.deleteById(instance.getId())),
-                Arguments.of("findByIdAndLease", (StoreCall) store -> store.findByIdAndLease(instance.getId())),
-                Arguments.of("breakLease", (StoreCall) store -> store.breakLease(instance)),
-                Arguments.of("nextNotLeased", (StoreCall) store -> store.nextNotLeased(1))
+                Arguments.of("deleteById", (StoreCall) store -> store.deleteById(instance.getId()))
         );
     }
 

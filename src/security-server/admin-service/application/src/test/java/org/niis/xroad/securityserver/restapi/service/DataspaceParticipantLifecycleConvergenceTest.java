@@ -87,7 +87,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-    private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-xroad-membership-credential-request";
+    private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-"
+            + ParticipantIdentifierScheme.memberCtxId(OWNER) + ":" + SERVER_CODE + "-xroad-membership-credential-request";
 
     @Mock
     private ClientRepository clientRepository;

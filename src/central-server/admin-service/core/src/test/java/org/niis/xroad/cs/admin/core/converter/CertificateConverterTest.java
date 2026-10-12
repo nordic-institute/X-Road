@@ -33,6 +33,8 @@ import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 
 import java.io.InputStream;
 
+import static ee.ria.xroad.common.DerSubjectCertUtil.derName;
+import static ee.ria.xroad.common.DerSubjectCertUtil.selfSignedCertificate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,6 +78,37 @@ class CertificateConverterTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getSubjectCommonName()).isNull();
+    }
+
+    @Test
+    void shouldReadMostSpecificCommonNameFromCertificateWithRepeatedCommonName() throws Exception {
+        var certificate = selfSignedCertificate(derName("C", "FI", "O", "COM", "CN", "outer", "CN", "inner"));
+
+        AuthCertEntity authCert = mock(AuthCertEntity.class);
+        when(authCert.getId()).thenReturn(3);
+        when(authCert.getCert()).thenReturn(certificate.getEncoded());
+
+        SecurityServerAuthenticationCertificateDetails result =
+                certificateConverter.toCertificateDetails(authCert);
+
+        assertThat(result.getSubjectCommonName()).isEqualTo("inner");
+        assertThat(result.getIssuerCommonName()).isEqualTo("inner");
+    }
+
+    @Test
+    void shouldReadCommonNamesFromCertificateWithCountryDevAndLongCommonName() throws Exception {
+        String commonName = "x".repeat(65);
+        var certificate = selfSignedCertificate(derName("C", "DEV", "O", "COM", "CN", commonName));
+
+        AuthCertEntity authCert = mock(AuthCertEntity.class);
+        when(authCert.getId()).thenReturn(3);
+        when(authCert.getCert()).thenReturn(certificate.getEncoded());
+
+        SecurityServerAuthenticationCertificateDetails result =
+                certificateConverter.toCertificateDetails(authCert);
+
+        assertThat(result.getSubjectCommonName()).isEqualTo(commonName);
+        assertThat(result.getIssuerCommonName()).isEqualTo(commonName);
     }
 
     private byte[] readCert(String path) throws Exception {

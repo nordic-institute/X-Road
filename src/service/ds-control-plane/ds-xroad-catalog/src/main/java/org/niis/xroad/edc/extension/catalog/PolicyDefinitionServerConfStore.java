@@ -65,21 +65,24 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
-    private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
 
     @Override
     @Nullable
     @WithSpan("dsp-find-acl")
-    public PolicyDefinition findById(@SpanAttribute String policyId) {
-        var requested = requestedParticipantContext.get();
-        return cache.findById(policyId, requested, serviceContextResolver.isCacheableRequestedContext(requested),
-                () -> findByIdInternal(policyId));
+    public PolicyDefinition findById(@Nullable String participantContextId, @SpanAttribute String policyId) {
+        if (participantContextId == null) {
+            log.trace("findById policyId={} has no participant context, returning null", policyId);
+            return null;
+        }
+        return cache.findById(participantContextId, policyId,
+                serviceContextResolver.isCacheableRequestedContext(participantContextId),
+                () -> findByIdInternal(participantContextId, policyId));
     }
 
     @Nullable
-    private PolicyDefinition findByIdInternal(String policyId) {
+    private PolicyDefinition findByIdInternal(String participantContextId, String policyId) {
         log.trace("findById policyId={}", policyId);
         if (policyId == null || policyId.isBlank()) {
             log.trace("findById policyId blank, returning null");
@@ -92,7 +95,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             return toBuiltinPolicyDefinition(policyId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         }
 
-        var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
+        var systemAddressed = serviceContextResolver.isSystemAddressed(participantContextId);
         if (systemAddressed) {
             var systemResult = findSystemPolicyDefinition(policyId);
             if (systemResult != null) {
@@ -112,9 +115,9 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             return null;
         }
 
-        var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, policyId);
+        var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, participantContextId, policyId);
         if (result == null) {
-            result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
+            result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, participantContextId, policyId);
         }
         log.trace("findById policyId={} result={}", policyId, result != null ? "found" : "not found");
         return result;
@@ -192,13 +195,13 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public StoreResult<PolicyDefinition> delete(String policyId) {
+    public StoreResult<PolicyDefinition> delete(String participantContextId, String policyId) {
         log.trace("delete policyId={} read-only, returning notFound", policyId);
         return StoreResult.notFound(READ_ONLY_MESSAGE);
     }
 
     @Nullable
-    private PolicyDefinition tryDecodeAndMatch(String[] parts, int servicePartCount, String policyId) {
+    private PolicyDefinition tryDecodeAndMatch(String[] parts, int servicePartCount, String participantContextId, String policyId) {
         if (parts.length <= servicePartCount) {
             return null;
         }
@@ -229,7 +232,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .toList();
 
         var resolvedContexts = serviceContextResolver.resolveContextsByIdWithSystem(serviceId);
-        var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        var ctxId = ServiceContextResolver.select(resolvedContexts, participantContextId);
         if (ctxId == null) {
             return null;
         }
