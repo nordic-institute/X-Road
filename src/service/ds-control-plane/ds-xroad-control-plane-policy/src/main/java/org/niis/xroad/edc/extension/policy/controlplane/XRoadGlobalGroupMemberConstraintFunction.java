@@ -32,8 +32,8 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -46,7 +46,7 @@ import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamesp
 
 @Slf4j
 @RequiredArgsConstructor
-public class XRoadGlobalGroupMemberConstraintFunction<C extends PolicyContext>
+public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext>
         implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = XROAD_GLOBAL_GROUP;
@@ -55,7 +55,7 @@ public class XRoadGlobalGroupMemberConstraintFunction<C extends PolicyContext>
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, ParticipantAgentPolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
 
@@ -65,10 +65,10 @@ public class XRoadGlobalGroupMemberConstraintFunction<C extends PolicyContext>
             }
             GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
             log.debug("evaluate: operator={} globalGroup={}", operator, globalGroupId.asEncodedId());
-            return PolicyContextHelper.findMemberId(context)
+            return PolicyContextHelper.findMemberIdFromContext(context)
                     .map(memberId -> {
                         var result = switch (operator) {
-                            case EQ, IN -> globalConfProvider.isSubjectInGlobalGroup(memberId, globalGroupId);
+                            case EQ, IS_PART_OF -> globalConfProvider.isSubjectInGlobalGroup(memberId, globalGroupId);
                             default -> {
                                 context.reportProblem("Unsupported operator: " + operator);
                                 yield false;

@@ -34,16 +34,21 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
- * Filters a stream by {@link QuerySpec}. Supports {@code id =} and
- * {@code participantContextId =} criteria (AND-combined); sort is ignored,
- * unsupported criteria are skipped.
+ * Filters a stream by {@link QuerySpec}. Supports {@code id =} (plain or under the EDC namespace,
+ * which is how EDC itself names it) and {@code participantContextId =} criteria, AND-combined. Sort
+ * is ignored. Any other criterion matches nothing: a filter this evaluator cannot apply must narrow
+ * the result to empty, never widen it, because EDC uses these queries as authorization checks
+ * (contract validation counts the assets a definition selects).
  */
 @Slf4j
 @RequiredArgsConstructor
 class QueryEvaluator<T> {
 
     private static final String CRITERION_ID = "id";
+    private static final String CRITERION_ID_NAMESPACED = EDC_NAMESPACE + "id";
     private static final String CRITERION_PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String OPERATOR_EQUALS = "=";
 
@@ -74,19 +79,18 @@ class QueryEvaluator<T> {
         var operator = criterion.getOperator();
 
         if (!OPERATOR_EQUALS.equals(operator)) {
-            log.warn("Unsupported operator '{}' for criterion '{}', skipping", operator, left);
-            return source;
+            log.warn("Unsupported operator '{}' for criterion '{}', matching nothing", operator, left);
+            return Stream.empty();
         }
 
-        var right = criterion.getOperandRight();
+        var right = String.valueOf(criterion.getOperandRight());
         log.trace("applyCriterion left={} operator={} right={}", left, operator, right);
         return switch (left) {
-            case CRITERION_ID -> source.filter(e -> idAccessor.apply(e).equals(String.valueOf(right)));
-            case CRITERION_PARTICIPANT_CONTEXT_ID -> source.filter(e ->
-                    String.valueOf(right).equals(participantContextIdAccessor.apply(e)));
+            case CRITERION_ID, CRITERION_ID_NAMESPACED -> source.filter(e -> right.equals(idAccessor.apply(e)));
+            case CRITERION_PARTICIPANT_CONTEXT_ID -> source.filter(e -> right.equals(participantContextIdAccessor.apply(e)));
             default -> {
-                log.warn("Unsupported criterion operand '{}', skipping", left);
-                yield source;
+                log.warn("Unsupported criterion operand '{}', matching nothing", left);
+                yield Stream.empty();
             }
         };
     }

@@ -59,7 +59,6 @@ services:
     ports:
       - "0:8181"
       - "0:8183"
-      - "0:8184"
       - "0:9999"
     deploy:
       resources:

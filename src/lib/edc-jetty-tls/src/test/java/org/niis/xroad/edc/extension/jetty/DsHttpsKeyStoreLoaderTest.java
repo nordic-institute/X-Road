@@ -90,7 +90,7 @@ class DsHttpsKeyStoreLoaderTest {
         when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(credentials.key, new X509Certificate[0]));
 
         assertThatThrownBy(() -> new DsHttpsKeyStoreLoader(vaultClient).load())
-                .isInstanceOf(DsTlsKeyStoreLoadException.class)
+                .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
                 .hasMessageContaining("certificate pending");
     }
 
@@ -99,7 +99,7 @@ class DsHttpsKeyStoreLoaderTest {
         when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecret());
 
         assertThatThrownBy(() -> new DsHttpsKeyStoreLoader(vaultClient).load())
-                .isInstanceOf(DsTlsKeyStoreLoadException.class)
+                .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
                 .hasMessageContaining("No DataSpace TLS certificate found");
     }
 
@@ -108,7 +108,7 @@ class DsHttpsKeyStoreLoaderTest {
         when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("connection refused"));
 
         assertThatThrownBy(() -> new DsHttpsKeyStoreLoader(vaultClient).load())
-                .isInstanceOf(DsTlsKeyStoreLoadException.class)
+                .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
                 .hasMessageContaining("Could not reach OpenBao")
                 .hasMessageNotContaining("No DataSpace TLS certificate found");
     }

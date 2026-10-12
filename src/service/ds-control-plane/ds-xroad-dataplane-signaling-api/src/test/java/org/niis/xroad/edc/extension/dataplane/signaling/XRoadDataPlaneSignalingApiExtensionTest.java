@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.edc.extension.dataplane.signaling;
 
+import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferApiController;
 import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferAuthorizationFilter;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;

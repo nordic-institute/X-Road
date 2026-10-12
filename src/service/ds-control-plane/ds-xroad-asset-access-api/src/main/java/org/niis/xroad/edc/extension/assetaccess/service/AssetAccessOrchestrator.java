@@ -41,19 +41,16 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogServic
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.Constraint;
-import org.eclipse.edc.policy.model.Expression;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -61,19 +58,19 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
-import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
-import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
-import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
+import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
+import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -85,22 +82,31 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTI
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
 /**
- * Orchestrates the full asset access acquisition flow: catalog fetch, offer selection, contract negotiation,
- * transfer process initiation, and data address resolution — using event-driven callbacks instead of polling.
+ * Orchestrates the full asset access acquisition flow: agreement reuse lookup, catalog fetch, offer
+ * selection, contract negotiation, transfer process initiation, and data address resolution.
  *
- * <p>Uses singleton {@link NegotiationCompletionListener} and {@link TransferCompletionListener}
- * registered once at extension startup. O(1) event dispatch via ConcurrentHashMap; dead-letter
- * caches inside each listener close the race between {@code initiate*} returning and {@code register}.
+ * <p>Negotiation and transfer completion are awaited through the shared {@link AssetAccessCompletionPoller},
+ * which reads the outcome from the EDC stores rather than an in-process listener; this works identically
+ * whether the negotiation or transfer is driven to completion by this instance or another one sharing
+ * the same database.
+ *
+ * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store, scoped
+ * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
+ * entirely and transfers with the existing agreement.
+ *
+ * <p>Because several ds-control-plane instances may each acquire access under the same reused agreement,
+ * a transfer completing here also completes every other still-running consumer transfer under that agreement,
+ * rather than tracking "the current transfer" per instance.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {
 
     private final AssetAccessStateStore stateStore;
+    private final ReusableAgreementLookup reusableAgreementLookup;
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;
     private final TransferProcessService transferProcessService;
-    private final NegotiationCompletionListener negotiationListener;
-    private final TransferCompletionListener transferListener;
+    private final AssetAccessCompletionPoller completionPoller;
     private final JsonLd jsonLd;
     private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
@@ -126,14 +132,18 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
             String key, ParticipantContext participantContext, AssetAccessRequest request) {
-        var existingAgreement = stateStore.getAgreement(key);
-        if (existingAgreement != null) {
-            monitor.info("%s cached-agreement fast path: agreementId=%s transferType=%s"
-                    .formatted(key, existingAgreement.agreement().getId(), existingAgreement.transferType()));
-            return transferAndAwaitDataAddress(key, participantContext, existingAgreement.agreement(),
-                    existingAgreement.transferType(), request.counterPartyAddress(), request.protocolOrDefault())
+        var reusableAgreement = reusableAgreementLookup.find(
+                participantContext.getParticipantContextId(), participantContext.getIdentity(),
+                request.assetId(), request.counterPartyId(), request.clientId());
+        if (reusableAgreement.isPresent()) {
+            var agreement = reusableAgreement.get();
+            monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
+                    .formatted(key, agreement.getId(), request.clientId() != null));
+            return transferAndAwaitDataAddress(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
+                    request.counterPartyAddress(), request.protocolOrDefault())
                     .thenApply(ServiceResult::success);
         }
+        monitor.info("%s no reusable agreement found, negotiating".formatted(key));
         return executeAcquisition(participantContext, request, key);
     }
 
@@ -142,20 +152,22 @@ public class AssetAccessOrchestrator {
         return fetchCatalog(registryKey, participantContext, request)
                 .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId(), request.clientId()))
                 .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
-                        .thenApply(agreement -> {
-                            stateStore.recordAgreement(registryKey, agreement, offer.transferType());
-                            return new AgreementContext(agreement, offer.transferType());
-                        }))
-                .thenCompose(ctx -> transferAndAwaitDataAddress(registryKey, participantContext, ctx.agreement(),
-                        ctx.transferType(), request.counterPartyAddress(), request.protocolOrDefault()))
+                        .thenCompose(agreement -> transferAndAwaitDataAddress(registryKey, participantContext, agreement,
+                                offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault())))
                 .thenApply(ServiceResult::success);
+    }
+
+    private static QuerySpec datasetQuery(String assetId) {
+        return QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("id", "=", assetId))
+                .build();
     }
 
     private CompletableFuture<Catalog> fetchCatalog(String key, ParticipantContext participantContext, AssetAccessRequest request) {
         monitor.info("%s catalog fetch started".formatted(key));
         try {
             return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
-                            request.protocolOrDefault(), QuerySpec.none())
+                            request.protocolOrDefault(), datasetQuery(request.assetId()))
                     .thenApply(result -> {
                         if (result.failed()) {
                             monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
@@ -233,7 +245,7 @@ public class AssetAccessOrchestrator {
 
         monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s namesClient=%s"
                 .formatted(key, assetId, offer.getKey(), transferType,
-                        clientId != null && namesClient(offer.getValue(), clientId)));
+                        clientId != null && PolicySubjectMatcher.namesClient(offer.getValue(), clientId)));
         return new OfferContext(offer.getKey(), offer.getValue(), dataset, transferType);
     }
 
@@ -250,9 +262,9 @@ public class AssetAccessOrchestrator {
             return offers.entrySet().iterator().next();
         }
         var memberId = PolicyContextHelper.parseClientId(clientId).getMemberId().asEncodedId();
-        return firstOffer(offers, policy -> namesClient(policy, clientId))
+        return firstOffer(offers, policy -> PolicySubjectMatcher.namesClient(policy, clientId))
                 .or(() -> firstOffer(offers, policy -> appliesToMember(policy, memberId)))
-                .or(() -> firstOffer(offers, AssetAccessOrchestrator::isUnrestricted))
+                .or(() -> firstOffer(offers, PolicySubjectMatcher::isUnrestricted))
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
                         .origin(ErrorOrigin.DATASPACE)
                         .metadataItems(assetId, clientId)
@@ -263,39 +275,11 @@ public class AssetAccessOrchestrator {
         return offers.entrySet().stream().filter(entry -> matches.test(entry.getValue())).findFirst();
     }
 
-    private static boolean isUnrestricted(Policy policy) {
-        return policy.getPermissions().isEmpty();
-    }
-
-    private static boolean namesClient(Policy policy, String encodedClientId) {
-        return anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
-                && isLiteral(atomic.getRightExpression(), encodedClientId));
-    }
-
     private static boolean appliesToMember(Policy policy, String encodedMemberId) {
-        return namesClient(policy, encodedMemberId)
-                || anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
-                        || isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
-    }
-
-    private static boolean anyConstraint(Policy policy, Predicate<AtomicConstraint> matches) {
-        return policy.getPermissions().stream()
-                .flatMap(permission -> permission.getConstraints().stream())
-                .anyMatch(constraint -> anyConstraint(constraint, matches));
-    }
-
-    private static boolean anyConstraint(Constraint constraint, Predicate<AtomicConstraint> matches) {
-        if (constraint instanceof AtomicConstraint atomic) {
-            return matches.test(atomic);
-        }
-        if (constraint instanceof MultiplicityConstraint multiplicity) {
-            return multiplicity.getConstraints().stream().anyMatch(child -> anyConstraint(child, matches));
-        }
-        return false;
-    }
-
-    private static boolean isLiteral(Expression expression, String value) {
-        return expression instanceof LiteralExpression literal && value.equals(literal.getValue());
+        return PolicySubjectMatcher.namesClient(policy, encodedMemberId)
+                || PolicySubjectMatcher.anyConstraint(policy, atomic ->
+                        PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
+                                || PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
     }
 
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,
@@ -306,13 +290,9 @@ public class AssetAccessOrchestrator {
             var negotiationId = negotiationResult
                     .map(Entity::getId)
                     .orElseThrow(exceptionMapper(ContractNegotiation.class, null));
-            monitor.info("%s negotiation initiated: negotiationId=%s".formatted(key, negotiationId));
+            monitor.info("%s negotiation initiated, awaiting completion: negotiationId=%s".formatted(key, negotiationId));
 
-            var future = new CompletableFuture<ContractAgreement>();
-            negotiationListener.register(negotiationId, future);
-
-            return future
-                    .orTimeout(negotiationTimeout.toMillis(), TimeUnit.MILLISECONDS)
+            return completionPoller.awaitNegotiation(negotiationId, negotiationTimeout)
                     .whenComplete((result, throwable) -> onNegotiationComplete(key, negotiationId, result, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
@@ -337,7 +317,6 @@ public class AssetAccessOrchestrator {
     }
 
     private void onNegotiationComplete(String key, String negotiationId, ContractAgreement result, Throwable throwable) {
-        negotiationListener.deregister(negotiationId);
         if (throwable != null) {
             monitor.warning("%s negotiation failed: negotiationId=%s".formatted(key, negotiationId), throwable);
         } else if (result != null) {
@@ -378,51 +357,70 @@ public class AssetAccessOrchestrator {
         }
 
         var transferProcessId = result.getContent().getId();
-        var previousTransferId = stateStore.getCurrentTransferId(key);
-        monitor.info("%s transfer initiated: transferProcessId=%s".formatted(key, transferProcessId));
-        var future = new CompletableFuture<DataAddress>();
-        transferListener.register(transferProcessId, future);
+        monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
-        return future
-                .orTimeout(transferTimeout.toMillis(), TimeUnit.MILLISECONDS)
+        return completionPoller.awaitTransfer(transferProcessId, transferTimeout)
                 .whenComplete((dataAddress, throwable) ->
-                        onTransferComplete(key, transferProcessId, previousTransferId, dataAddress, throwable));
+                        onTransferComplete(key, transferProcessId, agreement.getId(), dataAddress, throwable));
     }
 
-    private void onTransferComplete(String key, String transferProcessId, String previousTransferId,
+    private void onTransferComplete(String key, String transferProcessId, String agreementId,
                                      DataAddress dataAddress, Throwable throwable) {
-        transferListener.deregister(transferProcessId);
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
         } else if (dataAddress != null) {
             monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
             monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
-            stateStore.recordCurrentTransferId(key, transferProcessId);
-            completeSupersededTransfer(key, previousTransferId, transferProcessId);
+            completeSupersededTransfers(key, agreementId, transferProcessId);
         }
     }
 
     /**
-     * Completes the transfer that {@code transferProcessId} just superseded for {@code key}, if any.
-     * Runs only after the successor has produced a data address; a failure here is logged and never
-     * propagated, so it cannot fail the acquisition that triggered it.
+     * Completes every other still-{@code STARTED} consumer transfer under {@code agreementId}, now
+     * superseded by {@code completedTransferProcessId}. Several instances may each acquire access
+     * under the same reused agreement, each starting its own transfer process; only one is needed
+     * going forward. A failed search or a failed completion is logged and otherwise ignored - it never
+     * fails the acquisition that just succeeded.
      */
-    private void completeSupersededTransfer(String key, String previousTransferId, String transferProcessId) {
-        if (previousTransferId == null || previousTransferId.equals(transferProcessId)) {
+    private void completeSupersededTransfers(String key, String agreementId, String completedTransferProcessId) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(List.of(
+                        Criterion.criterion("contractId", "=", agreementId),
+                        Criterion.criterion("type", "=", TransferProcess.Type.CONSUMER.name()),
+                        Criterion.criterion("state", "=", TransferProcessStates.STARTED.code())))
+                .build();
+
+        List<TransferProcess> candidates;
+        try {
+            var result = transferProcessService.search(query);
+            if (result.failed()) {
+                monitor.warning("%s search for superseded transfers failed: agreementId=%s reason=%s"
+                        .formatted(key, agreementId, result.getFailureDetail()));
+                return;
+            }
+            candidates = result.getContent();
+        } catch (Exception e) {
+            monitor.warning("%s search for superseded transfers failed: agreementId=%s".formatted(key, agreementId), e);
             return;
         }
+
+        candidates.stream()
+                .map(TransferProcess::getId)
+                .filter(id -> !id.equals(completedTransferProcessId))
+                .forEach(id -> completeSupersededTransfer(key, id));
+    }
+
+    private void completeSupersededTransfer(String key, String transferProcessId) {
         try {
-            var result = transferProcessService.complete(previousTransferId);
+            var result = transferProcessService.complete(transferProcessId);
             if (result.failed()) {
-                monitor.warning("%s completion of superseded transfer failed: transferProcessId=%s detail=%s"
-                        .formatted(key, previousTransferId, result.getFailureDetail()));
+                monitor.warning("%s completing superseded transfer failed: transferProcessId=%s reason=%s"
+                        .formatted(key, transferProcessId, result.getFailureDetail()));
             } else {
-                monitor.info("%s superseded transfer completion requested: transferProcessId=%s"
-                        .formatted(key, previousTransferId));
+                monitor.info("%s superseded transfer completed: transferProcessId=%s".formatted(key, transferProcessId));
             }
         } catch (Exception e) {
-            monitor.warning("%s completion of superseded transfer failed: transferProcessId=%s"
-                    .formatted(key, previousTransferId), e);
+            monitor.warning("%s completing superseded transfer failed: transferProcessId=%s".formatted(key, transferProcessId), e);
         }
     }
 

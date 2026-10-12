@@ -103,6 +103,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/proxy.jar
 /usr/share/xroad/jlib/proxy/
 /usr/share/xroad/scripts/proxy_memory_helper.sh
+/usr/share/xroad/scripts/read_serverconf_db_properties.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
@@ -132,6 +133,9 @@ fi
         "/usr/share/xroad/scripts/$db_script" || rc=$?;                               \
     done;                                                                             \
                                                                                       \
+    echo "Update resources: TLS identity";                                            \
+    /usr/share/xroad/scripts/write_tls_config.sh setup_default proxy || rc=$?;        \
+                                                                                      \
     if [ -x %{_bindir}/systemctl ]; then                                              \
         %{_bindir}/systemctl try-restart rsyslog.service                              \
     fi;                                                                               \
@@ -156,9 +160,6 @@ if [ $1 -gt 1 ] ; then
         echo 'DISABLE_PORT_REDIRECT=false' >>/etc/sysconfig/xroad-proxy
     fi
 fi
-
-# create TLS certificate provisioning properties (if not already created)
-/usr/share/xroad/scripts/write_tls_config.sh setup_default proxy
 
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad

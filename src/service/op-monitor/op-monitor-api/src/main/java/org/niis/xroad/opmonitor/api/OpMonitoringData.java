@@ -37,6 +37,9 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.LongConsumer;
 
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.PRODUCER;
 
@@ -476,5 +479,108 @@ public class OpMonitoringData {
         var type = (String) data.get(SECURITY_SERVER_TYPE);
         return Objects.equals(PRODUCER, SecurityServerType.fromString(type));
 
+    }
+
+    /**
+     * Converts the operational monitoring data to its gRPC representation. Fields without a value are left unset;
+     * text is cut to the limits of {@link OperationalDataTruncationPolicy}.
+     * @return operational data record message
+     */
+    public OperationalDataRecordProto toProto() {
+        var builder = OperationalDataRecordProto.newBuilder();
+        putString(SECURITY_SERVER_INTERNAL_IP, builder::setSecurityServerInternalIp);
+        putSecurityServerType(builder);
+        putTimestamps(builder);
+        putClientAndService(builder);
+        putMessage(builder);
+        putSizes(builder);
+        putOutcome(builder);
+        return builder.build();
+    }
+
+    private void putTimestamps(OperationalDataRecordProto.Builder builder) {
+        putLong(REQUEST_IN_TIMESTAMP, builder::setRequestInTs);
+        putLong(REQUEST_OUT_TIMESTAMP, builder::setRequestOutTs);
+        putLong(RESPONSE_IN_TIMESTAMP, builder::setResponseInTs);
+        putLong(RESPONSE_OUT_TIMESTAMP, builder::setResponseOutTs);
+    }
+
+    private void putClientAndService(OperationalDataRecordProto.Builder builder) {
+        putString(CLIENT_XROAD_INSTANCE, builder::setClientXroadInstance);
+        putString(CLIENT_MEMBER_CLASS, builder::setClientMemberClass);
+        putString(CLIENT_MEMBER_CODE, builder::setClientMemberCode);
+        putString(CLIENT_SUBSYSTEM_CODE, builder::setClientSubsystemCode);
+        putString(SERVICE_XROAD_INSTANCE, builder::setServiceXroadInstance);
+        putString(SERVICE_MEMBER_CLASS, builder::setServiceMemberClass);
+        putString(SERVICE_MEMBER_CODE, builder::setServiceMemberCode);
+        putString(SERVICE_SUBSYSTEM_CODE, builder::setServiceSubsystemCode);
+        putString(SERVICE_CODE, builder::setServiceCode);
+        putString(SERVICE_VERSION, builder::setServiceVersion);
+        putString(SERVICE_TYPE, builder::setServiceType);
+        putString(CLIENT_SECURITY_SERVER_ADDRESS, builder::setClientSecurityServerAddress);
+        putString(SERVICE_SECURITY_SERVER_ADDRESS, builder::setServiceSecurityServerAddress);
+        putString(REPRESENTED_PARTY_CLASS, builder::setRepresentedPartyClass);
+        putString(REPRESENTED_PARTY_CODE, builder::setRepresentedPartyCode);
+    }
+
+    private void putMessage(OperationalDataRecordProto.Builder builder) {
+        putString(REST_METHOD, builder::setRestMethod);
+        putString(REST_PATH, builder::setRestPath);
+        putString(XROAD_VERSION, builder::setXroadVersion);
+        putString(MESSAGE_ID, builder::setMessageId);
+        putString(MESSAGE_USER_ID, builder::setMessageUserId);
+        putString(MESSAGE_ISSUE, builder::setMessageIssue);
+        putString(MESSAGE_PROTOCOL_VERSION, builder::setMessageProtocolVersion);
+        putString(X_REQUEST_ID, builder::setXRequestId);
+    }
+
+    private void putSizes(OperationalDataRecordProto.Builder builder) {
+        putLong(REQUEST_SIZE, builder::setRequestSize);
+        putLong(RESPONSE_SIZE, builder::setResponseSize);
+        putLong(REQUEST_MIME_SIZE, builder::setRequestMimeSize);
+        putLong(RESPONSE_MIME_SIZE, builder::setResponseMimeSize);
+        putInt(REQUEST_ATTACHMENT_COUNT, builder::setRequestAttachmentCount);
+        putInt(RESPONSE_ATTACHMENT_COUNT, builder::setResponseAttachmentCount);
+    }
+
+    private void putOutcome(OperationalDataRecordProto.Builder builder) {
+        putBoolean(SUCCEEDED, builder::setSucceeded);
+        putInt(REST_RESPONSE_STATUS_CODE, builder::setStatusCode);
+        putString(FAULT_CODE, builder::setFaultCode);
+        putString(FAULT_STRING, builder::setFaultString);
+    }
+
+    private void putSecurityServerType(OperationalDataRecordProto.Builder builder) {
+        var type = SecurityServerType.fromString((String) data.get(SECURITY_SERVER_TYPE));
+        if (type != null) {
+            builder.setSecurityServerType(switch (type) {
+                case CLIENT -> org.niis.xroad.opmonitor.api.SecurityServerType.CLIENT;
+                case PRODUCER -> org.niis.xroad.opmonitor.api.SecurityServerType.PRODUCER;
+            });
+        }
+    }
+
+    private void putString(String key, Consumer<String> setter) {
+        if (data.get(key) instanceof String value) {
+            setter.accept(OperationalDataTruncationPolicy.truncate(key, value));
+        }
+    }
+
+    private void putLong(String key, LongConsumer setter) {
+        if (data.get(key) instanceof Number value) {
+            setter.accept(value.longValue());
+        }
+    }
+
+    private void putInt(String key, IntConsumer setter) {
+        if (data.get(key) instanceof Number value) {
+            setter.accept(value.intValue());
+        }
+    }
+
+    private void putBoolean(String key, Consumer<Boolean> setter) {
+        if (data.get(key) instanceof Boolean value) {
+            setter.accept(value);
+        }
     }
 }

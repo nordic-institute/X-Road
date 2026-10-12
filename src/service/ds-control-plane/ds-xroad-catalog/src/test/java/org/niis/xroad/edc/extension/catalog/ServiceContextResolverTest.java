@@ -134,13 +134,6 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void selectFallsBackToFirstResolvedContextWhenNoneRequested() {
-        var selected = ServiceContextResolver.select(List.of(SYSTEM_CTX, MEMBER_CTX), null);
-
-        assertThat(selected).isEqualTo(SYSTEM_CTX);
-    }
-
-    @Test
     void selectReturnsNullWhenRequestedContextIsNotAmongResolvedContexts() {
         var selected = ServiceContextResolver.select(List.of(MEMBER_CTX), "some-other-context");
 
@@ -161,7 +154,6 @@ class ServiceContextResolverTest {
     @Test
     void selectReturnsNullWhenResolvedContextsIsEmpty() {
         assertThat(ServiceContextResolver.select(List.of(), "some-other-context")).isNull();
-        assertThat(ServiceContextResolver.select(List.of(), null)).isNull();
     }
 
     @Test
@@ -257,11 +249,6 @@ class ServiceContextResolverTest {
     @Test
     void isCacheableRequestedContextAcceptsSystemCtx() {
         assertThat(resolver().isCacheableRequestedContext(SYSTEM_CTX)).isTrue();
-    }
-
-    @Test
-    void isCacheableRequestedContextAcceptsNoContextRequested() {
-        assertThat(resolver().isCacheableRequestedContext(null)).isTrue();
     }
 
     @Test

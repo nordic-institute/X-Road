@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
@@ -52,6 +51,7 @@ import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.time.Duration;
@@ -138,28 +138,28 @@ class XRoadDataPlaneManagerTest {
 
         var result = manager.start(message);
 
-        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
+        assertThat(result.getState()).isEqualTo("STARTED");
     }
 
     @Test
     void prepareAdvertisesServerproxyEndpoint() {
         var message = DataFlowPrepareMessage.Builder.newInstance()
-                .processId("flow-4")
-                .transferType("Xrd-PULL")
+                .dataFlowId("flow-4")
+                .profile("Xrd-PULL")
                 .build();
 
         var result = manager.prepare(message);
 
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
         assertThat(result.getDataAddress().getEndpointType()).isEqualTo("https");
-        assertThat(result.getState()).isEqualTo(DataFlowStates.PROVISIONED.toString());
+        assertThat(result.getState()).isEqualTo("PROVISIONED");
     }
 
     @Test
     void startRejectsNonXrdPullTransferType() {
         var message = DataFlowStartMessage.Builder.newInstance()
-                .processId("flow-5")
-                .transferType("Http-PUSH")
+                .dataFlowId("flow-5")
+                .profile("Http-PUSH")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();
@@ -172,15 +172,15 @@ class XRoadDataPlaneManagerTest {
     @Test
     void startedTransitionsFlowToStartedAndReturnsStateOnlyStatus() {
         manager.prepare(DataFlowPrepareMessage.Builder.newInstance()
-                .processId("flow-9")
-                .transferType("Xrd-PULL")
+                .dataFlowId("flow-9")
+                .profile("Xrd-PULL")
                 .build());
 
         var result = manager.started("flow-9");
 
-        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
+        assertThat(result.getState()).isEqualTo("STARTED");
         assertThat(result.getDataAddress()).isNull();
-        assertThat(manager.state("flow-9")).isEqualTo(DataFlowStates.STARTED);
+        assertThat(manager.state("flow-9")).isEqualTo(DataFlowLifecycleState.STARTED);
     }
 
     @Test
@@ -189,7 +189,7 @@ class XRoadDataPlaneManagerTest {
 
         manager.completed("flow-10");
 
-        assertThat(manager.state("flow-10")).isEqualTo(DataFlowStates.COMPLETED);
+        assertThat(manager.state("flow-10")).isEqualTo(DataFlowLifecycleState.COMPLETED);
     }
 
     @Test
@@ -198,7 +198,7 @@ class XRoadDataPlaneManagerTest {
 
         manager.terminate("flow-6");
 
-        assertThat(manager.state("flow-6")).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(manager.state("flow-6")).isEqualTo(DataFlowLifecycleState.TERMINATED);
     }
 
     @Test
@@ -207,12 +207,12 @@ class XRoadDataPlaneManagerTest {
 
         manager.suspend("flow-7", "maintenance");
 
-        assertThat(manager.state("flow-7")).isEqualTo(DataFlowStates.SUSPENDED);
+        assertThat(manager.state("flow-7")).isEqualTo(DataFlowLifecycleState.SUSPENDED);
     }
 
     @Test
     void stateReturnsFailedForUnknownFlow() {
-        assertThat(manager.state("unknown")).isEqualTo(DataFlowStates.FAILED);
+        assertThat(manager.state("unknown")).isEqualTo(DataFlowLifecycleState.FAILED);
     }
 
     @Test
@@ -293,7 +293,7 @@ class XRoadDataPlaneManagerTest {
 
         manager.start(buildStartMessage("flow-shared"));
 
-        assertThat(otherNodeManager.state("flow-shared")).isEqualTo(DataFlowStates.STARTED);
+        assertThat(otherNodeManager.state("flow-shared")).isEqualTo(DataFlowLifecycleState.STARTED);
     }
 
     @Test
@@ -303,19 +303,19 @@ class XRoadDataPlaneManagerTest {
                 proxyProperties, flowStateStore, agreementTokenIssuer);
 
         nodeA.start(buildStartMessage("flow-cluster"));
-        assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowStates.STARTED);
+        assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowLifecycleState.STARTED);
 
         nodeB.suspend("flow-cluster", "maintenance");
-        assertThat(nodeA.state("flow-cluster")).isEqualTo(DataFlowStates.SUSPENDED);
+        assertThat(nodeA.state("flow-cluster")).isEqualTo(DataFlowLifecycleState.SUSPENDED);
 
         nodeA.terminate("flow-cluster");
-        assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowLifecycleState.TERMINATED);
     }
 
     private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
-                .processId(processId)
-                .transferType("Xrd-PULL")
+                .dataFlowId(processId)
+                .profile("Xrd-PULL")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();
@@ -323,8 +323,8 @@ class XRoadDataPlaneManagerTest {
 
     private DataFlowPrepareMessage buildPrepareMessage(String processId) {
         return DataFlowPrepareMessage.Builder.newInstance()
-                .processId(processId)
-                .transferType("Xrd-PULL")
+                .dataFlowId(processId)
+                .profile("Xrd-PULL")
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();
@@ -366,16 +366,16 @@ class XRoadDataPlaneManagerTest {
      */
     private static final class InMemoryDataFlowStateStore implements DataFlowStateStore {
 
-        private final ConcurrentHashMap<String, DataFlowStates> states = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, DataFlowLifecycleState> states = new ConcurrentHashMap<>();
 
         @Override
-        public StoreResult<Void> save(String flowId, DataFlowStates state) {
+        public StoreResult<Void> save(String flowId, DataFlowLifecycleState state) {
             states.put(flowId, state);
             return StoreResult.success();
         }
 
         @Override
-        public Optional<DataFlowStates> find(String flowId) {
+        public Optional<DataFlowLifecycleState> find(String flowId) {
             return Optional.ofNullable(states.get(flowId));
         }
     }

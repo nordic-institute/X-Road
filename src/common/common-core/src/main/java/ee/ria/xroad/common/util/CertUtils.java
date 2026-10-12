@@ -137,7 +137,7 @@ public final class CertUtils {
     }
 
     public static String getCommonName(String subjectName) {
-        X500Name x500Name = new X500Name(subjectName);
+        X500Name x500Name = X500Names.fromString(subjectName);
         RDN[] rdns = x500Name.getRDNs(BCStyle.CN);
         ASN1Encodable commonName = rdns[0].getFirst().getValue();
         return IETFUtils.valueToString(commonName);
@@ -167,7 +167,7 @@ public final class CertUtils {
      * @return short name of the certificate principal.
      */
     private static String getPrincipalCommonName(X500Principal principal) {
-        X500Name x500name = new X500Name(principal.getName());
+        X500Name x500name = X500Names.fromPrincipal(principal);
 
         String cn = getRDNValue(x500name, BCStyle.CN);
 
@@ -225,7 +225,7 @@ public final class CertUtils {
      */
     public static String getSubjectSerialNumber(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
-        X500Name x500name = new X500Name(principal.getName());
+        X500Name x500name = X500Names.fromPrincipal(principal);
 
         return getRDNValue(x500name, BCStyle.SERIALNUMBER);
     }
@@ -326,7 +326,7 @@ public final class CertUtils {
 
     public static X509Certificate[] createSelfSignedCertificate(String commonName, KeyPair keyPair, long expirationInDays)
             throws CertIOException, OperatorCreationException, CertificateException {
-        X500Name subject = new X500Name("CN=" + commonName);
+        X500Name subject = X500Names.fromString("CN=" + commonName);
         JcaX509v3CertificateBuilder certificateBuilder =
                 new JcaX509v3CertificateBuilder(
                         subject,

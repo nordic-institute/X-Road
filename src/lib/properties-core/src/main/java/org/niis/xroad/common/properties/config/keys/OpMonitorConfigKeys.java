@@ -37,6 +37,7 @@ import java.util.Set;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /** Op-monitor keys ({@code xroad.op-monitor.*}, incl. {@code .rpc} and {@code .tls} sub-trees). */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
@@ -132,6 +133,19 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> RPC_PORT = RPC
             .integer("port")
             .withDefaultValue(2081)
+            .exposedInUi()
+            .build();
+
+    /**
+     * Smallest accepted store message limit in bytes: one operational data record at its maximum truncated
+     * size (about 25 KiB) with headroom for protobuf overhead and future fields.
+     */
+    public static final int MIN_STORE_MESSAGE_SIZE = 64 * 1024;
+
+    /** {@code xroad.op-monitor.rpc.max-inbound-message-size} — no default (gRPC default applies). */
+    public static final ConfigKey<Integer> RPC_MAX_INBOUND_MESSAGE_SIZE = RPC
+            .integer("max-inbound-message-size")
+            .withValidator(range(MIN_STORE_MESSAGE_SIZE, Integer.MAX_VALUE))
             .exposedInUi()
             .build();
 

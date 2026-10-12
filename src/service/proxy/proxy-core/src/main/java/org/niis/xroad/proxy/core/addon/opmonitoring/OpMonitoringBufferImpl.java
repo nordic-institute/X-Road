@@ -27,27 +27,21 @@
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Operational monitoring buffer. This buffer is used for gathering
@@ -69,9 +63,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
                                   ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties,
-                                  VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
+                                  Supplier<? extends OperationalDataStoreClient> storeClient) {
 
         this.opMonitorProperties = opMonitorProperties;
         if (ignoreOpMonitoringData()) {
@@ -83,7 +75,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
             opMonitoringDataProcessor = null;
             savedServiceEndpoint = null;
         } else {
-            sender = createSender(serverConfProvider, opMonitorProperties, vaultClient, isEnabledPooledConnectionReuse);
+            sender = createSender(storeClient.get());
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -95,13 +87,8 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                          ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorAddonProperties,
-                                          VaultClient vaultClient, boolean isEnabledPooledConnectionReuse)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException, InvalidKeySpecException {
-        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorAddonProperties,
-                vaultClient, isEnabledPooledConnectionReuse);
+    OpMonitoringDaemonSender createSender(OperationalDataStoreClient storeClient) {
+        return new OpMonitoringDaemonSender(this, storeClient, opMonitorProperties.buffer().maxMessageSize());
     }
 
     @Override
@@ -109,7 +96,7 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
         if (ignoreOpMonitoringData()) {
             return;
         }
-        executorService.execute(() -> {
+        execute(() -> {
             try {
                 data.setSecurityServerInternalIp(opMonitoringDataProcessor.getIpAddress());
                 data.setRestPath(savedServiceEndpoint.getPathIfExists(data));
@@ -132,13 +119,21 @@ public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
     }
 
     private void send() {
-        executorService.execute(() -> {
+        execute(() -> {
             try {
                 this.sendInternal();
             } catch (Exception e) {
                 log.error("Failed to send message", e);
             }
         });
+    }
+
+    private void execute(Runnable task) {
+        try {
+            executorService.execute(task);
+        } catch (RejectedExecutionException e) {
+            log.warn("Operational monitoring buffer is stopped, operational monitoring data is not processed");
+        }
     }
 
     private void sendInternal() {

@@ -31,9 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.controlplane.contract.spi.policy.AgreementPolicyContext;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.niis.xroad.edc.extension.policy.controlplane.participantagent.XRoadMemberIdAttributes;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -58,24 +56,12 @@ public class PolicyContextHelper {
     private final XRoadMemberIdAttributes memberIdAttributes = new XRoadMemberIdAttributes();
 
     /**
-     * Resolves the consumer's X-Road member identity from whichever shape of {@code context} is
-     * available: a live DSP request carries a {@link ParticipantAgentPolicyContext} (catalog,
-     * negotiation and transfer scopes), while the policy monitor's {@code PolicyMonitorContext} only
-     * carries the stored agreement ({@link AgreementPolicyContext}), replayed outside of any request.
+     * Resolves the consumer's X-Road member identity from a {@link ParticipantAgentPolicyContext}'s
+     * participant agent. A live DSP request's agent carries the identity as attributes, set by
+     * {@code XRoadMemberIdAttributes}. The policy monitor's agent is built outside of any request,
+     * straight from the stored agreement, and carries no attributes — there the same identity is
+     * derived by replaying the agreement's claims through that same extraction.
      */
-    public static Optional<ClientId> findMemberId(PolicyContext context) {
-        if (context instanceof ParticipantAgentPolicyContext participantAgentContext) {
-            return findMemberIdFromContext(participantAgentContext);
-        }
-        if (context instanceof AgreementPolicyContext agreementContext) {
-            var agreement = agreementContext.contractAgreement();
-            return agreement == null ? Optional.empty() : findMemberIdFromClaims(agreement.getClaims());
-        }
-        log.debug("findMemberId: context {} is neither participant-agent- nor agreement-based, returning empty",
-                context.getClass());
-        return Optional.empty();
-    }
-
     public static Optional<ClientId> findMemberIdFromContext(ParticipantAgentPolicyContext context) {
         var participantAgent = context.participantAgent();
         if (participantAgent == null) {
@@ -85,17 +71,14 @@ public class PolicyContextHelper {
         var attributes = participantAgent.getAttributes();
         log.debug("findMemberIdFromContext: identity={} attributes={}",
                 participantAgent.getIdentity(), attributes.keySet());
-        return fromAttributes(attributes);
+        var fromAttributes = fromAttributes(attributes);
+        if (fromAttributes.isPresent()) {
+            return fromAttributes;
+        }
+        return findMemberIdFromClaims(participantAgent.getClaims());
     }
 
-    /**
-     * Resolves the consumer's X-Road member identity from a stored {@link AgreementPolicyContext}'s
-     * claims — the same {@code XRoadMembershipCredential} claims a live request's {@link ClaimToken}
-     * would carry, snapshotted onto the agreement when it was reached ({@code
-     * ContractNegotiationProtocolServiceImpl}) — by replaying them through the same extraction
-     * {@code XRoadMemberIdAttributes} uses for a live request.
-     */
-    public static Optional<ClientId> findMemberIdFromClaims(Map<String, Object> claims) {
+    private static Optional<ClientId> findMemberIdFromClaims(Map<String, Object> claims) {
         var token = ClaimToken.Builder.newInstance().claims(claims).build();
         var attributes = memberIdAttributes.attributesFor(token);
         log.debug("findMemberIdFromClaims: attributes={}", attributes.keySet());

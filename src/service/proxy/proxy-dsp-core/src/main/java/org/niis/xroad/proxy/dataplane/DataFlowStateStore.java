@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Optional;
 
@@ -48,7 +48,7 @@ public interface DataFlowStateStore {
      * @param state  the new state
      * @return {@link StoreResult#success()} once the write is durable
      */
-    StoreResult<Void> save(String flowId, DataFlowStates state);
+    StoreResult<Void> save(String flowId, DataFlowLifecycleState state);
 
     /**
      * Finds the current state of a flow.
@@ -56,6 +56,6 @@ public interface DataFlowStateStore {
      * @param flowId the flow's process ID
      * @return the current state, or empty if the flow is not known
      */
-    Optional<DataFlowStates> find(String flowId);
+    Optional<DataFlowLifecycleState> find(String flowId);
 
 }

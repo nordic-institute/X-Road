@@ -42,8 +42,11 @@ import java.util.Map;
 
 /**
  * Decorator over the default {@link ParticipantSecureTokenService} that injects a signed
- * {@code xroadMemberClaim} JWS into the JWT claims for every credential-request token
- * issued by the IdentityHub.
+ * {@code xroadMemberClaim} JWS into the JWT claims of every token created through the
+ * {@link ParticipantSecureTokenService} service, which in the IdentityHub are the credential-request
+ * tokens sent to the Issuer Service. The self-issued tokens that the STS endpoint mints for DSP
+ * requests are built over the undecorated service instead (see {@link XRoadClaimSignerExtension}),
+ * so they carry no claim.
  *
  * <p>The X-Road MemberId is read from the {@link IdentityHubParticipantContext} properties
  * under key {@value #MEMBER_ID_PROPERTY} as a canonical {@code INSTANCE/CLASS/CODE} string,

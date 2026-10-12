@@ -27,7 +27,7 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;

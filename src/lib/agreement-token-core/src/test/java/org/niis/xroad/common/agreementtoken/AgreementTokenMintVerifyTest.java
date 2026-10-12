@@ -77,7 +77,7 @@ class AgreementTokenMintVerifyTest {
     private static final ServiceId OTHER_SERVICE = ServiceId.Conf.create(PROVIDER, "getOther", "v1");
 
     private static final TestProtocolProperties PROPERTIES =
-            new TestProtocolProperties("xroad-agreement-token", "security-server-proxy", Duration.ofSeconds(60));
+            new TestProtocolProperties("xroad-agreement-token", "security-server-proxy", Duration.ofSeconds(60), Duration.ZERO);
 
     private static final Instant NOW = Instant.parse("2026-09-25T10:00:00Z");
 
@@ -124,7 +124,8 @@ class AgreementTokenMintVerifyTest {
 
     @Test
     void shouldTakeTtlFromConfigurationNotHardcode() {
-        var customTtlProperties = new TestProtocolProperties("xroad-agreement-token", "security-server-proxy", Duration.ofSeconds(5));
+        var customTtlProperties =
+                new TestProtocolProperties("xroad-agreement-token", "security-server-proxy", Duration.ofSeconds(5), Duration.ZERO);
         var customTtlMinter = new AgreementTokenMinter(keyProvider, customTtlProperties, Clock.fixed(NOW, ZoneOffset.UTC));
         var grant = new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**")));
 
@@ -294,10 +295,37 @@ class AgreementTokenMintVerifyTest {
     }
 
     @Test
+    void shouldAcceptATokenPastExpiryButWithinTheConfiguredLeeway() {
+        var leewayProperties = new TestProtocolProperties(PROPERTIES.issuer(), PROPERTIES.audience(), PROPERTIES.tokenTtl(),
+                Duration.ofSeconds(10));
+        var leewayMinter = new AgreementTokenMinter(keyProvider, leewayProperties, Clock.fixed(NOW, ZoneOffset.UTC));
+        var token = leewayMinter.mint(
+                new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("GET", "/foo/*"))));
+
+        var verifier = new AgreementTokenVerifier(keyProvider, leewayProperties, Clock.fixed(NOW.plusSeconds(65), ZoneOffset.UTC));
+
+        assertThat(verifier.verify(token, restContext())).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+    }
+
+    @Test
+    void shouldRejectATokenPastTheConfiguredLeeway() {
+        var leewayProperties = new TestProtocolProperties(PROPERTIES.issuer(), PROPERTIES.audience(), PROPERTIES.tokenTtl(),
+                Duration.ofSeconds(10));
+        var leewayMinter = new AgreementTokenMinter(keyProvider, leewayProperties, Clock.fixed(NOW, ZoneOffset.UTC));
+        var token = leewayMinter.mint(
+                new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("GET", "/foo/*"))));
+
+        var verifier = new AgreementTokenVerifier(keyProvider, leewayProperties, Clock.fixed(NOW.plusSeconds(71), ZoneOffset.UTC));
+
+        assertRejected(verifier.verify(token, restContext()), EXPIRED);
+    }
+
+    @Test
     void shouldRejectWrongIssuer() {
         var token = mintDefaultGrant();
 
-        var wrongIssuerProperties = new TestProtocolProperties("someone-else", PROPERTIES.audience(), PROPERTIES.tokenTtl());
+        var wrongIssuerProperties =
+                new TestProtocolProperties("someone-else", PROPERTIES.audience(), PROPERTIES.tokenTtl(), Duration.ZERO);
         var verifier = new AgreementTokenVerifier(keyProvider, wrongIssuerProperties, Clock.fixed(NOW.plusSeconds(1), ZoneOffset.UTC));
 
         assertRejected(verifier.verify(token, restContext()), ISSUER_MISMATCH);
@@ -307,7 +335,8 @@ class AgreementTokenMintVerifyTest {
     void shouldRejectWrongAudience() {
         var token = mintDefaultGrant();
 
-        var wrongAudienceProperties = new TestProtocolProperties(PROPERTIES.issuer(), "someone-else", PROPERTIES.tokenTtl());
+        var wrongAudienceProperties =
+                new TestProtocolProperties(PROPERTIES.issuer(), "someone-else", PROPERTIES.tokenTtl(), Duration.ZERO);
         var verifier = new AgreementTokenVerifier(keyProvider, wrongAudienceProperties, Clock.fixed(NOW.plusSeconds(1), ZoneOffset.UTC));
 
         assertRejected(verifier.verify(token, restContext()), AUDIENCE_MISMATCH);
@@ -412,6 +441,7 @@ class AgreementTokenMintVerifyTest {
         return TestKeyPairs.generate();
     }
 
-    private record TestProtocolProperties(String issuer, String audience, Duration tokenTtl) implements AgreementTokenProtocolProperties {
+    private record TestProtocolProperties(String issuer, String audience, Duration tokenTtl, Duration expiryLeeway)
+            implements AgreementTokenProtocolProperties {
     }
 }

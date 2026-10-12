@@ -28,14 +28,11 @@
 package org.niis.xroad.edc.extension.policy.controlplane.util;
 
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
-import org.eclipse.edc.connector.controlplane.contract.spi.policy.AgreementPolicyContext;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
-import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -53,12 +50,11 @@ class PolicyContextHelperTest {
 
     @Mock
     ParticipantAgentPolicyContext mockContext;
-    @Mock
-    AgreementPolicyContext mockAgreementContext;
 
     @Test
-    void findMemberIdFromContextReturnsClientId() {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(),
+    void findMemberIdFromContextReturnsClientIdFromAttributesWhenPresent() {
+        var agent = new ParticipantAgent("test-id",
+                Map.<String, Object>of("vc", List.of(membershipCredential("CS", "ORG", "9999"))),
                 Map.of("xrd:xroadInstance", "CS", "xrd:memberClass", "ORG", "xrd:memberCode", "1234"));
         var context = new CatalogPolicyContext(agent);
 
@@ -68,6 +64,42 @@ class PolicyContextHelperTest {
         assertThat(result.get().getXRoadInstance()).isEqualTo("CS");
         assertThat(result.get().getMemberClass()).isEqualTo("ORG");
         assertThat(result.get().getMemberCode()).isEqualTo("1234");
+    }
+
+    @Test
+    void findMemberIdFromContextFallsBackToClaimsWhenAttributesAbsent() {
+        var agent = new ParticipantAgent("test-id",
+                Map.<String, Object>of("vc", List.of(membershipCredential("CS", "ORG", "1234"))),
+                Map.of());
+        var context = new CatalogPolicyContext(agent);
+
+        var result = PolicyContextHelper.findMemberIdFromContext(context);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getXRoadInstance()).isEqualTo("CS");
+        assertThat(result.get().getMemberClass()).isEqualTo("ORG");
+        assertThat(result.get().getMemberCode()).isEqualTo("1234");
+    }
+
+    @Test
+    void findMemberIdFromContextReturnsEmptyWhenNeitherAttributesNorClaimsCarryMembership() {
+        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.<String, String>of());
+        var context = new CatalogPolicyContext(agent);
+
+        var result = PolicyContextHelper.findMemberIdFromContext(context);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findMemberIdFromContextWithPartialAttributesAndNoClaimsReturnsEmpty() {
+        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(),
+                Map.of("xrd:xroadInstance", "CS"));
+        var context = new CatalogPolicyContext(agent);
+
+        var result = PolicyContextHelper.findMemberIdFromContext(context);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -80,27 +112,6 @@ class PolicyContextHelperTest {
     }
 
     @Test
-    void findMemberIdFromContextWithNoMemberAttributesReturnsEmpty() {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.<String, String>of());
-        var context = new CatalogPolicyContext(agent);
-
-        var result = PolicyContextHelper.findMemberIdFromContext(context);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void findMemberIdFromContextWithPartialMemberAttributesReturnsEmpty() {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(),
-                Map.of("xrd:xroadInstance", "CS"));
-        var context = new CatalogPolicyContext(agent);
-
-        var result = PolicyContextHelper.findMemberIdFromContext(context);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void parseClientIdReturnsCorrectClientId() {
         var id = PolicyContextHelper.parseClientId("CS:ORG:1234");
 
@@ -108,70 +119,6 @@ class PolicyContextHelperTest {
         assertThat(id.getMemberClass()).isEqualTo("ORG");
         assertThat(id.getMemberCode()).isEqualTo("1234");
         assertThat(id.getSubsystemCode()).isNull();
-    }
-
-    @Test
-    void findMemberIdDelegatesToParticipantAgentForAParticipantAgentPolicyContext() {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(),
-                Map.of("xrd:xroadInstance", "CS", "xrd:memberClass", "ORG", "xrd:memberCode", "1234"));
-        var context = new CatalogPolicyContext(agent);
-
-        var result = PolicyContextHelper.findMemberId(context);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getMemberCode()).isEqualTo("1234");
-    }
-
-    @Test
-    void findMemberIdDelegatesToAgreementClaimsForAnAgreementPolicyContext() {
-        when(mockAgreementContext.contractAgreement()).thenReturn(agreementWithMembershipClaims("CS", "ORG", "1234"));
-
-        var result = PolicyContextHelper.findMemberId(mockAgreementContext);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getXRoadInstance()).isEqualTo("CS");
-        assertThat(result.get().getMemberClass()).isEqualTo("ORG");
-        assertThat(result.get().getMemberCode()).isEqualTo("1234");
-    }
-
-    @Test
-    void findMemberIdReturnsEmptyWhenAgreementPolicyContextHasNoAgreement() {
-        when(mockAgreementContext.contractAgreement()).thenReturn(null);
-
-        var result = PolicyContextHelper.findMemberId(mockAgreementContext);
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void findMemberIdFromClaimsReturnsClientIdFromMembershipCredential() {
-        var claims = Map.<String, Object>of("vc", List.of(membershipCredential("CS", "ORG", "1234")));
-
-        var result = PolicyContextHelper.findMemberIdFromClaims(claims);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getXRoadInstance()).isEqualTo("CS");
-        assertThat(result.get().getMemberClass()).isEqualTo("ORG");
-        assertThat(result.get().getMemberCode()).isEqualTo("1234");
-    }
-
-    @Test
-    void findMemberIdFromClaimsReturnsEmptyWhenNoMembershipCredentialIsPresent() {
-        var result = PolicyContextHelper.findMemberIdFromClaims(Map.of());
-
-        assertThat(result).isEmpty();
-    }
-
-    private static ContractAgreement agreementWithMembershipClaims(String xroadInstance, String memberClass, String memberCode) {
-        return ContractAgreement.Builder.newInstance()
-                .id("agreement-1")
-                .providerId("provider-1")
-                .consumerId("consumer-1")
-                .contractSigningDate(System.currentTimeMillis())
-                .assetId("asset-1")
-                .policy(Policy.Builder.newInstance().build())
-                .claims(Map.of("vc", List.of(membershipCredential(xroadInstance, memberClass, memberCode))))
-                .build();
     }
 
     private static VerifiableCredential membershipCredential(String xroadInstance, String memberClass, String memberCode) {

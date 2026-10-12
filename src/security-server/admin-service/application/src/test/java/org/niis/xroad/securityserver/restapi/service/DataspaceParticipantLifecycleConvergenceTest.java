@@ -87,7 +87,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-    private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-xroad-membership-credential-request";
+    private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-"
+            + ParticipantIdentifierScheme.memberCtxId(OWNER) + ":" + SERVER_CODE + "-xroad-membership-credential-request";
 
     @Mock
     private ClientRepository clientRepository;
@@ -122,7 +123,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
         bindingTable.wireOnto(dsParticipantRepository);
         givenServerOwnedBy(OWNER);
 

@@ -37,6 +37,10 @@ import org.junit.Test;
 
 import javax.security.auth.x500.X500Principal;
 
+import java.security.cert.X509Certificate;
+
+import static ee.ria.xroad.common.DerSubjectCertUtil.derName;
+import static ee.ria.xroad.common.DerSubjectCertUtil.selfSignedCertificate;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -202,6 +206,24 @@ public class BasicACMECertificateProfileInfoProviderTest {
                         }
                 )
         );
+    }
+
+    @Test
+    public void getSubjectIdentifierFromCertificateWithRepeatedAttributesUsesMostSpecificValues() {
+        X509Certificate cert = selfSignedCertificate(derName(
+                "C", "FI", "businessCategory", "OUT", "businessCategory", "COM",
+                "CN", "name", "serialNumber", "111", "serialNumber", "222"));
+        ClientId clientId = getSignProfile().getSubjectIdentifier(cert);
+        assertEquals(ClientId.Conf.create("XX", "COM", "222"), clientId);
+    }
+
+    @Test
+    public void getSubjectIdentifierFromCertificateWithCountryDevAndLongNames() {
+        String longName = "x".repeat(65);
+        X509Certificate cert = selfSignedCertificate(derName(
+                "C", "DEV", "O", longName, "businessCategory", "COM", "CN", longName, "serialNumber", "222"));
+        ClientId clientId = getSignProfile().getSubjectIdentifier(cert);
+        assertEquals(ClientId.Conf.create("XX", "COM", "222"), clientId);
     }
 
     // ------------------------------------------------------------------------

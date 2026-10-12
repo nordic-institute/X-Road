@@ -58,6 +58,27 @@ class ValidatorTest {
     }
 
     @Test
+    void nonNegativeAcceptsZeroAndPositiveDuration() {
+        assertThat(Validator.nonNegative().validate(Duration.ZERO).valid()).isTrue();
+        assertThat(Validator.nonNegative().validate(Duration.ofSeconds(1)).valid()).isTrue();
+    }
+
+    @Test
+    void nonNegativeRejectsNegativeAndNull() {
+        var nonNegative = Validator.nonNegative();
+
+        assertThat(nonNegative.validate(Duration.ofSeconds(-1)).valid()).isFalse();
+        assertThat(nonNegative.validate(null).valid()).isFalse();
+    }
+
+    @Test
+    void nonNegativeRejectionCarriesMessage() {
+        var result = Validator.nonNegative().validate(Duration.ofSeconds(-1));
+
+        assertThat(result.message()).isEqualTo("must not be a negative duration");
+    }
+
+    @Test
     void positiveLongAcceptsPositiveValue() {
         assertThat(Validator.positiveLong().validate(1L).valid()).isTrue();
     }
@@ -125,6 +146,7 @@ class ValidatorTest {
         assertThat(Validator.pattern("[a-z]+").describe()).contains("matches [a-z]+");
         assertThat(Validator.nonEmpty().describe()).contains("non-empty");
         assertThat(Validator.positive().describe()).contains("positive duration");
+        assertThat(Validator.nonNegative().describe()).contains("non-negative duration");
         assertThat(Validator.positiveLong().describe()).contains("positive number");
     }
 

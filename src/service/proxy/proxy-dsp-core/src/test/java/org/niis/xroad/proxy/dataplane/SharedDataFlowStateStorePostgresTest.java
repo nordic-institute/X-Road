@@ -31,12 +31,12 @@ import ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialect;
 import liquibase.Scope;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -104,36 +104,36 @@ class SharedDataFlowStateStorePostgresTest {
     void flowSavedThroughOneNodeIsVisibleThroughAnother() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.STARTED);
 
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.STARTED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.STARTED);
     }
 
     @Test
     void lifecycleUpdatesFromEitherNodeAreVisibleOnTheOther() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.PROVISIONED);
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.PROVISIONED);
+        nodeA.save(flowId, DataFlowLifecycleState.PROVISIONED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.PROVISIONED);
 
-        nodeB.save(flowId, DataFlowStates.STARTED);
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+        nodeB.save(flowId, DataFlowLifecycleState.STARTED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.STARTED);
 
-        nodeA.save(flowId, DataFlowStates.SUSPENDED);
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.SUSPENDED);
+        nodeA.save(flowId, DataFlowLifecycleState.SUSPENDED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.SUSPENDED);
     }
 
     @Test
     void repeatedLifecycleUpdatesLeaveExactlyOneRow() throws Exception {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.PROVISIONED);
-        nodeB.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.SUSPENDED);
-        nodeB.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.TERMINATED);
+        nodeA.save(flowId, DataFlowLifecycleState.PROVISIONED);
+        nodeB.save(flowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.SUSPENDED);
+        nodeB.save(flowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.TERMINATED);
 
-        assertThat(nodeB.find(flowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowLifecycleState.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
@@ -142,14 +142,14 @@ class SharedDataFlowStateStorePostgresTest {
         var terminatedFlowId = uniqueFlowId();
         var completedFlowId = uniqueFlowId();
 
-        nodeA.save(terminatedFlowId, DataFlowStates.STARTED);
-        nodeB.save(terminatedFlowId, DataFlowStates.TERMINATED);
+        nodeA.save(terminatedFlowId, DataFlowLifecycleState.STARTED);
+        nodeB.save(terminatedFlowId, DataFlowLifecycleState.TERMINATED);
 
-        nodeB.save(completedFlowId, DataFlowStates.STARTED);
-        nodeA.save(completedFlowId, DataFlowStates.COMPLETED);
+        nodeB.save(completedFlowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(completedFlowId, DataFlowLifecycleState.COMPLETED);
 
-        assertThat(nodeA.find(terminatedFlowId)).contains(DataFlowStates.TERMINATED);
-        assertThat(nodeB.find(completedFlowId)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(terminatedFlowId)).contains(DataFlowLifecycleState.TERMINATED);
+        assertThat(nodeB.find(completedFlowId)).contains(DataFlowLifecycleState.COMPLETED);
         assertThat(countRows(terminatedFlowId)).isEqualTo(1);
         assertThat(countRows(completedFlowId)).isEqualTo(1);
     }
@@ -179,7 +179,7 @@ class SharedDataFlowStateStorePostgresTest {
             }
 
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -189,7 +189,7 @@ class SharedDataFlowStateStorePostgresTest {
 
     private static Void raceToSave(SharedDataFlowStateStore node, String flowId, CyclicBarrier barrier) throws Exception {
         barrier.await(5, TimeUnit.SECONDS);
-        node.save(flowId, DataFlowStates.STARTED);
+        node.save(flowId, DataFlowLifecycleState.STARTED);
         return null;
     }
 
@@ -207,8 +207,8 @@ class SharedDataFlowStateStorePostgresTest {
             for (var flowId : flowIds) {
                 var barrier = new CyclicBarrier(2);
                 List<Future<?>> results = List.of(
-                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowStates.STARTED, barrier)),
-                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowStates.PROVISIONED, barrier)));
+                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowLifecycleState.STARTED, barrier)),
+                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowLifecycleState.PROVISIONED, barrier)));
 
                 for (var result : results) {
                     result.get(10, TimeUnit.SECONDS);
@@ -216,7 +216,7 @@ class SharedDataFlowStateStorePostgresTest {
             }
 
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -228,37 +228,37 @@ class SharedDataFlowStateStorePostgresTest {
     void terminatedFlowIsNeverMovedBackToAnEarlierState() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.TERMINATED);
-        nodeB.save(flowId, DataFlowStates.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.TERMINATED);
+        nodeB.save(flowId, DataFlowLifecycleState.STARTED);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.TERMINATED);
     }
 
     @Test
     void completedFlowIsNeverMovedBackToAnEarlierState() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.COMPLETED);
-        nodeB.save(flowId, DataFlowStates.SUSPENDED);
+        nodeA.save(flowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.COMPLETED);
+        nodeB.save(flowId, DataFlowLifecycleState.SUSPENDED);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.COMPLETED);
     }
 
     @Test
     void repeatingTheSameTerminalStateIsANoOpNotARegression() throws Exception {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.TERMINATED);
-        nodeB.save(flowId, DataFlowStates.TERMINATED);
+        nodeA.save(flowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.TERMINATED);
+        nodeB.save(flowId, DataFlowLifecycleState.TERMINATED);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
-    private static Void raceToSaveState(SharedDataFlowStateStore node, String flowId, DataFlowStates state, CyclicBarrier barrier)
+    private static Void raceToSaveState(SharedDataFlowStateStore node, String flowId, DataFlowLifecycleState state, CyclicBarrier barrier)
             throws Exception {
         barrier.await(5, TimeUnit.SECONDS);
         node.save(flowId, state);
@@ -277,14 +277,14 @@ class SharedDataFlowStateStorePostgresTest {
         try {
             var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
             for (var flowId : flowIds) {
-                nodeA.save(flowId, DataFlowStates.STARTED);
+                nodeA.save(flowId, DataFlowLifecycleState.STARTED);
             }
 
             for (var flowId : flowIds) {
                 var barrier = new CyclicBarrier(2);
                 List<Future<?>> results = List.of(
-                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowStates.COMPLETED, barrier)),
-                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowStates.SUSPENDED, barrier)));
+                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowLifecycleState.COMPLETED, barrier)),
+                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowLifecycleState.SUSPENDED, barrier)));
 
                 for (var result : results) {
                     result.get(10, TimeUnit.SECONDS);
@@ -292,7 +292,7 @@ class SharedDataFlowStateStorePostgresTest {
             }
 
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.COMPLETED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -304,11 +304,11 @@ class SharedDataFlowStateStorePostgresTest {
     void suspendedFlowCanStillTransitionToCompleted() {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.STARTED);
-        nodeA.save(flowId, DataFlowStates.SUSPENDED);
-        nodeB.save(flowId, DataFlowStates.COMPLETED);
+        nodeA.save(flowId, DataFlowLifecycleState.STARTED);
+        nodeA.save(flowId, DataFlowLifecycleState.SUSPENDED);
+        nodeB.save(flowId, DataFlowLifecycleState.COMPLETED);
 
-        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowLifecycleState.COMPLETED);
     }
 
     /**
@@ -320,7 +320,7 @@ class SharedDataFlowStateStorePostgresTest {
     void auditTimestampsAreSetOnInsertAndUpdatedOnLifecycleChange() throws Exception {
         var flowId = uniqueFlowId();
 
-        nodeA.save(flowId, DataFlowStates.PROVISIONED);
+        nodeA.save(flowId, DataFlowLifecycleState.PROVISIONED);
         var afterInsert = selectTimestamps(flowId);
 
         assertThat(afterInsert.createdAt()).isNotNull();
@@ -329,7 +329,7 @@ class SharedDataFlowStateStorePostgresTest {
         // Ensures the "later" assertion below holds regardless of how fast the two transactions run.
         Thread.sleep(50);
 
-        nodeB.save(flowId, DataFlowStates.STARTED);
+        nodeB.save(flowId, DataFlowLifecycleState.STARTED);
         var afterUpdate = selectTimestamps(flowId);
 
         assertThat(afterUpdate.createdAt()).isEqualTo(afterInsert.createdAt());

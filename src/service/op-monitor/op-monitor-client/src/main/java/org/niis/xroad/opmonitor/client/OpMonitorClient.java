@@ -42,7 +42,9 @@ import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
+import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 
 import java.time.Instant;
 import java.util.List;
@@ -83,6 +85,16 @@ public class OpMonitorClient extends AbstractRpcClient {
         if (channel != null) {
             channel.shutdown();
         }
+    }
+
+    /**
+     * Stores operational data records in op-monitor. A gRPC error status, such as RESOURCE_EXHAUSTED for an oversized
+     * request, is propagated to the caller.
+     * @param records records to store
+     */
+    public void storeOperationalData(List<OperationalDataRecordProto> records) {
+        exec(() -> opMonitoringServiceBlockingStub.storeOperationalData(
+                StoreOperationalDataReq.newBuilder().addAllRecords(records).build()));
     }
 
     public List<OperationalDataInterval> getOperationalDataIntervals(Long recordsFrom,

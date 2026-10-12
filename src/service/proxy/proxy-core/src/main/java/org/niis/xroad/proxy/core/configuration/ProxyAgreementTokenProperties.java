@@ -33,6 +33,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import java.time.Duration;
 
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_AUDIENCE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_EXPIRY_LEEWAY;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_GRANT_LOOKUP_DEADLINE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_ISSUER;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_KEY_REFRESH_INTERVAL;
@@ -40,10 +41,10 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREE
 
 /**
  * Proxy agreement-token configuration ({@code xroad.proxy.agreement-token.*}). Both the minting data plane and
- * the verifying server proxy read {@link #issuer()}, {@link #audience()} and {@link #tokenTtl()} from the same
- * bean; {@link #keyRefreshInterval()} additionally bounds how often the key material bean reloads its snapshot
- * from the secret store, and {@link #grantLookupDeadline()} bounds the control-plane grant lookup on the
- * data-flow start path.
+ * the verifying server proxy read {@link #issuer()}, {@link #audience()}, {@link #tokenTtl()} and
+ * {@link #expiryLeeway()} from the same bean; {@link #keyRefreshInterval()} additionally bounds how often the
+ * key material bean reloads its snapshot from the secret store, and {@link #grantLookupDeadline()} bounds the
+ * control-plane grant lookup on the data-flow start path.
  */
 @RequiredArgsConstructor
 public class ProxyAgreementTokenProperties implements AgreementTokenProtocolProperties {
@@ -63,6 +64,11 @@ public class ProxyAgreementTokenProperties implements AgreementTokenProtocolProp
     @Override
     public Duration tokenTtl() {
         return xRoadConfig.value(AGREEMENT_TOKEN_TOKEN_TTL);
+    }
+
+    @Override
+    public Duration expiryLeeway() {
+        return xRoadConfig.value(AGREEMENT_TOKEN_EXPIRY_LEEWAY);
     }
 
     /** @return how often the key-material bean retries construction or refreshes its cached snapshot */
