@@ -501,7 +501,7 @@ public class DataspaceProvisioningService {
 
     private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
-            case SYSTEM -> systemDid(didAuthority.current());
+            case SYSTEM -> boundOrDerivedSystemDid();
             case MEMBER -> boundOrDerivedMemberDid(memberId);
         };
     }
@@ -529,13 +529,13 @@ public class DataspaceProvisioningService {
      * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
      * though the context's credential is issued to the current owner.
      */
-    private Did systemDid(String ssHost) {
+    private Did boundOrDerivedSystemDid() {
         var bound = dsParticipantRepository.findSystemParticipant();
         if (bound.isPresent()) {
-            ParticipantBindingCheck.verify(bound.get(), ssHost);
+            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
-        return ParticipantIdentifierScheme.systemDid(ssHost);
+        return didAuthority.systemDid();
     }
 
     /**

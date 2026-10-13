@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -84,7 +85,7 @@ class MemberCredentialRevocationServiceTest {
     private static final String SERVER_CODE = "SERVER";
     private static final String SS_ADDRESS = "ss1.example.test";
     private static final String SS_DID_AUTHORITY =
-            SS_ADDRESS + ":" + MemberCredentialRevocationService.INTERIM_IDENTITY_HUB_DID_PORT;
+            DspConventions.didAuthority(SS_ADDRESS, MemberCredentialRevocationService.INTERIM_DID_PORT);
     private static final long CUTOFF = 9_000L;
 
     private final ClientId memberId = ClientId.Conf.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
@@ -142,6 +143,22 @@ class MemberCredentialRevocationServiceTest {
         ArgumentCaptor<String> didCaptor = ArgumentCaptor.forClass(String.class);
         verify(rpcClient).revokeCredential(eq(ISSUER_PARTICIPANT_ID), didCaptor.capture(), eq(CUTOFF));
         assertThat(didCaptor.getValue()).isEqualTo(ParticipantIdentifierScheme.memberDid(memberId, SS_DID_AUTHORITY).toString());
+    }
+
+    @Test
+    @DisplayName("Derives the holder DID from the canonical lowercase form of a mixed-case server address")
+    void revokesWithCanonicalHolderDidForMixedCaseAddress() {
+        server.setAddress("SS1.Example.ORG");
+        when(securityServers.findBy(securityServerId)).thenReturn(Optional.of(server));
+        when(members.findMember(memberId)).thenReturn(Optional.of(member));
+        when(member.getSubsystems()).thenReturn(Set.of());
+        when(serverClients.countBySecurityServerAndSecurityServerClientIn(eq(server), any())).thenReturn(0L);
+        when(rpcClient.revokeCredential(eq(ISSUER_PARTICIPANT_ID), anyString(), eq(CUTOFF))).thenReturn(1);
+
+        service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
+
+        verify(rpcClient).revokeCredential(ISSUER_PARTICIPANT_ID,
+                ParticipantIdentifierScheme.memberDid(memberId, "ss1.example.org:7183").toString(), CUTOFF);
     }
 
     @Test
