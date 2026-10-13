@@ -116,7 +116,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + IDENTITY_HUB_HOST.split(":")[0]);
         when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        when(dataspace.getDidPort()).thenReturn(7183);
         when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);

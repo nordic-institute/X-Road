@@ -323,6 +323,7 @@ edc-lib-jsonld = { module = "org.eclipse.edc:jsonld-lib", version.ref = "edc" }
 edc-lib-dsp = { module = "org.eclipse.edc:dsp-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
+edc-lib-controlplane = { module = "org.eclipse.edc:control-plane-lib", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
 # EDC DCP modules

@@ -93,9 +93,13 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store, scoped
  * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
  * entirely and transfers with the existing agreement. When that transfer is refused at initiation or terminated
- * while awaited, the same acquisition falls back to a full negotiation, whose newer agreement wins reuse
- * from then on. A timeout waiting for the transfer
- * to start is not a refusal and fails the acquisition.
+ * while awaited, the same acquisition falls back to a full negotiation, whose newer agreement wins reuse from
+ * then on. A timeout waiting for the transfer to start is not a refusal and fails the acquisition.
+ *
+ * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
+ * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
+ * once its agreement token expires by the periodic sweep in
+ * {@link org.niis.xroad.edc.extension.assetaccess.poller.ExpiredTransferSweeper}.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {

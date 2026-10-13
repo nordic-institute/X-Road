@@ -32,8 +32,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.niis.xroad.edc.extension.policy.controlplane.participantagent.XRoadMemberIdAttributes;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -50,7 +53,15 @@ public class PolicyContextHelper {
     public static final String XRD_MEMBER_CODE_ATTRIBUTE = "xrd:memberCode";
 
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final XRoadMemberIdAttributes memberIdAttributes = new XRoadMemberIdAttributes();
 
+    /**
+     * Resolves the consumer's X-Road member identity from a {@link ParticipantAgentPolicyContext}'s
+     * participant agent. A live DSP request's agent carries the identity as attributes, set by
+     * {@code XRoadMemberIdAttributes}. The policy monitor's agent is built outside of any request,
+     * straight from the stored agreement, and carries no attributes — there the same identity is
+     * derived by replaying the agreement's claims through that same extraction.
+     */
     public static Optional<ClientId> findMemberIdFromContext(ParticipantAgentPolicyContext context) {
         var participantAgent = context.participantAgent();
         if (participantAgent == null) {
@@ -58,13 +69,28 @@ public class PolicyContextHelper {
             return Optional.empty();
         }
         var attributes = participantAgent.getAttributes();
+        log.debug("findMemberIdFromContext: identity={} attributes={}",
+                participantAgent.getIdentity(), attributes.keySet());
+        var fromAttributes = fromAttributes(attributes);
+        if (fromAttributes.isPresent()) {
+            return fromAttributes;
+        }
+        return findMemberIdFromClaims(participantAgent.getClaims());
+    }
+
+    private static Optional<ClientId> findMemberIdFromClaims(Map<String, Object> claims) {
+        var token = ClaimToken.Builder.newInstance().claims(claims).build();
+        var attributes = memberIdAttributes.attributesFor(token);
+        log.debug("findMemberIdFromClaims: attributes={}", attributes.keySet());
+        return fromAttributes(attributes);
+    }
+
+    private static Optional<ClientId> fromAttributes(Map<String, String> attributes) {
         var xroadInstance = attributes.get(XRD_INSTANCE_ATTRIBUTE);
         var memberClass = attributes.get(XRD_MEMBER_CLASS_ATTRIBUTE);
         var memberCode = attributes.get(XRD_MEMBER_CODE_ATTRIBUTE);
-        log.debug("findMemberIdFromContext: identity={} attributes={} instance={} class={} code={}",
-                participantAgent.getIdentity(), attributes.keySet(), xroadInstance, memberClass, memberCode);
         if (isBlank(xroadInstance) || isBlank(memberClass) || isBlank(memberCode)) {
-            log.debug("findMemberIdFromContext: no X-Road membership attributes present, returning empty");
+            log.debug("fromAttributes: no X-Road membership attributes present, returning empty");
             return Optional.empty();
         }
         return Optional.of(ClientId.Conf.create(xroadInstance, memberClass, memberCode));

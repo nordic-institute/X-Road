@@ -142,7 +142,8 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getDspPort()).thenReturn(8183);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -161,6 +162,11 @@ class DataspaceProvisioningServiceTest {
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
+    }
+
+    private DataspaceDidAuthority didAuthority() {
+        return new DataspaceDidAuthority(new OwnSecurityServerResolver(serverConfRepository, globalConfProvider),
+                adminServiceProperties);
     }
 
     @AfterEach
@@ -555,7 +561,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextMintsDidUnderConfiguredDidPort() {
-        when(dataspace.getIdentityHubDidPort()).thenReturn(8183);
+        when(dataspace.getDidPort()).thenReturn(8183);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_ADDRESS + ":8183");
@@ -565,6 +571,25 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.participantContextId()).isEqualTo(ctxId);
         assertThat(request.did()).isEqualTo(expectedDid);
+    }
+
+    @Test
+    void dspBaseUrlUsesRegisteredAddressAndDefaultDspPort() {
+        assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:8183/api/dsp");
+    }
+
+    @Test
+    void dspBaseUrlUsesConfiguredDspPort() {
+        when(dataspace.getDspPort()).thenReturn(18183);
+
+        assertThat(didAuthority().dspBaseUrl()).contains("https://ss.example.test:18183/api/dsp");
+    }
+
+    @Test
+    void dspBaseUrlIsEmptyWithoutRegisteredAddress() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThat(didAuthority().dspBaseUrl()).isEmpty();
     }
 
     @Test
@@ -589,6 +614,21 @@ class DataspaceProvisioningServiceTest {
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.DSP_PROVISIONING_FAILED.code()));
 
+        verify(identityHubClient, never()).createParticipantContext(any());
+    }
+
+    @Test
+    void ensureParticipantContextRefusesNonAsciiRegisteredAddressBeforeAnythingIsWritten() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("b\u00fccher.example");
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(MEMBER_CONTEXT))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()))
+                .hasMessageContaining("'b\u00fccher.example'");
+
+        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
         verify(identityHubClient, never()).createParticipantContext(any());
     }
 
@@ -690,6 +730,20 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
         assertThat(request.reanchorMemberIdOnConflict()).isTrue();
+    }
+
+    @Test
+    void ensureParticipantContextRefusesNonAsciiRegisteredAddressForSystemContextBeforeAnythingIsWritten() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("b\u00fccher.example");
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(SYSTEM_CONTEXT))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()))
+                .hasMessageContaining("'b\u00fccher.example'");
+
+        verify(identityHubClient, never()).createParticipantContext(any());
     }
 
     @Test

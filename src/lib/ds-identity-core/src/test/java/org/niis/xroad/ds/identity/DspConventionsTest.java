@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.net.URLDecoder;
@@ -160,5 +161,45 @@ class DspConventionsTest {
     void shouldNotDoubleBracketAlreadyBracketedIpv6AddressForSystemCoordinates() {
         assertThat(DspConventions.systemCounterPartyAddress("[2001:db8::8]"))
                 .isEqualTo("https://[2001:db8::8]:8183/api/dsp/system/http-dsp-profile-2025-1");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "ss0.example.org,    8183, https://ss0.example.org:8183/api/dsp",
+            "ss0.example.org,    9183, https://ss0.example.org:9183/api/dsp",
+            "ss0.example.org,    443,  https://ss0.example.org:443/api/dsp",
+            "SS0.Example.ORG,    8183, https://ss0.example.org:8183/api/dsp",
+            "2001:db8::1,        8183, https://[2001:db8::1]:8183/api/dsp",
+            "[2001:db8::1],      8183, https://[2001:db8::1]:8183/api/dsp",
+            "xrd-ss0.lxd,        8183, https://xrd-ss0.lxd:8183/api/dsp",
+            "127.0.0.1,          8183, https://127.0.0.1:8183/api/dsp",
+            "ss0.example.org,    1,    https://ss0.example.org:1/api/dsp",
+            "ss0.example.org,    65535, https://ss0.example.org:65535/api/dsp"
+    })
+    void shouldBuildDspBaseUrl(String ssAddress, int dspPort, String expected) {
+        assertThat(DspConventions.dspBaseUrl(ssAddress, dspPort)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"b\u00fccher.example", "ss0.example.org\u00e9", "\u4f8b\u3048.jp"})
+    void shouldRefuseNonAsciiDspAddressNamingIt(String ssAddress) {
+        assertThatThrownBy(() -> DspConventions.dspBaseUrl(ssAddress, 8183))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("'" + ssAddress + "'");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 65536, -1})
+    void shouldRefuseOutOfRangeDspPortNamingIt(int dspPort) {
+        assertThatThrownBy(() -> DspConventions.dspBaseUrl("ss0.example.org", dspPort))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("'" + dspPort + "'");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  "})
+    void shouldRefuseBlankDspAddress(String ssAddress) {
+        assertThatThrownBy(() -> DspConventions.dspBaseUrl(ssAddress, 8183))
+                .isInstanceOf(XrdRuntimeException.class);
     }
 }
