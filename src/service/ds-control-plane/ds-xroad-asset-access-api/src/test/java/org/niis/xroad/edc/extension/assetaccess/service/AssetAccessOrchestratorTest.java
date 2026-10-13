@@ -272,6 +272,28 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
+    void reusedAgreementTransferStartedButAddressUnresolvableFailsWithoutRenegotiating() throws Exception {
+        var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+        stubReusableAgreement("agreement-1");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation -> Stream.of(
+                TransferProcess.Builder.newInstance().id("tp-1").state(TransferProcessStates.STARTED.code()).build()));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_dataaddress_invalid"));
+        verifyNoInteractions(catalogService);
+        verifyNoInteractions(contractNegotiationService);
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+    }
+
+    @Test
     void failedRenegotiationFailsTheAcquisitionWithTheNegotiationFailureAndDoesNotLoop() throws Exception {
         var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
         stubReusableAgreement("agreement-1");
