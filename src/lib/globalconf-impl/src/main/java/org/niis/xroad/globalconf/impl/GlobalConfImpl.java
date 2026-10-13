@@ -50,7 +50,7 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -562,16 +562,16 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
+    public Collection<ApprovedConnectorTlsCAInfo> getApprovedConnectorTlsCAs(
             String instanceIdentifier) {
-        return getSharedParameters(instanceIdentifier).getApprovedDsTlsCas()
+        return getSharedParameters(instanceIdentifier).getApprovedConnectorTlsCAs()
                 .stream()
-                .map(this::createApprovedDsTlsCaInfo)
+                .map(this::createApprovedConnectorTlsCAInfo)
                 .toList();
     }
 
-    private ApprovedDsTlsCaInfo createApprovedDsTlsCaInfo(SharedParameters.ApprovedDsTlsCa ca) {
-        return new ApprovedDsTlsCaInfo(
+    private ApprovedConnectorTlsCAInfo createApprovedConnectorTlsCAInfo(SharedParameters.ApprovedConnectorTlsCA ca) {
+        return new ApprovedConnectorTlsCAInfo(
                 ca.getName(),
                 CryptoUtils.readCertificate(ca.getTopCA().getCert()),
                 ca.getIntermediateCas().stream()
@@ -580,13 +580,13 @@ public class GlobalConfImpl implements GlobalConfProvider {
                         .toList(),
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getDirectoryURL() : null,
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getIpAddress() : null,
-                ca.getAcmeServer() != null ? ca.getAcmeServer().getDsTlsCertificateProfileId() : null
+                ca.getAcmeServer() != null ? ca.getAcmeServer().getConnectorTlsCertificateProfileId() : null
         );
     }
 
     @Override
-    public Collection<String> getIssuerDids(String instanceIdentifier) {
-        return getSharedParameters(instanceIdentifier).getIssuerDids();
+    public Collection<String> getCredentialIssuerDids(String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getCredentialIssuerDids();
     }
 
     @Override

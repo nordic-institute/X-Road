@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.RandomSelectionStrategy;
+import org.eclipse.edc.connector.controlplane.defaults.strategy.DefaultSelectionStrategyRegistry;
+import org.eclipse.edc.connector.controlplane.services.dataplane.DataPlaneSelectorServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.strategy.RandomSelectionStrategy;
-import org.eclipse.edc.connector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.Test;
@@ -126,7 +126,7 @@ class TwoNodeDataPlaneSelectionTest {
         )).getConfig("xroad.cp.dataplane").partition().toList();
         var strategies = new DefaultSelectionStrategyRegistry();
         strategies.add(new RandomSelectionStrategy());
-        return new EmbeddedDataPlaneSelectorService(
+        return new DataPlaneSelectorServiceImpl(
                 new XRoadDataPlaneInstanceStore(entries), strategies, new NoopTransactionContext(), "random");
     }
 }

@@ -147,25 +147,18 @@ class ServiceContextResolver {
 
     /**
      * Picks the record matching the request's addressed context, if it is one of
-     * {@code resolvedContexts}. When no context was addressed ({@code requestedParticipantContextId}
-     * is {@code null} — an internal, management or diagnostic caller, per {@link RequestedParticipantContext}),
-     * falls back to the list's first entry — by {@link #resolveContexts(ServiceId, Set)}'s either/or
-     * contract, the service's sole resolved context, or the SYSTEM context a caller appended on top
-     * of it. A non-null addressed context that is not in {@code resolvedContexts} never falls back
-     * to an unrelated entry: it resolves to {@code null}, the same as when {@code resolvedContexts}
-     * is empty.
+     * {@code resolvedContexts}. An addressed context that is not in {@code resolvedContexts} never
+     * falls back to an unrelated entry: it resolves to {@code null}, the same as when
+     * {@code resolvedContexts} is empty.
      */
     @Nullable
-    static String select(List<String> resolvedContexts, @Nullable String requestedParticipantContextId) {
-        if (requestedParticipantContextId == null) {
-            return resolvedContexts.isEmpty() ? null : resolvedContexts.getFirst();
-        }
-        return resolvedContexts.contains(requestedParticipantContextId) ? requestedParticipantContextId : null;
+    static String select(List<String> resolvedContexts, String participantContextId) {
+        return resolvedContexts.contains(participantContextId) ? participantContextId : null;
     }
 
     /** Whether a DSP request was addressed to this server's SYSTEM context. */
-    boolean isSystemAddressed(@Nullable String requestedParticipantContextId) {
-        return ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(requestedParticipantContextId);
+    boolean isSystemAddressed(String participantContextId) {
+        return ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(participantContextId);
     }
 
     /**
@@ -352,19 +345,16 @@ class ServiceContextResolver {
     }
 
     /**
-     * Whether a requested participant context is safe to use as a by-id cache key: no context at
-     * all ({@code null}), the SYSTEM context, or a syntactically valid member ctx-id. A non-null
-     * value that matches neither recognised shape must never be cached — in particular, it must
-     * never be keyed the same as "no context requested", since that would let an addressed-but-
-     * unmatched lookup read back whatever record an unrelated uncontexted caller cached (the
-     * cross-member leak {@link #select} closes at the resolution layer). The cache itself stays
-     * unaware of ctx-id scheme rules; this is the one place that decides what a plausible context
-     * looks like, and the caller skips the cache entirely when this returns {@code false}.
+     * Whether a participant context is safe to use as a by-id cache key: the SYSTEM context, or a
+     * syntactically valid member ctx-id. A value that matches neither recognised shape must never
+     * be cached, so that garbage contexts cannot fill the cache (the cross-member leak
+     * {@link #select} closes at the resolution layer). The cache itself stays unaware of ctx-id
+     * scheme rules; this is the one place that decides what a plausible context looks like, and the
+     * caller skips the cache entirely when this returns {@code false}.
      */
-    boolean isCacheableRequestedContext(@Nullable String requestedParticipantContextId) {
-        return requestedParticipantContextId == null
-                || requestedParticipantContextId.equals(ParticipantIdentifierScheme.SYSTEM_SEGMENT)
-                || isMemberContextShape(requestedParticipantContextId);
+    boolean isCacheableRequestedContext(String participantContextId) {
+        return participantContextId.equals(ParticipantIdentifierScheme.SYSTEM_SEGMENT)
+                || isMemberContextShape(participantContextId);
     }
 
     /**

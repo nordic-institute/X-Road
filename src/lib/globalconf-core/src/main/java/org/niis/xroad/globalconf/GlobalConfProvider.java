@@ -38,7 +38,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -290,20 +290,20 @@ public interface GlobalConfProvider {
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @return all known approved DataSpace TLS CAs. Separate from {@link #getApprovedCAs}: this list is never
+     * @return all known approved connector TLS CAs. Separate from {@link #getApprovedCAs}: this list is never
      * consulted for member-certificate validation.
      */
-    default Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
+    default Collection<ApprovedConnectorTlsCAInfo> getApprovedConnectorTlsCAs(
             String instanceIdentifier) {
         return Collections.emptyList();
     }
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @return the distributed dataspace issuer trust anchor: every Issuer DID published by any Central Server
-     * node of this instance. Empty when the instance is not dataspace-enabled.
+     * @return the distributed credential issuer trust anchor: every issuer DID published by any Central Server
+     * node of this instance. Empty when no node has provisioned a credential issuer.
      */
-    default Collection<String> getIssuerDids(
+    default Collection<String> getCredentialIssuerDids(
             String instanceIdentifier) {
         return Collections.emptyList();
     }

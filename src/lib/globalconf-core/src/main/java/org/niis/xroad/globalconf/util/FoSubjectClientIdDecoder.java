@@ -26,6 +26,7 @@
 package org.niis.xroad.globalconf.util;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.X500Names;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -54,7 +55,7 @@ public final class FoSubjectClientIdDecoder {
      */
     public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
-        X500Name x500name = new X500Name(principal.getName());
+        X500Name x500name = X500Names.fromPrincipal(principal);
 
         return parseClientId(x500name);
     }

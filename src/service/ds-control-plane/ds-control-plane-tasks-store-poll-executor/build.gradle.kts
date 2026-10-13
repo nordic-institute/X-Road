@@ -18,16 +18,13 @@ plugins {
 
 dependencies {
     api(libs.edc.spi.core)
-    api(libs.edc.spi.contract)
-    api(libs.edc.spi.transaction)
-    api(libs.edc.spi.transfer)
-    api(libs.edc.spi.tasks)
+    api(libs.edc.spi.controlplane)
 
     testImplementation(libs.awaitility)
     testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.edc.junit)
-    testImplementation(testFixtures(libs.edc.spi.contract))
+    testImplementation(testFixtures(libs.edc.spi.controlplane))
     testImplementation(libs.testcontainers.junit)
 }
 

@@ -30,13 +30,13 @@ import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.util.X500Names;
 
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
@@ -87,7 +87,7 @@ public class CertRequestCreationService {
                 .readX509PublicKey(tokenAndKey.key().getPublicKey());
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
-                new X500Name(subjectName), publicKey);
+                X500Names.fromString(subjectName), publicKey);
 
         ExtensionsGenerator extGen = new ExtensionsGenerator();
         // Add subject alternative name (SAN) extension if subjectAltName is not null or empty

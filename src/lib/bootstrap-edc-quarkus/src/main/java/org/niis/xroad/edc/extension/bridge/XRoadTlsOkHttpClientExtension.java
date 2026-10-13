@@ -36,9 +36,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
+import org.niis.xroad.edc.trust.ConnectorTlsCaTrustManagerLoader;
+import org.niis.xroad.edc.trust.ConnectorTlsCompositeTrustManager;
 import org.niis.xroad.edc.trust.DelegatingTrustManager;
-import org.niis.xroad.edc.trust.DsTlsCaTrustManagerLoader;
-import org.niis.xroad.edc.trust.DsTlsCompositeTrustManager;
 import org.niis.xroad.edc.trust.RejectAllTrustManager;
 import org.niis.xroad.edc.trust.VaultEndpointTrust;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -52,7 +52,7 @@ import java.time.Duration;
 
 /**
  * Replaces the default EDC {@link OkHttpClient} with one whose outbound TLS trust is entirely X-Road's own:
- * exactly the certificate authorities globalconf's {@code approvedDsTlsCa} list designates, fail-closed. This is
+ * exactly the certificate authorities globalconf's {@code approvedConnectorTlsCA} list designates, fail-closed. This is
  * the one place in the X-Road EDC distribution that builds the singleton OkHttp client every DataSpace outbound
  * connection — DID resolution, STS/OAuth2, DSP dispatch, credential and status-list fetches, and EDC's own
  * OpenBao vault client — shares, so it is also the only place trust needs replacing. The JVM default trust store
@@ -91,7 +91,7 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
         var globalConfProvider = context.getService(GlobalConfProvider.class);
-        var loader = new DsTlsCaTrustManagerLoader(globalConfProvider);
+        var loader = new ConnectorTlsCaTrustManagerLoader(globalConfProvider);
         var initial = loadOrRejectAll(loader, monitor);
 
         var listTrustManager = new DelegatingTrustManager(initial.material());
@@ -99,7 +99,7 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
                 context.getSetting(VAULT_URL_SETTING, null),
                 System.getenv(VAULT_CA_CERT_ENV),
                 monitor);
-        var trustManager = new DsTlsCompositeTrustManager(vaultTrust.orElse(null), listTrustManager);
+        var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust.orElse(null), listTrustManager);
 
         var reloadInterval = Duration.ofSeconds(context.getSetting(RELOAD_INTERVAL_SETTING, DEFAULT_RELOAD_INTERVAL_SECONDS));
         reloader = PeriodicMaterialReloader.schedule("ds-tls-ca-trust", initial, reloadInterval,
@@ -123,13 +123,14 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
      * a valid running state). The periodic reloader takes over from here and keeps retrying on its own schedule.
      */
     private static PeriodicMaterialReloader.Loaded<X509ExtendedTrustManager> loadOrRejectAll(
-            DsTlsCaTrustManagerLoader loader, Monitor monitor) {
+            ConnectorTlsCaTrustManagerLoader loader, Monitor monitor) {
         try {
             return loader.load();
         } catch (RuntimeException e) {
             monitor.severe("Failed to load the DataSpace TLS CA list from globalconf at startup; rejecting all "
                     + "DataSpace TLS connections until a scheduled refresh succeeds", e);
-            return new PeriodicMaterialReloader.Loaded<>(RejectAllTrustManager.INSTANCE, DsTlsCaTrustManagerLoader.REJECT_ALL_FINGERPRINT);
+            return new PeriodicMaterialReloader.Loaded<>(RejectAllTrustManager.INSTANCE,
+                    ConnectorTlsCaTrustManagerLoader.REJECT_ALL_FINGERPRINT);
         }
     }
 

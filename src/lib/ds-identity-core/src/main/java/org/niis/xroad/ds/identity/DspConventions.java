@@ -59,6 +59,14 @@ public class DspConventions {
     public static final int DSP_PORT = 8183;
 
     /**
+     * Path of the control plane's DSP protocol endpoint, the tail of every DSP base URL.
+     */
+    public static final String DSP_PATH = "/api/dsp";
+
+    private static final int MIN_PORT = 1;
+    private static final int MAX_PORT = 65535;
+
+    /**
      * DSP profile id segment of the provider DSP URL, and the profile registered by the
      * EDC virtual runtime ({@code DspVirtualApiConfigurationV2025Extension}). Since EDC 0.18
      * the profile id replaces the bare protocol version ({@code 2025-1}) as the URL segment.
@@ -80,7 +88,7 @@ public class DspConventions {
      * every counter-party derives from GlobalConf alone.
      *
      * @param ssAddress the Security Server's GlobalConf-registered address, without a port
-     * @return the DID authority, {@code {ssAddress}:7183}; an IPv6 literal address is bracketed
+     * @return the canonical DID authority, {@code {ssAddress}:7183}; an IPv6 literal address is bracketed
      */
     public static String didAuthority(String ssAddress) {
         return didAuthority(ssAddress, DID_PORT);
@@ -94,10 +102,33 @@ public class DspConventions {
      *
      * @param ssAddress the Security Server's GlobalConf-registered address, without a port
      * @param didPort   the identity hub's DID resolution port
-     * @return the DID authority, {@code {ssAddress}:{didPort}}; an IPv6 literal address is bracketed
+     * @return the canonical DID authority, {@code {ssAddress}:{didPort}}; an IPv6 literal address is
+     *         bracketed and port 443 is omitted
      */
     public static String didAuthority(String ssAddress, int didPort) {
-        return uriHost(ssAddress) + ":" + didPort;
+        return DidAuthority.canonical(ssAddress, didPort);
+    }
+
+    /**
+     * The DSP base URL of a Security Server's control plane: {@code https://{host}:{dspPort}/api/dsp}.
+     * The raw address is checked before it is canonicalised.
+     *
+     * @param ssAddress the Security Server's GlobalConf-registered address, without a port; must be ASCII
+     * @param dspPort   the control plane's DSP port, 1 to 65535
+     * @return the DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp}; an IPv6 literal
+     *         address is bracketed
+     * @throws XrdRuntimeException if the address is blank or not ASCII, or the port is out of range
+     */
+    public static String dspBaseUrl(String ssAddress, int dspPort) {
+        if (ssAddress == null || ssAddress.isBlank()) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR, "DSP address must not be blank");
+        }
+        DidAuthority.requireAscii(ssAddress);
+        if (dspPort < MIN_PORT || dspPort > MAX_PORT) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "DSP port '%d' must be between %d and %d", dspPort, MIN_PORT, MAX_PORT);
+        }
+        return "https://%s:%d%s".formatted(DidAuthority.canonicalHost(ssAddress), dspPort, DSP_PATH);
     }
 
     /**
@@ -129,8 +160,7 @@ public class DspConventions {
      */
     public static String memberCounterPartyAddress(ClientId member, String ssAddress) {
         var ctxIdPathSegment = ParticipantIdentifierScheme.memberCtxId(member).replace("%", "%25");
-        return "https://%s:%d/api/dsp/%s/%s"
-                .formatted(uriHost(ssAddress), DSP_PORT, ctxIdPathSegment, DSP_PROFILE_ID);
+        return "%s/%s/%s".formatted(dspBaseUrl(ssAddress, DSP_PORT), ctxIdPathSegment, DSP_PROFILE_ID);
     }
 
     /**
@@ -154,7 +184,7 @@ public class DspConventions {
      */
     public static String credentialServiceUrl(String identityHubHost, int credentialsPort, String participantContextId) {
         try {
-            return new URI("https", null, uriHost(identityHubHost), credentialsPort,
+            return new URI("https", null, DidAuthority.canonicalHost(identityHubHost), credentialsPort,
                     CREDENTIALS_API_PARTICIPANTS_PATH + participantContextId, null, null).toASCIIString();
         } catch (URISyntaxException e) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR, e,
@@ -186,16 +216,7 @@ public class DspConventions {
      *         an IPv6 literal address is bracketed
      */
     public static String systemCounterPartyAddress(String ssAddress) {
-        return "https://%s:%d/api/dsp/%s/%s"
-                .formatted(uriHost(ssAddress), DSP_PORT, ParticipantIdentifierScheme.SYSTEM_SEGMENT, DSP_PROFILE_ID);
-    }
-
-    /**
-     * A registered address is a hostname, an IPv4 literal, or a bare IPv6 literal — never
-     * {@code host:port} — so a colon can only mean IPv6, which URL authorities require bracketed.
-     */
-    private static String uriHost(String ssAddress) {
-        boolean bareIpv6Literal = ssAddress.indexOf(':') >= 0 && !ssAddress.startsWith("[");
-        return bareIpv6Literal ? "[" + ssAddress + "]" : ssAddress;
+        return "%s/%s/%s".formatted(
+                dspBaseUrl(ssAddress, DSP_PORT), ParticipantIdentifierScheme.SYSTEM_SEGMENT, DSP_PROFILE_ID);
     }
 }

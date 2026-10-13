@@ -94,8 +94,8 @@ public final class OcspTestUtils {
                                               CertificateStatus certStatus, Date thisUpdate, Date nextUpdate)
             throws OCSPException, CertificateEncodingException, IOException, OperatorCreationException {
         BasicOCSPRespBuilder builder = new BasicOCSPRespBuilder(
-                new RespID(new X500Name(
-                        signer.getSubjectX500Principal().getName())));
+                new RespID(X500Name.getInstance(
+                        signer.getSubjectX500Principal().getEncoded())));
         CertificateID cid = CryptoUtils.createCertId(subject, issuer);
 
         if (thisUpdate != null) {

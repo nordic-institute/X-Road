@@ -89,6 +89,17 @@ class DataspaceIssuerProvisioningServiceImplTest {
     }
 
     @Test
+    void provisionIssuerPublishesTheIssuanceEndpointOfTheV1IssuerApi() {
+        service.provisionIssuer();
+
+        ArgumentCaptor<String> issuerServiceUrlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(rpcClient).createParticipantContext(anyString(), anyString(), issuerServiceUrlCaptor.capture(), anyString(), anyString());
+
+        assertThat(issuerServiceUrlCaptor.getValue())
+                .isEqualTo("https://" + HOST + ":" + ISSUANCE_PORT + "/api/issuance/v1/participants/issuer");
+    }
+
+    @Test
     void provisionIssuerBuildsKeyIdFromDid() {
         service.provisionIssuer();
 

@@ -102,7 +102,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
     private ParticipantContextService participantContextService;
 
     private ServiceContextResolver serviceContextResolver;
-    private final ThreadLocalRequestedParticipantContext requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
 
     private ContractDefinitionServerConfStore contractStore;
     private PolicyDefinitionServerConfStore policyStore;
@@ -115,19 +114,18 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         serviceContextResolver = new ServiceContextResolver(
                 globalConfProvider, serverConfProvider, participantContextService);
-        requestedParticipantContext.clear();
 
         var noBuiltins = new BuiltinServiceCatalog(serverConfProvider, false, false, false,
                 BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL);
         contractStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, noBuiltins,
-                new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
+                new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver);
         policyStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, new PolicyMapper(), noBuiltins,
-                new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
+                new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver);
         assetIndex = new AssetIndexServerConfStore(
                 serverConfProvider, noBuiltins,
-                new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver, requestedParticipantContext);
+                new StoreEnumerationCache<>(false, 60, 1000, "test"), serviceContextResolver);
     }
 
     @Test
@@ -141,8 +139,8 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         lenient().when(serverConfProvider.serviceExists(DISABLED_SERVICE_FALLBACK_DECODE)).thenReturn(false);
         lenient().when(serverConfProvider.serviceExists(ENABLED_SERVICE_FALLBACK_DECODE)).thenReturn(false);
 
-        var disabledRefusal = contractStore.findById(contractDefinitionId(DISABLED_SERVICE, UNAUTHORIZED_SUBJECT));
-        var enabledRefusal = contractStore.findById(contractDefinitionId(ENABLED_SERVICE, UNAUTHORIZED_SUBJECT));
+        var disabledRefusal = contractStore.findById(MEMBER_CTX, contractDefinitionId(DISABLED_SERVICE, UNAUTHORIZED_SUBJECT));
+        var enabledRefusal = contractStore.findById(MEMBER_CTX, contractDefinitionId(ENABLED_SERVICE, UNAUTHORIZED_SUBJECT));
 
         assertThat(disabledRefusal).isNull();
         assertThat(enabledRefusal).isNull();
@@ -159,8 +157,8 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         lenient().when(serverConfProvider.serviceExists(DISABLED_SERVICE_FALLBACK_DECODE)).thenReturn(false);
         lenient().when(serverConfProvider.serviceExists(ENABLED_SERVICE_FALLBACK_DECODE)).thenReturn(false);
 
-        var disabledRefusal = policyStore.findById(policyDefinitionId(DISABLED_SERVICE, UNAUTHORIZED_SUBJECT));
-        var enabledRefusal = policyStore.findById(policyDefinitionId(ENABLED_SERVICE, UNAUTHORIZED_SUBJECT));
+        var disabledRefusal = policyStore.findById(MEMBER_CTX, policyDefinitionId(DISABLED_SERVICE, UNAUTHORIZED_SUBJECT));
+        var enabledRefusal = policyStore.findById(MEMBER_CTX, policyDefinitionId(ENABLED_SERVICE, UNAUTHORIZED_SUBJECT));
 
         assertThat(disabledRefusal).isNull();
         assertThat(enabledRefusal).isNull();
@@ -174,7 +172,7 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
-        var result = contractStore.findById(contractDefinitionId(DISABLED_SERVICE, AUTHORIZED_SUBJECT));
+        var result = contractStore.findById(MEMBER_CTX, contractDefinitionId(DISABLED_SERVICE, AUTHORIZED_SUBJECT));
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(MEMBER_CTX);
@@ -188,7 +186,7 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
-        var result = policyStore.findById(policyDefinitionId(DISABLED_SERVICE, AUTHORIZED_SUBJECT));
+        var result = policyStore.findById(MEMBER_CTX, policyDefinitionId(DISABLED_SERVICE, AUTHORIZED_SUBJECT));
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(MEMBER_CTX);
@@ -206,10 +204,10 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
         var disabledAssetId = AssetMapper.encodeAssetId(DISABLED_SERVICE);
         var enabledAssetId = AssetMapper.encodeAssetId(ENABLED_SERVICE);
 
-        var disabledAsset = assetIndex.findById(disabledAssetId);
-        var enabledAsset = assetIndex.findById(enabledAssetId);
-        var disabledDataAddress = assetIndex.resolveForAsset(disabledAssetId);
-        var enabledDataAddress = assetIndex.resolveForAsset(enabledAssetId);
+        var disabledAsset = assetIndex.findById(MEMBER_CTX, disabledAssetId);
+        var enabledAsset = assetIndex.findById(MEMBER_CTX, enabledAssetId);
+        var disabledDataAddress = assetIndex.resolveForAsset(MEMBER_CTX, disabledAssetId);
+        var enabledDataAddress = assetIndex.resolveForAsset(MEMBER_CTX, enabledAssetId);
 
         assertThat(disabledAsset).isNotNull();
         assertThat(disabledAsset.getParticipantContextId()).isEqualTo(enabledAsset.getParticipantContextId());
