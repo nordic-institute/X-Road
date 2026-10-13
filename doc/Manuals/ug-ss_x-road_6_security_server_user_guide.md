@@ -140,6 +140,7 @@ Doc. ID: UG-SS
 | 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
 | 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
 | 29.09.2026 | 2.111   | Message log archive upload example script demo-upload.pl is no longer included in the Security Server packages                                                                                                                                                                                                                                                                                             | Eneli Reimets        |
+| 13.10.2026 | 2.112   | Added the CA certificate exchange with an external operational monitoring daemon in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). Removed the outdated TLS certificate and gRPC keystore steps from section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)                               | Stefan Cvetkovski    |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -273,6 +274,7 @@ Doc. ID: UG-SS
     - [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
     - [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     - [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
+    - [15.2.6 Exchanging CA Certificates with an External Operational Monitoring Daemon](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)
 - [16 Environmental Monitoring](#16-environmental-monitoring)
   - [16.1 Usage via SOAP API](#161-usage-via-soap-api)
   - [16.2 Limiting environmental monitoring remote data set](#162-limiting-environmental-monitoring-remote-data-set)
@@ -2886,62 +2888,7 @@ As advised, the scheme parameter should be set to "https". For communication ove
 
 **NOTE:** If an external operational monitoring daemon is used, the host, scheme (and optionally, port) parameters must be changed at both hosts.
 
-The internal TLS certificate of the Security Server is used for authenticating the Security Server to the operational monitoring daemon. This certificate has been generated beforehand, during the installation process of the Security Server, and is available in PEM format in the file `/etc/xroad/ssl/internal.crt`. Please refer to Section [10.4](#104-changing-the-internal-tls-key-and-certificate) for the instructions on exporting the internal TLS certificate from UI. The file must be copied to the host running the operational monitoring daemon. The system user xroad must have permissions to read this file.
-
-In the configuration of the external daemon, the corresponding path must be set in `/etc/xroad/conf.d/local.ini`:
-
-```ini
-[op-monitor]
-client-tls-certificate = <path/to/security/server/internal/cert>
-```
-
-Next, a TLS key and the corresponding certificate must be generated on the host of the external monitoring daemon as well, using the command
-
-```bash
-generate-opmonitor-certificate
-```
-
-The script will prompt you for standard fields for input to TLS certificates and its output (key files and the certificate) will be generated to the directory `/etc/xroad/ssl`.
-
-The generated certificate, in the file `opmonitor.crt`, must be copied to the corresponding Security Server. The system user `xroad` must have permissions to read this file. Its path at the Security Server must be written to the configuration (note the name of the section, although it is the proxy service that will read the configuration):
-
-```ini
-[op-monitor]
-tls-certificate = <path/to/external/daemon/tls/cert>
-```
-
-For the request traffic visualization on the Security Server UI Diagnostics page, gRPC keystore and truststore also need to be configured on both ends. Certificate that corresponds to the key in external Operational Monitoring gRPC keystore needs to be added to the gRPC truststore on the Security Server side and vice versa - Security Server's gRPC certificate needs to be added to the external monitoring daemon's truststore. The gRPC keystore and truststore system parameters are described in \[[UGSYSPAR](#31-common-parameters--common)\].
-
-You can use java `keytool` and `openssl` when working with gRPC keystores and truststores:
-
-* **Example 1 - extracting certificate in pem format from existing p12 keystore in default location**:
-
-    ```shell
-    openssl pkcs12 -in /var/run/xroad/xroad-grpc-internal-keystore.p12 -nokeys -out <path/to/cert>
-    ```
-
-* **Example 2 - importing existing certificate in pem format to new or existing truststore in p12 format**:
-
-    ```shell
-    keytool -importcert \
-      -file <path/to/cert> \       
-      -alias <suitable unique alias for security server> \
-      -keystore <path/to/truststore> \
-      -storetype PKCS12 \                                        
-      -storepass <truststorepassword>
-    ```
-    and then in `/etc/xroad/local.ini` add:
-
-    ```properties
-    ...
-    [common]
-    grpc-internal-keystore=<path/to/keystore>
-    grpc-internal-keystore-password=<keystorepassword>
-    grpc-internal-truststore=<path/to/truststore>
-    grpc-internal-truststore-password=<truststorepassword>
-    ...
-    ```
-  _Note: By default Security Server gRPC keystore and truststore are one and the same with a single key and certificate that is shared by different applications which all sit on the same machine. But in case of multiple hosts and certificates it's recommended to have keystore and truststore be separate: the keystore has the local application's key and truststore has certificates of trusted external applications that communicate with it over the network._
+The gRPC connections between the Security Server and the external operational monitoring daemon are protected with TLS. Both sides must trust the certificate authority (CA) of the other side. The CA certificates are exchanged as described in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon).
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 
@@ -2963,6 +2910,143 @@ echo manual > /etc/init/xroad-opmonitor.override
 
 The configuration anchor (renamed as `configuration-anchor.xml`) file must be manually copied into the directory `/etc/xroad` of the external monitoring daemon in order for configuration client to be able to download the global configuration (by default configuration download interval is 60 seconds). The system user xroad must have permissions to read this file.
 
+
+#### 15.2.6 Exchanging CA Certificates with an External Operational Monitoring Daemon
+
+The Security Server and an operational monitoring daemon (op-monitor) on a separate host connect over TLS. Each side must trust the certificate authority (CA) that issued the other side's certificate. Two CA certificates are exchanged:
+
+- The **internal RPC CA** is the CA of the Security Server host. It signs the certificates of the Security Server's internal gRPC connections and is kept in the Security Server's secret store (OpenBao). The administrator downloads it from the Security Server and installs it on the op-monitor host.
+- The **op-monitor CA** is the CA that issued the op-monitor's certificate. The administrator uploads it to the Security Server.
+
+Only CA certificates are exchanged. No private key is uploaded or downloaded.
+
+Both CAs are managed in the Security Server user interface and in the management REST API (see chapter [19](#19-management-rest-api)).
+
+**Access rights:**
+
+- View the CAs: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator), [Security Server Observer](#xroad-securityserver-observer)
+- Download the internal RPC CA: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator)
+- Upload, replace and delete the op-monitor CA: [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
+
+**NOTE:** A change to the op-monitor CA takes effect only after the proxy and admin-service are restarted. See **Applying the changes** below.
+
+**NOTE:** Each Security Server host has its own internal RPC CA, so one download covers one Security Server. If several Security Servers share one external op-monitor, upload the op-monitor CA to every one of them. The op-monitor host then needs the internal RPC CA of every one of these Security Servers.
+
+_To view the internal RPC CA and the op-monitor CA_, follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**.
+
+2. In the opening view, select the **Op-monitor Trust** tab.
+
+   The **Internal RPC CA** section shows the internal RPC CA. The **Op-monitor CA** section shows the stored op-monitor CA, or "No op-monitor CA is stored". For each CA, the view shows the Subject Distinguished Name, the Issuer Distinguished Name, the SHA-256 hash (fingerprint) and the validity dates (Not Before, Not After).
+
+_To upload the op-monitor CA_, follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**.
+
+2. In the opening view, select the **Op-monitor Trust** tab.
+
+3. In the **Op-monitor CA** section, click **Upload** and select the CA certificate file.
+
+   The Security Server stores the certificate and shows its details. The view reminds you to restart the proxy and admin-service to apply the change.
+
+The file must hold exactly one CA certificate, in PEM or DER format. The CA can be a root CA or an intermediate CA, and it must be valid at the time of the upload. In a PEM file, text outside the certificate block is ignored.
+
+The Security Server rejects any other file with HTTP status 400 and one of the following error codes. The user interface shows the message in the second column.
+
+| Error code                      | Message                                                                                                                                                   | Cause                                                                                                     |
+|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `ca_cert_empty`                 | The file is empty                                                                                                                                         | The file has no content, or only whitespace.                                                              |
+| `ca_cert_not_a_certificate`     | The file is not a PEM or DER encoded certificate                                                                                                          | The file is neither a PEM certificate nor a DER certificate, for example a DER-encoded private key.       |
+| `ca_cert_multiple_certificates` | The file contains more than one certificate. Upload only the CA certificate that issued the certificate of the operational monitoring daemon (op-monitor) | The file has more than one certificate, or more than one PEM block of any type. Bundles are not accepted. |
+| `ca_cert_key_material`          | The file contains private key material. Upload the CA certificate only                                                                                    | The file has a PEM private key, alone or together with a certificate.                                     |
+| `ca_cert_not_a_ca`              | The certificate is not a CA certificate                                                                                                                   | The certificate has no basic constraints extension with `cA=true`, for example a server certificate.      |
+| `ca_cert_expired`               | The CA certificate has expired                                                                                                                            | The validity period of the certificate has ended.                                                         |
+| `ca_cert_not_yet_valid`         | The CA certificate is not yet valid                                                                                                                       | The validity period of the certificate has not started.                                                   |
+
+A rejected upload leaves the stored op-monitor CA unchanged. Uploading the stored certificate again succeeds and changes nothing.
+
+_To replace the op-monitor CA_, follow the steps for uploading. When a CA is stored, the button is named **Replace**. The new certificate replaces the stored one. The Security Server keeps one op-monitor CA at a time.
+
+_To delete the op-monitor CA_, follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**.
+
+2. In the opening view, select the **Op-monitor Trust** tab.
+
+3. In the **Op-monitor CA** section, click **Delete**, then click **Yes** in the confirmation dialog.
+
+   The view reminds you to restart the proxy and admin-service to apply the change.
+
+After the restart, the Security Server trusts only its internal RPC CA again, as for an op-monitor on the same host. Deleting does not change the host and port settings of the op-monitor connection. Deleting when no op-monitor CA is stored succeeds and changes nothing.
+
+_To download the internal RPC CA_, follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**.
+
+2. In the opening view, select the **Op-monitor Trust** tab.
+
+3. In the **Internal RPC CA** section, click **Download** and save the file `internal-rpc-ca.pem` to the local file system.
+
+   The file contains exactly one certificate, in PEM format, and no private key. Downloading again returns the same file.
+
+_To install the internal RPC CA on the op-monitor host_, follow these steps.
+
+1. Copy the file `internal-rpc-ca.pem` to the op-monitor host by hand. The Security Server does not deliver it.
+
+2. Check that the file is the right one by comparing its SHA-256 fingerprint with the hash shown in the **Internal RPC CA** section. The two values must be the same:
+
+   ```bash
+   openssl x509 -in internal-rpc-ca.pem -noout -fingerprint -sha256
+   ```
+
+3. Store the file in a directory of your choice. The system user `xroad` must have permission to read it.
+
+4. Configure the op-monitor to trust this file, as described in section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server), and restart the operational monitoring daemon:
+
+   ```bash
+   service xroad-opmonitor restart
+   ```
+
+**Applying the changes**
+
+The Security Server uses the op-monitor CA when it creates its connections to the op-monitor. After the op-monitor CA is uploaded, replaced or deleted, restart the proxy and admin-service on the Security Server:
+
+```bash
+service xroad-proxy restart
+service xroad-proxy-ui-api restart
+```
+
+Until the restart, the stored op-monitor CA and the CA in use can differ.
+
+**Management REST API**
+
+The same operations are available in the management REST API (see chapter [19](#19-management-rest-api) and \[[REST_UI-API](#Ref_REST_UI-API)\]). The roles are the same as in the user interface.
+
+| Operation                           | Request                                                                                      | Response                                                                     |
+|-------------------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| View the internal RPC CA            | `GET /api/v1/system/internal-rpc-ca`                                                         | `200` with the certificate details                                           |
+| Download the internal RPC CA        | `GET /api/v1/system/internal-rpc-ca/download`                                                | `200` with one PEM certificate, content type `application/x-pem-file`        |
+| View the op-monitor CA              | `GET /api/v1/system/op-monitor-ca`                                                           | `200` with the certificate details, or `204` when no op-monitor CA is stored |
+| Upload or replace the op-monitor CA | `POST /api/v1/system/op-monitor-ca`, multipart form with the file in the field `certificate` | `200` with the certificate details, or `400` with one of the error codes     |
+| Delete the op-monitor CA            | `DELETE /api/v1/system/op-monitor-ca`                                                        | `204`, also when no op-monitor CA is stored                                  |
+
+A request without the required role returns `403`. If the internal RPC CA is not available, the two internal RPC CA requests return `404` with the error code `internal_rpc_ca_not_available`. If the secret store cannot be read or written, the requests return `500`.
+
+Examples of uploading the op-monitor CA and downloading the internal RPC CA:
+
+```bash
+curl -X POST --header "Authorization: X-Road-ApiKey token=<api key>" -F "certificate=@op-monitor-ca.pem" "https://localhost:4000/api/v1/system/op-monitor-ca" -k
+
+curl -X GET --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/system/internal-rpc-ca/download" -o internal-rpc-ca.pem -k
+```
+
+**Backup**
+
+Both CAs are stored in the secret store (OpenBao).
+
+- When the secret store is installed on the Security Server host, the OpenBao data is included in the configuration backup described in chapter [13](#13-back-up-and-restore). The backup archive then contains both CAs.
+- When the secret store is remote, the configuration backup does not include it. Back up the remote secret store separately.
 
 ## 16 Environmental Monitoring
 
