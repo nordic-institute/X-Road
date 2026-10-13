@@ -28,6 +28,8 @@
 package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -37,6 +39,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.niis.xroad.configuration.migration.OpMonitorHostRule.ALT_NAMES;
 import static org.niis.xroad.configuration.migration.OpMonitorHostRule.CHANNEL_HOST;
 import static org.niis.xroad.configuration.migration.OpMonitorHostRule.IP_SUBJECT_ALT_NAMES;
@@ -55,6 +58,7 @@ class OpMonitorHostRuleTest {
     private static final String IPV4_LOOPBACK_NAME = "loopback-v4.example";
     private static final String IPV6_LOOPBACK_NAME = "loopback-v6.example";
     private static final String OTHER_AND_IPV6_LOOPBACK_NAME = "loopback-other-and-v6.example";
+    private static final String IPV4_AND_OTHER_LOOPBACK_NAME = "loopback-v4-and-other.example";
     private static final String UNRESOLVABLE_NAME = "missing.example";
 
     private final OpMonitorHostRule rule = new OpMonitorHostRule(new FakeResolver());
@@ -82,6 +86,45 @@ class OpMonitorHostRuleTest {
         assertThat(rule.derive("::1", none()).rows())
                 .containsOnly(entry(CHANNEL_HOST, "::1"), entry(LISTEN_ADDRESS, "::1"),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1"));
+    }
+
+    @Test
+    void bracketedIpv6LoopbackWritesTheRowsWithoutBrackets() {
+        assertThat(rule.derive("[::1]", none()).rows())
+                .containsOnly(entry(CHANNEL_HOST, "::1"), entry(LISTEN_ADDRESS, "::1"),
+                        entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1"));
+        assertThat(rule.derive(" [::1] ", none()).rows()).isEqualTo(rule.derive("::1", none()).rows());
+    }
+
+    @Test
+    void bracketedLocalIpv6WritesTheRowsWithoutBrackets() {
+        assertThat(rule.derive("[" + LOCAL_IPV6 + "]", none()).rows())
+                .containsOnly(entry(CHANNEL_HOST, LOCAL_IPV6), entry(LISTEN_ADDRESS, LOCAL_IPV6),
+                        entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1," + LOCAL_IPV6));
+    }
+
+    @Test
+    void bracketedIpv6WildcardWritesListenerOnlyWithoutBrackets() {
+        assertThat(rule.derive("[::]", none()).rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "::"));
+    }
+
+    @Test
+    void bracketedIpv6IsMergedWithExistingIpSanWithoutDuplicates() {
+        var existing = Map.of(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1");
+
+        assertThat(rule.derive("[::1]", existing::get).rows()).containsEntry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"::1", "[::1]", "127.0.0.2", LOCAL_IPV4, LOCAL_IPV6, "[" + LOCAL_IPV6 + "]"})
+    void ipSanRowHoldsOnlyBareIpAddresses(String host) {
+        var ipSans = rule.derive(host, none()).rows().get(IP_SUBJECT_ALT_NAMES);
+
+        assertThat(ipSans).isNotNull();
+        assertThat(ipSans.split(",")).allSatisfy(token -> {
+            assertThat(token).doesNotContain("[", "]");
+            assertThatCode(() -> InetAddress.ofLiteral(token)).doesNotThrowAnyException();
+        });
     }
 
     @Test
@@ -143,6 +186,13 @@ class OpMonitorHostRuleTest {
     void nameResolvingToIpv4LoopbackWritesChannelAndDnsSan() {
         assertThat(rule.derive(IPV4_LOOPBACK_NAME, none()).rows())
                 .containsOnly(entry(CHANNEL_HOST, IPV4_LOOPBACK_NAME), entry(ALT_NAMES, IPV4_LOOPBACK_NAME));
+    }
+
+    @Test
+    void nameResolvingToIpv4LoopbackAndOtherLoopbackWritesChannelAndDnsSan() {
+        assertThat(rule.derive(IPV4_AND_OTHER_LOOPBACK_NAME, none()).rows())
+                .containsOnly(entry(CHANNEL_HOST, IPV4_AND_OTHER_LOOPBACK_NAME),
+                        entry(ALT_NAMES, IPV4_AND_OTHER_LOOPBACK_NAME));
     }
 
     @Test
@@ -221,7 +271,8 @@ class OpMonitorHostRuleTest {
                 DEBIAN_NAME, List.of(address("127.0.1.1")),
                 IPV4_LOOPBACK_NAME, List.of(address("127.0.0.1")),
                 IPV6_LOOPBACK_NAME, List.of(address("::1")),
-                OTHER_AND_IPV6_LOOPBACK_NAME, List.of(address("127.0.1.1"), address("::1")));
+                OTHER_AND_IPV6_LOOPBACK_NAME, List.of(address("127.0.1.1"), address("::1")),
+                IPV4_AND_OTHER_LOOPBACK_NAME, List.of(address("127.0.0.1"), address("127.0.1.1")));
         private final Set<InetAddress> localAddresses = Set.of(address(LOCAL_IPV4), address(LOCAL_IPV6));
 
         @Override

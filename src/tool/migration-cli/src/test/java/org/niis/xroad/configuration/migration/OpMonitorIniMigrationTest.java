@@ -45,6 +45,7 @@ class OpMonitorIniMigrationTest {
 
     private static final String LOCAL_NAME = "ss1.example";
     private static final String LOCAL_IPV4 = "192.0.2.10";
+    private static final String LOCAL_IPV6 = "2001:db8::10";
     private static final String REMOTE_IPV4 = "198.51.100.7";
     private static final String DNS_SAN_KEY = "xroad.common-rpc.certificate-provisioning.alt-names";
     private static final String IP_SAN_KEY = "xroad.common-rpc.certificate-provisioning.ip-subject-alt-names";
@@ -196,6 +197,60 @@ class OpMonitorIniMigrationTest {
     }
 
     @Test
+    void bracketedIpv6LoopbackHostIsMigratedWithoutBrackets() throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=[::1]\n");
+
+        assertThat(iniUtil.loadToFlatMap(file.toString(), "xroad")).isEqualTo(Map.of(
+                "xroad.common-rpc.channel.op-monitor.host", "::1",
+                "xroad.op-monitor.rpc.listen-address", "::1",
+                IP_SAN_KEY, "127.0.0.1,::1"));
+    }
+
+    @Test
+    void bracketedLocalIpv6HostInOverrideIniIsMigratedWithoutBrackets() throws IOException {
+        var override = write("override-10-opmon.ini", "[op-monitor]\nhost=[" + LOCAL_IPV6 + "]\n");
+        write("local.ini", "[proxy]\nclient-timeout=1\n");
+
+        assertThat(iniUtil.loadToFlatMap(override.toString(), "xroad")).isEqualTo(Map.of(
+                "xroad.common-rpc.channel.op-monitor.host", LOCAL_IPV6,
+                "xroad.op-monitor.rpc.listen-address", LOCAL_IPV6,
+                IP_SAN_KEY, "127.0.0.1," + LOCAL_IPV6));
+    }
+
+    @Test
+    void bracketedIpv6WildcardHostIsMigratedWithoutBrackets() throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=[::]\n");
+
+        assertThat(iniUtil.loadToFlatMap(file.toString(), "xroad"))
+                .isEqualTo(Map.of("xroad.op-monitor.rpc.listen-address", "::"));
+    }
+
+    @Test
+    void nestedOutputCarriesBracketedIpv6HostWithoutBrackets() throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=[::1]\n");
+
+        var flat = new TreeMap<String, Object>();
+        flatten("", iniUtil.loadToNestedMap(file.toString(), "xroad"), flat);
+
+        assertThat(flat)
+                .containsEntry("xroad.common-rpc.channel.op-monitor.host", "::1")
+                .containsEntry("xroad.op-monitor.rpc.listen-address", "::1")
+                .containsEntry(IP_SAN_KEY, "127.0.0.1,::1");
+    }
+
+    @Test
+    void iniToDbSavesBracketedIpv6IpSanWithoutBrackets() throws IOException {
+        var file = write("local.ini", "[op-monitor]\nhost=[::1]\n");
+
+        var saved = migrateToDb(file, IP_SAN_KEY, "127.0.0.1,203.0.113.5");
+
+        assertThat(saved)
+                .containsEntry("xroad.common-rpc.channel.op-monitor.host", "::1")
+                .containsEntry("xroad.op-monitor.rpc.listen-address", "::1")
+                .containsEntry(IP_SAN_KEY, "127.0.0.1,203.0.113.5,::1");
+    }
+
+    @Test
     void certificateRowsAreMergedWithExistingValues() throws IOException {
         var file = write("local.ini", "[op-monitor]\nhost=" + LOCAL_NAME + "\n");
 
@@ -208,7 +263,12 @@ class OpMonitorIniMigrationTest {
     @Test
     void iniToDbMergesCertificateRowsWithValuesAlreadyInTheDatabase() throws IOException {
         var file = write("local.ini", "[op-monitor]\nhost=" + LOCAL_NAME + "\n");
-        var migrator = new IniToDbMigrator(iniUtil) {
+
+        assertThat(migrateToDb(file, DNS_SAN_KEY, "other.example")).containsEntry(DNS_SAN_KEY, "other.example," + LOCAL_NAME);
+    }
+
+    private static Map<String, String> migrateToDb(Path file, String storedKey, String storedValue) {
+        var migrator = new IniToDbMigrator(new IniUtil(new OpMonitorHostRuleTest.FakeResolver())) {
             @Override
             String readEnv(String name) {
                 return "true";
@@ -216,16 +276,15 @@ class OpMonitorIniMigrationTest {
         };
 
         try (MockedConstruction<DbRepository> mocked = Mockito.mockConstruction(DbRepository.class,
-                (repo, context) -> Mockito.when(repo.findProperty(DNS_SAN_KEY)).thenReturn("other.example"))) {
+                (repo, context) -> Mockito.when(repo.findProperty(storedKey)).thenReturn(storedValue))) {
             migrator.migrate(file.toString(), "db.properties");
 
-            var saved = mocked.constructed().stream()
+            return mocked.constructed().stream()
                     .flatMap(repo -> Mockito.mockingDetails(repo).getInvocations().stream())
                     .filter(invocation -> invocation.getMethod().getName().equals("saveProperty"))
                     .collect(Collectors.toMap(
                             invocation -> invocation.getArgument(0, String.class),
                             invocation -> invocation.getArgument(1, String.class)));
-            assertThat(saved).containsEntry(DNS_SAN_KEY, "other.example," + LOCAL_NAME);
         }
     }
 

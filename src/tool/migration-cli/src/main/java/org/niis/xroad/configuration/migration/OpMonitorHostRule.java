@@ -64,7 +64,8 @@ final class OpMonitorHostRule {
     }
 
     /**
-     * @param host     effective 7.8 host value, {@code null} or blank when absent
+     * @param host     effective 7.8 host value, {@code null} or blank when absent; an IPv6 address in brackets is
+     *                 used without the brackets
      * @param existing returns the current value of a legacy-shaped key, or {@code null}; consulted only for the
      *                 certificate rows
      */
@@ -72,7 +73,7 @@ final class OpMonitorHostRule {
         if (host == null || host.isBlank()) {
             return new Result(Map.of(), null);
         }
-        var value = host.trim();
+        var value = withoutIpv6Brackets(host.trim());
         var rows = new LinkedHashMap<String, String>();
         String warning = null;
         try {
@@ -120,6 +121,13 @@ final class OpMonitorHostRule {
             }
             rows.put(ALT_NAMES, merge(existing, ALT_NAMES, value));
         }
+    }
+
+    private static String withoutIpv6Brackets(String value) {
+        if (value.startsWith("[") && value.endsWith("]") && value.indexOf(':') >= 0) {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
     }
 
     private static boolean isIpLiteral(String value) {
