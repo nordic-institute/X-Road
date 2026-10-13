@@ -56,11 +56,9 @@ import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -298,55 +296,14 @@ class ReusableAgreementLookupPostgresTest {
     void newerAgreementFromAFallbackNegotiationWinsOverTheRefusedOneWithoutTouchingIt() {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-dead", participantContextId, "asset-1", "provider-1", Instant.now().minusSeconds(120));
-        var cooldown = new RefusedAgreementCooldown(Clock.systemUTC(), Duration.ofMinutes(5));
-        var cooldownLookup = new ReusableAgreementLookup(store, extension.getTransactionContext(), cooldown::isCoolingDown);
 
-        assertThat(cooldownLookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
+        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
                 .map(ContractAgreement::getId).contains("agreement-neg-dead");
 
-        cooldown.markRefused("agreement-neg-dead");
         saveAgreement(store, "neg-fresh", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        assertThat(cooldownLookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
-                .map(ContractAgreement::getId).contains("agreement-neg-fresh");
         assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
                 .map(ContractAgreement::getId).contains("agreement-neg-fresh");
-    }
-
-    @Test
-    void agreementUnderCooldownIsSkippedForTheNextNewestAndReturnedAgainOnceTheCooldownExpires() {
-        var participantContextId = "participant-" + UUID.randomUUID();
-        saveAgreement(store, "neg-old", participantContextId, "asset-1", "provider-1", Instant.now().minusSeconds(120));
-        saveAgreement(store, "neg-new", participantContextId, "asset-1", "provider-1", Instant.now());
-        var now = new AtomicReference<>(Instant.parse("2026-10-13T10:00:00Z"));
-        var cooldown = new RefusedAgreementCooldown(new MutableClock(now), Duration.ofSeconds(300));
-        var cooldownLookup = new ReusableAgreementLookup(store, extension.getTransactionContext(), cooldown::isCoolingDown);
-
-        cooldown.markRefused("agreement-neg-new");
-
-        assertThat(cooldownLookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
-                .map(ContractAgreement::getId).contains("agreement-neg-old");
-
-        now.set(now.get().plusSeconds(301));
-
-        assertThat(cooldownLookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
-                .map(ContractAgreement::getId).contains("agreement-neg-new");
-    }
-
-    @Test
-    void clientScopedLookupSkipsTheRefusedClientAgreementAndFallsBackToTheUnrestrictedOne() {
-        var participantContextId = "participant-" + UUID.randomUUID();
-        var clientB = "DEV:COM:222:B";
-        saveAgreement(store, "neg-unrestricted", participantContextId, "asset-1", "provider-1",
-                Instant.now().minusSeconds(60), unrestrictedPolicy());
-        saveAgreement(store, "neg-client", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy(clientB));
-        var cooldown = new RefusedAgreementCooldown(Clock.systemUTC(), Duration.ofMinutes(5));
-        var cooldownLookup = new ReusableAgreementLookup(store, extension.getTransactionContext(), cooldown::isCoolingDown);
-
-        cooldown.markRefused("agreement-neg-client");
-
-        assertThat(cooldownLookup.find(participantContextId, "consumer", "asset-1", "provider-1", clientB))
-                .map(ContractAgreement::getId).contains("agreement-neg-unrestricted");
     }
 
     private ContractNegotiationStore buildStore() throws IOException {

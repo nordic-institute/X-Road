@@ -76,7 +76,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
-import org.niis.xroad.edc.extension.assetaccess.agreement.RefusedAgreementCooldown;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
@@ -138,8 +137,6 @@ class AssetAccessOrchestratorTest {
 
     AssetAccessOrchestrator orchestrator;
 
-    private RefusedAgreementCooldown cooldown;
-
     private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
 
     @BeforeEach
@@ -154,8 +151,7 @@ class AssetAccessOrchestratorTest {
         });
         completionPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
                 new NoopTransactionContext(), ExecutorInstrumentation.noop(), Clock.systemUTC(), monitor, Duration.ofMillis(250));
-        cooldown = new RefusedAgreementCooldown(Clock.systemUTC(), Duration.ofSeconds(300));
-        orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup, cooldown,
+        orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller,
                 jsonLd, transformerRegistry, monitor,
                 Duration.ofSeconds(60), Duration.ofSeconds(60));
@@ -227,8 +223,6 @@ class AssetAccessOrchestratorTest {
         assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
                 .containsExactly("agreement-1", "agreement-2");
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
-        assertThat(cooldown.isCoolingDown("agreement-1")).isTrue();
-        assertThat(cooldown.isCoolingDown("agreement-2")).isFalse();
     }
 
     @Test
@@ -254,7 +248,6 @@ class AssetAccessOrchestratorTest {
         verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
         assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
                 .containsExactly("agreement-1", "agreement-2");
-        assertThat(cooldown.isCoolingDown("agreement-1")).isTrue();
     }
 
     @Test
@@ -263,7 +256,7 @@ class AssetAccessOrchestratorTest {
         stubReusableAgreement("agreement-1");
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
-        var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup, cooldown,
+        var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller,
                 jsonLd, transformerRegistry, monitor, Duration.ofSeconds(60), Duration.ZERO);
 
@@ -276,7 +269,6 @@ class AssetAccessOrchestratorTest {
         verifyNoInteractions(catalogService);
         verifyNoInteractions(contractNegotiationService);
         verify(transferProcessService, times(1)).initiateTransfer(any(), any());
-        assertThat(cooldown.isCoolingDown("agreement-1")).isFalse();
     }
 
     @Test
@@ -302,7 +294,6 @@ class AssetAccessOrchestratorTest {
                         .isEqualTo("dataspace.dsp_negotiation_failed"));
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
         verify(transferProcessService, times(1)).initiateTransfer(any(), any());
-        assertThat(cooldown.isCoolingDown("agreement-1")).isTrue();
     }
 
     @Test

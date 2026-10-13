@@ -45,7 +45,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -53,7 +52,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.niis.xroad.edc.extension.assetaccess.agreement.RefusedAgreementCooldown;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
@@ -125,13 +123,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             defaultValue = "250")
     private long pollIntervalMillis;
 
-    @Setting(key = "xroad.asset-access.refused-agreement-cooldown-seconds",
-            description = "Seconds an agreement whose transfer was refused is skipped by agreement reuse on this instance",
-            defaultValue = "300")
-    private long refusedAgreementCooldownSeconds;
-
     private AssetAccessOrchestrator assetAccessOrchestrator;
-    private RefusedAgreementCooldown refusedAgreementCooldown;
     private AssetAccessCompletionPoller completionPoller;
     private ReusableAgreementLookup reusableAgreementLookup;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
@@ -155,13 +147,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                 monitor,
                 Duration.ofMillis(pollIntervalMillis));
 
-        if (refusedAgreementCooldownSeconds <= 0) {
-            throw new EdcException("xroad.asset-access.refused-agreement-cooldown-seconds must be positive, got "
-                    + refusedAgreementCooldownSeconds);
-        }
-        refusedAgreementCooldown = new RefusedAgreementCooldown(clock, Duration.ofSeconds(refusedAgreementCooldownSeconds));
-        reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext,
-                refusedAgreementCooldown::isCoolingDown);
+        reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
 
         assetAccessTransformerRegistry = transformerRegistry.forContext("xrd-asset-access-api");
 
@@ -189,7 +175,6 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             assetAccessOrchestrator = new AssetAccessOrchestrator(
                     new AssetAccessStateStore(),
                     reusableAgreementLookup,
-                    refusedAgreementCooldown,
                     catalogService,
                     contractNegotiationService,
                     transferProcessService,
