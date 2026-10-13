@@ -40,6 +40,7 @@ import org.niis.xroad.edc.extension.assetaccess.token.AgreementTokenExpiry;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -52,7 +53,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * more than a grace period ago. A consumer re-acquires access under a reused agreement roughly every
  * minute, which starts a new transfer process each time; this sweep is what retires the previous one
  * once its token can no longer serve a request, including for a relationship that goes idle and never
- * re-acquires.
+ * re-acquires. A transfer whose data address carries no token (the provider's endpoint-only fallback) is
+ * completed once it has been {@code STARTED} for the untokened lifetime plus the grace period.
  *
  * <p>Each pass reads candidate transfers and resolves their token expiry inside one transaction; the
  * transaction covers reads only; completing a transfer - a separate call to
@@ -73,6 +75,7 @@ public class ExpiredTransferSweeper {
     private final Monitor monitor;
     private final Duration interval;
     private final Duration grace;
+    private final Duration untokenedLifetime;
     private final ScheduledExecutorService executor;
     private final AtomicBoolean active = new AtomicBoolean(false);
 
@@ -83,7 +86,8 @@ public class ExpiredTransferSweeper {
                                    Clock clock,
                                    Monitor monitor,
                                    Duration interval,
-                                   Duration grace) {
+                                   Duration grace,
+                                   Duration untokenedLifetime) {
         this.transferProcessStore = transferProcessStore;
         this.dataAddressStore = dataAddressStore;
         this.transferProcessService = transferProcessService;
@@ -92,6 +96,7 @@ public class ExpiredTransferSweeper {
         this.monitor = monitor;
         this.interval = interval;
         this.grace = grace;
+        this.untokenedLifetime = untokenedLifetime;
         this.executor = Executors.newSingleThreadScheduledExecutor(
                 Thread.ofPlatform().name(SWEEP_THREAD_NAME + "-", 1).daemon().factory());
     }
@@ -180,7 +185,14 @@ public class ExpiredTransferSweeper {
         }
         return AgreementTokenExpiry.expiryOf(resolved.getContent())
                 .map(expiry -> expiry.plus(grace).isBefore(clock.instant()))
-                .orElse(false);
+                .orElseGet(() -> untokenedLifetimeElapsed(transferProcess));
+    }
+
+    private boolean untokenedLifetimeElapsed(TransferProcess transferProcess) {
+        return Instant.ofEpochMilli(transferProcess.getStateTimestamp())
+                .plus(untokenedLifetime)
+                .plus(grace)
+                .isBefore(clock.instant());
     }
 
     private void completeAll(List<String> transferProcessIds) {

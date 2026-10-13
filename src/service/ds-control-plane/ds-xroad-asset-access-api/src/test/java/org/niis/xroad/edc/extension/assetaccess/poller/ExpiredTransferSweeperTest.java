@@ -73,6 +73,7 @@ class ExpiredTransferSweeperTest {
     private static final int BATCH_SIZE = 500;
     private static final Instant NOW = Instant.parse("2026-01-01T00:00:00Z");
     private static final Duration GRACE = Duration.ofSeconds(30);
+    private static final Duration UNTOKENED_LIFETIME = Duration.ofSeconds(300);
     private static final Duration INTERVAL = Duration.ofSeconds(30);
 
     @Mock
@@ -91,7 +92,7 @@ class ExpiredTransferSweeperTest {
     @BeforeEach
     void setUp() {
         sweeper = new ExpiredTransferSweeper(transferProcessStore, dataAddressStore, transferProcessService,
-                new NoopTransactionContext(), clock, monitor, INTERVAL, GRACE);
+                new NoopTransactionContext(), clock, monitor, INTERVAL, GRACE, UNTOKENED_LIFETIME);
     }
 
     @Test
@@ -137,9 +138,33 @@ class ExpiredTransferSweeperTest {
     }
 
     @Test
-    void transferWithNoTokenExpiryIsSkipped() {
-        when(transferProcessStore.findAll(any())).thenAnswer(inv -> Stream.of(startedConsumerTransfer("tp-1")));
+    void untokenedTransferOlderThanLifetimePlusGraceIsCompleted() {
+        var startedAt = NOW.minus(UNTOKENED_LIFETIME).minus(GRACE).minusSeconds(1);
+        when(transferProcessStore.findAll(any())).thenAnswer(inv -> Stream.of(startedConsumerTransfer("tp-1", startedAt)));
         when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(addressWithoutToken()));
+        when(transferProcessService.complete("tp-1")).thenReturn(ServiceResult.success());
+
+        sweeper.sweep();
+
+        verify(transferProcessService).complete("tp-1");
+    }
+
+    @Test
+    void untokenedTransferYoungerThanLifetimePlusGraceIsNotCompleted() {
+        var startedAt = NOW.minus(UNTOKENED_LIFETIME).minus(GRACE).plusSeconds(1);
+        when(transferProcessStore.findAll(any())).thenAnswer(inv -> Stream.of(startedConsumerTransfer("tp-1", startedAt)));
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(addressWithoutToken()));
+
+        sweeper.sweep();
+
+        verify(transferProcessService, never()).complete(any());
+    }
+
+    @Test
+    void tokenedTransferFollowsTokenExpiryNotStateAge() {
+        var longAgo = NOW.minus(Duration.ofDays(1));
+        when(transferProcessStore.findAll(any())).thenAnswer(inv -> Stream.of(startedConsumerTransfer("tp-1", longAgo)));
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(addressExpiringAt(NOW.plusSeconds(100))));
 
         sweeper.sweep();
 
@@ -205,7 +230,7 @@ class ExpiredTransferSweeperTest {
     void startRunsSweepPassesUntilStopped() {
         when(transferProcessStore.findAll(any())).thenAnswer(inv -> Stream.empty());
         var fastSweeper = new ExpiredTransferSweeper(transferProcessStore, dataAddressStore, transferProcessService,
-                new NoopTransactionContext(), clock, monitor, Duration.ofMillis(10), GRACE);
+                new NoopTransactionContext(), clock, monitor, Duration.ofMillis(10), GRACE, UNTOKENED_LIFETIME);
 
         fastSweeper.start();
         verify(transferProcessStore, timeout(2000).atLeast(2)).findAll(any());
@@ -213,10 +238,15 @@ class ExpiredTransferSweeperTest {
     }
 
     private static TransferProcess startedConsumerTransfer(String id) {
+        return startedConsumerTransfer(id, NOW);
+    }
+
+    private static TransferProcess startedConsumerTransfer(String id, Instant stateTimestamp) {
         return TransferProcess.Builder.newInstance()
                 .id(id)
                 .type(TransferProcess.Type.CONSUMER)
                 .state(TransferProcessStates.STARTED.code())
+                .stateTimestamp(stateTimestamp.toEpochMilli())
                 .build();
     }
 

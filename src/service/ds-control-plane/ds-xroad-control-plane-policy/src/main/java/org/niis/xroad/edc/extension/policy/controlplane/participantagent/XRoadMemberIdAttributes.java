@@ -27,9 +27,11 @@
 
 package org.niis.xroad.edc.extension.policy.controlplane.participantagent;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +58,9 @@ import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContex
  * X-Road constraint functions assemble the {@link ee.ria.xroad.common.identifier.ClientId} from them
  * via {@code PolicyContextHelper}.
  *
+ * <p>The {@code vc} claim holds typed {@link VerifiableCredential} objects on a live request, but plain
+ * maps when the claims were read back from the persisted contract agreement; both shapes are accepted.
+ *
  * <p>If no {@code XRoadMembershipCredential} is present, or any of the three claims is absent/blank, an
  * empty map is returned — no exception is thrown.
  *
@@ -73,6 +78,8 @@ import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContex
  */
 @Slf4j
 public class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
+
+    private static final ObjectMapper MAPPER = new JacksonTypeManager().getMapper();
 
     static final String MEMBERSHIP_CREDENTIAL_TYPE = "XRoadMembershipCredential";
     static final String XROAD_INSTANCE_CLAIM = "xroadInstance";
@@ -100,8 +107,8 @@ public class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension
             return Map.of();
         }
         return vcList.stream()
-                .filter(VerifiableCredential.class::isInstance)
-                .map(VerifiableCredential.class::cast)
+                .map(XRoadMemberIdAttributes::asCredential)
+                .filter(Objects::nonNull)
                 .peek(vc -> log.debug("extractMemberAttributes: candidate vc types={} subjects={}",
                         vc.getType(), vc.getCredentialSubject().size()))
                 .filter(this::isXRoadMembershipCredential)
@@ -109,6 +116,20 @@ public class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension
                 .max(Comparator.comparing(Candidate::issuanceDate))
                 .map(Candidate::attributes)
                 .orElse(Map.of());
+    }
+
+    private static VerifiableCredential asCredential(Object element) {
+        if (element instanceof VerifiableCredential credential) {
+            return credential;
+        }
+        if (element instanceof Map<?, ?> map) {
+            try {
+                return MAPPER.convertValue(map, VerifiableCredential.class);
+            } catch (IllegalArgumentException e) {
+                log.debug("asCredential: stored credential entry could not be read as a VerifiableCredential", e);
+            }
+        }
+        return null;
     }
 
     private Stream<Candidate> candidatesOf(VerifiableCredential credential) {

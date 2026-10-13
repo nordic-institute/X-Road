@@ -6,6 +6,7 @@ dependencies {
     implementation(libs.edc.spi.controlplane)
     implementation(libs.edc.spi.core)
     implementation(libs.edc.spi.dsp.v2025)
+    implementation(libs.edc.lib.jsonld)
 
     implementation(project(":lib:globalconf-core"))
     implementation(project(":lib:serverconf-core"))

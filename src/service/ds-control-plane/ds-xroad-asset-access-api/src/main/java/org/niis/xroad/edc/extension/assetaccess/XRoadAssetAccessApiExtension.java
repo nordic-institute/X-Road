@@ -145,6 +145,14 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             defaultValue = "30")
     private long expiredTransferSweepGraceSeconds;
 
+    @Setting(key = "xroad.asset-access.expired-transfer-sweep.untokened-lifetime-seconds",
+            description = "How long, in seconds, a STARTED consumer transfer whose data address carries no agreement "
+                    + "token (the provider's endpoint-only fallback) lives before the transfer is completed. Must be "
+                    + "at least the consumer proxy's xroad.proxy.dsp.cache.default-ttl, which is how long the proxy "
+                    + "keeps using an endpoint-only address.",
+            defaultValue = "300")
+    private long expiredTransferSweepUntokenedLifetimeSeconds;
+
     private AssetAccessOrchestrator assetAccessOrchestrator;
     private AssetAccessCompletionPoller completionPoller;
     private ExpiredTransferSweeper expiredTransferSweeper;
@@ -178,7 +186,8 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                 clock,
                 monitor,
                 Duration.ofSeconds(expiredTransferSweepIntervalSeconds),
-                Duration.ofSeconds(expiredTransferSweepGraceSeconds));
+                Duration.ofSeconds(expiredTransferSweepGraceSeconds),
+                Duration.ofSeconds(expiredTransferSweepUntokenedLifetimeSeconds));
 
         reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
 
