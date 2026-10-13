@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ss.test.api.keys;
 
+import io.restassured.path.json.JsonPath;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -48,21 +49,26 @@ import org.niis.xroad.ss.test.api.admin.AdminUsersAdminClient;
 import org.niis.xroad.ss.test.api.admin.SystemAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
+import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.notNullValue;
@@ -75,6 +81,11 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("checkstyle:magicnumber")
 class OpMonitorCaTest extends SsApiTest {
+
+    private static final String RAW_RECORD_PATH = "xrd-secret/tls/opmonitor-ca";
+    private static final String CLIENT_TOKEN_FILE = "/etc/xroad/secret-store-client-token";
+    private static final Pattern PEM_CERTIFICATE_BLOCK = Pattern.compile(
+            "\\A-----BEGIN CERTIFICATE-----\\R([A-Za-z0-9+/=]+\\R)+-----END CERTIFICATE-----\\R?\\z");
 
     @Test
     @DisplayName("a PEM root CA, a PEM intermediate CA and a DER CA are each stored and returned with their details")
@@ -191,6 +202,42 @@ class OpMonitorCaTest extends SsApiTest {
         then("the details report none", () -> client.getOpMonitorCa().statusCode(204));
         and("the CA is deleted again", () -> client.deleteOpMonitorCa().statusCode(204));
         then("the details still report none", () -> client.getOpMonitorCa().statusCode(204));
+    }
+
+    @Test
+    @DisplayName("the raw OpenBao record holds only the uploaded PEM, and a delete keeps it with a blank certificate")
+    void rawRecordFormatAfterUploadAndDelete(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        var ca = selfSignedCa("CN=Raw Record CA " + unique());
+        given("a CA is uploaded", () -> client.uploadOpMonitorCa(pem(ca)).statusCode(200));
+        then("the raw record has a certificate field only, holding the PEM of that CA", () -> {
+            var record = rawRecord(stack);
+            assertThat(record).containsOnlyKeys("certificate");
+            var certificate = (String) record.get("certificate");
+            assertThat(certificate).matches(PEM_CERTIFICATE_BLOCK);
+            assertThat(parseCertificate(certificate)).isEqualTo(ca);
+        });
+        and("the CA is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
+        then("the raw record still exists with a blank certificate", () ->
+                assertThat(rawRecord(stack)).containsExactly(entry("certificate", "")));
+    }
+
+    @Test
+    @DisplayName("with the client token a raw KV write of the op-monitor CA record succeeds, and a raw KV delete is refused with 403")
+    void rawKvDeleteIsForbidden(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+        var ca = selfSignedCa("CN=Raw Delete CA " + unique());
+        given("a CA is uploaded", () -> client.uploadOpMonitorCa(pem(ca)).statusCode(200));
+        var before = and("the raw record is read", () -> rawRecord(stack));
+        then("the raw KV write of the same record with the client token succeeds", () ->
+                assertThat(rawKvWriteStatusWithClientToken(stack, (String) before.get("certificate"))).isIn("200", "204"));
+        and("the raw record is unchanged by the write", () -> assertThat(rawRecord(stack)).isEqualTo(before));
+        then("the raw KV delete with the client token returns 403", () ->
+                assertThat(rawKvDeleteStatusWithClientToken(stack)).isEqualTo("403"));
+        and("the raw record is unchanged", () -> assertThat(rawRecord(stack)).isEqualTo(before));
+        and("the details still report that CA", () ->
+                client.getOpMonitorCa().statusCode(200).body("hash", equalToIgnoringCase(sha256Hex(ca))));
+        and("the CA is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
     }
 
     @Test
@@ -329,6 +376,37 @@ class OpMonitorCaTest extends SsApiTest {
             var lines = text.lines().filter(line -> !line.startsWith("-----") && line.length() > 20).toList();
             return lines.isEmpty() ? "\u0000no-fragment\u0000" : lines.getFirst();
         }
+    }
+
+    @SneakyThrows
+    private static Map<String, Object> rawRecord(SsApiTestContainerSetup stack) {
+        var result = stack.execInContainer(SsApiTestContainerSetup.OPENBAO, "bao", "read", "-format=json", RAW_RECORD_PATH);
+        assertThat(result.getExitCode()).as("bao read " + RAW_RECORD_PATH).isZero();
+        return JsonPath.from(result.getStdout()).getMap("data");
+    }
+
+    private static String rawKvDeleteStatusWithClientToken(SsApiTestContainerSetup stack) {
+        return rawKvStatusWithClientToken(stack, "DELETE", "");
+    }
+
+    private static String rawKvWriteStatusWithClientToken(SsApiTestContainerSetup stack, String certificate) {
+        var json = "{\"certificate\":\"" + certificate.replace("\r", "\\r").replace("\n", "\\n") + "\"}";
+        return rawKvStatusWithClientToken(stack, "POST", "-H 'Content-Type: application/json' -d '" + json + "' ");
+    }
+
+    @SneakyThrows
+    private static String rawKvStatusWithClientToken(SsApiTestContainerSetup stack, String method, String extraCurlArgs) {
+        var command = "curl -s -o /dev/null -w '%{http_code}' -X " + method + " -H \"X-Vault-Token: $(cat " + CLIENT_TOKEN_FILE + ")\" "
+                + extraCurlArgs + "http://127.0.0.1:8200/v1/" + RAW_RECORD_PATH;
+        var result = stack.execInContainer(SsApiTestContainerSetup.OPENBAO, "sh", "-c", command);
+        assertThat(result.getExitCode()).as("curl " + method + " " + RAW_RECORD_PATH).isZero();
+        return result.getStdout().trim();
+    }
+
+    @SneakyThrows
+    private static X509Certificate parseCertificate(String pem) {
+        return (X509Certificate) CertificateFactory.getInstance("X.509")
+                .generateCertificate(new ByteArrayInputStream(pem.getBytes(StandardCharsets.US_ASCII)));
     }
 
     private static String unique() {

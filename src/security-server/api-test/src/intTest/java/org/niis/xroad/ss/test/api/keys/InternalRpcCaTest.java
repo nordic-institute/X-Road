@@ -151,6 +151,35 @@ class InternalRpcCaTest extends SsApiTest {
         adminUsers.deleteUser(username).statusCode(200);
     }
 
+    @Test
+    @DisplayName("the raw xrd-pki CA read with the client token holds the issuing CA certificate and no private key")
+    void rawIssuingCaReadWithTheClientTokenHasNoKeyMaterial(SsApiTestContainerSetup stack) {
+        var expected = openBaoIssuingCa(stack);
+
+        given("the client token is the xroad-policy token", () ->
+                assertThat(JsonPath.from(execAsClient(stack, "bao token lookup -format=json")).getList("data.policies", String.class))
+                        .contains("xroad-policy"));
+
+        var raw = and("the xrd-pki CA is read raw with the client token", () ->
+                execAsClient(stack, "bao read -format=json xrd-pki/cert/ca"));
+
+        then("the record has a certificate equal to the issuing CA and no private_key field", () -> {
+            var data = JsonPath.from(raw).getMap("data");
+            assertThat(data).containsKey("certificate").doesNotContainKey("private_key");
+            assertThat(parseCertificate(String.valueOf(data.get("certificate")).getBytes(StandardCharsets.UTF_8))).isEqualTo(expected);
+        });
+
+        and("the raw output contains no private key text", () -> assertThat(raw).doesNotContain("PRIVATE KEY"));
+    }
+
+    @SneakyThrows
+    private static String execAsClient(SsApiTestContainerSetup stack, String baoCommand) {
+        var result = stack.execInContainer(SsApiTestContainerSetup.OPENBAO, "sh", "-c",
+                "BAO_TOKEN=$(cat /etc/xroad/secret-store-client-token) " + baoCommand);
+        assertThat(result.getExitCode()).as(baoCommand).isZero();
+        return result.getStdout();
+    }
+
     @SneakyThrows
     private static X509Certificate openBaoIssuingCa(SsApiTestContainerSetup stack) {
         var result = stack.execInContainer(SsApiTestContainerSetup.OPENBAO, "bao", "read", "-field=certificate", "xrd-pki/cert/ca");

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Security Server admin REST API access: session login, service-description CRUD, access rights, and
- * service lookup.
+ * service lookup, and the internal RPC CA and op-monitor CA endpoints.
  */
 @Slf4j
 @UtilityClass
@@ -208,6 +209,33 @@ class AdminApi {
         assertThat(response.getStatusCode())
                 .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
+    }
+
+    /** Reads the internal RPC CA details. */
+    static Response getInternalRpcCa(String baseUrl, AdminSession session) {
+        return authed(session).get(baseUrl + "/api/v1/system/internal-rpc-ca");
+    }
+
+    /** Downloads the internal RPC CA as a PEM file. */
+    static Response downloadInternalRpcCa(String baseUrl, AdminSession session) {
+        return authed(session).get(baseUrl + "/api/v1/system/internal-rpc-ca/download");
+    }
+
+    /** Reads the op-monitor CA details; the API answers 204 when none is stored. */
+    static Response getOpMonitorCa(String baseUrl, AdminSession session) {
+        return authed(session).get(baseUrl + "/api/v1/system/op-monitor-ca");
+    }
+
+    /** Uploads {@code certificateFile} (PEM or DER bytes) as the op-monitor CA. */
+    static Response uploadOpMonitorCa(String baseUrl, AdminSession session, byte[] certificateFile) {
+        return authed(session)
+                .multiPart("certificate", "op-monitor-ca.pem", certificateFile, "application/octet-stream")
+                .post(baseUrl + "/api/v1/system/op-monitor-ca");
+    }
+
+    /** Deletes the op-monitor CA; the API answers 204 also when none is stored. */
+    static Response deleteOpMonitorCa(String baseUrl, AdminSession session) {
+        return authed(session).delete(baseUrl + "/api/v1/system/op-monitor-ca");
     }
 
     /** One logged-in admin session: the cookies to replay and the XSRF token to echo back. */
