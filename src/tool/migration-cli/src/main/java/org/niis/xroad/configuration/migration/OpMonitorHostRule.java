@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 /**
@@ -69,7 +69,7 @@ final class OpMonitorHostRule {
      * @param existing returns the current value of a legacy-shaped key, or {@code null}; consulted only for the
      *                 certificate rows
      */
-    Result derive(String host, Function<String, String> existing) {
+    Result derive(String host, UnaryOperator<String> existing) {
         if (host == null || host.isBlank()) {
             return new Result(Map.of(), null);
         }
@@ -82,7 +82,7 @@ final class OpMonitorHostRule {
             } else {
                 deriveFromName(value, existing, rows);
             }
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException _) {
             rows.clear();
             rows.put(CHANNEL_HOST, value);
             warning = "op-monitor host '%s' cannot be resolved; keeping it as the channel host only".formatted(value);
@@ -91,7 +91,7 @@ final class OpMonitorHostRule {
         return new Result(rows, warning);
     }
 
-    private void deriveFromAddress(String value, InetAddress address, Function<String, String> existing,
+    private void deriveFromAddress(String value, InetAddress address, UnaryOperator<String> existing,
                                    Map<String, String> rows) {
         if (address.isAnyLocalAddress()) {
             rows.put(LISTEN_ADDRESS, value);
@@ -107,7 +107,7 @@ final class OpMonitorHostRule {
         }
     }
 
-    private void deriveFromName(String value, Function<String, String> existing, Map<String, String> rows)
+    private void deriveFromName(String value, UnaryOperator<String> existing, Map<String, String> rows)
             throws UnknownHostException {
         var addresses = resolver.resolve(value);
         rows.put(CHANNEL_HOST, value);
@@ -134,7 +134,7 @@ final class OpMonitorHostRule {
         return value.indexOf(':') >= 0 || IPV4_LITERAL.matcher(value).matches();
     }
 
-    private static String merge(Function<String, String> existing, String key, String... additions) {
+    private static String merge(UnaryOperator<String> existing, String key, String... additions) {
         var merged = new ArrayList<String>();
         var current = existing.apply(key);
         if (current != null) {
@@ -177,7 +177,7 @@ final class OpMonitorHostRule {
                 public boolean isLocalAddress(InetAddress address) {
                     try {
                         return NetworkInterface.getByInetAddress(address) != null;
-                    } catch (SocketException e) {
+                    } catch (SocketException _) {
                         return false;
                     }
                 }

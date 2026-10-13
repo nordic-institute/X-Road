@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 public class IniUtil {
@@ -87,7 +87,7 @@ public class IniUtil {
     /**
      * @param existing returns the current value of a legacy-shaped key, or {@code null}
      */
-    Map<String, Object> loadToNestedMap(String filePath, String rootPrefix, Function<String, String> existing) {
+    Map<String, Object> loadToNestedMap(String filePath, String rootPrefix, UnaryOperator<String> existing) {
         var ini = load(filePath);
 
         Map<String, Object> properties = new HashMap<>();
@@ -137,7 +137,7 @@ public class IniUtil {
      * @param existing returns the current value of a key as written to the output (with the root prefix),
      *                 or {@code null}
      */
-    Map<String, String> loadToFlatMap(String filePath, String rootPrefix, Function<String, String> existing) {
+    Map<String, String> loadToFlatMap(String filePath, String rootPrefix, UnaryOperator<String> existing) {
         var ini = load(filePath);
 
         Map<String, String> properties = new HashMap<>();
@@ -167,7 +167,7 @@ public class IniUtil {
      * that wins when the operator files are applied in order: {@code override-*.ini} alphabetically, then
      * {@code local.ini}.
      */
-    private Map<String, String> deriveOpMonitorHostRows(String filePath, Function<String, String> existing) {
+    private Map<String, String> deriveOpMonitorHostRows(String filePath, UnaryOperator<String> existing) {
         if (readOpMonitorHost(load(filePath)) == null) {
             return Map.of();
         }

@@ -146,9 +146,9 @@ class OpMonitoringServiceHandlerImplTest {
         assertThat(received.get().getAccessScope()).isEqualTo(AccessScope.ACCESS_SCOPE_UNSPECIFIED);
         assertThat(result.responseContentType()).isEqualTo(RESPONSE_CONTENT_TYPE);
         assertThat(new String(result.responseContent().readAllBytes(), StandardCharsets.UTF_8)).isEqualTo(RESPONSE);
-        var record = opMonitoringData.toProto();
-        assertThat(record.hasRequestOutTs()).isTrue();
-        assertThat(record.hasResponseInTs()).isTrue();
+        var proto = opMonitoringData.toProto();
+        assertThat(proto.hasRequestOutTs()).isTrue();
+        assertThat(proto.hasResponseInTs()).isTrue();
     }
 
     @Test
@@ -176,9 +176,9 @@ class OpMonitoringServiceHandlerImplTest {
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
                         e -> assertThat(e.getCode()).startsWith(X_SERVICE_FAILED_X + "."));
 
-        var record = opMonitoringData.toProto();
-        assertThat(record.hasRequestOutTs()).isTrue();
-        assertThat(record.hasResponseInTs()).isTrue();
+        var proto = opMonitoringData.toProto();
+        assertThat(proto.hasRequestOutTs()).isTrue();
+        assertThat(proto.hasResponseInTs()).isTrue();
     }
 
     @Test
@@ -230,9 +230,9 @@ class OpMonitoringServiceHandlerImplTest {
                     assertThat(SoapFault.createFaultXml(e)).contains(e.getDetails());
                 });
 
-        var record = opMonitoringData.toProto();
-        assertThat(record.hasRequestOutTs()).isTrue();
-        assertThat(record.hasResponseInTs()).isTrue();
+        var proto = opMonitoringData.toProto();
+        assertThat(proto.hasRequestOutTs()).isTrue();
+        assertThat(proto.hasResponseInTs()).isTrue();
     }
 
     @Test
@@ -259,9 +259,9 @@ class OpMonitoringServiceHandlerImplTest {
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
                         e -> assertThat(e.getCode()).isEqualTo(X_SERVICE_FAILED_X + "." + ErrorCode.NETWORK_ERROR.code()));
 
-        var record = opMonitoringData.toProto();
-        assertThat(record.hasRequestOutTs()).isTrue();
-        assertThat(record.hasResponseInTs()).isFalse();
+        var proto = opMonitoringData.toProto();
+        assertThat(proto.hasRequestOutTs()).isTrue();
+        assertThat(proto.hasResponseInTs()).isFalse();
     }
 
     private static QueryOperationalDataResp responseOfSerializedSize(int serializedSize) {

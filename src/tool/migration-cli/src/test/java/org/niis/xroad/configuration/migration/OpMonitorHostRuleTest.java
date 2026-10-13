@@ -36,7 +36,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -253,7 +253,7 @@ class OpMonitorHostRuleTest {
                 .containsEntry(ALT_NAMES, "other.example,SS1.EXAMPLE,localhost");
     }
 
-    private static Function<String, String> none() {
+    private static UnaryOperator<String> none() {
         return key -> null;
     }
 

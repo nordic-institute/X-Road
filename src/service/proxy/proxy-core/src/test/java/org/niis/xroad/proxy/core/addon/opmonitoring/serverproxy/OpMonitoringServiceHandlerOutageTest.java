@@ -39,6 +39,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -219,9 +220,9 @@ class OpMonitoringServiceHandlerOutageTest {
     }
 
     private static void assertQueryWasSentButNoResponseArrived(OpMonitoringData opMonitoringData) {
-        var record = opMonitoringData.toProto();
-        assertThat(record.hasRequestOutTs()).isTrue();
-        assertThat(record.hasResponseInTs()).isFalse();
+        var proto = opMonitoringData.toProto();
+        assertThat(proto.hasRequestOutTs()).isTrue();
+        assertThat(proto.hasResponseInTs()).isFalse();
     }
 
     private static OpMonitoringData opMonitoringData() {
@@ -263,10 +264,10 @@ class OpMonitoringServiceHandlerOutageTest {
 
     private void stopServerAndAwaitChannelNotReady(OpMonitorClient client) throws InterruptedException {
         servers.getFirst().shutdownNow().awaitTermination(10, TimeUnit.SECONDS);
-        var giveUp = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
-        while (client.getChannel().getState(false) == ConnectivityState.READY && System.nanoTime() < giveUp) {
-            MILLISECONDS.sleep(10);
-        }
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(10))
+                .until(() -> client.getChannel().getState(false) != ConnectivityState.READY);
         assertThat(client.getChannel().getState(false)).isNotEqualTo(ConnectivityState.READY);
     }
 

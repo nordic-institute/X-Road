@@ -63,8 +63,9 @@ class CommonRpcConfigKeysTest {
 
     @Test
     void opMonitorChannelMessageLimitBelowTheMinimumIsRejected() {
-        assertThatThrownBy(() -> config(Map.of(MAX_INBOUND_MESSAGE_SIZE_KEY, String.valueOf(FOUR_MIB - 1)))
-                .value(CommonRpcConfigKeys.CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE))
+        Map<String, String> overrides = Map.of(MAX_INBOUND_MESSAGE_SIZE_KEY, String.valueOf(FOUR_MIB - 1));
+
+        assertThatThrownBy(() -> config(overrides))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(MAX_INBOUND_MESSAGE_SIZE_KEY)
                 .hasMessageContaining(String.valueOf(FOUR_MIB));

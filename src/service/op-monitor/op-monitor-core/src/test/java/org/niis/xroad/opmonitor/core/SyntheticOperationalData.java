@@ -75,90 +75,90 @@ final class SyntheticOperationalData {
         var random = new Random(SEED);
         var records = new ArrayList<OperationalDataRecord>(count);
         for (int i = 0; i < count; i++) {
-            records.add(record(variant, random, i));
+            records.add(newRecord(variant, random, i));
         }
         return records;
     }
 
-    private static OperationalDataRecord record(Variant variant, Random random, int index) {
+    private static OperationalDataRecord newRecord(Variant variant, Random random, int index) {
         boolean pessimistic = variant == Variant.PESSIMISTIC;
-        var record = new OperationalDataRecord();
+        var operationalData = new OperationalDataRecord();
         int clientMember = random.nextInt(MEMBERS);
         int serviceMember = random.nextInt(MEMBERS);
         var serviceCode = SERVICE_CODES.get(random.nextInt(SERVICE_CODES.size()));
 
-        record.setSecurityServerInternalIp("10." + random.nextInt(256) + "." + random.nextInt(256) + "." + random.nextInt(256));
-        record.setSecurityServerType((index % 2 == 0 ? SecurityServerType.CLIENT : SecurityServerType.PRODUCER).getTypeString());
-        timestamps(record, random, index);
+        operationalData.setSecurityServerInternalIp("10." + random.nextInt(256) + "." + random.nextInt(256) + "." + random.nextInt(256));
+        operationalData.setSecurityServerType((index % 2 == 0 ? SecurityServerType.CLIENT : SecurityServerType.PRODUCER).getTypeString());
+        timestamps(operationalData, random, index);
 
-        record.setClientXRoadInstance("DEV");
-        record.setClientMemberClass("COM");
-        record.setClientMemberCode(memberCode(clientMember));
-        record.setClientSubsystemCode("Subsystem" + random.nextInt(SUBSYSTEMS));
-        record.setServiceXRoadInstance("DEV");
-        record.setServiceMemberClass("COM");
-        record.setServiceMemberCode(memberCode(serviceMember));
-        record.setServiceSubsystemCode("Subsystem" + random.nextInt(SUBSYSTEMS));
-        record.setServiceCode(serviceCode);
-        record.setServiceVersion("v" + (1 + random.nextInt(2)));
-        record.setServiceType(random.nextBoolean() ? "REST" : "WSDL");
-        record.setRepresentedPartyClass("COM");
-        record.setRepresentedPartyCode(memberCode(random.nextInt(MEMBERS)));
+        operationalData.setClientXRoadInstance("DEV");
+        operationalData.setClientMemberClass("COM");
+        operationalData.setClientMemberCode(memberCode(clientMember));
+        operationalData.setClientSubsystemCode("Subsystem" + random.nextInt(SUBSYSTEMS));
+        operationalData.setServiceXRoadInstance("DEV");
+        operationalData.setServiceMemberClass("COM");
+        operationalData.setServiceMemberCode(memberCode(serviceMember));
+        operationalData.setServiceSubsystemCode("Subsystem" + random.nextInt(SUBSYSTEMS));
+        operationalData.setServiceCode(serviceCode);
+        operationalData.setServiceVersion("v" + (1 + random.nextInt(2)));
+        operationalData.setServiceType(random.nextBoolean() ? "REST" : "WSDL");
+        operationalData.setRepresentedPartyClass("COM");
+        operationalData.setRepresentedPartyCode(memberCode(random.nextInt(MEMBERS)));
 
-        record.setRestMethod(REST_METHODS.get(random.nextInt(REST_METHODS.size())));
-        record.setRestPath(pessimistic
+        operationalData.setRestMethod(REST_METHODS.get(random.nextInt(REST_METHODS.size())));
+        operationalData.setRestPath(pessimistic
                 ? restPath(random, PESSIMISTIC_PATH_MIN, PESSIMISTIC_PATH_MAX)
                 : "/r1/DEV/COM/" + memberCode(serviceMember) + "/" + serviceCode + "/" + text(random, ALPHANUMERIC, 6, 12));
-        record.setXRoadVersion("8.0.0");
-        record.setMessageId(uuid(random));
-        record.setMessageUserId(pessimistic
+        operationalData.setXRoadVersion("8.0.0");
+        operationalData.setMessageId(uuid(random));
+        operationalData.setMessageUserId(pessimistic
                 ? text(random, ALPHANUMERIC, PESSIMISTIC_USER_TEXT_MIN, PESSIMISTIC_USER_TEXT_MAX)
                 : "EE" + (10_000_000_000L + random.nextLong(80_000_000_000L)));
-        record.setMessageIssue(pessimistic
+        operationalData.setMessageIssue(pessimistic
                 ? text(random, ALPHANUMERIC, PESSIMISTIC_USER_TEXT_MIN, PESSIMISTIC_USER_TEXT_MAX)
                 : "case-" + random.nextInt(1_000_000));
-        record.setMessageProtocolVersion("4.0");
-        record.setClientSecurityServerAddress("ss" + clientMember + ".example.org");
-        record.setServiceSecurityServerAddress("ss" + serviceMember + ".example.org");
-        record.setXRequestId(uuid(random));
+        operationalData.setMessageProtocolVersion("4.0");
+        operationalData.setClientSecurityServerAddress("ss" + clientMember + ".example.org");
+        operationalData.setServiceSecurityServerAddress("ss" + serviceMember + ".example.org");
+        operationalData.setXRequestId(uuid(random));
 
-        sizes(record, random);
-        outcome(record, random, pessimistic);
-        return record;
+        sizes(operationalData, random);
+        outcome(operationalData, random, pessimistic);
+        return operationalData;
     }
 
-    private static void timestamps(OperationalDataRecord record, Random random, int index) {
+    private static void timestamps(OperationalDataRecord operationalData, Random random, int index) {
         long requestIn = FIRST_REQUEST_IN_TS + index * 37L + random.nextInt(30);
         long requestOut = requestIn + 1 + random.nextInt(20);
         long responseIn = requestOut + 5 + random.nextInt(400);
-        record.setRequestInTs(requestIn);
-        record.setRequestOutTs(requestOut);
-        record.setResponseInTs(responseIn);
-        record.setResponseOutTs(responseIn + 1 + random.nextInt(20));
+        operationalData.setRequestInTs(requestIn);
+        operationalData.setRequestOutTs(requestOut);
+        operationalData.setResponseInTs(responseIn);
+        operationalData.setResponseOutTs(responseIn + 1 + random.nextInt(20));
     }
 
-    private static void sizes(OperationalDataRecord record, Random random) {
+    private static void sizes(OperationalDataRecord operationalData, Random random) {
         long requestSize = 200 + random.nextInt(20_000);
         long responseSize = 200 + random.nextInt(200_000);
-        record.setRequestSize(requestSize);
-        record.setResponseSize(responseSize);
-        record.setRequestMimeSize(requestSize + random.nextInt(2_000));
-        record.setResponseMimeSize(responseSize + random.nextInt(2_000));
-        record.setRequestAttachmentCount(random.nextInt(3));
-        record.setResponseAttachmentCount(random.nextInt(3));
+        operationalData.setRequestSize(requestSize);
+        operationalData.setResponseSize(responseSize);
+        operationalData.setRequestMimeSize(requestSize + random.nextInt(2_000));
+        operationalData.setResponseMimeSize(responseSize + random.nextInt(2_000));
+        operationalData.setRequestAttachmentCount(random.nextInt(3));
+        operationalData.setResponseAttachmentCount(random.nextInt(3));
     }
 
-    private static void outcome(OperationalDataRecord record, Random random, boolean pessimistic) {
+    private static void outcome(OperationalDataRecord operationalData, Random random, boolean pessimistic) {
         int failurePercent = pessimistic ? PESSIMISTIC_FAILURE_PERCENT : TYPICAL_FAILURE_PERCENT;
         boolean succeeded = random.nextInt(100) >= failurePercent;
-        record.setSucceeded(succeeded);
+        operationalData.setSucceeded(succeeded);
         if (succeeded) {
-            record.setStatusCode(200 + random.nextInt(2));
+            operationalData.setStatusCode(200 + random.nextInt(2));
             return;
         }
-        record.setStatusCode(500);
-        record.setFaultCode("Server.ServerProxy.ServiceFailed." + text(random, ALPHANUMERIC, 12, 24));
-        record.setFaultString(pessimistic
+        operationalData.setStatusCode(500);
+        operationalData.setFaultCode("Server.ServerProxy.ServiceFailed." + text(random, ALPHANUMERIC, 12, 24));
+        operationalData.setFaultString(pessimistic
                 ? text(random, PRINTABLE, PESSIMISTIC_FAULT_STRING_MIN, PESSIMISTIC_FAULT_STRING_MAX)
                 : text(random, PRINTABLE, TYPICAL_FAULT_STRING_MIN, TYPICAL_FAULT_STRING_MAX));
     }

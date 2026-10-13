@@ -86,7 +86,8 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     @BeforeEach
     void setUp() throws Exception {
         DATABASE_CTX.doInTransaction(session -> session.createMutationQuery("delete OperationalDataRecordEntity").executeUpdate());
-        when(globalConfProvider.getGlobalConfExtensions()).thenReturn(mock(GlobalConfExtensions.class));
+        var globalConfExtensions = mock(GlobalConfExtensions.class);
+        when(globalConfProvider.getGlobalConfExtensions()).thenReturn(globalConfExtensions);
         healthDataMetrics.processRecords(healthDataRegistry.getRegistry(), List.of(producerRecord(true), producerRecord(false)));
 
         var operationalDataStore = new OperationalDataStore(operationalDataRecordManager, healthDataMetrics, healthDataRegistry);
@@ -170,14 +171,15 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     }
 
     private static OperationalDataRecord producerRecord(boolean succeeded) {
-        OperationalDataRecord record = OBJECT_READER.forType(OperationalDataRecord.class).readValue(formatFullOperationalDataAsJson());
-        record.setSecurityServerType(OpMonitoringData.SecurityServerType.PRODUCER.getTypeString());
-        record.setServiceMemberCode("00000001");
-        record.setServiceSubsystemCode("System1");
-        record.setSucceeded(succeeded);
-        record.setRequestSize(999L);
-        record.setResponseSize(888L);
-        return record;
+        OperationalDataRecord operationalData = OBJECT_READER.forType(OperationalDataRecord.class)
+                .readValue(formatFullOperationalDataAsJson());
+        operationalData.setSecurityServerType(OpMonitoringData.SecurityServerType.PRODUCER.getTypeString());
+        operationalData.setServiceMemberCode("00000001");
+        operationalData.setServiceSubsystemCode("System1");
+        operationalData.setSucceeded(succeeded);
+        operationalData.setRequestSize(999L);
+        operationalData.setResponseSize(888L);
+        return operationalData;
     }
 
     private static RpcChannelProperties channelProperties(int port) {
