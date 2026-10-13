@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyCo
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
@@ -102,6 +103,10 @@ public class XRoadControlPlanePolicyExtension implements ServiceExtension {
                 TransferProcessPolicyContext.class,
                 TransferProcessPolicyContext.TRANSFER_SCOPE,
                 XRoadClientIdConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadClientIdConstraintFunction<PolicyMonitorContext>(monitor),
+                PolicyMonitorContext.class,
+                PolicyMonitorContext.POLICY_MONITOR_SCOPE,
+                XRoadClientIdConstraintFunction.KEY);
 
         bindPermissionFunction(
                 new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor),
@@ -117,6 +122,11 @@ public class XRoadControlPlanePolicyExtension implements ServiceExtension {
                 TransferProcessPolicyContext.class,
                 TransferProcessPolicyContext.TRANSFER_SCOPE,
                 XRoadLocalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(
+                new XRoadLocalGroupMemberConstraintFunction<PolicyMonitorContext>(serverConfProvider, monitor),
+                PolicyMonitorContext.class,
+                PolicyMonitorContext.POLICY_MONITOR_SCOPE,
+                XRoadLocalGroupMemberConstraintFunction.KEY);
 
         bindPermissionFunction(
                 new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor),
@@ -132,6 +142,11 @@ public class XRoadControlPlanePolicyExtension implements ServiceExtension {
                 new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor),
                 TransferProcessPolicyContext.class,
                 TransferProcessPolicyContext.TRANSFER_SCOPE,
+                XRoadGlobalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(
+                new XRoadGlobalGroupMemberConstraintFunction<PolicyMonitorContext>(globalConfProvider, monitor),
+                PolicyMonitorContext.class,
+                PolicyMonitorContext.POLICY_MONITOR_SCOPE,
                 XRoadGlobalGroupMemberConstraintFunction.KEY);
     }
 

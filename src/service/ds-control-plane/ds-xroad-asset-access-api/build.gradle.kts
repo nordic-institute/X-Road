@@ -24,6 +24,7 @@ dependencies {
   testImplementation(libs.junit.jupiter.params)
 
   testImplementation(project(":service:ds-control-plane:ds-xroad-contract-negotiation-store"))
+  testImplementation(project(":lib:serverconf-core"))
 
   testImplementation(libs.edc.junit)
   testImplementation(libs.edc.lib.jsonld)
