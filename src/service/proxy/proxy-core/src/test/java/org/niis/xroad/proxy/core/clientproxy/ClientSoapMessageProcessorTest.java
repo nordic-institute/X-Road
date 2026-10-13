@@ -34,9 +34,11 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.ReplaySoapProxyMessageEntity;
@@ -53,6 +55,7 @@ import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.Map;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,6 +65,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 class ClientSoapMessageProcessorTest {
 
@@ -200,6 +205,41 @@ class ClientSoapMessageProcessorTest {
         verify(replayedAttemptSender).doPost(any(URI.class), eq(replayEntity));
     }
 
+    @Test
+    void tokenRejectedByProviderDropsCachedAssetAccessSoNextRequestAcquiresAfresh() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(true, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest);
+
+        verify(consumerSideDspProcessor).invalidateAssetAccess(dspRequest);
+    }
+
+    @Test
+    void otherProviderFailuresKeepTheCachedAssetAccess() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(true, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest);
+
+        verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
+    }
+
+    @Test
+    void tokenRejectionDoesNothingWhenDspDisabled() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(false, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest);
+
+        verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
+    }
+
     private static ClientSoapRequestContext newSoapRequestContext() throws Exception {
         return new ClientSoapRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class), null);
     }
@@ -226,6 +266,25 @@ class ClientSoapMessageProcessorTest {
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider) {
         return createProcessor(globalConfProvider, mock(ClientRequestPreparationService.class));
+    }
+
+    private ClientSoapMessageProcessor createProcessor(boolean dspEnabled, DspRequestProcessor consumerSideDspProcessor) {
+        var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(Map.of("xroad.proxy.dsp-enabled", String.valueOf(dspEnabled)))
+                .build());
+        return new ClientSoapMessageProcessor(
+                mock(MessageSigningService.class),
+                mock(HttpSenderProvider.class),
+                mock(ClientVerificationService.class),
+                mock(OpMonitoringDataHelper.class),
+                mock(GlobalConfProvider.class),
+                proxyProperties,
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
+                mock(OcspVerifierFactory.class),
+                mock(ClientRequestPreparationService.class),
+                consumerSideDspProcessor,
+                mock(IdentifierValidationService.class));
     }
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider,

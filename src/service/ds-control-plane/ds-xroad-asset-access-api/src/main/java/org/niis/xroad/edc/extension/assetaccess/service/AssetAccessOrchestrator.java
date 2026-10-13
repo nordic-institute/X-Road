@@ -57,6 +57,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.agreement.RefusedAgreementCooldown;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
@@ -69,6 +70,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -90,13 +93,17 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  *
  * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store, scoped
  * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
- * entirely and transfers with the existing agreement.
+ * entirely and transfers with the existing agreement. When that transfer is refused at initiation or terminated
+ * while awaited, the agreement goes on a per-instance cooldown the lookup honours and the same acquisition falls
+ * back to a full negotiation, whose newer agreement wins reuse from then on. A timeout waiting for the transfer
+ * to start is not a refusal and fails the acquisition.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {
 
     private final AssetAccessStateStore stateStore;
     private final ReusableAgreementLookup reusableAgreementLookup;
+    private final RefusedAgreementCooldown refusedAgreementCooldown;
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;
     private final TransferProcessService transferProcessService;
@@ -135,10 +142,34 @@ public class AssetAccessOrchestrator {
                     .formatted(key, agreement.getId(), request.clientId() != null));
             return transferAndAwaitDataAddress(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
                     request.counterPartyAddress(), request.protocolOrDefault())
-                    .thenApply(ServiceResult::success);
+                    .thenApply(ServiceResult::success)
+                    .exceptionallyCompose(failure -> isTransferRefusal(failure)
+                            ? negotiateAfterRefusal(key, participantContext, request, agreement, failure)
+                            : CompletableFuture.failedFuture(unwrap(failure)));
         }
         monitor.info("%s no reusable agreement found, negotiating".formatted(key));
         return executeAcquisition(participantContext, request, key);
+    }
+
+    private CompletableFuture<ServiceResult<DataAddress>> negotiateAfterRefusal(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            ContractAgreement refusedAgreement, Throwable refusal) {
+        monitor.warning("%s reused agreement refused, negotiating afresh: agreementId=%s reason=%s"
+                .formatted(key, refusedAgreement.getId(), unwrap(refusal).getMessage()));
+        refusedAgreementCooldown.markRefused(refusedAgreement.getId());
+        return executeAcquisition(participantContext, request, key);
+    }
+
+    private static boolean isTransferRefusal(Throwable failure) {
+        return unwrap(failure) instanceof XrdRuntimeException xrdException && xrdException.isCausedBy(DSP_TRANSFER_FAILED);
+    }
+
+    private static Throwable unwrap(Throwable failure) {
+        var current = failure;
+        while ((current instanceof CompletionException || current instanceof ExecutionException) && current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current;
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(

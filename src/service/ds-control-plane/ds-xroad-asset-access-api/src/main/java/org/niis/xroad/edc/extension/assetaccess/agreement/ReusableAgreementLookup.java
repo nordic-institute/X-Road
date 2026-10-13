@@ -62,6 +62,8 @@ import java.util.function.Predicate;
  * the shared store, none of them collide, and none are cleaned up here. The next lookup for that key sees
  * all of them and returns the one with the newest contract signing date, so concurrent duplicates are
  * harmless and self-resolving rather than prevented.
+ *
+ * <p>Agreement ids the configured exclusion rejects are never returned, whatever their policy.
  */
 public class ReusableAgreementLookup {
 
@@ -74,10 +76,21 @@ public class ReusableAgreementLookup {
 
     private final ContractNegotiationStore negotiationStore;
     private final TransactionContext transactionContext;
+    private final Predicate<String> excludedAgreementId;
 
     public ReusableAgreementLookup(ContractNegotiationStore negotiationStore, TransactionContext transactionContext) {
+        this(negotiationStore, transactionContext, agreementId -> false);
+    }
+
+    /**
+     * @param excludedAgreementId tells which agreement ids the lookup must not return, so the next newest
+     *                            candidate is considered instead
+     */
+    public ReusableAgreementLookup(ContractNegotiationStore negotiationStore, TransactionContext transactionContext,
+                                   Predicate<String> excludedAgreementId) {
         this.negotiationStore = negotiationStore;
         this.transactionContext = transactionContext;
+        this.excludedAgreementId = excludedAgreementId;
     }
 
     /**
@@ -105,7 +118,7 @@ public class ReusableAgreementLookup {
 
         var candidates = transactionContext.execute(() -> {
             try (var agreements = negotiationStore.queryAgreements(query)) {
-                return agreements.toList();
+                return agreements.filter(agreement -> !excludedAgreementId.test(agreement.getId())).toList();
             }
         });
 

@@ -97,6 +97,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
@@ -201,9 +202,19 @@ public class ClientRestMessageProcessor {
             var hashAlgoId = ProxyMessageUtils.getHashAlgoId(httpSender);
             response = parseResponse(httpSender, opMonitoringData, requestServiceId);
             checkConsistency(hashAlgoId, restRequest, sentRequest.restBodyDigest(), response);
+        } catch (XrdRuntimeException e) {
+            dropAssetAccessOnTokenRejection(e, restRequest, requestServiceId);
+            throw e;
         }
         logResponseMessage(restRequest, response, xRequestId);
         return response;
+    }
+
+    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId) {
+        if (proxyProperties.dspEnabled() && failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)) {
+            consumerSideDspProcessor.invalidateAssetAccess(new DspRequest(requestServiceId, restRequest.getClientId(),
+                    restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
+        }
     }
 
     /**

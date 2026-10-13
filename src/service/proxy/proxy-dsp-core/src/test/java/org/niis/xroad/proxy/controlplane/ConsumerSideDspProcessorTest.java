@@ -102,6 +102,14 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
+    void invalidateDropsCachedAssetAccessOfTheSenderMemberContextAndServiceAsset() {
+        processor.invalidateAssetAccess(new DspRequest(serviceId, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), SENDER);
+    }
+
+    @Test
     void managementRequestTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
         var managementServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg");
         when(providerSecurityServerResolver.resolve(managementServiceId, null))

@@ -39,6 +39,7 @@ import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -99,6 +100,35 @@ class AssetAccessCacheTest {
 
         ticker.advance(Duration.ofMillis(10));
         cache.get(key, k -> load(-10));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void invalidatingDropsTheEntryAndTheNextLookupLoadsAfresh() {
+        var key = key("asset-1");
+        cache.get(key, k -> load(60));
+
+        cache.invalidate("test-participant-ctx", "asset-1", null);
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void invalidatingDropsEveryProviderCandidateOfTheAssetAndLeavesOthersCached() {
+        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
+                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-b",
+                "http://provider-b/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
+                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:B");
+        var otherAsset = key("asset-2");
+        Stream.of(candidateA, candidateB, otherClient, otherAsset).forEach(k -> cache.get(k, x -> load(60)));
+        loadCount.set(0);
+
+        cache.invalidate("test-participant-ctx", "asset-1", "DEV:COM:222:A");
+        Stream.of(candidateA, candidateB, otherClient, otherAsset).forEach(k -> cache.get(k, x -> load(60)));
 
         assertThat(loadCount.get()).isEqualTo(2);
     }
