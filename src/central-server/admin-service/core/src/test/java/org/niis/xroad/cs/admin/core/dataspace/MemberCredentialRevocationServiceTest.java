@@ -157,8 +157,8 @@ class MemberCredentialRevocationServiceTest {
 
         service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
 
-        verify(rpcClient).revokeCredential(eq(ISSUER_PARTICIPANT_ID),
-                eq(ParticipantIdentifierScheme.memberDid(memberId, "ss1.example.org:7183").toString()), eq(CUTOFF));
+        verify(rpcClient).revokeCredential(ISSUER_PARTICIPANT_ID,
+                ParticipantIdentifierScheme.memberDid(memberId, "ss1.example.org:7183").toString(), CUTOFF);
     }
 
     @Test

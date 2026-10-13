@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DidAuthorityTest {
@@ -83,6 +84,6 @@ class DidAuthorityTest {
     @ParameterizedTest
     @ValueSource(strings = {"ss0.example.org", "xn--bcher-kva.example", "2001:db8::1"})
     void shouldAcceptAsciiAddress(String address) {
-        DidAuthority.requireAscii(address);
+        assertThatCode(() -> DidAuthority.requireAscii(address)).doesNotThrowAnyException();
     }
 }
