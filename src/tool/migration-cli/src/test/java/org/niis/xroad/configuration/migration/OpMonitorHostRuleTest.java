@@ -54,6 +54,7 @@ class OpMonitorHostRuleTest {
     private static final String DEBIAN_NAME = "debian-host.example";
     private static final String IPV4_LOOPBACK_NAME = "loopback-v4.example";
     private static final String IPV6_LOOPBACK_NAME = "loopback-v6.example";
+    private static final String OTHER_AND_IPV6_LOOPBACK_NAME = "loopback-other-and-v6.example";
     private static final String UNRESOLVABLE_NAME = "missing.example";
 
     private final OpMonitorHostRule rule = new OpMonitorHostRule(new FakeResolver());
@@ -145,9 +146,18 @@ class OpMonitorHostRuleTest {
     }
 
     @Test
-    void nameResolvingToIpv6LoopbackWritesChannelAndDnsSan() {
+    void nameResolvingOnlyToIpv6LoopbackWritesChannelListenerAndDnsSan() {
         assertThat(rule.derive(IPV6_LOOPBACK_NAME, none()).rows())
-                .containsOnly(entry(CHANNEL_HOST, IPV6_LOOPBACK_NAME), entry(ALT_NAMES, IPV6_LOOPBACK_NAME));
+                .containsOnly(entry(CHANNEL_HOST, IPV6_LOOPBACK_NAME), entry(LISTEN_ADDRESS, IPV6_LOOPBACK_NAME),
+                        entry(ALT_NAMES, IPV6_LOOPBACK_NAME));
+    }
+
+    @Test
+    void nameResolvingToOtherLoopbackAndIpv6LoopbackWritesChannelListenerAndDnsSan() {
+        assertThat(rule.derive(OTHER_AND_IPV6_LOOPBACK_NAME, none()).rows())
+                .containsOnly(entry(CHANNEL_HOST, OTHER_AND_IPV6_LOOPBACK_NAME),
+                        entry(LISTEN_ADDRESS, OTHER_AND_IPV6_LOOPBACK_NAME),
+                        entry(ALT_NAMES, OTHER_AND_IPV6_LOOPBACK_NAME));
     }
 
     @Test
@@ -210,7 +220,8 @@ class OpMonitorHostRuleTest {
                 LOOPBACK_AND_REMOTE_NAME, List.of(address("127.0.0.1"), address(REMOTE_IPV4)),
                 DEBIAN_NAME, List.of(address("127.0.1.1")),
                 IPV4_LOOPBACK_NAME, List.of(address("127.0.0.1")),
-                IPV6_LOOPBACK_NAME, List.of(address("::1")));
+                IPV6_LOOPBACK_NAME, List.of(address("::1")),
+                OTHER_AND_IPV6_LOOPBACK_NAME, List.of(address("127.0.1.1"), address("::1")));
         private final Set<InetAddress> localAddresses = Set.of(address(LOCAL_IPV4), address(LOCAL_IPV6));
 
         @Override

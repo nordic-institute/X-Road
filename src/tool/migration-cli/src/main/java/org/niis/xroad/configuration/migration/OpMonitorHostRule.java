@@ -55,7 +55,6 @@ final class OpMonitorHostRule {
     static final String IP_SUBJECT_ALT_NAMES = "common-rpc.certificate-provisioning.ip-subject-alt-names";
 
     private static final String LOOPBACK_IPV4 = "127.0.0.1";
-    private static final String LOOPBACK_IPV6 = "0:0:0:0:0:0:0:1";
     private static final Pattern IPV4_LITERAL = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3}");
 
     private final LocalAddressResolver resolver;
@@ -116,16 +115,11 @@ final class OpMonitorHostRule {
             rows.put(ALT_NAMES, merge(existing, ALT_NAMES, value));
         } else if (addresses.stream().anyMatch(InetAddress::isLoopbackAddress)) {
             if (addresses.stream().allMatch(InetAddress::isLoopbackAddress)
-                    && addresses.stream().noneMatch(OpMonitorHostRule::isDefaultLoopback)) {
+                    && addresses.stream().noneMatch(a -> LOOPBACK_IPV4.equals(a.getHostAddress()))) {
                 rows.put(LISTEN_ADDRESS, value);
             }
             rows.put(ALT_NAMES, merge(existing, ALT_NAMES, value));
         }
-    }
-
-    private static boolean isDefaultLoopback(InetAddress address) {
-        var text = address.getHostAddress();
-        return LOOPBACK_IPV4.equals(text) || LOOPBACK_IPV6.equals(text);
     }
 
     private static boolean isIpLiteral(String value) {
