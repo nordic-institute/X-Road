@@ -13,7 +13,7 @@ Doc ID: UG-OPMONSYSPAR
 | 05.03.2018 | 0.5     | Added reference to terms and abbreviations doc                                                                          | Tatu Repo          | 
 | 01.06.2023 | 0.6     | Update references                                                                                                       | Petteri Kivimäki   |
 | 10.07.2025 | 0.7     | Added grpc related properties                                                                                           | Mikk-Erik Bachmann |
-| 11.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
+| 13.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
 
 ## Table of Contents
 

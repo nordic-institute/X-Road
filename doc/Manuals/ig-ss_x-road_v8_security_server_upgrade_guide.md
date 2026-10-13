@@ -13,7 +13,7 @@ Doc. ID: IG-SS-8-UPGRADE
 |------------|---------|----------------------------------------------------------------------------|--------------------|
 | 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
-| 11.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
+| 13.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
 
 ## License
 

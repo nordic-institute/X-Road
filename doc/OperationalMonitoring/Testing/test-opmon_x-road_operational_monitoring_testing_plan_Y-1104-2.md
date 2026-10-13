@@ -12,7 +12,7 @@ Doc ID: TEST-OPMON
 | 25.06.2020 | 0.9     | Update information about the JMX interface.                          | Petteri Kivimäki |
 | 01.06.2023 | 0.10    | Update references                                                    | Petteri Kivimäki |
 | 11.11.2025 | 0.11    | Drop JMX interface                                                   | Justas Samuolis  |
-| 11.10.2026 | 0.12    | Store and query over gRPC                                            | Eneli Reimets    |
+| 13.10.2026 | 0.12    | Store and query over gRPC                                            | Eneli Reimets    |
 
 ## Table of Contents
 <!-- toc -->

@@ -20,7 +20,7 @@ Document ID: ARC-OPMOND
 | 10.07.2025 | 1.7     | Added info about operational data query in fixed intervals using gRPC | Mikk-Erik Bachmann |
 | 11.11.2025 | 1.8     | Drop JMX interface                                                    | Justas Samuolis    |
 | 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
-| 11.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
+| 13.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 

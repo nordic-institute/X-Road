@@ -3,7 +3,7 @@
 **Analysis**
 
 Version: 1.12  
-11.10.2026
+13.10.2026
 <!-- 38 pages -->
 Doc. ID: UC-MESS
 
@@ -30,7 +30,7 @@ Doc. ID: UC-MESS
 | 17.04.2023 | 1.9     | Remove central services support                                                                                                                                                                                                                                          | Justas Samuolis    |
 | 01.06.2023 | 1.10    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
 | 07.01.2025 | 1.11    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
-| 11.10.2026 | 1.12    | Operational monitoring store and query over gRPC                                                                                                                                                                                                                         | Eneli Reimets      |
+| 13.10.2026 | 1.12    | Operational monitoring store and query over gRPC                                                                                                                                                                                                                         | Eneli Reimets      |
 
 ## Table of Contents
 
