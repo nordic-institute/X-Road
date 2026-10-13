@@ -715,13 +715,6 @@ services:
     #   6181 health        — internal, EDC default/health web context
     #   6183 did           — cross-host, ADR-42 protocol surface (did:web, CS issuer profile;
     #                         same listener this standalone SS deployment serves)
-    #   6184 sts           — live listener (web.http.sts.port in application.yaml). No caller
-    #                         found anywhere in src/ or the k8s/ansible trees (grepped for
-    #                         "6184"); unlike identity-hub's STS (7184, dialed via
-    #                         DataspaceProvisioningService.stsTokenUrl/getIdentityHubStsPort),
-    #                         nothing constructs an issuer-STS URL today. Left declared (it is a
-    #                         real listener) but not classified as ADR-42 cross-host surface —
-    #                         annotated per absence of evidence, not asserted either way.
     #   6185 issuance      — cross-host, ADR-42 protocol surface (DCP issuance endpoint)
     #   6187 statuslist    — cross-host, ADR-42 protocol surface (statuslist endpoint)
     #   9999 debug         — internal, JDWP debug agent (dev only)
@@ -732,8 +725,6 @@ services:
         name: health
       - port: 6183
         name: did
-      - port: 6184
-        name: sts
       - port: 6185
         name: issuance
       - port: 6187

@@ -44,7 +44,6 @@ dependencies {
   runtimeOnly(libs.edc.ih.version.api)
   runtimeOnly(libs.edc.ih.sts.account.service.local)
   runtimeOnly(libs.edc.ih.sts.core)
-  runtimeOnly(libs.edc.ih.sts.api)
   runtimeOnly(libs.edc.core.token)
   runtimeOnly(libs.edc.lib.core)
   runtimeOnly(libs.edc.transaction.local)
