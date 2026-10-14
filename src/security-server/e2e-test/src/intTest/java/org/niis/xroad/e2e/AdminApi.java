@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Security Server admin REST API access: session login, service-description CRUD, access rights, and
- * service lookup, and the external RPC CA and op-monitor CA endpoints.
+ * service lookup, plus the external RPC CA and op-monitor CA endpoints.
  */
 @Slf4j
 @UtilityClass

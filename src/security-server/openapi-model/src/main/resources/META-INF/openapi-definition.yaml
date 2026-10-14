@@ -4906,10 +4906,10 @@ paths:
     get:
       tags:
         - system
-      summary: view the Security Server RPC CA details
+      summary: view the Security Server external RPC CA details
       operationId: getExternalRpcCa
       description: <h3>Administrator views the details of the Security Server RPC CA, the certificate authority that signs the
-        Security Server's internal RPC certificates.</h3>
+        Security Server's external RPC certificates.</h3>
       responses:
         '200':
           description: Security Server RPC CA details
@@ -4943,9 +4943,9 @@ paths:
     get:
       tags:
         - system
-      summary: download the Security Server RPC CA as a PEM file
+      summary: download the Security Server external RPC CA as a PEM file
       operationId: downloadExternalRpcCa
-      description: <h3>Administrator downloads the Security Server RPC CA as one PEM encoded certificate.</h3>
+      description: <h3>Administrator downloads the Security Server external RPC CA as one PEM encoded certificate.</h3>
       responses:
         '200':
           description: Security Server RPC CA certificate in PEM format
@@ -5054,9 +5054,8 @@ paths:
         - system
       summary: delete the op-monitor CA
       operationId: deleteOpMonitorCa
-      description: <h3>Administrator deletes the stored op-monitor CA. The Security Server then trusts only its Security Server
-        RPC CA, as for an operational monitoring daemon on the same host. Deleting when no op-monitor CA is stored
-        succeeds and changes nothing.</h3>
+      description: <h3>Administrator deletes the stored op-monitor CA. Deleting when no op-monitor CA is stored succeeds
+        and changes nothing.</h3>
       responses:
         '204':
           description: no op-monitor CA is stored any more

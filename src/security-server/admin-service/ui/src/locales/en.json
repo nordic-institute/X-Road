@@ -885,14 +885,14 @@
   },
   "opMonitorTrust": {
     "externalRpcCa": {
-      "description": "The Security Server RPC CA signs the certificates of the internal connections of this Security Server. Download it and install it on the operational monitoring daemon host, so that the host trusts this Security Server.",
+      "description": "The Security Server RPC CA signs the certificates of the RPC connections of this Security Server. Download it and install it on the operational monitoring daemon host, so that the host trusts this Security Server.",
       "download": "Download",
       "title": "Security Server RPC CA",
       "unavailable": "The Security Server RPC CA is not available"
     },
     "opMonitorCa": {
       "delete": "Delete",
-      "deleteConfirmText": "Delete the Operational Monitoring CA? This Security Server then trusts only its Security Server RPC CA, as for an operational monitoring daemon on the same host.",
+      "deleteConfirmText": "Delete the Operational Monitoring CA? This Security Server then trusts only the Security Server RPC CA, as for an operational monitoring daemon on the same host.",
       "deleteConfirmTitle": "Delete Operational Monitoring CA?",
       "deleted": "The Operational Monitoring CA is deleted",
       "description": "The CA of an operational monitoring daemon running on another host. Upload it so that this Security Server trusts that operational monitoring daemon. The file must hold exactly one PEM or DER encoded CA certificate and no private key.",

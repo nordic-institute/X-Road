@@ -70,7 +70,7 @@ const cardTitles = () => Array.from(document.querySelectorAll('[data-test="view-
 
 const detailsHandler = specHttp.get('/system/external-rpc-ca', ({ response }) => response(200).json(externalRpcCa));
 
-describe('SS Op-monitor Trust tab — Security Server RPC CA (Browser Mode)', () => {
+describe('SS Operational Monitoring Trust tab — Security Server RPC CA (Browser Mode)', () => {
   it('titles the tab and the page Operational Monitoring Trust', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewAndDownload, msw: [detailsHandler] });
     await expect.poll(() => page.getByTestId('op-monitor-trust-tab-button').element().textContent).toContain('Operational Monitoring Trust');
@@ -207,7 +207,7 @@ async function chooseOpMonitorCaFile(content = 'file content') {
   const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
   await page.elementLocator(fileInput).upload(new File([content], 'op-monitor-ca.pem', { type: 'application/x-pem-file' }));
 }
-describe('SS Op-monitor Trust tab — op-monitor CA (Browser Mode)', () => {
+describe('SS Operational Monitoring Trust tab — op-monitor CA (Browser Mode)', () => {
   it('shows an empty state, the restart hint and an upload action when no op-monitor CA is stored', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, {
       permissions: opMonitorCaViewAndUpload,

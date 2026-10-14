@@ -2888,7 +2888,7 @@ As advised, the scheme parameter should be set to "https". For communication ove
 
 **NOTE:** If an external operational monitoring daemon is used, the host, scheme (and optionally, port) parameters must be changed at both hosts.
 
-The gRPC connections between the Security Server and the external operational monitoring daemon are protected with TLS. Both sides must trust the certificate authority (CA) of the other side. The CA certificates are exchanged as described in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon).
+The RPC connections between the Security Server and the external operational monitoring daemon are protected with TLS. Both sides must trust the certificate authority (CA) of the other side. The CA certificates are exchanged as described in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon).
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 
@@ -2915,7 +2915,7 @@ The configuration anchor (renamed as `configuration-anchor.xml`) file must be ma
 
 The Security Server and an operational monitoring daemon on a separate host connect over TLS. Each side must trust the certificate authority (CA) that issued the other side's certificate. Two CA certificates are exchanged:
 
-- The **Security Server RPC CA** is the CA of the Security Server host. It signs the certificates of the Security Server's internal gRPC connections and is kept in the Security Server's secret store (OpenBao). The administrator downloads it from the Security Server and installs it on the operational monitoring daemon host.
+- The **Security Server RPC CA** is the CA of the Security Server host. It signs the certificates of the Security Server's RPC connections and is kept in the Security Server's secret store (OpenBao). The administrator downloads it from the Security Server and installs it on the operational monitoring daemon host.
 - The **Operational Monitoring CA** is the CA that issued the certificate of the operational monitoring daemon. The administrator uploads it to the Security Server.
 
 Only CA certificates are exchanged. No private key is uploaded or downloaded.
@@ -2982,7 +2982,7 @@ _To delete the Operational Monitoring CA_, follow these steps.
 
    The view reminds you to restart the proxy and admin-service to apply the change.
 
-After the restart, the Security Server trusts only its Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
+After the restart, the Security Server trusts only the Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
 
 _To download the Security Server RPC CA_, follow these steps.
 
