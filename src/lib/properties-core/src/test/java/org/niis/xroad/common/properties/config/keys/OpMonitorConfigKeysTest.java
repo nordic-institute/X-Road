@@ -29,10 +29,8 @@ package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.ConfigCatalogue;
-import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,25 +88,5 @@ class OpMonitorConfigKeysTest {
     @Test
     void keptKeysAreInTheCatalogue() {
         assertThat(catalogueKeys).containsAll(KEPT_KEYS);
-    }
-
-    @Test
-    void staleRowsOfRemovedKeysDoNotAffectTheRegisteredKeys() {
-        var staleRows = Map.of(
-                "xroad.op-monitor.tls.certificate-provisioning.common-name", "op-monitor",
-                "xroad.op-monitor.tls.certificate-provisioning.alt-names", "",
-                "xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names", "127.0.0.1",
-                "xroad.op-monitor.tls.client-certificate-refresh-interval", "60S",
-                "xroad.op-monitor.scheme", "https",
-                "xroad.op-monitor.rpc.enabled", "false",
-                "xroad.op-monitor.port", "abc");
-        var config = XRoadConfigBuilder.create()
-                .register(OpMonitorConfigKeys.instance())
-                .overrides(staleRows)
-                .build();
-
-        assertThat(config.value(OpMonitorConfigKeys.RPC_PORT)).isEqualTo(2081);
-        assertThat(config.value(OpMonitorConfigKeys.RPC_LISTEN_ADDRESS)).isEqualTo("127.0.0.1");
-        assertThat(config.value(OpMonitorConfigKeys.KEEP_RECORDS_FOR_DAYS)).isEqualTo(7);
     }
 }

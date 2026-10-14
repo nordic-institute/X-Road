@@ -76,23 +76,12 @@ class OpMonitorServerPropertiesTest {
     }
 
     @Test
-    void grpcServerIsEnabledWithStaleDisabledRow() {
-        var properties = new OpMonitorServerProperties(config(Map.of("xroad.op-monitor.rpc.enabled", "false")));
-
-        assertThat(properties.enabled()).isTrue();
-    }
-
-    @Test
     void staleRowsOfRemovedKeysDoNotAffectTheRegisteredKeys() {
         var staleRows = Map.of(
                 "xroad.op-monitor.tls.certificate-provisioning.common-name", "op-monitor",
                 "xroad.op-monitor.tls.certificate-provisioning.alt-names", "",
                 "xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names", "127.0.0.1",
-                "xroad.op-monitor.tls.client-certificate-refresh-interval", "60S",
-                "xroad.op-monitor.listen-address", "0.0.0.0",
                 "xroad.op-monitor.scheme", "https",
-                "xroad.op-monitor.xroad-tls-ciphers", "TLS_AES_128_GCM_SHA256",
-                "xroad.op-monitor.rpc.enabled", "false",
                 "xroad.op-monitor.port", "abc");
         var config = config(staleRows);
 

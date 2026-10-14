@@ -70,7 +70,8 @@ message StoreOperationalDataReq {
 message StoreOperationalDataResp {
 }
 
-// Which operational data a query may see. An unspecified scope is treated as CALLER_ONLY.
+// Which operational data a query may see. op-monitor does not read this value yet: every query is filtered by
+// the client rules of the query handler, whatever the scope.
 enum AccessScope {
   ACCESS_SCOPE_UNSPECIFIED = 0;
   FULL_VIEW = 1;

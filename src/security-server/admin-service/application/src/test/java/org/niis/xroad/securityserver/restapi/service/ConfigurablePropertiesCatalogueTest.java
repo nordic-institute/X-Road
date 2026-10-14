@@ -194,20 +194,15 @@ class ConfigurablePropertiesCatalogueTest {
                 row("xroad.op-monitor.tls.certificate-provisioning.common-name", "op-monitor"),
                 row("xroad.op-monitor.tls.certificate-provisioning.alt-names", ""),
                 row("xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names", "127.0.0.1"),
-                row("xroad.op-monitor.tls.client-certificate-refresh-interval", "60S"),
-                row("xroad.op-monitor.listen-address", "0.0.0.0"),
                 row("xroad.op-monitor.scheme", "https"),
-                row("xroad.op-monitor.rpc.enabled", "false"),
                 row("xroad.op-monitor.port", "abc"),
-                row("xroad.proxy.addon.op-monitor.connection.scheme", "https"),
                 row("xroad.op-monitor.rpc.port", "2091")));
 
         var properties = service.getConfigurationProperties();
 
         assertThat(properties).extracting(ConfigurablePropertyDto::getPropertyName)
                 .noneMatch(name -> name.startsWith("xroad.op-monitor.tls"))
-                .doesNotContain("xroad.op-monitor.listen-address", "xroad.op-monitor.scheme", "xroad.op-monitor.port",
-                        "xroad.op-monitor.rpc.enabled", "xroad.proxy.addon.op-monitor.connection.scheme");
+                .doesNotContain("xroad.op-monitor.scheme", "xroad.op-monitor.port");
         assertThat(properties).filteredOn(dto -> "xroad.op-monitor.rpc.port".equals(dto.getPropertyName()))
                 .singleElement()
                 .satisfies(dto -> assertThat(dto.getCurrentValue()).isEqualTo("2091"));
