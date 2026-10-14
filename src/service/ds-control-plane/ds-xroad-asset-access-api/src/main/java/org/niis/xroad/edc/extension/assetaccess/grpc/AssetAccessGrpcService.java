@@ -28,10 +28,7 @@ package org.niis.xroad.edc.extension.assetaccess.grpc;
 
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import jakarta.json.Json;
-import jakarta.json.JsonNumber;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -45,10 +42,9 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.edc.extension.assetaccess.token.AgreementTokenExpiry;
 
-import java.io.ByteArrayInputStream;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -65,7 +61,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
  * Bridges the async {@code CompletableFuture<ServiceResult<DataAddress>>} to gRPC's
  * sync {@code StreamObserver} pattern using {@link RpcResponseHandler#handleRequest}.
  */
-@Slf4j
 @RequiredArgsConstructor
 class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceImplBase {
 
@@ -144,36 +139,14 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                     .build();
         }
         var authorization = (String) properties.get(AUTHORIZATION_KEY);
-        var expiresAt = extractJwtExpiry(authorization);
 
         var respBuilder = AcquireAssetAccessResp.newBuilder().setEndpoint(endpoint);
         if (authorization != null) {
             respBuilder.setAuthorization(authorization);
         }
-        if (expiresAt != null) {
-            respBuilder.setExpiresAtEpochSeconds(expiresAt);
-        }
+        AgreementTokenExpiry.expiryOf(dataAddress)
+                .ifPresent(expiresAt -> respBuilder.setExpiresAtEpochSeconds(expiresAt.getEpochSecond()));
         return respBuilder.build();
-    }
-
-    private static Long extractJwtExpiry(String authorization) {
-        if (authorization == null || authorization.isBlank()) {
-            return null;
-        }
-        try {
-            var parts = authorization.split("\\.");
-            if (parts.length < 2) {
-                return null;
-            }
-            var payload = Base64.getUrlDecoder().decode(parts[1]);
-            try (var reader = Json.createReader(new ByteArrayInputStream(payload))) {
-                return (reader.readObject().get("exp") instanceof JsonNumber number)
-                        ? number.longValueExact() : null;
-            }
-        } catch (Exception e) {
-            log.debug("Could not extract JWT expiry from authorization token", e);
-            return null;
-        }
     }
 
     private <T> T awaitResult(CompletableFuture<T> future) {

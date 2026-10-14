@@ -3,9 +3,8 @@ plugins {
 }
 
 dependencies {
-  implementation(libs.edc.spi.contract)
+  implementation(libs.edc.spi.controlplane)
   implementation(libs.edc.spi.core)
-  implementation(libs.edc.spi.policy)
 
   implementation(project(":service:ds-control-plane:ds-xroad-agreement-grant-protocol"))
   implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))

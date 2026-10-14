@@ -33,6 +33,7 @@ import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -364,8 +365,12 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
             return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_URL);
         }
 
-        public int getIdentityHubDidPort() {
-            return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_DID_PORT);
+        public int getDidPort() {
+            return config.value(DspConfigKeys.DID_PORT);
+        }
+
+        public int getDspPort() {
+            return config.value(DspConfigKeys.DSP_PORT);
         }
 
         public int getIdentityHubStsPort() {

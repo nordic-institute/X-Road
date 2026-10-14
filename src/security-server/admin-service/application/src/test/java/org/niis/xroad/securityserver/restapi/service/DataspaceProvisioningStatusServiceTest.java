@@ -73,8 +73,9 @@ class DataspaceProvisioningStatusServiceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "1234");
     private static final String OWNER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(OWNER);
     private static final String SYSTEM_HOLDER_PID_SLOT0 =
-            SYSTEM_PARTICIPANT_ID + "-xroad-membership-credential-request-" + OWNER_CTX_ID;
-    private static final String MEMBER_HOLDER_PID_SLOT0 = OWNER_CTX_ID + "-xroad-membership-credential-request";
+            SYSTEM_PARTICIPANT_ID + "-" + OWNER_CTX_ID + ":SS0-xroad-membership-credential-request";
+    private static final String MEMBER_HOLDER_PID_SLOT0 =
+            OWNER_CTX_ID + "-" + OWNER_CTX_ID + ":SS0-xroad-membership-credential-request";
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -103,7 +104,7 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getDidPort()).thenReturn(7183);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);

@@ -9,7 +9,6 @@ dependencies {
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.identityhub.participantcontext)
-  implementation(libs.edc.spi.identity.did)
   implementation(libs.edc.issuerservice.issuance.spi)
   implementation(libs.edc.issuerservice.credential.spi)
 

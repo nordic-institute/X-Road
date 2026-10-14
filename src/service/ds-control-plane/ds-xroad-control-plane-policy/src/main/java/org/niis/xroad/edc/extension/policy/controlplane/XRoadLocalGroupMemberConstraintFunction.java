@@ -62,7 +62,7 @@ public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentP
             LocalGroupId localGroupId = parseLocalGroup(globalGroupCode);
             return PolicyContextHelper.findMemberIdFromContext(context)
                     .map(memberId -> switch (operator) {
-                        case EQ, IN -> serverConfProvider.isSubjectInLocalGroup(memberId, localGroupId);
+                        case EQ, IS_PART_OF -> serverConfProvider.isSubjectInLocalGroup(memberId, localGroupId);
                         default -> {
                             context.reportProblem("Unsupported operator: " + operator);
                             yield false;

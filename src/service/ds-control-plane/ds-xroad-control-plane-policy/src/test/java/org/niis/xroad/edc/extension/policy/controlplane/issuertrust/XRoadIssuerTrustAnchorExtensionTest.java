@@ -27,9 +27,13 @@
 package org.niis.xroad.edc.extension.policy.controlplane.issuertrust;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.connector.core.profile.DataspaceProfileContextRegistryImpl;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -53,17 +57,27 @@ import static org.mockito.Mockito.when;
 class XRoadIssuerTrustAnchorExtensionTest {
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
+    private static final String PROFILE_NAME = "test-profile";
     private static final String DID_1 = "did:web:cs1.example.test%3A6183:issuer";
     private static final String DID_2 = "did:web:cs2.example.test%3A6183:issuer";
 
     private final GlobalConfProvider globalConfProvider = mock();
+    private final DataspaceProfileContextRegistry profileRegistry = new DataspaceProfileContextRegistryImpl();
 
     private XRoadIssuerTrustAnchorExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(GlobalConfProvider.class, globalConfProvider);
+        context.registerService(DataspaceProfileContextRegistry.class, profileRegistry);
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
+        profileRegistry.registerDefault(new DataspaceProfileContext(PROFILE_NAME,
+                new ProtocolVersion("2025-1", "/" + PROFILE_NAME, "HTTPS"),
+                () -> "https://localhost/dsp/" + PROFILE_NAME,
+                claimToken -> "participant",
+                new JsonLdNamespace("https://w3id.org/dspace/2025/1/"),
+                List.of(),
+                List.of()));
     }
 
     @AfterEach
@@ -81,36 +95,39 @@ class XRoadIssuerTrustAnchorExtensionTest {
     }
 
     @Test
-    void initializeRegistersEveryDistributedIssuerDidAsWildcardTrusted(ServiceExtensionContext context, ObjectFactory factory) {
+    void startTrustsEveryDistributedIssuerDid(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1, DID_2));
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
+        extension.start();
 
-        var registry = extension.trustedIssuerRegistry();
-        assertThat(registry.getSupportedTypes(new Issuer(DID_1))).containsExactly(TrustedIssuerRegistry.WILDCARD);
-        assertThat(registry.getSupportedTypes(new Issuer(DID_2))).containsExactly(TrustedIssuerRegistry.WILDCARD);
+        assertThat(trustedIssuerDids()).containsExactlyInAnyOrder(DID_1, DID_2);
+        assertThat(profileRegistry.getProfile(PROFILE_NAME).trustedIssuers())
+                .allSatisfy(issuer -> assertThat(issuer.getSupportedTypes()).containsExactly(TrustedIssuer.WILDCARD_TYPE));
     }
 
     @Test
-    void initializeRegistersNothingWhenNotDataspaceEnabled(ServiceExtensionContext context, ObjectFactory factory) {
+    void startTrustsNothingWhenNotDataspaceEnabled(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
+        extension.start();
 
-        assertThat(extension.trustedIssuerRegistry().getSupportedTypes(new Issuer(DID_1))).isEmpty();
+        assertThat(trustedIssuerDids()).isEmpty();
     }
 
     @Test
-    void shutdownIsSafeAfterInitialize(ServiceExtensionContext context, ObjectFactory factory) {
+    void shutdownIsSafeAfterStart(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1));
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
+        extension.start();
 
         assertThat(catchThrowable(extension::shutdown)).isNull();
     }
@@ -128,10 +145,11 @@ class XRoadIssuerTrustAnchorExtensionTest {
         extension.initialize(context);
         extension.start();
 
-        var registry = extension.trustedIssuerRegistry();
         await().atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> assertThat(registry.getSupportedTypes(new Issuer(DID_2)))
-                        .containsExactly(TrustedIssuerRegistry.WILDCARD));
-        assertThat(registry.getSupportedTypes(new Issuer(DID_1))).isEmpty();
+                .untilAsserted(() -> assertThat(trustedIssuerDids()).containsExactly(DID_2));
+    }
+
+    private List<String> trustedIssuerDids() {
+        return profileRegistry.getProfile(PROFILE_NAME).trustedIssuers().stream().map(TrustedIssuer::getId).toList();
     }
 }

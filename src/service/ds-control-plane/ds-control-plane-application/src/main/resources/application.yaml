@@ -32,12 +32,9 @@ web:
   http:
     port: 8181
     protocol:
-      port: 8183
+      port: ${xroad.dsp.dsp-port}
       path: /api/dsp
       virtual: true
-    control:
-      port: 8184
-      path: /api/v1/control
     signaling:
       port: 8185
 
@@ -54,13 +51,10 @@ xroad:
       # SqlContractNegotiationStoreExtension is excluded so XRoadContractNegotiationStoreExtension is the
       # sole ContractNegotiationStore provider; its jar stays on the classpath (via ds-control-plane-db) so
       # the delegate store class, dialect statements and schema DDL remain usable.
-      # TrustedIssuerConfigurationExtension is excluded so XRoadIssuerTrustAnchorExtension is the sole
-      # populator of the TrustedIssuerRegistry, from the distributed globalconf issuer-DID set.
       excluded-service-extensions: >-
         org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
         org.eclipse.edc.web.jetty.JettyExtension,
-        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension,
-        org.eclipse.edc.iam.decentralizedclaims.issuer.configuration.TrustedIssuerConfigurationExtension
+        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension
   ds:
     rpc:
       host: "0.0.0.0"
@@ -84,8 +78,8 @@ edc:
     enable:
       profiles:
         # Every participant context served by this runtime may use every registered
-        # profile (X-Road registers a single default profile). Without this, EDC 0.18
-        # virtual DSP controllers require a per-participant edc.dataspace.profiles
+        # profile (X-Road registers a single default profile). EDC virtual DSP
+        # controllers otherwise require a per-participant edc.dataspace.profiles
         # association and reject DSP requests with 404.
         all: true
   vault:
@@ -103,15 +97,6 @@ edc:
           path: /v1/xrd-ds-secret
   component:
     id: DSP-compatibility-test
-  transfer:
-    proxy:
-      token:
-        signer:
-          privatekey:
-            alias: private-key
-        verifier:
-          publickey:
-            alias: public-key
   datasource:
     default:
       url: ${xroad.db.ds-control-plane.hibernate.connection.url}
@@ -120,11 +105,7 @@ edc:
   sql:
     schema:
       autocreate: true
-  participant:
-    did: "did:web:${HOSTNAME:localhost}%3A7183"
   iam:
-    issuer:
-      id: "did:web:${HOSTNAME:localhost}%3A7183"
     dcp:
       scopes:
         membership:

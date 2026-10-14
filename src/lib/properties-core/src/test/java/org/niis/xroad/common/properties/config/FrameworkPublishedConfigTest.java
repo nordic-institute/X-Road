@@ -48,8 +48,10 @@ class FrameworkPublishedConfigTest {
             "xroad.proxy.health-check-port",
             "xroad.proxy-ui-api.request-size-limit-binary-upload",
             "xroad.admin-service.request-size-limit-binary-upload",
-            // ds-control-plane extensions read these directly via ServiceExtensionContext.getSetting();
-            // a stored override only reaches that call through the framework-published config source
+            // every key of the DSP registry is published: the control-plane extensions and the identity hub
+            // configuration read it from the framework configuration
+            "xroad.dsp.did-port",
+            "xroad.dsp.dsp-port",
             "xroad.dsp.catalog.cache.enabled",
             "xroad.dsp.catalog.cache.ttl-seconds",
             "xroad.dsp.catalog.cache.find-by-id-max-size",

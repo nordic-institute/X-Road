@@ -47,9 +47,9 @@ class StoreEnumerationCache<T> {
     @Nullable
     private final Cache<Boolean, List<T>> enumerationCache;
     @Nullable
-    private final Cache<FindByIdKey, T> findByIdCache;
+    private final Cache<ContextKey, T> findByIdCache;
     @Nullable
-    private final Cache<String, DataAddress> dataAddressCache;
+    private final Cache<ContextKey, DataAddress> dataAddressCache;
     private final String storeName;
 
     StoreEnumerationCache(boolean enabled, long ttlSeconds, int findByIdMaxSize, String storeName) {
@@ -101,22 +101,18 @@ class StoreEnumerationCache<T> {
         }
     }
 
-    @Nullable
-    T findById(String id, @Nullable String requestedParticipantContextId, Supplier<T> loader) {
-        return getOrLoad(findByIdCache, new FindByIdKey(id, requestedParticipantContextId), loader);
-    }
-
     /**
-     * Looks up a single entry by id, bypassing the cache entirely when the requested context is not
-     * cacheable. A context that is not cacheable must never be served from or written to the shared
-     * by-id cache, since doing so could leak a result resolved for one context to a lookup for another.
+     * Looks up a single entry by participant context and id, bypassing the cache entirely when the
+     * context is not cacheable. A context that is not cacheable must never be served from or written to
+     * the shared by-id cache, since doing so could leak a result resolved for one context to a lookup
+     * for another.
      */
     @Nullable
-    T findById(String id, @Nullable String requestedParticipantContextId, boolean cacheable, Supplier<T> loader) {
+    T findById(String participantContextId, String id, boolean cacheable, Supplier<T> loader) {
         if (!cacheable) {
             return loader.get();
         }
-        return findById(id, requestedParticipantContextId, loader);
+        return getOrLoad(findByIdCache, new ContextKey(participantContextId, id), loader);
     }
 
     @Nullable
@@ -135,18 +131,18 @@ class StoreEnumerationCache<T> {
         return result;
     }
 
-    void cacheDataAddress(String assetId, @Nullable DataAddress value) {
+    void cacheDataAddress(String participantContextId, String assetId, @Nullable DataAddress value) {
         if (dataAddressCache != null && value != null) {
-            dataAddressCache.put(assetId, value);
+            dataAddressCache.put(new ContextKey(participantContextId, assetId), value);
         }
     }
 
     @Nullable
-    DataAddress getDataAddress(String assetId) {
+    DataAddress getDataAddress(String participantContextId, String assetId) {
         if (dataAddressCache == null) {
             return null;
         }
-        return dataAddressCache.getIfPresent(assetId);
+        return dataAddressCache.getIfPresent(new ContextKey(participantContextId, assetId));
     }
 
     void logStatistics() {
@@ -177,9 +173,9 @@ class StoreEnumerationCache<T> {
     }
 
     /**
-     * Folds the requested participant context into the by-id cache key, so a lookup addressed at
+     * Folds the participant context into the point-lookup cache keys, so a lookup addressed at
      * one context never serves another's cached record.
      */
-    private record FindByIdKey(String id, @Nullable String requestedParticipantContextId) {
+    private record ContextKey(String participantContextId, String id) {
     }
 }

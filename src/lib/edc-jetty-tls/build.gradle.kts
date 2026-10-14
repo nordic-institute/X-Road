@@ -8,7 +8,6 @@ dependencies {
 
   implementation(libs.edc.boot)
   implementation(libs.edc.spi.core)
-  implementation(libs.edc.spi.web)
   implementation(libs.jetty.server)
   implementation(libs.jetty.ee10.servlet)
 

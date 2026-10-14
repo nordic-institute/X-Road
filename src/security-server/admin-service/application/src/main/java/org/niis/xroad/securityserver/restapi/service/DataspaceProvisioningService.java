@@ -79,11 +79,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       the same tick — see the method's own Javadoc for the SYSTEM re-anchor case.</li>
  *   <li>{@link #ensureMembershipCredential(ParticipantContext)} — leaves an active
  *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
- *       slot scan; advances past slots in terminal ERROR. For SYSTEM with no owner known yet, returns
- *       {@code UNKNOWN} without scanning or submitting — see {@link #isSystemWithUnknownOwner}.</li>
+ *       slot scan; advances past slots in terminal ERROR. While the hosting Security Server identity is not
+ *       known (for SYSTEM, no owner yet), returns {@code UNKNOWN} without scanning or submitting — see {@link #holderPidBase}.</li>
  *   <li>{@link #readCredentialStatus(ParticipantContext)} — returns the current credential
  *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
- *       without polling. Same SYSTEM-with-no-owner short-circuit as {@link #ensureMembershipCredential}.</li>
+ *       without polling. Same unknown-identity short-circuit as {@link #ensureMembershipCredential}.</li>
  *   <li>{@link #decommissionedParticipants()} — enumerates the bound rows awaiting teardown
  *       convergence.</li>
  *   <li>{@link #teardownParticipant(TombstonedParticipant)} — idempotently deletes one tombstoned
@@ -96,8 +96,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
  * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".
- * For {@link ParticipantKind#SYSTEM}, the slot namespace itself is salted with the current owner —
- * see {@link #holderPidBase}.</p>
+ * The slot namespace itself carries the hosting Security Server identity — see {@link #holderPidBase}.</p>
  *
  * <p>The identity hub reports raw EDC {@code HolderRequestState} names, which have no PENDING value:
  * CREATED, REQUESTING and REQUESTED all denote a request in flight and map to {@link CredentialStatus#PENDING}.</p>
@@ -262,7 +261,7 @@ public class DataspaceProvisioningService {
      * left alone, a new request is submitted into the first free slot otherwise. Advances past
      * slots in terminal ERROR state only. Returns immediately — does not poll for the outcome.
      *
-     * <p>For a {@link ParticipantKind#SYSTEM} context the slot namespace is salted with the current
+     * <p>For a {@link ParticipantKind#SYSTEM} context the slot namespace carries the current
      * owner ({@link #holderPidBase}): an owner change makes the scan land on an empty slot, so a fresh
      * credential is issued on the new owner. The stale credential, parked under the previous owner's
      * slot namespace, is left untouched and expires on its own — no revocation.
@@ -278,12 +277,13 @@ public class DataspaceProvisioningService {
         if (trustedIssuerDids.isEmpty()) {
             return CredentialStatus.ABSENT;
         }
-        if (isSystemWithUnknownOwner(context)) {
+        var holderPidBase = holderPidBase(context);
+        if (holderPidBase.isEmpty()) {
             return CredentialStatus.UNKNOWN;
         }
         var participantId = context.participantId();
         var ds = adminServiceProperties.getDataspace();
-        var base = holderPidBase(context);
+        var base = holderPidBase.get();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(base, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
@@ -318,11 +318,12 @@ public class DataspaceProvisioningService {
      */
     @Nullable
     public CredentialStatus readCredentialStatus(ParticipantContext context) {
-        if (isSystemWithUnknownOwner(context)) {
+        var holderPidBase = holderPidBase(context);
+        if (holderPidBase.isEmpty()) {
             return CredentialStatus.UNKNOWN;
         }
         var ds = adminServiceProperties.getDataspace();
-        var base = holderPidBase(context);
+        var base = holderPidBase.get();
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(base, slot);
@@ -341,35 +342,35 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * The holder-pid slot-base for a participant context: unsalted for MEMBER, salted with the
-     * current owner for SYSTEM.
+     * The holder-pid slot-base for a participant context, or empty while the hosting Security Server
+     * identity is not known yet:
+     * {@code {participantId}-{ownerCtxId}:{serverCode}-xroad-membership-credential-request}.
+     *
+     * <p>The Issuer Service rejects a request whose holder-pid it has already seen, and several Security
+     * Servers can host the same member, so the hosting Security Server identity is part of the base. The
+     * result is deterministic, so the slot scan finds earlier requests. The server code stays in front of the
+     * constant tail so a server code ending in {@code -N} cannot collide with a slot suffix.
      *
      * <p>The SYSTEM identifier is owner-free by design (XRDADR-41), but its credential is issued to the
      * current owner. Since the identity hub exposes no surface to read a credential's subject directly,
-     * the subject is tracked implicitly: salting the slot namespace with the owner means a slot found
+     * the subject is tracked implicitly: the SYSTEM base carries the owner from the context, so a slot found
      * active there was necessarily requested for that owner. An owner change derives a different, still
      * empty namespace — the scan lands on nothing and a fresh credential is issued there, while the one
-     * parked under the previous owner's namespace is left to expire on its own (no revocation).
+     * parked under the previous owner's namespace is left to expire on its own (no revocation). A MEMBER
+     * base carries the owner as the server identity knows it.
      *
-     * <p>Never called for SYSTEM with a {@code null} owner — both callers return early via
-     * {@link #isSystemWithUnknownOwner} before reaching this point, since the unsalted namespace is one
-     * SYSTEM never writes to.
+     * <p>Empty for SYSTEM with no owner known yet: there is no namespace to scan or write to.
      */
-    private static String holderPidBase(ParticipantContext context) {
-        var unsalted = context.participantId() + "-" + HOLDER_PID_BASE;
-        return context.kind() == ParticipantKind.SYSTEM && context.memberId() != null
-                ? unsalted + "-" + ParticipantIdentifierScheme.memberCtxId(context.memberId())
-                : unsalted;
-    }
-
-    /**
-     * Whether {@code context} is the per-server SYSTEM context before the SS owner is known. SYSTEM's
-     * holder-pid namespace is salted with the owner ({@link #holderPidBase}), so with no owner there is
-     * no salted namespace to scan or write to yet — the unsalted namespace is a decoy SYSTEM never
-     * uses, and probing it would only ever find guaranteed-empty slots.
-     */
-    private static boolean isSystemWithUnknownOwner(ParticipantContext context) {
-        return context.kind() == ParticipantKind.SYSTEM && context.memberId() == null;
+    private Optional<String> holderPidBase(ParticipantContext context) {
+        var serverId = ownSecurityServerResolver.serverId();
+        var owner = context.kind() == ParticipantKind.SYSTEM
+                ? Optional.ofNullable(context.memberId())
+                : serverId.<ClientId>map(id -> id.getOwner());
+        if (serverId.isEmpty() || owner.isEmpty()) {
+            return Optional.empty();
+        }
+        var hostingServer = ParticipantIdentifierScheme.memberCtxId(owner.get()) + ":" + serverId.get().getServerCode();
+        return Optional.of(context.participantId() + "-" + hostingServer + "-" + HOLDER_PID_BASE);
     }
 
     private static CredentialStatus hubCredentialState(String state) {
@@ -500,7 +501,7 @@ public class DataspaceProvisioningService {
 
     private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
-            case SYSTEM -> systemDid(didAuthority.current());
+            case SYSTEM -> boundOrDerivedSystemDid();
             case MEMBER -> boundOrDerivedMemberDid(memberId);
         };
     }
@@ -528,13 +529,13 @@ public class DataspaceProvisioningService {
      * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
      * though the context's credential is issued to the current owner.
      */
-    private Did systemDid(String ssHost) {
+    private Did boundOrDerivedSystemDid() {
         var bound = dsParticipantRepository.findSystemParticipant();
         if (bound.isPresent()) {
-            ParticipantBindingCheck.verify(bound.get(), ssHost);
+            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
-        return ParticipantIdentifierScheme.systemDid(ssHost);
+        return didAuthority.systemDid();
     }
 
     /**
