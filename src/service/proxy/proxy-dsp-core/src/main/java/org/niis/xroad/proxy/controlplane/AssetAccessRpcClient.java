@@ -116,6 +116,13 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         return cache.get(cacheKey, this::loadAssetAccess).response();
     }
 
+    @Override
+    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
+        if (cache != null) {
+            cache.invalidate(participantContextId, assetId, consumerClientId != null ? consumerClientId.asEncodedId() : null);
+        }
+    }
+
     private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey) {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())

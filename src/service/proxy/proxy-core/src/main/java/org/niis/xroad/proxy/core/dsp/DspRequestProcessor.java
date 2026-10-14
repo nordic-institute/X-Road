@@ -45,4 +45,13 @@ public interface DspRequestProcessor {
      */
     @Nonnull
     AssetAccessResponse execute(DspRequest request);
+
+    /**
+     * Drops the asset access held for the request's target, so that the next {@link #execute} acquires afresh.
+     * Called when the provider rejected the agreement token the cached asset access carried.
+     *
+     * @param request the request whose cached asset access is to be dropped
+     */
+    default void invalidateAssetAccess(DspRequest request) {
+    }
 }

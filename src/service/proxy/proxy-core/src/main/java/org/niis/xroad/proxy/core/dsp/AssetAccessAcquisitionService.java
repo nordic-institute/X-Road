@@ -49,4 +49,15 @@ public interface AssetAccessAcquisitionService {
      */
     AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
                                            String counterPartyAddress, @Nullable ClientId consumerClientId);
+
+    /**
+     * Drops any cached asset access acquired for the given participant context, asset and calling client,
+     * so that the next acquisition asks the control plane afresh. A no-op when nothing is cached.
+     *
+     * @param participantContextId the consumer participant context the asset access was acquired for
+     * @param assetId              the asset identifier
+     * @param consumerClientId     the calling client; {@code null} when the request states none
+     */
+    default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
+    }
 }
