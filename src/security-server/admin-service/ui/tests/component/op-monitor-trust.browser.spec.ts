@@ -34,18 +34,18 @@ import type { CertificateDetails } from '@/openapi-types';
 
 const OP_MONITOR_TRUST_PATH = '/keys/op-monitor-trust';
 
-const viewAndDownload = [Permissions.VIEW_KEYS, Permissions.VIEW_INTERNAL_RPC_CA, Permissions.DOWNLOAD_INTERNAL_RPC_CA];
-const viewOnly = [Permissions.VIEW_KEYS, Permissions.VIEW_INTERNAL_RPC_CA];
+const viewAndDownload = [Permissions.VIEW_KEYS, Permissions.VIEW_EXTERNAL_RPC_CA, Permissions.DOWNLOAD_EXTERNAL_RPC_CA];
+const viewOnly = [Permissions.VIEW_KEYS, Permissions.VIEW_EXTERNAL_RPC_CA];
 
 const HASH = 'AABB1122CCDD3344AABB1122CCDD3344AABB1122CCDD3344AABB1122CCDD3344';
 const FINGERPRINT = HASH.match(/.{2}/g)!.join(':');
 
-const internalRpcCa: CertificateDetails = {
+const externalRpcCa: CertificateDetails = {
   hash: HASH,
-  issuer_common_name: 'Internal RPC CA',
-  issuer_distinguished_name: 'CN=Internal RPC CA, O=X-Road',
-  subject_common_name: 'Internal RPC CA',
-  subject_distinguished_name: 'CN=Internal RPC CA, O=X-Road',
+  issuer_common_name: 'External RPC CA',
+  issuer_distinguished_name: 'CN=External RPC CA, O=X-Road',
+  subject_common_name: 'External RPC CA',
+  subject_distinguished_name: 'CN=External RPC CA, O=X-Road',
   serial: '1',
   version: 3,
   signature: 'abc123',
@@ -68,7 +68,7 @@ const expectNoInlineSummary = async (...distinguishedNames: string[]) => {
 
 const cardTitles = () => Array.from(document.querySelectorAll('[data-test="view-title-text"]')).map((el) => el.textContent?.trim());
 
-const detailsHandler = specHttp.get('/system/internal-rpc-ca', ({ response }) => response(200).json(internalRpcCa));
+const detailsHandler = specHttp.get('/system/external-rpc-ca', ({ response }) => response(200).json(externalRpcCa));
 
 describe('SS Op-monitor Trust tab — Security Server RPC CA (Browser Mode)', () => {
   it('titles the tab and the page Operational Monitoring Trust', async () => {
@@ -82,28 +82,28 @@ describe('SS Op-monitor Trust tab — Security Server RPC CA (Browser Mode)', ()
   });
   it('shows the SHA-256 fingerprint as a hash row and no inline subject, issuer or validity', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewAndDownload, msw: [detailsHandler] });
-    await expect.poll(() => page.getByTestId('internal-rpc-ca-hash').element().textContent).toContain(FINGERPRINT);
-    await expectNoInlineSummary('CN=Internal RPC CA, O=X-Road');
+    await expect.poll(() => page.getByTestId('external-rpc-ca-hash').element().textContent).toContain(FINGERPRINT);
+    await expectNoInlineSummary('CN=External RPC CA, O=X-Road');
   });
   it('opens the full certificate details when the hash is clicked', async () => {
     const { router } = await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewAndDownload, msw: [detailsHandler] });
-    await page.getByTestId('internal-rpc-ca-hash').click();
+    await page.getByTestId('external-rpc-ca-hash').click();
     await expect.poll(() => router.currentRoute.value.name).toBe(RouteName.ExternalRpcCaDetails);
     await expect.element(page.getByTestId('xrd-certificate')).toBeVisible();
-    await expect.poll(() => page.getByTestId('xrd-certificate').element().textContent).toContain('CN=Internal RPC CA, O=X-Road');
+    await expect.poll(() => page.getByTestId('xrd-certificate').element().textContent).toContain('CN=External RPC CA, O=X-Road');
     await expect.poll(() => page.getByTestId('xrd-certificate').element().textContent).toContain(FINGERPRINT);
   });
   it('returns to the tab without an error when the Security Server RPC CA details are opened and the CA is not available', async () => {
     const { router } = await renderRoute('/external-rpc-ca-details', {
       permissions: viewAndDownload,
       msw: [
-        specHttp.untyped.get('/api/v1/system/internal-rpc-ca', () =>
-          HttpResponse.json({ status: 404, error: { code: 'internal_rpc_ca_not_available' } }, { status: 404 }),
+        specHttp.untyped.get('/api/v1/system/external-rpc-ca', () =>
+          HttpResponse.json({ status: 404, error: { code: 'external_rpc_ca_not_available' } }, { status: 404 }),
         ),
       ],
     });
     await expect.poll(() => router.currentRoute.value.name).toBe(RouteName.OpMonitorTrust);
-    await expect.element(page.getByTestId('internal-rpc-ca-unavailable')).toBeVisible();
+    await expect.element(page.getByTestId('external-rpc-ca-unavailable')).toBeVisible();
     await expect.poll(() => page.getByTestId('xrd-certificate').query()).toBeNull();
     await expect.poll(() => page.getByTestId('contextual-alert').query()).toBeNull();
   });
@@ -122,69 +122,69 @@ describe('SS Op-monitor Trust tab — Security Server RPC CA (Browser Mode)', ()
       permissions: viewAndDownload,
       msw: [
         detailsHandler,
-        specHttp.untyped.get('/api/v1/system/internal-rpc-ca/download', () => {
+        specHttp.untyped.get('/api/v1/system/external-rpc-ca/download', () => {
           downloadSpy();
           return new HttpResponse('-----BEGIN CERTIFICATE-----\nAA==\n-----END CERTIFICATE-----\n', {
             headers: {
               'Content-Type': 'application/x-pem-file',
-              'Content-Disposition': 'attachment; filename="internal-rpc-ca.pem"',
+              'Content-Disposition': 'attachment; filename="external-rpc-ca.pem"',
             },
           });
         }),
       ],
     });
 
-    await page.getByTestId('download-internal-rpc-ca-button').click();
+    await page.getByTestId('download-external-rpc-ca-button').click();
 
     await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
-    await expect.poll(() => savedFileNames).toEqual(['internal-rpc-ca.pem']);
+    await expect.poll(() => savedFileNames).toEqual(['external-rpc-ca.pem']);
     anchorClick.mockRestore();
   });
 
   it('hides the download button without the download permission', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewOnly, msw: [detailsHandler] });
 
-    await expect.element(page.getByTestId('internal-rpc-ca-hash')).toBeVisible();
-    await expect.poll(() => page.getByTestId('download-internal-rpc-ca-button').query()).toBeNull();
+    await expect.element(page.getByTestId('external-rpc-ca-hash')).toBeVisible();
+    await expect.poll(() => page.getByTestId('download-external-rpc-ca-button').query()).toBeNull();
   });
 
   it('shows a not-available state and disables the download when the Security Server RPC CA is not available', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, {
       permissions: viewAndDownload,
       msw: [
-        specHttp.untyped.get('/api/v1/system/internal-rpc-ca', () =>
-          HttpResponse.json({ status: 404, error: { code: 'internal_rpc_ca_not_available' } }, { status: 404 }),
+        specHttp.untyped.get('/api/v1/system/external-rpc-ca', () =>
+          HttpResponse.json({ status: 404, error: { code: 'external_rpc_ca_not_available' } }, { status: 404 }),
         ),
       ],
     });
 
-    await expect.element(page.getByTestId('internal-rpc-ca-unavailable')).toBeVisible();
-    await expect.element(page.getByTestId('download-internal-rpc-ca-button')).toBeDisabled();
-    await expect.poll(() => page.getByTestId('internal-rpc-ca-hash').query()).toBeNull();
+    await expect.element(page.getByTestId('external-rpc-ca-unavailable')).toBeVisible();
+    await expect.element(page.getByTestId('download-external-rpc-ca-button')).toBeDisabled();
+    await expect.poll(() => page.getByTestId('external-rpc-ca-hash').query()).toBeNull();
   });
 
   it('shows the not-available state when loading the Security Server RPC CA fails', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, {
       permissions: viewAndDownload,
       msw: [
-        specHttp.untyped.get('/api/v1/system/internal-rpc-ca', () =>
+        specHttp.untyped.get('/api/v1/system/external-rpc-ca', () =>
           HttpResponse.json({ status: 500, error: { code: 'internal_error' } }, { status: 500 }),
         ),
       ],
     });
 
-    await expect.element(page.getByTestId('internal-rpc-ca-unavailable')).toBeVisible();
-    await expect.element(page.getByTestId('download-internal-rpc-ca-button')).toBeDisabled();
+    await expect.element(page.getByTestId('external-rpc-ca-unavailable')).toBeVisible();
+    await expect.element(page.getByTestId('download-external-rpc-ca-button')).toBeDisabled();
   });
 });
 
-const opMonitorCaViewOnly = [Permissions.VIEW_KEYS, Permissions.VIEW_INTERNAL_RPC_CA, Permissions.VIEW_OP_MONITOR_CA];
+const opMonitorCaViewOnly = [Permissions.VIEW_KEYS, Permissions.VIEW_EXTERNAL_RPC_CA, Permissions.VIEW_OP_MONITOR_CA];
 const opMonitorCaViewAndUpload = [...opMonitorCaViewOnly, Permissions.UPLOAD_OP_MONITOR_CA];
 const opMonitorCaViewAndDelete = [...opMonitorCaViewOnly, Permissions.DELETE_OP_MONITOR_CA];
 const OP_MONITOR_HASH = '1122334455667788112233445566778811223344556677881122334455667788';
 const OP_MONITOR_FINGERPRINT = OP_MONITOR_HASH.match(/.{2}/g)!.join(':');
 const opMonitorCa: CertificateDetails = {
-  ...internalRpcCa,
+  ...externalRpcCa,
   hash: OP_MONITOR_HASH,
   issuer_distinguished_name: 'CN=Op-monitor Root CA, O=Other Org',
   subject_distinguished_name: 'CN=Op-monitor CA, O=Other Org',
@@ -363,7 +363,7 @@ describe('SS Op-monitor Trust tab — op-monitor CA (Browser Mode)', () => {
   });
   it('hides the op-monitor CA card without the view permission', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewOnly, msw: [detailsHandler] });
-    await expect.element(page.getByTestId('internal-rpc-ca-hash')).toBeVisible();
+    await expect.element(page.getByTestId('external-rpc-ca-hash')).toBeVisible();
     await expect.poll(() => page.getByTestId('op-monitor-ca-restart-hint').query()).toBeNull();
     await expect.poll(() => page.getByTestId('upload-op-monitor-ca-button').query()).toBeNull();
   });

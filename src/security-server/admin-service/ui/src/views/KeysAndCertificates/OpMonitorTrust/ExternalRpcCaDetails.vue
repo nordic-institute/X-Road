@@ -36,7 +36,7 @@ import { useOpMonitorTrust } from '@/store/modules/op-monitor-trust';
 import { useRouter } from 'vue-router';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';
-const { fetchInternalRpcCa } = useOpMonitorTrust();
+const { fetchExternalRpcCa } = useOpMonitorTrust();
 const router = useRouter();
 const { t } = useI18n();
 const { addError } = useNotifications();
@@ -61,7 +61,7 @@ const breadcrumbs = computed(() => [
 ]);
 function fetchData(): void {
   loading.value = true;
-  fetchInternalRpcCa()
+  fetchExternalRpcCa()
     .then((cert) => {
       if (cert) {
         certificate.value = cert;

@@ -78,27 +78,27 @@ public class SpringVaultKeyClient implements VaultKeyClient {
     }
 
     @Override
-    public Optional<X509Certificate> readInternalRpcCa() {
-        String pem = readInternalRpcCaPem();
+    public Optional<X509Certificate> readExternalRpcCa() {
+        String pem = readExternalRpcCaPem();
         try {
             return Optional.of(CryptoUtils.readCertificate(pem.getBytes(StandardCharsets.UTF_8)));
         } catch (XrdRuntimeException e) {
-            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e, INTERNAL_RPC_CA_READ_FAILED);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e, EXTERNAL_RPC_CA_READ_FAILED);
         }
     }
 
-    private String readInternalRpcCaPem() {
+    private String readExternalRpcCaPem() {
         VaultResponse response;
         try {
             response = vaultTemplate.read(properties.secretStorePkiPath() + "/cert/ca");
         } catch (RuntimeException e) {
-            throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED, e);
+            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED, e);
         }
         Object certificate = response == null || response.getData() == null ? null : response.getData().get("certificate");
         if (certificate instanceof String pem && !pem.isBlank()) {
             return pem;
         }
-        throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED);
+        throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED);
     }
 
     private VaultCertificateRequest buildVaultCertificateRequest() {

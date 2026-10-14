@@ -2990,18 +2990,18 @@ _To download the Security Server RPC CA_, follow these steps.
 
 2. In the opening view, select the **Operational Monitoring Trust** tab.
 
-3. In the **Security Server RPC CA** section, click **Download** and save the file `internal-rpc-ca.pem` to the local file system.
+3. In the **Security Server RPC CA** section, click **Download** and save the file `external-rpc-ca.pem` to the local file system.
 
    The file contains exactly one certificate, in PEM format, and no private key. Downloading again returns the same file.
 
 _To install the Security Server RPC CA on the operational monitoring daemon host_, follow these steps.
 
-1. Copy the file `internal-rpc-ca.pem` to the operational monitoring daemon host by hand. The Security Server does not deliver it.
+1. Copy the file `external-rpc-ca.pem` to the operational monitoring daemon host by hand. The Security Server does not deliver it.
 
 2. Check that the file is the right one by comparing its SHA-256 fingerprint with the hash shown in the **Security Server RPC CA** section. The two values must be the same:
 
    ```bash
-   openssl x509 -in internal-rpc-ca.pem -noout -fingerprint -sha256
+   openssl x509 -in external-rpc-ca.pem -noout -fingerprint -sha256
    ```
 
 3. Store the file in a directory of your choice. The system user `xroad` must have permission to read it.
@@ -3029,20 +3029,20 @@ The same operations are available in the management REST API (see chapter [19](#
 
 | Operation                                       | Request                                                                                      | Response                                                                                 |
 |-------------------------------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
-| View the Security Server RPC CA                 | `GET /api/v1/system/internal-rpc-ca`                                                         | `200` with the certificate details                                                       |
-| Download the Security Server RPC CA             | `GET /api/v1/system/internal-rpc-ca/download`                                                | `200` with one PEM certificate, content type `application/x-pem-file`                    |
+| View the Security Server RPC CA                 | `GET /api/v1/system/external-rpc-ca`                                                         | `200` with the certificate details                                                       |
+| Download the Security Server RPC CA             | `GET /api/v1/system/external-rpc-ca/download`                                                | `200` with one PEM certificate, content type `application/x-pem-file`                    |
 | View the Operational Monitoring CA              | `GET /api/v1/system/op-monitor-ca`                                                           | `200` with the certificate details, or `204` when no Operational Monitoring CA is stored |
 | Upload or replace the Operational Monitoring CA | `POST /api/v1/system/op-monitor-ca`, multipart form with the file in the field `certificate` | `200` with the certificate details, or `400` with one of the error codes                 |
 | Delete the Operational Monitoring CA            | `DELETE /api/v1/system/op-monitor-ca`                                                        | `204`, also when no Operational Monitoring CA is stored                                  |
 
-A request without the required role returns `403`. If the Security Server RPC CA is not available, the two Security Server RPC CA requests return `404` with the error code `internal_rpc_ca_not_available`. If the secret store cannot be read or written, the requests return `500`.
+A request without the required role returns `403`. If the Security Server RPC CA is not available, the two Security Server RPC CA requests return `404` with the error code `external_rpc_ca_not_available`. If the secret store cannot be read or written, the requests return `500`.
 
 Examples of uploading the Operational Monitoring CA and downloading the Security Server RPC CA:
 
 ```bash
 curl -X POST --header "Authorization: X-Road-ApiKey token=<api key>" -F "certificate=@op-monitor-ca.pem" "https://localhost:4000/api/v1/system/op-monitor-ca" -k
 
-curl -X GET --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/system/internal-rpc-ca/download" -o internal-rpc-ca.pem -k
+curl -X GET --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/system/external-rpc-ca/download" -o external-rpc-ca.pem -k
 ```
 
 **Backup**

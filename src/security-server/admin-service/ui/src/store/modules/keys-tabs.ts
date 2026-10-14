@@ -73,7 +73,7 @@ const tabs = [
     to: {
       name: RouteName.OpMonitorTrust,
     },
-    permissions: [Permissions.VIEW_INTERNAL_RPC_CA],
+    permissions: [Permissions.VIEW_EXTERNAL_RPC_CA],
   },
 ] as Tab[];
 

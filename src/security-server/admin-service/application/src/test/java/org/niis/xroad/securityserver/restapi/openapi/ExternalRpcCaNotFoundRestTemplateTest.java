@@ -36,12 +36,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE;
 
 /**
- * Internal RPC CA endpoints answer 404 with a JSON error body through the whole Spring MVC stack.
+ * External RPC CA endpoints answer 404 with a JSON error body through the whole Spring MVC stack.
  */
-public class InternalRpcCaNotFoundRestTemplateTest extends AbstractApiControllerTestContext {
+public class ExternalRpcCaNotFoundRestTemplateTest extends AbstractApiControllerTestContext {
 
     private static final MediaType PEM_FILE = MediaType.parseMediaType("application/x-pem-file");
 
@@ -53,37 +53,37 @@ public class InternalRpcCaNotFoundRestTemplateTest extends AbstractApiController
     @Before
     public void setup() {
         client = TestUtils.addApiKeyAuthorizationHeader(webTestClient);
-        when(internalRpcCaService.getInternalRpcCa()).thenThrow(notAvailable());
-        when(internalRpcCaService.downloadInternalRpcCa()).thenThrow(notAvailable());
+        when(externalRpcCaService.getExternalRpcCa()).thenThrow(notAvailable());
+        when(externalRpcCaService.downloadExternalRpcCa()).thenThrow(notAvailable());
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_INTERNAL_RPC_CA"})
+    @WithMockUser(authorities = {"VIEW_EXTERNAL_RPC_CA"})
     public void detailsAnswerNotFoundWithJsonErrorInfo() {
-        client.get().uri("/api/v1/system/internal-rpc-ca")
+        client.get().uri("/api/v1/system/external-rpc-ca")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(404)
-                .jsonPath("$.error.code").isEqualTo(INTERNAL_RPC_CA_NOT_AVAILABLE.code());
+                .jsonPath("$.error.code").isEqualTo(EXTERNAL_RPC_CA_NOT_AVAILABLE.code());
     }
 
     @Test
-    @WithMockUser(authorities = {"DOWNLOAD_INTERNAL_RPC_CA"})
+    @WithMockUser(authorities = {"DOWNLOAD_EXTERNAL_RPC_CA"})
     public void downloadAnswersNotFoundWithJsonErrorInfoWhenThePemTypeIsAccepted() {
-        client.get().uri("/api/v1/system/internal-rpc-ca/download")
+        client.get().uri("/api/v1/system/external-rpc-ca/download")
                 .accept(PEM_FILE, MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectHeader().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(404)
-                .jsonPath("$.error.code").isEqualTo(INTERNAL_RPC_CA_NOT_AVAILABLE.code());
+                .jsonPath("$.error.code").isEqualTo(EXTERNAL_RPC_CA_NOT_AVAILABLE.code());
     }
 
     private static NotFoundException notAvailable() {
-        return new NotFoundException(INTERNAL_RPC_CA_NOT_AVAILABLE.build());
+        return new NotFoundException(EXTERNAL_RPC_CA_NOT_AVAILABLE.build());
     }
 }

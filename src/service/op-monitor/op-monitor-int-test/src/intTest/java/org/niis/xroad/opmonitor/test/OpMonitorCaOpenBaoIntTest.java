@@ -81,7 +81,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * 0200 - Op-monitor CA and internal RPC CA through the Quarkus vault clients: the real
+ * 0200 - Op-monitor CA and external RPC CA through the Quarkus vault clients: the real
  * {@link QuarkusVaultClient} and {@link QuarkusVaultKeyClient} run against the OpenBao of the stack, started
  * from the {@code openbao-dev} image with the shipped init and policy. The raw record is seeded and checked
  * with the {@code bao} CLI inside the container. Each case starts and ends without an op-monitor CA record.
@@ -168,20 +168,20 @@ class OpMonitorCaOpenBaoIntTest {
     }
 
     @Test
-    @DisplayName("The internal RPC CA through the Quarkus key client is the xrd-pki issuing CA, without key material")
-    void internalRpcCaIsTheIssuingCaWithoutKeyMaterial() {
+    @DisplayName("The external RPC CA through the Quarkus key client is the xrd-pki issuing CA, without key material")
+    void externalRpcCaIsTheIssuingCaWithoutKeyMaterial() {
         var rawCa = given("the issuing CA is read raw with bao", () -> bao("read", "-format=json", ISSUING_CA_PATH));
         var expected = parseCertificate(JsonPath.from(rawCa).getString("data.certificate"));
 
-        var internalRpcCa = when("the Quarkus key client reads the internal RPC CA", () -> vaultKeyClient.readInternalRpcCa());
+        var externalRpcCa = when("the Quarkus key client reads the external RPC CA", () -> vaultKeyClient.readExternalRpcCa());
 
-        then("it equals the raw issuing CA", () -> assertThat(internalRpcCa).contains(expected));
+        then("it equals the raw issuing CA", () -> assertThat(externalRpcCa).contains(expected));
         and("the raw record has no private key", () -> {
             assertThat(JsonPath.from(rawCa).getMap("data")).doesNotContainKey("private_key");
             assertThat(rawCa).doesNotContain("PRIVATE KEY");
         });
         and("a leaf provisioned through the Quarkus key client verifies against it",
-                () -> assertProvisionedLeafVerifiesAgainst(internalRpcCa.orElseThrow()));
+                () -> assertProvisionedLeafVerifiesAgainst(externalRpcCa.orElseThrow()));
     }
 
     @SneakyThrows

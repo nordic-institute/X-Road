@@ -165,7 +165,7 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.OpMonitorTrust,
             path: 'op-monitor-trust',
             component: OpMonitorTrustView,
-            meta: { permissions: [Permissions.VIEW_INTERNAL_RPC_CA] },
+            meta: { permissions: [Permissions.VIEW_EXTERNAL_RPC_CA] },
           },
         ],
       },
@@ -540,7 +540,7 @@ const routes: RouteRecordRaw[] = [
           navigation: XrdMainNavigationContainer,
         },
         props: { default: true },
-        meta: { permissions: [Permissions.VIEW_INTERNAL_RPC_CA] },
+        meta: { permissions: [Permissions.VIEW_EXTERNAL_RPC_CA] },
       },
       {
         name: RouteName.OpMonitorCaDetails,

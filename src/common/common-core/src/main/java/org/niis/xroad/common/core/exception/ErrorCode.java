@@ -341,7 +341,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DS_TLS_ACME_ORDER_FAILED("ds_tls_acme_order_failed"),
 
     // ===== CERTIFICATE AUTHORITY ERRORS =====
-    INTERNAL_RPC_CA_NOT_AVAILABLE("internal_rpc_ca_not_available"),
+    EXTERNAL_RPC_CA_NOT_AVAILABLE("external_rpc_ca_not_available"),
     CA_CERT_EMPTY("ca_cert_empty"),
     CA_CERT_NOT_A_CERTIFICATE("ca_cert_not_a_certificate"),
     CA_CERT_MULTIPLE_CERTIFICATES("ca_cert_multiple_certificates"),

@@ -281,21 +281,21 @@ class OpMonitorCaTest extends SsApiTest {
     }
 
     @Test
-    @DisplayName("upload A, upload B, delete leaves none stored and the internal RPC CA download is unchanged")
-    void deleteAfterReplaceLeavesNoneAndKeepsTheInternalRpcCa(SsBaselineSeeder seeder) {
+    @DisplayName("upload A, upload B, delete leaves none stored and the external RPC CA download is unchanged")
+    void deleteAfterReplaceLeavesNoneAndKeepsTheExternalRpcCa(SsBaselineSeeder seeder) {
         var client = new SystemAdminClient(seeder.newSession());
         var a = selfSignedCa("CN=CA A " + unique());
         var b = selfSignedCa("CN=CA B " + unique());
-        var downloadBefore = given("the internal RPC CA is downloaded", () ->
-                client.downloadInternalRpcCa().statusCode(200).extract().body().asString());
+        var downloadBefore = given("the external RPC CA is downloaded", () ->
+                client.downloadExternalRpcCa().statusCode(200).extract().body().asString());
         and("CA A and then CA B are uploaded", () -> {
             client.uploadOpMonitorCa(pem(a)).statusCode(200);
             client.uploadOpMonitorCa(pem(b)).statusCode(200);
         });
         and("the op-monitor CA is deleted", () -> client.deleteOpMonitorCa().statusCode(204));
         then("the details report none", () -> client.getOpMonitorCa().statusCode(204));
-        and("the internal RPC CA download is unchanged", () ->
-                assertThat(client.downloadInternalRpcCa().statusCode(200).extract().body().asString()).isEqualTo(downloadBefore));
+        and("the external RPC CA download is unchanged", () ->
+                assertThat(client.downloadExternalRpcCa().statusCode(200).extract().body().asString()).isEqualTo(downloadBefore));
     }
 
     @Test

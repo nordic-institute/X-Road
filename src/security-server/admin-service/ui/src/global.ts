@@ -179,8 +179,8 @@ export enum Permissions {
   VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
   VIEW_DS_TLS_CERT = 'VIEW_DS_TLS_CERT', // view the DataSpace TLS certificate details and status
   DOWNLOAD_DS_TLS_CERT = 'DOWNLOAD_DS_TLS_CERT', // download the DataSpace TLS certificate
-  VIEW_INTERNAL_RPC_CA = 'VIEW_INTERNAL_RPC_CA', // view the internal RPC CA details
-  DOWNLOAD_INTERNAL_RPC_CA = 'DOWNLOAD_INTERNAL_RPC_CA', // download the internal RPC CA
+  VIEW_EXTERNAL_RPC_CA = 'VIEW_EXTERNAL_RPC_CA', // view the external RPC CA details
+  DOWNLOAD_EXTERNAL_RPC_CA = 'DOWNLOAD_EXTERNAL_RPC_CA', // download the external RPC CA
   VIEW_OP_MONITOR_CA = 'VIEW_OP_MONITOR_CA', // view the op-monitor CA details
   UPLOAD_OP_MONITOR_CA = 'UPLOAD_OP_MONITOR_CA', // upload or replace the op-monitor CA
   DELETE_OP_MONITOR_CA = 'DELETE_OP_MONITOR_CA', // delete the op-monitor CA

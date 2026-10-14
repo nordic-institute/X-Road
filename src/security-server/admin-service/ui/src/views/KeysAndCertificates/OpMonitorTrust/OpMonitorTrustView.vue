@@ -33,34 +33,34 @@
       <XrdCard title="opMonitorTrust.externalRpcCa.title">
         <template v-if="canDownload" #title-actions>
           <XrdBtn
-            data-test="download-internal-rpc-ca-button"
+            data-test="download-external-rpc-ca-button"
             variant="outlined"
             prepend-icon="download"
             text="opMonitorTrust.externalRpcCa.download"
             :loading="downloading"
-            :disabled="!internalRpcCa"
+            :disabled="!externalRpcCa"
             @click="download"
           />
         </template>
-        <p class="body-regular px-4 pb-4" data-test="internal-rpc-ca-description">
+        <p class="body-regular px-4 pb-4" data-test="external-rpc-ca-description">
           {{ $t('opMonitorTrust.externalRpcCa.description') }}
         </p>
-        <p v-if="unavailable" class="body-regular px-4 pb-4 opacity-60" data-test="internal-rpc-ca-unavailable">
+        <p v-if="unavailable" class="body-regular px-4 pb-4 opacity-60" data-test="external-rpc-ca-unavailable">
           {{ $t('opMonitorTrust.externalRpcCa.unavailable') }}
         </p>
-        <v-table v-if="internalRpcCa" class="xrd bg-surface-container">
+        <v-table v-if="externalRpcCa" class="xrd bg-surface-container">
           <tbody>
             <tr>
               <td>
                 <XrdLabelWithIcon
-                  data-test="internal-rpc-ca-hash"
+                  data-test="external-rpc-ca-hash"
                   icon="editor_choice"
-                  :label="internalRpcCa.hash"
+                  :label="externalRpcCa.hash"
                   clickable
                   @navigate="router.push({ name: RouteName.ExternalRpcCaDetails })"
                 >
                   <template #label>
-                    <XrdHashValue :value="internalRpcCa.hash" />
+                    <XrdHashValue :value="externalRpcCa.hash" />
                   </template>
                 </XrdLabelWithIcon>
               </td>
@@ -158,10 +158,10 @@ import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertific
 
 const router = useRouter();
 const { hasPermission } = useUser();
-const { fetchInternalRpcCa, downloadInternalRpcCa, fetchOpMonitorCa, uploadOpMonitorCa, deleteOpMonitorCa } = useOpMonitorTrust();
+const { fetchExternalRpcCa, downloadExternalRpcCa, fetchOpMonitorCa, uploadOpMonitorCa, deleteOpMonitorCa } = useOpMonitorTrust();
 const { addError, addSuccessMessage } = useNotifications();
 
-const internalRpcCa = ref<CertificateDetails | undefined>(undefined);
+const externalRpcCa = ref<CertificateDetails | undefined>(undefined);
 const loading = ref(false);
 const unavailable = ref(false);
 const downloading = ref(false);
@@ -171,15 +171,15 @@ const uploading = ref(false);
 const confirmDeleteOpMonitorCa = ref(false);
 const deleting = ref(false);
 
-const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_INTERNAL_RPC_CA));
+const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_EXTERNAL_RPC_CA));
 const canViewOpMonitorCa = computed(() => hasPermission(Permissions.VIEW_OP_MONITOR_CA));
 const canUploadOpMonitorCa = computed(() => hasPermission(Permissions.UPLOAD_OP_MONITOR_CA));
 const canDeleteOpMonitorCa = computed(() => hasPermission(Permissions.DELETE_OP_MONITOR_CA));
 
 function fetchData(): void {
   loading.value = true;
-  fetchInternalRpcCa()
-    .then((details) => (internalRpcCa.value = details))
+  fetchExternalRpcCa()
+    .then((details) => (externalRpcCa.value = details))
     .catch((error) => {
       unavailable.value = true;
       if (error?.response?.status !== 404) {
@@ -191,7 +191,7 @@ function fetchData(): void {
 
 function download(): void {
   downloading.value = true;
-  downloadInternalRpcCa()
+  downloadExternalRpcCa()
     .catch((error) => addError(error))
     .finally(() => (downloading.value = false));
 }

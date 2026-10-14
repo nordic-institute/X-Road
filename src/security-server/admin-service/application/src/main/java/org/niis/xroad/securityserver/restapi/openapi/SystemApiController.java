@@ -64,8 +64,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
+import org.niis.xroad.securityserver.restapi.service.ExternalRpcCaService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
-import org.niis.xroad.securityserver.restapi.service.InternalRpcCaService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.OpMonitorCaService;
@@ -94,11 +94,11 @@ import java.util.Set;
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SystemApiController implements SystemApi, ConfigurablePropertiesApi {
-    private static final String INTERNAL_RPC_CA_FILENAME = "internal-rpc-ca.pem";
+    private static final String EXTERNAL_RPC_CA_FILENAME = "external-rpc-ca.pem";
     private static final MediaType PEM_FILE = MediaType.parseMediaType("application/x-pem-file");
 
     private final InternalTlsCertificateService internalTlsCertificateService;
-    private final InternalRpcCaService internalRpcCaService;
+    private final ExternalRpcCaService externalRpcCaService;
     private final OpMonitorCaService opMonitorCaService;
     private final ConfigurablePropertiesService configurablePropertiesService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -139,16 +139,16 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_INTERNAL_RPC_CA')")
-    public ResponseEntity<CertificateDetailsDto> getInternalRpcCa() {
-        return ResponseEntity.ok(certificateDetailsConverter.convert(internalRpcCaService.getInternalRpcCa()));
+    @PreAuthorize("hasAuthority('VIEW_EXTERNAL_RPC_CA')")
+    public ResponseEntity<CertificateDetailsDto> getExternalRpcCa() {
+        return ResponseEntity.ok(certificateDetailsConverter.convert(externalRpcCaService.getExternalRpcCa()));
     }
 
     @Override
-    @PreAuthorize("hasAuthority('DOWNLOAD_INTERNAL_RPC_CA')")
-    public ResponseEntity<Resource> downloadInternalRpcCa() {
+    @PreAuthorize("hasAuthority('DOWNLOAD_EXTERNAL_RPC_CA')")
+    public ResponseEntity<Resource> downloadExternalRpcCa() {
         return ControllerUtil.createAttachmentResourceResponse(
-                internalRpcCaService.downloadInternalRpcCa(), INTERNAL_RPC_CA_FILENAME, PEM_FILE);
+                externalRpcCaService.downloadExternalRpcCa(), EXTERNAL_RPC_CA_FILENAME, PEM_FILE);
     }
 
     @Override

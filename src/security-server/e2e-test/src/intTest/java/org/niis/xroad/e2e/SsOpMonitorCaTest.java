@@ -53,8 +53,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.deleteOpMonitorCa;
-import static org.niis.xroad.e2e.AdminApi.downloadInternalRpcCa;
-import static org.niis.xroad.e2e.AdminApi.getInternalRpcCa;
+import static org.niis.xroad.e2e.AdminApi.downloadExternalRpcCa;
+import static org.niis.xroad.e2e.AdminApi.getExternalRpcCa;
 import static org.niis.xroad.e2e.AdminApi.getOpMonitorCa;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.uploadOpMonitorCa;
@@ -65,13 +65,13 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
  * CA certificate exchange through the Security Server admin API against the stack's real OpenBao: view
- * and download of the internal RPC CA, upload and view of the op-monitor CA, and its deletion. Request
+ * and download of the external RPC CA, upload and view of the op-monitor CA, and its deletion. Request
  * validation and role checks are covered by the Security Server api-test module.
  *
  * <p>Every test leaves no op-monitor CA stored, so the tests are independent of order and of the other
  * scenarios in this suite.
  */
-@DisplayName("SS CA exchange - internal RPC CA and op-monitor CA")
+@DisplayName("SS CA exchange - external RPC CA and op-monitor CA")
 @Order(65)
 @SuppressWarnings("checkstyle:magicnumber")
 class SsOpMonitorCaTest extends E2eTest {
@@ -81,13 +81,13 @@ class SsOpMonitorCaTest extends E2eTest {
     private static final int HTTP_NO_CONTENT = 204;
 
     @Test
-    @DisplayName("the internal RPC CA can be viewed and downloaded as one PEM certificate")
-    void internalRpcCaCanBeViewedAndDownloaded(E2eEnvironment env) {
+    @DisplayName("the external RPC CA can be viewed and downloaded as one PEM certificate")
+    void externalRpcCaCanBeViewedAndDownloaded(E2eEnvironment env) {
         var baseUrl = adminBaseUrl(env, ENV_NAME);
         var session = login(baseUrl);
 
-        var details = given("the internal RPC CA details are requested", () -> {
-            var response = getInternalRpcCa(baseUrl, session);
+        var details = given("the external RPC CA details are requested", () -> {
+            var response = getExternalRpcCa(baseUrl, session);
             assertThat(response.getStatusCode()).isEqualTo(HTTP_OK);
             return response;
         });
@@ -96,8 +96,8 @@ class SsOpMonitorCaTest extends E2eTest {
             assertThat(details.jsonPath().getString("hash")).isNotBlank();
         });
 
-        var download = when("the internal RPC CA is downloaded", () -> {
-            var response = downloadInternalRpcCa(baseUrl, session);
+        var download = when("the external RPC CA is downloaded", () -> {
+            var response = downloadExternalRpcCa(baseUrl, session);
             assertThat(response.getStatusCode()).isEqualTo(HTTP_OK);
             return response.asString();
         });

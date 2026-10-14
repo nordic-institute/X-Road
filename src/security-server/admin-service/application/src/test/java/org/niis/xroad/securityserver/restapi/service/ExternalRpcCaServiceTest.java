@@ -45,10 +45,10 @@ import java.util.regex.Pattern;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE;
 
 @ExtendWith(MockitoExtension.class)
-class InternalRpcCaServiceTest {
+class ExternalRpcCaServiceTest {
 
     private static final Pattern SINGLE_CERTIFICATE_BLOCK = Pattern.compile(
             "\\A-----BEGIN CERTIFICATE-----\\R([A-Za-z0-9+/=]+\\R)+-----END CERTIFICATE-----\\R?\\z");
@@ -57,28 +57,28 @@ class InternalRpcCaServiceTest {
     private VaultKeyClient vaultKeyClient;
 
     @Test
-    void getInternalRpcCaShouldReturnTheCertificateReadFromTheSecretStore() {
+    void getExternalRpcCaShouldReturnTheCertificateReadFromTheSecretStore() {
         X509Certificate ca = CertificateTestUtils.getMockTopCaCertificate();
-        when(vaultKeyClient.readInternalRpcCa()).thenReturn(Optional.of(ca));
+        when(vaultKeyClient.readExternalRpcCa()).thenReturn(Optional.of(ca));
 
-        assertThat(new InternalRpcCaService(vaultKeyClient).getInternalRpcCa()).isEqualTo(ca);
+        assertThat(new ExternalRpcCaService(vaultKeyClient).getExternalRpcCa()).isEqualTo(ca);
     }
 
     @Test
-    void getInternalRpcCaShouldFailWhenThereIsNoSecretStore() {
-        var service = new InternalRpcCaService(new NoopVaultKeyClient());
+    void getExternalRpcCaShouldFailWhenThereIsNoSecretStore() {
+        var service = new ExternalRpcCaService(new NoopVaultKeyClient());
 
-        assertThatThrownBy(service::getInternalRpcCa)
+        assertThatThrownBy(service::getExternalRpcCa)
                 .isInstanceOfSatisfying(NotFoundException.class,
-                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(INTERNAL_RPC_CA_NOT_AVAILABLE.code()));
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(EXTERNAL_RPC_CA_NOT_AVAILABLE.code()));
     }
 
     @Test
-    void downloadInternalRpcCaShouldReturnExactlyOnePemCertificateBlockAndNothingElse() {
+    void downloadExternalRpcCaShouldReturnExactlyOnePemCertificateBlockAndNothingElse() {
         X509Certificate ca = CertificateTestUtils.getMockTopCaCertificate();
-        when(vaultKeyClient.readInternalRpcCa()).thenReturn(Optional.of(ca));
+        when(vaultKeyClient.readExternalRpcCa()).thenReturn(Optional.of(ca));
 
-        String pem = new String(new InternalRpcCaService(vaultKeyClient).downloadInternalRpcCa(), StandardCharsets.UTF_8);
+        String pem = new String(new ExternalRpcCaService(vaultKeyClient).downloadExternalRpcCa(), StandardCharsets.UTF_8);
 
         assertThat(pem).matches(SINGLE_CERTIFICATE_BLOCK);
         assertThat(pem).doesNotContain("PRIVATE KEY");
@@ -86,17 +86,17 @@ class InternalRpcCaServiceTest {
     }
 
     @Test
-    void downloadInternalRpcCaTwiceShouldReturnIdenticalBytes() {
-        when(vaultKeyClient.readInternalRpcCa()).thenReturn(Optional.of(CertificateTestUtils.getMockTopCaCertificate()));
-        var service = new InternalRpcCaService(vaultKeyClient);
+    void downloadExternalRpcCaTwiceShouldReturnIdenticalBytes() {
+        when(vaultKeyClient.readExternalRpcCa()).thenReturn(Optional.of(CertificateTestUtils.getMockTopCaCertificate()));
+        var service = new ExternalRpcCaService(vaultKeyClient);
 
-        assertThat(service.downloadInternalRpcCa()).isEqualTo(service.downloadInternalRpcCa());
+        assertThat(service.downloadExternalRpcCa()).isEqualTo(service.downloadExternalRpcCa());
     }
 
     @Test
-    void downloadInternalRpcCaShouldFailWhenThereIsNoSecretStore() {
-        var service = new InternalRpcCaService(new NoopVaultKeyClient());
+    void downloadExternalRpcCaShouldFailWhenThereIsNoSecretStore() {
+        var service = new ExternalRpcCaService(new NoopVaultKeyClient());
 
-        assertThatThrownBy(service::downloadInternalRpcCa).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(service::downloadExternalRpcCa).isInstanceOf(NotFoundException.class);
     }
 }

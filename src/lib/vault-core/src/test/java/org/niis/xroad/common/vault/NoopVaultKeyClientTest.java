@@ -35,7 +35,7 @@ class NoopVaultKeyClientTest {
     private final NoopVaultKeyClient keyClient = new NoopVaultKeyClient();
 
     @Test
-    void readInternalRpcCaShouldReturnEmpty() {
-        assertThat(keyClient.readInternalRpcCa()).isEmpty();
+    void readExternalRpcCaShouldReturnEmpty() {
+        assertThat(keyClient.readExternalRpcCa()).isEmpty();
     }
 }

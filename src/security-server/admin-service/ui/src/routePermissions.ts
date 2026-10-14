@@ -46,7 +46,7 @@ export const routePermissions: RoutePermission[] = [
       Permissions.VIEW_API_KEYS,
       Permissions.VIEW_INTERNAL_TLS_CERT,
       Permissions.VIEW_DS_TLS_CERT,
-      Permissions.VIEW_INTERNAL_RPC_CA,
+      Permissions.VIEW_EXTERNAL_RPC_CA,
     ],
   },
   {
@@ -67,7 +67,7 @@ export const routePermissions: RoutePermission[] = [
   },
   {
     name: RouteName.OpMonitorTrust,
-    permissions: [Permissions.VIEW_INTERNAL_RPC_CA],
+    permissions: [Permissions.VIEW_EXTERNAL_RPC_CA],
   },
   {
     name: RouteName.CreateApiKey,

@@ -41,20 +41,20 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE;
+import static org.niis.xroad.common.core.exception.ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE;
 
-public class SystemApiControllerInternalRpcCaTest extends AbstractApiControllerTestContext {
+public class SystemApiControllerExternalRpcCaTest extends AbstractApiControllerTestContext {
 
     @Autowired
     SystemApiController systemApiController;
 
     @Test
-    @WithMockUser(authorities = {"VIEW_INTERNAL_RPC_CA"})
-    public void getInternalRpcCaReturnsSubjectIssuerFingerprintAndValidity() {
+    @WithMockUser(authorities = {"VIEW_EXTERNAL_RPC_CA"})
+    public void getExternalRpcCaReturnsSubjectIssuerFingerprintAndValidity() {
         X509Certificate ca = CertificateTestUtils.getMockTopCaCertificate();
-        when(internalRpcCaService.getInternalRpcCa()).thenReturn(ca);
+        when(externalRpcCaService.getExternalRpcCa()).thenReturn(ca);
 
-        var response = systemApiController.getInternalRpcCa();
+        var response = systemApiController.getExternalRpcCa();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         var details = response.getBody();
@@ -66,44 +66,44 @@ public class SystemApiControllerInternalRpcCaTest extends AbstractApiControllerT
     }
 
     @Test
-    @WithMockUser(authorities = {"DOWNLOAD_INTERNAL_RPC_CA"})
-    public void downloadInternalRpcCaReturnsThePemFileAsAnAttachmentWithPemContentType() throws Exception {
+    @WithMockUser(authorities = {"DOWNLOAD_EXTERNAL_RPC_CA"})
+    public void downloadExternalRpcCaReturnsThePemFileAsAnAttachmentWithPemContentType() throws Exception {
         byte[] pem = "-----BEGIN CERTIFICATE-----\nAA==\n-----END CERTIFICATE-----\n".getBytes(StandardCharsets.UTF_8);
-        when(internalRpcCaService.downloadInternalRpcCa()).thenReturn(pem);
+        when(externalRpcCaService.downloadExternalRpcCa()).thenReturn(pem);
 
-        var response = systemApiController.downloadInternalRpcCa();
+        var response = systemApiController.downloadExternalRpcCa();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("application/x-pem-file", response.getHeaders().getContentType().toString());
-        assertEquals("internal-rpc-ca.pem", response.getHeaders().getContentDisposition().getFilename());
+        assertEquals("external-rpc-ca.pem", response.getHeaders().getContentDisposition().getFilename());
         assertArrayEquals(pem, response.getBody().getContentAsByteArray());
     }
 
     @Test
-    @WithMockUser(authorities = {"DOWNLOAD_INTERNAL_RPC_CA"})
-    public void getInternalRpcCaRequiresViewPermission() {
-        assertThrows(AccessDeniedException.class, () -> systemApiController.getInternalRpcCa());
+    @WithMockUser(authorities = {"DOWNLOAD_EXTERNAL_RPC_CA"})
+    public void getExternalRpcCaRequiresViewPermission() {
+        assertThrows(AccessDeniedException.class, () -> systemApiController.getExternalRpcCa());
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_INTERNAL_RPC_CA"})
-    public void downloadInternalRpcCaRequiresDownloadPermission() {
-        assertThrows(AccessDeniedException.class, () -> systemApiController.downloadInternalRpcCa());
+    @WithMockUser(authorities = {"VIEW_EXTERNAL_RPC_CA"})
+    public void downloadExternalRpcCaRequiresDownloadPermission() {
+        assertThrows(AccessDeniedException.class, () -> systemApiController.downloadExternalRpcCa());
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_INTERNAL_RPC_CA"})
-    public void getInternalRpcCaAnswersNotFoundWhenTheCaIsNotAvailable() {
-        when(internalRpcCaService.getInternalRpcCa()).thenThrow(new NotFoundException(INTERNAL_RPC_CA_NOT_AVAILABLE.build()));
+    @WithMockUser(authorities = {"VIEW_EXTERNAL_RPC_CA"})
+    public void getExternalRpcCaAnswersNotFoundWhenTheCaIsNotAvailable() {
+        when(externalRpcCaService.getExternalRpcCa()).thenThrow(new NotFoundException(EXTERNAL_RPC_CA_NOT_AVAILABLE.build()));
 
-        assertThrows(NotFoundException.class, () -> systemApiController.getInternalRpcCa());
+        assertThrows(NotFoundException.class, () -> systemApiController.getExternalRpcCa());
     }
 
     @Test
-    @WithMockUser(authorities = {"DOWNLOAD_INTERNAL_RPC_CA"})
-    public void downloadInternalRpcCaAnswersNotFoundWhenTheCaIsNotAvailable() {
-        when(internalRpcCaService.downloadInternalRpcCa()).thenThrow(new NotFoundException(INTERNAL_RPC_CA_NOT_AVAILABLE.build()));
+    @WithMockUser(authorities = {"DOWNLOAD_EXTERNAL_RPC_CA"})
+    public void downloadExternalRpcCaAnswersNotFoundWhenTheCaIsNotAvailable() {
+        when(externalRpcCaService.downloadExternalRpcCa()).thenThrow(new NotFoundException(EXTERNAL_RPC_CA_NOT_AVAILABLE.build()));
 
-        assertThrows(NotFoundException.class, () -> systemApiController.downloadInternalRpcCa());
+        assertThrows(NotFoundException.class, () -> systemApiController.downloadExternalRpcCa());
     }
 }

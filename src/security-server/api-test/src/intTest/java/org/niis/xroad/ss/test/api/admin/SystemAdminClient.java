@@ -102,20 +102,20 @@ public class SystemAdminClient {
     }
 
     /**
-     * Gets the internal RPC CA details.
+     * Gets the external RPC CA details.
      */
-    public ValidatableResponse getInternalRpcCa() {
+    public ValidatableResponse getExternalRpcCa() {
         return session.given()
-                .get("/system/internal-rpc-ca")
+                .get("/system/external-rpc-ca")
                 .then();
     }
 
     /**
-     * Downloads the internal RPC CA as a PEM file.
+     * Downloads the external RPC CA as a PEM file.
      */
-    public ValidatableResponse downloadInternalRpcCa() {
+    public ValidatableResponse downloadExternalRpcCa() {
         return session.given()
-                .get("/system/internal-rpc-ca/download")
+                .get("/system/external-rpc-ca/download")
                 .then();
     }
 

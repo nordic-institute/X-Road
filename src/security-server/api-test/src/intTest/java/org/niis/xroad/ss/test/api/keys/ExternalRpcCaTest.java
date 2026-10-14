@@ -55,9 +55,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
-@DisplayName("Internal RPC CA — details and download")
+@DisplayName("External RPC CA — details and download")
 @SuppressWarnings("checkstyle:magicnumber")
-class InternalRpcCaTest extends SsApiTest {
+class ExternalRpcCaTest extends SsApiTest {
 
     private static final Pattern PEM_CERTIFICATE_BLOCK = Pattern.compile(
             "\\A-----BEGIN CERTIFICATE-----\\R([A-Za-z0-9+/=]+\\R)+-----END CERTIFICATE-----\\R?\\z");
@@ -68,8 +68,8 @@ class InternalRpcCaTest extends SsApiTest {
         var client = new SystemAdminClient(seeder.newSession());
         var expected = openBaoIssuingCa(stack);
 
-        var body = given("the internal RPC CA details are requested", () ->
-                client.getInternalRpcCa()
+        var body = given("the external RPC CA details are requested", () ->
+                client.getExternalRpcCa()
                         .statusCode(200)
                         .body("subject_distinguished_name", notNullValue())
                         .body("issuer_distinguished_name", notNullValue())
@@ -99,8 +99,8 @@ class InternalRpcCaTest extends SsApiTest {
         var client = new SystemAdminClient(seeder.newSession());
         var expected = openBaoIssuingCa(stack);
 
-        var bytes = given("the internal RPC CA is downloaded", () ->
-                client.downloadInternalRpcCa()
+        var bytes = given("the external RPC CA is downloaded", () ->
+                client.downloadExternalRpcCa()
                         .statusCode(200)
                         .header("Content-Type", startsWith("application/x-pem-file"))
                         .extract().asByteArray());
@@ -120,16 +120,16 @@ class InternalRpcCaTest extends SsApiTest {
     void downloadIsRepeatable(SsBaselineSeeder seeder) {
         var client = new SystemAdminClient(seeder.newSession());
 
-        var first = given("the internal RPC CA is downloaded", () ->
-                client.downloadInternalRpcCa().statusCode(200).extract().asByteArray());
+        var first = given("the external RPC CA is downloaded", () ->
+                client.downloadExternalRpcCa().statusCode(200).extract().asByteArray());
         var second = and("it is downloaded again", () ->
-                client.downloadInternalRpcCa().statusCode(200).extract().asByteArray());
+                client.downloadExternalRpcCa().statusCode(200).extract().asByteArray());
 
         then("both downloads are identical", () -> assertThat(second).isEqualTo(first));
     }
 
     @Test
-    @DisplayName("an observer can view the details but not download the internal RPC CA")
+    @DisplayName("an observer can view the details but not download the external RPC CA")
     void observerCannotDownload(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
         var uiMapping = stack.getContainerMapping(SsApiTestContainerSetup.UI, Port.UI);
         var uiBaseUrl = "https://%s:%d".formatted(uiMapping.host(), uiMapping.port());
@@ -143,10 +143,10 @@ class InternalRpcCaTest extends SsApiTest {
         var observer = new SystemAdminClient(new AdminApiSession(uiBaseUrl, username, password));
 
         then("the observer sees the details", () ->
-                observer.getInternalRpcCa().statusCode(200).body("hash", notNullValue()));
+                observer.getExternalRpcCa().statusCode(200).body("hash", notNullValue()));
 
         and("the observer is refused the download", () ->
-                observer.downloadInternalRpcCa().statusCode(403));
+                observer.downloadExternalRpcCa().statusCode(403));
 
         adminUsers.deleteUser(username).statusCode(200);
     }

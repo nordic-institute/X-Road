@@ -36,7 +36,7 @@ public class NoopVaultKeyClient implements VaultKeyClient {
     }
 
     @Override
-    public Optional<X509Certificate> readInternalRpcCa() {
+    public Optional<X509Certificate> readExternalRpcCa() {
         return Optional.empty();
     }
 }

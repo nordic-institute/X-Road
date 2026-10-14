@@ -60,7 +60,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.vault.VaultKeyClient.INTERNAL_RPC_CA_READ_FAILED;
+import static org.niis.xroad.common.vault.VaultKeyClient.EXTERNAL_RPC_CA_READ_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class SpringVaultKeyClientTest {
@@ -79,29 +79,29 @@ class SpringVaultKeyClientTest {
     }
 
     @Test
-    void readInternalRpcCaShouldReturnTheCertificateAuthorityOfThePkiMount() throws Exception {
+    void readExternalRpcCaShouldReturnTheCertificateAuthorityOfThePkiMount() throws Exception {
         var ca = selfSignedCa();
         when(vaultTemplate.read(CA_PATH)).thenReturn(responseWithCertificate(toPem(ca)));
 
-        assertThat(keyClient.readInternalRpcCa()).contains(ca);
+        assertThat(keyClient.readExternalRpcCa()).contains(ca);
     }
 
     @Test
-    void readInternalRpcCaShouldFailWhenTheVaultReturnsUnparsableData() {
+    void readExternalRpcCaShouldFailWhenTheVaultReturnsUnparsableData() {
         when(vaultTemplate.read(CA_PATH)).thenReturn(responseWithCertificate("not a certificate"));
 
         assertReadFails();
     }
 
     @Test
-    void readInternalRpcCaShouldFailWhenTheVaultReturnsBlankData() {
+    void readExternalRpcCaShouldFailWhenTheVaultReturnsBlankData() {
         when(vaultTemplate.read(CA_PATH)).thenReturn(responseWithCertificate(" "));
 
         assertReadFails();
     }
 
     @Test
-    void readInternalRpcCaShouldFailWhenTheCertificateFieldIsMissing() {
+    void readExternalRpcCaShouldFailWhenTheCertificateFieldIsMissing() {
         var response = new VaultResponse();
         response.setData(Map.of("other", "value"));
         when(vaultTemplate.read(CA_PATH)).thenReturn(response);
@@ -110,23 +110,23 @@ class SpringVaultKeyClientTest {
     }
 
     @Test
-    void readInternalRpcCaShouldFailWhenTheVaultReturnsNothing() {
+    void readExternalRpcCaShouldFailWhenTheVaultReturnsNothing() {
         when(vaultTemplate.read(CA_PATH)).thenReturn(null);
 
         assertReadFails();
     }
 
     @Test
-    void readInternalRpcCaShouldFailWhenTheVaultRefusesTheRead() {
+    void readExternalRpcCaShouldFailWhenTheVaultRefusesTheRead() {
         when(vaultTemplate.read(CA_PATH)).thenThrow(new VaultException("permission denied"));
 
         assertReadFails();
     }
 
     private void assertReadFails() {
-        assertThatThrownBy(() -> keyClient.readInternalRpcCa())
+        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(INTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
     }
 
     private static VaultResponse responseWithCertificate(String pem) {
@@ -139,7 +139,7 @@ class SpringVaultKeyClientTest {
         var generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         var keyPair = generator.generateKeyPair();
-        var subject = new X500Name("CN=Test Internal RPC CA");
+        var subject = new X500Name("CN=Test External RPC CA");
         var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)), subject, keyPair.getPublic())
                 .addExtension(Extension.basicConstraints, true, new BasicConstraints(true));

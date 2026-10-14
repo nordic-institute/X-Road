@@ -250,11 +250,11 @@ class OpMonitorCaServiceTest {
 
     @Test
     void shouldKeepTheErrorCodeOfAnXrdRuntimeExceptionFromTheSecretStore() throws Exception {
-        doThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE).build())
+        doThrow(XrdRuntimeException.systemException(ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE).build())
                 .when(vaultClient).createOpMonitorCa(any());
         assertThatThrownBy(() -> service.uploadOpMonitorCa(pem(rootCa)))
                 .isInstanceOfSatisfying(InternalServerErrorException.class,
-                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE.code()));
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE.code()));
     }
 
     @Test
@@ -334,11 +334,11 @@ class OpMonitorCaServiceTest {
 
     @Test
     void shouldKeepTheErrorCodeOfAnXrdRuntimeExceptionFromTheSecretStoreOnDelete() {
-        doThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE).build())
+        doThrow(XrdRuntimeException.systemException(ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE).build())
                 .when(vaultClient).clearOpMonitorCa();
         assertThatThrownBy(() -> service.deleteOpMonitorCa())
                 .isInstanceOfSatisfying(InternalServerErrorException.class,
-                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE.code()));
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE.code()));
     }
 
     private void assertRejected(byte[] upload, ErrorCode expected) {

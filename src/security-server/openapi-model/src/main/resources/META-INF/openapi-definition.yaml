@@ -4902,12 +4902,12 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /system/internal-rpc-ca:
+  /system/external-rpc-ca:
     get:
       tags:
         - system
       summary: view the Security Server RPC CA details
-      operationId: getInternalRpcCa
+      operationId: getExternalRpcCa
       description: <h3>Administrator views the details of the Security Server RPC CA, the certificate authority that signs the
         Security Server's internal RPC certificates.</h3>
       responses:
@@ -4939,12 +4939,12 @@ paths:
               examples:
                 error_response:
                   $ref: '#/components/examples/ErrorExample'
-  /system/internal-rpc-ca/download:
+  /system/external-rpc-ca/download:
     get:
       tags:
         - system
       summary: download the Security Server RPC CA as a PEM file
-      operationId: downloadInternalRpcCa
+      operationId: downloadExternalRpcCa
       description: <h3>Administrator downloads the Security Server RPC CA as one PEM encoded certificate.</h3>
       responses:
         '200':

@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Security Server admin REST API access: session login, service-description CRUD, access rights, and
- * service lookup, and the internal RPC CA and op-monitor CA endpoints.
+ * service lookup, and the external RPC CA and op-monitor CA endpoints.
  */
 @Slf4j
 @UtilityClass
@@ -211,14 +211,14 @@ class AdminApi {
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
     }
 
-    /** Reads the internal RPC CA details. */
-    static Response getInternalRpcCa(String baseUrl, AdminSession session) {
-        return authed(session).get(baseUrl + "/api/v1/system/internal-rpc-ca");
+    /** Reads the external RPC CA details. */
+    static Response getExternalRpcCa(String baseUrl, AdminSession session) {
+        return authed(session).get(baseUrl + "/api/v1/system/external-rpc-ca");
     }
 
-    /** Downloads the internal RPC CA as a PEM file. */
-    static Response downloadInternalRpcCa(String baseUrl, AdminSession session) {
-        return authed(session).get(baseUrl + "/api/v1/system/internal-rpc-ca/download");
+    /** Downloads the external RPC CA as a PEM file. */
+    static Response downloadExternalRpcCa(String baseUrl, AdminSession session) {
+        return authed(session).get(baseUrl + "/api/v1/system/external-rpc-ca/download");
     }
 
     /** Reads the op-monitor CA details; the API answers 204 when none is stored. */

@@ -35,11 +35,11 @@ export const useOpMonitorTrust = defineStore('op-monitor-trust', {
   getters: {},
 
   actions: {
-    async fetchInternalRpcCa() {
-      return api.get<CertificateDetails>('/system/internal-rpc-ca').then((res) => res.data);
+    async fetchExternalRpcCa() {
+      return api.get<CertificateDetails>('/system/external-rpc-ca').then((res) => res.data);
     },
-    async downloadInternalRpcCa() {
-      return api.get('/system/internal-rpc-ca/download', { responseType: 'blob' }).then((res) => saveResponseAsFile(res));
+    async downloadExternalRpcCa() {
+      return api.get('/system/external-rpc-ca/download', { responseType: 'blob' }).then((res) => saveResponseAsFile(res));
     },
     async fetchOpMonitorCa(): Promise<CertificateDetails | undefined> {
       return api.get<CertificateDetails>('/system/op-monitor-ca').then((res) => (res.status === 204 ? undefined : res.data));

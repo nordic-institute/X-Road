@@ -40,23 +40,23 @@ import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.EXTERNAL_RPC_CA_NOT_AVAILABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
-import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_RPC_CA_NOT_AVAILABLE;
 
 @Service
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
-public class InternalRpcCaService {
+public class ExternalRpcCaService {
 
     private final VaultKeyClient vaultKeyClient;
 
-    public X509Certificate getInternalRpcCa() {
-        return vaultKeyClient.readInternalRpcCa()
-                .orElseThrow(() -> new NotFoundException(INTERNAL_RPC_CA_NOT_AVAILABLE.build()));
+    public X509Certificate getExternalRpcCa() {
+        return vaultKeyClient.readExternalRpcCa()
+                .orElseThrow(() -> new NotFoundException(EXTERNAL_RPC_CA_NOT_AVAILABLE.build()));
     }
 
-    public byte[] downloadInternalRpcCa() {
-        X509Certificate certificate = getInternalRpcCa();
+    public byte[] downloadExternalRpcCa() {
+        X509Certificate certificate = getExternalRpcCa();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             CryptoUtils.writeCertificatePem(certificate.getEncoded(), out);

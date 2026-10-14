@@ -84,23 +84,23 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
     }
 
     @Override
-    public Optional<X509Certificate> readInternalRpcCa() {
-        CertificateData.PEM certificateAuthority = readInternalRpcCaData();
+    public Optional<X509Certificate> readExternalRpcCa() {
+        CertificateData.PEM certificateAuthority = readExternalRpcCaData();
         if (certificateAuthority == null || certificateAuthority.getData() == null || certificateAuthority.getData().isBlank()) {
-            throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED);
+            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED);
         }
         try {
             return Optional.of(certificateAuthority.getCertificate());
         } catch (CertificateException | RuntimeException e) {
-            throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED, e);
+            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED, e);
         }
     }
 
-    private CertificateData.PEM readInternalRpcCaData() {
+    private CertificateData.PEM readExternalRpcCaData() {
         try {
             return pkiSecretEngine.getCertificateAuthority();
         } catch (RuntimeException e) {
-            throw XrdRuntimeException.systemInternalError(INTERNAL_RPC_CA_READ_FAILED, e);
+            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED, e);
         }
     }
 
