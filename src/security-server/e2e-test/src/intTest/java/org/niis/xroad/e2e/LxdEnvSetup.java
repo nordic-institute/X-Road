@@ -52,7 +52,8 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public class LxdEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, CsIssuerDbOps, DidResolutionOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, ServerConfDbOps, CsIssuerDbOps,
+        DidResolutionOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
@@ -60,6 +61,8 @@ public class LxdEnvSetup extends BaseComposeSetup
     // The schema is named identically to the database, "ds-control-plane" — its dash means it is not a bare SQL
     // identifier, so it must be double-quoted in the search_path GUC value or postgres rejects/misparses it.
     private static final String DS_CONTROL_PLANE_SEARCH_PATH = "--search_path=\"ds-control-plane\",public";
+    private static final String SERVERCONF_DB = "serverconf";
+    private static final String SERVERCONF_SEARCH_PATH = "--search_path=serverconf,public";
     private static final String CS_ISSUER_DB = "centerui_production";
     private static final String CS_ISSUER_SEARCH_PATH = "--search_path=\"ds-issuer-service\",public";
     private static final String ARCHIVE_DIR = "/var/lib/xroad";
@@ -120,6 +123,12 @@ public class LxdEnvSetup extends BaseComposeSetup
     @SneakyThrows
     public String execDsControlPlaneSql(String env, String sql) {
         return execPsql(resolveContainer(env), DS_CONTROL_PLANE_DB, sql, "PGOPTIONS=" + DS_CONTROL_PLANE_SEARCH_PATH);
+    }
+
+    @Override
+    @SneakyThrows
+    public String execServerConfSql(String env, String sql) {
+        return execPsql(resolveContainer(env), SERVERCONF_DB, sql, "PGOPTIONS=" + SERVERCONF_SEARCH_PATH);
     }
 
     /**

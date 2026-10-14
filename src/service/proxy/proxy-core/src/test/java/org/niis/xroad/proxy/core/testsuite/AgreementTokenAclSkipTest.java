@@ -58,7 +58,10 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
@@ -123,6 +126,8 @@ class AgreementTokenAclSkipTest {
         stubAssetAccess(mintToken(GET_STATE));
 
         assertTrue(noAclEntryTestCase().execute(ctx));
+
+        verify(ctx.getConsumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }
 
     @Test
@@ -147,6 +152,8 @@ class AgreementTokenAclSkipTest {
         };
 
         assertTrue(testCase.execute(ctx));
+
+        verify(ctx.getConsumerSideDspProcessor()).invalidateAssetAccess(argThat(req -> GET_STATE.equals(req.serviceId())));
     }
 
     @Test
@@ -171,6 +178,8 @@ class AgreementTokenAclSkipTest {
         };
 
         assertTrue(testCase.execute(ctx));
+
+        verify(ctx.getConsumerSideDspProcessor()).invalidateAssetAccess(argThat(req -> GET_STATE.equals(req.serviceId())));
     }
 
     private MessageTestCase noAclEntryTestCase() {

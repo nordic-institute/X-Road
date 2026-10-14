@@ -405,4 +405,42 @@ class AssetAccessRpcClientTest {
 
         assertThat(requestCount.get()).isEqualTo(2);
     }
+
+    @Test
+    void invalidateMakesTheNextAcquireAskTheControlPlaneAgain() {
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setAuthorization("token-abc-123")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .build();
+        var consumer = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
+
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", consumer);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", consumer);
+        assertThat(requestCount.get()).isEqualTo(1);
+
+        client.invalidateAssetAccess("test-participant-ctx", "asset-1", consumer);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", consumer);
+
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void invalidateKeepsTheAccessCachedForAnotherConsumerClient() {
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .build();
+        var consumer = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
+        var other = ClientId.Conf.create("DEV", "COM", "222", "OTHER");
+
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", consumer);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", other);
+        assertThat(requestCount.get()).isEqualTo(2);
+
+        client.invalidateAssetAccess("test-participant-ctx", "asset-1", consumer);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", other);
+
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
 }

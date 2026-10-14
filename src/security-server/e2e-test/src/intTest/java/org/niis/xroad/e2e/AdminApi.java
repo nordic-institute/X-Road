@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -208,6 +209,67 @@ class AdminApi {
         assertThat(response.getStatusCode())
                 .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
+    }
+
+    /**
+     * Revokes a consumer's access to a provider client's service. Tolerates 404 so this stays safe to run
+     * when the grant is already gone.
+     */
+    static void revokeConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                           String consumerClientId, String serviceCode) {
+        var body = """
+                {
+                  "items": [
+                    { "service_code": "%s" }
+                  ]
+                }
+                """.formatted(serviceCode);
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId
+                        + "/access-rights/delete");
+        assertThat(response.getStatusCode())
+                .as("revoke %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
+                .isIn(HTTP_NO_CONTENT, HTTP_NOT_FOUND);
+    }
+
+    /** Adds a global group on the Central Server, tolerating a group that already exists. */
+    static void addGlobalGroup(String csBaseUrl, AdminSession cs, String groupCode) {
+        var body = """
+                {
+                  "code": "%s",
+                  "description": "agreement token e2e group"
+                }
+                """.formatted(groupCode);
+        var response = authed(cs)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(csBaseUrl + "/api/v1/global-groups");
+        assertThat(response.getStatusCode()).as("add global group %s", groupCode).isIn(HTTP_CREATED, HTTP_CONFLICT);
+    }
+
+    /** Adds member and subsystem ids to a global group, tolerating ids that are already members. */
+    static void addGlobalGroupMembers(String csBaseUrl, AdminSession cs, String groupCode, List<String> memberIds) {
+        var items = String.join(", ", memberIds.stream().map(id -> "\"" + id + "\"").toList());
+        var body = """
+                { "items": [%s] }
+                """.formatted(items);
+        var response = authed(cs)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(csBaseUrl + "/api/v1/global-groups/" + groupCode + "/members/add");
+        assertThat(response.getStatusCode())
+                .as("add %s to global group %s", memberIds, groupCode)
+                .isIn(HTTP_CREATED, HTTP_CONFLICT);
+    }
+
+    /** Deletes a global group, tolerating a group an earlier attempt already removed. */
+    static void deleteGlobalGroup(String csBaseUrl, AdminSession cs, String groupCode) {
+        var response = authed(cs).delete(csBaseUrl + "/api/v1/global-groups/" + groupCode);
+        assertThat(response.getStatusCode())
+                .as("delete global group %s (204 first attempt, 404 if already removed)", groupCode)
+                .isIn(HTTP_NO_CONTENT, HTTP_NOT_FOUND);
     }
 
     /** One logged-in admin session: the cookies to replay and the XSRF token to echo back. */

@@ -149,6 +149,18 @@ public abstract class AbstractProxyIntegrationTest {
      */
     protected static Runnable authTrustVerifiedListener;
 
+    /**
+     * Optional consumer-side DSP dependency of the client proxy instead of an unstubbed mock. Subclasses
+     * set this in a static initializer or {@code @BeforeAll}; cleared after the test class finishes.
+     */
+    protected static DspRequestProcessor consumerSideDspProcessorOverride;
+
+    /**
+     * Optional server-side agreement token check instead of one with no key material. Subclasses set this
+     * in a static initializer or {@code @BeforeAll}; cleared after the test class finishes.
+     */
+    protected static AgreementTokenAccessCheck agreementTokenAccessCheckOverride;
+
     protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServiceServerConf());
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
     protected static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
@@ -249,7 +261,8 @@ public abstract class AbstractProxyIntegrationTest {
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
-                mock(DspRequestProcessor.class), identifierValidationService);
+                consumerSideDspProcessorOverride != null ? consumerSideDspProcessorOverride : mock(DspRequestProcessor.class),
+                identifierValidationService);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),
@@ -283,8 +296,9 @@ public abstract class AbstractProxyIntegrationTest {
 
         var identifierValidationService = new IdentifierValidationService(proxyProperties);
 
-        var agreementTokenAccessCheck = new AgreementTokenAccessCheck(
-                mock(AgreementTokenKeyMaterial.class), mock(ProxyAgreementTokenProperties.class));
+        var agreementTokenAccessCheck = agreementTokenAccessCheckOverride != null
+                ? agreementTokenAccessCheckOverride
+                : new AgreementTokenAccessCheck(mock(AgreementTokenKeyMaterial.class), mock(ProxyAgreementTokenProperties.class));
 
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
@@ -311,6 +325,8 @@ public abstract class AbstractProxyIntegrationTest {
         ADDITIONAL_PROPERTIES.clear();
         serviceAddressResolverOverride = null;
         authTrustVerifiedListener = null;
+        consumerSideDspProcessorOverride = null;
+        agreementTokenAccessCheckOverride = null;
         serverProxy.destroy();
         clientProxy.destroy();
     }

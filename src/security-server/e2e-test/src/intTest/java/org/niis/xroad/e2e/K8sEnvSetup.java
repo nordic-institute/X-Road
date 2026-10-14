@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class K8sEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, DidResolutionOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, ServerConfDbOps, DidResolutionOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
 
@@ -68,6 +68,10 @@ public class K8sEnvSetup extends BaseComposeSetup
     private static final String DS_CONTROL_PLANE_DB = "ds-control-plane";
     private static final String DS_CONTROL_PLANE_CLUSTER = "db-ds-control-plane";
     private static final String DS_CONTROL_PLANE_PRIMARY_SELECTOR = "cnpg.io/cluster=" + DS_CONTROL_PLANE_CLUSTER
+            + ",cnpg.io/instanceRole=primary";
+    private static final String SERVERCONF_DB = "serverconf";
+    private static final String SERVERCONF_CLUSTER = "db-serverconf";
+    private static final String SERVERCONF_PRIMARY_SELECTOR = "cnpg.io/cluster=" + SERVERCONF_CLUSTER
             + ",cnpg.io/instanceRole=primary";
     private static final String AUXILIARY_SERVICE_WORKLOAD = "deploy/auxiliary-service";
     private static final String ARCHIVE_DIR = "/var/lib/xroad/messagelog-archives";
@@ -142,6 +146,14 @@ public class K8sEnvSetup extends BaseComposeSetup
         var namespace = resolveNamespace(env);
         var pod = resolvePrimaryPod(namespace, DS_CONTROL_PLANE_PRIMARY_SELECTOR, DS_CONTROL_PLANE_CLUSTER);
         return execPsql(namespace, pod, DS_CONTROL_PLANE_DB, sql);
+    }
+
+    @Override
+    @SneakyThrows
+    public String execServerConfSql(String env, String sql) {
+        var namespace = resolveNamespace(env);
+        var pod = resolvePrimaryPod(namespace, SERVERCONF_PRIMARY_SELECTOR, SERVERCONF_CLUSTER);
+        return execPsql(namespace, pod, SERVERCONF_DB, sql);
     }
 
     /**

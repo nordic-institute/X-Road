@@ -32,13 +32,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +90,28 @@ class DataPlaneServerTest {
                 .build();
         var response = client.send(request, HttpResponse.BodyHandlers.discarding());
         assertThat(response.statusCode()).isBetween(200, 499);
+    }
+
+    @Test
+    void illegalTransitionIsAnsweredWithNonSuccessStatus() throws Exception {
+        stubProperties();
+        var flowStateStore = mock(DataFlowStateStore.class);
+        when(flowStateStore.apply("unknown-flow", DataFlowTransition.SUSPEND))
+                .thenThrow(DataFlowTransition.SUSPEND.illegalFrom(Optional.empty()));
+        var manager = new XRoadDataPlaneManager(properties, mock(GlobalConfProvider.class), mock(ServerConfProvider.class),
+                mock(ProxyProperties.class), flowStateStore, mock(AgreementTokenIssuer.class));
+        dataPlaneServer = new DataPlaneServer(properties, new XRoadDataPlaneSignalingApiController(manager));
+        dataPlaneServer.start();
+
+        var connector = (ServerConnector) dataPlaneServer.getServer().getConnectors()[0];
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:" + connector.getLocalPort() + "/full/api/v1/dataflows/unknown-flow/suspend"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{}"))
+                .build();
+        var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
+
+        assertThat(response.statusCode()).isEqualTo(500);
     }
 
     @Test

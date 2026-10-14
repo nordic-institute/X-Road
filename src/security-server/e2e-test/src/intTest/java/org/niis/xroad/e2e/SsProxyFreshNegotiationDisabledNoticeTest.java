@@ -32,13 +32,9 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.deleteServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.disableServiceDescription;
-import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
-import static org.niis.xroad.e2e.AdminApi.findServiceDescriptionIdByUrl;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.DisabledServiceFault.DISABLED_NOTICE;
@@ -126,44 +122,30 @@ class SsProxyFreshNegotiationDisabledNoticeTest extends E2eTest {
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
 
-        var backendUrl = and("mock1's backend URL is discovered", () ->
-                discoverBackendUrl(ss0BaseUrl, ss0Session, MOCK1_SERVICE_ID));
-        var lastSegment = backendUrl.lastIndexOf('/');
-        var backendBaseUrl = backendUrl.substring(0, lastSegment);
-        var serviceCode = NEW_SERVICE_CODE_PREFIX + System.currentTimeMillis();
-        var servicePath = "/r1/DEV/COM/1234/TestService/" + serviceCode + backendUrl.substring(lastSegment);
-
-        and("any service description an interrupted earlier run left at the same backend URL is removed", () ->
-                findServiceDescriptionIdByUrl(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, backendBaseUrl)
-                        .ifPresent(leftoverId -> deleteServiceDescription(ss0BaseUrl, ss0Session, leftoverId)));
-
-        var serviceDescriptionId = and(
-                "a new REST service description, under a service code unique to this run, is "
-                        + "added to TestService, addressing mock1's backend one path segment up", () ->
-                        addRestServiceDescription(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, backendBaseUrl, serviceCode));
+        var service = and("a new REST service, under a service code unique to this run, is added to TestService "
+                + "and enabled, addressing mock1's backend one path segment up, after any description an "
+                + "interrupted earlier run left at the same backend URL is removed", () ->
+                FreshRestService.create(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, MOCK1_SERVICE_ID, NEW_SERVICE_CODE_PREFIX));
 
         try {
-            and("the new service description is enabled", () ->
-                    enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
-
             and("the cross-server consumer is granted access to the new service", () ->
-                    grantConsumerAccessRights(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, CONSUMER_CLIENT_ID, serviceCode));
+                    grantConsumerAccessRights(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, CONSUMER_CLIENT_ID, service.serviceCode()));
 
             and("the operator disables the new service description with a notice, before any call has ever reached it", () ->
-                    disableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId, DISABLED_NOTICE));
+                    disableServiceDescription(ss0BaseUrl, ss0Session, service.serviceDescriptionId(), DISABLED_NOTICE));
 
             then("the consumer's first ever call negotiates fresh and is refused with a SERVICE_DISABLED "
                     + "fault carrying the notice", () ->
-                    awaitFreshCallFailsWithDisabledNotice(env, servicePath));
+                    awaitFreshCallFailsWithDisabledNotice(env, service.servicePath()));
 
             and("the operator re-enables the service description", () ->
-                    enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
+                    enableServiceDescription(ss0BaseUrl, ss0Session, service.serviceDescriptionId()));
 
             then("the same consumer calls again and succeeds", () ->
-                    awaitCallSucceeds(env, servicePath));
+                    awaitCallSucceeds(env, service.servicePath()));
         } finally {
             and("the service description is removed, leaving no trace of the fresh service code", () ->
-                    deleteServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
+                    service.remove(ss0BaseUrl, ss0Session));
         }
     }
 
