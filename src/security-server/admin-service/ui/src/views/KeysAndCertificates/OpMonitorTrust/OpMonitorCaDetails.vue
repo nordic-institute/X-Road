@@ -25,47 +25,58 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-table class="xrd bg-surface-container" :data-test="`${testIdPrefix}-details`">
-    <tbody>
-      <tr>
-        <td class="on-surface font-weight-medium">{{ $t('cert.subjectDistinguishedName') }}</td>
-        <td :data-test="`${testIdPrefix}-subject`">{{ certificate.subject_distinguished_name }}</td>
-      </tr>
-      <tr>
-        <td class="on-surface font-weight-medium">{{ $t('cert.issuerDistinguishedName') }}</td>
-        <td :data-test="`${testIdPrefix}-issuer`">{{ certificate.issuer_distinguished_name }}</td>
-      </tr>
-      <tr>
-        <td class="on-surface font-weight-medium">{{ $t('cert.hashInfo') }}</td>
-        <td :data-test="`${testIdPrefix}-fingerprint`"><XrdHashValue wrap-friendly :value="certificate.hash" /></td>
-      </tr>
-      <tr>
-        <td class="on-surface font-weight-medium">{{ $t('cert.notBefore') }}</td>
-        <td :data-test="`${testIdPrefix}-not-before`"><XrdDate :value="certificate.not_before" /></td>
-      </tr>
-      <tr>
-        <td class="on-surface font-weight-medium">{{ $t('cert.notAfter') }}</td>
-        <td :data-test="`${testIdPrefix}-not-after`"><XrdDate :value="certificate.not_after" /></td>
-      </tr>
-    </tbody>
-  </v-table>
+  <XrdElevatedViewFixedWidth title="cert.certificate" closeable :breadcrumbs="breadcrumbs" :loading="loading" @close="close">
+    <XrdCertificate v-if="certificate" :certificate="certificate" />
+  </XrdElevatedViewFixedWidth>
 </template>
-
 <script lang="ts" setup>
-import { PropType } from 'vue';
-import { XrdDate, XrdHashValue } from '@niis/shared-ui';
-import { CertificateDetails } from '@/openapi-types';
-
-defineProps({
-  certificate: {
-    type: Object as PropType<CertificateDetails>,
-    required: true,
+import { ref, computed } from 'vue';
+import { CertificateDetails, XrdElevatedViewFixedWidth, XrdCertificate, useNotifications } from '@niis/shared-ui';
+import { useOpMonitorTrust } from '@/store/modules/op-monitor-trust';
+import { useRouter } from 'vue-router';
+import { RouteName } from '@/global';
+import { useI18n } from 'vue-i18n';
+const { fetchOpMonitorCa } = useOpMonitorTrust();
+const router = useRouter();
+const { t } = useI18n();
+const { addError } = useNotifications();
+const certificate = ref<CertificateDetails | undefined>(undefined);
+const loading = ref(false);
+const breadcrumbs = computed(() => [
+  {
+    title: t('tab.main.keys'),
+    to: {
+      name: RouteName.SignAndAuthKeys,
+    },
   },
-  testIdPrefix: {
-    type: String,
-    required: true,
+  {
+    title: t('tab.keys.opMonitorTrust'),
+    to: {
+      name: RouteName.OpMonitorTrust,
+    },
   },
-});
+  {
+    title: t('cert.certificate'),
+  },
+]);
+function fetchData(): void {
+  loading.value = true;
+  fetchOpMonitorCa()
+    .then((cert) => {
+      if (cert) {
+        certificate.value = cert;
+      } else {
+        close();
+      }
+    })
+    .catch((error) => addError(error))
+    .finally(() => (loading.value = false));
+}
+function close() {
+  router.push({
+    name: RouteName.OpMonitorTrust,
+  });
+}
+fetchData();
 </script>
-
 <style lang="scss" scoped></style>

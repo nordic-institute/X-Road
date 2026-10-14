@@ -2913,10 +2913,10 @@ The configuration anchor (renamed as `configuration-anchor.xml`) file must be ma
 
 #### 15.2.6 Exchanging CA Certificates with an External Operational Monitoring Daemon
 
-The Security Server and an operational monitoring daemon (op-monitor) on a separate host connect over TLS. Each side must trust the certificate authority (CA) that issued the other side's certificate. Two CA certificates are exchanged:
+The Security Server and an operational monitoring daemon on a separate host connect over TLS. Each side must trust the certificate authority (CA) that issued the other side's certificate. Two CA certificates are exchanged:
 
-- The **internal RPC CA** is the CA of the Security Server host. It signs the certificates of the Security Server's internal gRPC connections and is kept in the Security Server's secret store (OpenBao). The administrator downloads it from the Security Server and installs it on the op-monitor host.
-- The **op-monitor CA** is the CA that issued the op-monitor's certificate. The administrator uploads it to the Security Server.
+- The **Security Server RPC CA** is the CA of the Security Server host. It signs the certificates of the Security Server's internal gRPC connections and is kept in the Security Server's secret store (OpenBao). The administrator downloads it from the Security Server and installs it on the operational monitoring daemon host.
+- The **Operational Monitoring CA** is the CA that issued the certificate of the operational monitoring daemon. The administrator uploads it to the Security Server.
 
 Only CA certificates are exchanged. No private key is uploaded or downloaded.
 
@@ -2925,76 +2925,80 @@ Both CAs are managed in the Security Server user interface and in the management
 **Access rights:**
 
 - View the CAs: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator), [Security Server Observer](#xroad-securityserver-observer)
-- Download the internal RPC CA: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator)
-- Upload, replace and delete the op-monitor CA: [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
+- Download the Security Server RPC CA: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator)
+- Upload, replace and delete the Operational Monitoring CA: [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
 
-**NOTE:** A change to the op-monitor CA takes effect only after the proxy and admin-service are restarted. See **Applying the changes** below.
+**NOTE:** A change to the Operational Monitoring CA takes effect only after the proxy and admin-service are restarted. See **Applying the changes** below.
 
-**NOTE:** Each Security Server host has its own internal RPC CA, so one download covers one Security Server. If several Security Servers share one external op-monitor, upload the op-monitor CA to every one of them. The op-monitor host then needs the internal RPC CA of every one of these Security Servers.
+**NOTE:** Each Security Server host has its own Security Server RPC CA, so one download covers one Security Server. If several Security Servers share one external operational monitoring daemon, upload the Operational Monitoring CA to every one of them. The operational monitoring daemon host then needs the Security Server RPC CA of every one of these Security Servers.
 
-_To view the internal RPC CA and the op-monitor CA_, follow these steps.
-
-1. On the **Navigation tabs**, select **Keys and Certificates**.
-
-2. In the opening view, select the **Op-monitor Trust** tab.
-
-   The **Internal RPC CA** section shows the internal RPC CA. The **Op-monitor CA** section shows the stored op-monitor CA, or "No op-monitor CA is stored". For each CA, the view shows the Subject Distinguished Name, the Issuer Distinguished Name, the SHA-256 hash (fingerprint) and the validity dates (Not Before, Not After).
-
-_To upload the op-monitor CA_, follow these steps.
+_To view the Security Server RPC CA and the Operational Monitoring CA_, follow these steps.
 
 1. On the **Navigation tabs**, select **Keys and Certificates**.
 
-2. In the opening view, select the **Op-monitor Trust** tab.
+2. In the opening view, select the **Operational Monitoring Trust** tab.
 
-3. In the **Op-monitor CA** section, click **Upload** and select the CA certificate file.
+   The **Security Server RPC CA** section shows the SHA-256 hash (fingerprint) of the Security Server RPC CA. The **Operational Monitoring CA** section shows the SHA-256 hash of the stored Operational Monitoring CA, or "No Operational Monitoring CA is stored".
 
-   The Security Server stores the certificate and shows its details. The view reminds you to restart the proxy and admin-service to apply the change.
+3. To see all details of a CA, click its hash.
+
+   The view shows the full certificate data, including the Subject Distinguished Name, the Issuer Distinguished Name and the validity dates (Not Before, Not After). To return to the tab, click **Operational Monitoring Trust** in the breadcrumbs or close the view.
+
+_To upload the Operational Monitoring CA_, follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**.
+
+2. In the opening view, select the **Operational Monitoring Trust** tab.
+
+3. In the **Operational Monitoring CA** section, click **Upload** and select the CA certificate file.
+
+   The Security Server stores the certificate and shows its hash. The view reminds you to restart the proxy and admin-service to apply the change.
 
 The file must hold exactly one CA certificate, in PEM or DER format. The CA can be a root CA or an intermediate CA, and it must be valid at the time of the upload. In a PEM file, text outside the certificate block is ignored.
 
 The Security Server rejects any other file with HTTP status 400 and one of the following error codes. The user interface shows the message in the second column.
 
-| Error code                      | Message                                                                                                                                                   | Cause                                                                                                     |
-|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `ca_cert_empty`                 | The file is empty                                                                                                                                         | The file has no content, or only whitespace.                                                              |
-| `ca_cert_not_a_certificate`     | The file is not a PEM or DER encoded certificate                                                                                                          | The file is neither a PEM certificate nor a DER certificate, for example a DER-encoded private key.       |
-| `ca_cert_multiple_certificates` | The file contains more than one certificate. Upload only the CA certificate that issued the certificate of the operational monitoring daemon (op-monitor) | The file has more than one certificate, or more than one PEM block of any type. Bundles are not accepted. |
-| `ca_cert_key_material`          | The file contains private key material. Upload the CA certificate only                                                                                    | The file has a PEM private key, alone or together with a certificate.                                     |
-| `ca_cert_not_a_ca`              | The certificate is not a CA certificate                                                                                                                   | The certificate has no basic constraints extension with `cA=true`, for example a server certificate.      |
-| `ca_cert_expired`               | The CA certificate has expired                                                                                                                            | The validity period of the certificate has ended.                                                         |
-| `ca_cert_not_yet_valid`         | The CA certificate is not yet valid                                                                                                                       | The validity period of the certificate has not started.                                                   |
+| Error code                      | Message                                                                                                 | Cause                                                                                                     |
+|---------------------------------|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `ca_cert_empty`                 | The file is empty                                                                                       | The file has no content, or only whitespace.                                                              |
+| `ca_cert_not_a_certificate`     | The file is not a PEM or DER encoded certificate                                                        | The file is neither a PEM certificate nor a DER certificate, for example a DER-encoded private key.       |
+| `ca_cert_multiple_certificates` | The file contains more than one certificate. Upload only the CA certificate that issues the certificate | The file has more than one certificate, or more than one PEM block of any type. Bundles are not accepted. |
+| `ca_cert_key_material`          | The file contains private key material. Upload the CA certificate only                                  | The file has a PEM private key, alone or together with a certificate.                                     |
+| `ca_cert_not_a_ca`              | The certificate is not a CA certificate                                                                 | The certificate has no basic constraints extension with `cA=true`, for example a server certificate.      |
+| `ca_cert_expired`               | The CA certificate has expired                                                                          | The validity period of the certificate has ended.                                                         |
+| `ca_cert_not_yet_valid`         | The CA certificate is not yet valid                                                                     | The validity period of the certificate has not started.                                                   |
 
-A rejected upload leaves the stored op-monitor CA unchanged. Uploading the stored certificate again succeeds and changes nothing.
+A rejected upload leaves the stored Operational Monitoring CA unchanged. Uploading the stored certificate again succeeds and changes nothing.
 
-_To replace the op-monitor CA_, follow the steps for uploading. When a CA is stored, the button is named **Replace**. The new certificate replaces the stored one. The Security Server keeps one op-monitor CA at a time.
+_To replace the Operational Monitoring CA_, follow the steps for uploading. When a CA is stored, the button is named **Replace**. The new certificate replaces the stored one. The Security Server keeps one Operational Monitoring CA at a time.
 
-_To delete the op-monitor CA_, follow these steps.
+_To delete the Operational Monitoring CA_, follow these steps.
 
 1. On the **Navigation tabs**, select **Keys and Certificates**.
 
-2. In the opening view, select the **Op-monitor Trust** tab.
+2. In the opening view, select the **Operational Monitoring Trust** tab.
 
-3. In the **Op-monitor CA** section, click **Delete**, then click **Yes** in the confirmation dialog.
+3. In the **Operational Monitoring CA** section, click **Delete**, then click **Yes** in the confirmation dialog.
 
    The view reminds you to restart the proxy and admin-service to apply the change.
 
-After the restart, the Security Server trusts only its internal RPC CA again, as for an op-monitor on the same host. Deleting does not change the host and port settings of the op-monitor connection. Deleting when no op-monitor CA is stored succeeds and changes nothing.
+After the restart, the Security Server trusts only its Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
 
-_To download the internal RPC CA_, follow these steps.
+_To download the Security Server RPC CA_, follow these steps.
 
 1. On the **Navigation tabs**, select **Keys and Certificates**.
 
-2. In the opening view, select the **Op-monitor Trust** tab.
+2. In the opening view, select the **Operational Monitoring Trust** tab.
 
-3. In the **Internal RPC CA** section, click **Download** and save the file `internal-rpc-ca.pem` to the local file system.
+3. In the **Security Server RPC CA** section, click **Download** and save the file `internal-rpc-ca.pem` to the local file system.
 
    The file contains exactly one certificate, in PEM format, and no private key. Downloading again returns the same file.
 
-_To install the internal RPC CA on the op-monitor host_, follow these steps.
+_To install the Security Server RPC CA on the operational monitoring daemon host_, follow these steps.
 
-1. Copy the file `internal-rpc-ca.pem` to the op-monitor host by hand. The Security Server does not deliver it.
+1. Copy the file `internal-rpc-ca.pem` to the operational monitoring daemon host by hand. The Security Server does not deliver it.
 
-2. Check that the file is the right one by comparing its SHA-256 fingerprint with the hash shown in the **Internal RPC CA** section. The two values must be the same:
+2. Check that the file is the right one by comparing its SHA-256 fingerprint with the hash shown in the **Security Server RPC CA** section. The two values must be the same:
 
    ```bash
    openssl x509 -in internal-rpc-ca.pem -noout -fingerprint -sha256
@@ -3002,7 +3006,7 @@ _To install the internal RPC CA on the op-monitor host_, follow these steps.
 
 3. Store the file in a directory of your choice. The system user `xroad` must have permission to read it.
 
-4. Configure the op-monitor to trust this file, as described in section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server), and restart the operational monitoring daemon:
+4. Configure the operational monitoring daemon to trust this file, as described in section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server), and restart the operational monitoring daemon:
 
    ```bash
    service xroad-opmonitor restart
@@ -3010,30 +3014,30 @@ _To install the internal RPC CA on the op-monitor host_, follow these steps.
 
 **Applying the changes**
 
-The Security Server uses the op-monitor CA when it creates its connections to the op-monitor. After the op-monitor CA is uploaded, replaced or deleted, restart the proxy and admin-service on the Security Server:
+The Security Server uses the Operational Monitoring CA when it creates its connections to the operational monitoring daemon. After the Operational Monitoring CA is uploaded, replaced or deleted, restart the proxy and admin-service on the Security Server:
 
 ```bash
 service xroad-proxy restart
 service xroad-proxy-ui-api restart
 ```
 
-Until the restart, the stored op-monitor CA and the CA in use can differ.
+Until the restart, the stored Operational Monitoring CA and the CA in use can differ.
 
 **Management REST API**
 
 The same operations are available in the management REST API (see chapter [19](#19-management-rest-api) and \[[REST_UI-API](#Ref_REST_UI-API)\]). The roles are the same as in the user interface.
 
-| Operation                           | Request                                                                                      | Response                                                                     |
-|-------------------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| View the internal RPC CA            | `GET /api/v1/system/internal-rpc-ca`                                                         | `200` with the certificate details                                           |
-| Download the internal RPC CA        | `GET /api/v1/system/internal-rpc-ca/download`                                                | `200` with one PEM certificate, content type `application/x-pem-file`        |
-| View the op-monitor CA              | `GET /api/v1/system/op-monitor-ca`                                                           | `200` with the certificate details, or `204` when no op-monitor CA is stored |
-| Upload or replace the op-monitor CA | `POST /api/v1/system/op-monitor-ca`, multipart form with the file in the field `certificate` | `200` with the certificate details, or `400` with one of the error codes     |
-| Delete the op-monitor CA            | `DELETE /api/v1/system/op-monitor-ca`                                                        | `204`, also when no op-monitor CA is stored                                  |
+| Operation                                       | Request                                                                                      | Response                                                                                 |
+|-------------------------------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| View the Security Server RPC CA                 | `GET /api/v1/system/internal-rpc-ca`                                                         | `200` with the certificate details                                                       |
+| Download the Security Server RPC CA             | `GET /api/v1/system/internal-rpc-ca/download`                                                | `200` with one PEM certificate, content type `application/x-pem-file`                    |
+| View the Operational Monitoring CA              | `GET /api/v1/system/op-monitor-ca`                                                           | `200` with the certificate details, or `204` when no Operational Monitoring CA is stored |
+| Upload or replace the Operational Monitoring CA | `POST /api/v1/system/op-monitor-ca`, multipart form with the file in the field `certificate` | `200` with the certificate details, or `400` with one of the error codes                 |
+| Delete the Operational Monitoring CA            | `DELETE /api/v1/system/op-monitor-ca`                                                        | `204`, also when no Operational Monitoring CA is stored                                  |
 
-A request without the required role returns `403`. If the internal RPC CA is not available, the two internal RPC CA requests return `404` with the error code `internal_rpc_ca_not_available`. If the secret store cannot be read or written, the requests return `500`.
+A request without the required role returns `403`. If the Security Server RPC CA is not available, the two Security Server RPC CA requests return `404` with the error code `internal_rpc_ca_not_available`. If the secret store cannot be read or written, the requests return `500`.
 
-Examples of uploading the op-monitor CA and downloading the internal RPC CA:
+Examples of uploading the Operational Monitoring CA and downloading the Security Server RPC CA:
 
 ```bash
 curl -X POST --header "Authorization: X-Road-ApiKey token=<api key>" -F "certificate=@op-monitor-ca.pem" "https://localhost:4000/api/v1/system/op-monitor-ca" -k

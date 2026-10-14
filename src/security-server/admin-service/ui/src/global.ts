@@ -62,6 +62,8 @@ export enum RouteName {
   DsTlsCertificate = 'ds-tls-certificate',
   DsTlsCertificateDetails = 'ds-tls-certificate-details',
   OpMonitorTrust = 'op-monitor-trust',
+  ExternalRpcCaDetails = 'external-rpc-ca-details',
+  OpMonitorCaDetails = 'op-monitor-ca-details',
   Token = 'token',
   Key = 'key',
   Settings = 'settings',

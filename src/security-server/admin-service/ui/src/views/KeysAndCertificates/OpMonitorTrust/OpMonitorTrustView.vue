@@ -30,23 +30,43 @@
       <KeysAndCertificatesTabs />
     </template>
     <XrdSubView>
-      <XrdCard title="opMonitorTrust.internalRpcCa.title">
+      <XrdCard title="opMonitorTrust.externalRpcCa.title">
         <template v-if="canDownload" #title-actions>
           <XrdBtn
             data-test="download-internal-rpc-ca-button"
             variant="outlined"
             prepend-icon="download"
-            text="opMonitorTrust.internalRpcCa.download"
+            text="opMonitorTrust.externalRpcCa.download"
             :loading="downloading"
             :disabled="!internalRpcCa"
             @click="download"
           />
         </template>
-        <p class="body-regular px-4 pb-4" data-test="internal-rpc-ca-description">{{ $t('opMonitorTrust.internalRpcCa.description') }}</p>
-        <p v-if="unavailable" class="body-regular px-4 pb-4 opacity-60" data-test="internal-rpc-ca-unavailable">
-          {{ $t('opMonitorTrust.internalRpcCa.unavailable') }}
+        <p class="body-regular px-4 pb-4" data-test="internal-rpc-ca-description">
+          {{ $t('opMonitorTrust.externalRpcCa.description') }}
         </p>
-        <CaCertificateDetails v-if="internalRpcCa" :certificate="internalRpcCa" test-id-prefix="internal-rpc-ca" />
+        <p v-if="unavailable" class="body-regular px-4 pb-4 opacity-60" data-test="internal-rpc-ca-unavailable">
+          {{ $t('opMonitorTrust.externalRpcCa.unavailable') }}
+        </p>
+        <v-table v-if="internalRpcCa" class="xrd bg-surface-container">
+          <tbody>
+            <tr>
+              <td>
+                <XrdLabelWithIcon
+                  data-test="internal-rpc-ca-hash"
+                  icon="editor_choice"
+                  :label="internalRpcCa.hash"
+                  clickable
+                  @navigate="router.push({ name: RouteName.ExternalRpcCaDetails })"
+                >
+                  <template #label>
+                    <XrdHashValue :value="internalRpcCa.hash" />
+                  </template>
+                </XrdLabelWithIcon>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
       </XrdCard>
       <XrdCard v-if="canViewOpMonitorCa" class="mt-6" title="opMonitorTrust.opMonitorCa.title">
         <template v-if="canUploadOpMonitorCa || canDeleteOpMonitorCa" #title-actions>
@@ -82,7 +102,25 @@
         <p v-if="!opMonitorCa && !loadingOpMonitorCa" class="body-regular px-4 pb-4 opacity-60" data-test="op-monitor-ca-empty">
           {{ $t('opMonitorTrust.opMonitorCa.empty') }}
         </p>
-        <CaCertificateDetails v-if="opMonitorCa" :certificate="opMonitorCa" test-id-prefix="op-monitor-ca" />
+        <v-table v-if="opMonitorCa" class="xrd bg-surface-container">
+          <tbody>
+            <tr>
+              <td>
+                <XrdLabelWithIcon
+                  data-test="op-monitor-ca-hash"
+                  icon="editor_choice"
+                  :label="opMonitorCa.hash"
+                  clickable
+                  @navigate="router.push({ name: RouteName.OpMonitorCaDetails })"
+                >
+                  <template #label>
+                    <XrdHashValue :value="opMonitorCa.hash" />
+                  </template>
+                </XrdLabelWithIcon>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
       </XrdCard>
       <XrdConfirmDialog
         v-if="confirmDeleteOpMonitorCa"
@@ -99,14 +137,26 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import { FileUploadResult, XrdBtn, XrdCard, XrdConfirmDialog, XrdFileUpload, XrdSubView, XrdView, useNotifications } from '@niis/shared-ui';
+import { useRouter } from 'vue-router';
+import {
+  FileUploadResult,
+  XrdBtn,
+  XrdCard,
+  XrdConfirmDialog,
+  XrdFileUpload,
+  XrdHashValue,
+  XrdLabelWithIcon,
+  XrdSubView,
+  XrdView,
+  useNotifications,
+} from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { useOpMonitorTrust } from '@/store/modules/op-monitor-trust';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
-import CaCertificateDetails from '@/views/KeysAndCertificates/OpMonitorTrust/CaCertificateDetails.vue';
 
+const router = useRouter();
 const { hasPermission } = useUser();
 const { fetchInternalRpcCa, downloadInternalRpcCa, fetchOpMonitorCa, uploadOpMonitorCa, deleteOpMonitorCa } = useOpMonitorTrust();
 const { addError, addSuccessMessage } = useNotifications();
