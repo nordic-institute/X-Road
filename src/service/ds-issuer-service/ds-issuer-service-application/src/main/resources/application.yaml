@@ -36,7 +36,9 @@ xroad:
     boot:
       # jetty-core is also excluded from the runtime classpath entirely (see
       # xroad.edc-owned-jetty-conventions); this setting is defense in depth.
-      excluded-service-extensions: org.eclipse.edc.web.jetty.JettyExtension
+      excluded-service-extensions: >-
+        org.eclipse.edc.web.jetty.JettyExtension,
+        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension
 
 web:
   http:
@@ -45,9 +47,6 @@ web:
     did:
       port: 6183
       path: /
-    sts:
-      port: 6184
-      path: /api/sts
     issuance:
       port: 6185
       path: /api/issuance
