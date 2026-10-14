@@ -248,7 +248,8 @@ class SharedParametersV7ToXmlConverterTest {
         assertThat(server.getOwner()).isSameAs(member);
         assertThat(server.getClient()).map(JAXBElement::getValue).containsExactly(subsystem);
         assertThat(member.getDid()).singleElement().satisfies(did -> assertThat(did.getSecurityServer()).isSameAs(server));
-        assertThat(idIndex(server.getId())).isGreaterThan(idIndex(member.getId())).isGreaterThan(idIndex(subsystem.getId()));
+        assertThat(idIndex(server.getId())).isGreaterThan(idIndex(subsystem.getId()));
+        assertThat(idIndex(subsystem.getId())).isGreaterThan(idIndex(member.getId()));
 
         var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
 

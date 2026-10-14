@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +104,7 @@ class SharedParametersMarshallRoundTripTest {
         assertThat(readV7(xml.getBytes(UTF_8))).usingRecursiveComparison().isEqualTo(parameters);
     }
 
-    private static SharedParameters readV7(byte[] content) throws IOException {
+    private static SharedParameters readV7(byte[] content) {
         return new SharedParametersV7(content).getSharedParameters();
     }
 
