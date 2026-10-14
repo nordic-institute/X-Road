@@ -49,6 +49,8 @@ public class SecurityServer extends Auditable {
     private String address;
     private boolean inMaintenanceMode;
     private String maintenanceModeMessage;
+    private String systemDid;
+    private String dspBaseUrl;
 
     private Set<AuthCert> authCerts = new HashSet<>(0);
 

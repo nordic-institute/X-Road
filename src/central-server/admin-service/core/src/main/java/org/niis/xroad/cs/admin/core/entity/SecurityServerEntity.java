@@ -99,6 +99,16 @@ public class SecurityServerEntity extends AuditableEntity {
     @Setter
     private String maintenanceModeMessage;
 
+    @Column(name = "system_did", length = 4000)
+    @Getter
+    @Setter
+    private String systemDid;
+
+    @Column(name = "dsp_base_url", columnDefinition = "TEXT")
+    @Getter
+    @Setter
+    private String dspBaseUrl;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer")
     @Access(AccessType.FIELD)
     @Getter
