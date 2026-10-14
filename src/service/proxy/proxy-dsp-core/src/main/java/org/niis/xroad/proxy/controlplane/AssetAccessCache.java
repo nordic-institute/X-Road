@@ -34,6 +34,7 @@ import jakarta.annotation.Nullable;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -121,5 +122,15 @@ class AssetAccessCache {
      */
     CachedEntry get(CacheKey key, Function<CacheKey, CachedEntry> loader) {
         return cache.get(key, loader);
+    }
+
+    /**
+     * Drops every entry acquired for the given participant context, asset and calling client, whichever
+     * provider candidate it was acquired from.
+     */
+    void invalidate(String participantContextId, String assetId, @Nullable String consumerClientId) {
+        cache.asMap().keySet().removeIf(key -> key.participantContextId().equals(participantContextId)
+                && key.assetId().equals(assetId)
+                && Objects.equals(key.consumerClientId(), consumerClientId));
     }
 }

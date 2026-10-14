@@ -64,6 +64,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
@@ -148,7 +149,8 @@ public class AssetAccessCompletionPoller {
      * Registers a transfer process id to await; the returned future completes with the data address
      * resolved through {@link DataAddressStore} once the transfer reaches
      * {@link TransferProcessStates#STARTED}, fails with the stored error detail once it reaches
-     * {@link TransferProcessStates#TERMINATED}, or fails with a timeout once {@code timeout} passes
+     * {@link TransferProcessStates#TERMINATED}, fails with {@code DSP_DATAADDRESS_INVALID} if a started
+     * transfer's data address cannot be resolved, or fails with a timeout once {@code timeout} passes
      * without a terminal state.
      */
     public CompletableFuture<DataAddress> awaitTransfer(String transferProcessId, Duration timeout) {
@@ -348,10 +350,10 @@ public class AssetAccessCompletionPoller {
                 if (resolved.succeeded()) {
                     waiter.future().complete(resolved.getContent());
                 } else {
-                    waiter.future().completeExceptionally(transferFailure(id, resolved.getFailureDetail()));
+                    waiter.future().completeExceptionally(dataAddressResolutionFailure(id, resolved.getFailureDetail()));
                 }
             } catch (Exception e) {
-                waiter.future().completeExceptionally(transferFailure(id, e.getMessage()));
+                waiter.future().completeExceptionally(dataAddressResolutionFailure(id, e.getMessage()));
             }
         });
     }
@@ -410,6 +412,14 @@ public class AssetAccessCompletionPoller {
 
     private static XrdRuntimeException transferFailure(String transferProcessId, String reason) {
         return XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(transferProcessId)
+                .details(reason)
+                .build();
+    }
+
+    private static XrdRuntimeException dataAddressResolutionFailure(String transferProcessId, String reason) {
+        return XrdRuntimeException.systemException(DSP_DATAADDRESS_INVALID)
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems(transferProcessId)
                 .details(reason)

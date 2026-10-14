@@ -247,7 +247,7 @@ class AssetAccessCompletionPollerTest {
                 .hasCauseInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataaddress_invalid");
                     assertThat(cause.getDetails()).isEqualTo("no data address stored");
                 });
     }
@@ -420,7 +420,7 @@ class AssetAccessCompletionPollerTest {
                     .hasCauseInstanceOf(XrdRuntimeException.class)
                     .satisfies(ex -> {
                         var cause = (XrdRuntimeException) ex.getCause();
-                        assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                        assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataaddress_invalid");
                         assertThat(cause.getDetails()).isEqualTo("vault unreachable");
                     });
         } finally {

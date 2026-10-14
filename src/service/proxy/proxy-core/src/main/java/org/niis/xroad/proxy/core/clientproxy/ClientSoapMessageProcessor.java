@@ -94,6 +94,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
@@ -236,11 +237,12 @@ public class ClientSoapMessageProcessor {
         log.trace("processRequest()");
         clientRequestPreparationService.recordServiceSecurityServerAddress(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(), ctx, opMonitoringData);
+        var dspRequest = new DspRequest(
+                decoder.getServiceId(), decoder.getRequestSoap().getClient(),
+                decoder.getRequestSoap().getSecurityServer(),
+                isManagementRequest(decoder.getServiceId()));
         AssetAccessResponse assetAccess = proxyProperties.dspEnabled()
-                ? consumerSideDspProcessor.execute(new DspRequest(
-                        decoder.getServiceId(), decoder.getRequestSoap().getClient(),
-                        decoder.getRequestSoap().getSecurityServer(),
-                        isManagementRequest(decoder.getServiceId())))
+                ? consumerSideDspProcessor.execute(dspRequest)
                 : null;
         ProxyMessage response;
         try (HttpSender httpSender = executeWithRetry(ctx, decoder, xRequestId, opMonitoringData, assetAccess)) {
@@ -249,6 +251,9 @@ public class ClientSoapMessageProcessor {
             checkError(decoder);
 
             response = parseResponse(httpSender, decoder, opMonitoringData);
+        } catch (XrdRuntimeException e) {
+            dropAssetAccessOnTokenRejection(e, dspRequest);
+            throw e;
         }
 
         checkConsistency(decoder, response);
@@ -256,6 +261,12 @@ public class ClientSoapMessageProcessor {
         logResponseMessage(response, xRequestId);
 
         return response;
+    }
+
+    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, DspRequest dspRequest) {
+        if (proxyProperties.dspEnabled() && failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)) {
+            consumerSideDspProcessor.invalidateAssetAccess(dspRequest);
+        }
     }
 
     /**
