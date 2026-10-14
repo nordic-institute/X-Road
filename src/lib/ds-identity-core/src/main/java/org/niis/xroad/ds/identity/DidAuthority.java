@@ -30,6 +30,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.net.IDN;
 import java.util.Locale;
+import java.util.OptionalInt;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -45,6 +46,9 @@ public class DidAuthority {
     public static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final int NON_ASCII_START = 0x80;
+    private static final int MIN_PORT = 1;
+    private static final int MAX_PORT = 65535;
+    private static final int MAX_PORT_DIGITS = 5;
 
     /**
      * Checks that a registered address, as stored and before any conversion, contains only ASCII characters.
@@ -96,5 +100,101 @@ public class DidAuthority {
     public static String canonical(String host, int port) {
         var canonicalHost = canonicalHost(host);
         return port == DEFAULT_HTTPS_PORT ? canonicalHost : canonicalHost + ":" + port;
+    }
+
+    /**
+     * An authority split into its host and optional port.
+     *
+     * @param host the host as written, case kept, without the brackets of an IPv6 literal
+     * @param port the explicit port, empty when the authority has none
+     */
+    public record Parsed(String host, OptionalInt port) {
+    }
+
+    /**
+     * Splits an authority, as the DID decoder returns it, into a host and an optional port. The forms are
+     * {@code host}, {@code host:port}, {@code [v6]} and {@code [v6]:port}; an IPv6 literal without brackets
+     * is taken as a host with no port. The host keeps its case and is not converted.
+     *
+     * @param authority the authority to split
+     * @return the host and the explicit port, if any
+     * @throws XrdRuntimeException if the host is empty or not ASCII, the brackets are malformed, or the port is
+     *         not a number from {@value #MIN_PORT} to {@value #MAX_PORT}
+     */
+    public static Parsed parse(String authority) {
+        if (authority == null || authority.isEmpty()) {
+            throw emptyHost(authority);
+        }
+        String host;
+        String portText = null;
+        if (authority.startsWith("[")) {
+            int close = authority.indexOf(']');
+            if (close < 0) {
+                throw malformedBrackets(authority, "has no closing bracket");
+            }
+            host = authority.substring(1, close);
+            var rest = authority.substring(close + 1);
+            if (!rest.isEmpty()) {
+                if (rest.charAt(0) != ':') {
+                    throw malformedBrackets(authority, "has text after the closing bracket that is not a port");
+                }
+                portText = rest.substring(1);
+            }
+        } else if (authority.indexOf(':') != authority.lastIndexOf(':')) {
+            host = authority;
+        } else {
+            int colon = authority.indexOf(':');
+            host = colon < 0 ? authority : authority.substring(0, colon);
+            portText = colon < 0 ? null : authority.substring(colon + 1);
+        }
+        if (hasBracket(host) || (portText != null && hasBracket(portText))) {
+            throw malformedBrackets(authority, "has a bracket that does not enclose the whole host");
+        }
+        if (host.isEmpty()) {
+            throw emptyHost(authority);
+        }
+        requireAscii(host);
+        return new Parsed(host, portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText)));
+    }
+
+    /**
+     * Whether an authority is already in canonical form: it equals {@link #canonical(String, int)} of its own
+     * parsed host and port, with a missing port read as {@value #DEFAULT_HTTPS_PORT}. An authority that cannot
+     * be parsed is not canonical.
+     *
+     * @param authority the authority to check, e.g. as decoded from a DID
+     * @return {@code true} if the authority needs no conversion
+     */
+    public static boolean isCanonical(String authority) {
+        try {
+            var parsed = parse(authority);
+            return authority.equals(canonical(parsed.host(), parsed.port().orElse(DEFAULT_HTTPS_PORT)));
+        } catch (XrdRuntimeException e) {
+            return false;
+        }
+    }
+
+    private static boolean hasBracket(String text) {
+        return text.indexOf('[') >= 0 || text.indexOf(']') >= 0;
+    }
+
+    private static int parsePort(String authority, String portText) {
+        boolean digits = !portText.isEmpty() && portText.length() <= MAX_PORT_DIGITS
+                && portText.chars().allMatch(c -> c >= '0' && c <= '9');
+        int port = digits ? Integer.parseInt(portText) : -1;
+        if (port < MIN_PORT || port > MAX_PORT) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "authority '%s' has port '%s' outside %d to %d", authority, portText, MIN_PORT, MAX_PORT);
+        }
+        return port;
+    }
+
+    private static XrdRuntimeException emptyHost(String authority) {
+        return XrdRuntimeException.systemException(VALIDATION_ERROR, "authority '%s' has an empty host", authority);
+    }
+
+    private static XrdRuntimeException malformedBrackets(String authority, String problem) {
+        return XrdRuntimeException.systemException(VALIDATION_ERROR, "authority '%s' has malformed brackets: it %s",
+                authority, problem);
     }
 }
