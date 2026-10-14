@@ -200,6 +200,7 @@ const rejectionMessages: Record<string, string> = {
     'The file contains more than one certificate. Upload only the CA certificate that issues the certificate',
   ca_cert_key_material: 'The file contains private key material. Upload the CA certificate only',
   ca_cert_not_a_ca: 'The certificate is not a CA certificate',
+  ca_cert_unsupported_key_algorithm: 'The CA certificate public key must be RSA or EC',
   ca_cert_expired: 'The CA certificate has expired',
   ca_cert_not_yet_valid: 'The CA certificate is not yet valid',
 };
@@ -291,6 +292,30 @@ describe('SS Operational Monitoring Trust tab — op-monitor CA (Browser Mode)',
       await expect.element(page.getByTestId('op-monitor-ca-empty')).toBeVisible();
       await chooseOpMonitorCaFile();
       await expect.element(page.getByText(message)).toBeVisible();
+    });
+  }
+  for (const [outcome, status] of [
+    ['succeeds', 200],
+    ['fails', 500],
+  ] as const) {
+    it(`disables the upload action until the first read of the op-monitor CA ${outcome}`, async () => {
+      let releaseRead: () => void = () => {};
+      const readGate = new Promise<void>((resolve) => (releaseRead = resolve));
+      await renderRoute(OP_MONITOR_TRUST_PATH, {
+        permissions: opMonitorCaViewAndUpload,
+        msw: [
+          detailsHandler,
+          specHttp.untyped.get('/api/v1/system/op-monitor-ca', async () => {
+            await readGate;
+            return status === 200
+              ? HttpResponse.json(opMonitorCa, { status })
+              : HttpResponse.json({ status, error: { code: 'internal_error' } }, { status });
+          }),
+        ],
+      });
+      await expect.element(page.getByTestId('upload-op-monitor-ca-button')).toBeDisabled();
+      releaseRead();
+      await expect.element(page.getByTestId('upload-op-monitor-ca-button')).toBeEnabled();
     });
   }
   it('hides the upload action without the upload permission', async () => {

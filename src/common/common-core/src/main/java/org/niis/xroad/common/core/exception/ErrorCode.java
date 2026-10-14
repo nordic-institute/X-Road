@@ -347,6 +347,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     CA_CERT_MULTIPLE_CERTIFICATES("ca_cert_multiple_certificates"),
     CA_CERT_KEY_MATERIAL("ca_cert_key_material"),
     CA_CERT_NOT_A_CA("ca_cert_not_a_ca"),
+    CA_CERT_UNSUPPORTED_KEY_ALGORITHM("ca_cert_unsupported_key_algorithm"),
     CA_CERT_EXPIRED("ca_cert_expired"),
     CA_CERT_NOT_YET_VALID("ca_cert_not_yet_valid"),
 

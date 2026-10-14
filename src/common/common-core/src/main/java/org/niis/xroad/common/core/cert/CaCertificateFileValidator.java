@@ -42,6 +42,8 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -63,6 +65,7 @@ public final class CaCertificateFileValidator {
     private static final String MULTIPLE_CERTIFICATES_MESSAGE = "The file contains more than one certificate or PEM block.";
     private static final String KEY_MATERIAL_MESSAGE = "The file contains private key material. Upload the CA certificate only.";
     private static final String NOT_A_CA_MESSAGE = "The certificate is not a CA certificate: basic constraints with cA=true are required.";
+    private static final String UNSUPPORTED_KEY_ALGORITHM_MESSAGE = "The CA certificate public key must be RSA or EC.";
     private static final String EXPIRED_MESSAGE = "The CA certificate has expired.";
     private static final String NOT_YET_VALID_MESSAGE = "The CA certificate is not yet valid.";
 
@@ -79,6 +82,7 @@ public final class CaCertificateFileValidator {
         String pemText = text.startsWith(UTF8_BOM) ? text.substring(UTF8_BOM.length()) : text;
         X509Certificate certificate = pemText.contains(PEM_BEGIN_MARKER) ? parsePem(pemText) : parseDer(input);
         checkCa(certificate);
+        checkKeyAlgorithm(certificate);
         checkValidity(certificate);
         return certificate;
     }
@@ -139,6 +143,13 @@ public final class CaCertificateFileValidator {
     private static void checkCa(X509Certificate certificate) {
         if (certificate.getBasicConstraints() < 0) {
             throw rejection(ErrorCode.CA_CERT_NOT_A_CA, NOT_A_CA_MESSAGE);
+        }
+    }
+
+    private static void checkKeyAlgorithm(X509Certificate certificate) {
+        var publicKey = certificate.getPublicKey();
+        if (!(publicKey instanceof RSAPublicKey) && !(publicKey instanceof ECPublicKey)) {
+            throw rejection(ErrorCode.CA_CERT_UNSUPPORTED_KEY_ALGORITHM, UNSUPPORTED_KEY_ALGORITHM_MESSAGE);
         }
     }
 

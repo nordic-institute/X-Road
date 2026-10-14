@@ -92,6 +92,7 @@
                 prepend-icon="upload"
                 :text="opMonitorCa ? 'opMonitorTrust.opMonitorCa.replace' : 'opMonitorTrust.opMonitorCa.upload'"
                 :loading="uploading"
+                :disabled="loadingOpMonitorCa"
                 @click="upload"
               />
             </XrdFileUpload>

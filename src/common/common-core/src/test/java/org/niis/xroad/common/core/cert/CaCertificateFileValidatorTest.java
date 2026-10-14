@@ -63,6 +63,9 @@ class CaCertificateFileValidatorTest {
     private static X509Certificate leafWithoutBasicConstraints;
     private static X509Certificate expiredCa;
     private static X509Certificate notYetValidCa;
+    private static X509Certificate ecCa;
+    private static X509Certificate ed25519Ca;
+    private static X509Certificate dsaCa;
 
     @BeforeAll
     static void createCertificates() throws Exception {
@@ -78,6 +81,9 @@ class CaCertificateFileValidatorTest {
 
         expiredCa = issue("CN=Old CA", rootKeyPair, "CN=Old CA", rootKeyPair, new BasicConstraints(true), -30, -1);
         notYetValidCa = issue("CN=Future CA", rootKeyPair, "CN=Future CA", rootKeyPair, new BasicConstraints(true), 1, 30);
+        ecCa = selfSignedCa("EC", 256, "SHA256withECDSA");
+        ed25519Ca = selfSignedCa("Ed25519", 0, "Ed25519");
+        dsaCa = selfSignedCa("DSA", 2048, "SHA256withDSA");
     }
 
     @Test
@@ -88,6 +94,12 @@ class CaCertificateFileValidatorTest {
     @Test
     void shouldAcceptPemIntermediateCa() throws Exception {
         assertThat(CaCertificateFileValidator.validate(pem(intermediateCa))).isEqualTo(intermediateCa);
+    }
+
+    @Test
+    void shouldAcceptEcCa() throws Exception {
+        assertThat(CaCertificateFileValidator.validate(pem(ecCa))).isEqualTo(ecCa);
+        assertThat(CaCertificateFileValidator.validate(ecCa.getEncoded())).isEqualTo(ecCa);
     }
 
     @Test
@@ -222,6 +234,13 @@ class CaCertificateFileValidatorTest {
     }
 
     @Test
+    void shouldRejectCaWithUnsupportedKeyAlgorithm() throws Exception {
+        assertRejected(pem(ed25519Ca), ErrorCode.CA_CERT_UNSUPPORTED_KEY_ALGORITHM);
+        assertRejected(ed25519Ca.getEncoded(), ErrorCode.CA_CERT_UNSUPPORTED_KEY_ALGORITHM);
+        assertRejected(pem(dsaCa), ErrorCode.CA_CERT_UNSUPPORTED_KEY_ALGORITHM);
+    }
+
+    @Test
     void shouldRejectExpiredCa() throws Exception {
         assertRejected(pem(expiredCa), ErrorCode.CA_CERT_EXPIRED);
     }
@@ -251,6 +270,22 @@ class CaCertificateFileValidatorTest {
         var generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         return generator.generateKeyPair();
+    }
+
+    private static X509Certificate selfSignedCa(String keyAlgorithm, int keySize, String signatureAlgorithm) throws Exception {
+        var generator = KeyPairGenerator.getInstance(keyAlgorithm);
+        if (keySize > 0) {
+            generator.initialize(keySize);
+        }
+        var keyPair = generator.generateKeyPair();
+        var name = new X500Name("CN=" + keyAlgorithm + " CA");
+        var builder = new JcaX509v3CertificateBuilder(name, BigInteger.valueOf(System.nanoTime()),
+                Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                name, keyPair.getPublic())
+                .addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+        var signer = new JcaContentSignerBuilder(signatureAlgorithm).build(keyPair.getPrivate());
+        return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
     }
 
     private static X509Certificate issue(String issuer, KeyPair issuerKeyPair, String subject, KeyPair subjectKeyPair,

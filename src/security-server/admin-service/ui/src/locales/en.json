@@ -437,6 +437,7 @@
     "ca_cert_not_a_certificate": "The file is not a PEM or DER encoded certificate",
     "ca_cert_not_yet_valid": "The CA certificate is not yet valid",
     "ca_cert_status_processing_failure": "CA certificate status processing failed",
+    "ca_cert_unsupported_key_algorithm": "The CA certificate public key must be RSA or EC",
     "cannot_delete_owner": "Cannot delete the owner",
     "cannot_register_owner": "Cannot register the owner",
     "cannot_unregister_owner": "Cannot unregister owner",

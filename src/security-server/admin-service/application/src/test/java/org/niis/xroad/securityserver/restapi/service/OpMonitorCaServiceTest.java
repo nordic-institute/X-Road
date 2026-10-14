@@ -85,6 +85,7 @@ class OpMonitorCaServiceTest {
     private static X509Certificate leaf;
     private static X509Certificate expiredCa;
     private static X509Certificate notYetValidCa;
+    private static X509Certificate ed25519Ca;
 
     @Mock
     private VaultClient vaultClient;
@@ -106,6 +107,8 @@ class OpMonitorCaServiceTest {
         leaf = issue("CN=Op-monitor", newKeyPair(), new BasicConstraints(false), -1, 365);
         expiredCa = issue("CN=Old CA", newKeyPair(), new BasicConstraints(true), -30, -1);
         notYetValidCa = issue("CN=Future CA", newKeyPair(), new BasicConstraints(true), 1, 30);
+        var ed25519KeyPair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+        ed25519Ca = issue("CN=Ed25519 CA", ed25519KeyPair, new BasicConstraints(true), -1, 365, "Ed25519");
     }
 
     @BeforeEach
@@ -193,6 +196,7 @@ class OpMonitorCaServiceTest {
         assertRejected(pem(leaf), ErrorCode.CA_CERT_NOT_A_CA);
         assertRejected(pem(expiredCa), ErrorCode.CA_CERT_EXPIRED);
         assertRejected(pem(notYetValidCa), ErrorCode.CA_CERT_NOT_YET_VALID);
+        assertRejected(pem(ed25519Ca), ErrorCode.CA_CERT_UNSUPPORTED_KEY_ALGORITHM);
 
         verify(vaultClient, never()).createOpMonitorCa(any());
         assertThat(stored.get()).isEqualTo(otherCa);
@@ -367,13 +371,19 @@ class OpMonitorCaServiceTest {
 
     private static X509Certificate issue(String subjectName, KeyPair keyPair, BasicConstraints basicConstraints,
                                          int notBeforeDaysFromNow, int notAfterDaysFromNow) throws Exception {
+        return issue(subjectName, keyPair, basicConstraints, notBeforeDaysFromNow, notAfterDaysFromNow, "SHA256withRSA");
+    }
+
+    private static X509Certificate issue(String subjectName, KeyPair keyPair, BasicConstraints basicConstraints,
+                                         int notBeforeDaysFromNow, int notAfterDaysFromNow, String signatureAlgorithm)
+            throws Exception {
         var subject = new X500Name(subjectName);
         var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.valueOf(System.nanoTime()),
                 Date.from(Instant.now().plus(notBeforeDaysFromNow, ChronoUnit.DAYS)),
                 Date.from(Instant.now().plus(notAfterDaysFromNow, ChronoUnit.DAYS)),
                 subject, keyPair.getPublic())
                 .addExtension(Extension.basicConstraints, true, basicConstraints);
-        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        var signer = new JcaContentSignerBuilder(signatureAlgorithm).build(keyPair.getPrivate());
         return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
     }
 
