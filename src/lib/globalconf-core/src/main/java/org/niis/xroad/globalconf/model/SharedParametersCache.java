@@ -66,7 +66,6 @@ public class SharedParametersCache {
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
-    private final Map<SecurityServerId, ServerSystemValues> systemValuesByServerId = new HashMap<>();
     private final Map<ClientId, Map<SecurityServerId, String>> memberDids = new HashMap<>();
     private final Map<ClientId, Set<SharedParameters.SecurityServer>> securityServersByClientId = new HashMap<>();
     private final Map<String, SharedParameters.SecurityServer> securityServersByAddress = new HashMap<>();
@@ -158,7 +157,6 @@ public class SharedParametersCache {
                     securityServer.getOwner().getMemberCode(), securityServer.getServerCode()
             );
             securityServersById.put(securityServerId, securityServer);
-            securityServer.systemValues().ifPresent(values -> systemValuesByServerId.put(securityServerId, values));
             securityServersByAddress.put(securityServer.getAddress(), securityServer);
 
             securityServer.getClients().forEach(client -> addServerClient(client, securityServer));
@@ -170,10 +168,7 @@ public class SharedParametersCache {
             return;
         }
         for (SharedParameters.Member member : sharedParameters.getMembers()) {
-            for (var memberDid : PublishedValuesNormaliser.normaliseMemberDids(member.getId(), member.getDids())) {
-                memberDids.computeIfAbsent(member.getId(), k -> new HashMap<>())
-                        .put(memberDid.serverId(), memberDid.did());
-            }
+            memberDids.computeIfAbsent(member.getId(), k -> new HashMap<>()).putAll(member.getDids());
         }
     }
 

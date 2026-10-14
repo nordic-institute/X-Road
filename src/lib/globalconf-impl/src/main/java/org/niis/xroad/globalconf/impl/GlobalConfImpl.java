@@ -593,7 +593,8 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
         return globalConfSource.findSharedParametersCache(serverId.getXRoadInstance())
-                .map(cache -> cache.getSystemValuesByServerId().get(serverId));
+                .map(cache -> cache.getSecurityServersById().get(serverId))
+                .map(SharedParameters.SecurityServer::getSystemValues);
     }
 
     @Override

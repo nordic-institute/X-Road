@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.globalconf.model;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -96,10 +98,7 @@ class SharedParametersMarshallRoundTripTest {
         var parameters = readV7(withoutPublishedValues.getBytes(UTF_8));
 
         assertThat(parameters.getMembers()).isNotEmpty().allSatisfy(member -> assertThat(member.getDids()).isEmpty());
-        assertThat(parameters.getSecurityServers()).isNotEmpty().allSatisfy(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).isNotEmpty().allSatisfy(server -> assertThat(server.getSystemValues()).isNull());
 
         var xml = new SharedParametersV7Marshaller().marshall(parameters);
 
@@ -116,24 +115,23 @@ class SharedParametersMarshallRoundTripTest {
         Map<String, SharedParameters.SecurityServer> serversByCode = parameters.getSecurityServers().stream()
                 .collect(Collectors.toMap(SharedParameters.SecurityServer::getServerCode, Function.identity()));
 
-        assertThat(membersByCode.get("producer").getDids()).extracting(SharedParameters.MemberDid::did)
+        assertThat(membersByCode.get("producer").getDids().values())
                 .containsExactly("did:web:127.0.0.1%3A7183:v1:EE:BUSINESS:producer",
                         "did:web:127.0.0.1%3A7283:v1:EE:BUSINESS:producer");
-        assertThat(membersByCode.get("producer").getDids()).extracting(did -> did.serverId().getServerCode())
+        assertThat(membersByCode.get("producer").getDids().keySet()).extracting(SecurityServerId::getServerCode)
                 .containsExactly("producerServerCode", "producerServerCode2");
-        assertThat(membersByCode.get("foo").getDids()).singleElement().satisfies(did -> {
-            assertThat(did.did()).isEqualTo(UNKNOWN_SCHEME_VERSION_DID);
-            assertThat(did.serverId().getServerCode()).isEqualTo("FooBarServerCode");
+        assertThat(membersByCode.get("foo").getDids()).hasSize(1).allSatisfy((serverId, did) -> {
+            assertThat(did).isEqualTo(UNKNOWN_SCHEME_VERSION_DID);
+            assertThat(serverId.getServerCode()).isEqualTo("FooBarServerCode");
         });
 
-        assertThat(serversByCode.get("producerServerCode").getSystemDid())
+        assertThat(serversByCode.get("producerServerCode").getSystemValues().systemDid())
                 .isEqualTo("did:web:127.0.0.1%3A7183:v1:system");
-        assertThat(serversByCode.get("producerServerCode").getDspBaseUrl())
+        assertThat(serversByCode.get("producerServerCode").getSystemValues().dspBaseUrl())
                 .isEqualTo("https://127.0.0.1:8183/api/dsp");
-        assertThat(serversByCode.get("producerServerCode2").getDspBaseUrl())
+        assertThat(serversByCode.get("producerServerCode2").getSystemValues().dspBaseUrl())
                 .isEqualTo("https://127.0.0.1:8283/api/dsp");
-        assertThat(serversByCode.get("consumerServerCode").getSystemDid()).isNull();
-        assertThat(serversByCode.get("consumerServerCode").getDspBaseUrl()).isNull();
+        assertThat(serversByCode.get("consumerServerCode").getSystemValues()).isNull();
         assertThat(List.of(serversByCode.get("producerServerCode"), serversByCode.get("producerServerCode2")))
                 .extracting(SharedParameters.SecurityServer::getAddress).containsOnly("127.0.0.1");
     }

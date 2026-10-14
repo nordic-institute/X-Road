@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBElement;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
@@ -52,10 +54,12 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.SubsystemType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 public class SharedParametersV7Converter {
 
     SharedParameters convert(SharedParametersTypeV7 source) {
@@ -251,12 +255,36 @@ public class SharedParametersV7Converter {
             target.setSubsystems(source.getSubsystem().stream().map(subsystem ->
                     toSubsystem(instanceIdentifier, source, subsystem)).toList());
         }
-        target.setDids(PublishedValuesNormaliser.normaliseMemberDids(target.getId(),
-                source.getDid().stream().map(did -> toMemberDid(instanceIdentifier, did)).toList()));
+        target.setDids(toMemberDids(instanceIdentifier, target.getId(), source.getDid()));
         return target;
     }
 
-    private SharedParameters.MemberDid toMemberDid(String instanceIdentifier, MemberDidType source) {
+    private Map<SecurityServerId, String> toMemberDids(String instanceIdentifier, ClientId memberId,
+                                                       List<MemberDidType> sources) {
+        Map<SecurityServerId, List<String>> didsByServer = new LinkedHashMap<>();
+        for (var source : sources) {
+            var serverId = toReferencedServerId(instanceIdentifier, source);
+            var did = StringUtils.trimToNull(source.getValue());
+            if (did != null) {
+                didsByServer.computeIfAbsent(serverId, id -> new ArrayList<>()).add(did);
+            } else if (source.getValue() != null) {
+                log.warn("Member {} has a blank did entry for security server {}, treating it as not published",
+                        memberId, serverId);
+            }
+        }
+        Map<SecurityServerId, String> dids = new LinkedHashMap<>();
+        didsByServer.forEach((serverId, serverDids) -> {
+            if (serverDids.size() > 1) {
+                log.warn("Member {} has {} did entries for security server {}, treating them as not published",
+                        memberId, serverDids.size(), serverId);
+            } else {
+                dids.put(serverId, serverDids.getFirst());
+            }
+        });
+        return dids;
+    }
+
+    private SecurityServerId toReferencedServerId(String instanceIdentifier, MemberDidType source) {
         var referenced = requireResolved("did", source.getSecurityServer());
         if (!(referenced instanceof SecurityServerType server)) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_MEMBER_DID_REFERENCES_NON_SERVER)
@@ -264,7 +292,7 @@ public class SharedParametersV7Converter {
                     .metadataItems("did", idOf(referenced))
                     .build();
         }
-        return new SharedParameters.MemberDid(toServerId(instanceIdentifier, server), source.getValue());
+        return toServerId(instanceIdentifier, server);
     }
 
     private SecurityServerId toServerId(String instanceIdentifier, SecurityServerType source) {
@@ -320,11 +348,8 @@ public class SharedParametersV7Converter {
         target.setOwner(toOwnerId(instanceIdentifier, source));
         target.setServerCode(source.getServerCode());
         target.setAddress(source.getAddress());
-        var systemValues = PublishedValuesNormaliser.normaliseSystemValues(
-                SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()),
-                source.getSystemDid(), source.getDspBaseUrl());
-        target.setSystemDid(systemValues.map(ServerSystemValues::systemDid).orElse(null));
-        target.setDspBaseUrl(systemValues.map(ServerSystemValues::dspBaseUrl).orElse(null));
+        target.setSystemValues(toSystemValues(SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()),
+                source.getSystemDid(), source.getDspBaseUrl()));
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
 
         if (source.getClient() != null) {
@@ -346,6 +371,19 @@ public class SharedParametersV7Converter {
                 .or(() -> Optional.of(SharedParameters.MaintenanceMode.disabled()))
                 .ifPresent(target::setMaintenanceMode);
         return target;
+    }
+
+    private ServerSystemValues toSystemValues(SecurityServerId serverId, String systemDid, String dspBaseUrl) {
+        var did = StringUtils.trimToNull(systemDid);
+        var url = StringUtils.trimToNull(dspBaseUrl);
+        if (did == null || url == null) {
+            if (systemDid != null || dspBaseUrl != null) {
+                log.warn("Security server {} has an incomplete systemDid and dspBaseUrl pair, treating both as not published",
+                        serverId);
+            }
+            return null;
+        }
+        return new ServerSystemValues(did, url);
     }
 
     private ClientId toClientId(String instanceIdentifier, MemberType source) {

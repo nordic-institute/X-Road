@@ -100,6 +100,8 @@ abstract class SharedParametersV7ToXmlConverter {
     @Mapping(source = "securityServer.clients", target = "client", qualifiedByName = "clientsById")
     @Mapping(source = "securityServer.owner", target = "owner", qualifiedByName = "clientById")
     @Mapping(source = "securityServer.maintenanceMode", target = "inMaintenanceMode")
+    @Mapping(source = "securityServer.systemValues.systemDid", target = "systemDid")
+    @Mapping(source = "securityServer.systemValues.dspBaseUrl", target = "dspBaseUrl")
     @Mapping(source = "id", target = "id")
     abstract SecurityServerType convertServer(SharedParameters.SecurityServer securityServer, String id,
                                               @Context ReferenceTargets targets);
@@ -165,16 +167,16 @@ abstract class SharedParametersV7ToXmlConverter {
         return authCert.getHash(DigestAlgorithm.SHA256);
     }
 
-    private static Optional<MemberDidType> toMemberDid(ClientId memberId, SharedParameters.MemberDid memberDid,
+    private static Optional<MemberDidType> toMemberDid(ClientId memberId, SecurityServerId serverId, String did,
                                                        ReferenceTargets targets) {
-        var server = targets.servers().get(memberDid.serverId());
+        var server = targets.servers().get(serverId);
         if (server == null) {
             log.warn("Member {} has a did for security server {}, which is not in the server list, leaving it out",
-                    memberId, memberDid.serverId());
+                    memberId, serverId);
             return Optional.empty();
         }
         var memberDidType = OBJECT_FACTORY.createMemberDidType();
-        memberDidType.setValue(memberDid.did());
+        memberDidType.setValue(did);
         memberDidType.setSecurityServer(server);
         return Optional.of(memberDidType);
     }
@@ -207,8 +209,8 @@ abstract class SharedParametersV7ToXmlConverter {
         if (sharedParameters.getMembers() != null) {
             for (SharedParameters.Member member : sharedParameters.getMembers()) {
                 var memberType = (MemberType) targets.clients().get(member.getId());
-                member.getDids().stream()
-                        .map(memberDid -> toMemberDid(member.getId(), memberDid, targets))
+                member.getDids().entrySet().stream()
+                        .map(entry -> toMemberDid(member.getId(), entry.getKey(), entry.getValue(), targets))
                         .flatMap(Optional::stream)
                         .forEach(memberType.getDid()::add);
             }

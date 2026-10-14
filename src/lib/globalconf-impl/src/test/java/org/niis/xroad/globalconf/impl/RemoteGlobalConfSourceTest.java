@@ -122,9 +122,9 @@ class RemoteGlobalConfSourceTest {
 
         assertThat(mainCache).isPresent();
         assertThat(foreignCache).isPresent();
-        assertThat(foreignCache.orElseThrow().getSystemValuesByServerId())
-                .containsEntry(FOREIGN_SERVER, new ServerSystemValues(FOREIGN_SYSTEM_DID, FOREIGN_DSP_BASE_URL));
-        assertThat(mainCache.orElseThrow().getSystemValuesByServerId()).doesNotContainKey(FOREIGN_SERVER);
+        assertThat(foreignCache.orElseThrow().getSecurityServersById().get(FOREIGN_SERVER).getSystemValues())
+                .isEqualTo(new ServerSystemValues(FOREIGN_SYSTEM_DID, FOREIGN_DSP_BASE_URL));
+        assertThat(mainCache.orElseThrow().getSecurityServersById()).doesNotContainKey(FOREIGN_SERVER);
     }
 
     @Test

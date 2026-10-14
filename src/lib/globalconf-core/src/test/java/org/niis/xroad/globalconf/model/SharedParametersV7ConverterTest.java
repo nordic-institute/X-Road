@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 class SharedParametersV7ConverterTest {
 
@@ -108,9 +109,9 @@ class SharedParametersV7ConverterTest {
     void shouldReadWellFormedFixtureWithoutWarning() throws IOException {
         var parameters = read(Files.readString(Path.of(V7_FIXTURE)));
 
-        assertThat(parameters.getMembers()).flatExtracting(SharedParameters.Member::getDids).isNotEmpty();
-        assertThat(parameters.getSecurityServers()).extracting(SharedParameters.SecurityServer::getSystemDid)
-                .anySatisfy(did -> assertThat(did).isNotNull());
+        assertThat(parameters.getMembers()).anySatisfy(member -> assertThat(member.getDids()).isNotEmpty());
+        assertThat(parameters.getSecurityServers()).extracting(SharedParameters.SecurityServer::getSystemValues)
+                .anySatisfy(values -> assertThat(values).isNotNull());
         assertThat(warnings).isEmpty();
     }
 
@@ -123,11 +124,11 @@ class SharedParametersV7ConverterTest {
 
         assertThat(parameters.getMembers()).singleElement()
                 .satisfies(member -> assertThat(member.getDids()).containsExactly(
-                        new SharedParameters.MemberDid(SERVER_0, MEMBER_DID_0),
-                        new SharedParameters.MemberDid(SERVER_1, MEMBER_DID_1)));
+                        entry(SERVER_0, MEMBER_DID_0), entry(SERVER_1, MEMBER_DID_1)));
         assertThat(parameters.getSecurityServers()).hasSize(2);
-        assertThat(parameters.getSecurityServers().getFirst().getSystemDid()).isEqualTo(SYSTEM_DID);
-        assertThat(parameters.getSecurityServers().getFirst().getDspBaseUrl()).isEqualTo(DSP_BASE_URL);
+        assertThat(parameters.getSecurityServers().getFirst().getSystemValues())
+                .isEqualTo(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL));
+        assertThat(parameters.getSecurityServers().getLast().getSystemValues()).isNull();
         assertThat(warnings).isEmpty();
     }
 
@@ -192,10 +193,8 @@ class SharedParametersV7ConverterTest {
     void shouldReadSystemDidWithoutDspBaseUrlAsNoSystemValues() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", null, SYSTEM_DID)));
 
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
         assertThat(warnings).hasSize(1);
     }
 
@@ -203,10 +202,8 @@ class SharedParametersV7ConverterTest {
     void shouldReadDspBaseUrlWithoutSystemDidAsNoSystemValues() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", DSP_BASE_URL, null)));
 
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
         assertThat(warnings).hasSize(1);
     }
 
@@ -214,10 +211,8 @@ class SharedParametersV7ConverterTest {
     void shouldReadBlankSystemValuesAsAbsentAndWarnOnce() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", "  ", " ")));
 
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
         assertThat(warnings).hasSize(1);
     }
 
@@ -225,10 +220,8 @@ class SharedParametersV7ConverterTest {
     void shouldReadEmptySystemDidElementAsAbsentAndWarnOnce() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", null, "")));
 
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
         assertThat(warnings).hasSize(1);
     }
 
@@ -236,10 +229,8 @@ class SharedParametersV7ConverterTest {
     void shouldReadBlankDspBaseUrlElementAsAbsentAndWarnOnce() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", "  ", null)));
 
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
         assertThat(warnings).hasSize(1);
     }
 
@@ -247,10 +238,62 @@ class SharedParametersV7ConverterTest {
     void shouldReadBlankDspBaseUrlWithSystemDidAsHalfPairAndWarnOnce() {
         var parameters = read(document("", server("s0", "m0", "ss0", "", "  ", SYSTEM_DID)));
 
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(server -> {
-            assertThat(server.getSystemDid()).isNull();
-            assertThat(server.getDspBaseUrl()).isNull();
-        });
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
+        assertThat(warnings).hasSize(1);
+    }
+
+    @Test
+    void shouldReadSystemValuesTrimmed() {
+        var parameters = read(document("",
+                server("s0", "m0", "ss0", "", " " + DSP_BASE_URL + "\n", "\n  " + SYSTEM_DID + " ")));
+
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues)
+                .isEqualTo(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL));
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldReadAbsentSystemValuesWithoutWarning() {
+        var parameters = read(document("", server("s0", "m0", "ss0", "", null, null)));
+
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldReadBlankSystemDidWithDspBaseUrlAsHalfPairAndWarnOnce() {
+        var parameters = read(document("", server("s0", "m0", "ss0", "", DSP_BASE_URL, "  ")));
+
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .extracting(SharedParameters.SecurityServer::getSystemValues).isNull();
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst().getParameters()).contains(SERVER_0);
+    }
+
+    @Test
+    void shouldReadBlankDidOfOneServerAsAbsentWhileOtherServersKeepTheirs() {
+        var parameters = read(document(
+                "<did securityServer=\"s0\">  </did><did securityServer=\"s1\">" + MEMBER_DID_1 + "</did>",
+                server("s0", "m0", "ss0", "", null, null),
+                server("s1", "m0", "ss1", "", null, null)));
+
+        assertThat(parameters.getMembers()).singleElement().satisfies(member ->
+                assertThat(member.getDids()).containsExactly(entry(SERVER_1, MEMBER_DID_1)));
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst().getParameters()).contains(PRODUCER, SERVER_0);
+    }
+
+    @Test
+    void shouldNotCountBlankDidTowardDuplicate() {
+        var parameters = read(document(
+                "<did securityServer=\"s0\"> </did><did securityServer=\"s0\">" + MEMBER_DID_0 + "</did>",
+                server("s0", "m0", "ss0", "", null, null)));
+
+        assertThat(parameters.getMembers()).singleElement().satisfies(member ->
+                assertThat(member.getDids()).containsExactly(entry(SERVER_0, MEMBER_DID_0)));
         assertThat(warnings).hasSize(1);
     }
 
@@ -264,7 +307,7 @@ class SharedParametersV7ConverterTest {
                 server("s1", "m0", "ss1", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
-                assertThat(member.getDids()).containsExactly(new SharedParameters.MemberDid(SERVER_1, MEMBER_DID_1)));
+                assertThat(member.getDids()).containsExactly(entry(SERVER_1, MEMBER_DID_1)));
         assertThat(warnings).hasSize(1);
     }
 
@@ -278,7 +321,7 @@ class SharedParametersV7ConverterTest {
                 server("s1", "m0", "ss1", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
-                assertThat(member.getDids()).containsExactly(new SharedParameters.MemberDid(SERVER_1, MEMBER_DID_1)));
+                assertThat(member.getDids()).containsExactly(entry(SERVER_1, MEMBER_DID_1)));
         assertThat(warnings).hasSize(1);
     }
 
@@ -306,7 +349,7 @@ class SharedParametersV7ConverterTest {
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
-                assertThat(member.getDids()).containsExactly(new SharedParameters.MemberDid(SERVER_0, MEMBER_DID_0)));
+                assertThat(member.getDids()).containsExactly(entry(SERVER_0, MEMBER_DID_0)));
         assertThat(warnings).isEmpty();
     }
 
@@ -345,7 +388,7 @@ class SharedParametersV7ConverterTest {
                 server("s0", "m0", "ss0", "", null, null)));
 
         assertThat(parameters.getMembers()).singleElement().satisfies(member ->
-                assertThat(member.getDids()).containsExactly(new SharedParameters.MemberDid(SERVER_0, did)));
+                assertThat(member.getDids()).containsExactly(entry(SERVER_0, did)));
         assertThat(warnings).isEmpty();
     }
 

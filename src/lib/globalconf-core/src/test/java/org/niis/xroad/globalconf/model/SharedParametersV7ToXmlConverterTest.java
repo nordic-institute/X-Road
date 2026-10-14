@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ObjectFactory;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.SecurityServerType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.SharedParametersTypeV7;
 
 import java.io.StringWriter;
@@ -128,6 +129,8 @@ class SharedParametersV7ToXmlConverterTest {
                         "securityServers.id",
                         "securityServers.clients",
                         "securityServers.authCerts",
+                        "securityServers.systemDid",
+                        "securityServers.dspBaseUrl",
                         "members.id",
                         "members.subsystems.id",
                         "members.did",
@@ -151,6 +154,10 @@ class SharedParametersV7ToXmlConverterTest {
 
         assertIdReferences(xmlType);
         assertMemberDidReferences(xmlType);
+        var systemValues = sharedParameters.getSecurityServers().getFirst().getSystemValues();
+        assertThat(xmlType.getSecurityServer().getFirst())
+                .returns(systemValues.systemDid(), SecurityServerType::getSystemDid)
+                .returns(systemValues.dspBaseUrl(), SecurityServerType::getDspBaseUrl);
         assertThat(xmlType.getSecurityServer().getFirst().getAuthCertHash().getFirst())
                 .isEqualTo(sharedParameters.getSecurityServers().getFirst().getAuthCertHashes().getFirst().getHash(SHA256));
     }
@@ -259,9 +266,8 @@ class SharedParametersV7ToXmlConverterTest {
     void shouldGiveEveryServerAnIdWhenNothingIsPublished() {
         var sharedParameters = xrdAdr44Example();
         var server = sharedParameters.getSecurityServers().getFirst();
-        server.setSystemDid(null);
-        server.setDspBaseUrl(null);
-        sharedParameters.getMembers().getFirst().setDids(List.of());
+        server.setSystemValues(null);
+        sharedParameters.getMembers().getFirst().setDids(Map.of());
 
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
 
@@ -283,9 +289,9 @@ class SharedParametersV7ToXmlConverterTest {
         var listedServerId = SecurityServerId.Conf.create(member.getId(), "ss0");
         var unlistedServerId = SecurityServerId.Conf.create(member.getId(), "unlisted");
         var listedDid = "did:web:ss0.example.org%3A7183:v1:DEV:COM:222";
-        member.setDids(List.of(
-                new SharedParameters.MemberDid(unlistedServerId, "did:web:ss9.example.org%3A7183:v1:DEV:COM:222"),
-                new SharedParameters.MemberDid(listedServerId, listedDid)));
+        member.setDids(Map.of(
+                unlistedServerId, "did:web:ss9.example.org%3A7183:v1:DEV:COM:222",
+                listedServerId, listedDid));
 
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
 
@@ -312,7 +318,7 @@ class SharedParametersV7ToXmlConverterTest {
         member.setName("Test member");
         member.setId(memberId);
         member.setSubsystems(List.of(new SharedParameters.Subsystem("TESTCLIENT", null, subsystemId)));
-        member.setDids(List.of(new SharedParameters.MemberDid(serverId, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222")));
+        member.setDids(Map.of(serverId, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222"));
 
         var server = new SharedParameters.SecurityServer();
         server.setOwner(memberId);
@@ -321,8 +327,8 @@ class SharedParametersV7ToXmlConverterTest {
         server.setAuthCertHashes(List.of(new CertHash(SHA256, "ss0-auth-cert-hash".getBytes(UTF_8))));
         server.setClients(List.of(subsystemId));
         server.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
-        server.setDspBaseUrl("https://ss0.example.org:8183/api/dsp");
-        server.setSystemDid("did:web:ss0.example.org%3A7183:v1:system");
+        server.setSystemValues(new ServerSystemValues("did:web:ss0.example.org%3A7183:v1:system",
+                "https://ss0.example.org:8183/api/dsp"));
 
         return new SharedParameters("DEV", getConfigurationSources(), List.of(), List.of(), List.of(), List.of(),
                 List.of(member), List.of(server), List.of(), new SharedParameters.GlobalSettings(List.of(), 60));
@@ -456,9 +462,9 @@ class SharedParametersV7ToXmlConverterTest {
                 subsystem(clientId, "SUB1", "Name1"),
                 subsystem(clientId, "SUB2", "Name2")
         ));
-        member.setDids(List.of(new SharedParameters.MemberDid(
+        member.setDids(Map.of(
                 SecurityServerId.Conf.create(clientId, "security-server-code"),
-                "did:web:security-server-address%3A7183:v1:CLASS1:M1")));
+                "did:web:security-server-address%3A7183:v1:CLASS1:M1"));
         return List.of(member);
     }
 
@@ -474,8 +480,8 @@ class SharedParametersV7ToXmlConverterTest {
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
         securityServer.setMaintenanceMode(new SharedParameters.MaintenanceMode(true, "maintenance message"));
-        securityServer.setSystemDid("did:web:security-server-address%3A7183:v1:system");
-        securityServer.setDspBaseUrl("https://security-server-address:8183/api/dsp");
+        securityServer.setSystemValues(new ServerSystemValues("did:web:security-server-address%3A7183:v1:system",
+                "https://security-server-address:8183/api/dsp"));
         return securityServer;
     }
 

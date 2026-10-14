@@ -26,6 +26,7 @@
 package org.niis.xroad.confproxy.common.service;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,7 @@ import org.niis.xroad.signer.client.SignerSignClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,10 +101,8 @@ class OutputBuilderV7SharedParametersTest {
         assertThat(rewritten.getMembers()).hasSameSizeAs(source.getMembers());
         assertThat(rewritten.getSecurityServers()).usingRecursiveComparison().isEqualTo(source.getSecurityServers());
         assertThat(rewritten.getMembers()).usingRecursiveComparison().isEqualTo(source.getMembers());
-        assertThat(rewritten.getSecurityServers().stream().map(SharedParameters.SecurityServer::getSystemDid).toList())
-                .isEqualTo(source.getSecurityServers().stream().map(SharedParameters.SecurityServer::getSystemDid).toList());
-        assertThat(rewritten.getSecurityServers().stream().map(SharedParameters.SecurityServer::getDspBaseUrl).toList())
-                .isEqualTo(source.getSecurityServers().stream().map(SharedParameters.SecurityServer::getDspBaseUrl).toList());
+        assertThat(rewritten.getSecurityServers().stream().map(SharedParameters.SecurityServer::getSystemValues).toList())
+                .isEqualTo(source.getSecurityServers().stream().map(SharedParameters.SecurityServer::getSystemValues).toList());
         assertThat(rewritten.getMembers().stream().map(SharedParameters.Member::getDids).toList())
                 .isEqualTo(source.getMembers().stream().map(SharedParameters.Member::getDids).toList());
     }
@@ -112,7 +111,7 @@ class OutputBuilderV7SharedParametersTest {
     void didWithSchemeVersionV2PassesThroughUnchanged() throws Exception {
         var rewritten = rewriteMainInstanceSharedParameters();
 
-        assertThat(didsOf(rewritten, "foo")).extracting(SharedParameters.MemberDid::did)
+        assertThat(didsOf(rewritten, "foo").values())
                 .containsExactly("did:web:foo.bar.baz%3A7183:v2:EE:BUSINESS:foo");
     }
 
@@ -121,18 +120,19 @@ class OutputBuilderV7SharedParametersTest {
         var rewritten = rewriteMainInstanceSharedParameters();
 
         var withoutValues = rewritten.getSecurityServers().stream()
-                .filter(s -> s.getSystemDid() == null && s.getDspBaseUrl() == null)
+                .filter(s -> s.getSystemValues() == null)
                 .map(SharedParameters.SecurityServer::getServerCode)
                 .toList();
         assertThat(withoutValues).containsExactlyInAnyOrder("consumerServerCode", "fooServerCode");
         assertThat(rewritten.getSecurityServers()).hasSize(5);
     }
 
-    private static List<SharedParameters.MemberDid> didsOf(SharedParameters parameters, String memberCode) {
+    private static Map<SecurityServerId, String> didsOf(SharedParameters parameters, String memberCode) {
         return parameters.getMembers().stream()
                 .filter(m -> memberCode.equals(m.getMemberCode()))
-                .flatMap(m -> m.getDids().stream())
-                .toList();
+                .map(SharedParameters.Member::getDids)
+                .findFirst()
+                .orElseThrow();
     }
 
     private VersionedConfigurationDirectory confDirWithSourceSharedParameters() throws Exception {

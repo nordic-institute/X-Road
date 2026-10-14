@@ -33,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -70,8 +71,8 @@ class SharedParametersOlderVersionsOmitPublishedValuesTest {
         member.setName("Test member");
         member.setId(memberId);
         member.setSubsystems(List.of(new SharedParameters.Subsystem("TESTCLIENT", null, subsystemId)));
-        member.setDids(List.of(new SharedParameters.MemberDid(SecurityServerId.Conf.create(memberId, "ss0"),
-                "did:web:ss0.example.org%3A7183:v1:DEV:COM:222")));
+        member.setDids(Map.of(SecurityServerId.Conf.create(memberId, "ss0"),
+                "did:web:ss0.example.org%3A7183:v1:DEV:COM:222"));
 
         var server = new SharedParameters.SecurityServer();
         server.setOwner(memberId);
@@ -80,8 +81,8 @@ class SharedParametersOlderVersionsOmitPublishedValuesTest {
         server.setAuthCertHashes(List.of(new CertHash("ss0-auth-cert".getBytes(UTF_8))));
         server.setClients(List.of(subsystemId));
         server.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
-        server.setDspBaseUrl("https://ss0.example.org:8183/api/dsp");
-        server.setSystemDid("did:web:ss0.example.org%3A7183:v1:system");
+        server.setSystemValues(new ServerSystemValues("did:web:ss0.example.org%3A7183:v1:system",
+                "https://ss0.example.org:8183/api/dsp"));
 
         var configurationSource = new SharedParameters.ConfigurationSource();
         configurationSource.setAddress("cs");
