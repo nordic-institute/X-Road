@@ -6,6 +6,7 @@ dependencies {
   implementation(project(":service:ds-identity-hub:ds-identity-hub-provisioning-protocol"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:edc-rpc"))
+  implementation(project(":lib:ds-identity-core"))
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.identityhub.participantcontext)
