@@ -31,7 +31,6 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 
 import java.util.Optional;
 
-import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_LISTEN_ADDRESS;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_PORT;
@@ -43,7 +42,7 @@ public class OpMonitorServerProperties implements RpcServerProperties {
 
     @Override
     public boolean enabled() {
-        return xRoadConfig.value(RPC_ENABLED);
+        return true;
     }
 
     @Override

@@ -150,10 +150,10 @@
         <mxCell id="puleRstXydkWTkgCOc0V-72" value="tcp/ip" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=16;" parent="1" vertex="1">
           <mxGeometry x="877.5" y="622.5" width="40" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="puleRstXydkWTkgCOc0V-73" value="http(s)/json" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=16;" parent="1" vertex="1">
+        <mxCell id="puleRstXydkWTkgCOc0V-73" value="gRPC" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=16;" parent="1" vertex="1">
           <mxGeometry x="837.5" y="491" width="40" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="puleRstXydkWTkgCOc0V-74" value="http(s)/soap" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=16;" parent="1" vertex="1">
+        <mxCell id="puleRstXydkWTkgCOc0V-74" value="gRPC" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=16;" parent="1" vertex="1">
           <mxGeometry x="850" y="431" width="40" height="20" as="geometry" />
         </mxCell>
         <mxCell id="puleRstXydkWTkgCOc0V-75" value="tcp/ip" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=16;" parent="1" vertex="1">

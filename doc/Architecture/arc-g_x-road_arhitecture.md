@@ -2,8 +2,8 @@
 
 **X-Road Architecture**
 
-Version: 1.15  
-11.11.2025
+Version: 1.16  
+15.10.2026
 <!-- 16 pages -->
 Doc. ID: ARC-G
 
@@ -35,6 +35,7 @@ Doc. ID: ARC-G
 | 01.06.2023 | 1.13    | Update references                                                                                             | Petteri Kivimäki   |
 | 17.03.2025 | 1.14    | Syntax and styling                                                                                            | Pauline Dimmek     |
 | 11.11.2025 | 1.15    | Drop JMX interfaces                                                                                           | Justas Samuolis    |
+| 15.10.2026 | 1.16    | Operational monitoring store and query over gRPC                                                              | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -346,14 +347,14 @@ The central server user interface is used by the central server administrator to
 
 ### 3.11 Store Operational Monitoring Data
 
-This protocol is used by the X-Road security server to store its cached operational monitoring data into the database of the operational monitoring daemon. The protocol is a synchronous RPC-style protocol based on JSON over HTTP(S).
+This protocol is used by the X-Road security server to store its cached operational monitoring data into the database of the operational monitoring daemon. The protocol is a synchronous RPC-style protocol based on gRPC.
 
 The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
 
 
 ### 3.12 Operational Monitoring Query
 
-The operational monitoring query interface is used by the X-Road security server to retrieve operational monitoring data from the operational monitoring daemon. The asynchronous RPC-style X-Road operational monitoring protocol \[[PR-OPMON](#Ref_PR-OPMON)\] (based on \[[PR-MESS](#Ref_PR-MESS)\]) is used.
+The operational monitoring query interface is used by the X-Road security server to retrieve operational monitoring data from the operational monitoring daemon. The protocol is a synchronous RPC-style protocol based on gRPC. The security server passes the query message of the X-Road operational monitoring protocol \[[PR-OPMON](#Ref_PR-OPMON)\] (based on \[[PR-MESS](#Ref_PR-MESS)\]) on to the daemon over this interface.
 
 The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
 

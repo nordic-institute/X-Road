@@ -63,7 +63,6 @@ import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
-import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorStoreClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
@@ -253,19 +252,13 @@ class ProxyConfig {
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(serverConfProvider, proxyProperties.addon().opMonitor(),
-                        () -> new OpMonitorStoreClient(() -> createOpMonitorClient(rpcChannelFactory, xRoadConfig)));
+                        () -> new OpMonitorStoreClient(() -> OpMonitorClient.create(rpcChannelFactory, xRoadConfig)));
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {
                 log.debug("Initializing NoOpMonitoringBuffer");
                 return new NoOpMonitoringBuffer();
             }
-        }
-
-        private static OpMonitorClient createOpMonitorClient(RpcChannelFactory rpcChannelFactory, XRoadConfig xRoadConfig) {
-            var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(xRoadConfig));
-            opMonitorClient.init();
-            return opMonitorClient;
         }
 
         public void cleanup(@Disposes OpMonitoringBuffer opMonitoringBuffer) {

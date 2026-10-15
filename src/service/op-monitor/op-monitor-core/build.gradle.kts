@@ -23,15 +23,15 @@ dependencies {
   implementation(libs.mapstruct)
   implementation(libs.quarkus.scheduler)
 
+  implementation(project(":common:common-core"))
   implementation(project(":common:common-domain"))
-  implementation(project(":common:common-jetty"))
+  implementation(project(":common:common-message"))
   implementation(project(":common:common-db"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:properties-core"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
-  implementation(project(":lib:vault-quarkus"))
 
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))

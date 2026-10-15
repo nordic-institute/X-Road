@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
@@ -185,6 +186,33 @@ class ConfigurablePropertiesCatalogueTest {
                 .doesNotContain(
                         "xroad.signer.modules",
                         "xroad.message-log-encryption.archive.grouping-keys");
+    }
+
+    @Test
+    void storedRowsOfRemovedOpMonitorKeysAreNeitherListedNorFailTheCatalogue() {
+        when(repository.findAll()).thenReturn(List.of(
+                row("xroad.op-monitor.tls.certificate-provisioning.common-name", "op-monitor"),
+                row("xroad.op-monitor.tls.certificate-provisioning.alt-names", ""),
+                row("xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names", "127.0.0.1"),
+                row("xroad.op-monitor.scheme", "https"),
+                row("xroad.op-monitor.port", "abc"),
+                row("xroad.op-monitor.rpc.port", "2091")));
+
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties).extracting(ConfigurablePropertyDto::getPropertyName)
+                .noneMatch(name -> name.startsWith("xroad.op-monitor.tls"))
+                .doesNotContain("xroad.op-monitor.scheme", "xroad.op-monitor.port");
+        assertThat(properties).filteredOn(dto -> "xroad.op-monitor.rpc.port".equals(dto.getPropertyName()))
+                .singleElement()
+                .satisfies(dto -> assertThat(dto.getCurrentValue()).isEqualTo("2091"));
+    }
+
+    private static ConfigurationPropertyEntity row(String key, String value) {
+        var entity = new ConfigurationPropertyEntity();
+        entity.setPropertyKey(key);
+        entity.setPropertyValue(value);
+        return entity;
     }
 
     private static Map<String, ExpectedProperty> expectedCrossModuleProperties() {

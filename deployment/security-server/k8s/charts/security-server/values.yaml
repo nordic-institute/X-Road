@@ -42,10 +42,6 @@ configSeed:
   properties:
     - key: xroad.proxy-ui-api.proxy-server-url
       value: https://proxy:8443
-    - key: xroad.proxy.addon.op-monitor.connection.scheme
-      value: https
-    - key: xroad.op-monitor.scheme
-      value: https
     # A signer serving a Security Server retrieves OCSP responses periodically.
     # The native packages activate this through the ss quarkus profile, but the
     # containerized profile cannot know which product the signer serves.
@@ -347,9 +343,6 @@ services:
         secretName: "db-serverconf"
         key: "password"
   op-monitor:
-    waits:
-      - type: serverconfProperty
-        key: xroad.op-monitor.scheme
     enabled: false
     otelServiceName: xroad-opmonitor
     imageName: ss-op-monitor
@@ -361,8 +354,6 @@ services:
     ports:
       - port: 4099
         name: http
-      - port: 2080
-        name: opmon-daemon
       - port: 2081
         name: grpc
     debugPort: 9999

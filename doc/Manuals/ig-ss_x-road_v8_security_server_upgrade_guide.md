@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.1
+Version: 1.2
 Doc. ID: IG-SS-8-UPGRADE
 
 ---
@@ -13,6 +13,7 @@ Doc. ID: IG-SS-8-UPGRADE
 |------------|---------|----------------------------------------------------------------------------|--------------------|
 | 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
+| 15.10.2026 | 1.2     | Added the operational monitoring changes: settings migration, add-on flag, op-monitor package upgrade and TLS files | Eneli Reimets      |
 
 ## License
 
@@ -34,6 +35,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [Unattended mode (config file)](#unattended-mode-config-file)
   - [What the wizard does](#what-the-wizard-does)
   - [Migration-CLI sub-steps](#migration-cli-sub-steps)
+  - [Operational monitoring](#operational-monitoring)
   - [Operator choices](#operator-choices)
   - [Secrets in unattended mode](#secrets-in-unattended-mode)
   - [Resuming after a failed run](#resuming-after-a-failed-run)
@@ -196,7 +198,7 @@ sudo bash -c "$(curl -sSfL https://artifactory.niis.org/xroad-scripts/0.0.1-beta
 
 ### What the wizard does
 
-The wizard runs thirteen ordered steps. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps are all reversible without touching package state, so a preflight failure leaves the server unchanged.
+The wizard runs thirteen ordered steps and two sub-steps, 6a and 11a. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps and sub-step 6a are all reversible without touching package state, so a preflight failure leaves the server unchanged.
 
 | #  | Step                                  | What it does                                                                                                                                                                                                                                                                                                          |
 |----|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -206,11 +208,13 @@ The wizard runs thirteen ordered steps. Each step exits non-zero on failure; the
 | 4  | **Migrate db.properties**             | Rewrites `/etc/xroad/db.properties` in place to the V8 `xroad.db.*` key prefix. Original is preserved at `/etc/xroad/db.properties.bak`.                                                                                                                                                                              |
 | 5  | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
 | 6  | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
+| 6a | **Record op-monitor state**           | Before the services stop, records once in `/var/lib/xroad-upgrade/op-monitor.state` whether the X-Road 7.8 operational monitoring add-on is enabled (its add-on configuration file is present) and whether the `xroad-opmonitor` package is installed. A resumed run reuses the stored state.                         |
 | 7  | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
 | 8  | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
-| 9  | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`).                                                                                                                                                                                            |
-| 10 | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service`, `management-service`, and `opmonitor`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service,opmonitor}`. Missing pairs are skipped.                                    |
+| 9  | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`). When `xroad-opmonitor` was installed in 7.8, it is installed in the same command and the step fails unless it is at 8.x afterwards, so the proxy and op-monitor are upgraded together.     |
+| 10 | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service` and `management-service`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service}`. Missing pairs are skipped. `opmonitor.crt` and its key are not migrated: op-monitor uses the shared internal gRPC identity. |
 | 11 | **Run migration CLI**                 | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`.                                                                                                                                                           |
+| 11a | **Write op-monitor flag**             | Writes `xroad.proxy.addon.op-monitor.enabled` as `true` or `false` from the state recorded in step 6a, only when the property has no value yet. See [Operational monitoring](#operational-monitoring).                                                                                                                |
 | 12 | **Start X-Road services**             | Starts `xroad-signer`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
 | 13 | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`.                                                                                        |
 
@@ -241,6 +245,53 @@ Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-
 `account-keystore-password` is not carried into the `xroad.acme` database value: X-Road 8 has no code path that reads it back out, so the wizard writes a scrubbed copy of `acme.yml` to the database and leaves the file on disk unchanged. If you inspect `xroad.acme` after migration and expect to see that field, this is why it's missing.
 
 Inspect the wizard log for any Java stack traces. Migration-CLI sub-commands sometimes return exit 0 even after an internal exception; the wizard scans the output and treats any line matching `Error `, `Caused by:`, `Exception in `, or `<Class>Exception:` as a failure.
+
+### Operational monitoring
+
+X-Road 8 stores operational monitoring data and answers monitoring queries over gRPC only. The REST interface of the operational monitoring daemon and its port 2080 are gone, so the proxy and the operational monitoring daemon must be upgraded together: an X-Road 8 proxy cannot use an X-Road 7.8 daemon. The wizard upgrades the local `xroad-opmonitor` package in step 9 when it was installed in 7.8. A daemon on another host is not upgraded by the wizard.
+
+A query to a stopped or unreachable operational monitoring daemon fails only after the channel deadline (`xroad.common-rpc.channel.op-monitor.deadline-after`, 60 seconds by default), not immediately.
+
+The `ini-to-db` sub-step migrates the X-Road 7.8 `[op-monitor]`, `[op-monitor-service]` and `[op-monitor-buffer]` settings as follows.
+
+| X-Road 7.8 setting                                                                                                                                                   | Result                                                                                                           |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `[op-monitor]` `grpc-port`                                                                                                                                           | Mapped to `xroad.op-monitor.rpc.port` and `xroad.common-rpc.channel.op-monitor.port`.                            |
+| `[op-monitor]` `grpc-client-timeout`                                                                                                                                 | Mapped to `xroad.common-rpc.channel.op-monitor.deadline-after`.                                                  |
+| `[op-monitor-buffer]` `size`, `max-records-in-message`, `sending-interval-seconds`                                                                                   | Mapped to `xroad.proxy.addon.op-monitor.buffer.size`, `.max-records-in-message` and `.sending-interval-seconds`. |
+| `[op-monitor]` `keep-records-for-days`, `clean-interval`, `max-records-in-payload`, `records-available-timestamp-offset-seconds`, `health-statistics-period-seconds` | Kept under the same names with the prefix `xroad.op-monitor.`.                                                   |
+| `[op-monitor]` `host`                                                                                                                                                | Mapped by its value, see below.                                                                                  |
+| `[op-monitor]` `port`, `scheme`, `tls-certificate`, `client-tls-certificate`                                                                                         | Dropped. X-Road 8 has no REST connection.                                                                        |
+| `[op-monitor-service]` and `[op-monitor-buffer]` `socket-timeout-seconds`, `connection-timeout-seconds`                                                              | Dropped. The channel deadline `deadline-after` replaces the HTTP timeouts.                                       |
+
+`max-records-in-payload` keeps its X-Road 7.8 value. X-Road 8 also limits the size of a query response with `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` (16 MiB by default); a larger response fails. The response size depends on the number and the size of the records, and a full response also includes all records of its last timestamp second, so neither the default nor a migrated value of `max-records-in-payload` guarantees that every response fits. A monitoring client that repeats a failed query from the same position does not progress until the response fits. The available settings and their limits are described in the [operational monitoring system parameters](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md).
+
+The effective 7.8 `host` value is the last one set in the `override-*.ini` files in name order, then `local.ini`. A value set only in the package file `op-monitor.ini` is not migrated. An IPv6 address in square brackets, such as `[::1]`, is migrated without the brackets.
+
+| `host` value                                                                                                     | Result                                                                                                                                                                                                    |
+|------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Absent                                                                                                           | Nothing is written. The X-Road 8 defaults apply: channel host and listener address `127.0.0.1`.                                                                                                           |
+| A wildcard address such as `0.0.0.0` or `::`                                                                     | `xroad.op-monitor.rpc.listen-address` is set to the value. The channel host keeps its default.                                                                                                            |
+| `127.0.0.1`                                                                                                      | `xroad.common-rpc.channel.op-monitor.host` is set to the value.                                                                                                                                           |
+| Another loopback IP address such as `::1`, or an IP address of this server                                       | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value. The IP SAN setting `xroad.common-rpc.certificate-provisioning.ip-subject-alt-names` is set to `127.0.0.1` and the value. |
+| A remote address                                                                                                 | Only the channel host is set. The listener address keeps its default and no certificate SAN setting is written.                                                                                           |
+| A name with at least one address of this server that is not a loopback address                                   | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value, and the DNS SAN setting `xroad.common-rpc.certificate-provisioning.alt-names` is set to the value.                       |
+| A name whose addresses are all loopback addresses, one of them `127.0.0.1`, such as `localhost`                  | The channel host is set to the value and the DNS SAN setting is set to the value. The listener address keeps its default.                                                                                 |
+| A name whose addresses are all loopback addresses other than `127.0.0.1`, such as only `127.0.1.1` or only `::1` | The channel host and `xroad.op-monitor.rpc.listen-address` are set to the value, and the DNS SAN setting is set to the value.                                                                             |
+| A name that resolves to a loopback address and a remote address                                                  | The channel host is set to the value and the DNS SAN setting is set to the value. The listener address keeps its default.                                                                                 |
+| A name that resolves only to remote addresses                                                                    | Only the channel host is set. The listener address keeps its default and no certificate SAN setting is written.                                                                                           |
+| A name that cannot be resolved                                                                                   | Only the channel host is set and a warning is logged. The listener address keeps its default and no certificate SAN setting is written.                                                                   |
+
+The wizard does not migrate a daemon on another host. The address of an external host is never written to the certificate SAN settings.
+
+The certificate SAN settings are configuration rows. The migration writes only these rows; it does not copy or modify certificate files. The internal gRPC services of the Security Server share these provisioning settings: each service requests its own certificate with them from the local secret store when it starts and when the certificate is refreshed. The IP SAN setting always contains `127.0.0.1`, which the internal services connect to by default. The migration does not change the common name of the certificates.
+
+Operational monitoring on and off:
+
+- In X-Road 7.8 the add-on package `xroad-addon-opmonitoring` turns the monitoring on. In X-Road 8 the property `xroad.proxy.addon.op-monitor.enabled` (default `false`) does. Step 6a records the 7.8 state and step 11a writes the property: `true` when the add-on was enabled, otherwise `false`. A value that already exists is kept.
+- Resetting `/var/lib/xroad-upgrade` removes the recorded state. A rerun then records the state again from the already upgraded server, where the 7.8 add-on is gone, so monitoring that was enabled in 7.8 is recorded as disabled. If the property was not written yet, set it by hand as in the [manual procedure](#manual-upgrade-procedure), step 11a.
+
+The op-monitor TLS files are not migrated. X-Road 7.8 used `/etc/xroad/ssl/opmonitor.crt` and its key for the HTTPS connection to the daemon. X-Road 8 uses the shared internal gRPC identity of the Security Server, so step 10 does not copy them to the secret store.
 
 ### Operator choices
 
@@ -291,6 +342,8 @@ To reset and rerun every sub-step (for example after a snapshot restore):
 ```bash
 sudo rm -rf /var/lib/xroad-upgrade
 ```
+
+The reset also removes the operational monitoring state recorded in step 6a. Reset only before step 9 has upgraded the packages, or after a snapshot restore. See [Operational monitoring](#operational-monitoring).
 
 ## Manual upgrade procedure
 
@@ -366,6 +419,16 @@ EOF
 dnf makecache
 ```
 
+**6a. Record the operational monitoring state.** Before the services are stopped, note whether the X-Road 7.8 operational monitoring add-on is enabled and whether the daemon package is installed:
+
+```bash
+test -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf && echo "add-on enabled" || echo "add-on not enabled"
+# Ubuntu
+dpkg-query -W -f='${Status}\n' xroad-opmonitor
+# RHEL
+rpm -q xroad-opmonitor
+```
+
 **7. Stop all X-Road services.**
 
 ```bash
@@ -400,13 +463,17 @@ rpm --import https://artifactory.niis.org/api/gpg/key/public
 yum makecache
 ```
 
-**9. Upgrade the Security Server package.**
+**9. Upgrade the Security Server package.** If the `xroad-opmonitor` package is installed, upgrade it in the same command so that the proxy and the operational monitoring daemon are upgraded together.
 
 ```bash
 # Ubuntu
 DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-securityserver
+# Ubuntu, when xroad-opmonitor is installed
+DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-securityserver xroad-opmonitor
 # RHEL
 dnf install -y xroad-securityserver
+# RHEL, when xroad-opmonitor is installed
+dnf install -y xroad-securityserver xroad-opmonitor
 ```
 
 Verify the version actually changed:
@@ -420,7 +487,7 @@ rpm -q --queryformat '%{VERSION}\n' xroad-securityserver
 
 The output must now begin with `8.`.
 
-**10. Migrate TLS material to the local secret store.** For each existing pair `/etc/xroad/ssl/{internal,proxy-ui-api,center-admin-service,management-service,opmonitor}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (used for both `proxy-ui-api` and `center-admin-service`), `management-service`, or `opmonitor`. Secret-store address and root token come from `/etc/xroad/services/secret-store-local.conf` (`XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`).
+**10. Migrate TLS material to the local secret store.** For each existing pair `/etc/xroad/ssl/{internal,proxy-ui-api,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (used for both `proxy-ui-api` and `center-admin-service`), or `management-service`. Do not migrate `opmonitor.crt` and its key. Secret-store address and root token come from `/etc/xroad/services/secret-store-local.conf` (`XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`).
 
 **11. Run migration-CLI sub-steps.** Run each sub-step listed in [Migration-CLI sub-steps](#migration-cli-sub-steps) in order, only when the corresponding source file is present:
 
@@ -457,6 +524,12 @@ Then apply the operator choices documented in [Operator choices](#operator-choic
 
 ```bash
 java -jar /var/tmp/migration-cli.jar set-property /etc/xroad/db.properties xroad.proxy.strict-identifier-checks false
+```
+
+**11a. Write the operational monitoring flag.** Set `xroad.proxy.addon.op-monitor.enabled` to `true` if the add-on was enabled in step 6a, otherwise to `false`. `--if-absent` keeps an existing value.
+
+```bash
+/usr/share/xroad/scripts/db_property.sh set xroad.proxy.addon.op-monitor.enabled true --if-absent
 ```
 
 **12. Start X-Road services.**
@@ -524,7 +597,7 @@ lxc start <container>
 
 **Restore `/etc/xroad` and the databases from backup.** If no snapshot is available, restore the pre-upgrade Security Server backup (configuration, databases, signer keys) on top of a freshly-reinstalled X-Road 7.8 host, then downgrade or reinstall the V7 packages from a known-good 7.8.x repository. The wizard's automatic `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` covers `/etc/xroad` only — the databases and message log must come from your own backup.
 
-**The wizard halts before destructive change when preflight fails.** Steps 1–7 (version gate, migration-CLI download, /etc/xroad backup, db.properties migration, PostgreSQL preflight, OpenBao repo setup, service stop) all run before the V8 repository switch and package upgrade. If any of them fails, the host can be returned to its pre-upgrade state without a rollback procedure:
+**The wizard halts before destructive change when preflight fails.** Steps 1–7 (version gate, migration-CLI download, /etc/xroad backup, db.properties migration, PostgreSQL preflight, OpenBao repo setup, op-monitor state recording, service stop) all run before the V8 repository switch and package upgrade. If any of them fails, the host can be returned to its pre-upgrade state without a rollback procedure:
 
 - Restore `/etc/xroad/db.properties.bak` over `/etc/xroad/db.properties` if step 4 succeeded but a later step failed.
 - Remove the OpenBao sources file added in step 6 if you want to undo the repo change.

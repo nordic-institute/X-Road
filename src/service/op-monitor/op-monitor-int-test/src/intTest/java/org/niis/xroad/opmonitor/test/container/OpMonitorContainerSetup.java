@@ -48,6 +48,9 @@ import java.time.Duration;
 @Slf4j
 public class OpMonitorContainerSetup extends BaseComposeSetup {
 
+    /** Exit code of curl when the connection is refused. */
+    public static final int CURL_CONNECTION_REFUSED = 7;
+
     private static final Duration OP_MONITOR_STARTUP_TIMEOUT = Duration.ofSeconds(45);
     private static final String OP_MONITOR = "op-monitor";
     private static final String DB_OP_MONITOR = "db-opmonitor";
@@ -101,6 +104,16 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
 
         opMonitorClient = new OpMonitorClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), properties);
         opMonitorClient.init();
+    }
+
+    /**
+     * Probes a TCP port from inside the op-monitor container with an HTTP request.
+     *
+     * @return the exit code of curl: 0 when the port answered, {@value #CURL_CONNECTION_REFUSED} when nothing listens
+     */
+    public int probeFromInside(int port) {
+        return execInContainer(OP_MONITOR, "curl", "-s", "-o", "/dev/null", "--max-time", "2",
+                "http://127.0.0.1:" + port + "/q/health/live").getExitCode();
     }
 
     /**
