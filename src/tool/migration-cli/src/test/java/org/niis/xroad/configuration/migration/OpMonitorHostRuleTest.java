@@ -36,7 +36,6 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -65,60 +64,53 @@ class OpMonitorHostRuleTest {
 
     @Test
     void absentHostWritesNothing() {
-        assertThat(rule.derive(null, none()).rows()).isEmpty();
-        assertThat(rule.derive("", none()).rows()).isEmpty();
-        assertThat(rule.derive("  ", none()).rows()).isEmpty();
+        assertThat(rule.derive(null).rows()).isEmpty();
+        assertThat(rule.derive("").rows()).isEmpty();
+        assertThat(rule.derive("  ").rows()).isEmpty();
     }
 
     @Test
     void loopbackIpv4WritesChannelOnly() {
-        assertThat(rule.derive("127.0.0.1", none()).rows()).containsExactlyEntriesOf(Map.of(CHANNEL_HOST, "127.0.0.1"));
+        assertThat(rule.derive("127.0.0.1").rows()).containsExactlyEntriesOf(Map.of(CHANNEL_HOST, "127.0.0.1"));
     }
 
     @Test
     void localhostWritesChannelAndDnsSan() {
-        assertThat(rule.derive("localhost", none()).rows())
+        assertThat(rule.derive("localhost").rows())
                 .containsOnly(entry(CHANNEL_HOST, "localhost"), entry(ALT_NAMES, "localhost"));
     }
 
     @Test
     void ipv6LoopbackWritesChannelListenerAndIpSan() {
-        assertThat(rule.derive("::1", none()).rows())
+        assertThat(rule.derive("::1").rows())
                 .containsOnly(entry(CHANNEL_HOST, "::1"), entry(LISTEN_ADDRESS, "::1"),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1"));
     }
 
     @Test
     void bracketedIpv6LoopbackWritesTheRowsWithoutBrackets() {
-        assertThat(rule.derive("[::1]", none()).rows())
+        assertThat(rule.derive("[::1]").rows())
                 .containsOnly(entry(CHANNEL_HOST, "::1"), entry(LISTEN_ADDRESS, "::1"),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1"));
-        assertThat(rule.derive(" [::1] ", none()).rows()).isEqualTo(rule.derive("::1", none()).rows());
+        assertThat(rule.derive(" [::1] ").rows()).isEqualTo(rule.derive("::1").rows());
     }
 
     @Test
     void bracketedLocalIpv6WritesTheRowsWithoutBrackets() {
-        assertThat(rule.derive("[" + LOCAL_IPV6 + "]", none()).rows())
+        assertThat(rule.derive("[" + LOCAL_IPV6 + "]").rows())
                 .containsOnly(entry(CHANNEL_HOST, LOCAL_IPV6), entry(LISTEN_ADDRESS, LOCAL_IPV6),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1," + LOCAL_IPV6));
     }
 
     @Test
     void bracketedIpv6WildcardWritesListenerOnlyWithoutBrackets() {
-        assertThat(rule.derive("[::]", none()).rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "::"));
-    }
-
-    @Test
-    void bracketedIpv6IsMergedWithExistingIpSanWithoutDuplicates() {
-        var existing = Map.of(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1");
-
-        assertThat(rule.derive("[::1]", existing::get).rows()).containsEntry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,::1");
+        assertThat(rule.derive("[::]").rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "::"));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"::1", "[::1]", "127.0.0.2", LOCAL_IPV4, LOCAL_IPV6, "[" + LOCAL_IPV6 + "]"})
     void ipSanRowHoldsOnlyBareIpAddresses(String host) {
-        var ipSans = rule.derive(host, none()).rows().get(IP_SUBJECT_ALT_NAMES);
+        var ipSans = rule.derive(host).rows().get(IP_SUBJECT_ALT_NAMES);
 
         assertThat(ipSans).isNotNull();
         assertThat(ipSans.split(",")).allSatisfy(token -> {
@@ -129,82 +121,82 @@ class OpMonitorHostRuleTest {
 
     @Test
     void otherLoopbackIpWritesChannelListenerAndIpSan() {
-        assertThat(rule.derive("127.0.0.2", none()).rows())
+        assertThat(rule.derive("127.0.0.2").rows())
                 .containsOnly(entry(CHANNEL_HOST, "127.0.0.2"), entry(LISTEN_ADDRESS, "127.0.0.2"),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,127.0.0.2"));
     }
 
     @Test
     void wildcardWritesListenerOnly() {
-        assertThat(rule.derive("0.0.0.0", none()).rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "0.0.0.0"));
-        assertThat(rule.derive("::", none()).rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "::"));
+        assertThat(rule.derive("0.0.0.0").rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "0.0.0.0"));
+        assertThat(rule.derive("::").rows()).containsExactlyEntriesOf(Map.of(LISTEN_ADDRESS, "::"));
     }
 
     @Test
     void localIpv4WritesChannelListenerAndIpSan() {
-        assertThat(rule.derive(LOCAL_IPV4, none()).rows())
+        assertThat(rule.derive(LOCAL_IPV4).rows())
                 .containsOnly(entry(CHANNEL_HOST, LOCAL_IPV4), entry(LISTEN_ADDRESS, LOCAL_IPV4),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1," + LOCAL_IPV4));
     }
 
     @Test
     void localIpv6WritesChannelListenerAndIpSan() {
-        assertThat(rule.derive(LOCAL_IPV6, none()).rows())
+        assertThat(rule.derive(LOCAL_IPV6).rows())
                 .containsOnly(entry(CHANNEL_HOST, LOCAL_IPV6), entry(LISTEN_ADDRESS, LOCAL_IPV6),
                         entry(IP_SUBJECT_ALT_NAMES, "127.0.0.1," + LOCAL_IPV6));
     }
 
     @Test
     void localHostnameWritesChannelListenerAndDnsSan() {
-        assertThat(rule.derive(LOCAL_NAME, none()).rows())
+        assertThat(rule.derive(LOCAL_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, LOCAL_NAME), entry(LISTEN_ADDRESS, LOCAL_NAME),
                         entry(ALT_NAMES, LOCAL_NAME));
     }
 
     @Test
     void nameResolvingToLocalAndRemoteCountsAsLocal() {
-        assertThat(rule.derive(MIXED_NAME, none()).rows())
+        assertThat(rule.derive(MIXED_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, MIXED_NAME), entry(LISTEN_ADDRESS, MIXED_NAME),
                         entry(ALT_NAMES, MIXED_NAME));
     }
 
     @Test
     void nameResolvingToLoopbackAndRemoteWritesChannelAndDnsSanOnly() {
-        assertThat(rule.derive(LOOPBACK_AND_REMOTE_NAME, none()).rows())
+        assertThat(rule.derive(LOOPBACK_AND_REMOTE_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, LOOPBACK_AND_REMOTE_NAME),
                         entry(ALT_NAMES, LOOPBACK_AND_REMOTE_NAME));
     }
 
     @Test
     void nameResolvingOnlyToOtherLoopbackWritesChannelListenerAndDnsSan() {
-        assertThat(rule.derive(DEBIAN_NAME, none()).rows())
+        assertThat(rule.derive(DEBIAN_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, DEBIAN_NAME), entry(LISTEN_ADDRESS, DEBIAN_NAME),
                         entry(ALT_NAMES, DEBIAN_NAME));
     }
 
     @Test
     void nameResolvingToIpv4LoopbackWritesChannelAndDnsSan() {
-        assertThat(rule.derive(IPV4_LOOPBACK_NAME, none()).rows())
+        assertThat(rule.derive(IPV4_LOOPBACK_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, IPV4_LOOPBACK_NAME), entry(ALT_NAMES, IPV4_LOOPBACK_NAME));
     }
 
     @Test
     void nameResolvingToIpv4LoopbackAndOtherLoopbackWritesChannelAndDnsSan() {
-        assertThat(rule.derive(IPV4_AND_OTHER_LOOPBACK_NAME, none()).rows())
+        assertThat(rule.derive(IPV4_AND_OTHER_LOOPBACK_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, IPV4_AND_OTHER_LOOPBACK_NAME),
                         entry(ALT_NAMES, IPV4_AND_OTHER_LOOPBACK_NAME));
     }
 
     @Test
     void nameResolvingOnlyToIpv6LoopbackWritesChannelListenerAndDnsSan() {
-        assertThat(rule.derive(IPV6_LOOPBACK_NAME, none()).rows())
+        assertThat(rule.derive(IPV6_LOOPBACK_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, IPV6_LOOPBACK_NAME), entry(LISTEN_ADDRESS, IPV6_LOOPBACK_NAME),
                         entry(ALT_NAMES, IPV6_LOOPBACK_NAME));
     }
 
     @Test
     void nameResolvingToOtherLoopbackAndIpv6LoopbackWritesChannelListenerAndDnsSan() {
-        assertThat(rule.derive(OTHER_AND_IPV6_LOOPBACK_NAME, none()).rows())
+        assertThat(rule.derive(OTHER_AND_IPV6_LOOPBACK_NAME).rows())
                 .containsOnly(entry(CHANNEL_HOST, OTHER_AND_IPV6_LOOPBACK_NAME),
                         entry(LISTEN_ADDRESS, OTHER_AND_IPV6_LOOPBACK_NAME),
                         entry(ALT_NAMES, OTHER_AND_IPV6_LOOPBACK_NAME));
@@ -212,15 +204,15 @@ class OpMonitorHostRuleTest {
 
     @Test
     void remoteIpv4AndHostnameWriteChannelOnly() {
-        assertThat(rule.derive(REMOTE_IPV4, none()).rows())
+        assertThat(rule.derive(REMOTE_IPV4).rows())
                 .containsExactlyEntriesOf(Map.of(CHANNEL_HOST, REMOTE_IPV4));
-        assertThat(rule.derive(REMOTE_NAME, none()).rows())
+        assertThat(rule.derive(REMOTE_NAME).rows())
                 .containsExactlyEntriesOf(Map.of(CHANNEL_HOST, REMOTE_NAME));
     }
 
     @Test
     void unresolvableHostWritesChannelOnlyAndWarns() {
-        var result = rule.derive(UNRESOLVABLE_NAME, none());
+        var result = rule.derive(UNRESOLVABLE_NAME);
 
         assertThat(result.rows()).containsExactlyEntriesOf(Map.of(CHANNEL_HOST, UNRESOLVABLE_NAME));
         assertThat(result.warning()).contains(UNRESOLVABLE_NAME);
@@ -228,33 +220,7 @@ class OpMonitorHostRuleTest {
 
     @Test
     void resolvedHostHasNoWarning() {
-        assertThat(rule.derive(LOCAL_NAME, none()).warning()).isNull();
-    }
-
-    @Test
-    void rerunOnMigratedRowsChangesNothing() {
-        var existing = Map.of(ALT_NAMES, LOCAL_NAME, IP_SUBJECT_ALT_NAMES, "127.0.0.1," + LOCAL_IPV4);
-
-        assertThat(rule.derive(LOCAL_NAME, existing::get).rows())
-                .containsEntry(ALT_NAMES, LOCAL_NAME);
-        assertThat(rule.derive(LOCAL_IPV4, existing::get).rows())
-                .containsEntry(IP_SUBJECT_ALT_NAMES, "127.0.0.1," + LOCAL_IPV4);
-    }
-
-    @Test
-    void sanRowsAreMergedWithExistingValuesWithoutDuplicates() {
-        var existing = Map.of(ALT_NAMES, "other.example,SS1.EXAMPLE", IP_SUBJECT_ALT_NAMES, "127.0.0.1,203.0.113.5");
-
-        assertThat(rule.derive(LOCAL_NAME, existing::get).rows())
-                .containsEntry(ALT_NAMES, "other.example,SS1.EXAMPLE");
-        assertThat(rule.derive("::1", existing::get).rows())
-                .containsEntry(IP_SUBJECT_ALT_NAMES, "127.0.0.1,203.0.113.5,::1");
-        assertThat(rule.derive("localhost", existing::get).rows())
-                .containsEntry(ALT_NAMES, "other.example,SS1.EXAMPLE,localhost");
-    }
-
-    private static UnaryOperator<String> none() {
-        return key -> null;
+        assertThat(rule.derive(LOCAL_NAME).warning()).isNull();
     }
 
     private static Map.Entry<String, String> entry(String key, String value) {

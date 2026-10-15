@@ -36,7 +36,6 @@ import org.postgresql.ds.PGSimpleDataSource;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 @Slf4j
 public class DbRepository implements AutoCloseable {
@@ -46,9 +45,6 @@ public class DbRepository implements AutoCloseable {
     private static final String UPSERT_KEY_VALUE =
             "INSERT INTO configuration_properties(property_key, property_value) VALUES (?, ?) "
                     + " ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value";
-
-    private static final String SELECT_VALUE =
-            "SELECT property_value FROM configuration_properties WHERE property_key = ?";
 
     private static final String UPSERT_CONFIGURATION_ANCHOR =
             "INSERT INTO configuration_client(name, content) VALUES ('configuration-anchor', ?) "
@@ -80,17 +76,6 @@ public class DbRepository implements AutoCloseable {
             this.connection.close();
         } catch (Exception e) {
             log.warn("Failed to close DB connection", e);
-        }
-    }
-
-    public String findProperty(String key) {
-        try (PreparedStatement statement = connection.prepareStatement(SELECT_VALUE)) {
-            statement.setString(1, key);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return resultSet.next() ? resultSet.getString(1) : null;
-            }
-        } catch (Exception e) {
-            throw new MigrationException("Failed to read configuration property %s".formatted(key), e);
         }
     }
 

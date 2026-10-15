@@ -33,11 +33,9 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 /**
@@ -64,12 +62,10 @@ final class OpMonitorHostRule {
     }
 
     /**
-     * @param host     effective 7.8 host value, {@code null} or blank when absent; an IPv6 address in brackets is
-     *                 used without the brackets
-     * @param existing returns the current value of a legacy-shaped key, or {@code null}; consulted only for the
-     *                 certificate rows
+     * @param host effective 7.8 host value, {@code null} or blank when absent; an IPv6 address in brackets is used
+     *             without the brackets
      */
-    Result derive(String host, UnaryOperator<String> existing) {
+    Result derive(String host) {
         if (host == null || host.isBlank()) {
             return new Result(Map.of(), null);
         }
@@ -78,9 +74,9 @@ final class OpMonitorHostRule {
         String warning = null;
         try {
             if (isIpLiteral(value)) {
-                deriveFromAddress(value, InetAddress.getByName(value), existing, rows);
+                deriveFromAddress(value, InetAddress.getByName(value), rows);
             } else {
-                deriveFromName(value, existing, rows);
+                deriveFromName(value, rows);
             }
         } catch (UnknownHostException _) {
             rows.clear();
@@ -91,8 +87,7 @@ final class OpMonitorHostRule {
         return new Result(rows, warning);
     }
 
-    private void deriveFromAddress(String value, InetAddress address, UnaryOperator<String> existing,
-                                   Map<String, String> rows) {
+    private void deriveFromAddress(String value, InetAddress address, Map<String, String> rows) {
         if (address.isAnyLocalAddress()) {
             rows.put(LISTEN_ADDRESS, value);
             return;
@@ -103,23 +98,22 @@ final class OpMonitorHostRule {
         }
         if (address.isLoopbackAddress() || resolver.isLocalAddress(address)) {
             rows.put(LISTEN_ADDRESS, value);
-            rows.put(IP_SUBJECT_ALT_NAMES, merge(existing, IP_SUBJECT_ALT_NAMES, LOOPBACK_IPV4, value));
+            rows.put(IP_SUBJECT_ALT_NAMES, String.join(",", LOOPBACK_IPV4, value));
         }
     }
 
-    private void deriveFromName(String value, UnaryOperator<String> existing, Map<String, String> rows)
-            throws UnknownHostException {
+    private void deriveFromName(String value, Map<String, String> rows) throws UnknownHostException {
         var addresses = resolver.resolve(value);
         rows.put(CHANNEL_HOST, value);
         if (addresses.stream().anyMatch(a -> !a.isLoopbackAddress() && resolver.isLocalAddress(a))) {
             rows.put(LISTEN_ADDRESS, value);
-            rows.put(ALT_NAMES, merge(existing, ALT_NAMES, value));
+            rows.put(ALT_NAMES, value);
         } else if (addresses.stream().anyMatch(InetAddress::isLoopbackAddress)) {
             if (addresses.stream().allMatch(InetAddress::isLoopbackAddress)
                     && addresses.stream().noneMatch(a -> LOOPBACK_IPV4.equals(a.getHostAddress()))) {
                 rows.put(LISTEN_ADDRESS, value);
             }
-            rows.put(ALT_NAMES, merge(existing, ALT_NAMES, value));
+            rows.put(ALT_NAMES, value);
         }
     }
 
@@ -132,27 +126,6 @@ final class OpMonitorHostRule {
 
     private static boolean isIpLiteral(String value) {
         return value.indexOf(':') >= 0 || IPV4_LITERAL.matcher(value).matches();
-    }
-
-    private static String merge(UnaryOperator<String> existing, String key, String... additions) {
-        var merged = new ArrayList<String>();
-        var current = existing.apply(key);
-        if (current != null) {
-            for (String token : current.split(",")) {
-                addIfAbsent(merged, token);
-            }
-        }
-        for (String addition : additions) {
-            addIfAbsent(merged, addition);
-        }
-        return String.join(",", merged);
-    }
-
-    private static void addIfAbsent(List<String> values, String candidate) {
-        var token = candidate.trim();
-        if (!token.isEmpty() && values.stream().noneMatch(token::equalsIgnoreCase)) {
-            values.add(token);
-        }
     }
 
     record Result(Map<String, String> rows, String warning) {

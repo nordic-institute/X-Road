@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 public class IniUtil {
@@ -81,13 +80,6 @@ public class IniUtil {
     }
 
     public Map<String, Object> loadToNestedMap(String filePath, String rootPrefix) {
-        return loadToNestedMap(filePath, rootPrefix, key -> null);
-    }
-
-    /**
-     * @param existing returns the current value of a legacy-shaped key, or {@code null}
-     */
-    Map<String, Object> loadToNestedMap(String filePath, String rootPrefix, UnaryOperator<String> existing) {
         var ini = load(filePath);
 
         Map<String, Object> properties = new HashMap<>();
@@ -106,7 +98,7 @@ public class IniUtil {
                 }
             }
         }
-        deriveOpMonitorHostRows(filePath, existing).forEach((key, value) ->
+        deriveOpMonitorHostRows(filePath).forEach((key, value) ->
                 insertNestedProperty(properties, key.split("\\."), value));
 
         Map<String, Object> root = new HashMap<>();
@@ -130,14 +122,6 @@ public class IniUtil {
     }
 
     public Map<String, String> loadToFlatMap(String filePath, String rootPrefix) {
-        return loadToFlatMap(filePath, rootPrefix, key -> null);
-    }
-
-    /**
-     * @param existing returns the current value of a key as written to the output (with the root prefix),
-     *                 or {@code null}
-     */
-    Map<String, String> loadToFlatMap(String filePath, String rootPrefix, UnaryOperator<String> existing) {
         var ini = load(filePath);
 
         Map<String, String> properties = new HashMap<>();
@@ -156,7 +140,7 @@ public class IniUtil {
                 }
             }
         }
-        deriveOpMonitorHostRows(filePath, key -> existing.apply(String.join(".", rootPrefix, key))).forEach((key, value) ->
+        deriveOpMonitorHostRows(filePath).forEach((key, value) ->
                 properties.put(String.join(".", rootPrefix, key), value));
 
         return properties;
@@ -167,7 +151,7 @@ public class IniUtil {
      * that wins when the operator files are applied in order: {@code override-*.ini} alphabetically, then
      * {@code local.ini}.
      */
-    private Map<String, String> deriveOpMonitorHostRows(String filePath, UnaryOperator<String> existing) {
+    private Map<String, String> deriveOpMonitorHostRows(String filePath) {
         if (readOpMonitorHost(load(filePath)) == null) {
             return Map.of();
         }
@@ -178,7 +162,7 @@ public class IniUtil {
                 effectiveHost = host;
             }
         }
-        return opMonitorHostRule.derive(effectiveHost, existing).rows();
+        return opMonitorHostRule.derive(effectiveHost).rows();
     }
 
     private static String readOpMonitorHost(LoadedIniFile ini) {

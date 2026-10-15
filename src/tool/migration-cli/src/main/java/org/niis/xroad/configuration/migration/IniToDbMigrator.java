@@ -50,18 +50,6 @@ public class IniToDbMigrator extends BasePropertiesToDbMigrator {
         return iniUtil.loadToFlatMap(filePath, "xroad");
     }
 
-    @Override
-    Map<String, String> loadProperties(String filePath, String dbPropertiesPath) {
-        log.info("Loading INI properties from [{}]", filePath);
-        return iniUtil.loadToFlatMap(filePath, "xroad", key -> readExisting(dbPropertiesPath, key));
-    }
-
-    private static String readExisting(String dbPropertiesPath, String key) {
-        try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
-            return dbRepo.findProperty(key);
-        }
-    }
-
     public static void main(String[] args) {
         validateParams(args);
 
