@@ -3,7 +3,7 @@
 **X-Road Architecture**
 
 Version: 1.16  
-13.10.2026
+15.10.2026
 <!-- 16 pages -->
 Doc. ID: ARC-G
 
@@ -35,7 +35,7 @@ Doc. ID: ARC-G
 | 01.06.2023 | 1.13    | Update references                                                                                             | Petteri Kivimäki   |
 | 17.03.2025 | 1.14    | Syntax and styling                                                                                            | Pauline Dimmek     |
 | 11.11.2025 | 1.15    | Drop JMX interfaces                                                                                           | Justas Samuolis    |
-| 13.10.2026 | 1.16    | Operational monitoring store and query over gRPC                                                              | Eneli Reimets      |
+| 15.10.2026 | 1.16    | Operational monitoring store and query over gRPC                                                              | Eneli Reimets      |
 
 ## Table of Contents
 

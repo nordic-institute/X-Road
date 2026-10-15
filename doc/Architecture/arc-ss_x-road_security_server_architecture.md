@@ -3,7 +3,7 @@
 **Technical Specification** <!-- omit in toc -->
 
 Version: 1.21
-13.10.2026
+15.10.2026
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -40,7 +40,7 @@ Doc. ID: ARC-SS
 | 23.09.2024 | 1.18    | Added mail server connection                                                                         | Mikk-Erik Bachmann |
 | 21.03.2025 | 1.19    | Syntax and styling                                                                                   | Pauline Dimmek     |
 | 11.11.2025 | 1.20    | Drop JMX interfaces                                                                                  | Justas Samuolis    |
-| 13.10.2026 | 1.21    | Operational monitoring store and query over gRPC                                                     | Eneli Reimets      |
+| 15.10.2026 | 1.21    | Operational monitoring store and query over gRPC                                                     | Eneli Reimets      |
 
 
 

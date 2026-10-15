@@ -13,7 +13,7 @@ Doc ID: UG-OPMONSYSPAR
 | 05.03.2018 | 0.5     | Added reference to terms and abbreviations doc                                                                          | Tatu Repo          | 
 | 01.06.2023 | 0.6     | Update references                                                                                                       | Petteri Kivimäki   |
 | 10.07.2025 | 0.7     | Added grpc related properties                                                                                           | Mikk-Erik Bachmann |
-| 13.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
+| 15.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -59,7 +59,14 @@ The security server and the operational monitoring daemon communicate over gRPC 
 
 The parameter `xroad.common-rpc.channel.op-monitor.deadline-after` is the time in milliseconds a call of the security server to the operational monitoring daemon may take. The channel waits for the daemon to become ready, so a query to a stopped or unreachable daemon fails only when this time has passed. The parameter replaces the HTTP client timeouts of earlier versions.
 
-The parameter `xroad.op-monitor.max-records-in-payload` must be set with the message size limit of the channel in mind. If a query response is larger than `xroad.common-rpc.channel.op-monitor.max-inbound-message-size`, the query fails with the fault code `service_failed.operational_data_response_too_large`. Raising `max-records-in-payload` can therefore make a query exceed the limit; in that case lower `max-records-in-payload` or raise the limit of the channel.
+The parameter `xroad.op-monitor.max-records-in-payload` must be set with the message size limit of the channel in mind. If a query response is larger than `xroad.common-rpc.channel.op-monitor.max-inbound-message-size`, the query fails with the fault code `server.serverproxy.service_failed.operational_data_response_too_large`. The size of a response depends on the number and the size of its records. `max-records-in-payload` is not a strict limit on the response size: a response that reaches `max-records-in-payload` also includes all further records that have the same timestamp second as its last record, so it can contain more records than `max-records-in-payload`. The default value therefore does not guarantee that every response fits the limit.
+
+These settings can help keep responses within the configured message size limit:
+
+* A lower `max-records-in-payload` can reduce response size when records are spread over several seconds. It cannot split records that have the same timestamp second: all records from the final second are included.
+* A higher `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` allows the channel to accept larger responses, including responses with many records from one second, if the configured limit is high enough. Consider the available memory when raising it, as the proxy holds each in-flight response in memory.
+
+If a response still exceeds the configured limit, the query fails with the fault code above. A monitoring client that retries the same query without advancing its position cannot progress until it receives a response that fits. Records that become older than `xroad.op-monitor.keep-records-for-days` before they are collected are deleted and are no longer available for collection.
 
 The parameter `xroad.proxy.addon.op-monitor.buffer.max-message-size` must be lower than `xroad.op-monitor.rpc.max-inbound-message-size` of the operational monitoring daemon. If the limit of the daemon is not set, the gRPC default of 4 MiB applies.
 
@@ -68,7 +75,7 @@ The parameter `xroad.proxy.addon.op-monitor.buffer.max-message-size` must be low
 | op-monitor | `xroad.op-monitor.clean-interval` | 0 0 0/12 1/1 \* ? \* | CRON expression \[[CRON](#CRON)\] defining the interval of deleting any operational data records that are older than *xroad.op-monitor.keep-records-for-days* from the operational monitoring database. |
 | op-monitor | `xroad.op-monitor.health-statistics-period-seconds` | 600 | The period for gathering health statistics about services in seconds. |
 | op-monitor | `xroad.op-monitor.keep-records-for-days` | 7 | Number of days to keep operational data records in the operational monitoring database. If a record is older than this value, the record is deleted from the database. |
-| op-monitor | `xroad.op-monitor.max-records-in-payload` | 10000 | Maximum number of operational data records in the operational data response payload. See the message size limit above. |
+| op-monitor | `xroad.op-monitor.max-records-in-payload` | 10000 | Maximum number of operational data records in the operational data response payload, not counting further records with the same timestamp second as the last record. See the message size limit above. |
 | op-monitor | `xroad.op-monitor.records-available-timestamp-offset-seconds` | 60 | The offset used to calculate the timestamp to which the operational data records are available in seconds. Only records with earlier timestamp than *'currentSeconds - offset'* are available. |
 | op-monitor | `xroad.op-monitor.rpc.listen-address` | 127.0.0.1 | The IP address on which the gRPC server of the operational monitoring daemon listens. In the container deployment the default is 0.0.0.0. |
 | op-monitor | `xroad.op-monitor.rpc.port` | 2081 | The TCP port on which the gRPC server of the operational monitoring daemon listens. |
@@ -76,7 +83,7 @@ The parameter `xroad.proxy.addon.op-monitor.buffer.max-message-size` must be low
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.host` | 127.0.0.1 | The host name or address used to connect to the gRPC server of the operational monitoring daemon. In the container deployment the default is *op-monitor*. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.port` | 2081 | The port used to connect to the gRPC server of the operational monitoring daemon. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.deadline-after` | 60000 | Milliseconds before a gRPC call to the operational monitoring daemon times out. The channel waits for the daemon to become ready within this time. |
-| op-monitor channel | `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` | 16777216 | Maximum size in bytes of a response the channel accepts, for example the response of a monitoring query. The minimum is 4194304 (4 MiB). A query response over the limit fails with an error; lower *xroad.op-monitor.max-records-in-payload* or raise this limit. |
+| op-monitor channel | `xroad.common-rpc.channel.op-monitor.max-inbound-message-size` | 16777216 | Maximum size in bytes of a response the channel accepts, for example the response of a monitoring query. The minimum is 4194304 (4 MiB). A query response over the limit fails; see the message size limit above. |
 | common | `xroad.common-rpc.use-tls` | true | When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services, including the connection to the operational monitoring daemon. |
 | op-monitor-buffer | `xroad.proxy.addon.op-monitor.enabled` | false | Enables the operational monitoring add-on of the proxy. |
 | op-monitor-buffer | `xroad.proxy.addon.op-monitor.buffer.max-message-size` | 3145728 | Maximum size in bytes of one store request sent by the operational monitoring buffer to the operational monitoring daemon. Larger batches are split into several requests. The minimum is 65536. |

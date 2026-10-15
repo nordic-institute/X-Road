@@ -20,7 +20,7 @@ Document ID: ARC-OPMOND
 | 10.07.2025 | 1.7     | Added info about operational data query in fixed intervals using gRPC | Mikk-Erik Bachmann |
 | 11.11.2025 | 1.8     | Drop JMX interface                                                    | Justas Samuolis    |
 | 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
-| 13.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
+| 15.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -147,9 +147,9 @@ The operational monitoring query interface is used by the security server to ret
 
 The monitoring of the security servers is not the main functionality of the X-Road system, therefore the availability and responsiveness of this service is not paramount. Operational data records are held in the database and are available for configured days.
 
-Because the channel waits for the connection to become ready, a query to a stopped or unreachable monitoring daemon does not fail at once. It fails when the deadline expires (60 seconds by default), and the security server returns the fault code `service_failed.network_error` to the client of the query.
+Because the channel waits for the connection to become ready, a query to a stopped or unreachable monitoring daemon does not fail at once. It fails when the deadline expires (60 seconds by default), and the security server returns the fault code `server.serverproxy.service_failed.network_error` to the client of the query.
 
-The channel accepts a response up to a message size limit (16 MiB by default, at least 4 MiB). A query response that is larger fails with the fault code `service_failed.operational_data_response_too_large`. In that case the number of records in the response can be lowered or the limit raised, see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
+The channel accepts a response up to a message size limit (16 MiB by default, at least 4 MiB). A query response that is larger fails with the fault code `server.serverproxy.service_failed.operational_data_response_too_large`. In that case the number of records in the response can be lowered or the limit raised, see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
 
 ### 3.3 Operational Monitoring query in fixed intervals
 

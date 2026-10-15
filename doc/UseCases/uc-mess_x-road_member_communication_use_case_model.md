@@ -3,7 +3,7 @@
 **Analysis**
 
 Version: 1.12  
-13.10.2026
+15.10.2026
 <!-- 38 pages -->
 Doc. ID: UC-MESS
 
@@ -30,7 +30,7 @@ Doc. ID: UC-MESS
 | 17.04.2023 | 1.9     | Remove central services support                                                                                                                                                                                                                                          | Justas Samuolis    |
 | 01.06.2023 | 1.10    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
 | 07.01.2025 | 1.11    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
-| 13.10.2026 | 1.12    | Operational monitoring store and query over gRPC                                                                                                                                                                                                                         | Eneli Reimets      |
+| 15.10.2026 | 1.12    | Operational monitoring store and query over gRPC                                                                                                                                                                                                                         | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -595,7 +595,7 @@ The system receives a communication request from Client SS; verifies that the sy
 
     - 13d.1a. System cannot establish a connection with the operational monitoring daemon before the gRPC deadline expires, for example because the operational monitoring daemon is stopped.
 
-      - 13d.1a.1. System sends a SOAP Fault message with fault code `service_failed.network_error` to the Client SS. The use case terminates.
+      - 13d.1a.1. System sends a SOAP Fault message with fault code `server.serverproxy.service_failed.network_error` to the Client SS. The use case terminates.
 
 13e. The request is either operational monitoring data request or security server health data request. The gRPC connection to the operational monitoring daemon is secured with TLS.
 
@@ -603,7 +603,7 @@ The system receives a communication request from Client SS; verifies that the sy
 
     - 13e.1a. The TLS connection cannot be established before the gRPC deadline expires.
 
-      - 13e.1a.1. System sends a SOAP Fault message with fault code `service_failed.network_error` to the Client SS. The use case terminates.
+      - 13e.1a.1. System sends a SOAP Fault message with fault code `server.serverproxy.service_failed.network_error` to the Client SS. The use case terminates.
 
 14a. System does not receive a response within the timeout period configured for the service in the system configuration.
 
@@ -611,7 +611,7 @@ The system receives a communication request from Client SS; verifies that the sy
 
 14b. The request is either operational monitoring data request or security server health data request. The response of the operational monitoring daemon is larger than the message size limit of the gRPC channel.
 
-  - 14b.1. System sends a SOAP Fault message with fault code `service_failed.operational_data_response_too_large` to the Client SS. The use case terminates.
+  - 14b.1. System sends a SOAP Fault message with fault code `server.serverproxy.service_failed.operational_data_response_too_large` to the Client SS. The use case terminates.
 
 15a. The validation process terminates with an exception message.
 
