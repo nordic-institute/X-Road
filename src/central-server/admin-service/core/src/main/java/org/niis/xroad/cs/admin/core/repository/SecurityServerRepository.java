@@ -61,6 +61,15 @@ public interface SecurityServerRepository extends
     Optional<Integer> lockForUpdateById(Integer id);
 
     /**
+     * Locks the server row like {@link #lockForUpdateById}, for the server named by its identifier. Call it
+     * before loading the server entity, so the loaded state is the state under the lock.
+     *
+     * @param serverId the identifier of the server
+     * @return the id of the row when it exists, locked; empty when there is no such row
+     */
+    Optional<Integer> lockForUpdateBy(SecurityServerId serverId);
+
+    /**
      * Tells whether the SYSTEM DID is stored for a server other than the given one.
      */
     boolean existsBySystemDidAndIdNot(String systemDid, Integer id);

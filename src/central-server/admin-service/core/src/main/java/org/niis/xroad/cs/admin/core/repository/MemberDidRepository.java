@@ -34,8 +34,6 @@ import java.util.Optional;
 
 public interface MemberDidRepository extends GenericRepository<MemberDidEntity, Integer> {
 
-    List<MemberDidEntity> findAllBySecurityServerId(Integer securityServerId);
-
     /**
      * Selects the columns of every stored member DID, with the identifier parts of its member, in one SQL
      * statement and without loading any entity.
@@ -48,6 +46,4 @@ public interface MemberDidRepository extends GenericRepository<MemberDidEntity, 
      * Tells whether the DID is stored for a server other than the given one.
      */
     boolean existsByDidAndSecurityServerIdNot(String did, Integer securityServerId);
-
-    long deleteBySecurityServerIdAndMemberId(Integer securityServerId, Long memberId);
 }

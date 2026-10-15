@@ -9,15 +9,17 @@
         <comment>Values a Security Server publishes: SYSTEM DID and DSP base URL on the server row, one DID per member in member_dids.</comment>
 
         <addColumn tableName="security_servers">
-            <column name="system_did" type="VARCHAR(4000)">
-                <constraints unique="true" uniqueConstraintName="security_servers_system_did_key"/>
-            </column>
+            <column name="system_did" type="VARCHAR(4000)"/>
             <column name="dsp_base_url" type="TEXT"/>
         </addColumn>
 
         <sql>
             ALTER TABLE security_servers ADD CONSTRAINT security_servers_system_values_check
                 CHECK ((system_did IS NULL) = (dsp_base_url IS NULL));
+        </sql>
+
+        <sql>
+            ALTER TABLE security_servers ADD CONSTRAINT security_servers_system_did_excl EXCLUDE USING hash (system_did WITH =);
         </sql>
 
         <createTable tableName="member_dids">

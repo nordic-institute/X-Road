@@ -88,7 +88,8 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOne(ClientIdEntityFactory.ensure(request.getClientId()));
 
-        final Optional<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
+        final Optional<SecurityServerEntity> securityServerOpt = servers.lockForUpdateBy(serverId)
+                .flatMap(lockedServerRowId -> servers.findBy(serverId, clientId));
 
         securityServerOpt
                 .ifPresentOrElse(
@@ -122,7 +123,6 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {
         clients.findOneBy(clientId)
                 .ifPresentOrElse(client -> {
-                            servers.lockForUpdateById(securityServer.getId());
                             securityServer.getServerClients().stream()
                                     .filter(serverClient -> Objects.equals(client.getId(), serverClient.getSecurityServerClient().getId()))
                                     .forEach(serverClientRepository::delete);

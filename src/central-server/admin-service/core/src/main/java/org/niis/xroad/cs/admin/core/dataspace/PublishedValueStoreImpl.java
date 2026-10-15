@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
 import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
@@ -69,6 +70,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class PublishedValueStoreImpl implements PublishedValueStore {
 
     private enum Mode {
@@ -80,16 +82,6 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
     private final MemberDidRepository memberDidRepository;
     private final XRoadMemberRepository memberRepository;
     private final AuditEventLoggingFacade auditLogging;
-
-    public PublishedValueStoreImpl(SecurityServerRepository securityServerRepository,
-                                   MemberDidRepository memberDidRepository,
-                                   XRoadMemberRepository memberRepository,
-                                   AuditEventLoggingFacade auditLogging) {
-        this.securityServerRepository = securityServerRepository;
-        this.memberDidRepository = memberDidRepository;
-        this.memberRepository = memberRepository;
-        this.auditLogging = auditLogging;
-    }
 
     @Override
     public PublishedValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl) {

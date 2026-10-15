@@ -71,6 +71,20 @@ public interface JpaSecurityServerRepository extends
     @Query(value = "SELECT id FROM " + SecurityServerEntity.TABLE_NAME + " WHERE id = :id FOR UPDATE", nativeQuery = true)
     Optional<Integer> lockForUpdateById(Integer id);
 
+    @Query(value = "SELECT s.id FROM " + SecurityServerEntity.TABLE_NAME + " s "
+            + "JOIN " + SecurityServerClientEntity.TABLE_NAME + " o ON o.id = s.owner_id "
+            + "JOIN identifier i ON i.id = o.server_client_id "
+            + "WHERE i.object_type = 'MEMBER' AND i.xroad_instance = :xRoadInstance AND i.member_class = :memberClass "
+            + "AND i.member_code = :memberCode AND s.server_code = :serverCode FOR UPDATE OF s", nativeQuery = true)
+    Optional<Integer> lockForUpdateByOwnerAndServerCode(String xRoadInstance, String memberClass, String memberCode,
+                                                        String serverCode);
+
+    @Override
+    default Optional<Integer> lockForUpdateBy(SecurityServerId serverId) {
+        return lockForUpdateByOwnerAndServerCode(serverId.getXRoadInstance(), serverId.getMemberClass(),
+                serverId.getMemberCode(), serverId.getServerCode());
+    }
+
     default Optional<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId) {
         return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));
     }

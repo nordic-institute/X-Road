@@ -135,6 +135,7 @@ class ClientDeletionRequestHandlerTest {
 
         when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
         when(clientIdRepository.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
+        when(serverRepository.lockForUpdateBy(mockServerId)).thenReturn(Optional.of(7));
         when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
 
         var err = assertThrows(NotFoundException.class, () -> handler.add(request));
@@ -152,6 +153,7 @@ class ClientDeletionRequestHandlerTest {
 
         when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
         when(clientIdRepository.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
+        when(serverRepository.lockForUpdateBy(mockServerId)).thenReturn(Optional.of(7));
         when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
         when(registrationRequestRepository.findBy(mockServerId, mockClientId, Set.of(WAITING))).thenReturn(List.of());
         when(registrationRequestRepository.findBy(mockServerId, mockClientId, Set.of(DECLINED)))
@@ -198,12 +200,13 @@ class ClientDeletionRequestHandlerTest {
             request = new ClientDeletionRequest(Origin.SECURITY_SERVER, securityServerId, subsystemId);
             when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
             when(clientIdRepository.findOne(ClientIdEntityFactory.ensure(subsystemId))).thenReturn(mockClientId);
+            when(serverRepository.lockForUpdateBy(mockServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
             when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(mockSecurityServer));
             when(clientRepository.findOneBy(mockClientId)).thenReturn(Optional.of(mockClient));
             when(mockClient.getId()).thenReturn(1L);
             when(mockServerClient.getSecurityServerClient()).thenReturn(mockClient);
             when(mockSecurityServer.getServerClients()).thenReturn(Set.of(mockServerClient));
-            when(mockSecurityServer.getId()).thenReturn(SERVER_ROW_ID);
+            lenient().when(mockSecurityServer.getId()).thenReturn(SERVER_ROW_ID);
             lenient().when(mockSecurityServer.getOwner()).thenReturn(mockOwner);
             lenient().when(mockOwner.getIdentifier()).thenReturn(ownerId);
             when(mockClientId.getMemberId()).thenReturn(memberId);
@@ -231,6 +234,18 @@ class ClientDeletionRequestHandlerTest {
         }
 
         @Test
+        void locksServerRowBeforeLoadingTheServer() {
+            memberWithoutRemainingClients();
+            when(memberDids.findBySecurityServerIdAndMemberId(SERVER_ROW_ID, MEMBER_ROW_ID)).thenReturn(Optional.empty());
+
+            handler.add(request);
+
+            InOrder inOrder = inOrder(serverRepository);
+            inOrder.verify(serverRepository).lockForUpdateBy(mockServerId);
+            inOrder.verify(serverRepository).findBy(mockServerId, mockClientId);
+        }
+
+        @Test
         void locksServerRowBeforeDeletingAndCountingClients() {
             memberWithoutRemainingClients();
             when(memberDids.findBySecurityServerIdAndMemberId(SERVER_ROW_ID, MEMBER_ROW_ID)).thenReturn(Optional.empty());
@@ -238,7 +253,7 @@ class ClientDeletionRequestHandlerTest {
             handler.add(request);
 
             InOrder inOrder = inOrder(serverRepository, serverClientRepository, memberDids);
-            inOrder.verify(serverRepository).lockForUpdateById(SERVER_ROW_ID);
+            inOrder.verify(serverRepository).lockForUpdateBy(mockServerId);
             inOrder.verify(serverClientRepository).delete(mockServerClient);
             inOrder.verify(serverClientRepository).countBySecurityServerAndSecurityServerClientIn(eq(mockSecurityServer), any());
             inOrder.verify(memberDids).findBySecurityServerIdAndMemberId(SERVER_ROW_ID, MEMBER_ROW_ID);
