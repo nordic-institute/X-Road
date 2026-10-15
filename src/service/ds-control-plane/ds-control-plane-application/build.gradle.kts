@@ -71,4 +71,9 @@ dependencies {
   runtimeOnly(libs.edc.core.sql.bootstrapper)
   // Inlined virtual-controlplane-feature-dcp-bom contents (DCP bundle)
   runtimeOnly(libs.bundles.edc.dcp)
+
+  testImplementation(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
+  testImplementation(libs.smallrye.config.yaml)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.assertj.core)
 }
