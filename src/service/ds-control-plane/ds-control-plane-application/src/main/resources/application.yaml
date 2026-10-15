@@ -95,6 +95,16 @@ edc:
       api:
         secret:
           path: /v1/xrd-ds-secret
+  # A send retry limit of L gives L+1 attempts. TaskPollExecutor drops a task after 4 attempts,
+  # so the limit must stay at 3 or below for EDC to end a failed negotiation or transfer first.
+  negotiation:
+    send:
+      retry:
+        limit: 1
+  transfer:
+    send:
+      retry:
+        limit: 1
   component:
     id: DSP-compatibility-test
   datasource:

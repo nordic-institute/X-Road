@@ -155,6 +155,21 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
+    void awaitNegotiationFailsWithStoredErrorDetailWhenTerminating() {
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.TERMINATING, null, "send to provider failed")));
+        var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        poller.poll();
+        assertThatThrownBy(future::join)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
+                    assertThat(cause.getDetails()).isEqualTo("send to provider failed");
+                });
+    }
+
+    @Test
     void awaitNegotiationKeepsPendingForNonTerminalState() {
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
                 Stream.of(buildNegotiation(ContractNegotiationStates.REQUESTED, null, null)));
@@ -216,6 +231,30 @@ class AssetAccessCompletionPollerTest {
                     assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
                     assertThat(cause.getErrorCodeMetadata()).contains("tp-1");
                     assertThat(cause.getDetails()).isEqualTo("provider terminated the transfer");
+                });
+    }
+
+    @Test
+    void awaitTransferFailsWithStoredErrorDetailWhenTerminating() {
+        assertTransferFailsWithStoredErrorDetail(TransferProcessStates.TERMINATING);
+    }
+
+    @Test
+    void awaitTransferFailsWithStoredErrorDetailWhenTerminatingRequested() {
+        assertTransferFailsWithStoredErrorDetail(TransferProcessStates.TERMINATING_REQUESTED);
+    }
+
+    private void assertTransferFailsWithStoredErrorDetail(TransferProcessStates state) {
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(state, null, "send to provider failed")));
+        var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+        poller.poll();
+        assertThatThrownBy(future::join)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                    assertThat(cause.getDetails()).isEqualTo("send to provider failed");
                 });
     }
 
@@ -575,12 +614,14 @@ class AssetAccessCompletionPollerTest {
         var negotiationSpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
         verify(negotiationStore).queryNegotiations(negotiationSpecCaptor.capture());
         assertThat(statesOf(negotiationSpecCaptor.getValue()))
-                .containsExactlyInAnyOrder(ContractNegotiationStates.FINALIZED.name(), ContractNegotiationStates.TERMINATED.name());
+                .containsExactlyInAnyOrder(ContractNegotiationStates.FINALIZED.name(),
+                        ContractNegotiationStates.TERMINATING.name(), ContractNegotiationStates.TERMINATED.name());
 
         var transferSpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
         verify(transferProcessStore).findAll(transferSpecCaptor.capture());
         assertThat(statesOf(transferSpecCaptor.getValue()))
-                .containsExactlyInAnyOrder(TransferProcessStates.STARTED.name(), TransferProcessStates.TERMINATED.name());
+                .containsExactlyInAnyOrder(TransferProcessStates.STARTED.name(), TransferProcessStates.TERMINATING.name(),
+                        TransferProcessStates.TERMINATING_REQUESTED.name(), TransferProcessStates.TERMINATED.name());
     }
 
     @Test
