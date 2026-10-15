@@ -51,6 +51,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -65,6 +66,10 @@ public interface JpaSecurityServerRepository extends
     }
 
     Optional<SecurityServerEntity> findByOwnerIdAndServerCode(Integer ownerId, String serverCode);
+
+    @Override
+    @Query(value = "SELECT id FROM " + SecurityServerEntity.TABLE_NAME + " WHERE id = :id FOR UPDATE", nativeQuery = true)
+    Optional<Integer> lockForUpdateById(Integer id);
 
     default Optional<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId) {
         return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));

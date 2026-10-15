@@ -50,4 +50,19 @@ public interface SecurityServerRepository extends
 
     boolean existsBy(SecurityServerId serverId);
 
+    /**
+     * Locks the server row for the rest of the transaction, so writers and removers of the server's published
+     * values serialise. The query touches the server row alone: no entity is loaded and nothing is joined.
+     * Call it before reading or writing any row that belongs to the server; with several servers, in id order.
+     *
+     * @param id the id of the server row
+     * @return the id when the row exists, locked; empty when there is no such row
+     */
+    Optional<Integer> lockForUpdateById(Integer id);
+
+    /**
+     * Tells whether the SYSTEM DID is stored for a server other than the given one.
+     */
+    boolean existsBySystemDidAndIdNot(String systemDid, Integer id);
+
 }

@@ -24,16 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.dataspace;
+package org.niis.xroad.cs.admin.api.domain;
 
 /**
- * Why a Security Server's published value is refused. Each rule of {@link PublishedValueValidator} has
- * its own reason.
+ * Why a Security Server's published value is refused. Each validation rule and each storage rule has its
+ * own reason.
  */
 public enum PublishedValueRejection {
     /** The DID is not a {@code did:web} DID of scheme version {@code v1}. */
     WRONG_SCHEME,
-    /** The DID is longer than {@link PublishedValueValidator#MAX_DID_LENGTH} characters. */
+    /** The DID is longer than 4000 characters. */
     DID_TOO_LONG,
     /** The authority in the DID is not in its canonical form. */
     NOT_CANONICAL,
@@ -50,5 +50,9 @@ public enum PublishedValueRejection {
     /** The member DID does not decode to the claimed member, or the member is neither the owner nor a client. */
     UNRELATED_MEMBER,
     /** The SYSTEM DID is not the server's own {@code v1:system} DID. */
-    FOREIGN_SYSTEM_DID
+    FOREIGN_SYSTEM_DID,
+    /** The stored value is current for the registered address and differs from the published one. */
+    VALUE_DIFFERS,
+    /** The DID is stored for another Security Server. */
+    DID_HELD_BY_ANOTHER_SERVER
 }

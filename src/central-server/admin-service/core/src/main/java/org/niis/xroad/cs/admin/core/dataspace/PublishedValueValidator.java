@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
 import org.niis.xroad.ds.identity.DecodedParticipant;
@@ -42,16 +43,16 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.FOREIGN_SYSTEM_DID;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.MALFORMED_DSP_BASE_URL;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.WRONG_SCHEME;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.FOREIGN_SYSTEM_DID;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
 
 /**
  * Checks the values a Security Server publishes (its SYSTEM DID with DSP base URL, and its member DIDs)

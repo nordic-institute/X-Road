@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
 
@@ -42,13 +43,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.core.dataspace.PublishedValueRejection.WRONG_SCHEME;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
 
 class PublishedValueValidatorTest {
 
