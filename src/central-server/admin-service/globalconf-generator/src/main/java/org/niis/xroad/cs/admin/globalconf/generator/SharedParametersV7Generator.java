@@ -40,7 +40,7 @@ public class SharedParametersV7Generator {
 
     String generate() {
         log.debug("Generating shared parameters");
-        var parameters = loader.load();
+        var parameters = loader.loadWithMemberDids();
         log.trace("Shared parameters loaded: {}", parameters);
         return marshaller.marshall(parameters);
     }

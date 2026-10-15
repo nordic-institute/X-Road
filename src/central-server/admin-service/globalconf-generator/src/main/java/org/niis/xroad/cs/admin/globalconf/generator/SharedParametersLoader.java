@@ -92,8 +92,16 @@ class SharedParametersLoader {
 
 
     SharedParameters load() {
+        return load(false);
+    }
+
+    SharedParameters loadWithMemberDids() {
+        return load(true);
+    }
+
+    private SharedParameters load(boolean withMemberDids) {
         var servers = securityServerService.findAll();
-        var memberDids = getMemberDids(servers);
+        var memberDids = withMemberDids ? getMemberDids(servers) : Map.<ClientId, Map<SecurityServerId, String>>of();
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
                 getApprovedTSAs(), getApprovedConnectorTlsCAs(), getCredentialIssuerDids(), getMembers(memberDids),
                 getSecurityServers(servers), getGlobalGroups(), getGlobalSettings());

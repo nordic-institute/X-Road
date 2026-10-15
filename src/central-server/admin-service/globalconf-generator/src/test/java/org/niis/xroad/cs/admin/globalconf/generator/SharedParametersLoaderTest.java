@@ -86,6 +86,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
@@ -252,7 +253,7 @@ class SharedParametersLoaderTest {
                 new StoredMemberDid(ABSENT_SERVER_ROW_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
 
-        var parameters = sharedParametersLoader.load();
+        var parameters = sharedParametersLoader.loadWithMemberDids();
 
         assertThat(didsByMember(parameters)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
     }
@@ -265,7 +266,7 @@ class SharedParametersLoaderTest {
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
 
-        var parameters = sharedParametersLoader.load();
+        var parameters = sharedParametersLoader.loadWithMemberDids();
 
         assertThat(didsByMember(parameters)).containsOnly(
                 Map.entry("M1", Map.of(SERVER_1_ID, OWNER_DID)),
@@ -279,7 +280,7 @@ class SharedParametersLoaderTest {
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
 
-        var parameters = sharedParametersLoader.load();
+        var parameters = sharedParametersLoader.loadWithMemberDids();
 
         assertThat(parameters.getSecurityServers()).singleElement().satisfies(ss -> assertThat(ss.getClients()).isEmpty());
         assertThat(didsByMember(parameters)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
@@ -293,7 +294,7 @@ class SharedParametersLoaderTest {
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
 
-        sharedParametersLoader.load();
+        sharedParametersLoader.loadWithMemberDids();
 
         verify(dataspaceMemberDidService, times(1)).findAll();
     }
@@ -305,11 +306,24 @@ class SharedParametersLoaderTest {
         var row = new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID);
         when(dataspaceMemberDidService.findAll()).thenReturn(List.of(row)).thenReturn(List.of());
 
-        var before = sharedParametersLoader.load();
-        var after = sharedParametersLoader.load();
+        var before = sharedParametersLoader.loadWithMemberDids();
+        var after = sharedParametersLoader.loadWithMemberDids();
 
         assertThat(didsByMember(before)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
         assertThat(didsByMember(after)).isEmpty();
+    }
+
+    @Test
+    void loadLeavesMemberDidsOutAndNeverReadsThem() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+
+        var parameters = sharedParametersLoader.load();
+
+        verifyNoInteractions(dataspaceMemberDidService);
+        assertThat(didsByMember(parameters)).isEmpty();
+        assertThat(parameters.getMembers()).extracting(SharedParameters.Member::getMemberCode).containsExactly("M1", "M2");
+        assertThat(parameters.getSecurityServers()).hasSize(1);
     }
 
     @Test
@@ -322,8 +336,8 @@ class SharedParametersLoaderTest {
                 new StoredMemberDid(SECOND_SERVER_ROW_ID, m2, OTHER_SERVER_CLIENT_DID),
                 new StoredMemberDid(SECURITY_SERVER_ID, m2, CLIENT_DID)));
 
-        var first = sharedParametersLoader.load();
-        var second = sharedParametersLoader.load();
+        var first = sharedParametersLoader.loadWithMemberDids();
+        var second = sharedParametersLoader.loadWithMemberDids();
 
         assertThat(first.getMembers()).extracting(SharedParameters.Member::getMemberCode).containsExactly("M1", "M2");
         assertThat(first.getMembers().getLast().getDids().entrySet()).extracting(Map.Entry::getKey, Map.Entry::getValue)
@@ -341,15 +355,20 @@ class SharedParametersLoaderTest {
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1));
         when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
                 SYSTEM_DID, DSP_BASE_URL)));
-        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
-                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+        boolean version7 = "7".equals(version);
+        if (version7) {
+            when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                    new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+        }
 
         var xml = generate.apply(sharedParametersLoader);
 
-        if ("7".equals(version)) {
+        if (version7) {
+            verify(dataspaceMemberDidService, times(1)).findAll();
             assertThat(xml).contains("<systemDid>" + SYSTEM_DID + "</systemDid>",
                     "<dspBaseUrl>" + DSP_BASE_URL + "</dspBaseUrl>", CLIENT_DID + "</did>");
         } else {
+            verifyNoInteractions(dataspaceMemberDidService);
             assertThat(xml).contains("<serverCode>" + SECURITY_SERVER_CODE + "</serverCode>")
                     .doesNotContain("systemDid", "dspBaseUrl", CLIENT_DID);
         }
