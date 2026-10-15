@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +66,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
@@ -117,6 +119,8 @@ class PublishedValueStoreImplTest {
     private XRoadMemberRepository memberRepository;
     @Mock
     private AuditEventLoggingFacade auditLogging;
+    @Mock
+    private EntityManager entityManager;
 
     private final Map<Long, MemberDidEntity> storedRows = new HashMap<>();
     private final Set<String> didsOfOtherServers = new HashSet<>();
@@ -158,7 +162,7 @@ class PublishedValueStoreImplTest {
         });
 
         store = new PublishedValueStoreImpl(securityServerRepository, memberDidRepository, memberRepository,
-                auditLogging);
+                auditLogging, entityManager);
     }
 
     @Test
@@ -456,9 +460,10 @@ class PublishedValueStoreImplTest {
     void shouldLockServerRowBeforeReadingOrWritingAnyDidRow() {
         store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
-        InOrder order = inOrder(securityServerRepository, memberDidRepository);
+        InOrder order = inOrder(securityServerRepository, entityManager, memberDidRepository);
         order.verify(securityServerRepository).lockForUpdateById(SERVER_ID);
         order.verify(securityServerRepository).findById(SERVER_ID);
+        order.verify(entityManager).refresh(server);
         order.verify(memberDidRepository).findBySecurityServerIdAndMemberId(eq(SERVER_ID), anyLong());
         order.verify(memberDidRepository).existsByDidAndSecurityServerIdNot(anyString(), eq(SERVER_ID));
         order.verify(memberDidRepository).saveAndFlush(any());
@@ -468,9 +473,10 @@ class PublishedValueStoreImplTest {
     void shouldLockServerRowBeforeCheckingSystemDidUniqueness() {
         store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        InOrder order = inOrder(securityServerRepository);
+        InOrder order = inOrder(securityServerRepository, entityManager);
         order.verify(securityServerRepository).lockForUpdateById(SERVER_ID);
         order.verify(securityServerRepository).findById(SERVER_ID);
+        order.verify(entityManager).refresh(server);
         order.verify(securityServerRepository).existsBySystemDidAndIdNot(SYSTEM_DID, SERVER_ID);
         order.verify(securityServerRepository).saveAndFlush(server);
     }
@@ -485,6 +491,34 @@ class PublishedValueStoreImplTest {
                 .isInstanceOf(NotFoundException.class);
 
         verifyNoInteractions(memberDidRepository);
+        verify(securityServerRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldValidateAgainstClientsAsCommittedUnderTheLock() {
+        doAnswer(invocation -> {
+            server.getServerClients().clear();
+            return null;
+        }).when(entityManager).refresh(server);
+
+        var results = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
+
+        assertThat(results).containsEntry(CLIENT, PublishedValueResult.rejected(UNRELATED_MEMBER));
+        verify(memberDidRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldCompareSystemPairWithTheValueCommittedUnderTheLock() {
+        doAnswer(invocation -> {
+            server.setSystemDid(SYSTEM_DID);
+            server.setDspBaseUrl(DSP_URL);
+            return null;
+        }).when(entityManager).refresh(server);
+
+        var result = store.writeSystemPairOnce(SERVER_ID, OTHER_SYSTEM_DID, OTHER_DSP_URL);
+
+        assertThat(result).isEqualTo(PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         verify(securityServerRepository, never()).saveAndFlush(any());
     }
 

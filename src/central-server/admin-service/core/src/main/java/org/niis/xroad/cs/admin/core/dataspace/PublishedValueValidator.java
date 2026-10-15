@@ -74,7 +74,6 @@ public final class PublishedValueValidator {
     private static final int HOST_SEGMENT_INDEX = 0;
     private static final int VERSION_SEGMENT_INDEX = 1;
     private static final int MIN_DID_SEGMENT_COUNT = 3;
-    private static final int ASCII_LIMIT = 0x80;
 
     private final PublishedValueContext context;
     private final String registeredHost;
@@ -86,7 +85,7 @@ public final class PublishedValueValidator {
         if (address == null) {
             registeredHost = null;
             registeredAddressRejection = UNPARSEABLE_REGISTERED_ADDRESS;
-        } else if (!isAscii(address)) {
+        } else if (!DidAuthority.isAscii(address)) {
             registeredHost = null;
             registeredAddressRejection = NON_ASCII_HOST;
         } else {
@@ -134,7 +133,7 @@ public final class PublishedValueValidator {
         }
         var participant = decode(pair.did());
         if (participant.isEmpty()) {
-            return Optional.of(FOREIGN_SYSTEM_DID);
+            return Optional.of(isDecodableWithCanonicalEncoding(pair.did()) ? NOT_CANONICAL : FOREIGN_SYSTEM_DID);
         }
         var authority = checkAuthority(participant.get().ssHost());
         if (authority.isPresent()) {
@@ -153,7 +152,7 @@ public final class PublishedValueValidator {
         }
         var participant = decode(memberDid.did());
         if (participant.isEmpty()) {
-            return Optional.of(UNRELATED_MEMBER);
+            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : UNRELATED_MEMBER);
         }
         var authority = checkAuthority(participant.get().ssHost());
         if (authority.isPresent()) {
@@ -183,7 +182,7 @@ public final class PublishedValueValidator {
         if (did.length() > MAX_DID_LENGTH) {
             return Optional.of(DID_TOO_LONG);
         }
-        if (!isAscii(segments[HOST_SEGMENT_INDEX])) {
+        if (!DidAuthority.isAscii(segments[HOST_SEGMENT_INDEX])) {
             return Optional.of(NON_ASCII_HOST);
         }
         return Optional.empty();
@@ -201,11 +200,11 @@ public final class PublishedValueValidator {
             return Optional.of(DSP_BASE_URL_NOT_HTTPS);
         }
         var authority = authorityOf(url);
-        if (!isAscii(authority)) {
+        if (!DidAuthority.isAscii(authority)) {
             return Optional.of(NON_ASCII_HOST);
         }
         if (authority.indexOf('@') >= 0 || url.indexOf('?') >= 0 || url.indexOf('#') >= 0
-                || canonicalHostOf(authority).isEmpty() || !isUri(url)) {
+                || canonicalHostOf(authority).isEmpty() || !hasServerBasedHost(url)) {
             return Optional.of(MALFORMED_DSP_BASE_URL);
         }
         return hostMatches(authority) ? Optional.empty() : Optional.of(HOST_DIFFERS);
@@ -237,13 +236,17 @@ public final class PublishedValueValidator {
         return afterScheme.substring(0, end);
     }
 
-    private static boolean isUri(String url) {
+    private static boolean hasServerBasedHost(String url) {
         try {
-            new URI(url);
-            return true;
+            return new URI(url).getHost() != null;
         } catch (URISyntaxException e) {
             return false;
         }
+    }
+
+    private static boolean isDecodableWithCanonicalEncoding(String did) {
+        var canonical = ParticipantIdentifierScheme.canonicalPercentEncoding(did);
+        return !canonical.equals(did) && decode(canonical).isPresent();
     }
 
     private static Optional<DecodedParticipant> decode(String did) {
@@ -260,9 +263,5 @@ public final class PublishedValueValidator {
         } catch (XrdRuntimeException e) {
             return Optional.empty();
         }
-    }
-
-    private static boolean isAscii(String text) {
-        return text.chars().allMatch(c -> c < ASCII_LIMIT);
     }
 }

@@ -46,7 +46,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_TOO_LONG;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.MALFORMED_DSP_BASE_URL;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
@@ -78,6 +80,10 @@ class PublishedValueValidatorTest {
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:999,    999, UNRELATED_MEMBER",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    333, UNRELATED_MEMBER",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:22%2,   222, UNRELATED_MEMBER",
+            "did:web:ss0.example.org%3a7183:v1:DEV:COM:222,    222, NOT_CANONICAL",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:%32%322, 222, NOT_CANONICAL",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:2%3a2,  222, NOT_CANONICAL",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:%41,    222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:system,         222, UNRELATED_MEMBER",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    222,"
     })
@@ -127,6 +133,8 @@ class PublishedValueValidatorTest {
             "did:web:ss0.example.org%3A7183:v2:system|" + DSP_URL + "|WRONG_SCHEME",
             "did:web:SS0.example.org%3A7183:v1:system|" + DSP_URL + "|NOT_CANONICAL",
             "did:web:ss1.example.org%3A7183:v1:system|" + DSP_URL + "|HOST_DIFFERS",
+            "did:web:ss0.example.org%3a7183:v1:system|" + DSP_URL + "|NOT_CANONICAL",
+            "did:web:ss0.example.org%3A7183:v1:%73ystem|" + DSP_URL + "|NOT_CANONICAL",
             OWNER_DID + "|" + DSP_URL + "|FOREIGN_SYSTEM_DID",
             "did:web:ss0.example.org%3A7183:v1:system:extra|" + DSP_URL + "|FOREIGN_SYSTEM_DID",
             SYSTEM_DID + "|http://ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_HTTPS",
@@ -139,6 +147,7 @@ class PublishedValueValidatorTest {
             SYSTEM_DID + "|https://ss0.example.org:70000/api/dsp|MALFORMED_DSP_BASE_URL",
             SYSTEM_DID + "|https://ss0.example.org:http/api/dsp|MALFORMED_DSP_BASE_URL",
             SYSTEM_DID + "|https:///api/dsp|MALFORMED_DSP_BASE_URL",
+            SYSTEM_DID + "|https://2001:db8::1/api/dsp|MALFORMED_DSP_BASE_URL",
             SYSTEM_DID + "|https://bücher.example:8183/api/dsp|NON_ASCII_HOST",
             "did:web:bücher.example%3A7183:v1:system|" + DSP_URL + "|NON_ASCII_HOST"
     })
@@ -177,6 +186,23 @@ class PublishedValueValidatorTest {
         assertThat(ipv6.validate(new SystemPair(SYSTEM_DID, DSP_URL))).contains(HOST_DIFFERS);
     }
 
+    @Test
+    void shouldRejectUnbracketedIpv6DspBaseUrlAndAcceptBracketedForm() {
+        var ipv6 = validatorFor("2001:db8::1");
+
+        assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://2001:db8::1/api/dsp")))
+                .contains(MALFORMED_DSP_BASE_URL);
+        assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:db8::1]/api/dsp"))).isEmpty();
+    }
+
+    @Test
+    void shouldReportNonCanonicalPercentEncodingForIpv6Host() {
+        var ipv6 = validatorFor("2001:db8::1");
+
+        assertThat(ipv6.validate(new SystemPair("did:web:%5b2001%3adb8%3a%3a1%5d%3a7183:v1:system", IPV6_DSP_URL)))
+                .contains(NOT_CANONICAL);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"bücher.example", "例え.jp", "ss0.example.orgé"})
     void shouldRejectUnicodeRegisteredAddressWithoutFailing(String registered) {
@@ -196,7 +222,9 @@ class PublishedValueValidatorTest {
     }
 
     static Stream<Arguments> unparseableRegisteredAddresses() {
-        return Stream.of(null, "", "  ", ":7183", "[2001:db8::1", "ss0.example.org:http", "ss0.example.org:70000")
+        return Stream.of(null, "", "  ", ":7183", "[2001:db8::1", "ss0.example.org:http", "ss0.example.org:70000",
+                "ss0.example.org ", "host:80:90", "a/b", "a%b", "[host:80]", "my_host", "[10.0.0.1]",
+                "-a.org", "ss0.123")
                 .map(Arguments::of);
     }
 

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -65,9 +66,11 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -81,11 +84,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
@@ -101,6 +106,8 @@ class MemberServiceImplTest {
     private GlobalGroupMemberRepository globalGroupMemberRepository;
     @Mock
     private MemberClassRepository memberClassRepository;
+    @Mock
+    private SecurityServerRepository securityServerRepository;
     @Mock
     private IdentifierRepository<MemberIdEntity> memberIds;
     @Mock
@@ -224,7 +231,7 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("Should only remove the member from global groups and delete it when it is registered on servers")
         void shouldNotTouchRegistrationsWhenMemberIsRegisteredOnServers() {
-            var securityServer = mock(SecurityServerEntity.class);
+            var securityServer = serverWithId(5);
             var subsystem = mock(SubsystemEntity.class);
             lenient().doReturn(Set.of(new ServerClientEntity(securityServer, xRoadMember))).when(xRoadMember).getServerClients();
             lenient().doReturn(Set.of(subsystem)).when(xRoadMember).getSubsystems();
@@ -233,8 +240,41 @@ class MemberServiceImplTest {
             memberService.delete(clientId);
 
             verify(globalGroupMemberService).removeClientFromGlobalGroups(clientId);
+            verify(securityServerRepository).lockForUpdateById(5);
+            verify(xRoadMemberRepository).findMember(clientId);
             verify(xRoadMemberRepository).delete(xRoadMember);
-            verifyNoInteractions(securityServer, subsystem);
+            verifyNoMoreInteractions(xRoadMemberRepository, securityServerRepository, globalGroupMemberService,
+                    globalGroupMemberRepository, memberClassRepository, memberIds);
+        }
+
+        @Test
+        @DisplayName("Should lock every affected server row in ascending id order before deleting")
+        void shouldLockOwnedAndClientServersInIdOrderBeforeDelete() {
+            var owned = serverWithId(9);
+            var memberClientOf = serverWithId(7);
+            var subsystemClientOf = serverWithId(4);
+            var subsystem = mock(SubsystemEntity.class);
+            doReturn(Set.of(owned)).when(xRoadMember).getOwnedServers();
+            doReturn(Set.of(new ServerClientEntity(memberClientOf, xRoadMember), new ServerClientEntity(owned, xRoadMember)))
+                    .when(xRoadMember).getServerClients();
+            doReturn(Set.of(subsystem)).when(xRoadMember).getSubsystems();
+            doReturn(Set.of(new ServerClientEntity(subsystemClientOf, subsystem))).when(subsystem).getServerClients();
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+
+            memberService.delete(clientId);
+
+            InOrder inOrder = inOrder(securityServerRepository, xRoadMemberRepository);
+            inOrder.verify(securityServerRepository).lockForUpdateById(4);
+            inOrder.verify(securityServerRepository).lockForUpdateById(7);
+            inOrder.verify(securityServerRepository).lockForUpdateById(9);
+            inOrder.verify(xRoadMemberRepository).delete(xRoadMember);
+            verify(securityServerRepository, times(3)).lockForUpdateById(any());
+        }
+
+        private SecurityServerEntity serverWithId(int id) {
+            var server = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS" + id);
+            ReflectionTestUtils.setField(server, "id", id);
+            return server;
         }
 
         @Test

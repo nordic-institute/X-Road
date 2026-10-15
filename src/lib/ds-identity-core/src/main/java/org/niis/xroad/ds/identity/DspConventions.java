@@ -89,6 +89,7 @@ public class DspConventions {
      *
      * @param ssAddress the Security Server's GlobalConf-registered address, without a port
      * @return the canonical DID authority, {@code {ssAddress}:7183}; an IPv6 literal address is bracketed
+     * @throws XrdRuntimeException as {@link DidAuthority#canonicalHost(String)}
      */
     public static String didAuthority(String ssAddress) {
         return didAuthority(ssAddress, DID_PORT);
@@ -104,6 +105,7 @@ public class DspConventions {
      * @param didPort   the identity hub's DID resolution port
      * @return the canonical DID authority, {@code {ssAddress}:{didPort}}; an IPv6 literal address is
      *         bracketed and port 443 is omitted
+     * @throws XrdRuntimeException as {@link DidAuthority#canonicalHost(String)}
      */
     public static String didAuthority(String ssAddress, int didPort) {
         return DidAuthority.canonical(ssAddress, didPort);
@@ -117,7 +119,8 @@ public class DspConventions {
      * @param dspPort   the control plane's DSP port, 1 to 65535
      * @return the DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp}; an IPv6 literal
      *         address is bracketed
-     * @throws XrdRuntimeException if the address is blank or not ASCII, or the port is out of range
+     * @throws XrdRuntimeException if the address is blank, not ASCII or not a valid host name or IPv6 literal, or
+     *         the port is out of range
      */
     public static String dspBaseUrl(String ssAddress, int dspPort) {
         if (ssAddress == null || ssAddress.isBlank()) {

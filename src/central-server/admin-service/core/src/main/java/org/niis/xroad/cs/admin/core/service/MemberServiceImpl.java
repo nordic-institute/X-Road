@@ -40,6 +40,7 @@ import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
@@ -48,11 +49,13 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -73,6 +76,7 @@ public class MemberServiceImpl implements MemberService {
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
+    private final SecurityServerRepository securityServerRepository;
     private final IdentifierRepository<MemberIdEntity> memberIds;
 
     private final GlobalGroupMemberService globalGroupMemberService;
@@ -121,9 +125,22 @@ public class MemberServiceImpl implements MemberService {
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
 
+        lockAffectedServers(member);
         globalGroupMemberService.removeClientFromGlobalGroups(clientId);
         // other dependant entities are removed by cascading database constraints
         xRoadMemberRepository.delete(member);
+    }
+
+    private void lockAffectedServers(XRoadMemberEntity member) {
+        var clientRows = Stream.concat(Stream.of(member), member.getSubsystems().stream())
+                .map(SecurityServerClientEntity::getServerClients)
+                .flatMap(Collection::stream)
+                .map(ServerClientEntity::getSecurityServer);
+        Stream.concat(member.getOwnedServers().stream(), clientRows)
+                .map(SecurityServerEntity::getId)
+                .distinct()
+                .sorted(Comparator.naturalOrder())
+                .forEach(securityServerRepository::lockForUpdateById);
     }
 
     @Override

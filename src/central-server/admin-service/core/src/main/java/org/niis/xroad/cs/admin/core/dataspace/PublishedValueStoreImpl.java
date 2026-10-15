@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -82,6 +83,7 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
     private final MemberDidRepository memberDidRepository;
     private final XRoadMemberRepository memberRepository;
     private final AuditEventLoggingFacade auditLogging;
+    private final EntityManager entityManager;
 
     @Override
     public PublishedValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl) {
@@ -186,8 +188,10 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         if (securityServerRepository.lockForUpdateById(securityServerId).isEmpty()) {
             throw serverNotFound(securityServerId);
         }
-        return securityServerRepository.findById(securityServerId)
+        var server = securityServerRepository.findById(securityServerId)
                 .orElseThrow(() -> serverNotFound(securityServerId));
+        entityManager.refresh(server);
+        return server;
     }
 
     private static NotFoundException serverNotFound(int securityServerId) {
@@ -196,13 +200,9 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
 
     private static PublishedValueContext contextOf(SecurityServerEntity server) {
         var clientMembers = server.getServerClients().stream()
-                .map(serverClient -> memberOf(serverClient.getSecurityServerClient().getIdentifier()))
+                .map(serverClient -> serverClient.getSecurityServerClient().getIdentifier().getMemberId())
                 .collect(toSet());
-        return new PublishedValueContext(server.getAddress(), memberOf(server.getOwner().getIdentifier()), clientMembers);
-    }
-
-    private static ClientId memberOf(ClientId clientId) {
-        return ClientId.Conf.create(clientId.getXRoadInstance(), clientId.getMemberClass(), clientId.getMemberCode());
+        return new PublishedValueContext(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers);
     }
 
     private PublishedValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member) {

@@ -29,6 +29,9 @@ import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.net.IDN;
+import java.net.Inet6Address;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.OptionalInt;
 
@@ -51,13 +54,21 @@ public class DidAuthority {
     private static final int MAX_PORT_DIGITS = 5;
 
     /**
+     * @param text the text to check
+     * @return whether the text contains only ASCII characters
+     */
+    public static boolean isAscii(String text) {
+        return text.chars().allMatch(c -> c < NON_ASCII_START);
+    }
+
+    /**
      * Checks that a registered address, as stored and before any conversion, contains only ASCII characters.
      *
      * @param address the registered address, without a port
      * @throws XrdRuntimeException if the address contains a non-ASCII character
      */
     public static void requireAscii(String address) {
-        if (!address.chars().allMatch(c -> c < NON_ASCII_START)) {
+        if (!isAscii(address)) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR,
                     "address '%s' must contain only ASCII characters", address);
         }
@@ -69,8 +80,9 @@ public class DidAuthority {
      *
      * @param host a hostname, an IPv4 literal, or an IPv6 literal with or without brackets; never {@code host:port}
      * @return the canonical host
-     * @throws XrdRuntimeException if the host is blank, or is a name that cannot be converted to ASCII; an IPv6
-     *         literal is not validated
+     * @throws XrdRuntimeException if the host is blank, is a name that cannot be converted to ASCII, has a
+     *         character other than a letter, digit, {@code -} or {@code .} after conversion, is not a host that
+     *         {@link URI#getHost()} reads from an HTTPS URL, or contains a colon but is not a valid IPv6 literal
      */
     public static String canonicalHost(String host) {
         if (host == null || host.isBlank()) {
@@ -78,14 +90,24 @@ public class DidAuthority {
         }
         var lowerCase = host.toLowerCase(Locale.ROOT);
         if (lowerCase.indexOf(':') >= 0) {
-            return lowerCase.startsWith("[") ? lowerCase : "[" + lowerCase + "]";
+            return canonicalIpv6(host, lowerCase);
         }
+        String ascii;
         try {
-            return IDN.toASCII(lowerCase);
+            ascii = IDN.toASCII(lowerCase);
         } catch (IllegalArgumentException e) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR, "host '%s' is not a valid name: %s",
                     host, e.getMessage());
         }
+        if (!ascii.chars().allMatch(DidAuthority::isHostChar)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "host '%s' is not a valid name: it has a character that a host name cannot contain", host);
+        }
+        if (!isUriHost(ascii)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "host '%s' is not a valid name: it is not a host that an HTTPS URL can carry", host);
+        }
+        return ascii;
     }
 
     /**
@@ -118,8 +140,9 @@ public class DidAuthority {
      *
      * @param authority the authority to split
      * @return the host and the explicit port, if any
-     * @throws XrdRuntimeException if the host is empty or not ASCII, the brackets are malformed, or the port is
-     *         not a number from {@value #MIN_PORT} to {@value #MAX_PORT}
+     * @throws XrdRuntimeException if the host is empty, not ASCII or not valid as in
+     *         {@link #canonicalHost(String)}, the brackets are malformed, or the port is not a number from
+     *         {@value #MIN_PORT} to {@value #MAX_PORT}
      */
     public static Parsed parse(String authority) {
         if (authority == null || authority.isEmpty()) {
@@ -154,6 +177,10 @@ public class DidAuthority {
             throw emptyHost(authority);
         }
         requireAscii(host);
+        if (authority.startsWith("[") && !isIpv6Literal(host)) {
+            throw malformedBrackets(authority, "does not enclose an IPv6 literal");
+        }
+        canonicalHost(host);
         return new Parsed(host, portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText)));
     }
 
@@ -172,6 +199,39 @@ public class DidAuthority {
         } catch (XrdRuntimeException e) {
             return false;
         }
+    }
+
+    private static String canonicalIpv6(String host, String lowerCase) {
+        var bracketed = lowerCase.startsWith("[") && lowerCase.endsWith("]");
+        var literal = bracketed ? lowerCase.substring(1, lowerCase.length() - 1) : lowerCase;
+        if (!isIpv6Literal(literal)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR, "host '%s' is not a valid IPv6 literal", host);
+        }
+        return "[" + literal + "]";
+    }
+
+    private static boolean isIpv6Literal(String literal) {
+        if (literal.indexOf('%') >= 0 || hasBracket(literal)) {
+            return false;
+        }
+        try {
+            Inet6Address.ofLiteral(literal);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private static boolean isUriHost(String ascii) {
+        try {
+            return new URI("https://" + ascii).getHost() != null;
+        } catch (URISyntaxException e) {
+            return false;
+        }
+    }
+
+    private static boolean isHostChar(int c) {
+        return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.';
     }
 
     private static boolean hasBracket(String text) {

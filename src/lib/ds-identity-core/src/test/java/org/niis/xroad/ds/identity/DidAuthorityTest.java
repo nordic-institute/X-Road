@@ -73,6 +73,29 @@ class DidAuthorityTest {
     }
 
     @ParameterizedTest
+    @CsvSource({
+            "10.0.0.1,                10.0.0.1",
+            "xrd-ss0.lxd,             xrd-ss0.lxd",
+            "1a.example,              1a.example",
+            "[2001:db8::1],           [2001:db8::1]",
+            "::1,                     [::1]"
+    })
+    void shouldAcceptUsualHosts(String host, String expected) {
+        assertThat(DidAuthority.canonicalHost(host)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "ss0.example.org ", " ss0.example.org", "a b", "a/b", "a%b", "a\\b", "a@b", "a?b", "a#b", "a[b", "a]b",
+            "host:80:90", "[host:80]", "[host", "host]", "[[2001:db8::1]]", "2001:db8::1%eth0", "[2001:db8::1%25eth0]",
+            "2001:db8:::1", "12345::1", "my_host", "_a", "-a.org", "a-.org", "a.-b.org", "ss0.123", "1.2.3", "999.1.1.1",
+            "a.1b", "a..b", ".a"
+    })
+    void shouldRefuseMalformedHost(String host) {
+        assertThatThrownBy(() -> DidAuthority.canonicalHost(host)).isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"", "  "})
     void shouldRefuseBlankHost(String host) {
         assertThatThrownBy(() -> DidAuthority.canonicalHost(host)).isInstanceOf(XrdRuntimeException.class);
@@ -143,6 +166,19 @@ class DidAuthorityTest {
                 .hasMessageContaining(reason);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"host:80:90", "[host:80]", "ss0.example.org :7183", "a/b:7183", "a%b", "[10.0.0.1]",
+            "[my_host]:7183", "[ss0.example.org]", "my_host:7183"})
+    void shouldRefuseAuthorityWithMalformedHost(String authority) {
+        assertThatThrownBy(() -> DidAuthority.parse(authority)).isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void shouldTellAsciiText() {
+        assertThat(DidAuthority.isAscii("ss0.example.org")).isTrue();
+        assertThat(DidAuthority.isAscii("b\u00fccher.example")).isFalse();
+    }
+
     @Test
     void shouldRefuseNullAuthorityAsEmptyHost() {
         assertThatThrownBy(() -> DidAuthority.parse(null))
@@ -186,6 +222,8 @@ class DidAuthorityTest {
             "ss0.example.org:07183",
             "2001:db8::1",
             "2001:db8::1:7183",
+            "host:80:90",
+            "ss0.example.org :7183",
             "[2001:DB8::1]:7183",
             "[2001:db8::1]:443",
             "",
