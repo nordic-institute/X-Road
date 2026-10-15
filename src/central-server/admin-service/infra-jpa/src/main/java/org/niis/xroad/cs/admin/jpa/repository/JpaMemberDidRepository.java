@@ -27,10 +27,20 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface JpaMemberDidRepository extends JpaRepository<MemberDidEntity, Integer>, MemberDidRepository {
+
+    @Override
+    @Query("select new org.niis.xroad.cs.admin.core.entity.MemberDidRow("
+            + "d.securityServer.id, i.xRoadInstance, i.memberClass, i.memberCode, d.did) "
+            + "from MemberDidEntity d join d.member m join m.identifier i")
+    List<MemberDidRow> findAllRows();
 }

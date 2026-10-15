@@ -27,9 +27,14 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,6 +47,7 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.StoredMemberDid;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -53,6 +59,7 @@ import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.api.service.DataspaceMemberDidService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
@@ -62,16 +69,23 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.globalconf.model.CertHash;
 import org.niis.xroad.globalconf.model.CsrFormat;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
@@ -95,6 +109,17 @@ class SharedParametersLoaderTest {
     private static final String DS_TLS_CERTIFICATE_PROFILE_ID = "xrd-ds-tls";
     private static final String ISSUER_DID_1 = "did:web:cs1.example%3A443:issuer";
     private static final String ISSUER_DID_2 = "did:web:cs2.example%3A443:issuer";
+    private static final int SECOND_SERVER_ROW_ID = 2;
+    private static final int ABSENT_SERVER_ROW_ID = 99;
+    private static final SecurityServerId SERVER_1_ID = SecurityServerId.Conf.create(
+            ClientId.Conf.create("XRD", "CLASS", "M1"), "SS1");
+    private static final SecurityServerId SERVER_2_ID = SecurityServerId.Conf.create(
+            ClientId.Conf.create("XRD", "CLASS", "M1"), "SS2");
+    private static final String SYSTEM_DID = "did:web:security-server-address%3A7183:v1:system";
+    private static final String DSP_BASE_URL = "https://security-server-address:8183/api/dsp";
+    private static final String OWNER_DID = "did:web:security-server-address%3A7183:v1:XRD:CLASS:M1";
+    private static final String CLIENT_DID = "did:web:security-server-address%3A7183:v1:XRD:CLASS:M2";
+    private static final String OTHER_SERVER_CLIENT_DID = "did:web:other-server-address%3A7183:v1:XRD:CLASS:M2";
     private static final String TSA_NAME = "TSA name";
     private static final String TSA_URL = "TSA url";
     private static final byte[] TSA_CERT = "TSA cert".getBytes(UTF_8);
@@ -122,6 +147,8 @@ class SharedParametersLoaderTest {
     DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
     @Mock
     DataspaceIssuerDidService dataspaceIssuerDidService;
+    @Mock
+    DataspaceMemberDidService dataspaceMemberDidService;
     @Mock
     ClientService clientService;
     @Mock
@@ -177,7 +204,198 @@ class SharedParametersLoaderTest {
         assertThat(parameters.getCredentialIssuerDids()).isEmpty();
     }
 
+    @Test
+    void loadMapsSystemValuesOfServerThatPublishedThem() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
+                SYSTEM_DID, DSP_BASE_URL)));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .satisfies(ss -> assertThat(ss.getSystemValues()).isEqualTo(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL)));
+    }
+
+    @Test
+    void loadLeavesSystemValuesAbsentForServerWithoutThem() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .satisfies(ss -> assertThat(ss.getSystemValues()).isNull());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "did:web:security-server-address%3A7183:v1:system, ''",
+            "'', https://security-server-address:8183/api/dsp"})
+    void loadLeavesSystemValuesAbsentForServerWithHalfPair(String systemDid, String dspBaseUrl) {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
+                systemDid, dspBaseUrl)));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getSecurityServers()).singleElement()
+                .satisfies(ss -> assertThat(ss.getSystemValues()).isNull());
+    }
+
+    @Test
+    void loadSkipsMemberDidRowOfServerAbsentFromTheServerList() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                new StoredMemberDid(ABSENT_SERVER_ROW_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(didsByMember(parameters)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
+    }
+
+    @Test
+    void loadMapsMemberDidsToTheServerIdentifierOfTheirServer() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(didsByMember(parameters)).containsOnly(
+                Map.entry("M1", Map.of(SERVER_1_ID, OWNER_DID)),
+                Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
+    }
+
+    @Test
+    void loadKeepsMemberDidWhenTheMembersOnlyClientOnTheServerIsDisabled() {
+        stubDependencies(List.of());
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getSecurityServers()).singleElement().satisfies(ss -> assertThat(ss.getClients()).isEmpty());
+        assertThat(didsByMember(parameters)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
+    }
+
+    @Test
+    void loadReadsMemberDidsOncePerCall() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), OWNER_DID),
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+
+        sharedParametersLoader.load();
+
+        verify(dataspaceMemberDidService, times(1)).findAll();
+    }
+
+    @Test
+    void loadNoLongerCarriesMemberDidAfterItsRowIsDeleted() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        var row = new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID);
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(row)).thenReturn(List.of());
+
+        var before = sharedParametersLoader.load();
+        var after = sharedParametersLoader.load();
+
+        assertThat(didsByMember(before)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
+        assertThat(didsByMember(after)).isEmpty();
+    }
+
+    @Test
+    void loadTwiceOverUnchangedRowsGivesTheSameModelInStableOrder() {
+        stubDependencies();
+        stubSecondServer();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        var m2 = ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2");
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                new StoredMemberDid(SECOND_SERVER_ROW_ID, m2, OTHER_SERVER_CLIENT_DID),
+                new StoredMemberDid(SECURITY_SERVER_ID, m2, CLIENT_DID)));
+
+        var first = sharedParametersLoader.load();
+        var second = sharedParametersLoader.load();
+
+        assertThat(first.getMembers()).extracting(SharedParameters.Member::getMemberCode).containsExactly("M1", "M2");
+        assertThat(first.getMembers().getLast().getDids().entrySet()).extracting(Map.Entry::getKey, Map.Entry::getValue)
+                .containsExactly(
+                        tuple(SERVER_1_ID, CLIENT_DID),
+                        tuple(SERVER_2_ID, OTHER_SERVER_CLIENT_DID));
+        assertThat(second).usingRecursiveComparison().isEqualTo(first);
+    }
+
+    @ParameterizedTest
+    @MethodSource("generators")
+    void generatedSharedParametersCarryPublishedValuesOnlyInVersion7(
+            String version, Function<SharedParametersLoader, String> generate) {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1));
+        when(securityServerService.findAll()).thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(),
+                SYSTEM_DID, DSP_BASE_URL)));
+        when(dataspaceMemberDidService.findAll()).thenReturn(List.of(
+                new StoredMemberDid(SECURITY_SERVER_ID, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"), CLIENT_DID)));
+
+        var xml = generate.apply(sharedParametersLoader);
+
+        if ("7".equals(version)) {
+            assertThat(xml).contains("<systemDid>" + SYSTEM_DID + "</systemDid>",
+                    "<dspBaseUrl>" + DSP_BASE_URL + "</dspBaseUrl>", CLIENT_DID + "</did>");
+        } else {
+            assertThat(xml).contains("<serverCode>" + SECURITY_SERVER_CODE + "</serverCode>")
+                    .doesNotContain("systemDid", "dspBaseUrl", CLIENT_DID);
+        }
+    }
+
+    private static Stream<Arguments> generators() {
+        return Stream.of(
+                generator("2", loader -> new SharedParametersV2Generator(loader).generate()),
+                generator("3", loader -> new SharedParametersV3Generator(loader).generate()),
+                generator("4", loader -> new SharedParametersV4Generator(loader).generate()),
+                generator("5", loader -> new SharedParametersV5Generator(loader).generate()),
+                generator("6", loader -> new SharedParametersV6Generator(loader).generate()),
+                generator("7", loader -> new SharedParametersV7Generator(loader).generate()));
+    }
+
+    private static Arguments generator(String version, Function<SharedParametersLoader, String> generate) {
+        return Arguments.of(version, generate);
+    }
+
+    private static Map<String, Map<SecurityServerId, String>> didsByMember(SharedParameters parameters) {
+        return parameters.getMembers().stream()
+                .filter(member -> !member.getDids().isEmpty())
+                .collect(toMap(SharedParameters.Member::getMemberCode,
+                        SharedParameters.Member::getDids));
+    }
+
+    private static SecurityServer withSystemValues(SecurityServer server, String systemDid, String dspBaseUrl) {
+        server.setSystemDid(systemDid);
+        server.setDspBaseUrl(dspBaseUrl);
+        return server;
+    }
+
+    private void stubSecondServer() {
+        var owner = new XRoadMember("Member M1", ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"), getMemberClass());
+        var second = new SecurityServer(owner, "SS2");
+        second.setId(SECOND_SERVER_ROW_ID);
+        second.setAddress("other-server-address");
+        when(securityServerService.findAll()).thenReturn(List.of(getSecurityServers().getFirst(), second));
+        stubEnabledServerClients(SECOND_SERVER_ROW_ID, List.of());
+    }
+
     private void stubDependencies() {
+        stubDependencies(List.of(getFlattenedSecurityServerClientView("M2", "S1", null)));
+    }
+
+    private void stubDependencies(List<FlattenedSecurityServerClientView> enabledServerClients) {
         when(systemParameterService.getInstanceIdentifier()).thenReturn(XROAD_INSTANCE);
         when(configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys())
                 .thenReturn(getNodeAddressesWithConfigurationSigningKeys());
@@ -188,9 +406,7 @@ class SharedParametersLoaderTest {
         when(clientService.findAll()).thenReturn(getClients());
 
         when(securityServerService.findAll()).thenReturn(getSecurityServers());
-        when(clientService.find(new ClientService.SearchParameters()
-                .setSecurityServerId(SECURITY_SERVER_ID).setSecurityServerEnabled(true)))
-                .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1", null)));
+        stubEnabledServerClients(SECURITY_SERVER_ID, enabledServerClients);
 
         when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
         when(globalGroupMemberService.findByGroupCode(GLOBAL_GROUP_CODE)).thenReturn(List.of(
@@ -198,6 +414,12 @@ class SharedParametersLoaderTest {
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));
         when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
+    }
+
+    private void stubEnabledServerClients(int serverId, List<FlattenedSecurityServerClientView> enabledServerClients) {
+        when(clientService.find(new ClientService.SearchParameters()
+                .setSecurityServerId(serverId).setSecurityServerEnabled(true)))
+                .thenReturn(enabledServerClients);
     }
 
     private void assertApprovedConnectorTlsCAs(SharedParameters parameters) {
@@ -413,6 +635,7 @@ class SharedParametersLoaderTest {
     private MemberClass getMemberClass() {
         var memberClass = new MemberClass();
         memberClass.setCode("CLASS");
+        memberClass.setDescription("Class description");
         return memberClass;
     }
 

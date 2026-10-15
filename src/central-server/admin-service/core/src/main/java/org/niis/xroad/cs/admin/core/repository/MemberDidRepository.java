@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,12 @@ import java.util.Optional;
 public interface MemberDidRepository extends GenericRepository<MemberDidEntity, Integer> {
 
     List<MemberDidEntity> findAllBySecurityServerId(Integer securityServerId);
+
+    /**
+     * Selects the columns of every stored member DID, with the identifier parts of its member, in one SQL
+     * statement and without loading any entity.
+     */
+    List<MemberDidRow> findAllRows();
 
     Optional<MemberDidEntity> findBySecurityServerIdAndMemberId(Integer securityServerId, Long memberId);
 

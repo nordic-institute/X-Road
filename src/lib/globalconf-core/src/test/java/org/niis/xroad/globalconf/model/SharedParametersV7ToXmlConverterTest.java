@@ -264,6 +264,22 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     @Test
+    void shouldRoundTripFourThousandCharacterMemberDid() {
+        var sharedParameters = xrdAdr44Example();
+        var member = sharedParameters.getMembers().getFirst();
+        var serverId = SecurityServerId.Conf.create(member.getId(), "ss0");
+        var longDid = ("did:web:ss0.example.org%3A7183:v1:DEV:COM:222:" + "a".repeat(4000)).substring(0, 4000);
+        assertThat(longDid).hasSize(4000);
+        member.setDids(Map.of(serverId, longDid));
+
+        var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
+        var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
+
+        assertThat(afterMarshalling.getMembers().getFirst().getDids()).containsExactly(entry(serverId, longDid));
+        assertThat(afterMarshalling).usingRecursiveComparison().isEqualTo(sharedParameters);
+    }
+
+    @Test
     void shouldGiveEveryServerAnIdWhenNothingIsPublished() {
         var sharedParameters = xrdAdr44Example();
         var server = sharedParameters.getSecurityServers().getFirst();
