@@ -64,14 +64,17 @@ import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
+import org.niis.xroad.securityserver.restapi.service.ExternalRpcCaService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.OpMonitorCaService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -91,7 +94,12 @@ import java.util.Set;
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SystemApiController implements SystemApi, ConfigurablePropertiesApi {
+    private static final String EXTERNAL_RPC_CA_FILENAME = "external-rpc-ca.pem";
+    private static final MediaType PEM_FILE = MediaType.parseMediaType("application/x-pem-file");
+
     private final InternalTlsCertificateService internalTlsCertificateService;
+    private final ExternalRpcCaService externalRpcCaService;
+    private final OpMonitorCaService opMonitorCaService;
     private final ConfigurablePropertiesService configurablePropertiesService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
@@ -128,6 +136,45 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
         CertificateDetailsDto certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_EXTERNAL_RPC_CA')")
+    public ResponseEntity<CertificateDetailsDto> getExternalRpcCa() {
+        return ResponseEntity.ok(certificateDetailsConverter.convert(externalRpcCaService.getExternalRpcCa()));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DOWNLOAD_EXTERNAL_RPC_CA')")
+    public ResponseEntity<Resource> downloadExternalRpcCa() {
+        return ControllerUtil.createAttachmentResourceResponse(
+                externalRpcCaService.downloadExternalRpcCa(), EXTERNAL_RPC_CA_FILENAME, PEM_FILE);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_OP_MONITOR_CA')")
+    public ResponseEntity<CertificateDetailsDto> getOpMonitorCa() {
+        return opMonitorCaService.getOpMonitorCa()
+                .map(certificateDetailsConverter::convert)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_OP_MONITOR_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_OP_MONITOR_CA)
+    public ResponseEntity<CertificateDetailsDto> uploadOpMonitorCa(MultipartFile certificate) {
+        byte[] certificateFileBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificate);
+        X509Certificate stored = opMonitorCaService.uploadOpMonitorCa(certificateFileBytes);
+        return ResponseEntity.ok(certificateDetailsConverter.convert(stored));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_OP_MONITOR_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_OP_MONITOR_CA)
+    public ResponseEntity<Void> deleteOpMonitorCa() {
+        opMonitorCaService.deleteOpMonitorCa();
+        return ResponseEntity.noContent().build();
     }
 
     @Override

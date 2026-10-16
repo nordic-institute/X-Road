@@ -429,7 +429,15 @@
     "anchor_upload_failed": "Anchor upload failed",
     "auth_cert_not_supported": "Authentication certificate is not supported",
     "base_endpoint_not_found": "Base endpoint not found",
+    "ca_cert_empty": "The file is empty",
+    "ca_cert_expired": "The CA certificate has expired",
+    "ca_cert_key_material": "The file contains private key material. Upload the CA certificate only",
+    "ca_cert_multiple_certificates": "The file contains more than one certificate. Upload only the CA certificate that issues the certificate",
+    "ca_cert_not_a_ca": "The certificate is not a CA certificate",
+    "ca_cert_not_a_certificate": "The file is not a PEM or DER encoded certificate",
+    "ca_cert_not_yet_valid": "The CA certificate is not yet valid",
     "ca_cert_status_processing_failure": "CA certificate status processing failed",
+    "ca_cert_unsupported_key_algorithm": "The CA certificate public key must be RSA or EC",
     "cannot_delete_owner": "Cannot delete the owner",
     "cannot_register_owner": "Cannot register the owner",
     "cannot_unregister_owner": "Cannot unregister owner",
@@ -478,6 +486,7 @@
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
+    "external_rpc_ca_not_available": "The Security Server RPC CA is not available",
     "failed_to_save_instance_identifier": "Failed to save instance identifier to a file",
     "forbidden_disable_management_service_client": "The management services provider cannot be deactivated.",
     "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
@@ -874,6 +883,26 @@
     "noLocalGroups": "No local groups",
     "noServiceClients": "No service clients",
     "noTimestampingServices": "No timestamping services"
+  },
+  "opMonitorTrust": {
+    "externalRpcCa": {
+      "description": "The Security Server RPC CA signs the certificates of the RPC connections of this Security Server. Download it and install it on the operational monitoring daemon host, so that the host trusts this Security Server.",
+      "download": "Download",
+      "title": "Security Server RPC CA",
+      "unavailable": "The Security Server RPC CA is not available"
+    },
+    "opMonitorCa": {
+      "delete": "Delete",
+      "deleteConfirmText": "Delete the Operational Monitoring CA? This Security Server then trusts only the Security Server RPC CA, as for an operational monitoring daemon on the same host.",
+      "deleteConfirmTitle": "Delete Operational Monitoring CA?",
+      "deleted": "The Operational Monitoring CA is deleted",
+      "description": "The CA of an operational monitoring daemon running on another host. Upload it so that this Security Server trusts that operational monitoring daemon. The file must hold exactly one PEM or DER encoded CA certificate and no private key.",
+      "empty": "No Operational Monitoring CA is stored",
+      "replace": "Replace",
+      "title": "Operational Monitoring CA",
+      "upload": "Upload",
+      "uploaded": "The Operational Monitoring CA is stored"
+    }
   },
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
@@ -1501,6 +1530,7 @@
     },
     "keys": {
       "apiKey": "API Keys",
+      "opMonitorTrust": "Operational Monitoring Trust",
       "signAndAuthKeys": "SIGN and AUTH Keys",
       "ssTlsCertificate": "Security Server TLS Key",
       "dsTlsCertificate": "Dataspace TLS Certificate"

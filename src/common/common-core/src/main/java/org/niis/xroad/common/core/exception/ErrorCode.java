@@ -340,6 +340,17 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DS_TLS_INVALID_SUBJECT_ALT_NAME("ds_tls_invalid_subject_alt_name"),
     DS_TLS_ACME_ORDER_FAILED("ds_tls_acme_order_failed"),
 
+    // ===== CERTIFICATE AUTHORITY ERRORS =====
+    EXTERNAL_RPC_CA_NOT_AVAILABLE("external_rpc_ca_not_available"),
+    CA_CERT_EMPTY("ca_cert_empty"),
+    CA_CERT_NOT_A_CERTIFICATE("ca_cert_not_a_certificate"),
+    CA_CERT_MULTIPLE_CERTIFICATES("ca_cert_multiple_certificates"),
+    CA_CERT_KEY_MATERIAL("ca_cert_key_material"),
+    CA_CERT_NOT_A_CA("ca_cert_not_a_ca"),
+    CA_CERT_UNSUPPORTED_KEY_ALGORITHM("ca_cert_unsupported_key_algorithm"),
+    CA_CERT_EXPIRED("ca_cert_expired"),
+    CA_CERT_NOT_YET_VALID("ca_cert_not_yet_valid"),
+
     // ===== AGREEMENT TOKEN ERRORS =====
     AGREEMENT_TOKEN_KEY_NOT_AVAILABLE("agreement_token_key_not_available"),
     AGREEMENT_TOKEN_SIGNING_FAILED("agreement_token_signing_failed"),
