@@ -1157,6 +1157,27 @@ class DataspaceProvisioningServiceTest {
         verify(identityHubClient, never()).getCredentialRequestState(any(), any());
     }
 
+    @Test
+    void ensureMembershipCredentialReturnsUnknownWithoutTouchingHubWhenOwnerNotInitialised() {
+        givenServerConfWithoutOwner();
+
+        var status = service.ensureMembershipCredential(GENERIC_CONTEXT);
+
+        assertThat(status).isEqualTo(CredentialStatus.UNKNOWN);
+        verify(identityHubClient, never()).getCredentialRequestState(any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void readCredentialStatusReturnsUnknownWithoutTouchingHubWhenOwnerNotInitialised() {
+        givenServerConfWithoutOwner();
+
+        var status = service.readCredentialStatus(GENERIC_CONTEXT);
+
+        assertThat(status).isEqualTo(CredentialStatus.UNKNOWN);
+        verify(identityHubClient, never()).getCredentialRequestState(any(), any());
+    }
+
     private static String ownerHolderPidSlot0(ClientId owner) {
         return holderPidBase(ParticipantIdentifierScheme.SYSTEM_SEGMENT, owner, "SS0");
     }
@@ -1321,6 +1342,12 @@ class DataspaceProvisioningServiceTest {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(ownerEntity);
         lenient().when(serverConf.getServerCode()).thenReturn(SERVER_ID.getServerCode());
+        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+    }
+
+    private void givenServerConfWithoutOwner() {
+        var serverConf = mock(ServerConfEntity.class);
+        when(serverConf.getOwner()).thenReturn(null);
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
     }
 
