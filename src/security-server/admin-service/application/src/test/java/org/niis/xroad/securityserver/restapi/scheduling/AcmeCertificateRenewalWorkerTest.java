@@ -55,7 +55,6 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -99,6 +98,7 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_GLOBALCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockSignCsrBytes;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
@@ -288,7 +288,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     @Test
     public void signCertWithoutSubjectAltNameUsesRegisteredAddress() throws Exception {
         useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID));
-        doReturn(new OwnAddress.Registered(securityServerId(), "ss.example.org")).when(ownSecurityServerResolver).address();
+        doReturn(new OwnAddress.Registered(ownServerId(), "ss.example.org")).when(ownSecurityServerResolver).address(eq(ownServerId()));
 
         runRenewal();
 
@@ -300,13 +300,13 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     @Test
     public void signCertWithoutSubjectAltNameSkippedBeforeKeyGenerationWhenNotRegistered() throws Exception {
         useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID));
-        doReturn(new OwnAddress.NotRegistered(securityServerId())).when(ownSecurityServerResolver).address();
+        doReturn(new OwnAddress.NotRegistered(ownServerId())).when(ownSecurityServerResolver).address(eq(ownServerId()));
 
         runRenewal();
 
         verify(signerRpcClient, never()).generateKey(any(), any(), any());
         verify(signerRpcClient, never()).deleteKey(any(), anyBoolean());
-        verify(signerRpcClient).setRenewalError(eq("sign_cert_id"), contains("not registered in GlobalConf"));
+        verify(signerRpcClient).setRenewalError(eq("sign_cert_id"), contains(SECURITY_SERVER_NOT_FOUND.code()));
         verify(mailNotificationHelper).sendFailureNotification(any(), any(), any(), contains("not registered in GlobalConf"));
         verify(acmeService, never()).renew(any(), any(), any(), any(), any(), any(), any());
     }
@@ -315,7 +315,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     public void signCertWithoutSubjectAltNameAbortsBeforeKeyGenerationWhenGlobalConfUnavailable() throws Exception {
         useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID));
         var cause = XrdRuntimeException.systemException(MALFORMED_GLOBALCONF, "global conf is not readable");
-        doReturn(new OwnAddress.GlobalConfUnavailable(cause)).when(ownSecurityServerResolver).address();
+        doReturn(new OwnAddress.GlobalConfUnavailable(cause)).when(ownSecurityServerResolver).address(eq(ownServerId()));
 
         runRenewal();
 
@@ -325,16 +325,17 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     }
 
     @Test
-    public void signCertWithoutSubjectAltNameReportsUninitialisedOwnerWithoutNullPointerException() throws Exception {
-        useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID));
-        doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).address();
+    public void readsOwnIdentityOncePerCycleForAllCertificates() throws Exception {
+        useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID), authKey());
+        when(acmeService.renew(any(), any(), any(), any(), any(), any(), any()))
+                .thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE.build()));
+        doReturn(new OwnAddress.Registered(ownServerId(), "ss.example.org")).when(ownSecurityServerResolver).address(eq(ownServerId()));
 
         runRenewal();
 
-        verify(signerRpcClient, never()).generateKey(any(), any(), any());
-        var errorCaptor = ArgumentCaptor.forClass(String.class);
-        verify(signerRpcClient).setRenewalError(eq("sign_cert_id"), errorCaptor.capture());
-        assertThat(errorCaptor.getValue()).contains(MALFORMED_SERVERCONF.code()).doesNotContain("NullPointerException");
+        verify(signerRpcClient, times(2)).setRenewalError(any(), any());
+        verify(mailNotificationHelper, times(2)).sendFailureNotification(any(), any(), any(), any());
+        verify(ownSecurityServerResolver, times(1)).identity();
     }
 
     @Test
@@ -394,8 +395,9 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
         serverConfRepository.getServerConf().setOwner(null);
     }
 
-    private SecurityServerId.Conf securityServerId() {
-        return SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
+    private SecurityServerId.Conf ownServerId() {
+        var serverConf = serverConfRepository.getServerConf();
+        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
     }
 
     private KeyInfo signKeyWithoutSubjectAltName(ClientId.Conf memberId) throws Exception {

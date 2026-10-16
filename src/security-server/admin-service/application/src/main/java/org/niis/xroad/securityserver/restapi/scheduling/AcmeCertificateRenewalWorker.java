@@ -50,7 +50,6 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -114,16 +113,18 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             return;
         }
 
+        OwnIdentity ownIdentity;
         List<CertificateInfo> certs;
         try {
+            ownIdentity = ownSecurityServerResolver.identity();
             certs = getAllCertificates();
         } catch (Exception e) {
-            log.error("Error when trying to retrieve certificates for renewal", e);
+            log.error("Error when trying to retrieve certificates and own server identity for renewal", e);
             finishRenewal(acmeRenewalScheduler, true);
             return;
         }
 
-        boolean failed = renewCertificatesIfNeeded(certs);
+        boolean failed = renewCertificatesIfNeeded(certs, ownIdentity);
 
         finishRenewal(acmeRenewalScheduler, failed);
     }
@@ -136,7 +137,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 .toList();
     }
 
-    private boolean renewCertificatesIfNeeded(List<CertificateInfo> certs) {
+    private boolean renewCertificatesIfNeeded(List<CertificateInfo> certs, OwnIdentity ownIdentity) {
         log.info("Trying to fetch renewal information and renew if needed for {} certificates", certs.size());
         boolean failed = false;
         for (CertificateInfo certificateInfo : certs) {
@@ -149,7 +150,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 continue;
             }
             try {
-                if (!renewCertificateIfNeeded(certificateInfo)) {
+                if (!renewCertificateIfNeeded(certificateInfo, ownIdentity)) {
                     failed = true;
                 }
             } catch (Exception ex) {
@@ -160,7 +161,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         return failed;
     }
 
-    private boolean renewCertificateIfNeeded(CertificateInfo certificateInfo) {
+    private boolean renewCertificateIfNeeded(CertificateInfo certificateInfo, OwnIdentity ownIdentity) {
         X509Certificate x509Certificate = readCertificate(certificateInfo.getCertificateBytes());
         KeyUsageInfo keyUsage;
         ClientId clientId;
@@ -182,7 +183,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             log.error("Error when trying to retrieve information about the certificate '{}' to be renewed",
                     certificateInfo.getId(),
                     ex);
-            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage());
+            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), certificateInfo.getMemberId(), ownIdentity);
             return false;
         }
 
@@ -194,17 +195,17 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             isRenewalRequired = isRenewalRequired(clientId.asEncodedId(), approvedCA, x509Certificate, keyUsage);
         } catch (Exception ex) {
             log.error("Error when trying to find out whether renewal is required for certificate '{}'", certificateInfo.getId(), ex);
-            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId);
+            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId, ownIdentity);
             return false;
         }
 
         X509Certificate newX509Certificate = null;
         if (isRenewalRequired) {
             try {
-                newX509Certificate = renewCertificate(clientId, approvedCA, certificateInfo, x509Certificate, keyUsage);
+                newX509Certificate = renewCertificate(clientId, approvedCA, certificateInfo, x509Certificate, keyUsage, ownIdentity);
             } catch (Exception ex) {
                 log.error("Error when trying to renew certificate '{}'", certificateInfo.getId(), ex);
-                setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId);
+                setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId, ownIdentity);
                 return false;
             }
         }
@@ -238,32 +239,18 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
     }
 
-    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription) {
-        setRenewalErrorAndSendFailureNotification(cert, errorDescription, cert.getMemberId());
-    }
-    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, ClientId memberId) {
+    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, ClientId memberId,
+                                                           OwnIdentity ownIdentity) {
         if (Objects.equals(cert.getRenewalError(), errorDescription)) {
             return;
         }
         setRenewalError(cert.getId(), errorDescription);
-        switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known(var id) -> {
-                var recipient = memberId != null ? memberId : id.getOwner();
-                mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, id, errorDescription);
-            }
-            case OwnerNotInitialised _ -> logSkippedFailureNotification(cert, OWNER_NOT_SET_MESSAGE);
-        }
-    }
-    private void logSkippedFailureNotification(CertificateInfo cert, String reason) {
-        log.warn("Renewal failure notification for certificate '{}' not sent: {}", cert.getId(), reason);
-    }
-
-    private SecurityServerId.Conf requireOwnServerId() {
-        return switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known(var id) -> id;
-            case OwnerNotInitialised _ -> throw XrdRuntimeException.systemException(
-                    MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE);
-        };
+        ownIdentity.serverId().ifPresentOrElse(
+                id -> {
+                    var recipient = memberId != null ? memberId : id.getOwner();
+                    mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, id, errorDescription);
+                },
+                () -> log.warn("Renewal failure notification for certificate '{}' not sent: {}", cert.getId(), OWNER_NOT_SET_MESSAGE));
     }
 
     private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate) {
@@ -325,10 +312,12 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private X509Certificate renewCertificate(ClientId memberId, ApprovedCAInfo approvedCA,
                                              CertificateInfo oldCertInfo,
-                                             X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) {
+                                             X509Certificate oldX509Certificate, KeyUsageInfo keyUsage,
+                                             OwnIdentity ownIdentity) {
         log.info("Starting to renew certificate '{}'", oldX509Certificate.getSerialNumber());
-        SecurityServerId.Conf ownServerId = requireOwnServerId();
-        String subjectAltName = getSubjectAltName(oldX509Certificate, keyUsage);
+        SecurityServerId.Conf ownServerId = ownIdentity.serverId().orElseThrow(
+                () -> XrdRuntimeException.systemException(MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE));
+        String subjectAltName = getSubjectAltName(oldX509Certificate, keyUsage, ownServerId);
         TokenInfoAndKeyId tokenAndOldKeyId = signerRpcClient.getTokenAndKeyIdForCertHash(calculateCertHexHashOrThrow(oldX509Certificate));
         String tokenId = tokenAndOldKeyId.getTokenInfo().getId();
         KeyAlgorithm keyAlgorithm = SignMechanism.valueOf(tokenAndOldKeyId.getKeyInfo().getSignMechanismName()).keyAlgorithm();
@@ -422,7 +411,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 adminServiceProperties.isProxyServerEnableConnectionReuse());
     }
 
-    private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) {
+    private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage, SecurityServerId.Conf ownServerId) {
         String subjectAltName;
         var x509SubjectAlternativeNames = getX509SubjectAlternativeNames(oldX509Certificate);
         if (x509SubjectAlternativeNames != null) {
@@ -431,20 +420,18 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 subjectAltName = getCommonName(oldX509Certificate.getSubjectX500Principal().getName());
             } else {
-                subjectAltName = getOwnRegisteredAddress();
+                subjectAltName = getRegisteredAddress(ownServerId);
             }
         }
         return subjectAltName;
     }
 
-    private String getOwnRegisteredAddress() {
-        return switch (ownSecurityServerResolver.address()) {
+    private String getRegisteredAddress(SecurityServerId.Conf ownServerId) {
+        return switch (ownSecurityServerResolver.address(ownServerId)) {
             case OwnAddress.Registered(_, var address) -> address;
             case OwnAddress.NotRegistered _ -> throw XrdRuntimeException.systemException(
                     SECURITY_SERVER_NOT_FOUND, "Security Server is not registered in GlobalConf");
             case OwnAddress.GlobalConfUnavailable(var cause) -> throw XrdRuntimeException.systemException(cause);
-            case OwnerNotInitialised _ -> throw XrdRuntimeException.systemException(
-                    MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE);
         };
     }
 
