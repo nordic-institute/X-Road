@@ -257,6 +257,7 @@ class SubmittedDidResolverTest {
         var resolution = resolver().resolve(stub.did());
 
         assertThat(resolution.reason()).isEqualTo(Reason.FETCH_FAILURE);
+        assertThat(resolution.requestFailed()).isFalse();
     }
 
     @Test
@@ -270,7 +271,27 @@ class SubmittedDidResolverTest {
             var resolution = resolver().resolve(DidStubServer.didOfPort(port));
 
             assertThat(resolution.reason()).isEqualTo(Reason.FETCH_FAILURE);
+            assertThat(resolution.requestFailed()).isTrue();
         }
+    }
+
+    @Test
+    void aStatusOtherThan200IsNotARequestFailure() throws Exception {
+        var stub = start(sharedCa);
+        stub.route(DidStubServer.DID_PATH, DidStubServer.respond(500, "{}"));
+        trust(sharedCa);
+
+        assertThat(resolver().resolve(stub.did()).requestFailed()).isFalse();
+    }
+
+    @Test
+    void anExplicitDefaultPortAndNoPortAreTheSameEndpoint() {
+        var withoutPort = SubmittedDidResolver.fetchEndpoint("did:web:xrd-ss1:v1:DEV:COM:1");
+        var withPort = SubmittedDidResolver.fetchEndpoint("did:web:xrd-ss1%3A443:v1:DEV:COM:1");
+        var otherPort = SubmittedDidResolver.fetchEndpoint("did:web:xrd-ss1%3A9183:v1:DEV:COM:1");
+
+        assertThat(withoutPort).isPresent().isEqualTo(withPort).isNotEqualTo(otherPort);
+        assertThat(withoutPort.orElseThrow().port()).isEqualTo(443);
     }
 
     @Test
@@ -303,6 +324,7 @@ class SubmittedDidResolverTest {
         var resolution = resolver().resolve(stub.did());
 
         assertThat(resolution.reason()).isEqualTo(Reason.FETCH_FAILURE);
+        assertThat(resolution.requestFailed()).isTrue();
         assertThat(stub.requests(DidStubServer.DID_PATH)).isEqualTo(1);
     }
 

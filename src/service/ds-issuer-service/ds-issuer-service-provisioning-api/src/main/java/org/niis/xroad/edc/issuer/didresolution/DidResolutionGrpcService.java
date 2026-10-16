@@ -26,8 +26,10 @@
  */
 package org.niis.xroad.edc.issuer.didresolution;
 
+import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionOutcome;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionReason;
@@ -36,14 +38,19 @@ import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionServiceGrpc;
 import org.niis.xroad.edc.issuer.provisioning.proto.ResolveDidsReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.ResolveDidsResp;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 /**
- * gRPC adapter of {@link SubmittedDidResolver}. Resolves the requested DIDs one after the other and answers in
- * request order.
+ * gRPC adapter of {@link BatchDidResolver}. The batch budget is the call deadline minus a response reserve; the
+ * answer is in request order.
  */
 @RequiredArgsConstructor
 class DidResolutionGrpcService extends DidResolutionServiceGrpc.DidResolutionServiceImplBase {
 
-    private final SubmittedDidResolver resolver;
+    static final Duration RESPONSE_RESERVE = Duration.ofMillis(250);
+
+    private final BatchDidResolver batchResolver;
     private final RpcResponseHandler responseHandler;
 
     @Override
@@ -53,8 +60,18 @@ class DidResolutionGrpcService extends DidResolutionServiceGrpc.DidResolutionSer
 
     private ResolveDidsResp resolveInternal(ResolveDidsReq request) {
         var response = ResolveDidsResp.newBuilder();
-        request.getDidsList().forEach(did -> response.addResults(toProto(resolver.resolve(did))));
+        batchResolver.resolveAll(request.getDidsList(), remainingBudget())
+                .forEach(resolution -> response.addResults(toProto(resolution)));
         return response.build();
+    }
+
+    @Nullable
+    private static Duration remainingBudget() {
+        var deadline = Context.current().getDeadline();
+        if (deadline == null) {
+            return null;
+        }
+        return Duration.ofNanos(deadline.timeRemaining(TimeUnit.NANOSECONDS)).minus(RESPONSE_RESERVE);
     }
 
     private static DidResolutionResult toProto(SubmittedDidResolver.Resolution resolution) {

@@ -41,6 +41,7 @@ import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 
 import java.net.HttpURLConnection;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,7 +70,7 @@ public class SubmittedDidResolver {
                 .followRedirects(false)
                 .followSslRedirects(false)
                 .retryOnConnectionFailure(false)
-                .connectionPool(new ConnectionPool(0, 1, TimeUnit.SECONDS))
+                .connectionPool(new ConnectionPool(BatchDidResolver.MAX_CONCURRENT_RESOLUTIONS, 1, TimeUnit.SECONDS))
                 .callTimeout(fetchTimeout)
                 .build();
         var recordingClient = new RecordingEdcHttpClient(new EdcHttpClientImpl(
@@ -79,7 +80,7 @@ public class SubmittedDidResolver {
     }
 
     public Resolution resolve(String did) {
-        if (!isResolvable(did)) {
+        if (fetchEndpoint(did).isEmpty()) {
             return Resolution.notResolved(did, Reason.MALFORMED_DID);
         }
         try {
@@ -90,13 +91,18 @@ public class SubmittedDidResolver {
                         : Resolution.notResolved(did, Reason.ID_MISMATCH);
             }
             monitor.debug("DID document of %s not resolved: %s".formatted(did, result.getFailureDetail()));
-            return Resolution.notResolved(did, failureReason());
+            return Resolution.notResolved(did, failureReason(), requestFailed());
         } catch (RuntimeException e) {
             monitor.debug("DID document of %s could not be fetched".formatted(did), e);
-            return Resolution.notResolved(did, Reason.FETCH_FAILURE);
+            return Resolution.notResolved(did, Reason.FETCH_FAILURE, requestFailed());
         } finally {
             httpClient.forget();
         }
+    }
+
+    private boolean requestFailed() {
+        var attempt = httpClient.lastAttempt();
+        return attempt != null && attempt.failure() != null;
     }
 
     private Reason failureReason() {
@@ -113,13 +119,20 @@ public class SubmittedDidResolver {
     /**
      * Accepts an X-Road member or SYSTEM DID whose server address parses as an HTTPS authority; the participant
      * identifier scheme validates everything else about the DID.
+     *
+     * @return the host and effective port of the server address, as the HTTP client dials them; empty when the DID
+     * is not resolvable
      */
-    private static boolean isResolvable(String did) {
+    static Optional<Endpoint> fetchEndpoint(String did) {
         try {
-            return HttpUrl.parse("https://" + ParticipantIdentifierScheme.decodeDid(did).ssHost()) != null;
+            var url = HttpUrl.parse("https://" + ParticipantIdentifierScheme.decodeDid(did).ssHost());
+            return Optional.ofNullable(url).map(parsed -> new Endpoint(parsed.host(), parsed.port()));
         } catch (RuntimeException e) {
-            return false;
+            return Optional.empty();
         }
+    }
+
+    record Endpoint(String host, int port) {
     }
 
     public enum Reason {
@@ -130,17 +143,23 @@ public class SubmittedDidResolver {
     }
 
     /**
-     * @param did    the DID that was resolved
-     * @param reason why the DID did not resolve, {@code null} when it resolved
+     * @param did           the DID that was resolved
+     * @param reason        why the DID did not resolve, {@code null} when it resolved
+     * @param requestFailed whether the document request failed without an HTTP response, as opposed to a response
+     *                      that was refused or unusable
      */
-    public record Resolution(String did, Reason reason) {
+    public record Resolution(String did, Reason reason, boolean requestFailed) {
 
         static Resolution resolved(String did) {
-            return new Resolution(did, null);
+            return new Resolution(did, null, false);
         }
 
         static Resolution notResolved(String did, Reason reason) {
-            return new Resolution(did, reason);
+            return new Resolution(did, reason, false);
+        }
+
+        static Resolution notResolved(String did, Reason reason, boolean requestFailed) {
+            return new Resolution(did, reason, requestFailed);
         }
 
         public boolean isResolved() {

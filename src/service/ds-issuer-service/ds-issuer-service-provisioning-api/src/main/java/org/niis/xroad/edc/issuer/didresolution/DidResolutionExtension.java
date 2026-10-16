@@ -69,7 +69,7 @@ public class DidResolutionExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var resolver = SubmittedDidResolver.create(
                 okHttpClient, typeManager.getMapper(), fetchTimeout(context, monitor), monitor);
-        grpcServiceRegistry.register(new DidResolutionGrpcService(resolver, new RpcResponseHandler()));
+        grpcServiceRegistry.register(new DidResolutionGrpcService(new BatchDidResolver(resolver, monitor), new RpcResponseHandler()));
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }
 

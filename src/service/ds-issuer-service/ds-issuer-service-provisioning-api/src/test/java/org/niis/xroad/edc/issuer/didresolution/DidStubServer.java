@@ -54,11 +54,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An HTTPS server on the loopback address that serves one DID document, whose behaviour tests replace per path,
- * and that counts the requests it receives per path.
+ * and that counts the requests it receives per path. Requests are handled concurrently.
  */
 final class DidStubServer implements AutoCloseable {
 
@@ -67,6 +69,7 @@ final class DidStubServer implements AutoCloseable {
     private static final KeyPair LEAF_KEY_PAIR = generateKeyPair();
 
     private final HttpsServer server;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final String did;
     private final Map<String, HttpHandler> routes = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> requestCounts = new ConcurrentHashMap<>();
@@ -86,6 +89,7 @@ final class DidStubServer implements AutoCloseable {
                 handler.handle(exchange);
             }
         });
+        server.setExecutor(executor);
         server.start();
     }
 
@@ -171,6 +175,7 @@ final class DidStubServer implements AutoCloseable {
     @Override
     public void close() {
         server.stop(0);
+        executor.shutdownNow();
     }
 
     private static KeyPair generateKeyPair() {
