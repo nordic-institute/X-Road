@@ -125,6 +125,30 @@ class OwnSecurityServerResolverTest {
     }
 
     @Test
+    void addressForGivenIdMapsGlobalConfInitExceptionToGlobalConfUnavailable() {
+        var cause = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenThrow(cause);
+
+        assertThat(resolver.address(SERVER_ID)).isEqualTo(new OwnAddress.GlobalConfUnavailable(cause));
+    }
+
+    @Test
+    void registeredAddressIsPresentOnlyForRegistered() {
+        var cause = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
+
+        assertThat(new OwnAddress.Registered(SERVER_ID, ADDRESS).registeredAddress()).contains(ADDRESS);
+        assertThat(new OwnAddress.NotRegistered(SERVER_ID).registeredAddress()).isEmpty();
+        assertThat(new OwnAddress.GlobalConfUnavailable(cause).registeredAddress()).isEmpty();
+        assertThat(new OwnerNotInitialised().registeredAddress()).isEmpty();
+    }
+
+    @Test
+    void serverIdIsPresentOnlyForKnown() {
+        assertThat(new OwnIdentity.Known(SERVER_ID).serverId()).contains(SERVER_ID);
+        assertThat(new OwnerNotInitialised().serverId()).isEmpty();
+    }
+
+    @Test
     void addressMapsGlobalConfInitExceptionFromIdentitySource() {
         var cause = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
         var failing = new OwnSecurityServerResolver(() -> {

@@ -27,11 +27,20 @@ package org.niis.xroad.serverconf.impl.ownserver;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.util.Optional;
+
 /**
  * Who this Security Server is, or the reason that is not known. A database failure is not a state:
  * it propagates as an exception.
  */
 public sealed interface OwnIdentity permits OwnIdentity.Known, OwnerNotInitialised {
+
+    /**
+     * @return the server identifier, empty for every other state
+     */
+    default Optional<SecurityServerId.Conf> serverId() {
+        return this instanceof Known(var id) ? Optional.of(id) : Optional.empty();
+    }
 
     /**
      * The server's identifier is known.

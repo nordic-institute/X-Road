@@ -188,8 +188,9 @@ public class XRoadDataPlaneManager {
     private String resolveServerproxyEndpoint(String protocol) {
         try {
             var ownAddress = ownSecurityServerResolver.address();
-            if (ownAddress instanceof OwnAddress.Registered(_, var address)) {
-                var endpoint = "%s://%s:%d".formatted(protocol, address, proxyProperties.serverProxyPort());
+            var registeredAddress = ownAddress.registeredAddress();
+            if (registeredAddress.isPresent()) {
+                var endpoint = "%s://%s:%d".formatted(protocol, registeredAddress.get(), proxyProperties.serverProxyPort());
                 log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
                 return endpoint;
             }

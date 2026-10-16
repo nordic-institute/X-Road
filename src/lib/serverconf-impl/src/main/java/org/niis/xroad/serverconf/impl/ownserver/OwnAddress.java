@@ -27,11 +27,20 @@ package org.niis.xroad.serverconf.impl.ownserver;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.util.Optional;
+
 /**
  * The address registered for this Security Server in global configuration, or the reason it is not
  * known. A database failure is not a state: it propagates as an exception.
  */
 public sealed interface OwnAddress permits GlobalConfAddress, OwnerNotInitialised {
+
+    /**
+     * @return the registered address, empty for every other state
+     */
+    default Optional<String> registeredAddress() {
+        return this instanceof Registered(_, var address) ? Optional.of(address) : Optional.empty();
+    }
 
     /**
      * The server is registered with this address.

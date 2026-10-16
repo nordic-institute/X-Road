@@ -35,7 +35,6 @@ import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
@@ -138,8 +137,6 @@ public class DataspaceDidAuthority {
     }
 
     private Optional<String> registeredAddress() {
-        return ownSecurityServerResolver.address() instanceof OwnAddress.Registered(_, var address)
-                ? Optional.of(address)
-                : Optional.empty();
+        return ownSecurityServerResolver.address().registeredAddress();
     }
 }

@@ -42,7 +42,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
@@ -173,11 +172,8 @@ public class OpMonitoringDataHelper {
 
     private void setOwnAddress(Consumer<String> setter) {
         var ownAddress = ownSecurityServerResolver.address();
-        if (ownAddress instanceof OwnAddress.Registered registered) {
-            setter.accept(registered.address());
-        } else {
-            log.debug("Own security server address is not available for operational monitoring: {}",
-                    ownAddress.getClass().getSimpleName());
-        }
+        ownAddress.registeredAddress().ifPresentOrElse(setter, () ->
+                log.debug("Own security server address is not available for operational monitoring: {}",
+                        ownAddress.getClass().getSimpleName()));
     }
 }

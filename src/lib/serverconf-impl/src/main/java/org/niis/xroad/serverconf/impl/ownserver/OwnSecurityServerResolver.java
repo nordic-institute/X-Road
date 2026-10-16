@@ -34,7 +34,10 @@ import org.niis.xroad.globalconf.model.GlobalConfInitException;
 
 /**
  * This Security Server as global configuration knows it: its identifier and registered address.
- * Every reason an answer is missing is a distinct result state; database failures propagate.
+ * Every reason an answer is missing is a distinct result state: owner not initialised, address not
+ * registered, global configuration unavailable. Database failures propagate, and so does a
+ * {@link GlobalConfInitException} from {@link #identity()} when the identity source needs global
+ * configuration and cannot read it; {@link #address()} maps that one to a result state.
  */
 @RequiredArgsConstructor
 public class OwnSecurityServerResolver {
@@ -70,7 +73,7 @@ public class OwnSecurityServerResolver {
                 return new OwnAddress.NotRegistered(id);
             }
             return new OwnAddress.Registered(id, address);
-        } catch (XrdRuntimeException e) {
+        } catch (XrdRuntimeException | GlobalConfInitException e) {
             return new OwnAddress.GlobalConfUnavailable(e);
         }
     }
