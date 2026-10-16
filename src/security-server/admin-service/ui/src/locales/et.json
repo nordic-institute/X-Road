@@ -409,7 +409,15 @@
     "anchor_upload_failed": "Ankru üleslaadimine ebaõnnestus",
     "auth_cert_not_supported": "Autentimissertifikaati ei toetata",
     "base_endpoint_not_found": "Baasotspunkti ei leitud",
+    "ca_cert_empty": "Fail on tühi",
+    "ca_cert_expired": "CA sertifikaat on aegunud",
+    "ca_cert_key_material": "Fail sisaldab privaatvõtme materjali. Laadige üles ainult CA sertifikaat",
+    "ca_cert_multiple_certificates": "Fail sisaldab rohkem kui ühte sertifikaati. Laadige üles ainult see CA sertifikaat, mis sertifikaadi väljastab",
+    "ca_cert_not_a_ca": "Sertifikaat ei ole CA sertifikaat",
+    "ca_cert_not_a_certificate": "Fail ei ole PEM- või DER-kodeeringus sertifikaat",
+    "ca_cert_not_yet_valid": "CA sertifikaat ei ole veel kehtiv",
     "ca_cert_status_processing_failure": "CA sertifikaadi oleku töötlemine ebaõnnestus",
+    "ca_cert_unsupported_key_algorithm": "CA sertifikaadi avalik võti peab olema RSA või EC",
     "cannot_delete_owner": "Omanikku ei saa kustutada",
     "cannot_register_owner": "Omanikku ei saa registreerida",
     "cannot_unregister_owner": "Omanikku ei saa registrist kustutada",
@@ -449,6 +457,7 @@
     "duplicate_accessright": "Dubleeri pääsuõigus",
     "endpoint_already_exists": "Otspunkt on juba olemas",
     "endpoint_not_found": "Otspunkti ei leitud",
+    "external_rpc_ca_not_available": "Turvaserveri RPC CA ei ole saadaval",
     "failed_to_save_instance_identifier": "Keskkonna identifikaatorit ei õnnestunud faili salvestada",
     "forbidden_disable_management_service_client": "Haldusteenuste pakkujat ei saa välja lülitada",
     "forbidden_enable_maintenance_mode_for_management_service": "Haldusteenuste pakkujat ei saa välja lülitada",
@@ -836,6 +845,27 @@
     "noLocalGroups": "Lokaalsed grupid puuduvad",
     "noServiceClients": "Teenuse kliendid puuduvad",
     "noTimestampingServices": "Ajatempli teenused puuduvad"
+  },
+  "opMonitorTrust": {
+    "externalRpcCa": {
+      "description": "Turvaserveri RPC CA allkirjastab selle turvaserveri RPC-ühenduste sertifikaadid. Laadige see alla ja paigaldage operatiivandmete jälgimise deemoni hostile, et host usaldaks seda turvaserverit.",
+      "download": "Lae alla",
+      "title": "Turvaserveri RPC CA",
+      "unavailable": "Turvaserveri RPC CA ei ole saadaval"
+    },
+    "opMonitorCa": {
+      "delete": "Kustuta",
+      "deleteConfirmText": "Kas kustutada operatsioonide monitooringu CA? Siis usaldab see turvaserver ainult turvaserveri RPC CA-d, nagu sama hosti operatiivandmete jälgimise deemoni puhul.",
+      "deleteConfirmTitle": "Kas kustutada operatsioonide monitooringu CA?",
+      "deleted": "Operatsioonide monitooringu CA on kustutatud",
+      "description": "Teisel hostil töötava operatiivandmete jälgimise deemoni CA. Laadige see üles, et see turvaserver usaldaks seda operatiivandmete jälgimise deemonit. Fail peab sisaldama täpselt ühte PEM- või DER-kodeeringus CA sertifikaati ja mitte ühtegi privaatvõtit.",
+      "empty": "Operatsioonide monitooringu CA-d pole salvestatud",
+      "replace": "Asenda",
+      "restartHint": "Rakendamiseks taaskäivitage puhverserver ja admin-service.",
+      "title": "Operatiivandmete jälgimise CA",
+      "upload": "Lae üles",
+      "uploaded": "Operatsioonide monitooringu CA on salvestatud"
+    }
   },
   "serviceClientType": {
     "globalGroup": "GLOBAALNE RÜHM",
@@ -1454,6 +1484,7 @@
     },
     "keys": {
       "apiKey": "API võtmed",
+      "opMonitorTrust": "Operatsioonide monitooringu usaldus",
       "signAndAuthKeys": "SIGN- ja AUTH-võtmed",
       "ssTlsCertificate": "Turvaserveri TLS-võti"
     },
