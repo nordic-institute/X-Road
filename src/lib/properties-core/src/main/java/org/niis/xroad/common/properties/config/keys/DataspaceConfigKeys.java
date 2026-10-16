@@ -100,6 +100,12 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(60000)
             .build();
 
+    /** {@code xroad.dataspace.issuer-provisioning.rpc.did-resolution-deadline-after}. */
+    public static final ConfigKey<Integer> ISSUER_PROVISIONING_RPC_DID_RESOLUTION_DEADLINE_AFTER = ISSUER_PROVISIONING_RPC
+            .integer("did-resolution-deadline-after")
+            .withDefaultValue(4000)
+            .build();
+
     /** {@code xroad.dataspace.identity-hub-provisioning.rpc.host}. */
     public static final ConfigKey<String> IDENTITY_HUB_PROVISIONING_RPC_HOST = IDENTITY_HUB_PROVISIONING_RPC
             .string("host")
