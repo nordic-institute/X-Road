@@ -29,7 +29,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -71,9 +70,6 @@ import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.OpMonitorCaService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -87,9 +83,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
-
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GLOBAL_CONF_UNAVAILABLE;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVER_NOT_INITIALIZED;
 
 /**
  * system api controller
@@ -114,7 +107,6 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     private final VersionConverter versionConverter;
     private final SystemService systemService;
     private final VersionService versionService;
-    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final GlobalConfService globalConfService;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final CsrFilenameCreator csrFilenameCreator;
@@ -258,14 +250,9 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
     public ResponseEntity<SecurityServerAddressStatusDto> getServerAddress() {
         SecurityServerAddressStatusDto response = new SecurityServerAddressStatusDto();
-        switch (ownSecurityServerResolver.address()) {
-            case OwnAddress.Registered(_, var address) -> response.setCurrentAddress(new SecurityServerAddressDto(address));
-            case OwnAddress.NotRegistered _ -> {
-                // the server has no registered address yet: no current address to report
-            }
-            case OwnAddress.GlobalConfUnavailable(var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
-            case OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
-        }
+        systemService.registeredAddress()
+                .map(SecurityServerAddressDto::new)
+                .ifPresent(response::setCurrentAddress);
         addressChangeStatus.getAddressChangeRequest()
                 .map(SecurityServerAddressDto::new)
                 .ifPresent(response::setRequestedChange);

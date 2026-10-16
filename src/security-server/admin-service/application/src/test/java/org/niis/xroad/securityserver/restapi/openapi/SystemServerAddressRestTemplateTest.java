@@ -82,6 +82,7 @@ public class SystemServerAddressRestTemplateTest extends AbstractApiControllerTe
                 ownSecurityServerResolver);
         when(systemService.changeSecurityServerAddress(any()))
                 .thenAnswer(invocation -> realSystemService.changeSecurityServerAddress(invocation.getArgument(0)));
+        when(systemService.registeredAddress()).thenAnswer(_ -> realSystemService.registeredAddress());
     }
 
     @Test

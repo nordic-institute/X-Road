@@ -34,8 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.niis.xroad.common.CostType;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -62,9 +60,6 @@ import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -73,7 +68,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,13 +77,13 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -107,9 +101,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
     SystemApiController systemApiController;
-
-    @MockitoBean
-    OwnSecurityServerResolver ownSecurityServerResolver;
 
     private static final String TSA_1_URL = "https://tsa.com";
 
@@ -473,8 +464,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
     public void getServerAddressRegistered() {
-        when(ownSecurityServerResolver.address())
-                .thenReturn(new OwnAddress.Registered(TestUtils.OWNER_SERVER_ID, "ss.example.org"));
+        when(systemService.registeredAddress()).thenReturn(Optional.of("ss.example.org"));
         var response = systemApiController.getServerAddress();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("ss.example.org", response.getBody().getCurrentAddress().getAddress());
@@ -483,29 +473,10 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
     public void getServerAddressNotRegistered() {
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(TestUtils.OWNER_SERVER_ID));
+        when(systemService.registeredAddress()).thenReturn(Optional.empty());
         var response = systemApiController.getServerAddress();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody().getCurrentAddress());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
-    public void getServerAddressGlobalConfUnavailable() {
-        var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
-        when(ownSecurityServerResolver.address())
-                .thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
-        var e = assertThrows(ConflictException.class, () -> systemApiController.getServerAddress());
-        assertEquals("Error[code=global_conf_unavailable]", e.getMessage());
-        assertSame(cause, e.getCause());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
-    public void getServerAddressOwnerNotInitialised() {
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
-        var e = assertThrows(ConflictException.class, () -> systemApiController.getServerAddress());
-        assertEquals("Error[code=server_not_initialized]", e.getMessage());
     }
 
     private void getSystemCertificate() throws IOException {

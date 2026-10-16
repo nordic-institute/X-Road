@@ -313,6 +313,38 @@ public class SystemServiceTest {
     }
 
     @Test
+    public void registeredAddressRegistered() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, SERVER_ADDRESS));
+
+        assertEquals(Optional.of(SERVER_ADDRESS), systemService.registeredAddress());
+    }
+
+    @Test
+    public void registeredAddressNotRegistered() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(OWN_SERVER_ID));
+
+        assertEquals(Optional.empty(), systemService.registeredAddress());
+    }
+
+    @Test
+    public void registeredAddressGlobalConfUnavailable() {
+        var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
+
+        var e = assertThrows(ConflictException.class, () -> systemService.registeredAddress());
+        assertEquals("Error[code=global_conf_unavailable]", e.getMessage());
+        assertSame(cause, e.getCause());
+    }
+
+    @Test
+    public void registeredAddressOwnerNotInitialised() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
+
+        var e = assertThrows(ConflictException.class, () -> systemService.registeredAddress());
+        assertEquals("Error[code=server_not_initialized]", e.getMessage());
+    }
+
+    @Test
     public void getMaintenanceModeWhenEnabling() {
         final var message = "Test message";
 

@@ -307,19 +307,29 @@ public class SystemService {
         if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
             throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }
-        switch (ownSecurityServerResolver.address()) {
-            case OwnAddress.Registered(_, var address) when address.equals(newAddress) ->
-                    throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
-            case OwnAddress.Registered _ -> {
-            }
-            case OwnAddress.NotRegistered _ -> throw new ConflictException(SERVER_NOT_REGISTERED.build());
-            case OwnAddress.GlobalConfUnavailable(var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
-            case OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+        var currentAddress = registeredAddress().orElseThrow(() -> new ConflictException(SERVER_NOT_REGISTERED.build()));
+        if (currentAddress.equals(newAddress)) {
+            throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
         }
         Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
         addressChangeStatus.setAddress(newAddress);
 
         return requestId;
+    }
+
+    /**
+     * Returns the address the global configuration lists for this Security Server.
+     *
+     * @return the registered address, or empty if the server has no registered address
+     * @throws ConflictException if the owner is not initialised or the global configuration is unavailable
+     */
+    public Optional<String> registeredAddress() {
+        return switch (ownSecurityServerResolver.address()) {
+            case OwnAddress.Registered(_, var address) -> Optional.of(address);
+            case OwnAddress.NotRegistered _ -> Optional.empty();
+            case OwnAddress.GlobalConfUnavailable(var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
+            case OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+        };
     }
 
     /**
