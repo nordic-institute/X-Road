@@ -7,6 +7,7 @@ dependencies {
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:edc-rpc"))
   implementation(project(":lib:properties-core"))
+  implementation(project(":lib:ds-identity-core"))
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.lib.core)

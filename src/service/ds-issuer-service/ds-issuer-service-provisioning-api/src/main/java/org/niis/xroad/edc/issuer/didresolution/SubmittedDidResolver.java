@@ -37,10 +37,9 @@ import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.iam.did.web.resolution.WebDidResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 
 import java.net.HttpURLConnection;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -52,9 +51,6 @@ import java.util.concurrent.TimeUnit;
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class SubmittedDidResolver {
-
-    private static final String DID_WEB_PREFIX = "did:web:";
-    private static final String HTTPS_SCHEME_PREFIX = "https://";
 
     private final WebDidResolver webDidResolver;
     private final RecordingEdcHttpClient httpClient;
@@ -83,10 +79,9 @@ public class SubmittedDidResolver {
     }
 
     public Resolution resolve(String did) {
-        if (!hasParsableAuthority(did)) {
+        if (!isResolvable(did)) {
             return Resolution.notResolved(did, Reason.MALFORMED_DID);
         }
-        httpClient.forget();
         try {
             var result = webDidResolver.resolve(did);
             if (result.succeeded()) {
@@ -115,23 +110,16 @@ public class SubmittedDidResolver {
         return Reason.FETCH_FAILURE;
     }
 
-    private static boolean hasParsableAuthority(String did) {
-        if (did == null || !did.startsWith(DID_WEB_PREFIX)) {
-            return false;
-        }
-        var methodSpecificId = did.substring(DID_WEB_PREFIX.length());
-        var authority = methodSpecificId.substring(0, indexOfPathStart(methodSpecificId));
+    /**
+     * Accepts an X-Road member or SYSTEM DID whose server address parses as an HTTPS authority; the participant
+     * identifier scheme validates everything else about the DID.
+     */
+    private static boolean isResolvable(String did) {
         try {
-            return !authority.isEmpty()
-                    && HttpUrl.parse(HTTPS_SCHEME_PREFIX + URLDecoder.decode(authority, StandardCharsets.UTF_8)) != null;
-        } catch (IllegalArgumentException e) {
+            return HttpUrl.parse("https://" + ParticipantIdentifierScheme.decodeDid(did).ssHost()) != null;
+        } catch (RuntimeException e) {
             return false;
         }
-    }
-
-    private static int indexOfPathStart(String methodSpecificId) {
-        var separator = methodSpecificId.indexOf(':');
-        return separator < 0 ? methodSpecificId.length() : separator;
     }
 
     public enum Reason {
