@@ -461,13 +461,12 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .build();
 
     /**
-     * {@code xroad.proxy-ui-api.dataspace.participant-provisioning.enabled}. Independent of
+     * {@code xroad.proxy-ui-api.dataspace.provisioning-enabled}. Independent of
      * {@link #DATASPACE_ENABLED}: holds back the participant provisioning worker without touching
      * the DataSpace feature flag itself.
      */
-    public static final ConfigKey<Boolean> DATASPACE_PARTICIPANT_PROVISIONING_ENABLED = DATASPACE
-            .subPrefix("participant-provisioning")
-            .bool("enabled")
+    public static final ConfigKey<Boolean> DATASPACE_PROVISIONING_ENABLED = DATASPACE
+            .bool("provisioning-enabled")
             .withDefaultValue(true)
             .build();
 

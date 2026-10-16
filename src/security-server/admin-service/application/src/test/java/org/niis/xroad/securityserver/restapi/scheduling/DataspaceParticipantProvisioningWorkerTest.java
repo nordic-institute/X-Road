@@ -104,7 +104,8 @@ class DataspaceParticipantProvisioningWorkerTest {
     private DataspaceParticipantProvisioningWorker worker;
 
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
-    private final Logger logger = (Logger) LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class);
+    private final Logger cycleLogger =
+            (Logger) LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
 
     @BeforeEach
     void setUp() {
@@ -112,8 +113,8 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(NOT_CONVERGED);
         appender.start();
-        logger.addAppender(appender);
-        logger.setLevel(Level.INFO);
+        cycleLogger.addAppender(appender);
+        cycleLogger.setLevel(Level.DEBUG);
     }
 
     @AfterEach
@@ -121,9 +122,9 @@ class DataspaceParticipantProvisioningWorkerTest {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.clearSynchronization();
         }
-        logger.detachAppender(appender);
+        cycleLogger.detachAppender(appender);
         appender.stop();
-        logger.setLevel(null);
+        cycleLogger.setLevel(null);
     }
 
     private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
@@ -456,7 +457,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     // --- cycle summary ---
 
     @Test
-    void provisionParticipantLogsExactlyOneCycleSummaryWithMatchingCounts() {
+    void provisionParticipantLogsExactlyOneCycleSummaryWithTheContextCount() {
         var failingContext = new ParticipantContext("TEST:COM:9999", ParticipantKind.MEMBER,
                 ClientId.Conf.create("TEST", "COM", "9999"));
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
@@ -476,24 +477,8 @@ class DataspaceParticipantProvisioningWorkerTest {
                 .containsPattern("cycleStart=\\S+")
                 .containsPattern("durationMs=\\d+")
                 .contains("contexts=3")
-                .contains("contextsCreated=2")
-                .contains("credentialsIssued=1");
-    }
-
-    @Test
-    void provisionParticipantCountsCredentialsIssuedInTheCredentialPass() {
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
-        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
-        when(dataspaceProvisioningService.ensureMembershipCredential(SYSTEM_CONTEXT)).thenReturn(CredentialStatus.ISSUED);
-
-        worker.provisionParticipant();
-
-        var summaries = cycleSummaries();
-        assertThat(summaries).hasSize(1);
-        assertThat(summaries.getFirst())
-                .contains("contexts=1")
-                .contains("contextsCreated=1")
-                .contains("credentialsIssued=1");
+                .doesNotContain("contextsCreated")
+                .doesNotContain("credentialsIssued");
     }
 
     @Test
@@ -504,16 +489,13 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         var summaries = cycleSummaries();
         assertThat(summaries).hasSize(1);
-        assertThat(summaries.getFirst())
-                .contains("contexts=0")
-                .contains("contextsCreated=0")
-                .contains("credentialsIssued=0");
+        assertThat(summaries.getFirst()).contains("contexts=-1");
     }
 
     private List<String> cycleSummaries() {
         var testThread = Thread.currentThread().getName();
         return appender.list.stream()
-                .filter(event -> event.getLevel() == Level.INFO)
+                .filter(event -> event.getLevel() == Level.DEBUG)
                 .filter(event -> testThread.equals(event.getThreadName()))
                 .map(ILoggingEvent::getFormattedMessage)
                 .filter(message -> message.contains("cycle summary"))

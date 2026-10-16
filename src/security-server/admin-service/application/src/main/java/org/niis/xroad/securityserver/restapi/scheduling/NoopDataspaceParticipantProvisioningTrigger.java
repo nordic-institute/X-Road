@@ -47,7 +47,7 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
 
     @Override
     public void provisionParticipantAsync() {
-        log.warn("Dataspace participant provisioning requested while disabled, ignoring");
+        log.debug("Dataspace participant provisioning requested while disabled, ignoring");
     }
 
     @Slf4j
@@ -55,19 +55,14 @@ public final class NoopDataspaceParticipantProvisioningTrigger implements Datasp
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
-            return isActive(config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_PROVISIONING_ENABLED));
-        }
-
-        static boolean isActive(boolean participantProvisioningEnabled) {
-            if (NodeProperties.isSecondaryNode()) {
+            boolean secondary = NodeProperties.isSecondaryNode();
+            boolean enabled = config.value(AdminServiceConfigKeys.DATASPACE_PROVISIONING_ENABLED);
+            if (secondary) {
                 log.info("This is a secondary cluster node, dataspace participant provisioning is disabled");
-                return true;
-            }
-            if (!participantProvisioningEnabled) {
+            } else if (!enabled) {
                 log.info("Dataspace participant provisioning is switched off, dataspace participant provisioning is disabled");
-                return true;
             }
-            return false;
+            return !DataspaceParticipantProvisioningTrigger.isActive(secondary, enabled);
         }
     }
 }

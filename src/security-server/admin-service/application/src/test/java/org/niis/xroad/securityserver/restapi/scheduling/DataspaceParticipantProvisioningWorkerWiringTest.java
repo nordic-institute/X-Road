@@ -90,31 +90,16 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
     /**
      * {@code SpringConditionConfig} resolves {@code xroad.*} values from the DSL (stored overrides
      * plus packaged defaults), never from the Spring {@code Environment} — so, like
-     * {@code DsTlsAcmeCertificateRenewalSchedulingConfigTest}, the switch's effect on each condition is
-     * exercised directly against the static decision method; only the node type still comes from the
-     * environment via {@link #variables}.
+     * {@code DsTlsAcmeCertificateRenewalSchedulingConfigTest}, the switch's effect is exercised
+     * directly against the shared pure decision, {@link DataspaceParticipantProvisioningTrigger#isActive},
+     * with no environment setup at all: the node type is one of its two plain parameters here, not
+     * resolved from {@link #variables}.
      */
     @Test
-    void theWorkerIsInactiveAndTheNoopTriggerIsActiveWhenTheSwitchIsOff() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.PRIMARY.name().toLowerCase());
-
-        assertThat(DataspaceParticipantProvisioningWorker.IsActive.isActive(false)).isFalse();
-        assertThat(NoopDataspaceParticipantProvisioningTrigger.IsActive.isActive(false)).isTrue();
-    }
-
-    @Test
-    void theNoopTriggerStaysActiveOnASecondaryNodeEvenWithTheSwitchOn() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.SECONDARY.name().toLowerCase());
-
-        assertThat(DataspaceParticipantProvisioningWorker.IsActive.isActive(true)).isFalse();
-        assertThat(NoopDataspaceParticipantProvisioningTrigger.IsActive.isActive(true)).isTrue();
-    }
-
-    @Test
-    void theNoopTriggerStaysActiveOnASecondaryNodeWithTheSwitchOff() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.SECONDARY.name().toLowerCase());
-
-        assertThat(DataspaceParticipantProvisioningWorker.IsActive.isActive(false)).isFalse();
-        assertThat(NoopDataspaceParticipantProvisioningTrigger.IsActive.isActive(false)).isTrue();
+    void isActiveIsTrueOnlyOnAPrimaryOrStandaloneNodeWithTheSwitchOn() {
+        assertThat(DataspaceParticipantProvisioningTrigger.isActive(false, true)).isTrue();
+        assertThat(DataspaceParticipantProvisioningTrigger.isActive(false, false)).isFalse();
+        assertThat(DataspaceParticipantProvisioningTrigger.isActive(true, true)).isFalse();
+        assertThat(DataspaceParticipantProvisioningTrigger.isActive(true, false)).isFalse();
     }
 }
