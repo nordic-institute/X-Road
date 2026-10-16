@@ -27,36 +27,27 @@ package org.niis.xroad.serverconf.impl.ownserver;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import jakarta.annotation.Nullable;
-
 /**
  * The address registered for this Security Server in global configuration, or the reason it is not
  * known. A database failure is not a state: it propagates as an exception.
  */
-public sealed interface OwnAddress {
+public sealed interface OwnAddress permits GlobalConfAddress, OwnerNotInitialised {
 
     /**
      * The server is registered with this address.
      */
-    record Registered(SecurityServerId id, String address) implements OwnAddress {
+    record Registered(SecurityServerId id, String address) implements GlobalConfAddress {
     }
 
     /**
      * The identity is known, but global configuration has no address for it.
      */
-    record NotRegistered(SecurityServerId id) implements OwnAddress {
+    record NotRegistered(SecurityServerId id) implements GlobalConfAddress {
     }
 
     /**
-     * Global configuration could not be read. The id is null only when the identity lookup itself
-     * reported global configuration as unavailable.
+     * Global configuration could not be read.
      */
-    record GlobalConfUnavailable(@Nullable SecurityServerId id, Throwable cause) implements OwnAddress {
-    }
-
-    /**
-     * Server configuration has no row or no owner yet.
-     */
-    record OwnerNotInitialised() implements OwnAddress {
+    record GlobalConfUnavailable(Throwable cause) implements GlobalConfAddress {
     }
 }

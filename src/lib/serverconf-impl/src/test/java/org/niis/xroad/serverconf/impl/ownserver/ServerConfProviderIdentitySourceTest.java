@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl;
+package org.niis.xroad.serverconf.impl.ownserver;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -36,7 +36,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,7 +44,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DATABASE_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 @ExtendWith(MockitoExtension.class)
-class ProxyOwnServerIdentitySourceTest {
+class ServerConfProviderIdentitySourceTest {
 
     private static final SecurityServerId.Conf SERVER_ID = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
 
@@ -53,7 +52,7 @@ class ProxyOwnServerIdentitySourceTest {
     private ServerConfProvider serverConfProvider;
 
     @InjectMocks
-    private ProxyOwnServerIdentitySource source;
+    private ServerConfProviderIdentitySource source;
 
     @Test
     void identifierGivesKnown() {
@@ -67,7 +66,7 @@ class ProxyOwnServerIdentitySourceTest {
         when(serverConfProvider.getIdentifier())
                 .thenThrow(XrdRuntimeException.systemException(MALFORMED_SERVERCONF, "Server conf is not initialized!"));
 
-        assertThat(source.read()).isEqualTo(new OwnIdentity.OwnerNotInitialised());
+        assertThat(source.read()).isEqualTo(new OwnerNotInitialised());
     }
 
     @Test
@@ -75,15 +74,14 @@ class ProxyOwnServerIdentitySourceTest {
         when(serverConfProvider.getIdentifier())
                 .thenThrow(XrdRuntimeException.systemException(MALFORMED_SERVERCONF, "Owner is not set"));
 
-        assertThat(source.read()).isEqualTo(new OwnIdentity.OwnerNotInitialised());
+        assertThat(source.read()).isEqualTo(new OwnerNotInitialised());
     }
 
     @Test
-    void globalConfInitExceptionGivesGlobalConfUnavailableWithCause() {
-        var cause = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
-        when(serverConfProvider.getIdentifier()).thenThrow(cause);
-
-        assertThat(source.read()).isEqualTo(new OwnIdentity.GlobalConfUnavailable(cause));
+    void globalConfInitExceptionPropagates() {
+        var failure = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
+        when(serverConfProvider.getIdentifier()).thenThrow(failure);
+        assertThatThrownBy(source::read).isSameAs(failure);
     }
 
     @Test

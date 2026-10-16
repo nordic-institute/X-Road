@@ -55,6 +55,7 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -314,7 +315,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     public void signCertWithoutSubjectAltNameAbortsBeforeKeyGenerationWhenGlobalConfUnavailable() throws Exception {
         useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID));
         var cause = XrdRuntimeException.systemException(MALFORMED_GLOBALCONF, "global conf is not readable");
-        doReturn(new OwnAddress.GlobalConfUnavailable(securityServerId(), cause)).when(ownSecurityServerResolver).address();
+        doReturn(new OwnAddress.GlobalConfUnavailable(cause)).when(ownSecurityServerResolver).address();
 
         runRenewal();
 
@@ -326,7 +327,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     @Test
     public void signCertWithoutSubjectAltNameReportsUninitialisedOwnerWithoutNullPointerException() throws Exception {
         useTokens(signKeyWithoutSubjectAltName(DEFAULT_MEMBER_ID));
-        doReturn(new OwnAddress.OwnerNotInitialised()).when(ownSecurityServerResolver).address();
+        doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).address();
 
         runRenewal();
 

@@ -36,6 +36,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
+import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,7 +50,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 @ExtendWith(MockitoExtension.class)
 class OwnSecurityServerResolverTest {
 
-    private static final SecurityServerId SERVER_ID = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
+    private static final SecurityServerId.Conf SERVER_ID = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
     private static final String ADDRESS = "ss1.example.org";
 
     @Mock
@@ -69,17 +71,19 @@ class OwnSecurityServerResolverTest {
 
     @Test
     void identityReturnsOwnerNotInitialised() {
-        identity.set(new OwnIdentity.OwnerNotInitialised());
+        identity.set(new OwnerNotInitialised());
 
-        assertThat(resolver.identity()).isEqualTo(new OwnIdentity.OwnerNotInitialised());
+        assertThat(resolver.identity()).isEqualTo(new OwnerNotInitialised());
     }
 
     @Test
-    void identityReturnsGlobalConfUnavailableWithCause() {
-        var cause = new IllegalStateException("not downloaded");
-        identity.set(new OwnIdentity.GlobalConfUnavailable(cause));
+    void identityPropagatesGlobalConfInitException() {
+        var failure = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
+        var failing = new OwnSecurityServerResolver(() -> {
+            throw failure;
+        }, globalConfProvider);
 
-        assertThat(resolver.identity()).isEqualTo(new OwnIdentity.GlobalConfUnavailable(cause));
+        assertThatThrownBy(failing::identity).isSameAs(failure);
     }
 
     @Test
@@ -91,7 +95,7 @@ class OwnSecurityServerResolverTest {
 
     @Test
     void addressForGivenIdSkipsIdentityLookup() {
-        identity.set(new OwnIdentity.OwnerNotInitialised());
+        identity.set(new OwnerNotInitialised());
         when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(ADDRESS);
 
         assertThat(resolver.address(SERVER_ID)).isEqualTo(new OwnAddress.Registered(SERVER_ID, ADDRESS));
@@ -113,26 +117,28 @@ class OwnSecurityServerResolverTest {
     }
 
     @Test
-    void addressKeepsKnownIdWhenGlobalConfFails() {
+    void addressMapsGlobalConfFailureToGlobalConfUnavailable() {
         var cause = XrdRuntimeException.systemException(INTERNAL_ERROR, "global conf not readable");
         when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenThrow(cause);
 
-        assertThat(resolver.address()).isEqualTo(new OwnAddress.GlobalConfUnavailable(SERVER_ID, cause));
+        assertThat(resolver.address()).isEqualTo(new OwnAddress.GlobalConfUnavailable(cause));
     }
 
     @Test
-    void addressHasNoIdWhenIdentityReportedGlobalConfUnavailable() {
-        var cause = new IllegalStateException("not downloaded");
-        identity.set(new OwnIdentity.GlobalConfUnavailable(cause));
+    void addressMapsGlobalConfInitExceptionFromIdentitySource() {
+        var cause = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED);
+        var failing = new OwnSecurityServerResolver(() -> {
+            throw cause;
+        }, globalConfProvider);
 
-        assertThat(resolver.address()).isEqualTo(new OwnAddress.GlobalConfUnavailable(null, cause));
+        assertThat(failing.address()).isEqualTo(new OwnAddress.GlobalConfUnavailable(cause));
     }
 
     @Test
     void addressReturnsOwnerNotInitialised() {
-        identity.set(new OwnIdentity.OwnerNotInitialised());
+        identity.set(new OwnerNotInitialised());
 
-        assertThat(resolver.address()).isEqualTo(new OwnAddress.OwnerNotInitialised());
+        assertThat(resolver.address()).isEqualTo(new OwnerNotInitialised());
     }
 
     @Test

@@ -129,7 +129,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         givenServerOwnedBy(OWNER);
 
         var ownSecurityServerResolver = new OwnSecurityServerResolver(
-                new AdminOwnServerIdentitySource(serverConfRepository), globalConfProvider);
+                new ServerConfRepositoryIdentitySource(serverConfRepository), globalConfProvider);
         var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
         var service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider, didAuthority);

@@ -54,6 +54,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 import org.niis.xroad.serverconf.model.Endpoint;
 
@@ -441,8 +442,8 @@ class XRoadDataPlaneManagerTest {
     private static Stream<OwnAddress> unavailableOwnAddresses() {
         return Stream.of(
                 new OwnAddress.NotRegistered(OWN_ID),
-                new OwnAddress.GlobalConfUnavailable(OWN_ID, new IllegalStateException("global conf unreadable")),
-                new OwnAddress.OwnerNotInitialised());
+                new OwnAddress.GlobalConfUnavailable(new IllegalStateException("global conf unreadable")),
+                new OwnerNotInitialised());
     }
 
     private DataFlowStartMessage buildStartMessage(String processId) {

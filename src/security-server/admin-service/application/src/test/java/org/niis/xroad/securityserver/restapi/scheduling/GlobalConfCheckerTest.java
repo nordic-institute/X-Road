@@ -52,8 +52,8 @@ import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -473,14 +473,14 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
     @Test
     public void ownerNotInitialisedSkipsServerConfUpdate() {
-        doReturn(new OwnIdentity.OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
+        doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
         addressChangeStatus.setAddress(NEW_ADDRESS);
         globalConfChecker.checkGlobalConf();
         verifySyncSkipped();
     }
     @Test
     public void secondCycleWhileOwnerNotInitialisedChangesNothingMore() {
-        doReturn(new OwnIdentity.OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
+        doReturn(new OwnerNotInitialised()).when(ownSecurityServerResolver).identity();
         addressChangeStatus.setAddress(NEW_ADDRESS);
         globalConfChecker.checkGlobalConf();
         globalConfChecker.checkGlobalConf();

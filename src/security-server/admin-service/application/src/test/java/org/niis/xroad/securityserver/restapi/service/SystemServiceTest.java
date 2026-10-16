@@ -60,6 +60,7 @@ import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.util.ArrayList;
@@ -294,7 +295,7 @@ public class SystemServiceTest {
     @Test
     public void changeSecurityServerAddressGlobalConfUnavailable() {
         var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.GlobalConfUnavailable(OWN_SERVER_ID, cause));
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
 
         var e = assertThrows(ConflictException.class, () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
         assertEquals("Error[code=global_conf_unavailable]", e.getMessage());
@@ -304,7 +305,7 @@ public class SystemServiceTest {
 
     @Test
     public void changeSecurityServerAddressOwnerNotInitialised() {
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.OwnerNotInitialised());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
 
         var e = assertThrows(ConflictException.class, () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
         assertEquals("Error[code=server_not_initialized]", e.getMessage());

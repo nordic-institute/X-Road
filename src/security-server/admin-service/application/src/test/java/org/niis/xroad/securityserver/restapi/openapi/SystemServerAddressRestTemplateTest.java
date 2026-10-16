@@ -41,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -100,7 +101,7 @@ public class SystemServerAddressRestTemplateTest extends AbstractApiControllerTe
     public void changeAddressGlobalConfUnavailableReturnsConflict() {
         var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
         when(ownSecurityServerResolver.address())
-                .thenReturn(new OwnAddress.GlobalConfUnavailable(TestUtils.OWNER_SERVER_ID, cause));
+                .thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
 
         ErrorInfo error = changeAddress();
 
@@ -112,7 +113,7 @@ public class SystemServerAddressRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "CHANGE_SS_ADDRESS")
     public void changeAddressOwnerNotInitialisedReturnsConflict() {
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.OwnerNotInitialised());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
 
         ErrorInfo error = changeAddress();
 
@@ -126,7 +127,7 @@ public class SystemServerAddressRestTemplateTest extends AbstractApiControllerTe
     public void getAddressGlobalConfUnavailableReturnsConflict() {
         var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
         when(ownSecurityServerResolver.address())
-                .thenReturn(new OwnAddress.GlobalConfUnavailable(TestUtils.OWNER_SERVER_ID, cause));
+                .thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
 
         ErrorInfo error = getAddress();
 
@@ -137,7 +138,7 @@ public class SystemServerAddressRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "CHANGE_SS_ADDRESS")
     public void getAddressOwnerNotInitialisedReturnsConflict() {
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.OwnerNotInitialised());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
 
         ErrorInfo error = getAddress();
 

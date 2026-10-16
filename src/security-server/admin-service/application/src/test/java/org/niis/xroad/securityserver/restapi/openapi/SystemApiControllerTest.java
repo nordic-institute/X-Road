@@ -64,6 +64,7 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -493,7 +494,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void getServerAddressGlobalConfUnavailable() {
         var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
         when(ownSecurityServerResolver.address())
-                .thenReturn(new OwnAddress.GlobalConfUnavailable(TestUtils.OWNER_SERVER_ID, cause));
+                .thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
         var e = assertThrows(ConflictException.class, () -> systemApiController.getServerAddress());
         assertEquals("Error[code=global_conf_unavailable]", e.getMessage());
         assertSame(cause, e.getCause());
@@ -502,7 +503,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
     public void getServerAddressOwnerNotInitialised() {
-        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.OwnerNotInitialised());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
         var e = assertThrows(ConflictException.class, () -> systemApiController.getServerAddress());
         assertEquals("Error[code=server_not_initialized]", e.getMessage());
     }

@@ -32,6 +32,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,12 +44,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCON
  * when there is none, because the shared entity manager is unusable outside a transaction.
  *
  * <p>Does not go through {@link org.niis.xroad.serverconf.ServerConfProvider}: that reads in its own
- * session, cached, and cannot see uncommitted writes. Never reports global configuration as
- * unavailable, because it does not read it.
+ * session, cached, and cannot see uncommitted writes. Never reads global configuration.
  */
 @Component
 @RequiredArgsConstructor
-public class AdminOwnServerIdentitySource implements OwnServerIdentitySource {
+public class ServerConfRepositoryIdentitySource implements OwnServerIdentitySource {
 
     private final ServerConfRepository serverConfRepository;
 
@@ -59,13 +59,13 @@ public class AdminOwnServerIdentitySource implements OwnServerIdentitySource {
             var serverConf = serverConfRepository.getServerConf();
             var owner = serverConf.getOwner();
             if (owner == null) {
-                return new OwnIdentity.OwnerNotInitialised();
+                return new OwnerNotInitialised();
             }
             return new OwnIdentity.Known(
                     SecurityServerId.Conf.create(owner.getIdentifier(), serverConf.getServerCode()));
         } catch (XrdRuntimeException e) {
-            if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
-                return new OwnIdentity.OwnerNotInitialised();
+            if (e.isCausedBy(MALFORMED_SERVERCONF)) {
+                return new OwnerNotInitialised();
             }
             throw e;
         }

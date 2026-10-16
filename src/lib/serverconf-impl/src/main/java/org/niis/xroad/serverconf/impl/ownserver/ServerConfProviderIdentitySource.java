@@ -23,26 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl;
+package org.niis.xroad.serverconf.impl.ownserver;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
+import org.niis.xroad.serverconf.impl.CachingServerConfImpl;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
  * Reads the own identity through {@link ServerConfProvider}, in the provider's own cached session.
  * {@link CachingServerConfImpl} cross-checks a cached owner against global configuration and throws
- * {@link GlobalConfInitException} when that cannot be read; this class turns it into a result state.
+ * {@link GlobalConfInitException} when that cannot be read; that exception propagates to the caller.
  *
  * <p>Not a Spring bean: only the proxy uses it, and the admin service supplies its own source.
  */
 @RequiredArgsConstructor
-public class ProxyOwnServerIdentitySource implements OwnServerIdentitySource {
+public class ServerConfProviderIdentitySource implements OwnServerIdentitySource {
 
     private final ServerConfProvider serverConfProvider;
 
@@ -50,11 +49,9 @@ public class ProxyOwnServerIdentitySource implements OwnServerIdentitySource {
     public OwnIdentity read() {
         try {
             return new OwnIdentity.Known(serverConfProvider.getIdentifier());
-        } catch (GlobalConfInitException e) {
-            return new OwnIdentity.GlobalConfUnavailable(e);
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(MALFORMED_SERVERCONF)) {
-                return new OwnIdentity.OwnerNotInitialised();
+                return new OwnerNotInitialised();
             }
             throw e;
         }

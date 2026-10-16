@@ -49,6 +49,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
@@ -146,8 +147,8 @@ class OpMonitoringDataHelperTest {
         var id = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
         return Stream.of(
                 new OwnAddress.NotRegistered(id),
-                new OwnAddress.GlobalConfUnavailable(id, new IllegalStateException("global conf unreadable")),
-                new OwnAddress.OwnerNotInitialised());
+                new OwnAddress.GlobalConfUnavailable(new IllegalStateException("global conf unreadable")),
+                new OwnerNotInitialised());
     }
 
     @Test

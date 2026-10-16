@@ -160,7 +160,7 @@ class DataspaceProvisioningServiceTest {
         lenient().when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
         var ownSecurityServerResolver = new OwnSecurityServerResolver(
-                new AdminOwnServerIdentitySource(serverConfRepository), globalConfProvider);
+                new ServerConfRepositoryIdentitySource(serverConfRepository), globalConfProvider);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
@@ -168,7 +168,7 @@ class DataspaceProvisioningServiceTest {
 
     private DataspaceDidAuthority didAuthority() {
         return new DataspaceDidAuthority(new OwnSecurityServerResolver(
-                new AdminOwnServerIdentitySource(serverConfRepository), globalConfProvider), adminServiceProperties);
+                new ServerConfRepositoryIdentitySource(serverConfRepository), globalConfProvider), adminServiceProperties);
     }
 
     @AfterEach
@@ -1072,7 +1072,7 @@ class DataspaceProvisioningServiceTest {
         var otherServerConfRepository = mock(ServerConfRepository.class);
         when(otherServerConfRepository.getServerConf()).thenReturn(otherServerConf);
         var otherResolver = new OwnSecurityServerResolver(
-                new AdminOwnServerIdentitySource(otherServerConfRepository), globalConfProvider);
+                new ServerConfRepositoryIdentitySource(otherServerConfRepository), globalConfProvider);
         var otherService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient,
                 controlPlaneClient, clientRepository, otherResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(otherResolver, adminServiceProperties));
@@ -1099,7 +1099,7 @@ class DataspaceProvisioningServiceTest {
         var otherServerConfRepository = mock(ServerConfRepository.class);
         when(otherServerConfRepository.getServerConf()).thenReturn(otherServerConf);
         var otherResolver = new OwnSecurityServerResolver(
-                new AdminOwnServerIdentitySource(otherServerConfRepository), globalConfProvider);
+                new ServerConfRepositoryIdentitySource(otherServerConfRepository), globalConfProvider);
         var otherService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient,
                 controlPlaneClient, clientRepository, otherResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(otherResolver, adminServiceProperties));

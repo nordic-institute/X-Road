@@ -52,6 +52,7 @@ import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -312,8 +313,8 @@ public class SystemService {
             case OwnAddress.Registered _ -> {
             }
             case OwnAddress.NotRegistered _ -> throw new ConflictException(SERVER_NOT_REGISTERED.build());
-            case OwnAddress.GlobalConfUnavailable(_, var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
-            case OwnAddress.OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+            case OwnAddress.GlobalConfUnavailable(var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
+            case OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
         }
         Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
         addressChangeStatus.setAddress(newAddress);

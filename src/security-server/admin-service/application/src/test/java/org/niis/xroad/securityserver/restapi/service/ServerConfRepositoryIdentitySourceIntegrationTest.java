@@ -36,6 +36,7 @@ import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
@@ -50,16 +51,16 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 
 /**
- * test AdminOwnServerIdentitySource
+ * test ServerConfRepositoryIdentitySource
  */
-public class AdminOwnServerIdentitySourceIntegrationTest extends AbstractFacadeMockingTestContext {
+public class ServerConfRepositoryIdentitySourceIntegrationTest extends AbstractFacadeMockingTestContext {
 
     private static final ClientId.Conf SEED_OWNER = TestUtils.getClientId("FI", "GOV", "M1", null);
     private static final ClientId.Conf OTHER_MEMBER = TestUtils.getClientId("FI", "GOV", "M2", null);
     private static final ClientId.Conf OTHER_MEMBER_SUBSYSTEM = TestUtils.getClientId("FI", "GOV", "M2", "SS5");
 
     @Autowired
-    private AdminOwnServerIdentitySource identitySource;
+    private ServerConfRepositoryIdentitySource identitySource;
     @MockitoSpyBean
     private ServerConfRepository serverConfRepository;
     @Autowired
@@ -84,7 +85,7 @@ public class AdminOwnServerIdentitySourceIntegrationTest extends AbstractFacadeM
     public void nullOwnerIsOwnerNotInitialised() {
         serverConfRepository.getServerConf().setOwner(null);
 
-        assertEquals(new OwnIdentity.OwnerNotInitialised(), identitySource.read());
+        assertEquals(new OwnerNotInitialised(), identitySource.read());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class AdminOwnServerIdentitySourceIntegrationTest extends AbstractFacadeM
         session.createMutationQuery("update ClientEntity set conf = null").executeUpdate();
         session.createMutationQuery("delete from ServerConfEntity").executeUpdate();
 
-        assertEquals(new OwnIdentity.OwnerNotInitialised(), identitySource.read());
+        assertEquals(new OwnerNotInitialised(), identitySource.read());
     }
 
     @Test

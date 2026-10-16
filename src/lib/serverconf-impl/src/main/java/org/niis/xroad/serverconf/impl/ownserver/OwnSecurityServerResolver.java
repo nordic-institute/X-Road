@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
 
 /**
  * This Security Server as global configuration knows it: its identifier and registered address.
@@ -41,19 +42,28 @@ public class OwnSecurityServerResolver {
     private final OwnServerIdentitySource identitySource;
     private final GlobalConfProvider globalConfProvider;
 
+    /**
+     * @return the identity, or the reason it is not known
+     * @throws GlobalConfInitException if the identity source needs global configuration and it cannot be read
+     */
     public OwnIdentity identity() {
         return identitySource.read();
     }
 
     public OwnAddress address() {
-        return switch (identity()) {
+        OwnIdentity identity;
+        try {
+            identity = identity();
+        } catch (GlobalConfInitException e) {
+            return new OwnAddress.GlobalConfUnavailable(e);
+        }
+        return switch (identity) {
             case OwnIdentity.Known(var id) -> address(id);
-            case OwnIdentity.OwnerNotInitialised _ -> new OwnAddress.OwnerNotInitialised();
-            case OwnIdentity.GlobalConfUnavailable(var cause) -> new OwnAddress.GlobalConfUnavailable(null, cause);
+            case OwnerNotInitialised _ -> new OwnerNotInitialised();
         };
     }
 
-    public OwnAddress address(SecurityServerId id) {
+    public GlobalConfAddress address(SecurityServerId id) {
         try {
             var address = globalConfProvider.getSecurityServerAddress(id);
             if (address == null || address.isBlank()) {
@@ -61,7 +71,7 @@ public class OwnSecurityServerResolver {
             }
             return new OwnAddress.Registered(id, address);
         } catch (XrdRuntimeException e) {
-            return new OwnAddress.GlobalConfUnavailable(id, e);
+            return new OwnAddress.GlobalConfUnavailable(e);
         }
     }
 }

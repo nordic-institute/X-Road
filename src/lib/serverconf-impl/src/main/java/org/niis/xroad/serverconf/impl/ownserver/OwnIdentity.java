@@ -31,23 +31,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
  * Who this Security Server is, or the reason that is not known. A database failure is not a state:
  * it propagates as an exception.
  */
-public sealed interface OwnIdentity {
+public sealed interface OwnIdentity permits OwnIdentity.Known, OwnerNotInitialised {
 
     /**
      * The server's identifier is known.
      */
-    record Known(SecurityServerId id) implements OwnIdentity {
-    }
-
-    /**
-     * Server configuration has no row or no owner yet.
-     */
-    record OwnerNotInitialised() implements OwnIdentity {
-    }
-
-    /**
-     * The identity could not be derived because global configuration could not be read.
-     */
-    record GlobalConfUnavailable(Throwable cause) implements OwnIdentity {
+    record Known(SecurityServerId.Conf id) implements OwnIdentity {
     }
 }

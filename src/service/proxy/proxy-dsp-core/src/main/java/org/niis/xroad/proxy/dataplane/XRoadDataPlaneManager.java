@@ -193,7 +193,7 @@ public class XRoadDataPlaneManager {
                 log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
                 return endpoint;
             }
-            if (ownAddress instanceof OwnAddress.GlobalConfUnavailable(_, var cause)) {
+            if (ownAddress instanceof OwnAddress.GlobalConfUnavailable(var cause)) {
                 log.warn("Own security-server address is not available (GlobalConfUnavailable); "
                         + "falling back to configured serverproxy endpoint", cause);
             } else {

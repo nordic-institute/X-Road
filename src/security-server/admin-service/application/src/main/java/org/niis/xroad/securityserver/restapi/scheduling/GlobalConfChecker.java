@@ -52,6 +52,7 @@ import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -141,8 +142,7 @@ public class GlobalConfChecker {
 
         switch (ownSecurityServerResolver.identity()) {
             case OwnIdentity.Known(var id) -> updateServerConf(id);
-            case OwnIdentity.OwnerNotInitialised _ -> log.debug("Security Server owner is not set - skip serverconf updates");
-            case OwnIdentity.GlobalConfUnavailable(var cause) -> throw XrdRuntimeException.systemException(cause);
+            case OwnerNotInitialised _ -> log.debug("Security Server owner is not set - skip serverconf updates");
         }
     }
 
@@ -186,7 +186,6 @@ public class GlobalConfChecker {
             case OwnAddress.Registered _ -> log.debug("Registered address differs - keeping address change request");
             case OwnAddress.NotRegistered _ -> log.debug("Server not registered - keeping address change request");
             case OwnAddress.GlobalConfUnavailable _ -> log.debug("Globalconf unavailable - keeping address change request");
-            case OwnAddress.OwnerNotInitialised _ -> log.debug("Owner not set - keeping address change request");
         }
     }
 

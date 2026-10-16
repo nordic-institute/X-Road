@@ -73,6 +73,7 @@ import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -262,8 +263,8 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
             case OwnAddress.NotRegistered _ -> {
                 // the server has no registered address yet: no current address to report
             }
-            case OwnAddress.GlobalConfUnavailable(_, var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
-            case OwnAddress.OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+            case OwnAddress.GlobalConfUnavailable(var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
+            case OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
         }
         addressChangeStatus.getAddressChangeRequest()
                 .map(SecurityServerAddressDto::new)
