@@ -193,7 +193,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             isRenewalRequired = isRenewalRequired(clientId.asEncodedId(), approvedCA, x509Certificate, keyUsage);
         } catch (Exception ex) {
             log.error("Error when trying to find out whether renewal is required for certificate '{}'", certificateInfo.getId(), ex);
-            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId.asEncodedId());
+            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId);
             return false;
         }
 
@@ -203,7 +203,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 newX509Certificate = renewCertificate(clientId, approvedCA, certificateInfo, x509Certificate, keyUsage);
             } catch (Exception ex) {
                 log.error("Error when trying to renew certificate '{}'", certificateInfo.getId(), ex);
-                setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId.asEncodedId());
+                setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId);
                 return false;
             }
         }
@@ -238,42 +238,23 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
     }
 
     private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription) {
-        if (cert.getMemberId() != null) {
-            setRenewalErrorAndSendFailureNotification(cert, errorDescription, cert.getMemberId().asEncodedId());
-            return;
-        }
-        switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known known ->
-                    setRenewalErrorAndSendFailureNotification(cert, errorDescription, known.id().getOwner().asEncodedId());
-            case OwnIdentity.OwnerNotInitialised ignored ->
-                    setRenewalErrorWithoutNotification(cert, errorDescription, OWNER_NOT_SET_MESSAGE);
-            case OwnIdentity.GlobalConfUnavailable ignored ->
-                    setRenewalErrorWithoutNotification(cert, errorDescription, "global configuration is unavailable");
-        }
+        setRenewalErrorAndSendFailureNotification(cert, errorDescription, cert.getMemberId());
     }
-
-    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, String memberId) {
+    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, ClientId memberId) {
         if (Objects.equals(cert.getRenewalError(), errorDescription)) {
             return;
         }
         setRenewalError(cert.getId(), errorDescription);
         switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known known ->
-                    mailNotificationHelper.sendFailureNotification(memberId, cert, toConf(known), errorDescription);
-            case OwnIdentity.OwnerNotInitialised ignored ->
-                    logSkippedFailureNotification(cert, OWNER_NOT_SET_MESSAGE);
-            case OwnIdentity.GlobalConfUnavailable ignored ->
-                    logSkippedFailureNotification(cert, "global configuration is unavailable");
+            case OwnIdentity.Known known -> {
+                var recipient = memberId != null ? memberId : known.id().getOwner();
+                mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, toConf(known), errorDescription);
+            }
+            case OwnIdentity.OwnerNotInitialised ignored -> logSkippedFailureNotification(cert, OWNER_NOT_SET_MESSAGE);
+            case OwnIdentity.GlobalConfUnavailable unavailable ->
+                    logSkippedFailureNotification(cert, unavailable.cause().getMessage());
         }
     }
-
-    private void setRenewalErrorWithoutNotification(CertificateInfo cert, String errorDescription, String reason) {
-        if (!Objects.equals(cert.getRenewalError(), errorDescription)) {
-            setRenewalError(cert.getId(), errorDescription);
-            logSkippedFailureNotification(cert, reason);
-        }
-    }
-
     private void logSkippedFailureNotification(CertificateInfo cert, String reason) {
         log.warn("Renewal failure notification for certificate '{}' not sent: {}", cert.getId(), reason);
     }
