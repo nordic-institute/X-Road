@@ -104,6 +104,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -277,14 +278,13 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+    public boolean isLocalGroupMember(ClientId ownerId, LocalGroupId localGroupId, ClientId memberId) {
         return tx(session -> {
-            ClientEntity clientEntity = clientDao.getClient(session, clientId);
-            if (clientEntity == null) {
+            ClientEntity ownerEntity = clientDao.getClient(session, ownerId);
+            if (ownerEntity == null) {
                 return false;
             }
-            return clientEntity.getLocalGroups().stream()
-                    .anyMatch(g -> Objects.equals(localGroupId.getGroupCode(), g.getGroupCode()));
+            return isMemberInLocalGroup(memberId, localGroupId, ownerEntity, ClientId::memberEquals);
         });
     }
 
@@ -593,17 +593,24 @@ public class ServerConfImpl implements ServerConfProvider {
         if (aclSubjectId instanceof GlobalGroupId globalGroupId) {
             return globalConfProvider.isSubjectInGlobalGroup(clientId, globalGroupId);
         } else if (aclSubjectId instanceof LocalGroupId localGroupId) {
-            return isMemberInLocalGroup(clientId, localGroupId, serviceOwner);
+            return isMemberInLocalGroup(clientId, localGroupId, serviceOwner, (a, b) -> a.equals(b));
         } else {
             return clientId.equals(aclSubjectId);
         }
     }
 
-    private boolean isMemberInLocalGroup(ClientId memberId, LocalGroupId groupId, ClientEntity groupOwner) {
+    /**
+     * @param matchMode how a group member's identifier is compared against {@code memberId} -- an exact
+     *                  {@code ClientId::equals} for the legacy ACL path, or {@code ClientId::memberEquals}
+     *                  for DSP, where the identity available at evaluation time is member-level while group
+     *                  members are subsystems.
+     */
+    private boolean isMemberInLocalGroup(ClientId memberId, LocalGroupId groupId, ClientEntity groupOwner,
+                                         BiPredicate<ClientId, ClientId> matchMode) {
         return groupOwner.getLocalGroups().stream()
                 .filter(g -> Objects.equals(groupId.getGroupCode(), g.getGroupCode()))
                 .flatMap(g -> g.getGroupMembers().stream())
-                .anyMatch(m -> m.getGroupMemberId().equals(memberId));
+                .anyMatch(m -> matchMode.test(memberId, m.getGroupMemberId()));
     }
 
     /**

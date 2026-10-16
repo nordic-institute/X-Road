@@ -236,7 +236,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         if (ctxId == null) {
             return null;
         }
-        return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
+        return policyMapper.toPolicyDefinition(
+                policyId, serviceId.getClientId(), matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
 
     /**
@@ -276,7 +277,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                     .toList();
 
             for (var ctxId : resolvedContexts) {
-                policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
+                policies.add(policyMapper.toPolicyDefinition(compoundPolicyId, serviceId.getClientId(),
                         subjectAccessRights.getFirst().getSubjectId(), endpoints, ctxId));
             }
         }
