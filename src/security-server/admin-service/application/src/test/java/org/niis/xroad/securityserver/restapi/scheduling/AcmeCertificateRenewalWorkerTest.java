@@ -418,7 +418,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
                 .build();
     }
 
-    private void useTokens(KeyInfo... keys) throws Exception {
+    private void useTokens(KeyInfo... keys) {
         TokenTestUtils.TokenInfoBuilder tokenInfoBuilder = new TokenTestUtils.TokenInfoBuilder().friendlyName("test-token");
         for (KeyInfo key : keys) {
             tokenInfoBuilder.key(key);

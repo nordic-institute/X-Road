@@ -246,13 +246,12 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
         setRenewalError(cert.getId(), errorDescription);
         switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known known -> {
-                var recipient = memberId != null ? memberId : known.id().getOwner();
-                mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, toConf(known), errorDescription);
+            case OwnIdentity.Known(var id) -> {
+                var recipient = memberId != null ? memberId : id.getOwner();
+                mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, toConf(id), errorDescription);
             }
-            case OwnIdentity.OwnerNotInitialised ignored -> logSkippedFailureNotification(cert, OWNER_NOT_SET_MESSAGE);
-            case OwnIdentity.GlobalConfUnavailable unavailable ->
-                    logSkippedFailureNotification(cert, unavailable.cause().getMessage());
+            case OwnIdentity.OwnerNotInitialised _ -> logSkippedFailureNotification(cert, OWNER_NOT_SET_MESSAGE);
+            case OwnIdentity.GlobalConfUnavailable(var cause) -> logSkippedFailureNotification(cert, cause.getMessage());
         }
     }
     private void logSkippedFailureNotification(CertificateInfo cert, String reason) {
@@ -261,15 +260,15 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private SecurityServerId.Conf requireOwnServerId() {
         return switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known known -> toConf(known);
-            case OwnIdentity.OwnerNotInitialised ignored -> throw XrdRuntimeException.systemException(
+            case OwnIdentity.Known(var id) -> toConf(id);
+            case OwnIdentity.OwnerNotInitialised _ -> throw XrdRuntimeException.systemException(
                     MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE);
-            case OwnIdentity.GlobalConfUnavailable unavailable -> throw XrdRuntimeException.systemException(unavailable.cause());
+            case OwnIdentity.GlobalConfUnavailable(var cause) -> throw XrdRuntimeException.systemException(cause);
         };
     }
 
-    private static SecurityServerId.Conf toConf(OwnIdentity.Known known) {
-        return SecurityServerId.Conf.create(known.id().getOwner(), known.id().getServerCode());
+    private static SecurityServerId.Conf toConf(SecurityServerId id) {
+        return SecurityServerId.Conf.create(id.getOwner(), id.getServerCode());
     }
 
     private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate) {
@@ -445,11 +444,11 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private String getOwnRegisteredAddress() {
         return switch (ownSecurityServerResolver.address()) {
-            case OwnAddress.Registered registered -> registered.address();
-            case OwnAddress.NotRegistered ignored -> throw XrdRuntimeException.systemException(
+            case OwnAddress.Registered(_, var address) -> address;
+            case OwnAddress.NotRegistered _ -> throw XrdRuntimeException.systemException(
                     SECURITY_SERVER_NOT_FOUND, "Security Server is not registered in GlobalConf");
-            case OwnAddress.GlobalConfUnavailable unavailable -> throw XrdRuntimeException.systemException(unavailable.cause());
-            case OwnAddress.OwnerNotInitialised ignored -> throw XrdRuntimeException.systemException(
+            case OwnAddress.GlobalConfUnavailable(_, var cause) -> throw XrdRuntimeException.systemException(cause);
+            case OwnAddress.OwnerNotInitialised _ -> throw XrdRuntimeException.systemException(
                     MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE);
         };
     }

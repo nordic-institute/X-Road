@@ -307,15 +307,13 @@ public class SystemService {
             throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }
         switch (ownSecurityServerResolver.address()) {
-            case OwnAddress.Registered registered -> {
-                if (registered.address().equals(newAddress)) {
+            case OwnAddress.Registered(_, var address) when address.equals(newAddress) ->
                     throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
-                }
+            case OwnAddress.Registered _ -> {
             }
-            case OwnAddress.NotRegistered ignored -> throw new ConflictException(SERVER_NOT_REGISTERED.build());
-            case OwnAddress.GlobalConfUnavailable unavailable ->
-                    throw new ConflictException(unavailable.cause(), GLOBAL_CONF_UNAVAILABLE.build());
-            case OwnAddress.OwnerNotInitialised ignored -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+            case OwnAddress.NotRegistered _ -> throw new ConflictException(SERVER_NOT_REGISTERED.build());
+            case OwnAddress.GlobalConfUnavailable(_, var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
+            case OwnAddress.OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
         }
         Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
         addressChangeStatus.setAddress(newAddress);

@@ -48,7 +48,7 @@ public class OwnSecurityServerResolver {
     public OwnAddress address() {
         return switch (identity()) {
             case OwnIdentity.Known(var id) -> address(id);
-            case OwnIdentity.OwnerNotInitialised ignored -> new OwnAddress.OwnerNotInitialised();
+            case OwnIdentity.OwnerNotInitialised _ -> new OwnAddress.OwnerNotInitialised();
             case OwnIdentity.GlobalConfUnavailable(var cause) -> new OwnAddress.GlobalConfUnavailable(null, cause);
         };
     }

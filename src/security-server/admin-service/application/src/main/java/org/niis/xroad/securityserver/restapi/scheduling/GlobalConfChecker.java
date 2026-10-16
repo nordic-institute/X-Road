@@ -140,9 +140,9 @@ public class GlobalConfChecker {
         }
 
         switch (ownSecurityServerResolver.identity()) {
-            case OwnIdentity.Known known -> updateServerConf(known.id());
-            case OwnIdentity.OwnerNotInitialised ignored -> log.debug("Security Server owner is not set - skip serverconf updates");
-            case OwnIdentity.GlobalConfUnavailable unavailable -> throw XrdRuntimeException.systemException(unavailable.cause());
+            case OwnIdentity.Known(var id) -> updateServerConf(id);
+            case OwnIdentity.OwnerNotInitialised _ -> log.debug("Security Server owner is not set - skip serverconf updates");
+            case OwnIdentity.GlobalConfUnavailable(var cause) -> throw XrdRuntimeException.systemException(cause);
         }
     }
 
@@ -182,14 +182,11 @@ public class GlobalConfChecker {
 
     private void clearAddressChangeIfRegistered(SecurityServerId securityServerId, String requestedAddress) {
         switch (ownSecurityServerResolver.address(securityServerId)) {
-            case OwnAddress.Registered registered -> {
-                if (requestedAddress.equals(registered.address())) {
-                    addressChangeStatus.clear();
-                }
-            }
-            case OwnAddress.NotRegistered ignored -> log.debug("Server not registered - keeping address change request");
-            case OwnAddress.GlobalConfUnavailable ignored -> log.debug("Globalconf unavailable - keeping address change request");
-            case OwnAddress.OwnerNotInitialised ignored -> log.debug("Owner not set - keeping address change request");
+            case OwnAddress.Registered(_, var address) when requestedAddress.equals(address) -> addressChangeStatus.clear();
+            case OwnAddress.Registered _ -> log.debug("Registered address differs - keeping address change request");
+            case OwnAddress.NotRegistered _ -> log.debug("Server not registered - keeping address change request");
+            case OwnAddress.GlobalConfUnavailable _ -> log.debug("Globalconf unavailable - keeping address change request");
+            case OwnAddress.OwnerNotInitialised _ -> log.debug("Owner not set - keeping address change request");
         }
     }
 

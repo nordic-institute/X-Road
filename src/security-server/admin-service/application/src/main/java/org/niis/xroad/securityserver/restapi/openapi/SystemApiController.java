@@ -258,14 +258,12 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     public ResponseEntity<SecurityServerAddressStatusDto> getServerAddress() {
         SecurityServerAddressStatusDto response = new SecurityServerAddressStatusDto();
         switch (ownSecurityServerResolver.address()) {
-            case OwnAddress.Registered registered ->
-                    response.setCurrentAddress(new SecurityServerAddressDto(registered.address()));
-            case OwnAddress.NotRegistered ignored -> {
+            case OwnAddress.Registered(_, var address) -> response.setCurrentAddress(new SecurityServerAddressDto(address));
+            case OwnAddress.NotRegistered _ -> {
                 // the server has no registered address yet: no current address to report
             }
-            case OwnAddress.GlobalConfUnavailable unavailable ->
-                    throw new ConflictException(unavailable.cause(), GLOBAL_CONF_UNAVAILABLE.build());
-            case OwnAddress.OwnerNotInitialised ignored -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+            case OwnAddress.GlobalConfUnavailable(_, var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
+            case OwnAddress.OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
         }
         addressChangeStatus.getAddressChangeRequest()
                 .map(SecurityServerAddressDto::new)
