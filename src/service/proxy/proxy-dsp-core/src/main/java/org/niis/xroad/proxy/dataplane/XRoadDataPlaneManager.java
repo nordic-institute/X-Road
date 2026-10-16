@@ -36,9 +36,10 @@ import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 /**
@@ -65,10 +66,11 @@ public class XRoadDataPlaneManager {
     private static final String AUTHORIZATION_PROPERTY = CoreConstants.EDC_NAMESPACE + "authorization";
     private static final String AUTH_TYPE_PROPERTY = CoreConstants.EDC_NAMESPACE + "authType";
     private static final String BEARER_AUTH_TYPE = "bearer";
+    private static final String FALLBACK_WARNING =
+            "Own Security Server address is not available ({}); falling back to configured serverproxy endpoint";
 
     private final DataPlaneServerProperties dspProperties;
-    private final GlobalConfProvider globalConfProvider;
-    private final ServerConfProvider serverConfProvider;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final ProxyProperties proxyProperties;
     private final DataFlowStateStore flowStateStore;
     private final AgreementTokenIssuer agreementTokenIssuer;
@@ -188,17 +190,32 @@ public class XRoadDataPlaneManager {
 
     private String resolveServerproxyEndpoint(String protocol) {
         try {
-            var ownAddress = globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
-            if (ownAddress != null && !ownAddress.isBlank()) {
-                var endpoint = "%s://%s:%d".formatted(protocol, ownAddress, proxyProperties.serverProxyPort());
-                log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
-                return endpoint;
-            }
-            log.warn("Own security-server address is blank; falling back to configured serverproxy endpoint");
+            var ownAddress = ownSecurityServerResolver.address();
+            return switch (ownAddress) {
+                case OwnAddress.Registered(_, var address) -> registeredEndpoint(protocol, address);
+                case OwnAddress.GlobalConfUnavailable(var cause) -> {
+                    log.warn(FALLBACK_WARNING, stateName(ownAddress), cause);
+                    yield dspProperties.serverproxyEndpoint();
+                }
+                case OwnAddress.NotRegistered _, OwnerNotInitialised _ -> {
+                    log.warn(FALLBACK_WARNING, stateName(ownAddress));
+                    yield dspProperties.serverproxyEndpoint();
+                }
+            };
         } catch (Exception e) {
             log.warn("Could not resolve own security-server address; falling back to configured serverproxy endpoint", e);
+            return dspProperties.serverproxyEndpoint();
         }
-        return dspProperties.serverproxyEndpoint();
+    }
+
+    private String registeredEndpoint(String protocol, String address) {
+        var endpoint = "%s://%s:%d".formatted(protocol, address, proxyProperties.serverProxyPort());
+        log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
+        return endpoint;
+    }
+
+    private static String stateName(OwnAddress ownAddress) {
+        return ownAddress.getClass().getSimpleName();
     }
 
     /**

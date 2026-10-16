@@ -50,6 +50,9 @@ import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -74,8 +77,11 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPL
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GLOBAL_CONF_UNAVAILABLE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SAME_ADDRESS_CHANGE_REQUEST;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVER_NOT_INITIALIZED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVER_NOT_REGISTERED;
 
 /**
  * Service that handles system services
@@ -97,6 +103,7 @@ public class SystemService {
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyRpcClient proxyRpcClient;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -300,13 +307,29 @@ public class SystemService {
         if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
             throw new ConflictException(DUPLICATE_ADDRESS_CHANGE_REQUEST.build());
         }
-        if (globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId()).equals(newAddress)) {
+        var currentAddress = registeredAddress().orElseThrow(() -> new ConflictException(SERVER_NOT_REGISTERED.build()));
+        if (currentAddress.equals(newAddress)) {
             throw new ConflictException(SAME_ADDRESS_CHANGE_REQUEST.build());
         }
         Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
         addressChangeStatus.setAddress(newAddress);
 
         return requestId;
+    }
+
+    /**
+     * Returns the address the global configuration lists for this Security Server.
+     *
+     * @return the registered address, or empty if the server has no registered address
+     * @throws ConflictException if the owner is not initialised or the global configuration is unavailable
+     */
+    public Optional<String> registeredAddress() {
+        return switch (ownSecurityServerResolver.address()) {
+            case OwnAddress.Registered(_, var address) -> Optional.of(address);
+            case OwnAddress.NotRegistered _ -> Optional.empty();
+            case OwnAddress.GlobalConfUnavailable(var cause) -> throw new ConflictException(cause, GLOBAL_CONF_UNAVAILABLE.build());
+            case OwnerNotInitialised _ -> throw new ConflictException(SERVER_NOT_INITIALIZED.build());
+        };
     }
 
     /**

@@ -47,6 +47,9 @@ import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.converter.AcmeKeyPurposeMapping;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -71,6 +74,8 @@ import static ee.ria.xroad.common.util.CertUtils.isSigningCert;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
+import static org.niis.xroad.common.core.exception.ErrorCode.SECURITY_SERVER_NOT_FOUND;
 
 /**
  * This class is responsible for retrieving the ACME certificates renewal information from the ACME
@@ -84,15 +89,17 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @RequiredArgsConstructor
 public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
+    private static final String OWNER_NOT_SET_MESSAGE = "Security Server owner is not set";
+
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
-    private final ScheduledJobHelper scheduledJobHelper;
     private final VaultKeyProvider vaultKeyProvider;
     private final MailNotificationHelper mailNotificationHelper;
     private final AcmeConfig acmeConfig;
     private final AdminServiceProperties adminServiceProperties;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     @Override
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
@@ -106,16 +113,18 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             return;
         }
 
+        OwnIdentity ownIdentity;
         List<CertificateInfo> certs;
         try {
+            ownIdentity = ownSecurityServerResolver.identity();
             certs = getAllCertificates();
         } catch (Exception e) {
-            log.error("Error when trying to retrieve certificates for renewal", e);
+            log.error("Error when trying to retrieve certificates and own server identity for renewal", e);
             finishRenewal(acmeRenewalScheduler, true);
             return;
         }
 
-        boolean failed = renewCertificatesIfNeeded(certs);
+        boolean failed = renewCertificatesIfNeeded(certs, ownIdentity);
 
         finishRenewal(acmeRenewalScheduler, failed);
     }
@@ -128,7 +137,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 .toList();
     }
 
-    private boolean renewCertificatesIfNeeded(List<CertificateInfo> certs) {
+    private boolean renewCertificatesIfNeeded(List<CertificateInfo> certs, OwnIdentity ownIdentity) {
         log.info("Trying to fetch renewal information and renew if needed for {} certificates", certs.size());
         boolean failed = false;
         for (CertificateInfo certificateInfo : certs) {
@@ -140,14 +149,19 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 log.debug("Skipping certificate {} already in process of renewal", certificateInfo.getId());
                 continue;
             }
-            if (!renewCertificateIfNeeded(certificateInfo)) {
+            try {
+                if (!renewCertificateIfNeeded(certificateInfo, ownIdentity)) {
+                    failed = true;
+                }
+            } catch (Exception ex) {
+                log.error("Unexpected error when processing certificate '{}'", certificateInfo.getId(), ex);
                 failed = true;
             }
         }
         return failed;
     }
 
-    private boolean renewCertificateIfNeeded(CertificateInfo certificateInfo) {
+    private boolean renewCertificateIfNeeded(CertificateInfo certificateInfo, OwnIdentity ownIdentity) {
         X509Certificate x509Certificate = readCertificate(certificateInfo.getCertificateBytes());
         KeyUsageInfo keyUsage;
         ClientId clientId;
@@ -169,7 +183,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             log.error("Error when trying to retrieve information about the certificate '{}' to be renewed",
                     certificateInfo.getId(),
                     ex);
-            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage());
+            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), certificateInfo.getMemberId(), ownIdentity);
             return false;
         }
 
@@ -181,17 +195,17 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             isRenewalRequired = isRenewalRequired(clientId.asEncodedId(), approvedCA, x509Certificate, keyUsage);
         } catch (Exception ex) {
             log.error("Error when trying to find out whether renewal is required for certificate '{}'", certificateInfo.getId(), ex);
-            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId.asEncodedId());
+            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId, ownIdentity);
             return false;
         }
 
         X509Certificate newX509Certificate = null;
         if (isRenewalRequired) {
             try {
-                newX509Certificate = renewCertificate(clientId, approvedCA, certificateInfo, x509Certificate, keyUsage);
+                newX509Certificate = renewCertificate(clientId, approvedCA, certificateInfo, x509Certificate, keyUsage, ownIdentity);
             } catch (Exception ex) {
                 log.error("Error when trying to renew certificate '{}'", certificateInfo.getId(), ex);
-                setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId.asEncodedId());
+                setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage(), clientId, ownIdentity);
                 return false;
             }
         }
@@ -225,19 +239,18 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
     }
 
-    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription) {
-        String memberId = cert.getMemberId() != null
-                ? cert.getMemberId().asEncodedId()
-                : scheduledJobHelper.getServerConf().getOwner().getIdentifier().asEncodedId();
-        setRenewalErrorAndSendFailureNotification(cert, errorDescription, memberId);
-    }
-
-    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, String memberId) {
-        if (!Objects.equals(cert.getRenewalError(), errorDescription)) {
-            setRenewalError(cert.getId(), errorDescription);
-            SecurityServerId.Conf securityServerId = scheduledJobHelper.getSecurityServerId();
-            mailNotificationHelper.sendFailureNotification(memberId, cert, securityServerId, errorDescription);
+    private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, ClientId memberId,
+                                                           OwnIdentity ownIdentity) {
+        if (Objects.equals(cert.getRenewalError(), errorDescription)) {
+            return;
         }
+        setRenewalError(cert.getId(), errorDescription);
+        ownIdentity.serverId().ifPresentOrElse(
+                id -> {
+                    var recipient = memberId != null ? memberId : id.getOwner();
+                    mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, id, errorDescription);
+                },
+                () -> log.warn("Renewal failure notification for certificate '{}' not sent: {}", cert.getId(), OWNER_NOT_SET_MESSAGE));
     }
 
     private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate) {
@@ -299,8 +312,12 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private X509Certificate renewCertificate(ClientId memberId, ApprovedCAInfo approvedCA,
                                              CertificateInfo oldCertInfo,
-                                             X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) {
+                                             X509Certificate oldX509Certificate, KeyUsageInfo keyUsage,
+                                             OwnIdentity ownIdentity) {
         log.info("Starting to renew certificate '{}'", oldX509Certificate.getSerialNumber());
+        SecurityServerId.Conf ownServerId = ownIdentity.serverId().orElseThrow(
+                () -> XrdRuntimeException.systemException(MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE));
+        String subjectAltName = getSubjectAltName(oldX509Certificate, keyUsage, ownServerId);
         TokenInfoAndKeyId tokenAndOldKeyId = signerRpcClient.getTokenAndKeyIdForCertHash(calculateCertHexHashOrThrow(oldX509Certificate));
         String tokenId = tokenAndOldKeyId.getTokenInfo().getId();
         KeyAlgorithm keyAlgorithm = SignMechanism.valueOf(tokenAndOldKeyId.getKeyInfo().getSignMechanismName()).keyAlgorithm();
@@ -309,7 +326,6 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         X509Certificate newX509Certificate;
         boolean activate;
         try {
-            String subjectAltName = getSubjectAltName(oldX509Certificate, keyUsage);
             SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo = signerRpcClient.generateCertRequest(newKeyInfo.getId(),
                     oldCertInfo.getMemberId(),
                     keyUsage,
@@ -341,35 +357,34 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
         CertificateInfo newCertInfo = signerRpcClient.getCertForHash(calculateCertHexHashOrThrow(newX509Certificate));
         if (activate) {
-            SecurityServerId.Conf securityServerId = scheduledJobHelper.getSecurityServerId();
             if (isNotBlank(newCertInfo.getOcspVerifyBeforeActivationError())) {
                 mailNotificationHelper.sendCertActivationFailureNotification(memberId.asEncodedId(),
                         newCertInfo.getCertificateDisplayName(),
-                        securityServerId,
+                        ownServerId,
                         keyUsage,
                         newCertInfo.getOcspVerifyBeforeActivationError());
             } else {
-                mailNotificationHelper.sendCertActivatedNotification(memberId.asEncodedId(), securityServerId, newCertInfo, keyUsage);
+                mailNotificationHelper.sendCertActivatedNotification(memberId.asEncodedId(), ownServerId, newCertInfo, keyUsage);
             }
         }
 
-        finishRenewingCertificate(memberId, oldX509Certificate, keyUsage, newX509Certificate, newCertInfo, newKeyInfo);
+        finishRenewingCertificate(memberId, ownServerId, oldX509Certificate, keyUsage, newX509Certificate, newCertInfo, newKeyInfo);
 
         return newX509Certificate;
     }
 
     private void finishRenewingCertificate(ClientId memberId,
+                                           SecurityServerId.Conf securityServerId,
                                            X509Certificate oldX509Certificate,
                                            KeyUsageInfo keyUsage,
                                            X509Certificate newX509Certificate,
                                            CertificateInfo newCertInfo,
                                            KeyInfo newKeyInfo) {
-        SecurityServerId.Conf securityServerId = scheduledJobHelper.getSecurityServerId();
         try {
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 String securityServerAddress = globalConfProvider.getSecurityServerAddress(
                         globalConfProvider.getServerIdOrThrow(oldX509Certificate));
-                ManagementRequestSender managementRequestSender = createManagementRequestSender();
+                ManagementRequestSender managementRequestSender = createManagementRequestSender(securityServerId.getOwner());
                 managementRequestSender.sendAuthCertRegRequest(securityServerId,
                         securityServerAddress,
                         newX509Certificate.getEncoded(),
@@ -386,8 +401,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         mailNotificationHelper.sendSuccessNotification(memberId, securityServerId, newCertInfo, keyUsage);
     }
 
-    ManagementRequestSender createManagementRequestSender() {
-        ClientId sender = scheduledJobHelper.getServerConf().getOwner().getIdentifier();
+    ManagementRequestSender createManagementRequestSender(ClientId sender) {
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
                 signerSignClient, sender, receiver, adminServiceProperties.getProxyServerUrl(),
@@ -397,7 +411,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                 adminServiceProperties.isProxyServerEnableConnectionReuse());
     }
 
-    private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) {
+    private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage, SecurityServerId.Conf ownServerId) {
         String subjectAltName;
         var x509SubjectAlternativeNames = getX509SubjectAlternativeNames(oldX509Certificate);
         if (x509SubjectAlternativeNames != null) {
@@ -406,10 +420,19 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 subjectAltName = getCommonName(oldX509Certificate.getSubjectX500Principal().getName());
             } else {
-                subjectAltName = globalConfProvider.getSecurityServerAddress(scheduledJobHelper.getSecurityServerId());
+                subjectAltName = getRegisteredAddress(ownServerId);
             }
         }
         return subjectAltName;
+    }
+
+    private String getRegisteredAddress(SecurityServerId.Conf ownServerId) {
+        return switch (ownSecurityServerResolver.address(ownServerId)) {
+            case OwnAddress.Registered(_, var address) -> address;
+            case OwnAddress.NotRegistered _ -> throw XrdRuntimeException.systemException(
+                    SECURITY_SERVER_NOT_FOUND, "Security Server is not registered in GlobalConf");
+            case OwnAddress.GlobalConfUnavailable(var cause) -> throw XrdRuntimeException.systemException(cause);
+        };
     }
 
     private void rollback(String keyId) {
