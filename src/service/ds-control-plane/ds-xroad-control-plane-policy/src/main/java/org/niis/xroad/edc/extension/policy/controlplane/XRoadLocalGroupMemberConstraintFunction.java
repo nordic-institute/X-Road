@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.edc.extension.policy.controlplane;
 
-import ee.ria.xroad.common.identifier.LocalGroupId;
-
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
@@ -35,6 +33,7 @@ import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -55,14 +54,18 @@ public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentP
     public boolean evaluate(Operator operator, Object rightValue, Permission rule, ParticipantAgentPolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
-            if (!(rightValue instanceof String globalGroupCode)) {
+            if (!(rightValue instanceof String constraintValue)) {
                 context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
                 return false;
             }
-            LocalGroupId localGroupId = parseLocalGroup(globalGroupCode);
+            var decoded = LocalGroupConstraintValue.decode(constraintValue);
+            if (decoded.isEmpty()) {
+                return false;
+            }
             return PolicyContextHelper.findMemberIdFromContext(context)
                     .map(memberId -> switch (operator) {
-                        case EQ, IS_PART_OF -> serverConfProvider.isSubjectInLocalGroup(memberId, localGroupId);
+                        case EQ, IS_PART_OF -> serverConfProvider.isLocalGroupMember(
+                                decoded.get().owner(), decoded.get().localGroupId(), memberId);
                         default -> {
                             context.reportProblem("Unsupported operator: " + operator);
                             yield false;
@@ -71,10 +74,6 @@ public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentP
         } finally {
             monitor.debug("XRoadLocalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }
-    }
-
-    private LocalGroupId parseLocalGroup(String localGroupCode) {
-        return LocalGroupId.Conf.create(localGroupCode);
     }
 
 }
