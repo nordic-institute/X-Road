@@ -47,9 +47,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.common.vault.VaultCaClient;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultCaClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup;
@@ -82,9 +84,10 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
  * 0200 - Op-monitor CA and external RPC CA through the Quarkus vault clients: the real
- * {@link QuarkusVaultClient} and {@link QuarkusVaultKeyClient} run against the OpenBao of the stack, started
- * from the {@code openbao-dev} image with the shipped init and policy. The raw record is seeded and checked
- * with the {@code bao} CLI inside the container. Each case starts and ends without an op-monitor CA record.
+ * {@link QuarkusVaultClient}, {@link QuarkusVaultKeyClient} and {@link QuarkusVaultCaClient} run against the
+ * OpenBao of the stack, started from the {@code openbao-dev} image with the shipped init and policy. The raw record
+ * is seeded and checked with the {@code bao} CLI inside the container. Each case starts and ends without an
+ * op-monitor CA record.
  */
 @ExtendWith(ApiStackExtension.class)
 @SuppressWarnings("checkstyle:magicnumber")
@@ -100,6 +103,7 @@ class OpMonitorCaOpenBaoIntTest {
     private OpMonitorContainerSetup stack;
     private VaultClient vaultClient;
     private VaultKeyClient vaultKeyClient;
+    private VaultCaClient vaultCaClient;
 
     @BeforeEach
     @SneakyThrows
@@ -117,6 +121,7 @@ class OpMonitorCaOpenBaoIntTest {
 
         vaultClient = new QuarkusVaultClient(new VaultKVSecretEngine(new VaultKvManager(vaultApi, quarkusConfigHolder())));
         vaultKeyClient = new QuarkusVaultKeyClient(pkiEngineFactory(vaultApi), provisioning);
+        vaultCaClient = new QuarkusVaultCaClient(pkiEngineFactory(vaultApi), provisioning);
     }
 
     @AfterEach
@@ -168,12 +173,12 @@ class OpMonitorCaOpenBaoIntTest {
     }
 
     @Test
-    @DisplayName("The external RPC CA through the Quarkus key client is the xrd-pki issuing CA, without key material")
+    @DisplayName("The external RPC CA through the Quarkus CA client is the xrd-pki issuing CA, without key material")
     void externalRpcCaIsTheIssuingCaWithoutKeyMaterial() {
         var rawCa = given("the issuing CA is read raw with bao", () -> bao("read", "-format=json", ISSUING_CA_PATH));
         var expected = parseCertificate(JsonPath.from(rawCa).getString("data.certificate"));
 
-        var externalRpcCa = when("the Quarkus key client reads the external RPC CA", () -> vaultKeyClient.readExternalRpcCa());
+        var externalRpcCa = when("the Quarkus CA client reads the external RPC CA", () -> vaultCaClient.readCaCertificate());
 
         then("it equals the raw issuing CA", () -> assertThat(externalRpcCa).contains(expected));
         and("the raw record has no private key", () -> {

@@ -116,6 +116,20 @@ class ExternalRpcCaTest extends SsApiTest {
     }
 
     @Test
+    @DisplayName("the downloaded CA verifies a certificate issued through the RPC issuance role")
+    void downloadedCaVerifiesAnRpcIssuedCertificate(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
+        var client = new SystemAdminClient(seeder.newSession());
+
+        var downloaded = given("the external RPC CA is downloaded", () ->
+                parseCertificate(client.downloadExternalRpcCa().statusCode(200).extract().asByteArray()));
+        var issued = and("a certificate is issued through the RPC issuance role of the xrd-pki mount", () ->
+                openBaoIssuedRpcCertificate(stack));
+
+        then("the signature of the issued certificate verifies against the downloaded CA",
+                () -> assertSignedBy(issued, downloaded));
+    }
+
+    @Test
     @DisplayName("downloading twice returns identical bytes")
     void downloadIsRepeatable(SsBaselineSeeder seeder) {
         var client = new SystemAdminClient(seeder.newSession());
@@ -184,6 +198,19 @@ class ExternalRpcCaTest extends SsApiTest {
     private static X509Certificate openBaoIssuingCa(SsApiTestContainerSetup stack) {
         var result = stack.execInContainer(SsApiTestContainerSetup.OPENBAO, "bao", "read", "-field=certificate", "xrd-pki/cert/ca");
         assertThat(result.getExitCode()).as("bao read xrd-pki/cert/ca").isZero();
+        return parseCertificate(result.getStdout().getBytes(StandardCharsets.UTF_8));
+    }
+
+    @SneakyThrows
+    private static void assertSignedBy(X509Certificate certificate, X509Certificate ca) {
+        certificate.verify(ca.getPublicKey());
+    }
+
+    @SneakyThrows
+    private static X509Certificate openBaoIssuedRpcCertificate(SsApiTestContainerSetup stack) {
+        var result = stack.execInContainer(SsApiTestContainerSetup.OPENBAO, "bao", "write", "-field=certificate",
+                "xrd-pki/issue/xrd-internal", "common_name=localhost", "ttl=1h");
+        assertThat(result.getExitCode()).as("bao write xrd-pki/issue/xrd-internal").isZero();
         return parseCertificate(result.getStdout().getBytes(StandardCharsets.UTF_8));
     }
 

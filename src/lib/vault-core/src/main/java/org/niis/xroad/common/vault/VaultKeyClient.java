@@ -32,19 +32,12 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Optional;
 
 public interface VaultKeyClient {
     String CERTIFICATE_FORMAT = "pem";
     String PKCS8_FORMAT = "pkcs8";
-    String EXTERNAL_RPC_CA_READ_FAILED = "Failed to read the external RPC CA certificate from Vault";
 
     VaultKeyData provisionNewCerts() throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException;
-
-    /**
-     * @return the external RPC CA, the issuing CA of the xrd-pki mount, or empty when there is no secret store
-     */
-    Optional<X509Certificate> readExternalRpcCa();
 
     record VaultKeyData(
             X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,

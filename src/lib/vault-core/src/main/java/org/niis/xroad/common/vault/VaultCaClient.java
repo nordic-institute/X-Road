@@ -26,16 +26,14 @@
  */
 package org.niis.xroad.common.vault;
 
-import org.junit.jupiter.api.Test;
+import java.security.cert.X509Certificate;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public interface VaultCaClient {
+    String CA_READ_FAILED = "Failed to read the CA certificate from Vault";
 
-class NoopVaultKeyClientTest {
-
-    private final NoopVaultKeyClient keyClient = new NoopVaultKeyClient();
-
-    @Test
-    void readExternalRpcCaShouldReturnEmpty() {
-        assertThat(keyClient.readExternalRpcCa()).isEmpty();
-    }
+    /**
+     * @return the issuing CA of the configured PKI mount, or empty when there is no secret store
+     */
+    Optional<X509Certificate> readCaCertificate();
 }

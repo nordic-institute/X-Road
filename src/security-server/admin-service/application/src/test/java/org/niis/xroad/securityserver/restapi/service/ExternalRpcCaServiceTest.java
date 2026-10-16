@@ -33,8 +33,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.vault.NoopVaultKeyClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.NoopVaultCaClient;
+import org.niis.xroad.common.vault.VaultCaClient;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -54,19 +54,19 @@ class ExternalRpcCaServiceTest {
             "\\A-----BEGIN CERTIFICATE-----\\R([A-Za-z0-9+/=]+\\R)+-----END CERTIFICATE-----\\R?\\z");
 
     @Mock
-    private VaultKeyClient vaultKeyClient;
+    private VaultCaClient rpcCaClient;
 
     @Test
     void getExternalRpcCaShouldReturnTheCertificateReadFromTheSecretStore() {
         X509Certificate ca = CertificateTestUtils.getMockTopCaCertificate();
-        when(vaultKeyClient.readExternalRpcCa()).thenReturn(Optional.of(ca));
+        when(rpcCaClient.readCaCertificate()).thenReturn(Optional.of(ca));
 
-        assertThat(new ExternalRpcCaService(vaultKeyClient).getExternalRpcCa()).isEqualTo(ca);
+        assertThat(new ExternalRpcCaService(rpcCaClient).getExternalRpcCa()).isEqualTo(ca);
     }
 
     @Test
     void getExternalRpcCaShouldFailWhenThereIsNoSecretStore() {
-        var service = new ExternalRpcCaService(new NoopVaultKeyClient());
+        var service = new ExternalRpcCaService(new NoopVaultCaClient());
 
         assertThatThrownBy(service::getExternalRpcCa)
                 .isInstanceOfSatisfying(NotFoundException.class,
@@ -76,9 +76,9 @@ class ExternalRpcCaServiceTest {
     @Test
     void downloadExternalRpcCaShouldReturnExactlyOnePemCertificateBlockAndNothingElse() {
         X509Certificate ca = CertificateTestUtils.getMockTopCaCertificate();
-        when(vaultKeyClient.readExternalRpcCa()).thenReturn(Optional.of(ca));
+        when(rpcCaClient.readCaCertificate()).thenReturn(Optional.of(ca));
 
-        String pem = new String(new ExternalRpcCaService(vaultKeyClient).downloadExternalRpcCa(), StandardCharsets.UTF_8);
+        String pem = new String(new ExternalRpcCaService(rpcCaClient).downloadExternalRpcCa(), StandardCharsets.UTF_8);
 
         assertThat(pem).matches(SINGLE_CERTIFICATE_BLOCK);
         assertThat(pem).doesNotContain("PRIVATE KEY");
@@ -87,15 +87,15 @@ class ExternalRpcCaServiceTest {
 
     @Test
     void downloadExternalRpcCaTwiceShouldReturnIdenticalBytes() {
-        when(vaultKeyClient.readExternalRpcCa()).thenReturn(Optional.of(CertificateTestUtils.getMockTopCaCertificate()));
-        var service = new ExternalRpcCaService(vaultKeyClient);
+        when(rpcCaClient.readCaCertificate()).thenReturn(Optional.of(CertificateTestUtils.getMockTopCaCertificate()));
+        var service = new ExternalRpcCaService(rpcCaClient);
 
         assertThat(service.downloadExternalRpcCa()).isEqualTo(service.downloadExternalRpcCa());
     }
 
     @Test
     void downloadExternalRpcCaShouldFailWhenThereIsNoSecretStore() {
-        var service = new ExternalRpcCaService(new NoopVaultKeyClient());
+        var service = new ExternalRpcCaService(new NoopVaultCaClient());
 
         assertThatThrownBy(service::downloadExternalRpcCa).isInstanceOf(NotFoundException.class);
     }

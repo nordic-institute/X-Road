@@ -60,48 +60,48 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.vault.VaultKeyClient.EXTERNAL_RPC_CA_READ_FAILED;
+import static org.niis.xroad.common.vault.VaultCaClient.CA_READ_FAILED;
 
 @ExtendWith(MockitoExtension.class)
-class SpringVaultKeyClientTest {
+class SpringVaultCaClientTest {
 
-    private static final String PKI_PATH = "xrd-pki";
+    private static final String PKI_PATH = "test-pki";
     private static final String CA_PATH = PKI_PATH + "/cert/ca";
 
     @Mock
     private VaultTemplate vaultTemplate;
-    private SpringVaultKeyClient keyClient;
+    private SpringVaultCaClient caClient;
 
     @BeforeEach
     void setUp() {
         var properties = new CertificateProvisioningConfig("xrd-internal", "localhost", List.of(), List.of(), Duration.ofDays(1), PKI_PATH);
-        keyClient = new SpringVaultKeyClient(vaultTemplate, properties);
+        caClient = new SpringVaultCaClient(vaultTemplate, properties);
     }
 
     @Test
-    void readExternalRpcCaShouldReturnTheCertificateAuthorityOfThePkiMount() throws Exception {
+    void readCaCertificateShouldReturnTheCertificateAuthorityOfThePkiMount() throws Exception {
         var ca = selfSignedCa();
         when(vaultTemplate.read(CA_PATH)).thenReturn(responseWithCertificate(toPem(ca)));
 
-        assertThat(keyClient.readExternalRpcCa()).contains(ca);
+        assertThat(caClient.readCaCertificate()).contains(ca);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsUnparsableData() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsUnparsableData() {
         when(vaultTemplate.read(CA_PATH)).thenReturn(responseWithCertificate("not a certificate"));
 
         assertReadFails();
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsBlankData() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsBlankData() {
         when(vaultTemplate.read(CA_PATH)).thenReturn(responseWithCertificate(" "));
 
         assertReadFails();
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheCertificateFieldIsMissing() {
+    void readCaCertificateShouldFailWhenTheCertificateFieldIsMissing() {
         var response = new VaultResponse();
         response.setData(Map.of("other", "value"));
         when(vaultTemplate.read(CA_PATH)).thenReturn(response);
@@ -110,23 +110,23 @@ class SpringVaultKeyClientTest {
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsNothing() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsNothing() {
         when(vaultTemplate.read(CA_PATH)).thenReturn(null);
 
         assertReadFails();
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultRefusesTheRead() {
+    void readCaCertificateShouldFailWhenTheVaultRefusesTheRead() {
         when(vaultTemplate.read(CA_PATH)).thenThrow(new VaultException("permission denied"));
 
         assertReadFails();
     }
 
     private void assertReadFails() {
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     private static VaultResponse responseWithCertificate(String pem) {
@@ -139,7 +139,7 @@ class SpringVaultKeyClientTest {
         var generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         var keyPair = generator.generateKeyPair();
-        var subject = new X500Name("CN=Test External RPC CA");
+        var subject = new X500Name("CN=Test CA");
         var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)), subject, keyPair.getPublic())
                 .addExtension(Extension.basicConstraints, true, new BasicConstraints(true));

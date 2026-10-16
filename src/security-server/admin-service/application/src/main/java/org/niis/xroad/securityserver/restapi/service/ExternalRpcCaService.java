@@ -31,7 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.VaultCaClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -48,10 +48,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 @RequiredArgsConstructor
 public class ExternalRpcCaService {
 
-    private final VaultKeyClient vaultKeyClient;
+    private final VaultCaClient rpcCaClient;
 
     public X509Certificate getExternalRpcCa() {
-        return vaultKeyClient.readExternalRpcCa()
+        return rpcCaClient.readCaCertificate()
                 .orElseThrow(() -> new NotFoundException(EXTERNAL_RPC_CA_NOT_AVAILABLE.build()));
     }
 

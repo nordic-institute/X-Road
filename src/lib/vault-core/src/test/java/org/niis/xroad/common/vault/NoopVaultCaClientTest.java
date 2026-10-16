@@ -24,29 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.vault;
 
-import org.niis.xroad.common.vault.NoopVaultKeyClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.vault.core.VaultTemplate;
+import org.junit.jupiter.api.Test;
 
-@Configuration
-public class VaultKeyClientConfiguration {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Bean
-    // Same default as Spring Cloud Vault: a missing spring.cloud.vault.enabled means enabled.
-    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true", matchIfMissing = true)
-    VaultKeyClient springVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
-        return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
-    }
+class NoopVaultCaClientTest {
 
-    @Bean
-    @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false")
-    VaultKeyClient noopVaultKeyClient() {
-        return new NoopVaultKeyClient();
+    private final NoopVaultCaClient caClient = new NoopVaultCaClient();
+
+    @Test
+    void readCaCertificateShouldReturnEmpty() {
+        assertThat(caClient.readCaCertificate()).isEmpty();
     }
 }

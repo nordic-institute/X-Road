@@ -60,96 +60,96 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.vault.VaultKeyClient.EXTERNAL_RPC_CA_READ_FAILED;
+import static org.niis.xroad.common.vault.VaultCaClient.CA_READ_FAILED;
 
 @ExtendWith(MockitoExtension.class)
-class QuarkusVaultKeyClientTest {
+class QuarkusVaultCaClientTest {
 
-    private static final String PKI_PATH = "xrd-pki";
+    private static final String PKI_PATH = "test-pki";
 
     @Mock
     private VaultPKISecretEngineFactory pkiSecretEngineFactory;
     @Mock
     private VaultPKISecretEngine pkiSecretEngine;
 
-    private QuarkusVaultKeyClient keyClient;
+    private QuarkusVaultCaClient caClient;
 
     @BeforeEach
     void setUp() {
         when(pkiSecretEngineFactory.engine(PKI_PATH)).thenReturn(pkiSecretEngine);
         var properties = new CertificateProvisioningConfig("xrd-internal", "localhost", List.of(), List.of(), Duration.ofDays(1), PKI_PATH);
-        keyClient = new QuarkusVaultKeyClient(pkiSecretEngineFactory, properties);
+        caClient = new QuarkusVaultCaClient(pkiSecretEngineFactory, properties);
     }
 
     @Test
-    void readExternalRpcCaShouldReturnTheCertificateAuthorityOfThePkiMount() throws Exception {
+    void readCaCertificateShouldReturnTheCertificateAuthorityOfThePkiMount() throws Exception {
         var ca = selfSignedCa();
         when(pkiSecretEngine.getCertificateAuthority()).thenReturn(new CertificateData.PEM(toPem(ca)));
 
-        assertThat(keyClient.readExternalRpcCa()).contains(ca);
+        assertThat(caClient.readCaCertificate()).contains(ca);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsUnparsableData() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsUnparsableData() {
         when(pkiSecretEngine.getCertificateAuthority()).thenReturn(new CertificateData.PEM("not a certificate"));
 
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsBlankData() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsBlankData() {
         when(pkiSecretEngine.getCertificateAuthority()).thenReturn(new CertificateData.PEM(" "));
 
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsNoCertificateData() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsNoCertificateData() {
         when(pkiSecretEngine.getCertificateAuthority()).thenReturn(new CertificateData.PEM(null));
 
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsInvalidBase64() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsInvalidBase64() {
         when(pkiSecretEngine.getCertificateAuthority()).thenReturn(
                 new CertificateData.PEM("-----BEGIN CERTIFICATE-----\nAB=C\n-----END CERTIFICATE-----\n"));
 
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultReturnsNothing() {
+    void readCaCertificateShouldFailWhenTheVaultReturnsNothing() {
         when(pkiSecretEngine.getCertificateAuthority()).thenReturn(null);
 
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     @Test
-    void readExternalRpcCaShouldFailWhenTheVaultRefusesTheRead() {
+    void readCaCertificateShouldFailWhenTheVaultRefusesTheRead() {
         when(pkiSecretEngine.getCertificateAuthority()).thenThrow(
-                new VaultClientException("read", "xrd-pki/cert/ca", 403, "permission denied", null));
+                new VaultClientException("read", PKI_PATH + "/cert/ca", 403, "permission denied", null));
 
-        assertThatThrownBy(() -> keyClient.readExternalRpcCa())
+        assertThatThrownBy(() -> caClient.readCaCertificate())
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(EXTERNAL_RPC_CA_READ_FAILED);
+                .hasMessageContaining(CA_READ_FAILED);
     }
 
     private static X509Certificate selfSignedCa() throws Exception {
         var generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         var keyPair = generator.generateKeyPair();
-        var subject = new X500Name("CN=Test External RPC CA");
+        var subject = new X500Name("CN=Test CA");
         var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)), subject, keyPair.getPublic())
                 .addExtension(Extension.basicConstraints, true, new BasicConstraints(true));

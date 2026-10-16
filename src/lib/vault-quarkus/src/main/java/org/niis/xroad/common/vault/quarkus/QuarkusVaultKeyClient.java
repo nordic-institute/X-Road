@@ -30,7 +30,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultPKISecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
-import io.quarkus.vault.pki.CertificateData;
 import io.quarkus.vault.pki.DataFormat;
 import io.quarkus.vault.pki.GenerateCertificateOptions;
 import io.quarkus.vault.pki.PrivateKeyEncoding;
@@ -45,7 +44,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Optional;
 
 public class QuarkusVaultKeyClient implements VaultKeyClient {
     private final VaultPKISecretEngine pkiSecretEngine;
@@ -80,27 +78,6 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
         } else {
             throw XrdRuntimeException.systemInternalError("Failed to get certificate from Vault. Data is not readable. Null? "
                     + (vaultResponse.privateKey.getData() == null));
-        }
-    }
-
-    @Override
-    public Optional<X509Certificate> readExternalRpcCa() {
-        CertificateData.PEM certificateAuthority = readExternalRpcCaData();
-        if (certificateAuthority == null || certificateAuthority.getData() == null || certificateAuthority.getData().isBlank()) {
-            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED);
-        }
-        try {
-            return Optional.of(certificateAuthority.getCertificate());
-        } catch (CertificateException | RuntimeException e) {
-            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED, e);
-        }
-    }
-
-    private CertificateData.PEM readExternalRpcCaData() {
-        try {
-            return pkiSecretEngine.getCertificateAuthority();
-        } catch (RuntimeException e) {
-            throw XrdRuntimeException.systemInternalError(EXTERNAL_RPC_CA_READ_FAILED, e);
         }
     }
 
