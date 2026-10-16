@@ -747,7 +747,6 @@
       "description": "La CA de un daemon de monitorización de datos operativos que se ejecuta en otro host. Suba la CA para que este Servidor de Seguridad confíe en ese daemon de monitorización de datos operativos. El archivo debe contener exactamente un certificado de CA codificado en PEM o DER y ninguna clave privada.",
       "empty": "No hay ninguna CA de monitoreo operacional almacenada",
       "replace": "Reemplazar",
-      "restartHint": "Reinicie proxy y admin-service para aplicar los cambios.",
       "title": "CA de monitorización de datos operativos",
       "upload": "Subir",
       "uploaded": "La CA de monitoreo operacional está almacenada"

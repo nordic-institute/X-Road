@@ -725,7 +725,6 @@
       "description": "Başga hostda işleýän operasion gözegçilik demonynyň CA-sy. Ony ýükläň, şonda bu Howpsuz serwer şol operasion gözegçilik demonyna ynanar. Faýlda PEM ýa-da DER kodlaşdyrylan dogry bir CA şahadatnamasy bolmaly we şahsy açar bolmaly däl.",
       "empty": "Operasion gözegçilik CA-sy saklanmaýar",
       "replace": "Çalyş",
-      "restartHint": "Ulanmak üçin proksini we admin-service gaýtadan işe giriziň.",
       "title": "Operasion gözegçilik CA-sy",
       "upload": "Ýükle",
       "uploaded": "Operasion gözegçilik CA-sy saklandy"

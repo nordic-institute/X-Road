@@ -804,7 +804,6 @@
       "description": "A AC de um daemon de monitoramento operacional executado em outro host. Envie-a para que este Servidor de Segurança confie nesse daemon de monitoramento operacional. O arquivo deve conter exatamente um certificado de AC codificado em PEM ou DER e nenhuma chave privada.",
       "empty": "Nenhuma AC de Monitoramento Operacional armazenada",
       "replace": "Substituir",
-      "restartHint": "Reinicie o proxy e o admin-service para aplicar.",
       "title": "AC de Monitoramento Operacional",
       "upload": "Enviar",
       "uploaded": "A AC de Monitoramento Operacional foi armazenada"

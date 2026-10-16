@@ -899,7 +899,6 @@
       "description": "The CA of an operational monitoring daemon running on another host. Upload it so that this Security Server trusts that operational monitoring daemon. The file must hold exactly one PEM or DER encoded CA certificate and no private key.",
       "empty": "No Operational Monitoring CA is stored",
       "replace": "Replace",
-      "restartHint": "Restart proxy and admin-service to apply.",
       "title": "Operational Monitoring CA",
       "upload": "Upload",
       "uploaded": "The Operational Monitoring CA is stored"

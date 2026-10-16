@@ -99,7 +99,6 @@
           </div>
         </template>
         <p class="body-regular px-4 pb-4" data-test="op-monitor-ca-description">{{ $t('opMonitorTrust.opMonitorCa.description') }}</p>
-        <p class="body-regular px-4 pb-4" data-test="op-monitor-ca-restart-hint">{{ $t('opMonitorTrust.opMonitorCa.restartHint') }}</p>
         <p v-if="!opMonitorCa && !loadingOpMonitorCa" class="body-regular px-4 pb-4 opacity-60" data-test="op-monitor-ca-empty">
           {{ $t('opMonitorTrust.opMonitorCa.empty') }}
         </p>

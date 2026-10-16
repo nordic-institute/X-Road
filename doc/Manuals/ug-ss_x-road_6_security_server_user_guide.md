@@ -2928,8 +2928,6 @@ Both CAs are managed in the Security Server user interface and in the management
 - Download the Security Server RPC CA: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator), [System Administrator](#xroad-system-administrator)
 - Upload, replace and delete the Operational Monitoring CA: [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
 
-**NOTE:** A change to the Operational Monitoring CA takes effect only after the proxy and admin-service are restarted. See **Applying the changes** below.
-
 **NOTE:** Each Security Server host has its own Security Server RPC CA, so one download covers one Security Server. If several Security Servers share one external operational monitoring daemon, upload the Operational Monitoring CA to every one of them. The operational monitoring daemon host then needs the Security Server RPC CA of every one of these Security Servers.
 
 _To view the Security Server RPC CA and the Operational Monitoring CA_, follow these steps.
@@ -2952,7 +2950,7 @@ _To upload the Operational Monitoring CA_, follow these steps.
 
 3. In the **Operational Monitoring CA** section, click **Upload** and select the CA certificate file.
 
-   The Security Server stores the certificate and shows its hash. The view reminds you to restart the proxy and admin-service to apply the change.
+   The Security Server stores the certificate and shows its hash.
 
 The file must hold exactly one CA certificate, in PEM or DER format. The CA can be a root CA or an intermediate CA, and it must be valid at the time of the upload. In a PEM file, text outside the certificate block is ignored.
 
@@ -2981,9 +2979,7 @@ _To delete the Operational Monitoring CA_, follow these steps.
 
 3. In the **Operational Monitoring CA** section, click **Delete**, then click **Yes** in the confirmation dialog.
 
-   The view reminds you to restart the proxy and admin-service to apply the change.
-
-After the restart, the Security Server trusts only the Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
+After the deletion, the Security Server trusts only the Security Server RPC CA again, as for an operational monitoring daemon on the same host. Deleting does not change the host and port settings of the operational monitoring daemon connection. Deleting when no Operational Monitoring CA is stored succeeds and changes nothing.
 
 _To download the Security Server RPC CA_, follow these steps.
 
@@ -3012,17 +3008,6 @@ _To install the Security Server RPC CA on the operational monitoring daemon host
    ```bash
    service xroad-opmonitor restart
    ```
-
-**Applying the changes**
-
-The Security Server uses the Operational Monitoring CA when it creates its connections to the operational monitoring daemon. After the Operational Monitoring CA is uploaded, replaced or deleted, restart the proxy and admin-service on the Security Server:
-
-```bash
-service xroad-proxy restart
-service xroad-proxy-ui-api restart
-```
-
-Until the restart, the stored Operational Monitoring CA and the CA in use can differ.
 
 **Management REST API**
 

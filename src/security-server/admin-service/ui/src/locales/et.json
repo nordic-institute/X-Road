@@ -861,7 +861,6 @@
       "description": "Teisel hostil töötava operatiivandmete jälgimise deemoni CA. Laadige see üles, et see turvaserver usaldaks seda operatiivandmete jälgimise deemonit. Fail peab sisaldama täpselt ühte PEM- või DER-kodeeringus CA sertifikaati ja mitte ühtegi privaatvõtit.",
       "empty": "Operatsioonide monitooringu CA-d pole salvestatud",
       "replace": "Asenda",
-      "restartHint": "Rakendamiseks taaskäivitage puhverserver ja admin-service.",
       "title": "Operatiivandmete jälgimise CA",
       "upload": "Lae üles",
       "uploaded": "Operatsioonide monitooringu CA on salvestatud"

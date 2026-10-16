@@ -209,13 +209,12 @@ async function chooseOpMonitorCaFile(content = 'file content') {
   await page.elementLocator(fileInput).upload(new File([content], 'op-monitor-ca.pem', { type: 'application/x-pem-file' }));
 }
 describe('SS Operational Monitoring Trust tab — op-monitor CA (Browser Mode)', () => {
-  it('shows an empty state, the restart hint and an upload action when no op-monitor CA is stored', async () => {
+  it('shows an empty state and an upload action when no op-monitor CA is stored', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, {
       permissions: opMonitorCaViewAndUpload,
       msw: [detailsHandler, noOpMonitorCaHandler],
     });
     await expect.element(page.getByTestId('op-monitor-ca-empty')).toBeVisible();
-    await expect.element(page.getByTestId('op-monitor-ca-restart-hint')).toHaveTextContent('Restart proxy and admin-service to apply.');
     await expect.poll(() => page.getByTestId('upload-op-monitor-ca-button').element().textContent).toContain('Upload');
     await expect.poll(() => page.getByTestId('op-monitor-ca-hash').query()).toBeNull();
   });
@@ -326,7 +325,7 @@ describe('SS Operational Monitoring Trust tab — op-monitor CA (Browser Mode)',
     await expect.element(page.getByTestId('op-monitor-ca-hash')).toBeVisible();
     await expect.poll(() => page.getByTestId('upload-op-monitor-ca-button').query()).toBeNull();
   });
-  it('asks for confirmation before deleting and shows the empty state and the restart hint afterwards', async () => {
+  it('asks for confirmation before deleting and shows the empty state afterwards', async () => {
     const deleteSpy = vi.fn();
     await renderRoute(OP_MONITOR_TRUST_PATH, {
       permissions: opMonitorCaViewAndDelete,
@@ -346,7 +345,6 @@ describe('SS Operational Monitoring Trust tab — op-monitor CA (Browser Mode)',
     await page.getByTestId('dialog-save-button').click();
     await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
     await expect.element(page.getByTestId('op-monitor-ca-empty')).toBeVisible();
-    await expect.element(page.getByTestId('op-monitor-ca-restart-hint')).toHaveTextContent('Restart proxy and admin-service to apply.');
     await expect.poll(() => page.getByTestId('op-monitor-ca-hash').query()).toBeNull();
     await expect.poll(() => page.getByTestId('delete-op-monitor-ca-button').query()).toBeNull();
   });
@@ -389,7 +387,7 @@ describe('SS Operational Monitoring Trust tab — op-monitor CA (Browser Mode)',
   it('hides the op-monitor CA card without the view permission', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewOnly, msw: [detailsHandler] });
     await expect.element(page.getByTestId('external-rpc-ca-hash')).toBeVisible();
-    await expect.poll(() => page.getByTestId('op-monitor-ca-restart-hint').query()).toBeNull();
+    await expect.poll(() => page.getByTestId('op-monitor-ca-description').query()).toBeNull();
     await expect.poll(() => page.getByTestId('upload-op-monitor-ca-button').query()).toBeNull();
   });
 });
