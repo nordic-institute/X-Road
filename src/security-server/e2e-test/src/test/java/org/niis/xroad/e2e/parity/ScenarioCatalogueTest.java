@@ -28,6 +28,9 @@ package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
+import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
@@ -65,6 +68,17 @@ class ScenarioCatalogueTest {
                         tuple("V27", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED, Verdict.ACCESS_DENIED)),
                         tuple("V28", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V29", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V30", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V31", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V32", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V33", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V34", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED,
+                                Verdict.ACCESS_DENIED)),
+                        tuple("V35", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V36", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V37", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V38", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V40", List.of(Verdict.ALLOWED)),
                         tuple("V128", List.of(Verdict.ALLOWED)),
                         tuple("V129", List.of(Verdict.ALLOWED)),
                         tuple("V131", List.of(Verdict.INVALID_SECURITY_SERVER)),
@@ -93,6 +107,64 @@ class ScenarioCatalogueTest {
                 .containsExactly(tuple("*", "/**"));
         assertThat(scenario("V20").checks()).extracting(check -> ((RestRequest) check.request()).method())
                 .contains("POST");
+    }
+
+    @Test
+    void baseAndEndpointGrantsOfV33GoToTheSameConsumer() {
+        var service = (RestService) scenario("V33").fixture().services().get(0);
+
+        assertThat(service.grantedConsumerIds()).containsExactly(ScenarioCatalogue.CONSUMER);
+        assertThat(service.endpoints()).containsExactly(
+                new EndpointSpec("GET", "/foo", List.of(ScenarioCatalogue.CONSUMER)));
+    }
+
+    @Test
+    void perSubjectRowGrantsEachConsumerItsOwnPathAndCallsAsBoth() {
+        var row = scenario("V34");
+        var service = (RestService) row.fixture().services().get(0);
+
+        assertThat(service.endpoints()).extracting(EndpointSpec::path, EndpointSpec::grantedConsumerIds)
+                .containsExactly(tuple("/a", List.of(ScenarioCatalogue.CONSUMER)),
+                        tuple("/b", List.of(ScenarioCatalogue.OTHER_CONSUMER)));
+        assertThat(row.checks()).extracting(check -> check.request().consumerClientId())
+                .containsExactly(ScenarioCatalogue.CONSUMER, ScenarioCatalogue.OTHER_CONSUMER,
+                        ScenarioCatalogue.CONSUMER, ScenarioCatalogue.OTHER_CONSUMER);
+    }
+
+    @Test
+    void ungrantedEndpointRowHoldsNoBaseGrantAndAGrantedControlEndpoint() {
+        var service = (RestService) scenario("V35").fixture().services().get(0);
+
+        assertThat(service.grantedConsumerIds()).isEmpty();
+        assertThat(service.endpoints()).extracting(EndpointSpec::path, EndpointSpec::grantedConsumerIds)
+                .containsExactly(tuple("/foo", List.of()), tuple("/bar", List.of(ScenarioCatalogue.CONSUMER)));
+    }
+
+    @Test
+    void deletedAndEditedRowsGrantTheEndpointBeforeChangingIt() {
+        var deleted = (RestService) scenario("V36").fixture().services().get(0);
+        var edited = (RestService) scenario("V37").fixture().services().get(0);
+
+        assertThat(deleted.endpoints().get(0).followUp()).isEqualTo(new Scenario.Deleted());
+        assertThat(deleted.endpoints().get(0).grantedConsumerIds()).containsExactly(ScenarioCatalogue.CONSUMER);
+        assertThat(edited.endpoints().get(0).followUp()).isEqualTo(new Scenario.EditedTo("GET", "/bar"));
+        assertThat(edited.endpoints().get(0).grantedConsumerIds()).containsExactly(ScenarioCatalogue.CONSUMER);
+    }
+
+    @Test
+    void openApiRowsGrantNoBaseEndpointAndCallAPathTheSpecGenerates() {
+        var imported = (OpenApiService) scenario("V38").fixture().services().get(0);
+        var equalToParsed = (OpenApiService) scenario("V40").fixture().services().get(0);
+
+        assertThat(imported.spec()).isEqualTo(OpenApiSpec.PETS);
+        assertThat(imported.generatedGrants()).containsExactly(new GeneratedEndpointGrant("GET", "/pets/*",
+                List.of(ScenarioCatalogue.CONSUMER)));
+        assertThat(equalToParsed.spec()).isEqualTo(OpenApiSpec.STATUS_ONLY);
+        assertThat(equalToParsed.editedToSpec()).isEqualTo(OpenApiSpec.PETS);
+        assertThat(equalToParsed.manualEndpoints()).containsExactly(
+                new EndpointSpec("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER)));
+        assertThat(scenario("V40").checks()).extracting(check -> ((RestRequest) check.request()).path())
+                .containsExactly("/pets/123");
     }
 
     @Test

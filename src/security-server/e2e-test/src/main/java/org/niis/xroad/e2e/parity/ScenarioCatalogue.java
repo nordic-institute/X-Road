@@ -27,8 +27,13 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.Scenario.Check;
+import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
+import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
@@ -103,6 +108,52 @@ public final class ScenarioCatalogue {
             new Scenario("V29", "GET /*/bar endpoint granted, one segment before bar",
                     endpointOnly("GET", "/*/bar"),
                     List.of(allowed("GET", "/a/bar"), denied("GET", "/a/b/bar")), WaitClass.ACL_CACHE),
+            new Scenario("V30", "GET /a/**/c endpoint granted, mid-path double wildcard",
+                    endpointOnly("GET", "/a/**/c"),
+                    List.of(allowed("GET", "/a/b/c"), allowed("GET", "/a/x/y/c"), denied("GET", "/a/c")),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V31", "Any method on /foo endpoint granted",
+                    endpointOnly("*", "/foo"),
+                    List.of(allowed("GET", "/foo"), allowed("DELETE", "/foo"), denied("GET", "/bar")),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V32", "GET ** endpoint granted, any path",
+                    endpointOnly("GET", "**"),
+                    List.of(allowed("GET", "/a"), allowed("GET", "/a/b/c"), denied("POST", "/a")),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V33", "Base endpoint and GET /foo endpoint granted to the same consumer",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY,
+                            List.of(new EndpointSpec("GET", "/foo", CONSUMER_ONLY))))),
+                    List.of(allowed("GET", "/foo"), allowed("POST", "/bar")), WaitClass.ACL_CACHE),
+            new Scenario("V34", "Each consumer granted its own endpoint, the other consumer's path",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/a", CONSUMER_ONLY),
+                            new EndpointSpec("GET", "/b", List.of(OTHER_CONSUMER)))))),
+                    List.of(allowed(CONSUMER, "GET", "/a"), allowed(OTHER_CONSUMER, "GET", "/b"),
+                            denied(CONSUMER, "GET", "/b"), denied(OTHER_CONSUMER, "GET", "/a")),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V35", "Endpoint without a grant and no base grant",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/foo", List.of()),
+                            new EndpointSpec("GET", "/bar", CONSUMER_ONLY))))),
+                    List.of(allowed("GET", "/bar"), denied("GET", "/foo")), WaitClass.ACL_CACHE),
+            new Scenario("V36", "Granted manual endpoint deleted",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/foo", CONSUMER_ONLY, new Deleted()),
+                            new EndpointSpec("GET", "/bar", CONSUMER_ONLY))))),
+                    List.of(allowed("GET", "/bar"), denied("GET", "/foo")), WaitClass.ACL_CACHE),
+            new Scenario("V37", "Granted manual endpoint edited from /foo to /bar",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/foo", CONSUMER_ONLY, new EditedTo("GET", "/bar")))))),
+                    List.of(allowed("GET", "/bar"), denied("GET", "/foo")), WaitClass.ACL_CACHE),
+            new Scenario("V38", "OpenAPI GET /pets/{petId} granted, stored as /pets/*",
+                    new FixtureSpec(PROVIDER, List.of(new OpenApiService(OpenApiSpec.PETS, List.of(),
+                            List.of(new GeneratedEndpointGrant("GET", "/pets/*", CONSUMER_ONLY)), null))),
+                    List.of(allowed("GET", "/pets/123"), denied("GET", "/pets/1/x")), WaitClass.ACL_CACHE),
+            new Scenario("V40", "Granted manual endpoint equal to one a description edit then generates",
+                    new FixtureSpec(PROVIDER, List.of(new OpenApiService(OpenApiSpec.STATUS_ONLY,
+                            List.of(new EndpointSpec("GET", "/pets/*", CONSUMER_ONLY)), List.of(),
+                            OpenApiSpec.PETS))),
+                    List.of(allowed("GET", "/pets/123")), WaitClass.ACL_CACHE),
             new Scenario("V128", "SOAP service in two versions, the second version called",
                     wsdl(WsdlShape.VERSIONS, "", List.of(CONSUMER_ONLY)),
                     new SoapRequest(CONSUMER, 0, "v2", null),
@@ -132,11 +183,19 @@ public final class ScenarioCatalogue {
     }
 
     private static Check allowed(String method, String path) {
-        return new Check(new RestRequest(CONSUMER, 0, method, path), Verdict.ALLOWED);
+        return allowed(CONSUMER, method, path);
+    }
+
+    private static Check allowed(String consumer, String method, String path) {
+        return new Check(new RestRequest(consumer, 0, method, path), Verdict.ALLOWED);
     }
 
     private static Check denied(String method, String path) {
-        return new Check(new RestRequest(CONSUMER, 0, method, path), Verdict.ACCESS_DENIED);
+        return denied(CONSUMER, method, path);
+    }
+
+    private static Check denied(String consumer, String method, String path) {
+        return new Check(new RestRequest(consumer, 0, method, path), Verdict.ACCESS_DENIED);
     }
 
     /** A REST service whose only grant is the consumer's access to one created endpoint. */

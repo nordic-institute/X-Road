@@ -42,6 +42,14 @@ public sealed interface AdminCall {
     record AddWsdlDescription(String providerClientId, String wsdlUrl, String serviceCode) implements AdminCall {
     }
 
+    /** Adds an OpenAPI 3 description; {@code serviceCode} is the REST service code the description gets. */
+    record AddOpenApiDescription(String providerClientId, String specUrl, String serviceCode) implements AdminCall {
+    }
+
+    /** Points the OpenAPI 3 description of the service at another description and re-parses it. */
+    record UpdateOpenApiDescription(String serviceCode, String specUrl) implements AdminCall {
+    }
+
     record EnableDescription(String serviceCode) implements AdminCall {
     }
 
@@ -56,7 +64,15 @@ public sealed interface AdminCall {
             implements AdminCall {
     }
 
-    /** Deletes an endpoint created by {@link AddEndpoint}; the base and generated endpoints are never deleted. */
+    /** Changes the method and path of an endpoint created by {@link AddEndpoint}. */
+    record UpdateEndpoint(String serviceCode, String method, String path, String newMethod, String newPath)
+            implements AdminCall {
+    }
+
+    /**
+     * Deletes an endpoint created by {@link AddEndpoint}, in setup or in cleanup; the base and generated
+     * endpoints are never deleted.
+     */
     record DeleteEndpoint(String serviceCode, String method, String path) implements AdminCall {
     }
 

@@ -35,6 +35,10 @@ public interface AdminGateway {
     /** Adds a WSDL service description and returns its id. */
     String addWsdlDescription(String providerClientId, String wsdlUrl);
 
+    /** Adds an OpenAPI 3 service description and returns its id. */
+    String addOpenApiDescription(String providerClientId, String specUrl, String serviceCode);
+    /** Points the OpenAPI 3 service description at another description. */
+    void updateOpenApiDescription(String descriptionId, String specUrl, String serviceCode);
     void enableDescription(String descriptionId);
 
     void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
@@ -42,6 +46,10 @@ public interface AdminGateway {
     /** Creates an endpoint on the REST service of the description and returns its id. */
     String addEndpoint(String descriptionId, String serviceCode, String method, String path);
 
+    /** Finds the id of the endpoint of the description's service with the given method and path. */
+    String findEndpointId(String descriptionId, String serviceCode, String method, String path);
+    /** Changes the method and path of the endpoint. */
+    void updateEndpoint(String endpointId, String method, String path);
     void grantEndpointAccess(String endpointId, String consumerClientId);
 
     /** Deletes the endpoint and returns the HTTP status of the call. */

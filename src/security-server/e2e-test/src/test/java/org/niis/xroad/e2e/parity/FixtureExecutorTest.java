@@ -27,8 +27,13 @@
 package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
+import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
@@ -68,6 +73,15 @@ class FixtureExecutorTest {
         }
 
         @Override
+        public String addOpenApiDescription(String providerClientId, String specUrl, String serviceCode) {
+            calls.add("add openapi " + specUrl);
+            return "id-" + serviceCode;
+        }
+        @Override
+        public void updateOpenApiDescription(String descriptionId, String specUrl, String serviceCode) {
+            calls.add("update openapi %s to %s".formatted(descriptionId, specUrl));
+        }
+        @Override
         public void enableDescription(String descriptionId) {
             calls.add("enable " + descriptionId);
         }
@@ -86,6 +100,15 @@ class FixtureExecutorTest {
             return "ep-%s-%s".formatted(method, path.replace('/', '_'));
         }
 
+        @Override
+        public String findEndpointId(String descriptionId, String serviceCode, String method, String path) {
+            calls.add("find endpoint %s %s on %s".formatted(method, path, descriptionId));
+            return "gen-%s-%s".formatted(method, path.replace('/', '_'));
+        }
+        @Override
+        public void updateEndpoint(String endpointId, String method, String path) {
+            calls.add("update endpoint %s to %s %s".formatted(endpointId, method, path));
+        }
         @Override
         public void grantEndpointAccess(String endpointId, String consumerClientId) {
             calls.add("grant endpoint " + endpointId + " to " + consumerClientId);
@@ -128,6 +151,7 @@ class FixtureExecutorTest {
         gateway.deleteStatus = Map.of("id-pt1-v09-2", 404);
 
         var fixture = new FixtureExecutor(gateway).open(plan);
+
         fixture.close();
 
         assertThat(gateway.calls).contains("delete id-pt1-v09-2", "delete id-pt1-v09");
@@ -217,6 +241,95 @@ class FixtureExecutorTest {
                 .hasMessageContaining("endpoint GET /foo")
                 .hasMessageContaining("500");
         assertThat(gateway.calls).endsWith("delete id-pt1-v22");
+    }
+
+    @Test
+    void grantOnAGeneratedEndpointLooksItUpByMethodAndPath() {
+        var gateway = new RecordingGateway();
+        var openApiPlan = new FixturePlanner("t1").plan("V38", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new OpenApiService(OpenApiSpec.PETS, List.of(),
+                        List.of(new GeneratedEndpointGrant("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER))),
+                        null))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(openApiPlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "add openapi http://isrest:8080/acl-parity/openapi/pets.yaml?code=pt1-v38",
+                    "enable id-pt1-v38",
+                    "find endpoint GET /pets/* on id-pt1-v38",
+                    "grant endpoint gen-GET-_pets_* to " + ScenarioCatalogue.CONSUMER);
+        }
+        assertThat(gateway.calls).endsWith("delete id-pt1-v38");
+        assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete")).hasSize(1);
+    }
+
+    @Test
+    void descriptionEditRunsAfterTheManualEndpointIsGrantedWithoutLookingItUp() {
+        var gateway = new RecordingGateway();
+        var openApiPlan = new FixturePlanner("t1").plan("V40", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new OpenApiService(OpenApiSpec.STATUS_ONLY,
+                        List.of(new EndpointSpec("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER))), List.of(),
+                        OpenApiSpec.PETS))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(openApiPlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "add openapi http://isrest:8080/acl-parity/openapi/status_only.yaml?code=pt1-v40",
+                    "enable id-pt1-v40",
+                    "add endpoint GET /pets/* on id-pt1-v40",
+                    "grant endpoint ep-GET-_pets_* to " + ScenarioCatalogue.CONSUMER,
+                    "update openapi id-pt1-v40 to http://isrest:8080/acl-parity/openapi/pets.yaml?code=pt1-v40");
+        }
+        assertThat(gateway.calls).filteredOn(call -> call.contains("endpoint") && call.startsWith("delete")).isEmpty();
+    }
+
+    @Test
+    void endpointDeletedInSetupIsDeletedOnceBeforeTheRequestsAndNotAgainOnClose() {
+        var gateway = new RecordingGateway();
+        var deletePlan = new FixturePlanner("t1").plan("V36", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(
+                        new EndpointSpec("GET", "/foo", List.of(ScenarioCatalogue.CONSUMER), new Deleted()))))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(deletePlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "add pt1-v36",
+                    "enable id-pt1-v36",
+                    "add endpoint GET /foo on id-pt1-v36",
+                    "grant endpoint ep-GET-_foo to " + ScenarioCatalogue.CONSUMER,
+                    "delete endpoint ep-GET-_foo");
+        }
+        assertThat(gateway.calls).endsWith("delete id-pt1-v36");
+        assertThat(gateway.calls).filteredOn(call -> call.equals("delete endpoint ep-GET-_foo")).hasSize(1);
+    }
+
+    @Test
+    void endpointDeleteRefusedDuringSetupFailsTheSetupAndStillRemovesTheDescription() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of("ep-GET-_foo", 400);
+        var deletePlan = new FixturePlanner("t1").plan("V36", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(new EndpointSpec("GET", "/foo", List.of(), new Deleted()))))));
+
+        assertThatThrownBy(() -> new FixtureExecutor(gateway).open(deletePlan))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("endpoint GET /foo")
+                .hasMessageContaining("400");
+        assertThat(gateway.calls).endsWith("delete id-pt1-v36");
+    }
+
+    @Test
+    void editedEndpointKeepsItsIdAndIsDeletedUnderItAfterTheEdit() {
+        var gateway = new RecordingGateway();
+        var editPlan = new FixturePlanner("t1").plan("V37", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(new EndpointSpec("GET", "/foo",
+                        List.of(ScenarioCatalogue.CONSUMER), new EditedTo("GET", "/bar")))))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(editPlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "add pt1-v37",
+                    "enable id-pt1-v37",
+                    "add endpoint GET /foo on id-pt1-v37",
+                    "grant endpoint ep-GET-_foo to " + ScenarioCatalogue.CONSUMER,
+                    "update endpoint ep-GET-_foo to GET /bar");
+        }
+        assertThat(gateway.calls.subList(5, 7)).containsExactly("delete endpoint ep-GET-_foo", "delete id-pt1-v37");
     }
 
     @Test

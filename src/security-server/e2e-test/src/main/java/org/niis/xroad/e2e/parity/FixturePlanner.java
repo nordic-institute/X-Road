@@ -27,6 +27,7 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
@@ -34,7 +35,16 @@ import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
+import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.EditedTo;
+import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
+import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.Kept;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
@@ -47,14 +57,16 @@ import java.util.Locale;
  * Turns a scenario's fixture spec into admin calls. Every service code carries the run token and the
  * scenario id, so fixtures of different scenarios and of earlier runs never collide, and no shared
  * service description is ever touched. Deleting a service description also removes its access rights,
- * so the cleanup is one delete per created description, preceded by the delete of each endpoint the scenario
- * created. The base endpoint and generated endpoints are never deleted on their own.
+ * so the cleanup is one delete per created description, preceded by the delete of each REST endpoint the scenario
+ * created and left in place. The base endpoint and generated endpoints are never deleted on their own, and the
+ * endpoints of an OpenAPI description are removed only with the description.
  */
 public final class FixturePlanner {
 
     /** Origin of the backend stub that answers every path under {@link #BACKEND_PATH_PREFIX}. */
     public static final String BACKEND_ORIGIN = "http://isrest:8080";
     public static final String BACKEND_PATH_PREFIX = "/acl-parity/";
+    private static final String OPENAPI_PATH_PREFIX = BACKEND_PATH_PREFIX + "openapi/";
 
     private final String runToken;
 
@@ -77,7 +89,20 @@ public final class FixturePlanner {
                     setup.add(new AddRestDescription(spec.providerClientId(), backendUrl(base), base));
                     setup.add(new EnableDescription(base));
                     grant(setup, spec.providerClientId(), base, rest.grantedConsumerIds());
-                    endpointDeletes.add(endpoints(setup, base, rest));
+                    endpointDeletes.add(endpoints(setup, base, rest.endpoints()));
+                }
+                case OpenApiService openApi -> {
+                    codes.add(base);
+                    descriptionKeys.add(base);
+                    endpointDeletes.add(List.of());
+                    setup.add(new AddOpenApiDescription(spec.providerClientId(),
+                            openApiUrl(openApi.spec(), base), base));
+                    setup.add(new EnableDescription(base));
+                    endpoints(setup, base, openApi.manualEndpoints());
+                    generatedGrants(setup, base, openApi.generatedGrants());
+                    if (openApi.editedToSpec() != null) {
+                        setup.add(new UpdateOpenApiDescription(base, openApiUrl(openApi.editedToSpec(), base)));
+                    }
                 }
                 case WsdlService wsdl -> {
                     var wsdlCodes = wsdlCodes(base, wsdl);
@@ -101,16 +126,35 @@ public final class FixturePlanner {
         return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(cleanup));
     }
 
-    private static List<AdminCall> endpoints(List<AdminCall> setup, String serviceCode, RestService rest) {
+    private static List<AdminCall> endpoints(List<AdminCall> setup, String serviceCode,
+                                             List<EndpointSpec> endpoints) {
         var deletes = new ArrayList<AdminCall>();
-        for (var endpoint : rest.endpoints()) {
+        for (var endpoint : endpoints) {
             setup.add(new AddEndpoint(serviceCode, endpoint.method(), endpoint.path()));
             for (var consumer : endpoint.grantedConsumerIds()) {
                 setup.add(new GrantEndpointAccess(serviceCode, endpoint.method(), endpoint.path(), consumer));
             }
-            deletes.add(new DeleteEndpoint(serviceCode, endpoint.method(), endpoint.path()));
+            switch (endpoint.followUp()) {
+                case Kept kept -> deletes.add(new DeleteEndpoint(serviceCode, endpoint.method(), endpoint.path()));
+                case Deleted deleted ->
+                        setup.add(new DeleteEndpoint(serviceCode, endpoint.method(), endpoint.path()));
+                case EditedTo edited -> {
+                    setup.add(new UpdateEndpoint(serviceCode, endpoint.method(), endpoint.path(),
+                            edited.method(), edited.path()));
+                    deletes.add(new DeleteEndpoint(serviceCode, edited.method(), edited.path()));
+                }
+            }
         }
         return deletes;
+    }
+
+    private static void generatedGrants(List<AdminCall> setup, String serviceCode,
+                                        List<GeneratedEndpointGrant> grants) {
+        for (var endpoint : grants) {
+            for (var consumer : endpoint.grantedConsumerIds()) {
+                setup.add(new GrantEndpointAccess(serviceCode, endpoint.method(), endpoint.path(), consumer));
+            }
+        }
     }
 
     private static void grant(List<AdminCall> setup, String providerClientId, String serviceCode,
@@ -135,6 +179,11 @@ public final class FixturePlanner {
 
     static String backendUrl(String serviceCode) {
         return BACKEND_ORIGIN + BACKEND_PATH_PREFIX + serviceCode;
+    }
+
+    static String openApiUrl(OpenApiSpec spec, String serviceCode) {
+        return "%s%s%s.yaml?code=%s".formatted(BACKEND_ORIGIN, OPENAPI_PATH_PREFIX,
+                spec.name().toLowerCase(Locale.ROOT), serviceCode);
     }
 
     static String wsdlUrl(WsdlShape shape, List<String> codes) {

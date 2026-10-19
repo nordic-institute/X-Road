@@ -50,6 +50,16 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
+    public String addOpenApiDescription(String providerClientId, String specUrl, String serviceCode) {
+        return AdminApi.addOpenApiServiceDescription(baseUrl, session, providerClientId, specUrl, serviceCode);
+    }
+
+    @Override
+    public void updateOpenApiDescription(String descriptionId, String specUrl, String serviceCode) {
+        AdminApi.updateOpenApiServiceDescription(baseUrl, session, descriptionId, specUrl, serviceCode);
+    }
+
+    @Override
     public void enableDescription(String descriptionId) {
         AdminApi.enableServiceDescription(baseUrl, session, descriptionId);
     }
@@ -62,6 +72,16 @@ final class AdminApiGateway implements AdminGateway {
     @Override
     public String addEndpoint(String descriptionId, String serviceCode, String method, String path) {
         return AdminApi.addEndpoint(baseUrl, session, descriptionId, serviceCode, method, path);
+    }
+
+    @Override
+    public String findEndpointId(String descriptionId, String serviceCode, String method, String path) {
+        return AdminApi.findEndpointId(baseUrl, session, descriptionId, serviceCode, method, path);
+    }
+
+    @Override
+    public void updateEndpoint(String endpointId, String method, String path) {
+        AdminApi.updateEndpoint(baseUrl, session, endpointId, method, path);
     }
 
     @Override

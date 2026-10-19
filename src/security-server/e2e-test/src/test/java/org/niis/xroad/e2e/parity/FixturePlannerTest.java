@@ -28,6 +28,7 @@ package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
@@ -35,8 +36,15 @@ import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
+import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
+import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
+import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
@@ -194,14 +202,85 @@ class FixturePlannerTest {
     }
 
     @Test
-    void onlyEndpointsTheScenarioCreatedAreDeleted() {
+    void everyEndpointDeleteInCleanupMatchesAnEndpointCreatedAndKeptInSetup() {
         for (var scenario : ScenarioCatalogue.all()) {
             var plan = new FixturePlanner("ab12").plan(scenario.id(), scenario.fixture());
             var created = plan.setup().stream().filter(AddEndpoint.class::isInstance).count();
-
+            var deletedInSetup = plan.setup().stream().filter(DeleteEndpoint.class::isInstance).count();
             assertThat(plan.cleanup().stream().filter(DeleteEndpoint.class::isInstance).count())
-                    .as(scenario.id()).isEqualTo(created);
+                    .as(scenario.id())
+                    .isEqualTo(scenario.fixture().services().stream().anyMatch(OpenApiService.class::isInstance)
+                            ? 0 : created - deletedInSetup);
         }
+    }
+
+    @Test
+    void endpointDeletedInSetupIsNotDeletedAgainInCleanup() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of(), List.of(
+                new EndpointSpec("GET", "/foo", List.of(ScenarioCatalogue.CONSUMER), new Deleted()),
+                new EndpointSpec("GET", "/bar", List.of())))));
+        var plan = new FixturePlanner("ab12").plan("V36", spec);
+
+        assertThat(plan.setup()).containsExactly(
+                new AddRestDescription(ScenarioCatalogue.PROVIDER, "http://isrest:8080/acl-parity/pab12-v36", "pab12-v36"),
+                new EnableDescription("pab12-v36"),
+                new AddEndpoint("pab12-v36", "GET", "/foo"),
+                new GrantEndpointAccess("pab12-v36", "GET", "/foo", ScenarioCatalogue.CONSUMER),
+                new DeleteEndpoint("pab12-v36", "GET", "/foo"),
+                new AddEndpoint("pab12-v36", "GET", "/bar"));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteEndpoint("pab12-v36", "GET", "/bar"),
+                new DeleteDescription("pab12-v36"));
+    }
+
+    @Test
+    void editedEndpointIsUpdatedAfterItsGrantsAndDeletedUnderTheNewPathInCleanup() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of(), List.of(
+                new EndpointSpec("GET", "/foo", List.of(ScenarioCatalogue.CONSUMER), new EditedTo("POST", "/bar"))))));
+        var plan = new FixturePlanner("ab12").plan("V37", spec);
+
+        assertThat(plan.setup()).containsExactly(
+                new AddRestDescription(ScenarioCatalogue.PROVIDER, "http://isrest:8080/acl-parity/pab12-v37", "pab12-v37"),
+                new EnableDescription("pab12-v37"),
+                new AddEndpoint("pab12-v37", "GET", "/foo"),
+                new GrantEndpointAccess("pab12-v37", "GET", "/foo", ScenarioCatalogue.CONSUMER),
+                new UpdateEndpoint("pab12-v37", "GET", "/foo", "POST", "/bar"));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteEndpoint("pab12-v37", "POST", "/bar"),
+                new DeleteDescription("pab12-v37"));
+    }
+
+    @Test
+    void openApiDescriptionIsAddedFromTheSpecStubGrantedAndDeletedWithoutEndpointDeletes() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new OpenApiService(OpenApiSpec.PETS, List.of(),
+                List.of(new GeneratedEndpointGrant("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER))), null)));
+        var plan = new FixturePlanner("ab12").plan("V38", spec);
+
+        assertThat(plan.serviceCodes()).containsExactly("pab12-v38");
+        assertThat(plan.setup()).containsExactly(
+                new AddOpenApiDescription(ScenarioCatalogue.PROVIDER,
+                        "http://isrest:8080/acl-parity/openapi/pets.yaml?code=pab12-v38", "pab12-v38"),
+                new EnableDescription("pab12-v38"),
+                new GrantEndpointAccess("pab12-v38", "GET", "/pets/*", ScenarioCatalogue.CONSUMER));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v38"));
+    }
+
+    @Test
+    void manualEndpointOfAnOpenApiServiceIsGrantedThenTheDescriptionIsEditedAndNoEndpointIsDeleted() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new OpenApiService(OpenApiSpec.STATUS_ONLY,
+                List.of(new EndpointSpec("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER))), List.of(),
+                OpenApiSpec.PETS)));
+        var plan = new FixturePlanner("ab12").plan("V40", spec);
+
+        assertThat(plan.setup()).containsExactly(
+                new AddOpenApiDescription(ScenarioCatalogue.PROVIDER,
+                        "http://isrest:8080/acl-parity/openapi/status_only.yaml?code=pab12-v40", "pab12-v40"),
+                new EnableDescription("pab12-v40"),
+                new AddEndpoint("pab12-v40", "GET", "/pets/*"),
+                new GrantEndpointAccess("pab12-v40", "GET", "/pets/*", ScenarioCatalogue.CONSUMER),
+                new UpdateOpenApiDescription("pab12-v40",
+                        "http://isrest:8080/acl-parity/openapi/pets.yaml?code=pab12-v40"));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v40"));
     }
 
     @Test

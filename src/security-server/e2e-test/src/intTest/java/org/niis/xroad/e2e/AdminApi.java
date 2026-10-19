@@ -199,6 +199,62 @@ class AdminApi {
     }
 
     /**
+     * Adds an OpenAPI 3 service description from {@code specUrl} as REST service {@code restServiceCode},
+     * ignoring parser warnings, and returns its id.
+     */
+    static String addOpenApiServiceDescription(String ss0BaseUrl, AdminSession ss0, String clientId, String specUrl,
+                                               String restServiceCode) {
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body(openApiDescriptionBody(specUrl, restServiceCode))
+                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
+        assertThat(response.getStatusCode())
+                .as("add OPENAPI3 service description %s for %s: %s", specUrl, clientId,
+                        response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+        return response.jsonPath().getString("id");
+    }
+
+    /**
+     * Points the OpenAPI 3 service description at {@code specUrl}, ignoring parser warnings. The parser then
+     * re-reads the description: generated endpoints are added or removed and manual endpoints that equal a
+     * generated one become generated, keeping their access rights.
+     */
+    static void updateOpenApiServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId,
+                                                String specUrl, String restServiceCode) {
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body(openApiDescriptionBody(specUrl, restServiceCode))
+                .patch(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId);
+        assertThat(response.getStatusCode())
+                .as("update OPENAPI3 service description %s to %s: %s", serviceDescriptionId, specUrl,
+                        response.getBody().asString())
+                .isEqualTo(HTTP_OK);
+    }
+
+    /** Re-reads the service description from its URL, ignoring parser warnings. */
+    static void refreshServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body("{\"ignore_warnings\": true}")
+                .put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/refresh");
+        assertThat(response.getStatusCode())
+                .as("refresh service description %s: %s", serviceDescriptionId, response.getBody().asString())
+                .isEqualTo(HTTP_OK);
+    }
+
+    private static String openApiDescriptionBody(String specUrl, String restServiceCode) {
+        return """
+                {
+                  "url": "%s",
+                  "type": "OPENAPI3",
+                  "rest_service_code": "%s",
+                  "ignore_warnings": true
+                }
+                """.formatted(specUrl, restServiceCode);
+    }
+
+    /**
      * Recovers the service description id a 409 from {@link #addRestServiceDescription} could not return:
      * there is no get-by-url endpoint, so the client's service descriptions are listed and matched by the
      * backend URL the caller always uses for that service code.
@@ -250,15 +306,7 @@ class AdminApi {
      */
     static String addEndpoint(String baseUrl, AdminSession session, String serviceDescriptionId, String serviceCode,
                               String method, String path) {
-        var services = authed(session).get(baseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/services");
-        assertThat(services.getStatusCode())
-                .as("list services of service description %s", serviceDescriptionId)
-                .isEqualTo(HTTP_OK);
-        var serviceId = services.jsonPath().getString("find { it.service_code == '" + serviceCode + "' }.id");
-        assertThat(serviceId)
-                .as("a service with code %s in service description %s", serviceCode, serviceDescriptionId)
-                .isNotBlank();
-
+        var serviceId = findServiceId(baseUrl, session, serviceDescriptionId, serviceCode);
         var body = """
                 {
                   "service_code": "%s",
@@ -273,16 +321,48 @@ class AdminApi {
         assertThat(response.getStatusCode())
                 .as("add endpoint %s %s to %s: %s", method, path, serviceId, response.getBody().asString())
                 .isEqualTo(HTTP_CREATED);
-        return findEndpointId(baseUrl, session, serviceId, method, path);
+        return findEndpointId(baseUrl, session, serviceDescriptionId, serviceCode, method, path);
     }
 
-    private static String findEndpointId(String baseUrl, AdminSession session, String serviceId, String method,
-                                         String path) {
+    /** Finds the id of the endpoint of the description's service {@code serviceCode} with the method and path. */
+    static String findEndpointId(String baseUrl, AdminSession session, String serviceDescriptionId,
+                                 String serviceCode, String method, String path) {
+        var serviceId = findServiceId(baseUrl, session, serviceDescriptionId, serviceCode);
         var service = authed(session).get(baseUrl + "/api/v1/services/" + serviceId);
         assertThat(service.getStatusCode()).as("get service %s", serviceId).isEqualTo(HTTP_OK);
         var id = EndpointIds.find(service.jsonPath().getList("endpoints"), method, path);
         assertThat(id).as("endpoint %s %s in the endpoints of service %s", method, path, serviceId).isPresent();
         return id.orElseThrow();
+    }
+
+    private static String findServiceId(String baseUrl, AdminSession session, String serviceDescriptionId,
+                                        String serviceCode) {
+        var services = authed(session).get(baseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/services");
+        assertThat(services.getStatusCode())
+                .as("list services of service description %s", serviceDescriptionId)
+                .isEqualTo(HTTP_OK);
+        var serviceId = services.jsonPath().getString("find { it.service_code == '" + serviceCode + "' }.id");
+        assertThat(serviceId)
+                .as("a service with code %s in service description %s", serviceCode, serviceDescriptionId)
+                .isNotBlank();
+        return serviceId;
+    }
+
+    /** Changes the method and path of the endpoint. */
+    static void updateEndpoint(String baseUrl, AdminSession session, String endpointId, String method, String path) {
+        var body = """
+                {
+                  "method": "%s",
+                  "path": "%s"
+                }
+                """.formatted(method, path);
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .patch(baseUrl + "/api/v1/endpoints/" + endpointId);
+        assertThat(response.getStatusCode())
+                .as("update endpoint %s to %s %s: %s", endpointId, method, path, response.getBody().asString())
+                .isEqualTo(HTTP_OK);
     }
 
     /** Grants the consumer access to the endpoint. */

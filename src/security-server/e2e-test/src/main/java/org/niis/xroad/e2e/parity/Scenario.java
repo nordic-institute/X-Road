@@ -68,7 +68,7 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** A service description created under the provider. */
-    public sealed interface ServiceSpec permits RestService, WsdlService {
+    public sealed interface ServiceSpec permits RestService, WsdlService, OpenApiService {
     }
 
     /**
@@ -91,8 +91,67 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param method             the HTTP method, or {@code *} for any
      * @param path               the path pattern, starting with {@code /}
      * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param followUp           what happens to the endpoint after it is created and granted
      */
-    public record EndpointSpec(String method, String path, List<String> grantedConsumerIds) {
+    public record EndpointSpec(String method, String path, List<String> grantedConsumerIds, FollowUp followUp) {
+
+        public EndpointSpec(String method, String path, List<String> grantedConsumerIds) {
+            this(method, path, grantedConsumerIds, new Kept());
+        }
+    }
+
+    /** A change applied to a created endpoint before the requests are sent. */
+    public sealed interface FollowUp permits Kept, Deleted, EditedTo {
+    }
+
+    /** The endpoint stays as created. */
+    public record Kept() implements FollowUp {
+    }
+
+    /** The endpoint is deleted. */
+    public record Deleted() implements FollowUp {
+    }
+
+    /**
+     * The endpoint's method and path are edited.
+     *
+     * @param method the new HTTP method, or {@code *} for any
+     * @param path   the new path pattern, starting with {@code /}
+     */
+    public record EditedTo(String method, String path) implements FollowUp {
+    }
+
+    /** The OpenAPI descriptions the backend stub serves. */
+    public enum OpenApiSpec {
+        /** Declares only {@code GET /status}. */
+        STATUS_ONLY,
+        /** Declares {@code GET /pets/{petId}}, stored as {@code /pets/*}. */
+        PETS
+    }
+
+    /**
+     * An endpoint the OpenAPI description generates, granted to consumers.
+     *
+     * @param method             the HTTP method
+     * @param path               the stored path pattern, starting with {@code /}
+     * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     */
+    public record GeneratedEndpointGrant(String method, String path, List<String> grantedConsumerIds) {
+    }
+
+    /**
+     * An OpenAPI 3 description. Its service gets a base endpoint that no row grants; further grants go to the
+     * endpoints the description generates or to manual endpoints that a later description edit may turn into
+     * generated ones. Generated endpoints are never deleted on their own.
+     *
+     * @param spec              the description the service is added from
+     * @param manualEndpoints   endpoints created by hand on top of the generated ones
+     * @param generatedGrants   grants on endpoints the description generates
+     * @param editedToSpec      the description the service is edited to after the grants, or {@code null} for none
+     */
+    public record OpenApiService(OpenApiSpec spec, List<EndpointSpec> manualEndpoints,
+                                 List<GeneratedEndpointGrant> generatedGrants, OpenApiSpec editedToSpec)
+            implements ServiceSpec {
     }
 
     /** The service layout of a WSDL description. */
