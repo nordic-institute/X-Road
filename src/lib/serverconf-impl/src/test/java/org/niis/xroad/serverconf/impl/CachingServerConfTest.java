@@ -68,11 +68,14 @@ import static org.niis.xroad.serverconf.impl.TestUtil.NUM_SERVICES;
 import static org.niis.xroad.serverconf.impl.TestUtil.NUM_TSPS;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVER_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_DISABLED_BLANK_NOTICE;
+import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_DISABLED_NULL_NOTICE;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_TIMEOUT;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_URL;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_VERSION;
 import static org.niis.xroad.serverconf.impl.TestUtil.SUBSYSTEM;
 import static org.niis.xroad.serverconf.impl.TestUtil.XROAD_INSTANCE;
+import static org.niis.xroad.serverconf.impl.TestUtil.addDisabledService;
 import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
@@ -98,6 +101,8 @@ public class CachingServerConfTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         prepareDB();
+        addDisabledService(createTestClientId(client(2)), SERVICE_DISABLED_NULL_NOTICE, null);
+        addDisabledService(createTestClientId(client(2)), SERVICE_DISABLED_BLANK_NOTICE, " ");
 
         globalConfProvider = new EmptyGlobalConf() {
             @Override
@@ -219,9 +224,25 @@ public class CachingServerConfTest {
         ServiceId existingService = createTestServiceId(client(1),
                 service(NUM_SERVICEDESCRIPTIONS - 1, NUM_SERVICES - 1), SERVICE_VERSION);
         ServiceId nonExistingService = createTestServiceId("foo", "bar");
+        ServiceId enabledService = createTestServiceId(client(1), service(0, 0), SERVICE_VERSION);
 
-        assertNotNull(serverConfProvider.getDisabledNotice(existingService));
+        assertEquals("disabledNotice", serverConfProvider.getDisabledNotice(existingService));
+        assertNull(serverConfProvider.getDisabledNotice(enabledService));
         assertNull(serverConfProvider.getDisabledNotice(nonExistingService));
+    }
+
+    /**
+     * Tests that a disabled service description without notice text reports the default notice.
+     */
+    @Test
+    public void getDisabledNoticeDefaultsWhenNoticeIsNullOrBlank() {
+        ServiceId nullNoticeService = createTestServiceId(client(2), SERVICE_DISABLED_NULL_NOTICE, SERVICE_VERSION);
+        ServiceId blankNoticeService = createTestServiceId(client(2), SERVICE_DISABLED_BLANK_NOTICE, SERVICE_VERSION);
+
+        assertEquals(String.format("Service '%s' is disabled", nullNoticeService),
+                serverConfProvider.getDisabledNotice(nullNoticeService));
+        assertEquals(String.format("Service '%s' is disabled", blankNoticeService),
+                serverConfProvider.getDisabledNotice(blankNoticeService));
     }
 
     /**

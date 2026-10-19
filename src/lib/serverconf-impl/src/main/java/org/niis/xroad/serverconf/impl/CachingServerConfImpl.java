@@ -222,8 +222,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @Override
     public String getDisabledNotice(ServiceId serviceId) {
         return getService(serviceId)
-                .map(it -> it.getServiceDescription().isDisabled() ? it.getServiceDescription().getDisabledNotice() : null
-        ).orElse(null);
+                .map(it -> disabledNotice(it.getServiceDescription(), serviceId))
+                .orElse(null);
     }
 
     @Override

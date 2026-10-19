@@ -77,6 +77,8 @@ public final class TestUtil {
     static final String SERVICE_CODE = "serviceCode";
     static final String SERVICE_TITLE = "service";
     static final int SERVICE_TIMEOUT = 1234;
+    static final String SERVICE_DISABLED_NULL_NOTICE = "disabledNullNotice";
+    static final String SERVICE_DISABLED_BLANK_NOTICE = "disabledBlankNotice";
 
     static final int NUM_CLIENTS = 5;
     static final int NUM_SERVICEDESCRIPTIONS = 2;
@@ -373,6 +375,31 @@ public final class TestUtil {
             session.persist(endpoint);
             client.getEndpoints().add(endpoint);
             client.getAccessRights().add(createAccessRight(endpoint, client.getIdentifier()));
+            return null;
+        });
+    }
+
+    static void addDisabledService(ClientId clientId, String serviceCode, String disabledNotice) throws Exception {
+        doInTransaction(session -> {
+            ClientEntity client = new ClientDAOImpl().getClient(session, clientId);
+
+            ServiceDescriptionEntity serviceDescription = new ServiceDescriptionEntity();
+            serviceDescription.setClient(client);
+            serviceDescription.setUrl(SERVICEDESCRIPTION_URL + serviceCode);
+            serviceDescription.setType(DescriptionType.WSDL);
+            serviceDescription.setDisabled(true);
+            serviceDescription.setDisabledNotice(disabledNotice);
+
+            ServiceEntity service = new ServiceEntity();
+            service.setServiceDescription(serviceDescription);
+            service.setTitle(SERVICE_TITLE + serviceCode);
+            service.setServiceCode(serviceCode);
+            service.setServiceVersion(SERVICE_VERSION);
+            service.setUrl(SERVICE_URL + serviceCode);
+            service.setTimeout(SERVICE_TIMEOUT);
+            serviceDescription.getServices().add(service);
+
+            client.getServiceDescriptions().add(serviceDescription);
             return null;
         });
     }

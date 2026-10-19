@@ -86,6 +86,7 @@ import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.serverconf.model.ServerConf;
 import org.niis.xroad.serverconf.model.Service;
 import org.niis.xroad.serverconf.model.ServiceDescription;
+import org.niis.xroad.serverconf.model.ServiceDescriptionBase;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.io.IOException;
@@ -329,16 +330,20 @@ public class ServerConfImpl implements ServerConfProvider {
     public String getDisabledNotice(ServiceId serviceId) {
         return tx(session -> {
             ServiceDescription serviceDescription = getServiceDescription(session, serviceId);
-            if (serviceDescription != null && serviceDescription.isDisabled()) {
-                if (serviceDescription.getDisabledNotice() == null) {
-                    return String.format("Service '%s' is disabled", serviceId);
-                }
-
-                return serviceDescription.getDisabledNotice();
-            }
-
-            return null;
+            return disabledNotice(serviceDescription, serviceId);
         });
+    }
+
+    static String disabledNotice(ServiceDescriptionBase serviceDescription, ServiceId serviceId) {
+        if (serviceDescription == null || !serviceDescription.isDisabled()) {
+            return null;
+        }
+
+        if (StringUtils.isBlank(serviceDescription.getDisabledNotice())) {
+            return String.format("Service '%s' is disabled", serviceId);
+        }
+
+        return serviceDescription.getDisabledNotice();
     }
 
     @Override
