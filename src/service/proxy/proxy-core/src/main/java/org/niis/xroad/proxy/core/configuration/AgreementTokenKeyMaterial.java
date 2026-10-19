@@ -27,13 +27,20 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyInfo;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.agreementtoken.key.VaultAgreementTokenKeyProvider;
 import org.niis.xroad.common.vault.VaultClient;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.random.RandomGenerator;
 
 /**
  * Owns the agreement-token signing key material for this proxy process: a single
@@ -46,6 +53,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * scheduled job (see {@code AgreementTokenKeyRefreshJob}) drives {@link #retryOrRefresh()} off the request
  * path: once construction has succeeded, it calls {@link AgreementTokenKeyProvider#refresh()}; until then, it
  * keeps retrying construction.
+ * <p>
+ * When DSP is enabled and {@link ProxyAgreementTokenProperties#maxKeyAge()} is non-zero, each successful
+ * refresh is followed by a check of the newest key's age (never the signing key's, which lags the newest by the
+ * activation delay). A due rotation waits for a random per-replica delay of up to twice the refresh interval,
+ * so replicas sharing one secret store rarely rotate together, and is re-checked against the freshly refreshed
+ * snapshot before it runs.
  */
 @Slf4j
 @ApplicationScoped
@@ -53,11 +66,25 @@ public class AgreementTokenKeyMaterial {
 
     private final VaultClient vaultClient;
     private final ProxyAgreementTokenProperties properties;
+    private final ProxyProperties proxyProperties;
+    private final Clock clock;
+    private final RandomGenerator random;
     private final AtomicReference<AgreementTokenKeyProvider> provider = new AtomicReference<>();
+    private Instant rotationDeadline;
 
-    public AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties) {
+    @Inject
+    public AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties,
+                                     ProxyProperties proxyProperties) {
+        this(vaultClient, properties, proxyProperties, Clock.systemUTC(), RandomGenerator.getDefault());
+    }
+
+    AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties,
+                              ProxyProperties proxyProperties, Clock clock, RandomGenerator random) {
         this.vaultClient = vaultClient;
         this.properties = properties;
+        this.proxyProperties = proxyProperties;
+        this.clock = clock;
+        this.random = random;
         tryBuild();
     }
 
@@ -70,9 +97,10 @@ public class AgreementTokenKeyMaterial {
 
     /**
      * Retries construction if it has not yet succeeded, otherwise refreshes the existing provider's cached
-     * snapshot. Never throws: a failed refresh is logged at warn and the last good snapshot stays in use.
+     * snapshot and rotates the signing key when it is due. Never throws: a failed refresh or rotation is logged
+     * at warn and the last good snapshot stays in use.
      */
-    public void retryOrRefresh() {
+    public synchronized void retryOrRefresh() {
         var current = provider.get();
         if (current == null) {
             tryBuild();
@@ -82,12 +110,60 @@ public class AgreementTokenKeyMaterial {
             current.refresh();
         } catch (Exception e) {
             log.warn("Failed to refresh agreement-token signing key material; keeping the last known good snapshot", e);
+            return;
+        }
+        rotateIfDue(current);
+    }
+
+    private void rotateIfDue(AgreementTokenKeyProvider current) {
+        var maxKeyAge = properties.maxKeyAge();
+        if (!proxyProperties.dspEnabled() || maxKeyAge.isZero()) {
+            rotationDeadline = null;
+            return;
+        }
+        var keys = current.listKeys();
+        if (!isNewestKeyDue(keys, maxKeyAge)) {
+            rotationDeadline = null;
+            return;
+        }
+        var now = clock.instant();
+        if (rotationDeadline == null) {
+            rotationDeadline = now.plus(randomRotationDelay());
+        }
+        if (now.isBefore(rotationDeadline)) {
+            return;
+        }
+        rotate(current, keys.getLast().keyId());
+    }
+
+    private boolean isNewestKeyDue(List<AgreementTokenKeyInfo> keys, Duration maxKeyAge) {
+        if (keys.isEmpty()) {
+            return false;
+        }
+        return keys.getLast().issueTime()
+                .map(issueTime -> Duration.between(issueTime, clock.instant()).compareTo(maxKeyAge) > 0)
+                .orElse(true);
+    }
+
+    private Duration randomRotationDelay() {
+        var bound = 2 * properties.keyRefreshInterval().toMillis() + 1;
+        return Duration.ofMillis(random.nextLong(bound));
+    }
+
+    private void rotate(AgreementTokenKeyProvider current, String newestKeyId) {
+        try {
+            var rotated = current.rotate();
+            rotationDeadline = null;
+            log.info("Rotated agreement-token signing key automatically: newest key was '{}', new key is '{}'",
+                    newestKeyId, rotated.keyId());
+        } catch (Exception e) {
+            log.warn("Failed to rotate agreement-token signing key automatically; will retry on the next refresh", e);
         }
     }
 
     private void tryBuild() {
         try {
-            provider.set(new VaultAgreementTokenKeyProvider(vaultClient, properties.keyRefreshInterval()));
+            provider.set(new VaultAgreementTokenKeyProvider(vaultClient, properties.keyRefreshInterval(), clock));
             log.info("Agreement-token signing key material initialized");
         } catch (Exception e) {
             log.warn("Agreement-token signing key material unavailable; agreement tokens will not be minted or "

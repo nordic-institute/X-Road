@@ -932,6 +932,17 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /**
+     * {@code xroad.proxy.agreement-token.max-key-age} — how old the newest signing key may get before the proxy
+     * rotates it automatically; zero disables automatic rotation.
+     */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_MAX_KEY_AGE = AGREEMENT_TOKEN
+            .keyDuration("max-key-age")
+            .withDefaultValue(Duration.ofDays(30))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.proxy.agreement-token.expiry-leeway} — clock-skew leeway the verifier allows past a token's exp. */
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_EXPIRY_LEEWAY = AGREEMENT_TOKEN
             .keyDuration("expiry-leeway")

@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProxyAgreementTokenPropertiesTest {
 
@@ -46,6 +47,7 @@ class ProxyAgreementTokenPropertiesTest {
         assertThat(properties.audience()).isEqualTo("x-road-server-proxy");
         assertThat(properties.tokenTtl()).isEqualTo(Duration.ofSeconds(60));
         assertThat(properties.keyRefreshInterval()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(properties.maxKeyAge()).isEqualTo(Duration.ofDays(30));
         assertThat(properties.grantLookupDeadline()).isEqualTo(Duration.ofSeconds(5));
     }
 
@@ -57,6 +59,7 @@ class ProxyAgreementTokenPropertiesTest {
                         "xroad.proxy.agreement-token.audience", "custom-audience",
                         "xroad.proxy.agreement-token.token-ttl", "PT30S",
                         "xroad.proxy.agreement-token.key-refresh-interval", "PT15S",
+                        "xroad.proxy.agreement-token.max-key-age", "P7D",
                         "xroad.proxy.agreement-token.grant-lookup-deadline", "PT2S"))
                 .build();
         var properties = new ProxyAgreementTokenProperties(config);
@@ -65,6 +68,26 @@ class ProxyAgreementTokenPropertiesTest {
         assertThat(properties.audience()).isEqualTo("custom-audience");
         assertThat(properties.tokenTtl()).isEqualTo(Duration.ofSeconds(30));
         assertThat(properties.keyRefreshInterval()).isEqualTo(Duration.ofSeconds(15));
+        assertThat(properties.maxKeyAge()).isEqualTo(Duration.ofDays(7));
         assertThat(properties.grantLookupDeadline()).isEqualTo(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void zeroMaxKeyAgeDisablesAutomaticRotation() {
+        var config = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance())
+                .overrides(Map.of("xroad.proxy.agreement-token.max-key-age", "PT0S"))
+                .build();
+
+        assertThat(new ProxyAgreementTokenProperties(config).maxKeyAge()).isZero();
+    }
+
+    @Test
+    void negativeMaxKeyAgeIsRefused() {
+        var builder = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance())
+                .overrides(Map.of("xroad.proxy.agreement-token.max-key-age", "-PT1S"));
+
+        assertThatThrownBy(builder::build)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("max-key-age");
     }
 }

@@ -88,6 +88,14 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         this(vaultClient, new SecureRandom(), activationDelay, Clock.systemUTC());
     }
 
+    /**
+     * @param activationDelay how long a freshly rotated key is verify-only before it starts signing
+     * @param clock           the time source for key issue times and the activation delay
+     */
+    public VaultAgreementTokenKeyProvider(VaultClient vaultClient, Duration activationDelay, Clock clock) {
+        this(vaultClient, new SecureRandom(), activationDelay, clock);
+    }
+
     VaultAgreementTokenKeyProvider(VaultClient vaultClient, SecureRandom secureRandom) {
         this(vaultClient, secureRandom, Duration.ZERO, Clock.systemUTC());
     }

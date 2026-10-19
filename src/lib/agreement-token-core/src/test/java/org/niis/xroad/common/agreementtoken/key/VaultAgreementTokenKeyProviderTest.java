@@ -34,12 +34,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.test.MutableClock;
 
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -305,32 +305,5 @@ class VaultAgreementTokenKeyProviderTest {
 
     private void putStoredKey(String keyId) {
         keyPairsByKeyId.put(keyId, TestKeyPairs.generate().toJSONString());
-    }
-
-    private static final class MutableClock extends Clock {
-        private Instant instant;
-
-        MutableClock(Instant instant) {
-            this.instant = instant;
-        }
-
-        void advance(Duration duration) {
-            instant = instant.plus(duration);
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneId.of("UTC");
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            throw new UnsupportedOperationException("not needed by this test");
-        }
-
-        @Override
-        public Instant instant() {
-            return instant;
-        }
     }
 }
