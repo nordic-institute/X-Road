@@ -40,8 +40,10 @@ import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -116,6 +118,16 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
     @Override
     public Optional<AgreementTokenSigningKey> keyById(String keyId) {
         return Optional.ofNullable(snapshot.get().keysById().get(keyId));
+    }
+
+    @Override
+    public List<AgreementTokenKeyInfo> listKeys() {
+        var current = snapshot.get();
+        return current.keysById().values().stream()
+                .sorted(Comparator.comparingLong((AgreementTokenSigningKey key) -> parseVersion(key.keyId()))
+                        .thenComparing(AgreementTokenSigningKey::keyId))
+                .map(key -> AgreementTokenKeyInfo.of(key, key.keyId().equals(current.activeKeyId())))
+                .toList();
     }
 
     /**

@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -267,6 +268,39 @@ class VaultAgreementTokenKeyProviderTest {
         clock.advance(Duration.ofSeconds(31));
         provider.refresh();
         assertThat(provider.activeKey().keyId()).isEqualTo(rotated.keyId());
+    }
+
+    @Test
+    void listKeysReportsIssueTimeAndWhichKeyIsSigning() {
+        putStoredKey("1");
+        var clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var provider = new VaultAgreementTokenKeyProvider(vaultClient, secureRandom, Duration.ofSeconds(30), clock);
+
+        assertThat(provider.listKeys()).containsExactly(new AgreementTokenKeyInfo("1", Optional.empty(), true));
+
+        var rotated = provider.rotate();
+        var rotatedIssueTime = Optional.of(clock.instant());
+
+        assertThat(provider.listKeys()).containsExactly(
+                new AgreementTokenKeyInfo("1", Optional.empty(), true),
+                new AgreementTokenKeyInfo(rotated.keyId(), rotatedIssueTime, false));
+
+        clock.advance(Duration.ofSeconds(31));
+        provider.refresh();
+
+        assertThat(provider.listKeys()).containsExactly(
+                new AgreementTokenKeyInfo("1", Optional.empty(), false),
+                new AgreementTokenKeyInfo(rotated.keyId(), rotatedIssueTime, true));
+    }
+
+    @Test
+    void listKeysOrdersKeyVersionsNumerically() {
+        for (var keyId : new String[] {"10", "2", "1"}) {
+            putStoredKey(keyId);
+        }
+        var provider = new VaultAgreementTokenKeyProvider(vaultClient, secureRandom);
+
+        assertThat(provider.listKeys()).extracting(AgreementTokenKeyInfo::keyId).containsExactly("1", "2", "10");
     }
 
     private void putStoredKey(String keyId) {

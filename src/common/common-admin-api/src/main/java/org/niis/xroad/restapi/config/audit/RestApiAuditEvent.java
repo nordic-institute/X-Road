@@ -200,6 +200,8 @@ public enum RestApiAuditEvent {
     UPLOAD_DS_TLS_CERT("Upload data space TLS certificate"),
     ORDER_DS_TLS_CERT("Order data space TLS certificate via ACME"),
 
+    ROTATE_AGREEMENT_TOKEN_KEY("Rotate agreement token signing key"),
+
     UPLOAD_OP_MONITOR_CA("Upload op-monitor CA certificate"),
     DELETE_OP_MONITOR_CA("Delete op-monitor CA certificate");
     private final String eventName;

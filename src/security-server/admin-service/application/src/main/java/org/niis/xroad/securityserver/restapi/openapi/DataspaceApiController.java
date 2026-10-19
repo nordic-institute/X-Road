@@ -28,9 +28,15 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyRotationDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
+import org.niis.xroad.securityserver.restapi.service.AgreementTokenKeyService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
@@ -43,7 +49,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 /**
- * Data space API controller — read-only data space participant context provisioning status endpoint.
+ * Data space API controller — participant context provisioning status and agreement token signing key
+ * status and rotation endpoints.
  */
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -53,12 +60,34 @@ import java.util.List;
 public class DataspaceApiController implements DataspaceApi {
 
     private final DataspaceProvisioningStatusService dataspaceProvisioningStatusService;
+    private final AgreementTokenKeyService agreementTokenKeyService;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_DATASPACE_STATUS')")
     public ResponseEntity<DataspaceProvisioningStatusDto> getDataspaceProvisioningStatus() {
         DataspaceStatus status = dataspaceProvisioningStatusService.readStatus();
         return new ResponseEntity<>(toDto(status), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_AGREEMENT_TOKEN_KEY')")
+    public ResponseEntity<AgreementTokenKeyStatusDto> getAgreementTokenKeyStatus() {
+        var status = agreementTokenKeyService.getStatus();
+        var dto = new AgreementTokenKeyStatusDto()
+                .available(status.available())
+                .activeKeyId(status.activeKeyId())
+                .activeKeyCreatedAt(FormatUtils.fromInstantToOffsetDateTime(status.activeKeyCreatedAt()))
+                .retainedKeyCount(status.retainedKeyCount())
+                .pendingKeyId(status.pendingKeyId());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ROTATE_AGREEMENT_TOKEN_KEY')")
+    @AuditEventMethod(event = RestApiAuditEvent.ROTATE_AGREEMENT_TOKEN_KEY)
+    public ResponseEntity<AgreementTokenKeyRotationDto> rotateAgreementTokenKey() {
+        var newKeyId = agreementTokenKeyService.rotate();
+        return new ResponseEntity<>(new AgreementTokenKeyRotationDto().keyId(newKeyId), HttpStatus.OK);
     }
 
     private DataspaceProvisioningStatusDto toDto(DataspaceStatus status) {
