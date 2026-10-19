@@ -247,6 +247,32 @@ public class CsBaselineSeeder {
     }
 
     /**
+     * Inserts a row into {@code issuer_dids} directly, binding the issuer identity. Idempotent: does
+     * nothing if a row is already present. This stack has no reachable Issuer Service, so the
+     * provisioning worker cannot bind and destructive tests that need a bound issuer seed the row
+     * directly.
+     */
+    public void bindIssuerIdentity() {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("""
+                        INSERT INTO centerui.issuer_dids (did, created_at, updated_at)
+                        SELECT ?, now(), now()
+                        WHERE NOT EXISTS (SELECT 1 FROM centerui.issuer_dids)
+                        """)) {
+            stmt.setString(1, "did:web:issuer-service-api-test-binding");
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to seed issuer_dids binding into CS DB", e);
+        }
+    }
+
+    /**
      * Seeds the bootstrap API key, initialises the CS if needed, and verifies the stack is reachable.
      * Called once per JVM before any test starts. All HTTP here is silent (no Allure attachment).
      */

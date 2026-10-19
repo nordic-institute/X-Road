@@ -90,6 +90,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_URL("invalid_url"),
     INVALID_IP_ADDRESS("invalid_ip_address"),
     INVALID_DNS_NAME("invalid_dns_name"),
+    ISSUER_SERVICE_ALREADY_BOUND("issuer_service_already_bound"),
     CONFIGURATION_NOT_FOUND("configuration_not_found"),
     CONFIGURATION_PART_FILE_NOT_FOUND("configuration_part_file_not_found"),
     CONFIGURATION_PART_VALIDATOR_NOT_FOUND("configuration_part_validator_not_found"),

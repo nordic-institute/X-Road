@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
@@ -36,6 +37,8 @@ import org.niis.xroad.cs.admin.core.validation.DnsNameValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND;
 
 @Service
 @Transactional
@@ -55,6 +58,11 @@ public class IssuerHostServiceImpl implements IssuerHostService {
     public IssuerHostState setHost(String host) {
         dnsNameValidator.validate(host);
         var lowerCaseHost = host.toLowerCase(Locale.ROOT);
+
+        if (isBound()) {
+            throw new ConflictException(ISSUER_SERVICE_ALREADY_BOUND.build(systemParameterService.getIssuerServiceHost()));
+        }
+
         systemParameterService.updateOrCreateParameter(SystemParameterService.ISSUER_SERVICE_HOST, lowerCaseHost);
         return new IssuerHostState(lowerCaseHost, isBound());
     }

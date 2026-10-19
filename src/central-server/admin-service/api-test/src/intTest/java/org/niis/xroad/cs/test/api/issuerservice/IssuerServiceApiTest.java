@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.test.api.issuerservice;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -34,7 +35,6 @@ import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.IssuerServiceAdminClient;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -50,23 +50,31 @@ class IssuerServiceApiTest extends CsApiTest {
     void settingTheHostIsReflectedByTheNextGet(CsBaselineSeeder seeder) {
         var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
 
-        given("the issuer service host has not been set yet", () ->
+        // There is no API to clear the host, and the destructive phase may have already bound it on a
+        // warm, reused stack: pass whether the host starts unset or already set.
+        var hostBeforeSet = given("the current issuer service host", () ->
                 issuerService.getIssuerServiceState()
                         .statusCode(200)
-                        .body("host", nullValue())
-                        .body("bound", equalTo(false)));
+                        .extract().jsonPath().getString("host"));
 
-        when("a host is set", () ->
-                issuerService.setIssuerServiceHost("cs.example.org")
-                        .statusCode(200)
-                        .body("host", equalTo("cs.example.org"))
-                        .body("bound", equalTo(false)));
+        if (hostBeforeSet == null) {
+            when("a host is set", () ->
+                    issuerService.setIssuerServiceHost("cs.example.org")
+                            .statusCode(200)
+                            .body("host", equalTo("cs.example.org"))
+                            .body("bound", equalTo(false)));
 
-        then("a following get returns the host that was set", () ->
-                issuerService.getIssuerServiceState()
-                        .statusCode(200)
-                        .body("host", equalTo("cs.example.org"))
-                        .body("bound", equalTo(false)));
+            then("a following get returns the host that was set", () ->
+                    issuerService.getIssuerServiceState()
+                            .statusCode(200)
+                            .body("host", equalTo("cs.example.org"))
+                            .body("bound", equalTo(false)));
+        } else {
+            then("a following get still returns the already-set host", () ->
+                    issuerService.getIssuerServiceState()
+                            .statusCode(200)
+                            .body("host", equalTo(hostBeforeSet)));
+        }
     }
 
     @Test
@@ -119,5 +127,58 @@ class IssuerServiceApiTest extends CsApiTest {
                 issuerService.getIssuerServiceState()
                         .statusCode(200)
                         .body("host", equalTo(hostBeforeRejection)));
+    }
+
+    /**
+     * Runs in the destructive phase: binding is permanent, and there is no API to undo it. The issuer
+     * identity is bound here by inserting an {@code issuer_dids} row directly, because this stack has no
+     * reachable Issuer Service for the provisioning worker to bind against. Idempotent across reruns on a
+     * warm stack: if the issuer identity is already bound from an earlier run, the already-bound host is
+     * used instead of setting a new one.
+     */
+    @Test
+    @Tag("destructive")
+    void aHostChangeIsRefusedOnceTheIssuerIdentityIsBound(CsBaselineSeeder seeder) {
+        var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
+
+        var stateBeforeBinding = given("the current issuer service state", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .extract().jsonPath());
+
+        String boundHost = stateBeforeBinding.getString("host");
+        if (!stateBeforeBinding.getBoolean("bound")) {
+            boundHost = when("a host is set before binding", () ->
+                    issuerService.setIssuerServiceHost("issuer.example.org")
+                            .statusCode(200)
+                            .body("bound", equalTo(false))
+                            .extract().jsonPath().getString("host"));
+
+            seeder.bindIssuerIdentity();
+        }
+        var host = boundHost;
+
+        then("a following get reports the host as bound", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .body("host", equalTo(host))
+                        .body("bound", equalTo(true)));
+
+        when("a different host is set after binding", () ->
+                issuerService.setIssuerServiceHost("other-" + host)
+                        .statusCode(409)
+                        .body("error.code", equalTo("issuer_service_already_bound"))
+                        .body("error.metadata[0]", equalTo(host)));
+
+        when("the same host is set again after binding", () ->
+                issuerService.setIssuerServiceHost(host)
+                        .statusCode(409)
+                        .body("error.code", equalTo("issuer_service_already_bound")));
+
+        then("the stored host is unchanged and still reported as bound", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .body("host", equalTo(host))
+                        .body("bound", equalTo(true)));
     }
 }
