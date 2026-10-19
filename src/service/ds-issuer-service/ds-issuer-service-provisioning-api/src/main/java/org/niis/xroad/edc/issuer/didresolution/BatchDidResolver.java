@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.edc.issuer.didresolution;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.edc.issuer.didresolution.SubmittedDidResolver.Endpoint;
 import org.niis.xroad.edc.issuer.didresolution.SubmittedDidResolver.Reason;
 import org.niis.xroad.edc.issuer.didresolution.SubmittedDidResolver.Resolution;

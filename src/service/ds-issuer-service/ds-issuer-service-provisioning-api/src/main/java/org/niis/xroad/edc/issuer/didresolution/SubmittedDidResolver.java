@@ -90,10 +90,10 @@ public class SubmittedDidResolver {
                         ? Resolution.resolved(did)
                         : Resolution.notResolved(did, Reason.ID_MISMATCH);
             }
-            monitor.debug("DID document of %s not resolved: %s".formatted(did, result.getFailureDetail()));
+            monitor.debug(() -> "DID document of %s not resolved: %s".formatted(did, result.getFailureDetail()));
             return Resolution.notResolved(did, failureReason(), requestFailed());
         } catch (RuntimeException e) {
-            monitor.debug("DID document of %s could not be fetched".formatted(did), e);
+            monitor.debug(() -> "DID document of %s could not be fetched".formatted(did), e);
             return Resolution.notResolved(did, Reason.FETCH_FAILURE, requestFailed());
         } finally {
             httpClient.forget();

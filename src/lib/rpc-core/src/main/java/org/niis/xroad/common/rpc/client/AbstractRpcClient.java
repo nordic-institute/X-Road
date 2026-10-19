@@ -36,6 +36,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -69,8 +70,7 @@ public abstract class AbstractRpcClient implements AutoCloseable {
         try {
             return grpcCall.call();
         } catch (StatusRuntimeException error) {
-            var mapped = mapFailedStatus(error);
-            throw mapped != null ? mapped : error;
+            throw mapFailedStatus(error);
         } catch (Exception e) {
             if (e instanceof XrdRuntimeException xrdRuntimeException) {
                 throw xrdRuntimeException;
@@ -93,19 +93,18 @@ public abstract class AbstractRpcClient implements AutoCloseable {
                     .details("gRPC client timed out.")
                     .build();
         }
-        var serverError = mapServerError(error);
-        return serverError != null ? serverError : error;
+        return mapServerError(error).map(RuntimeException.class::cast).orElse(error);
     }
 
     /**
      * Maps the {@link XrdRuntimeExceptionProto} carried by the status details of the failure to an exception.
      *
-     * @return the server-reported error, or null when the failure carries no such detail
+     * @return the server-reported error, or empty when the failure carries no such detail
      */
-    protected XrdRuntimeException mapServerError(StatusRuntimeException error) {
+    protected Optional<XrdRuntimeException> mapServerError(StatusRuntimeException error) {
         com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
         if (status == null) {
-            return null;
+            return Optional.empty();
         }
         for (Any any : status.getDetailsList()) {
             if (any.is(XrdRuntimeExceptionProto.class)) {
@@ -121,17 +120,17 @@ public abstract class AbstractRpcClient implements AutoCloseable {
                     if (!ce.getErrorMetadataList().isEmpty()) {
                         exceptionBuilder.metadataItems(ce.getErrorMetadataList());
                     }
-                    return exceptionBuilder.build();
+                    return Optional.of(exceptionBuilder.build());
                 } catch (InvalidProtocolBufferException e) {
-                    return XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                    return Optional.of(XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                             .cause(e)
                             .details("Failed to parse XrdRuntimeExceptionProto from gRPC status details")
                             .origin(getRpcOrigin())
-                            .build();
+                            .build());
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**

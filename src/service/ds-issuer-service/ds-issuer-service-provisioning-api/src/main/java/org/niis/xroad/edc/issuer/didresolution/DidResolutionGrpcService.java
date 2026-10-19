@@ -28,8 +28,8 @@ package org.niis.xroad.edc.issuer.didresolution;
 
 import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionOutcome;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionReason;

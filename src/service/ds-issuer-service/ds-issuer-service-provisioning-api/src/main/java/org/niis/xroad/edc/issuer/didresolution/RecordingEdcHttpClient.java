@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.issuer.didresolution;
 
+import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Request;
@@ -33,7 +34,6 @@ import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.http.spi.FallbackFactory;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;

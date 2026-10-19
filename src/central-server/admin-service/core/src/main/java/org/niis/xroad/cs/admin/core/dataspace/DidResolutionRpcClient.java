@@ -115,11 +115,7 @@ public class DidResolutionRpcClient extends AbstractRpcClient
         if (TRANSPORT_FAILURES.contains(error.getStatus().getCode())) {
             return callFailure(NETWORK_ERROR, error);
         }
-        var issuerError = mapServerError(error);
-        if (issuerError != null) {
-            return issuerError;
-        }
-        return callFailure(INTERNAL_ERROR, error);
+        return mapServerError(error).orElseGet(() -> callFailure(INTERNAL_ERROR, error));
     }
 
     private XrdRuntimeException callFailure(ErrorCode errorCode, StatusRuntimeException error) {

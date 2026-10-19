@@ -120,14 +120,6 @@ class AbstractRpcClientTest {
                 });
     }
 
-    @Test
-    void aSubclassMappingToNullMakesExecThrowTheOriginalStatusException() {
-        var nullMapping = clientMapping(error -> null);
-        var original = Status.UNAVAILABLE.asRuntimeException();
-
-        assertThatThrownBy(() -> failing(nullMapping, original)).isSameAs(original);
-    }
-
     private static AbstractRpcClient clientMapping(Function<StatusRuntimeException, RuntimeException> mapping) {
         return new AbstractRpcClient() {
             @Override
