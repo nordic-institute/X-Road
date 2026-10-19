@@ -31,12 +31,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
+import org.niis.xroad.cs.admin.core.validation.DnsNameValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +49,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +65,8 @@ class IssuerHostServiceImplTest {
     SystemParameterService systemParameterService;
     @Mock
     DataspaceIssuerDidService dataspaceIssuerDidService;
+    @Mock
+    DnsNameValidator dnsNameValidator;
 
     @InjectMocks
     IssuerHostServiceImpl issuerHostService;
@@ -106,6 +114,26 @@ class IssuerHostServiceImplTest {
         assertFalse(state.bound());
     }
 
+    @Test
+    void setHostStoresAndReturnsTheHostLowercased() {
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+
+        var state = issuerHostService.setHost("CS.Example.ORG");
+
+        verify(systemParameterService).updateOrCreateParameter(SystemParameterService.ISSUER_SERVICE_HOST, "cs.example.org");
+        assertEquals("cs.example.org", state.host());
+    }
+
+    @Test
+    void setHostRejectsAnInvalidHostAndStoresNothing() {
+        doThrow(new BadRequestException(ErrorMessage.INVALID_DNS_NAME.build()))
+                .when(dnsNameValidator).validate("not a valid host");
+
+        assertThrows(BadRequestException.class, () -> issuerHostService.setHost("not a valid host"));
+
+        verifyNoInteractions(systemParameterService);
+    }
+
     /**
      * Exercises the real {@link SystemParameterServiceImpl} behind a fake repository so that a second,
      * identical {@code setHost} call is proven to update the one row created by the first call rather than
@@ -118,7 +146,8 @@ class IssuerHostServiceImplTest {
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
         when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
-        var realIssuerHostService = new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock);
+        var realIssuerHostService =
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
 
         realIssuerHostService.setHost("cs.example.org");
         realIssuerHostService.setHost("cs.example.org");
@@ -138,7 +167,8 @@ class IssuerHostServiceImplTest {
         var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
         var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
         when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
-        var realIssuerHostService = new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock);
+        var realIssuerHostService =
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
 
         realIssuerHostService.setHost("first.example.org");
         assertEquals("first.example.org", realIssuerHostService.getState().host());

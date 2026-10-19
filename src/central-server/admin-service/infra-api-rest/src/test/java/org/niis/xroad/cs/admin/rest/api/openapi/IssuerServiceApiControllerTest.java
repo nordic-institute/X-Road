@@ -31,13 +31,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.openapi.model.IssuerServiceHostDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -76,5 +79,17 @@ class IssuerServiceApiControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getHost()).isEqualTo("cs.example.org");
         assertThat(response.getBody().getBound()).isFalse();
+    }
+
+    @Test
+    void setIssuerServiceHostAuditsTheRejectedHostAndPropagatesTheException() {
+        when(issuerHostService.setHost("not a valid host"))
+                .thenThrow(new BadRequestException(ErrorMessage.INVALID_DNS_NAME.build()));
+
+        assertThatThrownBy(() -> issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("not a valid host")))
+                .isInstanceOf(BadRequestException.class);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.ISSUER_SERVICE_HOST, "not a valid host");
+        verifyNoMoreInteractions(auditDataHelper);
     }
 }

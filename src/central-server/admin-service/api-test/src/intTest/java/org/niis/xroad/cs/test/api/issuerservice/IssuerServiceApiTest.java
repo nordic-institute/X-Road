@@ -78,4 +78,46 @@ class IssuerServiceApiTest extends CsApiTest {
                 issuerService.setIssuerServiceHost("cs.example.org")
                         .statusCode(403));
     }
+
+    @Test
+    @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ_WRITE)
+    void settingAnInvalidHostIsRejected(CsBaselineSeeder seeder) {
+        var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
+
+        var hostBeforeRejection = given("the current issuer service host", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .extract().jsonPath().getString("host"));
+
+        when("an invalid host is set", () ->
+                issuerService.setIssuerServiceHost("not a valid host")
+                        .statusCode(400)
+                        .body("error.code", equalTo("invalid_dns_name")));
+
+        then("the stored host is unchanged", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .body("host", equalTo(hostBeforeRejection)));
+    }
+
+    @Test
+    @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ_WRITE)
+    void settingLocalhostIsRejected(CsBaselineSeeder seeder) {
+        var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
+
+        var hostBeforeRejection = given("the current issuer service host", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .extract().jsonPath().getString("host"));
+
+        when("localhost is set", () ->
+                issuerService.setIssuerServiceHost("localhost")
+                        .statusCode(400)
+                        .body("error.code", equalTo("invalid_dns_name")));
+
+        then("the stored host is unchanged", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .body("host", equalTo(hostBeforeRejection)));
+    }
 }

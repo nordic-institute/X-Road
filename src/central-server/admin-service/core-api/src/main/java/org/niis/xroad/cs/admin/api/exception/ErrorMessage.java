@@ -89,6 +89,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     OCSP_RESPONDER_NOT_FOUND("ocsp_responder_not_found"),
     INVALID_URL("invalid_url"),
     INVALID_IP_ADDRESS("invalid_ip_address"),
+    INVALID_DNS_NAME("invalid_dns_name"),
     CONFIGURATION_NOT_FOUND("configuration_not_found"),
     CONFIGURATION_PART_FILE_NOT_FOUND("configuration_part_file_not_found"),
     CONFIGURATION_PART_VALIDATOR_NOT_FOUND("configuration_part_validator_not_found"),

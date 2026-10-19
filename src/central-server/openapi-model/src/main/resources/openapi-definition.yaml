@@ -3403,6 +3403,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssuerServiceState'
           description: Issuer Service host and binding state after the update
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

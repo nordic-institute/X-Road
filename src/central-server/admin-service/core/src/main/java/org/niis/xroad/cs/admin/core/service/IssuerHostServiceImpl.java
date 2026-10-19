@@ -32,7 +32,10 @@ import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.validation.DnsNameValidator;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
 
 @Service
 @Transactional
@@ -41,6 +44,7 @@ public class IssuerHostServiceImpl implements IssuerHostService {
 
     private final SystemParameterService systemParameterService;
     private final DataspaceIssuerDidService dataspaceIssuerDidService;
+    private final DnsNameValidator dnsNameValidator;
 
     @Override
     public IssuerHostState getState() {
@@ -49,8 +53,10 @@ public class IssuerHostServiceImpl implements IssuerHostService {
 
     @Override
     public IssuerHostState setHost(String host) {
-        systemParameterService.updateOrCreateParameter(SystemParameterService.ISSUER_SERVICE_HOST, host);
-        return new IssuerHostState(host, isBound());
+        dnsNameValidator.validate(host);
+        var lowerCaseHost = host.toLowerCase(Locale.ROOT);
+        systemParameterService.updateOrCreateParameter(SystemParameterService.ISSUER_SERVICE_HOST, lowerCaseHost);
+        return new IssuerHostState(lowerCaseHost, isBound());
     }
 
     private boolean isBound() {
