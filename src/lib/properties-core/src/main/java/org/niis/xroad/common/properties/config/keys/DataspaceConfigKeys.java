@@ -34,6 +34,8 @@ import org.niis.xroad.common.properties.config.Prefix;
 
 import java.util.Set;
 
+import static org.niis.xroad.common.properties.config.Validator.positiveInt;
+
 /** Dataspace keys ({@code xroad.dataspace.*}). */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class DataspaceConfigKeys implements ConfigKeyProvider {
@@ -104,6 +106,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> ISSUER_PROVISIONING_RPC_DID_RESOLUTION_DEADLINE_AFTER = ISSUER_PROVISIONING_RPC
             .integer("did-resolution-deadline-after")
             .withDefaultValue(4000)
+            .withValidator(positiveInt())
             .build();
 
     /** {@code xroad.dataspace.identity-hub-provisioning.rpc.host}. */

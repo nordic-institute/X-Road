@@ -34,8 +34,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DataspaceConfigKeysTest {
 
     @Test
-    void didResolutionDeadlineDefaultsToFourSeconds() {
-        assertThat(DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_DID_RESOLUTION_DEADLINE_AFTER.convertedDefaultValue())
-                .isEqualTo(4000);
+    void didResolutionDeadlineRejectsZeroAndNegativeAndDefaultsToFourSeconds() {
+        var key = DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_DID_RESOLUTION_DEADLINE_AFTER;
+
+        assertThat(key.validate(0).valid()).isFalse();
+        assertThat(key.validate(-1).valid()).isFalse();
+        assertThat(key.validate(1).valid()).isTrue();
+        assertThat(key.convertedDefaultValue()).isEqualTo(4000);
     }
 }
