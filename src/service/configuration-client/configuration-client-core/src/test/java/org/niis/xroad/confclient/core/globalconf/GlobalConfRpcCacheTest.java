@@ -26,6 +26,7 @@
 package org.niis.xroad.confclient.core.globalconf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
@@ -48,6 +50,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GlobalConfRpcCacheTest {
     private static final String GOOD_CONF_DIR = "../../../lib/globalconf-core/src/test/resources/globalconf_good_v4";
+    private static final String EXPIRED_CONF_DIR = "src/test/resources/globalconf_expired";
 
     @Spy
     FSGlobalConfValidator globalConfValidator = new FSGlobalConfValidator();
@@ -100,6 +103,22 @@ class GlobalConfRpcCacheTest {
         var result = globalConfRpcCache.getGlobalConf().globalConf();
 
         assertThat(result).isNotPresent();
+    }
+
+    @Test
+    @Disabled("the cache does not check part expiry at start-up, so it reports OK for an expired copy on disk; "
+            + "which non-OK status to expect is left to the fix")
+    void shouldNotReportOkForExpiredCopyOnDisk() {
+        var expiredProperties = new ConfigurationClientProperties(XRoadConfigBuilder.create()
+                .register(ConfClientConfigKeys.instance())
+                .overrides(Map.of("xroad.configuration-client.global-conf-dir", EXPIRED_CONF_DIR))
+                .build());
+        var expiredCache = new GlobalConfRpcCache(new FSGlobalConfValidator(),
+                new GetGlobalConfRespFactory(expiredProperties), expiredProperties);
+
+        expiredCache.refreshCache();
+
+        assertThat(expiredCache.getGlobalConf().status()).isNotEqualTo(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK);
     }
 
 }
