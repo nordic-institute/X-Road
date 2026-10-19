@@ -2611,7 +2611,7 @@ paths:
       operationId: rotateAgreementTokenKey
       description: >
         <h3>Administrator rotates the agreement token signing key.</h3>
-        A new key is generated and starts signing after the key refresh interval. Earlier keys are kept so that
+        A new key is generated and starts signing within two key refresh intervals. Earlier keys are kept so that
         tokens already issued keep verifying until they expire.
       responses:
         '200':
