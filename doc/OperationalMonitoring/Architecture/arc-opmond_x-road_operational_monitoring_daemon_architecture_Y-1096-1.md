@@ -20,7 +20,7 @@ Document ID: ARC-OPMOND
 | 10.07.2025 | 1.7     | Added info about operational data query in fixed intervals using gRPC | Mikk-Erik Bachmann |
 | 11.11.2025 | 1.8     | Drop JMX interface                                                    | Justas Samuolis    |
 | 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
-| 15.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
+| 19.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -111,7 +111,7 @@ The operational monitoring service receives and processes operational monitoring
 
 In case the sender of the *get operational monitoring data* request is a regular client, only operational monitoring data records associated with that client are returned. In case the request sender is the central monitoring client (described in the global configuration) or owner of the current security server (described in the global configuration), it has access to all the records.
 
-For performance purposes, the operational monitoring service limits the size of the *get operational monitoring data* response message. The maximum response size is configurable (however, all the records having the same timestamp as the last queried record are still included into the response). In case some queried records still do not fit into the response, the timestamp of the first excluded record is returned in the response to indicate overflow. The response must also fit into the message size limit of the security server's gRPC channel to the daemon (see [Section 3.2](#32-operational-monitoring-query)).
+For performance purposes, the operational monitoring service limits the number of records in the *get operational monitoring data* response message. The maximum number of records is configurable (however, all the records having the same timestamp second as the last queried record are still included into the response, so the response size is not strictly limited). In case some queried records still do not fit into the response, the timestamp of the first excluded record is returned in the response to indicate overflow. The response must also fit into the message size limit of the security server's gRPC channel to the daemon (see [Section 3.2](#32-operational-monitoring-query)).
 
 #### 2.1.3 Operational Monitoring gRPC Service
 
@@ -133,7 +133,7 @@ This protocol is used by the X-Road security server to store its cached operatio
 
 The connection is secured with TLS and both sides are authenticated. The security server and the monitoring daemon use the shared internal gRPC identity of the security server that all internal gRPC connections of the security server use; there are no separate operational monitoring TLS certificates.
 
-The gRPC channel of the security server to the monitoring daemon waits for the connection to become ready (*wait-for-ready*) instead of failing when the daemon is not reachable, and does not send keepalive pings. Every call has a deadline: the call fails if the daemon has not answered within the time defined by the parameter *deadline-after* of the channel (60 seconds by default), see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
+The gRPC channel of the security server to the monitoring daemon waits for the connection to become ready (*wait-for-ready*) instead of failing when the daemon is not reachable, and does not send keepalive pings. Every call has a deadline: the call fails if the daemon has not answered within the time defined by the parameter `xroad.common-rpc.channel.op-monitor.deadline-after` of the channel (60 seconds by default), see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
 
 The availability of this service to the security server is not critical to operation of X-Road. If this service is unavailable, the security server continues caching in its memory buffer the operational data records and retries sending them. In case buffer overflow the oldest records are deleted.
 
@@ -149,7 +149,7 @@ The monitoring of the security servers is not the main functionality of the X-Ro
 
 Because the channel waits for the connection to become ready, a query to a stopped or unreachable monitoring daemon does not fail at once. It fails when the deadline expires (60 seconds by default), and the security server returns the fault code `server.serverproxy.service_failed.network_error` to the client of the query.
 
-The channel accepts a response up to a message size limit (16 MiB by default, at least 4 MiB). A query response that is larger fails with the fault code `server.serverproxy.service_failed.operational_data_response_too_large`. In that case the number of records in the response can be lowered or the limit raised, see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
+The channel accepts a response up to a message size limit (16 MiB by default, at least 4 MiB). A query response that is larger fails with the fault code `server.serverproxy.service_failed.operational_data_response_too_large`. In that case the number of records in the response can be lowered or the limit raised. A higher limit also needs enough Java heap in the monitoring daemon and in the proxy. See [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR).
 
 ### 3.3 Operational Monitoring query in fixed intervals
 

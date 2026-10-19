@@ -13,7 +13,7 @@ Doc. ID: IG-SS-8
 |------------|---------|----------------------------------------------------------------------|-----------------|
 | 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
 | 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
-| 15.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
+| 19.10.2026 | 1.2     | Updated port for operational monitoring daemon (2080 -> 2081)        | Eneli Reimets   |
 
 ## License
 

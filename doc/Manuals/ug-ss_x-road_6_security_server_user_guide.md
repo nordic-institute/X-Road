@@ -140,7 +140,7 @@ Doc. ID: UG-SS
 | 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
 | 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
 | 29.09.2026 | 2.111   | Message log archive upload example script demo-upload.pl is no longer included in the Security Server packages                                                                                                                                                                                                                                                                                             | Eneli Reimets        |
-| 15.10.2026 | 2.112   | Updated the Diagnostics traffic limits and the operational monitoring daemon endpoint parameters for gRPC                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
+| 19.10.2026 | 2.112   | Updated the Diagnostics traffic limits and the operational monitoring daemon endpoint parameters for gRPC                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -2849,17 +2849,17 @@ The Security Server communicates with the operational monitoring daemon over gRP
 
 In the configuration of the operational monitoring daemon (the listener):
 
-**xroad.op-monitor.rpc.listen-address** – listening address of the daemon (by default the value is set to *127.0.0.1*).
+`xroad.op-monitor.rpc.listen-address` – listening address of the daemon (by default the value is set to *127.0.0.1*).
 
-**xroad.op-monitor.rpc.port** – listening port (by default the value is set to *2081*).
+`xroad.op-monitor.rpc.port` – listening port (by default the value is set to *2081*).
 
 In the configuration of the Security Server (the channel to the daemon):
 
-**xroad.common-rpc.channel.op-monitor.host** – host of the daemon (by default the value is set to *127.0.0.1*).
+`xroad.common-rpc.channel.op-monitor.host` – host of the daemon (by default the value is set to *127.0.0.1*).
 
-**xroad.common-rpc.channel.op-monitor.port** – port of the daemon (by default the value is set to *2081*).
+`xroad.common-rpc.channel.op-monitor.port` – port of the daemon (by default the value is set to *2081*).
 
-The connection is secured with TLS using the shared internal gRPC identity of the Security Server. The parameter **xroad.common-rpc.use-tls** (by default *true*) turns TLS on or off for all the internal gRPC connections of the Security Server, including this one.
+The connection is secured with TLS using the shared internal gRPC identity of the Security Server. The parameter `xroad.common-rpc.use-tls` (by default *true*) turns TLS on or off for all the internal gRPC connections of the Security Server, including this one.
 
 The values are changed in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. A changed value takes effect when the services that use it are restarted:
 

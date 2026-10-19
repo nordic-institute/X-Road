@@ -12,7 +12,7 @@ Doc ID: TEST-OPMON
 | 25.06.2020 | 0.9     | Update information about the JMX interface.                          | Petteri Kivimäki |
 | 01.06.2023 | 0.10    | Update references                                                    | Petteri Kivimäki |
 | 11.11.2025 | 0.11    | Drop JMX interface                                                   | Justas Samuolis  |
-| 15.10.2026 | 0.12    | Store and query over gRPC                                            | Eneli Reimets    |
+| 19.10.2026 | 0.12    | Store and query over gRPC                                            | Eneli Reimets    |
 
 ## Table of Contents
 <!-- toc -->
@@ -203,21 +203,21 @@ Test case for verifying that operational monitoring data is cleaned up periodica
 
 ### 6.4 Receive Operational Data in Multiple Batches
 
-Test case for verifying that in case the amount of relevant operational data records exceeds the value of the *op-monitor.max-records-in-payload* system parameter, the operational data is returned in correct batches and the value of 'nextRecordsFrom' element in the operational data response is correct. This test case is a supplement to the automated integration test [ test_limited_operational_data_response](#test_limited_operational_data_response).
+Test case for verifying that in case the amount of relevant operational data records exceeds the value of the `xroad.op-monitor.max-records-in-payload` system parameter, the operational data is returned in correct batches and the value of 'nextRecordsFrom' element in the operational data response is correct. This test case is a supplement to the automated integration test [ test_limited_operational_data_response](#test_limited_operational_data_response).
 
 **Background:**
 
-While composing the operational data response, the number of records allowed in maximum payload plus all records that have the same timestamp as the last included record are included in the response. Therefore more records than specified by the system parameter *op-monitor.max-records-in-payload* can be included in the response in case there is more than one record with the same timestamp as the last included record in the operational monitoring database. The element 'nextRecordsFrom' is present in the operational data response only in case the result of the query includes more records than the defined maximum number of records in the response allows.
+While composing the operational data response, the number of records allowed in maximum payload plus all records that have the same timestamp as the last included record are included in the response. Therefore more records than specified by the system parameter `xroad.op-monitor.max-records-in-payload` can be included in the response in case there is more than one record with the same timestamp as the last included record in the operational monitoring database. The element 'nextRecordsFrom' is present in the operational data response only in case the result of the query includes more records than the defined maximum number of records in the response allows.
 
 **Preconditions:**
-* In security server *xtee9.ci.kit* the value of the system parameter *op-monitor.records-available-timestamp-offset-seconds* has been set to 0 to avoid the presence of 'nextRecordsFrom' element in the operational data response due to long offset period.
+* In security server *xtee9.ci.kit* the value of the system parameter `xroad.op-monitor.records-available-timestamp-offset-seconds` has been set to 0 to avoid the presence of 'nextRecordsFrom' element in the operational data response due to long offset period.
 
 **Main scenario:**
 
 All test steps are executed in security server *xtee9.ci.kit*.
-* The default value of the system parameter *op-monitor.max-records-in-payload* is 10,000. To limit the maximum number of records in payload to 1, add the following line to the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini`:
+* The default value of the system parameter `xroad.op-monitor.max-records-in-payload` is 10,000. To limit the maximum number of records in payload to 1, run:
    ```
-   max-records-in-payload=1
+   /usr/share/xroad/scripts/db_property.sh set xroad.op-monitor.max-records-in-payload 1
    ```
 * Restart the operational monitoring daemon (`sudo service xroad-opmonitor restart`).
 * It is necessary to populate the operational monitoring database with some data suitable for testing. To do that, send the following requests to security server *xtee9.ci.kit*:
