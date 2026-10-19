@@ -27,14 +27,20 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
+import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 
@@ -86,6 +92,7 @@ public final class FixtureExecutor {
         private final FixturePlan plan;
         private final Map<String, String> descriptionIds = new HashMap<>();
         private final Map<String, String> endpointIds = new HashMap<>();
+        private final Map<String, String> groupIds = new HashMap<>();
 
         private Fixture(FixturePlan plan) {
             this.plan = plan;
@@ -93,6 +100,10 @@ public final class FixtureExecutor {
 
         private static String endpointKey(String serviceCode, String method, String path) {
             return "%s %s %s".formatted(serviceCode, method, path);
+        }
+
+        private static String groupKey(String ownerClientId, String code) {
+            return ownerClientId + " " + code;
         }
 
         private void apply(AdminCall call) {
@@ -129,11 +140,32 @@ public final class FixtureExecutor {
                                 .formatted(delete.method(), delete.path(), delete.serviceCode(), status));
                     }
                 }
+                case CreateLocalGroup create -> groupIds.put(groupKey(create.ownerClientId(), create.code()),
+                        gateway.createLocalGroup(create.ownerClientId(), create.code()));
+                case AddLocalGroupMember add -> gateway.addLocalGroupMember(
+                        groupIds.get(groupKey(add.ownerClientId(), add.code())), add.memberId());
+                case RemoveLocalGroupMember remove -> gateway.removeLocalGroupMember(
+                        groupIds.get(groupKey(remove.ownerClientId(), remove.code())), remove.memberId());
+                case GrantGroupAccess grant -> gateway.grantAccess(grant.providerClientId(),
+                        groupIds.get(groupKey(grant.providerClientId(), grant.groupCode())), grant.serviceCode());
+                case GrantGroupEndpointAccess grant -> gateway.grantEndpointAccess(
+                        endpointIds.computeIfAbsent(endpointKey(grant.serviceCode(), grant.method(), grant.path()),
+                                key -> gateway.findEndpointId(descriptionIds.get(grant.serviceCode()),
+                                        grant.serviceCode(), grant.method(), grant.path())),
+                        groupIds.get(groupKey(grant.providerClientId(), grant.groupCode())));
+                case DeleteLocalGroup delete -> {
+                    var id = groupIds.remove(groupKey(delete.ownerClientId(), delete.code()));
+                    var status = gateway.deleteLocalGroup(id);
+                    if (!isSuccess(status)) {
+                        throw new IllegalStateException("delete of local group %s of %s answered %d"
+                                .formatted(delete.code(), delete.ownerClientId(), status));
+                    }
+                }
                 case DeleteDescription delete -> throw new IllegalArgumentException("not a setup call: " + delete);
             }
         }
 
-        /** Runs the plan's cleanup calls for the endpoints and descriptions that were created. */
+        /** Runs the plan's cleanup calls for the endpoints, descriptions and local groups that were created. */
         @Override
         public void close() {
             var failures = new ArrayList<String>();
@@ -146,6 +178,9 @@ public final class FixtureExecutor {
                     }
                     case DeleteDescription delete -> remove(descriptionIds.remove(delete.serviceCode()),
                             delete.serviceCode(), gateway::deleteDescription, failures);
+                    case DeleteLocalGroup delete -> remove(groupIds.remove(groupKey(delete.ownerClientId(),
+                                    delete.code())), "local group %s of %s".formatted(delete.code(),
+                            delete.ownerClientId()), gateway::deleteLocalGroup, failures);
                     default -> throw new IllegalArgumentException("not a cleanup call: " + call);
                 }
             }
@@ -157,6 +192,7 @@ public final class FixtureExecutor {
         private static boolean isSuccess(int status) {
             return status >= HTTP_OK && status <= HTTP_LAST_SUCCESS;
         }
+
         private static void remove(String id, String name, ToIntFunction<String> delete, List<String> failures) {
             if (id == null) {
                 return;

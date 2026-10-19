@@ -32,6 +32,7 @@ import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
@@ -52,10 +53,13 @@ public final class ScenarioCatalogue {
     public static final String PROVIDER = "DEV:COM:1234:TestService";
     public static final String CONSUMER = "DEV:COM:4321:TestClient";
     public static final String OTHER_CONSUMER = "DEV:COM:1234:test-consumer";
+    /** The member of the consumer subsystem, calling without a subsystem code. */
+    public static final String MEMBER_OF_CONSUMER = "DEV:COM:4321";
     /** A Security Server code that no member of the instance registers. */
     public static final String UNREGISTERED_SECURITY_SERVER = "DEV:COM:1234:acl-parity-unregistered";
 
     private static final String V1 = "v1";
+    private static final String GROUP = "partners";
     private static final List<String> CONSUMER_ONLY = List.of(CONSUMER);
 
     private static final List<Scenario> ALL = List.of(
@@ -154,6 +158,39 @@ public final class ScenarioCatalogue {
                             List.of(new EndpointSpec("GET", "/pets/*", CONSUMER_ONLY)), List.of(),
                             OpenApiSpec.PETS))),
                     List.of(allowed("GET", "/pets/123")), WaitClass.ACL_CACHE),
+            new Scenario("V60", "Local group granted the base endpoint, consumer is a member",
+                    groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)),
+                    List.of(allowed("GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V61", "Local group granted the base endpoint, consumer is not a member",
+                    groupGranted(new LocalGroupSpec(PROVIDER, GROUP, List.of(OTHER_CONSUMER))),
+                    List.of(denied("GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V62", "Local group granted the base endpoint, consumer removed from the group",
+                    groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY, CONSUMER_ONLY, false)),
+                    List.of(denied("GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V63", "Local group granted the base endpoint, group deleted",
+                    groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY, List.of(), true)),
+                    List.of(denied("GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V64", "Local group with a member id, request sent as that member",
+                    groupGranted(new LocalGroupSpec(PROVIDER, GROUP, List.of(MEMBER_OF_CONSUMER))),
+                    List.of(allowed(MEMBER_OF_CONSUMER, "GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V65", "Two owners each have group partners, consumer only in the other owner's",
+                    groupGranted(new LocalGroupSpec(PROVIDER, GROUP, List.of(OTHER_CONSUMER)),
+                            new LocalGroupSpec(SubsystemPool.SECOND_OWNER, GROUP, CONSUMER_ONLY)),
+                    List.of(denied("GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V66", "Direct grant on GET /a plus local group grant on GET /b",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/a", CONSUMER_ONLY),
+                            new EndpointSpec("GET", "/b", List.of(), List.of(GROUP))))),
+                            List.of(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY))),
+                    List.of(allowed("GET", "/a"), allowed("GET", "/b")), WaitClass.ACL_CACHE),
+            new Scenario("V67", "Local group granted on the first service only, second service called",
+                    new FixtureSpec(PROVIDER, List.of(
+                            new RestService(List.of(), List.of(), List.of(GROUP)),
+                            new RestService(List.of())),
+                            List.of(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY))),
+                    List.of(allowed("GET", "/a"),
+                            new Check(new RestRequest(CONSUMER, 1, "GET", "/a"), Verdict.ACCESS_DENIED)),
+                    WaitClass.ACL_CACHE),
             new Scenario("V128", "SOAP service in two versions, the second version called",
                     wsdl(WsdlShape.VERSIONS, "", List.of(CONSUMER_ONLY)),
                     new SoapRequest(CONSUMER, 0, "v2", null),
@@ -202,6 +239,12 @@ public final class ScenarioCatalogue {
     private static FixtureSpec endpointOnly(String method, String path) {
         return new FixtureSpec(PROVIDER, List.of(
                 new RestService(List.of(), List.of(new EndpointSpec(method, path, CONSUMER_ONLY)))));
+    }
+
+    /** A REST service whose base endpoint is granted to the provider's local group, with the groups created. */
+    private static FixtureSpec groupGranted(LocalGroupSpec... groups) {
+        return new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(), List.of(GROUP))),
+                List.of(groups));
     }
 
     private static FixtureSpec wsdl(WsdlShape shape, String codeTail, List<List<String>> grantedByCode) {

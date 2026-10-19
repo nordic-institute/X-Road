@@ -27,55 +27,84 @@
 package org.niis.xroad.e2e.parity;
 
 /**
- * One Security Server admin API call on the provider, identified by the service code it concerns. The
- * executor resolves service codes to service description ids.
+ * One Security Server admin API call on the provider. A call about a service names it by service code and a
+ * call about a local group names it by owner and group code; the executor resolves both to ids.
  */
 public sealed interface AdminCall {
 
-    /** The service code the call concerns. */
-    String serviceCode();
+    /** A call that concerns one service. */
+    sealed interface ServiceCall extends AdminCall {
 
-    record AddRestDescription(String providerClientId, String backendUrl, String serviceCode) implements AdminCall {
+        /** The service code the call concerns. */
+        String serviceCode();
+    }
+
+    record AddRestDescription(String providerClientId, String backendUrl, String serviceCode) implements ServiceCall {
     }
 
     /** Adds a WSDL description; {@code serviceCode} is the first service code the description offers. */
-    record AddWsdlDescription(String providerClientId, String wsdlUrl, String serviceCode) implements AdminCall {
+    record AddWsdlDescription(String providerClientId, String wsdlUrl, String serviceCode) implements ServiceCall {
     }
 
     /** Adds an OpenAPI 3 description; {@code serviceCode} is the REST service code the description gets. */
-    record AddOpenApiDescription(String providerClientId, String specUrl, String serviceCode) implements AdminCall {
+    record AddOpenApiDescription(String providerClientId, String specUrl, String serviceCode) implements ServiceCall {
     }
 
     /** Points the OpenAPI 3 description of the service at another description and re-parses it. */
-    record UpdateOpenApiDescription(String serviceCode, String specUrl) implements AdminCall {
+    record UpdateOpenApiDescription(String serviceCode, String specUrl) implements ServiceCall {
     }
 
-    record EnableDescription(String serviceCode) implements AdminCall {
+    record EnableDescription(String serviceCode) implements ServiceCall {
     }
 
-    record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements AdminCall {
+    record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
     }
 
-    record AddEndpoint(String serviceCode, String method, String path) implements AdminCall {
+    record AddEndpoint(String serviceCode, String method, String path) implements ServiceCall {
     }
 
     /** Grants the consumer access to the endpoint of the service with the given method and path. */
     record GrantEndpointAccess(String serviceCode, String method, String path, String consumerClientId)
-            implements AdminCall {
+            implements ServiceCall {
     }
 
     /** Changes the method and path of an endpoint created by {@link AddEndpoint}. */
     record UpdateEndpoint(String serviceCode, String method, String path, String newMethod, String newPath)
-            implements AdminCall {
+            implements ServiceCall {
     }
 
     /**
      * Deletes an endpoint created by {@link AddEndpoint}, in setup or in cleanup; the base and generated
      * endpoints are never deleted.
      */
-    record DeleteEndpoint(String serviceCode, String method, String path) implements AdminCall {
+    record DeleteEndpoint(String serviceCode, String method, String path) implements ServiceCall {
     }
 
-    record DeleteDescription(String serviceCode) implements AdminCall {
+    record DeleteDescription(String serviceCode) implements ServiceCall {
+    }
+
+    /** Creates a local group of the owner client. */
+    record CreateLocalGroup(String ownerClientId, String code) implements AdminCall {
+    }
+
+    /** Adds a member or subsystem to the owner's local group. */
+    record AddLocalGroupMember(String ownerClientId, String code, String memberId) implements AdminCall {
+    }
+
+    /** Removes a member or subsystem from the owner's local group. */
+    record RemoveLocalGroupMember(String ownerClientId, String code, String memberId) implements AdminCall {
+    }
+
+    /** Deletes the owner's local group, in setup or in cleanup; the group's access rights go with it. */
+    record DeleteLocalGroup(String ownerClientId, String code) implements AdminCall {
+    }
+
+    /** Grants the provider's local group access to the service. */
+    record GrantGroupAccess(String providerClientId, String groupCode, String serviceCode) implements ServiceCall {
+    }
+
+    /** Grants the provider's local group access to the endpoint of the service with the given method and path. */
+    record GrantGroupEndpointAccess(String providerClientId, String groupCode, String serviceCode, String method,
+                                    String path) implements ServiceCall {
     }
 }

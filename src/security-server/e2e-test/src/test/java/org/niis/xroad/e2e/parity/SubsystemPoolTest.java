@@ -37,11 +37,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class SubsystemPoolTest {
 
     @Test
-    void poolHoldsTheSiblingTheSecondConsumerAndTheUnregisteredProvider() {
+    void poolHoldsTheSiblingTheSecondConsumerTheUnregisteredProviderAndTheSecondOwner() {
         assertThat(SubsystemPool.entries()).containsExactly(
                 new Entry(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SS1, true),
                 new Entry(SubsystemPool.SECOND_CONSUMER, SubsystemPool.SS1, true),
-                new Entry(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SS0, false));
+                new Entry(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SS0, false),
+                new Entry(SubsystemPool.SECOND_OWNER, SubsystemPool.SS0, false));
     }
 
     @Test
@@ -49,6 +50,7 @@ class SubsystemPoolTest {
         assertThat(SubsystemPool.SIBLING_OF_CONSUMER).startsWith(memberOf(ScenarioCatalogue.CONSUMER));
         assertThat(SubsystemPool.SECOND_CONSUMER).startsWith(memberOf(ScenarioCatalogue.PROVIDER));
         assertThat(SubsystemPool.UNREGISTERED_PROVIDER).startsWith(memberOf(ScenarioCatalogue.PROVIDER));
+        assertThat(SubsystemPool.SECOND_OWNER).startsWith(memberOf(ScenarioCatalogue.PROVIDER));
     }
 
     @Test
@@ -64,6 +66,8 @@ class SubsystemPoolTest {
         var grouped = SubsystemPool.byHost(SubsystemPool.entries());
 
         assertThat(grouped.keySet()).containsExactly(SubsystemPool.SS1, SubsystemPool.SS0);
+        assertThat(grouped.get(SubsystemPool.SS0)).extracting(Entry::clientId)
+                .containsExactly(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SECOND_OWNER);
         assertThat(grouped.get(SubsystemPool.SS1)).extracting(Entry::clientId)
                 .containsExactly(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SECOND_CONSUMER);
     }
@@ -72,7 +76,7 @@ class SubsystemPoolTest {
     void onlyRegisterEntriesAreSelectedForRegistration() {
         assertThat(SubsystemPool.clientIdsToRegister(SubsystemPool.entries()))
                 .containsExactly(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SECOND_CONSUMER)
-                .doesNotContain(SubsystemPool.UNREGISTERED_PROVIDER);
+                .doesNotContain(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SECOND_OWNER);
     }
 
     @Test

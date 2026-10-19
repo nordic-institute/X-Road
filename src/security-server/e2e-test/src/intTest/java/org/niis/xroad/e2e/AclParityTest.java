@@ -91,6 +91,8 @@ class AclParityTest extends E2eTest {
     @BeforeAll
     static void registerSubsystemPool(E2eEnvironment env) {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
+        var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
+        AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), ScenarioCatalogue.MEMBER_OF_CONSUMER, "HTTP");
         SubsystemPoolSetup.ensure(env);
     }
 

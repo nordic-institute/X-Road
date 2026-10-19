@@ -28,14 +28,21 @@ package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
+import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
+import org.niis.xroad.e2e.parity.AdminCall.ServiceCall;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
@@ -43,6 +50,7 @@ import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
@@ -97,8 +105,8 @@ class FixturePlannerTest {
         var plan = new FixturePlanner("ab12").plan("V01", TWO_SERVICES);
 
         assertThat(plan.serviceCodes()).noneMatch(code -> code.equals("mock1") || code.equals("restapi"));
-        assertThat(plan.setup()).extracting(AdminCall::serviceCode).doesNotContain("mock1", "restapi");
-        assertThat(plan.cleanup()).extracting(AdminCall::serviceCode).doesNotContain("mock1", "restapi");
+        assertThat(serviceCodesOf(plan.setup())).doesNotContain("mock1", "restapi");
+        assertThat(serviceCodesOf(plan.cleanup())).doesNotContain("mock1", "restapi");
     }
 
     @Test
@@ -288,6 +296,98 @@ class FixturePlannerTest {
         assertThatThrownBy(() -> new WsdlService(WsdlShape.PAIR, "", List.of(List.of())))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("PAIR");
+    }
+
+    @Test
+    void groupIsCreatedFilledAndGrantedBeforeItsServiceAndDeletedAfterTheDescriptions() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.CONSUMER))));
+        var plan = new FixturePlanner("ab12").plan("V60", spec);
+        assertThat(plan.setup()).containsExactly(
+                new CreateLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v60-partners"),
+                new AddLocalGroupMember(ScenarioCatalogue.PROVIDER, "pab12-v60-partners", ScenarioCatalogue.CONSUMER),
+                new AddRestDescription(ScenarioCatalogue.PROVIDER, "http://isrest:8080/acl-parity/pab12-v60", "pab12-v60"),
+                new EnableDescription("pab12-v60"),
+                new GrantGroupAccess(ScenarioCatalogue.PROVIDER, "pab12-v60-partners", "pab12-v60"));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteDescription("pab12-v60"),
+                new DeleteLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v60-partners"));
+    }
+
+    @Test
+    void removedMembersAndDeletedGroupAreAppliedInSetupAfterTheGrantsAndNotDeletedAgainInCleanup() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.CONSUMER),
+                        List.of(ScenarioCatalogue.CONSUMER), true)));
+        var plan = new FixturePlanner("ab12").plan("V63", spec);
+        assertThat(plan.setup()).endsWith(
+                new GrantGroupAccess(ScenarioCatalogue.PROVIDER, "pab12-v63-partners", "pab12-v63"),
+                new RemoveLocalGroupMember(ScenarioCatalogue.PROVIDER, "pab12-v63-partners", ScenarioCatalogue.CONSUMER),
+                new DeleteLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v63-partners"));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v63"));
+    }
+
+    @Test
+    void sameGroupCodeUnderTwoOwnersIsPlannedForBothAndOnlyTheProvidersIsGranted() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.OTHER_CONSUMER)),
+                        new LocalGroupSpec(SubsystemPool.SECOND_OWNER, "partners", List.of(ScenarioCatalogue.CONSUMER))));
+        var plan = new FixturePlanner("ab12").plan("V65", spec);
+        assertThat(plan.setup()).filteredOn(CreateLocalGroup.class::isInstance).containsExactly(
+                new CreateLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v65-partners"),
+                new CreateLocalGroup(SubsystemPool.SECOND_OWNER, "pab12-v65-partners"));
+        assertThat(plan.setup()).filteredOn(GrantGroupAccess.class::isInstance).containsExactly(
+                new GrantGroupAccess(ScenarioCatalogue.PROVIDER, "pab12-v65-partners", "pab12-v65"));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteDescription("pab12-v65"),
+                new DeleteLocalGroup(SubsystemPool.SECOND_OWNER, "pab12-v65-partners"),
+                new DeleteLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v65-partners"));
+    }
+
+    @Test
+    void groupCodesCarryTheRunTokenSoRunsNeverCollide() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of())),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of())));
+        var firstRun = new FixturePlanner("run1").plan("V65", spec).setup();
+        var secondRun = new FixturePlanner("run2").plan("V65", spec).setup();
+        assertThat(firstRun.get(0)).isEqualTo(new CreateLocalGroup(ScenarioCatalogue.PROVIDER, "prun1-v65-partners"));
+        assertThat(secondRun.get(0)).isEqualTo(new CreateLocalGroup(ScenarioCatalogue.PROVIDER, "prun2-v65-partners"));
+    }
+
+    @Test
+    void endpointGrantedToAGroupGetsAGroupEndpointGrant() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of(), List.of(
+                new EndpointSpec("GET", "/a", List.of(ScenarioCatalogue.CONSUMER)),
+                new EndpointSpec("GET", "/b", List.of(), List.of("partners"))))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.CONSUMER))));
+        var plan = new FixturePlanner("ab12").plan("V66", spec);
+        var endpointGrants = plan.setup().stream()
+                .filter(call -> call instanceof GrantEndpointAccess || call instanceof GrantGroupEndpointAccess)
+                .toList();
+
+        assertThat(endpointGrants).containsExactly(
+                new GrantEndpointAccess("pab12-v66", "GET", "/a", ScenarioCatalogue.CONSUMER),
+                new GrantGroupEndpointAccess(ScenarioCatalogue.PROVIDER, "pab12-v66-partners", "pab12-v66",
+                        "GET", "/b"));
+    }
+
+    @Test
+    void grantToAGroupTheProviderDoesNotOwnIsRejected() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(SubsystemPool.SECOND_OWNER, "partners", List.of())));
+        var planner = new FixturePlanner("ab12");
+        assertThatThrownBy(() -> planner.plan("V65", spec))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("partners");
+    }
+
+    private static List<String> serviceCodesOf(List<AdminCall> calls) {
+        return calls.stream().filter(ServiceCall.class::isInstance)
+                .map(call -> ((ServiceCall) call).serviceCode()).toList();
     }
 
     private static FixtureSpec wsdlSpec(WsdlShape shape, String codeTail, List<String> granted) {

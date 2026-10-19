@@ -47,13 +47,16 @@ public final class SubsystemPool {
     public static final String SECOND_CONSUMER = "DEV:COM:1234:PoolConsumer";
     /** Provider-side client on ss0 that is created but never registered, so it stays SAVED. */
     public static final String UNREGISTERED_PROVIDER = "DEV:COM:1234:PoolSaved";
+    /** Second provider-side client on ss0; it owns a local group only and is never called. */
+    public static final String SECOND_OWNER = "DEV:COM:1234:PoolOwner";
 
     private static final int CLIENT_ID_PARTS = 4;
 
     private static final List<Entry> ENTRIES = List.of(
             new Entry(SIBLING_OF_CONSUMER, SS1, true),
             new Entry(SECOND_CONSUMER, SS1, true),
-            new Entry(UNREGISTERED_PROVIDER, SS0, false));
+            new Entry(UNREGISTERED_PROVIDER, SS0, false),
+            new Entry(SECOND_OWNER, SS0, false));
 
     private SubsystemPool() {
     }

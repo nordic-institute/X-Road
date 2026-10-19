@@ -27,14 +27,20 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
+import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
@@ -43,6 +49,7 @@ import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.Kept;
+import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
@@ -59,7 +66,9 @@ import java.util.Locale;
  * service description is ever touched. Deleting a service description also removes its access rights,
  * so the cleanup is one delete per created description, preceded by the delete of each REST endpoint the scenario
  * created and left in place. The base endpoint and generated endpoints are never deleted on their own, and the
- * endpoints of an OpenAPI description are removed only with the description.
+ * endpoints of an OpenAPI description are removed only with the description. Local groups carry the run token
+ * and the scenario id in their code too; each group the scenario did not delete itself is deleted in cleanup,
+ * after the descriptions.
  */
 public final class FixturePlanner {
 
@@ -80,6 +89,7 @@ public final class FixturePlanner {
         var endpointDeletes = new ArrayList<List<AdminCall>>();
         var setup = new ArrayList<AdminCall>();
         var services = spec.services();
+        groupSetup(setup, scenarioId, spec.groups());
         for (var index = 0; index < services.size(); index++) {
             var base = serviceCode(scenarioId, index);
             switch (services.get(index)) {
@@ -89,7 +99,8 @@ public final class FixturePlanner {
                     setup.add(new AddRestDescription(spec.providerClientId(), backendUrl(base), base));
                     setup.add(new EnableDescription(base));
                     grant(setup, spec.providerClientId(), base, rest.grantedConsumerIds());
-                    endpointDeletes.add(endpoints(setup, base, rest.endpoints()));
+                    groupGrants(setup, scenarioId, spec, base, rest.grantedGroupCodes());
+                    endpointDeletes.add(endpoints(setup, scenarioId, spec, base, rest.endpoints()));
                 }
                 case OpenApiService openApi -> {
                     codes.add(base);
@@ -98,7 +109,7 @@ public final class FixturePlanner {
                     setup.add(new AddOpenApiDescription(spec.providerClientId(),
                             openApiUrl(openApi.spec(), base), base));
                     setup.add(new EnableDescription(base));
-                    endpoints(setup, base, openApi.manualEndpoints());
+                    endpoints(setup, scenarioId, spec, base, openApi.manualEndpoints());
                     generatedGrants(setup, base, openApi.generatedGrants());
                     if (openApi.editedToSpec() != null) {
                         setup.add(new UpdateOpenApiDescription(base, openApiUrl(openApi.editedToSpec(), base)));
@@ -118,21 +129,32 @@ public final class FixturePlanner {
                 }
             }
         }
+        groupFollowUps(setup, scenarioId, spec.groups());
         var cleanup = new ArrayList<AdminCall>();
         for (var index = descriptionKeys.size() - 1; index >= 0; index--) {
             cleanup.addAll(endpointDeletes.get(index).reversed());
             cleanup.add(new DeleteDescription(descriptionKeys.get(index)));
         }
+        for (var group : spec.groups().reversed()) {
+            if (!group.deleted()) {
+                cleanup.add(new DeleteLocalGroup(group.ownerClientId(), groupCode(scenarioId, group.code())));
+            }
+        }
         return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(cleanup));
     }
 
-    private static List<AdminCall> endpoints(List<AdminCall> setup, String serviceCode,
-                                             List<EndpointSpec> endpoints) {
+    private List<AdminCall> endpoints(List<AdminCall> setup, String scenarioId, FixtureSpec spec,
+                                      String serviceCode, List<EndpointSpec> endpoints) {
         var deletes = new ArrayList<AdminCall>();
         for (var endpoint : endpoints) {
             setup.add(new AddEndpoint(serviceCode, endpoint.method(), endpoint.path()));
             for (var consumer : endpoint.grantedConsumerIds()) {
                 setup.add(new GrantEndpointAccess(serviceCode, endpoint.method(), endpoint.path(), consumer));
+            }
+            for (var groupCode : endpoint.grantedGroupCodes()) {
+                setup.add(new GrantGroupEndpointAccess(spec.providerClientId(),
+                        grantedGroupCode(scenarioId, spec, groupCode), serviceCode, endpoint.method(),
+                        endpoint.path()));
             }
             switch (endpoint.followUp()) {
                 case Kept kept -> deletes.add(new DeleteEndpoint(serviceCode, endpoint.method(), endpoint.path()));
@@ -146,6 +168,50 @@ public final class FixturePlanner {
             }
         }
         return deletes;
+    }
+
+    private void groupSetup(List<AdminCall> setup, String scenarioId, List<LocalGroupSpec> groups) {
+        for (var group : groups) {
+            var code = groupCode(scenarioId, group.code());
+            setup.add(new CreateLocalGroup(group.ownerClientId(), code));
+            for (var memberId : group.memberIds()) {
+                setup.add(new AddLocalGroupMember(group.ownerClientId(), code, memberId));
+            }
+        }
+    }
+
+    private void groupFollowUps(List<AdminCall> setup, String scenarioId, List<LocalGroupSpec> groups) {
+        for (var group : groups) {
+            var code = groupCode(scenarioId, group.code());
+            for (var memberId : group.removedMemberIds()) {
+                setup.add(new RemoveLocalGroupMember(group.ownerClientId(), code, memberId));
+            }
+            if (group.deleted()) {
+                setup.add(new DeleteLocalGroup(group.ownerClientId(), code));
+            }
+        }
+    }
+
+    private void groupGrants(List<AdminCall> setup, String scenarioId, FixtureSpec spec, String serviceCode,
+                             List<String> groupCodes) {
+        for (var groupCode : groupCodes) {
+            setup.add(new GrantGroupAccess(spec.providerClientId(), grantedGroupCode(scenarioId, spec, groupCode),
+                    serviceCode));
+        }
+    }
+
+    private String grantedGroupCode(String scenarioId, FixtureSpec spec, String code) {
+        var owned = spec.groups().stream()
+                .anyMatch(group -> group.code().equals(code) && group.ownerClientId().equals(spec.providerClientId()));
+        if (!owned) {
+            throw new IllegalArgumentException(
+                    "group %s is granted but not created under %s".formatted(code, spec.providerClientId()));
+        }
+        return groupCode(scenarioId, code);
+    }
+
+    String groupCode(String scenarioId, String code) {
+        return "p%s-%s-%s".formatted(runToken, scenarioId.toLowerCase(Locale.ROOT), code);
     }
 
     private static void generatedGrants(List<AdminCall> setup, String serviceCode,

@@ -37,8 +37,10 @@ public interface AdminGateway {
 
     /** Adds an OpenAPI 3 service description and returns its id. */
     String addOpenApiDescription(String providerClientId, String specUrl, String serviceCode);
+
     /** Points the OpenAPI 3 service description at another description. */
     void updateOpenApiDescription(String descriptionId, String specUrl, String serviceCode);
+
     void enableDescription(String descriptionId);
 
     void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
@@ -48,8 +50,10 @@ public interface AdminGateway {
 
     /** Finds the id of the endpoint of the description's service with the given method and path. */
     String findEndpointId(String descriptionId, String serviceCode, String method, String path);
+
     /** Changes the method and path of the endpoint. */
     void updateEndpoint(String endpointId, String method, String path);
+
     void grantEndpointAccess(String endpointId, String consumerClientId);
 
     /** Deletes the endpoint and returns the HTTP status of the call. */
@@ -57,4 +61,16 @@ public interface AdminGateway {
 
     /** Deletes the service description and returns the HTTP status of the call. */
     int deleteDescription(String descriptionId);
+
+    /** Creates a local group of the owner client and returns its id. */
+    String createLocalGroup(String ownerClientId, String code);
+
+    /** Adds a member or subsystem to the local group. */
+    void addLocalGroupMember(String groupId, String memberId);
+
+    /** Removes a member or subsystem from the local group. */
+    void removeLocalGroupMember(String groupId, String memberId);
+
+    /** Deletes the local group and returns the HTTP status of the call. */
+    int deleteLocalGroup(String groupId);
 }

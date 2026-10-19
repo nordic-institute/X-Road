@@ -63,8 +63,31 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     /**
      * @param providerClientId the service owner, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
      * @param services         the service descriptions to create under the provider
+     * @param groups           the local groups to create, before the services whose grants name them
      */
-    public record FixtureSpec(String providerClientId, List<ServiceSpec> services) {
+    public record FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups) {
+
+        public FixtureSpec(String providerClientId, List<ServiceSpec> services) {
+            this(providerClientId, services, List.of());
+        }
+    }
+
+    /**
+     * A local group of a client on the provider Security Server. Its code is namespaced per run and scenario,
+     * so the same code under two owners stays one code.
+     *
+     * @param ownerClientId    the client that owns the group, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param code             the group code before namespacing
+     * @param memberIds        the members to add, each a member or subsystem id
+     * @param removedMemberIds the members removed again after the grants are made
+     * @param deleted          whether the group is deleted after the grants are made
+     */
+    public record LocalGroupSpec(String ownerClientId, String code, List<String> memberIds,
+                                 List<String> removedMemberIds, boolean deleted) {
+
+        public LocalGroupSpec(String ownerClientId, String code, List<String> memberIds) {
+            this(ownerClientId, code, memberIds, List.of(), false);
+        }
     }
 
     /** A service description created under the provider. */
@@ -77,11 +100,17 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      *
      * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
      * @param endpoints          the endpoints created next to the base endpoint
+     * @param grantedGroupCodes  codes of the provider's local groups granted the base endpoint, before namespacing
      */
-    public record RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints) implements ServiceSpec {
+    public record RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints,
+                              List<String> grantedGroupCodes) implements ServiceSpec {
+
+        public RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints) {
+            this(grantedConsumerIds, endpoints, List.of());
+        }
 
         public RestService(List<String> grantedConsumerIds) {
-            this(grantedConsumerIds, List.of());
+            this(grantedConsumerIds, List.of(), List.of());
         }
     }
 
@@ -91,12 +120,23 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param method             the HTTP method, or {@code *} for any
      * @param path               the path pattern, starting with {@code /}
      * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param grantedGroupCodes  codes of the provider's local groups granted the endpoint, before namespacing
      * @param followUp           what happens to the endpoint after it is created and granted
      */
-    public record EndpointSpec(String method, String path, List<String> grantedConsumerIds, FollowUp followUp) {
+    public record EndpointSpec(String method, String path, List<String> grantedConsumerIds,
+                               List<String> grantedGroupCodes, FollowUp followUp) {
+
+        public EndpointSpec(String method, String path, List<String> grantedConsumerIds, FollowUp followUp) {
+            this(method, path, grantedConsumerIds, List.of(), followUp);
+        }
+
+        public EndpointSpec(String method, String path, List<String> grantedConsumerIds,
+                            List<String> grantedGroupCodes) {
+            this(method, path, grantedConsumerIds, grantedGroupCodes, new Kept());
+        }
 
         public EndpointSpec(String method, String path, List<String> grantedConsumerIds) {
-            this(method, path, grantedConsumerIds, new Kept());
+            this(method, path, grantedConsumerIds, List.of(), new Kept());
         }
     }
 

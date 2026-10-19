@@ -388,6 +388,59 @@ class AdminApi {
         return authed(session).delete(baseUrl + "/api/v1/endpoints/" + endpointId).getStatusCode();
     }
 
+    /** Creates a local group of the owner client and returns its id. */
+    static String createLocalGroup(String baseUrl, AdminSession session, String ownerClientId, String code) {
+        var body = """
+                {
+                  "code": "%s",
+                  "description": "acl parity"
+                }
+                """.formatted(code);
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(baseUrl + "/api/v1/clients/" + ownerClientId + "/local-groups");
+        assertThat(response.getStatusCode())
+                .as("create local group %s of %s: %s", code, ownerClientId, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+        return response.jsonPath().getString("id");
+    }
+
+    /** Adds the member or subsystem to the local group. */
+    static void addLocalGroupMember(String baseUrl, AdminSession session, String groupId, String memberId) {
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body(localGroupMemberBody(memberId))
+                .post(baseUrl + "/api/v1/local-groups/" + groupId + "/members");
+        assertThat(response.getStatusCode())
+                .as("add %s to local group %s: %s", memberId, groupId, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+    }
+
+    /** Removes the member or subsystem from the local group. */
+    static void removeLocalGroupMember(String baseUrl, AdminSession session, String groupId, String memberId) {
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body(localGroupMemberBody(memberId))
+                .post(baseUrl + "/api/v1/local-groups/" + groupId + "/members/delete");
+        assertThat(response.getStatusCode())
+                .as("remove %s from local group %s: %s", memberId, groupId, response.getBody().asString())
+                .isEqualTo(HTTP_NO_CONTENT);
+    }
+
+    /** Deletes the local group and returns the HTTP status of the call without asserting it. */
+    static int requestLocalGroupDeletion(String baseUrl, AdminSession session, String groupId) {
+        return authed(session).delete(baseUrl + "/api/v1/local-groups/" + groupId).getStatusCode();
+    }
+
+    private static String localGroupMemberBody(String memberId) {
+        return """
+                {
+                  "items": [ "%s" ]
+                }
+                """.formatted(memberId);
+    }
+
     /**
      * Adds the subsystem {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}) as a local client,
      * tolerating a warm rerun where it already exists: {@code ClientService} rejects a duplicate with
@@ -418,6 +471,14 @@ class AdminApi {
         return clientId;
     }
 
+    /** Sets the client's internal connection type ({@code HTTP}, {@code HTTPS} or {@code HTTPS_NO_AUTH}). */
+    static void setConnectionType(String baseUrl, AdminSession session, String clientId, String connectionType) {
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body("{\"connection_type\": \"%s\"}".formatted(connectionType))
+                .patch(baseUrl + "/api/v1/clients/" + clientId);
+        assertThat(response.getStatusCode()).as("set connection type of %s to %s", clientId, connectionType).isEqualTo(HTTP_OK);
+    }
     /**
      * Submits the client registration request, tolerating a warm rerun where the client is already past
      * {@code SAVED} status: {@code ClientService.registerClient} rejects that with

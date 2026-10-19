@@ -29,6 +29,7 @@ package org.niis.xroad.e2e.parity;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
@@ -79,6 +80,14 @@ class ScenarioCatalogueTest {
                         tuple("V37", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V38", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V40", List.of(Verdict.ALLOWED)),
+                        tuple("V60", List.of(Verdict.ALLOWED)),
+                        tuple("V61", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V62", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V63", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V64", List.of(Verdict.ALLOWED)),
+                        tuple("V65", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V66", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V67", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V128", List.of(Verdict.ALLOWED)),
                         tuple("V129", List.of(Verdict.ALLOWED)),
                         tuple("V131", List.of(Verdict.INVALID_SECURITY_SERVER)),
@@ -165,6 +174,63 @@ class ScenarioCatalogueTest {
                 new EndpointSpec("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER)));
         assertThat(scenario("V40").checks()).extracting(check -> ((RestRequest) check.request()).path())
                 .containsExactly("/pets/123");
+    }
+
+    @Test
+    void groupRowsGrantTheBaseEndpointToTheGroupAndCreateItUnderTheProvider() {
+        for (var id : List.of("V60", "V61", "V62", "V63", "V64")) {
+            var fixture = scenario(id).fixture();
+            var service = (RestService) fixture.services().get(0);
+            assertThat(service.grantedConsumerIds()).as(id).isEmpty();
+            assertThat(service.grantedGroupCodes()).as(id).hasSize(1);
+            assertThat(fixture.groups()).as(id).extracting(LocalGroupSpec::ownerClientId)
+                    .containsExactly(ScenarioCatalogue.PROVIDER);
+        }
+    }
+
+    @Test
+    void groupMembershipChangesAreAppliedOnlyByTheRemovalAndDeletionRows() {
+        assertThat(scenario("V60").fixture().groups().get(0).removedMemberIds()).isEmpty();
+        assertThat(scenario("V60").fixture().groups().get(0).deleted()).isFalse();
+        assertThat(scenario("V62").fixture().groups().get(0).removedMemberIds())
+                .containsExactly(ScenarioCatalogue.CONSUMER);
+        assertThat(scenario("V63").fixture().groups().get(0).deleted()).isTrue();
+    }
+
+    @Test
+    void memberShapedGroupRowSendsAsTheMemberThatIsInTheGroup() {
+        var row = scenario("V64");
+        assertThat(row.fixture().groups().get(0).memberIds()).containsExactly(ScenarioCatalogue.MEMBER_OF_CONSUMER);
+        assertThat(row.checks().get(0).request().consumerClientId()).isEqualTo(ScenarioCatalogue.MEMBER_OF_CONSUMER);
+    }
+
+    @Test
+    void sharedGroupCodeRowHasTheConsumerOnlyInTheOtherOwnersGroup() {
+        var groups = scenario("V65").fixture().groups();
+        assertThat(groups).extracting(LocalGroupSpec::code).containsOnly("partners");
+        assertThat(groups).extracting(LocalGroupSpec::ownerClientId)
+                .containsExactly(ScenarioCatalogue.PROVIDER, SubsystemPool.SECOND_OWNER);
+        assertThat(groups.get(0).memberIds()).doesNotContain(ScenarioCatalogue.CONSUMER);
+        assertThat(groups.get(1).memberIds()).containsExactly(ScenarioCatalogue.CONSUMER);
+    }
+
+    @Test
+    void directAndGroupGrantRowGrantsEachEndpointThroughADifferentSubject() {
+        var service = (RestService) scenario("V66").fixture().services().get(0);
+        assertThat(service.endpoints()).extracting(EndpointSpec::path, EndpointSpec::grantedConsumerIds,
+                EndpointSpec::grantedGroupCodes).containsExactly(
+                tuple("/a", List.of(ScenarioCatalogue.CONSUMER), List.of()),
+                tuple("/b", List.of(), List.of("partners")));
+    }
+
+    @Test
+    void groupOnOneServiceRowCallsTheGrantedAndTheUngrantedService() {
+        var row = scenario("V67");
+        var granted = (RestService) row.fixture().services().get(0);
+        var other = (RestService) row.fixture().services().get(1);
+        assertThat(granted.grantedGroupCodes()).containsExactly("partners");
+        assertThat(other.grantedGroupCodes()).isEmpty();
+        assertThat(row.checks()).extracting(check -> check.request().serviceIndex()).containsExactly(0, 1);
     }
 
     @Test

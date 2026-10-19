@@ -98,4 +98,24 @@ final class AdminApiGateway implements AdminGateway {
     public int deleteDescription(String descriptionId) {
         return AdminApi.requestServiceDescriptionDeletion(baseUrl, session, descriptionId);
     }
+
+    @Override
+    public String createLocalGroup(String ownerClientId, String code) {
+        return AdminApi.createLocalGroup(baseUrl, session, ownerClientId, code);
+    }
+
+    @Override
+    public void addLocalGroupMember(String groupId, String memberId) {
+        AdminApi.addLocalGroupMember(baseUrl, session, groupId, memberId);
+    }
+
+    @Override
+    public void removeLocalGroupMember(String groupId, String memberId) {
+        AdminApi.removeLocalGroupMember(baseUrl, session, groupId, memberId);
+    }
+
+    @Override
+    public int deleteLocalGroup(String groupId) {
+        return AdminApi.requestLocalGroupDeletion(baseUrl, session, groupId);
+    }
 }

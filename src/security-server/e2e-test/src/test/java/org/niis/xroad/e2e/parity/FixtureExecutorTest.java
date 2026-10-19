@@ -32,6 +32,7 @@ import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
@@ -124,6 +125,24 @@ class FixtureExecutorTest {
         public int deleteDescription(String descriptionId) {
             calls.add("delete " + descriptionId);
             return deleteStatus.getOrDefault(descriptionId, 204);
+        }
+        @Override
+        public String createLocalGroup(String ownerClientId, String code) {
+            calls.add("create group %s of %s".formatted(code, ownerClientId));
+            return "grp-%s-%s".formatted(ownerClientId, code);
+        }
+        @Override
+        public void addLocalGroupMember(String groupId, String memberId) {
+            calls.add("add member %s to %s".formatted(memberId, groupId));
+        }
+        @Override
+        public void removeLocalGroupMember(String groupId, String memberId) {
+            calls.add("remove member %s from %s".formatted(memberId, groupId));
+        }
+        @Override
+        public int deleteLocalGroup(String groupId) {
+            calls.add("delete group " + groupId);
+            return deleteStatus.getOrDefault(groupId, 204);
         }
     }
 
@@ -330,6 +349,82 @@ class FixtureExecutorTest {
                     "update endpoint ep-GET-_foo to GET /bar");
         }
         assertThat(gateway.calls.subList(5, 7)).containsExactly("delete endpoint ep-GET-_foo", "delete id-pt1-v37");
+    }
+
+    @Test
+    void groupIsCreatedFilledAndGrantedByItsIdThenDeletedAfterTheDescription() {
+        var gateway = new RecordingGateway();
+        var groupPlan = new FixturePlanner("t1").plan("V60", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.CONSUMER)))));
+        var groupId = "grp-%s-pt1-v60-partners".formatted(ScenarioCatalogue.PROVIDER);
+        try (var ignored = new FixtureExecutor(gateway).open(groupPlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "create group pt1-v60-partners of " + ScenarioCatalogue.PROVIDER,
+                    "add member %s to %s".formatted(ScenarioCatalogue.CONSUMER, groupId),
+                    "add pt1-v60",
+                    "enable id-pt1-v60",
+                    "grant pt1-v60 to " + groupId);
+        }
+        assertThat(gateway.calls.subList(5, 7)).containsExactly("delete id-pt1-v60", "delete group " + groupId);
+    }
+
+    @Test
+    void groupDeletedInSetupIsDeletedOnceAndNotAgainOnClose() {
+        var gateway = new RecordingGateway();
+        var groupPlan = new FixturePlanner("t1").plan("V63", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.CONSUMER),
+                        List.of(ScenarioCatalogue.CONSUMER), true))));
+        var groupId = "grp-%s-pt1-v63-partners".formatted(ScenarioCatalogue.PROVIDER);
+        try (var ignored = new FixtureExecutor(gateway).open(groupPlan)) {
+            assertThat(gateway.calls).endsWith(
+                    "grant pt1-v63 to " + groupId,
+                    "remove member %s from %s".formatted(ScenarioCatalogue.CONSUMER, groupId),
+                    "delete group " + groupId);
+        }
+        assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete group")).hasSize(1);
+    }
+
+    @Test
+    void groupGrantOnAnEndpointLooksTheGroupUpByOwnerAndCode() {
+        var gateway = new RecordingGateway();
+        var groupPlan = new FixturePlanner("t1").plan("V66", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(new EndpointSpec("GET", "/b", List.of(), List.of("partners"))))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of()))));
+        try (var ignored = new FixtureExecutor(gateway).open(groupPlan)) {
+            assertThat(gateway.calls).endsWith("grant endpoint ep-GET-_b to grp-%s-pt1-v66-partners"
+                    .formatted(ScenarioCatalogue.PROVIDER));
+        }
+    }
+
+    @Test
+    void failedGroupCleanupIsReportedAndTheOtherGroupIsStillDeleted() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of("grp-%s-pt1-v65-partners".formatted(SubsystemPool.SECOND_OWNER), 500);
+        var groupPlan = new FixturePlanner("t1").plan("V65", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of()),
+                        new LocalGroupSpec(SubsystemPool.SECOND_OWNER, "partners", List.of()))));
+        var fixture = new FixtureExecutor(gateway).open(groupPlan);
+        assertThatThrownBy(fixture::close)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("local group pt1-v65-partners of " + SubsystemPool.SECOND_OWNER)
+                .hasMessageContaining("500");
+        assertThat(gateway.calls).endsWith("delete group grp-%s-pt1-v65-partners".formatted(ScenarioCatalogue.PROVIDER));
+    }
+
+    @Test
+    void failedSetupAfterGroupCreationDeletesTheGroup() {
+        var gateway = new RecordingGateway();
+        gateway.failOnAddOf = "pt1-v60";
+        var groupPlan = new FixturePlanner("t1").plan("V60", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of()))));
+        assertThatThrownBy(() -> new FixtureExecutor(gateway).open(groupPlan))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("add refused");
+        assertThat(gateway.calls).endsWith("delete group grp-%s-pt1-v60-partners".formatted(ScenarioCatalogue.PROVIDER));
     }
 
     @Test
