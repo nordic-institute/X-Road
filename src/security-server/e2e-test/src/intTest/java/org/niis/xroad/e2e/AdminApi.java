@@ -129,6 +129,11 @@ class AdminApi {
                 .isIn(HTTP_NO_CONTENT, HTTP_NOT_FOUND);
     }
 
+    /** Deletes the service description and returns the HTTP status of the call without asserting it. */
+    static int requestServiceDescriptionDeletion(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
+        return authed(ss0).delete(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId).getStatusCode();
+    }
+
     /** Looks up the backend URL a service is currently configured with. */
     static String discoverBackendUrl(String ss0BaseUrl, AdminSession ss0, String serviceId) {
         var response = authed(ss0).get(ss0BaseUrl + "/api/v1/services/" + serviceId);

@@ -45,6 +45,7 @@ public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
                 "compose.e2e.ds.yaml",
                 "compose.ss-hsm.e2e.yaml",
                 "compose.ss-batch-signature-enabled.e2e.yaml",
+                "compose.ss-acl-legacy.e2e.yaml",
                 "compose.ss-softtoken-signer-enabled.e2e.yaml",
                 "compose.ss-msglog-encryption.e2e.yaml",
                 "compose.ss-msglog.e2e.yaml",

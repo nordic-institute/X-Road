@@ -27,9 +27,11 @@ package org.niis.xroad.e2e.container;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.AclParityProperties;
 import org.niis.xroad.e2e.E2eEnvironment;
 import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
+import org.niis.xroad.e2e.parity.AclMode;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.Container;
@@ -37,6 +39,8 @@ import org.testcontainers.containers.Container;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -72,8 +76,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         ss0 = buildSs0Stack(coreProperties);
         ss0.start();
 
-        ss1 = new SsStackSetup(coreProperties, "ss1",
-                Set.of(SsStackSetup.Feature.HSM, SsStackSetup.Feature.MESSAGE_LOG_ENCRYPTION));
+        ss1 = new SsStackSetup(coreProperties, "ss1", ss1Features());
         ss1.start();
 
         aux.waitForHurlToFinish();
@@ -204,6 +207,19 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             return Integer.parseInt(matcher.group(1));
         }
         throw new IllegalStateException("Could not find processed files count in decrypt-archives.sh output: " + output);
+    }
+
+    /** ss1's optional stack features. Only ss1 sends unnegotiated calls in an ACL parity run; ss0 never does. */
+    private static Set<SsStackSetup.Feature> ss1Features() {
+        var features = EnumSet.of(SsStackSetup.Feature.HSM, SsStackSetup.Feature.MESSAGE_LOG_ENCRYPTION);
+        AclParityProperties.configuredMode().ifPresent(mode -> {
+            if (mode != AclMode.LEGACY) {
+                throw new IllegalArgumentException("e2e.acl-mode=%s is reserved and not implemented"
+                        .formatted(mode.name().toLowerCase(Locale.ROOT)));
+            }
+            features.add(SsStackSetup.Feature.LEGACY_PROTOCOL);
+        });
+        return features;
     }
 
     private BaseComposeSetup mapEnvironment(String name) {

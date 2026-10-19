@@ -1,0 +1,14 @@
+{
+  "priority": 10,
+  "request": {
+    "urlPathPattern": "/acl-parity/.*"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"message\": \"acl parity backend\"}",
+    "headers": {
+      "Content-Type": "application/json",
+      "mock-response": "true"
+    }
+  }
+}

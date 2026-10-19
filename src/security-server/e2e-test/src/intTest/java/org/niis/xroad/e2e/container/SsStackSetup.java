@@ -215,7 +215,8 @@ public class SsStackSetup extends AbstractSsStack {
         BATCH_SIGNATURES("compose.ss-batch-signature-enabled.e2e.yaml"),
         SOFTTOKEN_SIGNER("compose.ss-softtoken-signer-enabled.e2e.yaml"),
         MESSAGE_LOG_ENCRYPTION("compose.ss-msglog-encryption.e2e.yaml"),
-        OP_MONITOR("compose.ss-opmonitor.e2e.yaml");
+        OP_MONITOR("compose.ss-opmonitor.e2e.yaml"),
+        LEGACY_PROTOCOL("compose.ss-acl-legacy.e2e.yaml");
 
         private final String composeFile;
 
