@@ -60,6 +60,21 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
+    public String addEndpoint(String descriptionId, String serviceCode, String method, String path) {
+        return AdminApi.addEndpoint(baseUrl, session, descriptionId, serviceCode, method, path);
+    }
+
+    @Override
+    public void grantEndpointAccess(String endpointId, String consumerClientId) {
+        AdminApi.grantEndpointAccess(baseUrl, session, endpointId, consumerClientId);
+    }
+
+    @Override
+    public int deleteEndpoint(String endpointId) {
+        return AdminApi.requestEndpointDeletion(baseUrl, session, endpointId);
+    }
+
+    @Override
     public int deleteDescription(String descriptionId) {
         return AdminApi.requestServiceDescriptionDeletion(baseUrl, session, descriptionId);
     }

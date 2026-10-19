@@ -26,15 +26,20 @@
 
 package org.niis.xroad.e2e.parity;
 
+import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.ToIntFunction;
 
 /**
  * Runs a {@link FixturePlan} against the provider's admin API. A setup that fails part way removes what it
@@ -76,9 +81,14 @@ public final class FixtureExecutor {
 
         private final FixturePlan plan;
         private final Map<String, String> descriptionIds = new HashMap<>();
+        private final Map<String, String> endpointIds = new HashMap<>();
 
         private Fixture(FixturePlan plan) {
             this.plan = plan;
+        }
+
+        private static String endpointKey(String serviceCode, String method, String path) {
+            return "%s %s %s".formatted(serviceCode, method, path);
         }
 
         private void apply(AdminCall call) {
@@ -90,31 +100,50 @@ public final class FixtureExecutor {
                 case EnableDescription enable -> gateway.enableDescription(descriptionIds.get(enable.serviceCode()));
                 case GrantAccess grant -> gateway.grantAccess(
                         grant.providerClientId(), grant.consumerClientId(), grant.serviceCode());
+                case AddEndpoint add -> endpointIds.put(endpointKey(add.serviceCode(), add.method(), add.path()),
+                        gateway.addEndpoint(descriptionIds.get(add.serviceCode()), add.serviceCode(), add.method(),
+                                add.path()));
+                case GrantEndpointAccess grant -> gateway.grantEndpointAccess(
+                        endpointIds.get(endpointKey(grant.serviceCode(), grant.method(), grant.path())),
+                        grant.consumerClientId());
+                case DeleteEndpoint delete -> throw new IllegalArgumentException("not a setup call: " + delete);
                 case DeleteDescription delete -> throw new IllegalArgumentException("not a setup call: " + delete);
             }
         }
 
-        /** Runs the plan's cleanup calls for the descriptions that were created. */
+        /** Runs the plan's cleanup calls for the endpoints and descriptions that were created. */
         @Override
         public void close() {
             var failures = new ArrayList<String>();
             for (var call : plan.cleanup()) {
-                var id = descriptionIds.remove(call.serviceCode());
-                if (id == null) {
-                    continue;
-                }
-                try {
-                    var status = gateway.deleteDescription(id);
-                    var removed = status >= HTTP_OK && status <= HTTP_LAST_SUCCESS || status == HTTP_NOT_FOUND;
-                    if (!removed) {
-                        failures.add("delete of %s answered %d".formatted(call.serviceCode(), status));
+                switch (call) {
+                    case DeleteEndpoint delete -> {
+                        var id = endpointIds.remove(endpointKey(delete.serviceCode(), delete.method(), delete.path()));
+                        remove(id, "endpoint %s %s of %s".formatted(delete.method(), delete.path(),
+                                delete.serviceCode()), gateway::deleteEndpoint, failures);
                     }
-                } catch (RuntimeException e) {
-                    failures.add("delete of %s failed: %s".formatted(call.serviceCode(), e.getMessage()));
+                    case DeleteDescription delete -> remove(descriptionIds.remove(delete.serviceCode()),
+                            delete.serviceCode(), gateway::deleteDescription, failures);
+                    default -> throw new IllegalArgumentException("not a cleanup call: " + call);
                 }
             }
             if (!failures.isEmpty()) {
                 throw new IllegalStateException("fixture cleanup incomplete: " + String.join("; ", failures));
+            }
+        }
+
+        private static void remove(String id, String name, ToIntFunction<String> delete, List<String> failures) {
+            if (id == null) {
+                return;
+            }
+            try {
+                var status = delete.applyAsInt(id);
+                var removed = status >= HTTP_OK && status <= HTTP_LAST_SUCCESS || status == HTTP_NOT_FOUND;
+                if (!removed) {
+                    failures.add("delete of %s answered %d".formatted(name, status));
+                }
+            } catch (RuntimeException e) {
+                failures.add("delete of %s failed: %s".formatted(name, e.getMessage()));
             }
         }
     }

@@ -27,11 +27,14 @@
 package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -45,17 +48,51 @@ class ScenarioCatalogueTest {
 
     @Test
     void rowsCarryTheirLegacyVerdicts() {
-        assertThat(ScenarioCatalogue.all()).extracting(Scenario::id, Scenario::expected)
+        assertThat(ScenarioCatalogue.all()).extracting(Scenario::id, ScenarioCatalogueTest::expectedVerdicts)
                 .containsExactly(
-                        tuple("V01", Verdict.ALLOWED),
-                        tuple("V02", Verdict.ACCESS_DENIED),
-                        tuple("V03", Verdict.ALLOWED),
-                        tuple("V04", Verdict.ACCESS_DENIED),
-                        tuple("V128", Verdict.ALLOWED),
-                        tuple("V129", Verdict.ALLOWED),
-                        tuple("V131", Verdict.INVALID_SECURITY_SERVER),
-                        tuple("V132a", Verdict.INVALID_SERVICE_TYPE),
-                        tuple("V132b", Verdict.INVALID_SERVICE_TYPE));
+                        tuple("V01", List.of(Verdict.ALLOWED)),
+                        tuple("V02", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V03", List.of(Verdict.ALLOWED)),
+                        tuple("V04", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V20", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V21", List.of(Verdict.ALLOWED)),
+                        tuple("V22", List.of(Verdict.ALLOWED)),
+                        tuple("V23", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V24", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V25", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V26", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED,
+                                Verdict.ACCESS_DENIED)),
+                        tuple("V27", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED, Verdict.ACCESS_DENIED)),
+                        tuple("V28", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V29", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V128", List.of(Verdict.ALLOWED)),
+                        tuple("V129", List.of(Verdict.ALLOWED)),
+                        tuple("V131", List.of(Verdict.INVALID_SECURITY_SERVER)),
+                        tuple("V132a", List.of(Verdict.INVALID_SERVICE_TYPE)),
+                        tuple("V132b", List.of(Verdict.INVALID_SERVICE_TYPE)));
+    }
+
+    @Test
+    void endpointRowsGrantOnlyTheCreatedEndpointAndRequestTheBareRootWithAnEmptyPath() {
+        var row = scenario("V27");
+
+        var service = (RestService) row.fixture().services().get(0);
+
+        assertThat(service.grantedConsumerIds()).isEmpty();
+        assertThat(service.endpoints()).containsExactly(
+                new EndpointSpec("GET", "/foo/**", List.of(ScenarioCatalogue.CONSUMER)));
+        assertThat(row.checks()).extracting(check -> ((RestRequest) check.request()).path())
+                .containsExactly("/foo/x/y", "/foo", "");
+    }
+
+    @Test
+    void wildcardMethodAndNonGetRequestsAreExercised() {
+        var service = (RestService) scenario("V28").fixture().services().get(0);
+
+        assertThat(service.endpoints()).extracting(EndpointSpec::method, EndpointSpec::path)
+                .containsExactly(tuple("*", "/**"));
+        assertThat(scenario("V20").checks()).extracting(check -> ((RestRequest) check.request()).method())
+                .contains("POST");
     }
 
     @Test
@@ -64,7 +101,7 @@ class ScenarioCatalogueTest {
 
         var service = (RestService) denied.fixture().services().get(0);
 
-        assertThat(service.grantedConsumerIds()).doesNotContain(denied.request().consumerClientId());
+        assertThat(service.grantedConsumerIds()).doesNotContain(denied.checks().get(0).request().consumerClientId());
     }
 
     @Test
@@ -74,8 +111,8 @@ class ScenarioCatalogueTest {
         var wsdl = (WsdlService) row.fixture().services().get(0);
 
         assertThat(wsdl.shape()).isEqualTo(WsdlShape.PAIR);
-        assertThat(wsdl.grantedConsumerIdsByCode().get(0)).contains(row.request().consumerClientId());
-        assertThat(wsdl.grantedConsumerIdsByCode().get(row.request().serviceIndex())).isEmpty();
+        assertThat(wsdl.grantedConsumerIdsByCode().get(0)).contains(row.checks().get(0).request().consumerClientId());
+        assertThat(wsdl.grantedConsumerIdsByCode().get(row.checks().get(0).request().serviceIndex())).isEmpty();
     }
 
     @Test
@@ -85,7 +122,7 @@ class ScenarioCatalogueTest {
         var wsdl = (WsdlService) row.fixture().services().get(0);
 
         assertThat(wsdl.shape()).isEqualTo(WsdlShape.VERSIONS);
-        assertThat(((SoapRequest) row.request()).serviceVersion()).isEqualTo("v2");
+        assertThat(((SoapRequest) row.checks().get(0).request()).serviceVersion()).isEqualTo("v2");
     }
 
     @Test
@@ -97,7 +134,7 @@ class ScenarioCatalogueTest {
 
     @Test
     void securityServerRowNamesAServerInTheRequestHeader() {
-        var request = (SoapRequest) scenario("V131").request();
+        var request = (SoapRequest) scenario("V131").checks().get(0).request();
 
         assertThat(request.securityServerHint()).isEqualTo(ScenarioCatalogue.UNREGISTERED_SECURITY_SERVER);
     }
@@ -108,9 +145,9 @@ class ScenarioCatalogueTest {
         var soapToRest = scenario("V132b");
 
         assertThat(restToSoap.fixture().services().get(0)).isInstanceOf(WsdlService.class);
-        assertThat(restToSoap.request()).isInstanceOf(RestRequest.class);
+        assertThat(restToSoap.checks().get(0).request()).isInstanceOf(RestRequest.class);
         assertThat(soapToRest.fixture().services().get(0)).isInstanceOf(RestService.class);
-        assertThat(soapToRest.request()).isInstanceOf(SoapRequest.class);
+        assertThat(soapToRest.checks().get(0).request()).isInstanceOf(SoapRequest.class);
     }
 
     @Test
@@ -122,9 +159,13 @@ class ScenarioCatalogueTest {
 
     @Test
     void soapCallToARestServiceNamesNoVersion() {
-        var request = (SoapRequest) scenario("V132b").request();
+        var request = (SoapRequest) scenario("V132b").checks().get(0).request();
 
         assertThat(request.serviceVersion()).isNull();
+    }
+
+    private static List<Verdict> expectedVerdicts(Scenario scenario) {
+        return scenario.checks().stream().map(Scenario.Check::expected).toList();
     }
 
     private static Scenario scenario(String id) {

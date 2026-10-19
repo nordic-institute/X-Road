@@ -48,6 +48,18 @@ public sealed interface AdminCall {
     record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements AdminCall {
     }
 
+    record AddEndpoint(String serviceCode, String method, String path) implements AdminCall {
+    }
+
+    /** Grants the consumer access to the endpoint of the service with the given method and path. */
+    record GrantEndpointAccess(String serviceCode, String method, String path, String consumerClientId)
+            implements AdminCall {
+    }
+
+    /** Deletes an endpoint created by {@link AddEndpoint}; the base and generated endpoints are never deleted. */
+    record DeleteEndpoint(String serviceCode, String method, String path) implements AdminCall {
+    }
+
     record DeleteDescription(String serviceCode) implements AdminCall {
     }
 }

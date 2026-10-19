@@ -29,18 +29,30 @@ package org.niis.xroad.e2e.parity;
 import java.util.List;
 
 /**
- * One row of the parity catalogue: the fixtures to create, the request to send, and the verdict legacy
- * access rights are expected to give.
+ * One row of the parity catalogue: the fixtures to create, the requests to send, and the verdict legacy
+ * access rights are expected to give each request.
  *
  * @param id           the variation id, for example {@code V01}
  * @param description  a short human-readable summary of the row
- * @param fixture      what to create on the provider before the request
- * @param request      the request to send from the consumer Security Server
- * @param expected     the verdict legacy access rights give
- * @param waitClass    which propagation delay the verdict has to wait out
+ * @param fixture      what to create on the provider before the requests
+ * @param checks       the requests to send from the consumer Security Server, each with its expected verdict
+ * @param waitClass    which propagation delay the verdicts have to wait out
  */
-public record Scenario(String id, String description, FixtureSpec fixture, RequestSpec request, Verdict expected,
+public record Scenario(String id, String description, FixtureSpec fixture, List<Check> checks,
                        WaitClass waitClass) {
+
+    /** A row with a single request. */
+    public Scenario(String id, String description, FixtureSpec fixture, RequestSpec request, Verdict expected,
+                    WaitClass waitClass) {
+        this(id, description, fixture, List.of(new Check(request, expected)), waitClass);
+    }
+
+    /**
+     * @param request  the call that produces the verdict
+     * @param expected the verdict legacy access rights give
+     */
+    public record Check(RequestSpec request, Verdict expected) {
+    }
 
     /** The provider-side delay between a configuration change and the verdict it causes. */
     public enum WaitClass {
@@ -60,11 +72,27 @@ public record Scenario(String id, String description, FixtureSpec fixture, Reque
     }
 
     /**
-     * A REST service with the base endpoint granted to each listed consumer.
+     * A REST service with the base endpoint granted to each listed consumer, and further endpoints created
+     * on top of it.
      *
      * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param endpoints          the endpoints created next to the base endpoint
      */
-    public record RestService(List<String> grantedConsumerIds) implements ServiceSpec {
+    public record RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints) implements ServiceSpec {
+
+        public RestService(List<String> grantedConsumerIds) {
+            this(grantedConsumerIds, List.of());
+        }
+    }
+
+    /**
+     * An endpoint created on a REST service.
+     *
+     * @param method             the HTTP method, or {@code *} for any
+     * @param path               the path pattern, starting with {@code /}
+     * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     */
+    public record EndpointSpec(String method, String path, List<String> grantedConsumerIds) {
     }
 
     /** The service layout of a WSDL description. */
@@ -115,16 +143,25 @@ public record Scenario(String id, String description, FixtureSpec fixture, Reque
 
         /** The position of the called service code among all service codes the fixture creates. */
         int serviceIndex();
+
+        /** A short text naming the call, for failure messages. */
+        String describe();
     }
 
     /**
      * @param consumerClientId the calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
      * @param serviceIndex     the position of the called service code among all service codes the fixture creates
      * @param method           the HTTP method
-     * @param path             the path after the service code, starting with {@code /}
+     * @param path             the path after the service code, starting with {@code /}, or empty for the bare
+     *                         service root
      */
     public record RestRequest(String consumerClientId, int serviceIndex, String method, String path)
             implements RequestSpec {
+
+        @Override
+        public String describe() {
+            return method + " " + (path.isEmpty() ? "(service root)" : path);
+        }
     }
 
     /**
@@ -136,5 +173,10 @@ public record Scenario(String id, String description, FixtureSpec fixture, Reque
      */
     public record SoapRequest(String consumerClientId, int serviceIndex, String serviceVersion,
                               String securityServerHint) implements RequestSpec {
+
+        @Override
+        public String describe() {
+            return "SOAP call as " + consumerClientId + " to service " + serviceIndex;
+        }
     }
 }

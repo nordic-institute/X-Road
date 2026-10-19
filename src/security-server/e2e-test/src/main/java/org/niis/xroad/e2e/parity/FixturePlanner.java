@@ -26,11 +26,14 @@
 
 package org.niis.xroad.e2e.parity;
 
+import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
@@ -44,7 +47,8 @@ import java.util.Locale;
  * Turns a scenario's fixture spec into admin calls. Every service code carries the run token and the
  * scenario id, so fixtures of different scenarios and of earlier runs never collide, and no shared
  * service description is ever touched. Deleting a service description also removes its access rights,
- * so the cleanup is one delete per created description.
+ * so the cleanup is one delete per created description, preceded by the delete of each endpoint the scenario
+ * created. The base endpoint and generated endpoints are never deleted on their own.
  */
 public final class FixturePlanner {
 
@@ -61,6 +65,7 @@ public final class FixturePlanner {
     public FixturePlan plan(String scenarioId, FixtureSpec spec) {
         var codes = new ArrayList<String>();
         var descriptionKeys = new ArrayList<String>();
+        var endpointDeletes = new ArrayList<List<AdminCall>>();
         var setup = new ArrayList<AdminCall>();
         var services = spec.services();
         for (var index = 0; index < services.size(); index++) {
@@ -72,12 +77,14 @@ public final class FixturePlanner {
                     setup.add(new AddRestDescription(spec.providerClientId(), backendUrl(base), base));
                     setup.add(new EnableDescription(base));
                     grant(setup, spec.providerClientId(), base, rest.grantedConsumerIds());
+                    endpointDeletes.add(endpoints(setup, base, rest));
                 }
                 case WsdlService wsdl -> {
                     var wsdlCodes = wsdlCodes(base, wsdl);
                     var key = wsdlCodes.get(0);
                     codes.addAll(wsdlCodes);
                     descriptionKeys.add(key);
+                    endpointDeletes.add(List.of());
                     setup.add(new AddWsdlDescription(spec.providerClientId(), wsdlUrl(wsdl.shape(), wsdlCodes), key));
                     setup.add(new EnableDescription(key));
                     for (var i = 0; i < wsdlCodes.size(); i++) {
@@ -88,9 +95,22 @@ public final class FixturePlanner {
         }
         var cleanup = new ArrayList<AdminCall>();
         for (var index = descriptionKeys.size() - 1; index >= 0; index--) {
+            cleanup.addAll(endpointDeletes.get(index).reversed());
             cleanup.add(new DeleteDescription(descriptionKeys.get(index)));
         }
         return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(cleanup));
+    }
+
+    private static List<AdminCall> endpoints(List<AdminCall> setup, String serviceCode, RestService rest) {
+        var deletes = new ArrayList<AdminCall>();
+        for (var endpoint : rest.endpoints()) {
+            setup.add(new AddEndpoint(serviceCode, endpoint.method(), endpoint.path()));
+            for (var consumer : endpoint.grantedConsumerIds()) {
+                setup.add(new GrantEndpointAccess(serviceCode, endpoint.method(), endpoint.path(), consumer));
+            }
+            deletes.add(new DeleteEndpoint(serviceCode, endpoint.method(), endpoint.path()));
+        }
+        return deletes;
     }
 
     private static void grant(List<AdminCall> setup, String providerClientId, String serviceCode,

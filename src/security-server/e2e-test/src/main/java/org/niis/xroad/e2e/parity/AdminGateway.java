@@ -39,6 +39,14 @@ public interface AdminGateway {
 
     void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
 
+    /** Creates an endpoint on the REST service of the description and returns its id. */
+    String addEndpoint(String descriptionId, String serviceCode, String method, String path);
+
+    void grantEndpointAccess(String endpointId, String consumerClientId);
+
+    /** Deletes the endpoint and returns the HTTP status of the call. */
+    int deleteEndpoint(String endpointId);
+
     /** Deletes the service description and returns the HTTP status of the call. */
     int deleteDescription(String descriptionId);
 }

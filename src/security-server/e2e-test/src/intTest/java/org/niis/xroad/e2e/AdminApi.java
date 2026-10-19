@@ -32,6 +32,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.container.SsStackSetup;
+import org.niis.xroad.e2e.parity.EndpointIds;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
@@ -240,6 +241,71 @@ class AdminApi {
         assertThat(response.getStatusCode())
                 .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
+    }
+
+    /**
+     * Creates an endpoint on the REST service {@code serviceCode} of the service description and returns its id.
+     * The service id is resolved from the description, because it is the path key of the endpoint call. The
+     * creation response carries no endpoint id, so the id is read from the service's endpoint list afterwards.
+     */
+    static String addEndpoint(String baseUrl, AdminSession session, String serviceDescriptionId, String serviceCode,
+                              String method, String path) {
+        var services = authed(session).get(baseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/services");
+        assertThat(services.getStatusCode())
+                .as("list services of service description %s", serviceDescriptionId)
+                .isEqualTo(HTTP_OK);
+        var serviceId = services.jsonPath().getString("find { it.service_code == '" + serviceCode + "' }.id");
+        assertThat(serviceId)
+                .as("a service with code %s in service description %s", serviceCode, serviceDescriptionId)
+                .isNotBlank();
+
+        var body = """
+                {
+                  "service_code": "%s",
+                  "method": "%s",
+                  "path": "%s"
+                }
+                """.formatted(serviceCode, method, path);
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(baseUrl + "/api/v1/services/" + serviceId + "/endpoints");
+        assertThat(response.getStatusCode())
+                .as("add endpoint %s %s to %s: %s", method, path, serviceId, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+        return findEndpointId(baseUrl, session, serviceId, method, path);
+    }
+
+    private static String findEndpointId(String baseUrl, AdminSession session, String serviceId, String method,
+                                         String path) {
+        var service = authed(session).get(baseUrl + "/api/v1/services/" + serviceId);
+        assertThat(service.getStatusCode()).as("get service %s", serviceId).isEqualTo(HTTP_OK);
+        var id = EndpointIds.find(service.jsonPath().getList("endpoints"), method, path);
+        assertThat(id).as("endpoint %s %s in the endpoints of service %s", method, path, serviceId).isPresent();
+        return id.orElseThrow();
+    }
+
+    /** Grants the consumer access to the endpoint. */
+    static void grantEndpointAccess(String baseUrl, AdminSession session, String endpointId, String consumerClientId) {
+        var body = """
+                {
+                  "items": [
+                    { "id": "%s" }
+                  ]
+                }
+                """.formatted(consumerClientId);
+        var response = authed(session)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(baseUrl + "/api/v1/endpoints/" + endpointId + "/service-clients");
+        assertThat(response.getStatusCode())
+                .as("grant %s access to endpoint %s: %s", consumerClientId, endpointId, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+    }
+
+    /** Deletes the endpoint and returns the HTTP status of the call without asserting it. */
+    static int requestEndpointDeletion(String baseUrl, AdminSession session, String endpointId) {
+        return authed(session).delete(baseUrl + "/api/v1/endpoints/" + endpointId).getStatusCode();
     }
 
     /**

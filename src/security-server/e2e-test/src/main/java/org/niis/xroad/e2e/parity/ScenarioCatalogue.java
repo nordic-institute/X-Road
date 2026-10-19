@@ -26,6 +26,8 @@
 
 package org.niis.xroad.e2e.parity;
 
+import org.niis.xroad.e2e.parity.Scenario.Check;
+import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
@@ -68,6 +70,39 @@ public final class ScenarioCatalogue {
                     wsdl(WsdlShape.PAIR, "", List.of(CONSUMER_ONLY, List.of())),
                     new SoapRequest(CONSUMER, 1, V1, null),
                     Verdict.ACCESS_DENIED, WaitClass.ACL_CACHE),
+            new Scenario("V20", "Base endpoint granted, any method and any path",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    List.of(allowed("GET", "/a/b/c"), allowed("POST", "/a/b/c")), WaitClass.ACL_CACHE),
+            new Scenario("V21", "Base endpoint granted, bare service root",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    List.of(allowed("GET", "")), WaitClass.ACL_CACHE),
+            new Scenario("V22", "GET /foo endpoint granted, exact method and path",
+                    endpointOnly("GET", "/foo"),
+                    List.of(allowed("GET", "/foo")), WaitClass.ACL_CACHE),
+            new Scenario("V23", "GET /foo endpoint granted, another method",
+                    endpointOnly("GET", "/foo"),
+                    List.of(denied("POST", "/foo")), WaitClass.ACL_CACHE),
+            new Scenario("V24", "GET /foo endpoint granted, trailing slash",
+                    endpointOnly("GET", "/foo"),
+                    List.of(denied("GET", "/foo/")), WaitClass.ACL_CACHE),
+            new Scenario("V25", "GET /foo endpoint granted, sub-path",
+                    endpointOnly("GET", "/foo"),
+                    List.of(denied("GET", "/foo/bar")), WaitClass.ACL_CACHE),
+            new Scenario("V26", "GET /foo/* endpoint granted, one segment",
+                    endpointOnly("GET", "/foo/*"),
+                    List.of(allowed("GET", "/foo/x"), allowed("GET", "/foo/"), denied("GET", "/foo/x/y"),
+                            denied("GET", "/foo")), WaitClass.ACL_CACHE),
+            new Scenario("V27", "GET /foo/** endpoint granted, any depth below foo",
+                    endpointOnly("GET", "/foo/**"),
+                    List.of(allowed("GET", "/foo/x/y"), denied("GET", "/foo"), denied("GET", "")),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V28", "Any method on /** endpoint granted, bare service root",
+                    endpointOnly("*", "/**"),
+                    List.of(denied("GET", ""), allowed("GET", "/a/b"), allowed("POST", "/a/b")),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V29", "GET /*/bar endpoint granted, one segment before bar",
+                    endpointOnly("GET", "/*/bar"),
+                    List.of(allowed("GET", "/a/bar"), denied("GET", "/a/b/bar")), WaitClass.ACL_CACHE),
             new Scenario("V128", "SOAP service in two versions, the second version called",
                     wsdl(WsdlShape.VERSIONS, "", List.of(CONSUMER_ONLY)),
                     new SoapRequest(CONSUMER, 0, "v2", null),
@@ -94,6 +129,20 @@ public final class ScenarioCatalogue {
 
     public static List<Scenario> all() {
         return ALL;
+    }
+
+    private static Check allowed(String method, String path) {
+        return new Check(new RestRequest(CONSUMER, 0, method, path), Verdict.ALLOWED);
+    }
+
+    private static Check denied(String method, String path) {
+        return new Check(new RestRequest(CONSUMER, 0, method, path), Verdict.ACCESS_DENIED);
+    }
+
+    /** A REST service whose only grant is the consumer's access to one created endpoint. */
+    private static FixtureSpec endpointOnly(String method, String path) {
+        return new FixtureSpec(PROVIDER, List.of(
+                new RestService(List.of(), List.of(new EndpointSpec(method, path, CONSUMER_ONLY)))));
     }
 
     private static FixtureSpec wsdl(WsdlShape shape, String codeTail, List<List<String>> grantedByCode) {

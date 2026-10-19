@@ -27,11 +27,15 @@
 package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
@@ -97,7 +101,8 @@ class FixturePlannerTest {
             var codes = planner.plan(scenario.id(), scenario.fixture()).serviceCodes();
 
             assertThat(codes).as(scenario.id()).isNotEmpty().doesNotHaveDuplicates();
-            assertThat(scenario.request().serviceIndex()).as(scenario.id()).isLessThan(codes.size());
+            assertThat(scenario.checks()).as(scenario.id()).isNotEmpty()
+                    .allSatisfy(check -> assertThat(check.request().serviceIndex()).isLessThan(codes.size()));
         }
     }
 
@@ -166,6 +171,37 @@ class FixturePlannerTest {
         assertThat(plan.cleanup()).containsExactly(
                 new DeleteDescription("pab12-v09-2"),
                 new DeleteDescription("pab12-v09"));
+    }
+
+    @Test
+    void endpointsAreCreatedAndGrantedAfterTheBaseGrantsAndDeletedInReverseBeforeTheDescription() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of(),
+                List.of(new EndpointSpec("GET", "/foo", List.of(ScenarioCatalogue.CONSUMER)),
+                        new EndpointSpec("*", "/**", List.of())))));
+
+        var plan = new FixturePlanner("ab12").plan("V22", spec);
+
+        assertThat(plan.setup()).containsExactly(
+                new AddRestDescription(ScenarioCatalogue.PROVIDER, "http://isrest:8080/acl-parity/pab12-v22", "pab12-v22"),
+                new EnableDescription("pab12-v22"),
+                new AddEndpoint("pab12-v22", "GET", "/foo"),
+                new GrantEndpointAccess("pab12-v22", "GET", "/foo", ScenarioCatalogue.CONSUMER),
+                new AddEndpoint("pab12-v22", "*", "/**"));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteEndpoint("pab12-v22", "*", "/**"),
+                new DeleteEndpoint("pab12-v22", "GET", "/foo"),
+                new DeleteDescription("pab12-v22"));
+    }
+
+    @Test
+    void onlyEndpointsTheScenarioCreatedAreDeleted() {
+        for (var scenario : ScenarioCatalogue.all()) {
+            var plan = new FixturePlanner("ab12").plan(scenario.id(), scenario.fixture());
+            var created = plan.setup().stream().filter(AddEndpoint.class::isInstance).count();
+
+            assertThat(plan.cleanup().stream().filter(DeleteEndpoint.class::isInstance).count())
+                    .as(scenario.id()).isEqualTo(created);
+        }
     }
 
     @Test

@@ -27,6 +27,7 @@ package org.niis.xroad.e2e;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Named;
@@ -44,9 +45,11 @@ import org.niis.xroad.e2e.parity.FixturePlanner;
 import org.niis.xroad.e2e.parity.Reply;
 import org.niis.xroad.e2e.parity.RestRequests;
 import org.niis.xroad.e2e.parity.Scenario;
+import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
 import org.niis.xroad.e2e.parity.ScenarioCatalogue;
+import org.niis.xroad.e2e.parity.ScenarioVerdicts;
 import org.niis.xroad.e2e.parity.SoapRequests;
 import org.niis.xroad.e2e.parity.VerdictClassifier;
 import org.niis.xroad.e2e.parity.VerdictPoller;
@@ -58,7 +61,6 @@ import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.login;
@@ -107,21 +109,23 @@ class AclParityTest extends E2eTest {
         var plan = new FixturePlanner(RUN_TOKEN).plan(scenario.id(), scenario.fixture());
 
         try (var fixture = new FixtureExecutor(gateway).open(plan)) {
-            var result = new VerdictPoller().await(() -> call(env, scenario, plan), scenario.expected(),
+            var outcomes = ScenarioVerdicts.poll(new VerdictPoller(), scenario,
+                    request -> call(env, scenario, plan, request),
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT,
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
-            log.info("{}: verdict {} ({}) after {} attempts in {} s", scenario.id(), result.last(), result.detail(),
-                    result.attempts(), result.elapsed().toSeconds());
-            assertTrue(result.matched(), () -> result.failureMessage(scenario.id(), scenario.expected()));
+            outcomes.forEach(outcome -> log.info("{}: {} -> verdict {} ({}) after {} attempts in {} s", scenario.id(),
+                    outcome.check().request().describe(), outcome.result().last(), outcome.result().detail(),
+                    outcome.result().attempts(), outcome.result().elapsed().toSeconds()));
+            ScenarioVerdicts.failureMessage(scenario.id(), outcomes).ifPresent(Assertions::fail);
         }
     }
 
-    private static Observation call(E2eEnvironment env, Scenario scenario, FixturePlan plan) {
+    private static Observation call(E2eEnvironment env, Scenario scenario, FixturePlan plan, RequestSpec request) {
         var proxy = env.getContainerMapping(SS1_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         var proxyOrigin = "http://%s:%s".formatted(proxy.host(), proxy.port());
         var providerClientId = scenario.fixture().providerClientId();
-        var serviceCode = plan.serviceCodes().get(scenario.request().serviceIndex());
-        return switch (scenario.request()) {
+        var serviceCode = plan.serviceCodes().get(request.serviceIndex());
+        return switch (request) {
             case RestRequest rest -> {
                 var reply = toReply(RestAssuredFactory.given()
                         .header(RestRequests.CLIENT_HEADER, RestRequests.clientHeader(rest.consumerClientId()))
