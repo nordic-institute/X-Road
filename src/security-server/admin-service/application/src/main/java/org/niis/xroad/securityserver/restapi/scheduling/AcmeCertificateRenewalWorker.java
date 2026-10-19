@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeKeyPurpose;
@@ -85,7 +84,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SECURITY_SERVER_NOT
  */
 @Slf4j
 @Component
-@Transactional
 @RequiredArgsConstructor
 public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
