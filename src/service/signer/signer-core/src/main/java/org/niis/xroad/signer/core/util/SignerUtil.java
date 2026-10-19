@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.signer.core.util;
 
+import ee.ria.xroad.common.util.X500Names;
+
 import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.Key;
@@ -107,7 +109,7 @@ public final class SignerUtil {
         cal.add(Calendar.YEAR, 2);
         Date notAfter = cal.getTime();
 
-        X500Name subject = new X500Name("CN=" + commonName);
+        X500Name subject = X500Names.fromString("CN=" + commonName);
 
         var builder = new JcaX509v3CertificateBuilder(
                 subject, BigInteger.ONE, notBefore, notAfter,

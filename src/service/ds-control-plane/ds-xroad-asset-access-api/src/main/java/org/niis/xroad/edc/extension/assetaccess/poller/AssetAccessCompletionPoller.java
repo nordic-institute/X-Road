@@ -64,6 +64,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
@@ -91,11 +92,18 @@ public class AssetAccessCompletionPoller {
     private static final String COMPLETION_THREAD_NAME = "AssetAccessCompletionPoller-completion";
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5;
     private static final String DEFAULT_TERMINATION_DETAIL = "provider terminated";
+    private static final Set<TransferProcessStates> TRANSFER_FAILURE_STATES = Set.of(
+            TransferProcessStates.TERMINATING, TransferProcessStates.TERMINATING_REQUESTED, TransferProcessStates.TERMINATED);
     private static final int READ_BATCH_SIZE = 500;
     private static final List<String> NEGOTIATION_TERMINAL_STATES =
-            List.of(ContractNegotiationStates.FINALIZED.name(), ContractNegotiationStates.TERMINATED.name());
+            List.of(ContractNegotiationStates.FINALIZED.name(),
+                    ContractNegotiationStates.TERMINATING.name(),
+                    ContractNegotiationStates.TERMINATED.name());
     private static final List<String> TRANSFER_TERMINAL_STATES =
-            List.of(TransferProcessStates.STARTED.name(), TransferProcessStates.TERMINATED.name());
+            List.of(TransferProcessStates.STARTED.name(),
+                    TransferProcessStates.TERMINATING.name(),
+                    TransferProcessStates.TERMINATING_REQUESTED.name(),
+                    TransferProcessStates.TERMINATED.name());
 
     private final ContractNegotiationStore negotiationStore;
     private final TransferProcessStore transferProcessStore;
@@ -137,8 +145,9 @@ public class AssetAccessCompletionPoller {
     /**
      * Registers a negotiation id to await; the returned future completes with the contract
      * agreement once the negotiation reaches {@link ContractNegotiationStates#FINALIZED}, fails with
-     * the stored error detail once it reaches {@link ContractNegotiationStates#TERMINATED}, or fails
-     * with a timeout once {@code timeout} passes without a terminal state.
+     * the stored error detail once it reaches {@link ContractNegotiationStates#TERMINATING} or
+     * {@link ContractNegotiationStates#TERMINATED}, or fails with a timeout once {@code timeout}
+     * passes without a terminal state.
      */
     public CompletableFuture<ContractAgreement> awaitNegotiation(String negotiationId, Duration timeout) {
         return register(negotiationWaiters, negotiationId, timeout);
@@ -148,8 +157,10 @@ public class AssetAccessCompletionPoller {
      * Registers a transfer process id to await; the returned future completes with the data address
      * resolved through {@link DataAddressStore} once the transfer reaches
      * {@link TransferProcessStates#STARTED}, fails with the stored error detail once it reaches
-     * {@link TransferProcessStates#TERMINATED}, or fails with a timeout once {@code timeout} passes
-     * without a terminal state.
+     * {@link TransferProcessStates#TERMINATING}, {@link TransferProcessStates#TERMINATING_REQUESTED}
+     * or {@link TransferProcessStates#TERMINATED}, fails with {@code DSP_DATAADDRESS_INVALID} if a
+     * started transfer's data address cannot be resolved, or fails with a timeout once {@code timeout}
+     * passes without a terminal state.
      */
     public CompletableFuture<DataAddress> awaitTransfer(String transferProcessId, Duration timeout) {
         return register(transferWaiters, transferProcessId, timeout);
@@ -295,8 +306,8 @@ public class AssetAccessCompletionPoller {
                 completions.add(() -> completeWaiter(negotiationWaiters, id, waiter, agreement));
                 return;
             }
-            if (state == ContractNegotiationStates.TERMINATED) {
-                monitor.debug("Negotiation %s reached TERMINATED".formatted(id));
+            if (state == ContractNegotiationStates.TERMINATING || state == ContractNegotiationStates.TERMINATED) {
+                monitor.debug("Negotiation %s reached %s".formatted(id, state));
                 var failure = negotiationFailure(id, errorDetailOrDefault(negotiation.getErrorDetail()));
                 completions.add(() -> failWaiter(negotiationWaiters, id, waiter, failure));
                 return;
@@ -313,8 +324,8 @@ public class AssetAccessCompletionPoller {
                 completions.add(() -> resolveAndCompleteTransfer(id, waiter, transferProcess));
                 return;
             }
-            if (state == TransferProcessStates.TERMINATED) {
-                monitor.debug("Transfer process %s reached TERMINATED".formatted(id));
+            if (TRANSFER_FAILURE_STATES.contains(state)) {
+                monitor.debug("Transfer process %s reached %s".formatted(id, state));
                 var failure = transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail()));
                 completions.add(() -> failWaiter(transferWaiters, id, waiter, failure));
                 return;
@@ -348,10 +359,10 @@ public class AssetAccessCompletionPoller {
                 if (resolved.succeeded()) {
                     waiter.future().complete(resolved.getContent());
                 } else {
-                    waiter.future().completeExceptionally(transferFailure(id, resolved.getFailureDetail()));
+                    waiter.future().completeExceptionally(dataAddressResolutionFailure(id, resolved.getFailureDetail()));
                 }
             } catch (Exception e) {
-                waiter.future().completeExceptionally(transferFailure(id, e.getMessage()));
+                waiter.future().completeExceptionally(dataAddressResolutionFailure(id, e.getMessage()));
             }
         });
     }
@@ -410,6 +421,14 @@ public class AssetAccessCompletionPoller {
 
     private static XrdRuntimeException transferFailure(String transferProcessId, String reason) {
         return XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(transferProcessId)
+                .details(reason)
+                .build();
+    }
+
+    private static XrdRuntimeException dataAddressResolutionFailure(String transferProcessId, String reason) {
+        return XrdRuntimeException.systemException(DSP_DATAADDRESS_INVALID)
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems(transferProcessId)
                 .details(reason)

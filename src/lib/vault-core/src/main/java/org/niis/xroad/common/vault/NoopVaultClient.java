@@ -94,6 +94,21 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
+    public Optional<X509Certificate> getOpMonitorCa() {
+        return Optional.empty();
+    }
+
+    @Override
+    public void createOpMonitorCa(X509Certificate certificate) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void clearOpMonitorCa() {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         throw new UnsupportedOperationException("Not supported");
     }

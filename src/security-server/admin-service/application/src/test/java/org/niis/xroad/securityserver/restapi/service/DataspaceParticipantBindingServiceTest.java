@@ -74,7 +74,7 @@ class DataspaceParticipantBindingServiceTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getDidPort()).thenReturn(7183);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of("ss.example.test"));
 

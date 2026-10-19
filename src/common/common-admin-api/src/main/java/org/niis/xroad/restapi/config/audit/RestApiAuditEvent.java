@@ -198,7 +198,10 @@ public enum RestApiAuditEvent {
     GENERATE_DS_TLS_KEY("Generate data space TLS key"),
     GENERATE_DS_TLS_CSR("Generate data space TLS certificate signing request"),
     UPLOAD_DS_TLS_CERT("Upload data space TLS certificate"),
-    ORDER_DS_TLS_CERT("Order data space TLS certificate via ACME");
+    ORDER_DS_TLS_CERT("Order data space TLS certificate via ACME"),
+
+    UPLOAD_OP_MONITOR_CA("Upload op-monitor CA certificate"),
+    DELETE_OP_MONITOR_CA("Delete op-monitor CA certificate");
     private final String eventName;
 
     RestApiAuditEvent(String eventName) {

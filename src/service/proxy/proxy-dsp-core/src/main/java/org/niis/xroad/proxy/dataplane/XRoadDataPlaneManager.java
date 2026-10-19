@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.dataplane;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
@@ -40,6 +39,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 /**
  * Manager for active data flows in the X-Road proxy data plane.
@@ -81,92 +81,97 @@ public class XRoadDataPlaneManager {
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
      */
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
-        log.info("Preparing data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowStates.PROVISIONED);
-        return buildStatusMessage(DataFlowStates.PROVISIONED, message.getAgreementId());
+        log.info("Preparing data flow for process {}", message.getDataFlowId());
+        applyTransition(message.getDataFlowId(), DataFlowTransition.PREPARE);
+        return buildStatusMessage(DataFlowLifecycleState.PROVISIONED, message.getAgreementId());
     }
 
     /**
      * Handles a start request, preserving {@code Xrd-PULL} semantics: validates the transfer type,
      * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint, and returns it
-     * wrapped in a {@link DataFlowStatusMessage}.
+     * wrapped in a {@link DataFlowStatusMessage}. This is also how a suspended flow resumes: EDC's control
+     * plane re-sends start and the flow returns to {@link DataFlowLifecycleState#STARTED}.
      *
      * @param message incoming start message
      * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
-     * @throws XrdRuntimeException if the transfer type is not {@code Xrd-PULL}
+     * @throws XrdRuntimeException if the transfer type is not {@code Xrd-PULL} or the flow is completed or terminated
      */
     public DataFlowStatusMessage start(DataFlowStartMessage message) {
         validateXrdPull(message);
-        log.info("Starting Xrd-PULL data flow for process {}", message.getProcessId());
-        storeState(message.getProcessId(), DataFlowStates.STARTED);
-        return buildStatusMessage(DataFlowStates.STARTED, message.getAgreementId());
+        log.info("Starting Xrd-PULL data flow for process {}", message.getDataFlowId());
+        applyTransition(message.getDataFlowId(), DataFlowTransition.START);
+        return buildStatusMessage(DataFlowLifecycleState.STARTED, message.getAgreementId());
     }
 
     /**
-     * Handles the consumer-side started notification: the provider control plane has started
-     * the transfer and, for {@code Xrd-PULL}, data may now be pulled through the proxy.
+     * Handles the started notification this data plane receives from its own control plane: the transfer
+     * has started and, for {@code Xrd-PULL}, data may now be pulled through the proxy. The flow lands on
+     * {@link DataFlowLifecycleState#STARTED}.
      *
      * @param flowId process ID of the flow that started
-     * @return status message with state {@link DataFlowStates#STARTED}
+     * @return status message with state {@link DataFlowLifecycleState#STARTED}
      */
     public DataFlowStatusMessage started(String flowId) {
         log.info("Data flow {} started", flowId);
-        storeState(flowId, DataFlowStates.STARTED);
+        applyTransition(flowId, DataFlowTransition.NOTIFY_STARTED);
         return DataFlowStatusMessage.Builder.newInstance()
-                .state(DataFlowStates.STARTED.toString())
+                .state(DataFlowLifecycleState.STARTED.name())
                 .build();
     }
 
     /**
-     * Completes a data flow, transitioning it to {@link DataFlowStates#COMPLETED}.
+     * Completes a data flow, transitioning it to {@link DataFlowLifecycleState#COMPLETED}.
      *
      * @param flowId process ID of the flow to complete
+     * @throws XrdRuntimeException if the flow is not {@link DataFlowLifecycleState#STARTED} or already completed
      */
     public void completed(String flowId) {
         log.info("Completing data flow {}", flowId);
-        storeState(flowId, DataFlowStates.COMPLETED);
+        applyTransition(flowId, DataFlowTransition.COMPLETE);
     }
 
     /**
-     * Terminates an active data flow, transitioning it to {@link DataFlowStates#TERMINATED}.
+     * Terminates an active data flow, transitioning it to {@link DataFlowLifecycleState#TERMINATED}.
      *
      * @param flowId process ID of the flow to terminate
+     * @throws XrdRuntimeException if the flow is unknown or already in a terminal state
      */
     public void terminate(String flowId) {
         log.info("Terminating data flow {}", flowId);
-        storeState(flowId, DataFlowStates.TERMINATED);
+        applyTransition(flowId, DataFlowTransition.TERMINATE);
     }
 
     /**
-     * Suspends an active data flow, transitioning it to {@link DataFlowStates#SUSPENDED}.
+     * Suspends an active data flow, transitioning it to {@link DataFlowLifecycleState#SUSPENDED}.
      *
      * @param flowId  process ID of the flow to suspend
      * @param reason  optional suspend reason (may be null)
+     * @throws XrdRuntimeException if the flow is not {@link DataFlowLifecycleState#STARTED} or already suspended
      */
     public void suspend(String flowId, String reason) {
         log.info("Suspending data flow {} — reason: {}", flowId, reason);
-        storeState(flowId, DataFlowStates.SUSPENDED);
+        applyTransition(flowId, DataFlowTransition.SUSPEND);
     }
 
     /**
      * Returns the current state of a data flow.
      *
      * @param flowId process ID of the flow
-     * @return current {@link DataFlowStates}; {@link DataFlowStates#FAILED} if not found
+     * @return current {@link DataFlowLifecycleState}; {@link DataFlowLifecycleState#FAILED} if not found
      */
-    public DataFlowStates state(String flowId) {
-        return flowStateStore.find(flowId).orElse(DataFlowStates.FAILED);
+    public DataFlowLifecycleState state(String flowId) {
+        return flowStateStore.find(flowId).orElse(DataFlowLifecycleState.FAILED);
     }
 
     private void validateXrdPull(DataFlowStartMessage message) {
-        var transferType = message.getTransferType();
-        if (!XRD_PULL_TRANSFER_TYPE.equals(transferType)) {
+        var profile = message.getProfile();
+        if (!XRD_PULL_TRANSFER_TYPE.equals(profile)) {
             throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
-                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(transferType));
+                    "TransferType %s not supported — only Xrd-PULL is accepted".formatted(profile));
         }
     }
 
-    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state, String agreementId) {
+    private DataFlowStatusMessage buildStatusMessage(DataFlowLifecycleState state, String agreementId) {
         var protocol = proxyProperties.sslEnabled() ? "https" : "http";
         var endpoint = resolveServerproxyEndpoint(protocol);
         var dataAddressBuilder = DspDataAddress.Builder.newInstance()
@@ -177,7 +182,7 @@ public class XRoadDataPlaneManager {
                 .property(AUTH_TYPE_PROPERTY, BEARER_AUTH_TYPE));
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddressBuilder.build())
-                .state(state.toString())
+                .state(state.name())
                 .build();
     }
 
@@ -196,7 +201,11 @@ public class XRoadDataPlaneManager {
         return dspProperties.serverproxyEndpoint();
     }
 
-    private void storeState(String processId, DataFlowStates state) {
-        flowStateStore.save(processId, state);
+    /**
+     * Applies {@code transition} through the shared store, which validates and persists it as one operation;
+     * a retried signal that finds the flow already in its target state is answered like the original.
+     */
+    private void applyTransition(String processId, DataFlowTransition transition) {
+        flowStateStore.apply(processId, transition);
     }
 }

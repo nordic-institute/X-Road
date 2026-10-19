@@ -5,8 +5,8 @@ plugins {
 
 dependencies {
   implementation(libs.edc.sql.contract.negotiation)
-  implementation(libs.edc.spi.transaction.datasource)
-  implementation(libs.edc.lib.sql)
+  implementation(libs.edc.spi.core)
+  implementation(libs.edc.lib.core)
   implementation(libs.edc.sql.lease)
   implementation(libs.edc.sql.lease.spi)
   implementation(libs.edc.core.sql.bootstrapper)
@@ -14,12 +14,12 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.edc.junit)
-  testImplementation(libs.edc.spi.policy)
-  testImplementation(libs.edc.lib.json)
+  testImplementation(libs.edc.spi.controlplane)
+  testImplementation(libs.edc.lib.jsonld)
   testImplementation(libs.postgresql)
   testImplementation(libs.testcontainers.junit)
   testImplementation(libs.testcontainers.postgresql)
-  testImplementation(testFixtures(libs.edc.spi.contract))
+  testImplementation(testFixtures(libs.edc.spi.controlplane))
   testImplementation(testFixtures(libs.edc.sql.test.fixtures))
 }
 

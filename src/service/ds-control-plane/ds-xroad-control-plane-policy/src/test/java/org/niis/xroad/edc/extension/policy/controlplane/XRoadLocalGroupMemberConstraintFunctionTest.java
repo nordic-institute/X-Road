@@ -30,11 +30,14 @@ package org.niis.xroad.edc.extension.policy.controlplane;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
+import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToOperatorTransformer;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +48,10 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,13 +82,23 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
     }
 
     @Test
-    void evaluateInOperatorWhenMemberReturnsTrue() {
+    void evaluateIsPartOfWireOperatorWhenMemberReturnsTrue() {
         when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(Operator.IN, "myLocalGroup", permission, context);
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), "myLocalGroup", permission, context);
 
         assertThat(result).isTrue();
+    }
+
+    @Test
+    void evaluateIsPartOfWireOperatorWhenNotMemberReturnsFalse() {
+        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), "myLocalGroup", permission, context);
+
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -113,6 +129,11 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
+    }
+
+    private static Operator operatorFromWire(String wireValue) {
+        var jsonOperator = Json.createObjectBuilder().add(ID, ODRL_SCHEMA + wireValue).build();
+        return new JsonObjectToOperatorTransformer().transform(jsonOperator, mock(TransformerContext.class));
     }
 
     private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {

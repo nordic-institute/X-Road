@@ -38,7 +38,6 @@ import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.sc
 import org.eclipse.edc.connector.controlplane.transfer.dataaddress.VaultDataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -353,7 +352,7 @@ class TwoInstanceCompletionPostgresTest {
         var badTransferProcessId = "tp-bad-" + UUID.randomUUID();
         var writtenTransferProcessId = "tp-written-" + UUID.randomUUID();
 
-        var dataAddressStore = new VaultDataAddressStore(sharedVault, null, null, new DataPlaneProtocolInUse(), ObjectMapper::new);
+        var dataAddressStore = new VaultDataAddressStore(sharedVault, ObjectMapper::new);
         var address = DataAddress.Builder.newInstance()
                 .type("HttpData")
                 .property("baseUrl", "https://provider.example/data")
@@ -414,7 +413,7 @@ class TwoInstanceCompletionPostgresTest {
         var transferProcessStore = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), manager.getMapper(), transferStatements, transferLeaseContext, queryExecutor);
 
-        var dataAddressStore = new VaultDataAddressStore(sharedVault, null, null, new DataPlaneProtocolInUse(), ObjectMapper::new);
+        var dataAddressStore = new VaultDataAddressStore(sharedVault, ObjectMapper::new);
 
         var lookup = new ReusableAgreementLookup(negotiationStore, extension.getTransactionContext());
 

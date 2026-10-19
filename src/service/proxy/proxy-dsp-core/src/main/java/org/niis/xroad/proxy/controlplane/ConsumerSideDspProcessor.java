@@ -102,6 +102,14 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         }
     }
 
+    @Override
+    public void invalidateAssetAccess(DspRequest request) {
+        assetAccessAcquisitionService.invalidateAssetAccess(
+                ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId()),
+                request.serviceId().asEncodedId(),
+                request.sender());
+    }
+
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
         var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);

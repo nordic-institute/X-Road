@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -44,16 +45,17 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
@@ -79,11 +81,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       the same tick — see the method's own Javadoc for the SYSTEM re-anchor case.</li>
  *   <li>{@link #ensureMembershipCredential(ParticipantContext)} — leaves an active
  *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
- *       slot scan; advances past slots in terminal ERROR. For SYSTEM with no owner known yet, returns
- *       {@code UNKNOWN} without scanning or submitting — see {@link #isSystemWithUnknownOwner}.</li>
+ *       slot scan; advances past slots in terminal ERROR. While the hosting Security Server identity is not
+ *       known (for SYSTEM, no owner yet), returns {@code UNKNOWN} without scanning or submitting — see {@link #holderPidBase}.</li>
  *   <li>{@link #readCredentialStatus(ParticipantContext)} — returns the current credential
  *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
- *       without polling. Same SYSTEM-with-no-owner short-circuit as {@link #ensureMembershipCredential}.</li>
+ *       without polling. Same unknown-identity short-circuit as {@link #ensureMembershipCredential}.</li>
  *   <li>{@link #decommissionedParticipants()} — enumerates the bound rows awaiting teardown
  *       convergence.</li>
  *   <li>{@link #teardownParticipant(TombstonedParticipant)} — idempotently deletes one tombstoned
@@ -96,8 +98,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
  * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".
- * For {@link ParticipantKind#SYSTEM}, the slot namespace itself is salted with the current owner —
- * see {@link #holderPidBase}.</p>
+ * The slot namespace itself carries the hosting Security Server identity — see {@link #holderPidBase}.</p>
  *
  * <p>The identity hub reports raw EDC {@code HolderRequestState} names, which have no PENDING value:
  * CREATED, REQUESTING and REQUESTED all denote a request in flight and map to {@link CredentialStatus#PENDING}.</p>
@@ -154,23 +155,43 @@ public class DataspaceProvisioningService {
      *
      * @param participantId    the participant context id
      * @param kind             SYSTEM or MEMBER
-     * @param contextCreated   whether the participant context exists in IdentityHub
+     * @param contextDid       the DID the identity hub serves for the participant context;
+     *                         {@code null} when the context does not exist there or could not be read
+     * @param contextDidUnreadable whether reading {@code contextDid} from the identity hub failed, so
+     *                         a {@code null} there says nothing about whether the context exists
+     * @param intendedDid      the DID this server derives for the participant context today;
+     *                         {@code null} when it cannot be derived (DID authority unknown, unreadable
+     *                         or broken member binding)
      * @param credentialStatus the membership credential state
      * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for SYSTEM
      */
     public record ParticipantContextStatus(
             String participantId,
             ParticipantKind kind,
-            boolean contextCreated,
+            @Nullable Did contextDid,
+            boolean contextDidUnreadable,
+            @Nullable Did intendedDid,
             CredentialStatus credentialStatus,
             @Nullable IdentityStatus identityStatus
     ) {
+        public boolean contextCreated() {
+            return contextDid != null;
+        }
+
+        /**
+         * Whether the identity hub serves exactly the DID this server would provision today. False
+         * when the context is missing, when the DID could not be derived, and on DID drift.
+         */
+        public boolean contextDidMatchesIntended() {
+            return contextDid != null && contextDid.equals(intendedDid);
+        }
     }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
+    private static final MemberIdentity UNREADABLE_IDENTITY = new MemberIdentity(IdentityStatus.UNKNOWN, null);
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
@@ -203,25 +224,47 @@ public class DataspaceProvisioningService {
      */
     public boolean ensureParticipantContext(ParticipantContext context) {
         var identityHubHost = didAuthority.identityHubHost();
+        var participantId = context.participantId();
 
         var did = didFor(context.kind(), context.memberId());
-        requireNoHubDidDrift(context.participantId(), did);
+        var existingDid = identityHubClient.contextDid(participantId);
+        requireNoHubDidDrift(participantId, existingDid, did);
 
         var anchorConfirmed = createIdentityHubContext(context, did, identityHubHost);
-        controlPlaneClient.createParticipantContext(context.participantId(), did);
-        controlPlaneClient.putParticipantContextConfig(context.participantId(), did, stsTokenUrl(identityHubHost));
+        ensureControlPlaneContext(participantId, did, identityHubHost);
+        if (existingDid.isEmpty()) {
+            log.info("Data space provisioning: participant context {} created", participantId);
+        }
         return anchorConfirmed;
     }
 
-    private void requireNoHubDidDrift(String participantId, Did intendedDid) {
-        identityHubClient.contextDid(participantId)
-                .filter(hubDid -> !hubDid.equals(intendedDid))
-                .ifPresent(hubDid -> {
+    /**
+     * Re-applies only the Control Plane half of {@link #ensureParticipantContext}: the participant
+     * context and its STS-bound config. The Control Plane exposes no status to read, so a context
+     * whose identity hub state has already converged still gets its Control Plane records re-put
+     * each tick; that is what heals a lost Control Plane database or a changed identity hub address.
+     * Writes only — no DID derivation, no binding check.
+     *
+     * @param context the participant context whose Control Plane records to re-apply
+     * @param did     the DID the identity hub serves for it, as read by {@link #readContextStatus}
+     */
+    public void ensureControlPlaneContext(ParticipantContext context, Did did) {
+        ensureControlPlaneContext(context.participantId(), did, didAuthority.identityHubHost());
+    }
+
+    private void ensureControlPlaneContext(String participantId, Did did, String identityHubHost) {
+        controlPlaneClient.createParticipantContext(participantId, did);
+        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+    }
+
+    private void requireNoHubDidDrift(String participantId, Optional<Did> hubDid, Did intendedDid) {
+        hubDid.filter(existing -> !existing.equals(intendedDid))
+                .ifPresent(drifted -> {
                     throw XrdRuntimeException.systemException(DSP_PARTICIPANT_DID_DRIFT)
-                            .metadataItems(hubDid, intendedDid)
+                            .metadataItems(drifted, intendedDid)
                             .details(("identity hub serves DID '%s' for participant context '%s', but the DID to "
                                     + "provision is '%s'; refusing to touch the context until the drift is resolved")
-                                    .formatted(hubDid, participantId, intendedDid))
+                                    .formatted(drifted, participantId, intendedDid))
                             .build();
                 });
     }
@@ -262,7 +305,7 @@ public class DataspaceProvisioningService {
      * left alone, a new request is submitted into the first free slot otherwise. Advances past
      * slots in terminal ERROR state only. Returns immediately — does not poll for the outcome.
      *
-     * <p>For a {@link ParticipantKind#SYSTEM} context the slot namespace is salted with the current
+     * <p>For a {@link ParticipantKind#SYSTEM} context the slot namespace carries the current
      * owner ({@link #holderPidBase}): an owner change makes the scan land on an empty slot, so a fresh
      * credential is issued on the new owner. The stale credential, parked under the previous owner's
      * slot namespace, is left untouched and expires on its own — no revocation.
@@ -278,12 +321,13 @@ public class DataspaceProvisioningService {
         if (trustedIssuerDids.isEmpty()) {
             return CredentialStatus.ABSENT;
         }
-        if (isSystemWithUnknownOwner(context)) {
+        var holderPidBase = holderPidBase(context);
+        if (holderPidBase.isEmpty()) {
             return CredentialStatus.UNKNOWN;
         }
         var participantId = context.participantId();
         var ds = adminServiceProperties.getDataspace();
-        var base = holderPidBase(context);
+        var base = holderPidBase.get();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(base, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
@@ -318,11 +362,12 @@ public class DataspaceProvisioningService {
      */
     @Nullable
     public CredentialStatus readCredentialStatus(ParticipantContext context) {
-        if (isSystemWithUnknownOwner(context)) {
+        var holderPidBase = holderPidBase(context);
+        if (holderPidBase.isEmpty()) {
             return CredentialStatus.UNKNOWN;
         }
         var ds = adminServiceProperties.getDataspace();
-        var base = holderPidBase(context);
+        var base = holderPidBase.get();
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(base, slot);
@@ -341,35 +386,35 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * The holder-pid slot-base for a participant context: unsalted for MEMBER, salted with the
-     * current owner for SYSTEM.
+     * The holder-pid slot-base for a participant context, or empty while the hosting Security Server
+     * identity is not known yet:
+     * {@code {participantId}-{ownerCtxId}:{serverCode}-xroad-membership-credential-request}.
+     *
+     * <p>The Issuer Service rejects a request whose holder-pid it has already seen, and several Security
+     * Servers can host the same member, so the hosting Security Server identity is part of the base. The
+     * result is deterministic, so the slot scan finds earlier requests. The server code stays in front of the
+     * constant tail so a server code ending in {@code -N} cannot collide with a slot suffix.
      *
      * <p>The SYSTEM identifier is owner-free by design (XRDADR-41), but its credential is issued to the
      * current owner. Since the identity hub exposes no surface to read a credential's subject directly,
-     * the subject is tracked implicitly: salting the slot namespace with the owner means a slot found
+     * the subject is tracked implicitly: the SYSTEM base carries the owner from the context, so a slot found
      * active there was necessarily requested for that owner. An owner change derives a different, still
      * empty namespace — the scan lands on nothing and a fresh credential is issued there, while the one
-     * parked under the previous owner's namespace is left to expire on its own (no revocation).
+     * parked under the previous owner's namespace is left to expire on its own (no revocation). A MEMBER
+     * base carries the owner as the server identity knows it.
      *
-     * <p>Never called for SYSTEM with a {@code null} owner — both callers return early via
-     * {@link #isSystemWithUnknownOwner} before reaching this point, since the unsalted namespace is one
-     * SYSTEM never writes to.
+     * <p>Empty for SYSTEM with no owner known yet: there is no namespace to scan or write to.
      */
-    private static String holderPidBase(ParticipantContext context) {
-        var unsalted = context.participantId() + "-" + HOLDER_PID_BASE;
-        return context.kind() == ParticipantKind.SYSTEM && context.memberId() != null
-                ? unsalted + "-" + ParticipantIdentifierScheme.memberCtxId(context.memberId())
-                : unsalted;
-    }
-
-    /**
-     * Whether {@code context} is the per-server SYSTEM context before the SS owner is known. SYSTEM's
-     * holder-pid namespace is salted with the owner ({@link #holderPidBase}), so with no owner there is
-     * no salted namespace to scan or write to yet — the unsalted namespace is a decoy SYSTEM never
-     * uses, and probing it would only ever find guaranteed-empty slots.
-     */
-    private static boolean isSystemWithUnknownOwner(ParticipantContext context) {
-        return context.kind() == ParticipantKind.SYSTEM && context.memberId() == null;
+    private Optional<String> holderPidBase(ParticipantContext context) {
+        var serverId = ownSecurityServerResolver.serverId();
+        var owner = context.kind() == ParticipantKind.SYSTEM
+                ? Optional.ofNullable(context.memberId())
+                : serverId.<ClientId>map(id -> id.getOwner());
+        if (serverId.isEmpty() || owner.isEmpty()) {
+            return Optional.empty();
+        }
+        var hostingServer = ParticipantIdentifierScheme.memberCtxId(owner.get()) + ":" + serverId.get().getServerCode();
+        return Optional.of(context.participantId() + "-" + hostingServer + "-" + HOLDER_PID_BASE);
     }
 
     private static CredentialStatus hubCredentialState(String state) {
@@ -382,13 +427,13 @@ public class DataspaceProvisioningService {
     /**
      * The dataspace issuer trust anchor: every Issuer DID published by any Central Server node of this
      * X-Road instance's globalconf. Empty when the instance is not dataspace-enabled (no
-     * {@code dataspaceParameters} in the distributed shared parameters).
+     * {@code credentialIssuer} in the distributed shared parameters).
      */
     private Set<String> trustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
+        var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
-            log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no dataspaceParameters "
+            log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no credentialIssuer "
                     + "in globalconf); dataspace issuance and trust are not enabled", instanceIdentifier);
         }
         return dids;
@@ -451,24 +496,55 @@ public class DataspaceProvisioningService {
 
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
-     * trigger provisioning, poll, or sleep. Tolerates dataspace-backend unavailability — those
-     * errors are reported as {@code UNKNOWN} status rather than thrown; database failures propagate.
+     * trigger provisioning, poll, or sleep. The bound-identity assessment, the participant context
+     * DID and the credential status are read independently, so a dataspace-backend failure in one is
+     * reported as {@code UNKNOWN} in its own field and leaves the others as observed. An unreadable
+     * context DID additionally leaves the credential status {@code UNKNOWN}: without a context there
+     * is nothing to resolve a credential against. Database failures propagate.
      *
      * @param context the participant context to report on
      */
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
-        var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
+
+        var assessment = context.kind() == ParticipantKind.MEMBER
+                ? readOrFallback(participantId, "bound identity",
+                        () -> assessMemberIdentity(context.memberId()), UNREADABLE_IDENTITY)
+                : null;
+        var intendedDid = assessment != null ? assessment.intendedDid() : derivedDidOrNull(context);
+
+        Optional<Did> hubDid;
         try {
-            var hubDid = identityHubClient.contextDid(participantId);
-            var contextCreated = hubDid.isPresent();
-            var credentialStatus = resolveCredentialStatus(context, contextCreated);
-            return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus,
-                    identityStatusOf(assessment, hubDid));
+            hubDid = identityHubClient.contextDid(participantId);
         } catch (Exception e) {
-            log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
-            return new ParticipantContextStatus(participantId, context.kind(), false, CredentialStatus.UNKNOWN,
-                    identityStatusOf(assessment, Optional.empty()));
+            log.warn("Data space: could not read the participant context DID of {}", participantId, e);
+            return new ParticipantContextStatus(participantId, context.kind(), null, true, intendedDid,
+                    CredentialStatus.UNKNOWN, identityStatusOf(assessment, Optional.empty()));
+        }
+        var credentialStatus = readOrFallback(participantId, "credential status",
+                () -> resolveCredentialStatus(context, hubDid.isPresent()), CredentialStatus.UNKNOWN);
+
+        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), false, intendedDid,
+                credentialStatus, identityStatusOf(assessment, hubDid));
+    }
+
+    @Nullable
+    private Did derivedDidOrNull(ParticipantContext context) {
+        if (!didAuthority.isKnown()) {
+            return null;
+        }
+        return readOrFallback(context.participantId(), "derived DID",
+                () -> didFor(context.kind(), context.memberId()), (Did) null);
+    }
+
+    private <T> T readOrFallback(String participantId, String what, Supplier<T> read, T fallback) {
+        try {
+            return read.get();
+        } catch (DataAccessException | TransactionException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Data space: could not read the {} of participant {}", what, participantId, e);
+            return fallback;
         }
     }
 
@@ -500,7 +576,7 @@ public class DataspaceProvisioningService {
 
     private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
-            case SYSTEM -> systemDid(didAuthority.current());
+            case SYSTEM -> boundOrDerivedSystemDid();
             case MEMBER -> boundOrDerivedMemberDid(memberId);
         };
     }
@@ -528,13 +604,13 @@ public class DataspaceProvisioningService {
      * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
      * though the context's credential is issued to the current owner.
      */
-    private Did systemDid(String ssHost) {
+    private Did boundOrDerivedSystemDid() {
         var bound = dsParticipantRepository.findSystemParticipant();
         if (bound.isPresent()) {
-            ParticipantBindingCheck.verify(bound.get(), ssHost);
+            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
-        return ParticipantIdentifierScheme.systemDid(ssHost);
+        return didAuthority.systemDid();
     }
 
     /**
@@ -587,9 +663,8 @@ public class DataspaceProvisioningService {
 
     private boolean createIdentityHubContext(ParticipantContext context, Did did, String identityHubHost) {
         var participantId = context.participantId();
-        var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
-                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
-                UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
+        var credentialServiceUrl = DspConventions.credentialServiceUrl(identityHubHost,
+                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(), participantId);
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         var reanchor = context.kind() == ParticipantKind.SYSTEM;

@@ -27,6 +27,7 @@
 package org.niis.xroad.common.vault;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -34,6 +35,7 @@ import org.bouncycastle.util.io.pem.PemWriter;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -69,6 +71,7 @@ public interface VaultClient {
     String LAST_ERROR_KEY = "lastError";
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
+    String OPMONITOR_CA_PATH = "tls/opmonitor-ca";
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
     String CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH = "tls/configuration-proxy";
@@ -120,6 +123,26 @@ public interface VaultClient {
      * @param status the enrollment status to store
      */
     void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status);
+
+    /**
+     * Retrieves the CA certificate of an operational monitoring daemon (op-monitor) running on another host.
+     *
+     * @return the stored CA certificate, or empty if none is stored or the stored record holds no certificate
+     */
+    Optional<X509Certificate> getOpMonitorCa();
+
+    /**
+     * Stores the op-monitor CA certificate, replacing whatever was stored before.
+     *
+     * @param certificate the CA certificate to store
+     */
+    void createOpMonitorCa(X509Certificate certificate);
+
+    /**
+     * Clears the stored op-monitor CA certificate by writing a record whose {@code certificate} field is blank,
+     * never by deleting the secret.
+     */
+    void clearOpMonitorCa();
 
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
@@ -310,6 +333,40 @@ public interface VaultClient {
         secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime() == null ? "" : status.nextRenewalTime().toString());
         secret.put(LAST_ERROR_KEY, status.lastError() == null ? "" : status.lastError());
         return secret;
+    }
+
+    /**
+     * Parses a raw Vault secret map into the op-monitor CA certificate. Shared by every {@link VaultClient}
+     * implementation regardless of whether its underlying client returns {@code Map<String, Object>} or
+     * {@code Map<String, String>} values. A missing or blank {@code certificate} field means no CA is stored.
+     */
+    default Optional<X509Certificate> toOpMonitorCa(Map<String, ?> secret) {
+        var pem = presentValue(secret, CERTIFICATE_KEY);
+        if (pem == null) {
+            return Optional.empty();
+        }
+        return Optional.of(CryptoUtils.readCertificate(new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    /**
+     * Builds the raw Vault secret map for the op-monitor CA certificate, the inverse of
+     * {@link #toOpMonitorCa(Map)}. The record holds exactly the {@code certificate} field.
+     */
+    default Map<String, String> toOpMonitorCaSecret(X509Certificate certificate) {
+        try {
+            return Map.of(CERTIFICATE_KEY, toPem(certificate));
+        } catch (IOException | CertificateEncodingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    /**
+     * Builds the raw Vault secret map that marks the op-monitor CA as absent: the {@code certificate} field is kept,
+     * blank. The OpenBao policy for this path grants no delete, so clearing is an ordinary write, and a KV v1 mount
+     * rejects a secret without data fields.
+     */
+    default Map<String, String> toClearedOpMonitorCaSecret() {
+        return Map.of(CERTIFICATE_KEY, "");
     }
 
     private static String presentValue(Map<String, ?> secret, String key) {

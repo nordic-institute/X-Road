@@ -31,6 +31,7 @@ import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.X500Names;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -113,7 +114,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
 
         @Override
         public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
-            X500Name x500Name = new X500Name(certificate.getSubjectX500Principal().getName());
+            X500Name x500Name = X500Names.fromPrincipal(certificate.getSubjectX500Principal());
             String organizationIdentifier = CertUtils.getRDNValue(x500Name, ORGANIZATION_IDENTIFIER);
 
             return StringUtils.isEmpty(organizationIdentifier)

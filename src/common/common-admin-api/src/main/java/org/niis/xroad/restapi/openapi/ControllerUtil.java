@@ -30,6 +30,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -73,13 +74,29 @@ public class ControllerUtil {
      * @return
      */
     public static ResponseEntity<Resource> createAttachmentResourceResponse(byte[] attachmentBytes, String filename) {
+        return new ResponseEntity<>(new ByteArrayResource(attachmentBytes), attachmentHeaders(filename), HttpStatus.OK);
+    }
+
+    /**
+     * Creates a ResponseEntity that contains an attachment with given filename and content type
+     * @param attachmentBytes
+     * @param filename
+     * @param contentType
+     * @return
+     */
+    public static ResponseEntity<Resource> createAttachmentResourceResponse(byte[] attachmentBytes, String filename,
+                                                                            MediaType contentType) {
+        HttpHeaders headers = attachmentHeaders(filename);
+        headers.setContentType(contentType);
+        return new ResponseEntity<>(new ByteArrayResource(attachmentBytes), headers, HttpStatus.OK);
+    }
+
+    private static HttpHeaders attachmentHeaders(String filename) {
         ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
                 .filename(filename)
                 .build();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDisposition(contentDisposition);
-
-        Resource resource = new ByteArrayResource(attachmentBytes);
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        return headers;
     }
 }

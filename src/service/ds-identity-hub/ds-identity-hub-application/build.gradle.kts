@@ -5,6 +5,11 @@ plugins {
   id("xroad.edc-owned-jetty-conventions")
 }
 
+configurations.named("runtimeClasspath") {
+  // jnats is unused, pulled in by EDC core-lib
+  exclude(group = "io.nats", module = "jnats")
+}
+
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
@@ -43,10 +48,10 @@ dependencies {
   runtimeOnly(libs.edc.ih.sts.api)
   runtimeOnly(libs.edc.ih.api.core)
   runtimeOnly(libs.edc.core.token)
-  runtimeOnly(libs.edc.lib.token)
+  runtimeOnly(libs.edc.lib.core)
   runtimeOnly(libs.edc.transaction.local)
   runtimeOnly(libs.edc.boot)
-  runtimeOnly(libs.edc.core.connector)
+  runtimeOnly(libs.edc.core.security)
   runtimeOnly(libs.edc.core.runtime)
   runtimeOnly(libs.edc.http)
   runtimeOnly(libs.edc.api.observability)
@@ -60,7 +65,6 @@ dependencies {
   runtimeOnly(project(":lib:rpc-quarkus"))
   implementation(project(":service:signer:signer-client"))
 
-  runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-provisioning-api"))
 }

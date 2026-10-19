@@ -87,7 +87,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-    private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-xroad-membership-credential-request";
+    private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-"
+            + ParticipantIdentifierScheme.memberCtxId(OWNER) + ":" + SERVER_CODE + "-xroad-membership-credential-request";
 
     @Mock
     private ClientRepository clientRepository;
@@ -115,14 +116,14 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + IDENTITY_HUB_HOST.split(":")[0]);
         when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        when(dataspace.getDidPort()).thenReturn(7183);
         when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
         bindingTable.wireOnto(dsParticipantRepository);
         givenServerOwnedBy(OWNER);
 

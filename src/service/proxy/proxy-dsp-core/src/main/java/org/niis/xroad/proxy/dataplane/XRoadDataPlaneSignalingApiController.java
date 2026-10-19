@@ -38,12 +38,12 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Map;
 
@@ -85,7 +85,8 @@ public class XRoadDataPlaneSignalingApiController {
     }
 
     /**
-     * Starts a new data flow (provider-side).
+     * Starts a new data flow (provider-side), or resumes a suspended one: EDC's control plane resumes a
+     * transfer by sending start again.
      *
      * @param message plain-JSON {@code DataFlowStartMessage}
      * @return {@code DataFlowStatusMessage} with {@code dataAddress.endpoint}
@@ -147,7 +148,7 @@ public class XRoadDataPlaneSignalingApiController {
     @GET
     @Path("/{id}/state")
     public JsonObject getTransferState(@PathParam("id") String dataFlowId) {
-        DataFlowStates state = manager.state(dataFlowId);
+        DataFlowLifecycleState state = manager.state(dataFlowId);
         return buildStateResponse(state);
     }
 
@@ -176,10 +177,10 @@ public class XRoadDataPlaneSignalingApiController {
         manager.suspend(dataFlowId, suspendMessage != null ? suspendMessage.getReason() : null);
     }
 
-    private JsonObject buildStateResponse(DataFlowStates state) {
+    private JsonObject buildStateResponse(DataFlowLifecycleState state) {
         return Json.createObjectBuilder()
                 .add(TYPE, "DataFlowState")
-                .add(EDC_NAMESPACE + "state", state.toString())
+                .add(EDC_NAMESPACE + "state", state.name())
                 .build();
     }
 }

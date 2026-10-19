@@ -74,8 +74,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -101,6 +103,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private MailNotificationHelper mailNotificationHelper;
     @MockitoSpyBean
     private AdminServiceProperties adminServiceProperties;
+    @MockitoBean
+    private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
 
     private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -206,6 +210,27 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         globalConfChecker.checkGlobalConf();
         // Subsystem status is changed back to "REGISTERED"
         assertEquals(Client.STATUS_REGISTERED, subsystem.getClientStatus());
+    }
+
+    @Test
+    public void updateClientStatusesNudgesProvisioningWhenClientStatusesChange() {
+        globalConfChecker.checkGlobalConf();
+
+        verify(dataspaceParticipantProvisioningWorker, atLeastOnce()).provisionParticipantAsync();
+    }
+
+    @Test
+    public void updateClientStatusesDoesNotNudgeProvisioningWhenNoClientStatusChanges() {
+        ClientId.Conf ss2 = TestUtils.getClientId(TestUtils.CLIENT_ID_SS2);
+        ClientId.Conf ss5 = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+        when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(SUBSYSTEM, SS_ID)).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(ss2, SS_ID)).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(ss5, SS_ID)).thenReturn(true);
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(dataspaceParticipantProvisioningWorker, never()).provisionParticipantAsync();
     }
 
     @Test

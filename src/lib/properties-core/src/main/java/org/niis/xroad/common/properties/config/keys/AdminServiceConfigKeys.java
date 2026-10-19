@@ -468,11 +468,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("control-plane-url")
             .build();
 
-    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_DID_PORT = DATASPACE
-            .integer("identity-hub-did-port")
-            .withDefaultValue(7183)
-            .build();
-
     public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_STS_PORT = DATASPACE
             .integer("identity-hub-sts-port")
             .withDefaultValue(7184)
@@ -514,6 +509,13 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> DATASPACE_MAX_HOLDER_PID_SLOTS = DATASPACE
             .integer("max-holder-pid-slots")
             .withDefaultValue(20)
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.provisioning-tick-ms} */
+    public static final ConfigKey<Integer> DATASPACE_PROVISIONING_TICK_MS = DATASPACE
+            .integer("provisioning-tick-ms")
+            .withDefaultValue(30000)
+            .publishedToFramework()
             .build();
 
     /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */

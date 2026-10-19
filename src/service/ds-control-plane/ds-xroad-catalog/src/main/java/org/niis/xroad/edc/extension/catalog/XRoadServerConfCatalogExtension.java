@@ -42,8 +42,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -77,13 +75,9 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
 
-    @Inject
-    private WebService webService;
-
     private BuiltinServiceCatalog builtinServiceCatalog;
     private StoreCacheConfig cacheConfig;
     private ServiceContextResolver serviceContextResolver;
-    private ThreadLocalRequestedParticipantContext requestedParticipantContext;
     private AssetIndexServerConfStore assetIndexStore;
     private StoreEnumerationCache<Asset> assetIndexCache;
     private StoreEnumerationCache<PolicyDefinition> policyDefinitionCache;
@@ -118,15 +112,12 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
         serviceContextResolver = new ServiceContextResolver(
                 globalConfProvider, serverConfProvider, participantContextService);
-        requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
-        webService.registerResource(ApiContext.PROTOCOL,
-                new ParticipantContextCaptureFilter(requestedParticipantContext));
 
         assetIndexCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
                 cacheConfig.findByIdMaxSize(), "AssetIndex");
         assetIndexStore = new AssetIndexServerConfStore(
                 serverConfProvider, builtinServiceCatalog, assetIndexCache,
-                serviceContextResolver, requestedParticipantContext);
+                serviceContextResolver);
 
         policyDefinitionCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
                 cacheConfig.findByIdMaxSize(), "PolicyDefinition");
@@ -155,7 +146,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         return new PolicyDefinitionServerConfStore(
                 serverConfProvider, new PolicyMapper(),
                 builtinServiceCatalog, policyDefinitionCache,
-                serviceContextResolver, requestedParticipantContext);
+                serviceContextResolver);
     }
 
     @Provider
@@ -165,7 +156,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 serverConfProvider,
                 builtinServiceCatalog,
                 contractDefinitionCache,
-                serviceContextResolver, requestedParticipantContext);
+                serviceContextResolver);
     }
 
     /**

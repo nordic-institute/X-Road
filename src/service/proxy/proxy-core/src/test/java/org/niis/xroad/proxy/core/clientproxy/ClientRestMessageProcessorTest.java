@@ -41,6 +41,7 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
@@ -79,6 +80,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
@@ -263,6 +265,39 @@ class ClientRestMessageProcessorTest {
 
         verify(firstAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
         verify(replayedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+    }
+
+    @Test
+    void tokenRejectedByProviderDropsCachedAssetAccessSoNextRequestAcquiresAfresh() {
+        var harness = createHarness(true);
+
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId());
+
+        var dspRequest = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccess(dspRequest.capture());
+        assertThat(dspRequest.getValue().serviceId()).isEqualTo(serviceId());
+        assertThat(dspRequest.getValue().sender()).isEqualTo(restRequest().getClientId());
+    }
+
+    @Test
+    void otherProviderFailuresKeepTheCachedAssetAccess() {
+        var harness = createHarness(true);
+
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), restRequest(), serviceId());
+
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
+    }
+
+    @Test
+    void tokenRejectionDoesNothingWhenDspDisabled() {
+        var harness = createHarness(false);
+
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId());
+
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }
 
     private static RestRequest restRequest() {

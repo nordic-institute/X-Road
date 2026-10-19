@@ -27,9 +27,11 @@
 
 package org.niis.xroad.edc.extension.policy.controlplane.participantagent;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_INSTANCE_ATTRIBUTE;
@@ -162,6 +165,71 @@ class XRoadMemberIdAttributesTest {
         var result = sut.attributesFor(token);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void attributesForReadsCredentialsThatWereRoundTrippedThroughJson() {
+        var token = persistedAndReloaded(membershipVc("CS", "ORG", "1234", Instant.now()));
+
+        var result = sut.attributesFor(token);
+
+        assertThat(result)
+                .containsEntry(XRD_INSTANCE_ATTRIBUTE, "CS")
+                .containsEntry(XRD_MEMBER_CLASS_ATTRIBUTE, "ORG")
+                .containsEntry(XRD_MEMBER_CODE_ATTRIBUTE, "1234");
+    }
+
+    @Test
+    void attributesForSelectsMostRecentlyIssuedCredentialAfterJsonRoundTrip() {
+        var now = Instant.now();
+        var token = persistedAndReloaded(
+                membershipVc("CS", "ORG", "old-owner", now.minus(1, ChronoUnit.DAYS)),
+                membershipVc("CS", "ORG", "new-owner", now));
+
+        var result = sut.attributesFor(token);
+
+        assertThat(result).containsEntry(XRD_MEMBER_CODE_ATTRIBUTE, "new-owner");
+    }
+
+    @Test
+    void attributesForIgnoresNonMembershipCredentialAfterJsonRoundTrip() {
+        var subject = CredentialSubject.Builder.newInstance()
+                .claim(XRoadMemberIdAttributes.XROAD_INSTANCE_CLAIM, "CS")
+                .claim(XRoadMemberIdAttributes.MEMBER_CLASS_CLAIM, "ORG")
+                .claim(XRoadMemberIdAttributes.MEMBER_CODE_CLAIM, "1234")
+                .build();
+        var other = VerifiableCredential.Builder.newInstance()
+                .type("SomeOtherCredential")
+                .issuer(new Issuer("did:web:test-issuer"))
+                .issuanceDate(Instant.now())
+                .credentialSubject(subject)
+                .build();
+
+        var result = sut.attributesFor(persistedAndReloaded(other));
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void attributesForSkipsUnreadableMapEntries() {
+        var token = ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(Map.of("issuanceDate", "not-a-date", "type", List.of("XRoadMembershipCredential"))))
+                .build();
+
+        var result = sut.attributesFor(token);
+
+        assertThat(result).isEmpty();
+    }
+
+    private ClaimToken persistedAndReloaded(VerifiableCredential... credentials) {
+        var mapper = new JacksonTypeManager().getMapper();
+        try {
+            var json = mapper.writeValueAsString(Map.of("vc", List.of(credentials)));
+            Map<String, Object> claims = mapper.readValue(json, new TypeReference<>() { });
+            return ClaimToken.Builder.newInstance().claims(claims).build();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private ClaimToken buildTokenWithMembershipVc(String xroadInstance, String memberClass, String memberCode) {

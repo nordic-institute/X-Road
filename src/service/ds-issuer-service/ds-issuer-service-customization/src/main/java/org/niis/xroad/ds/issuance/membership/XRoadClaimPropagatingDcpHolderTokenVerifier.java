@@ -54,7 +54,7 @@ import java.util.Map;
  *
  * <p>We re-parse the JWT payload (already verified upstream — signature, audience, issuer
  * key, expiry) using a base64url+JSON decode, build a {@link ClaimToken}, and merge into
- * the request context.
+ * the request context, keeping the holder's access token, which the issuance flow needs to deliver credentials.
  */
 public class XRoadClaimPropagatingDcpHolderTokenVerifier implements DcpHolderTokenVerifier {
 
@@ -88,7 +88,7 @@ public class XRoadClaimPropagatingDcpHolderTokenVerifier implements DcpHolderTok
         }
         Map<String, ClaimToken> claims = new HashMap<>(context.claims());
         claims.put(JWT_CLAIM_TYPE, parsed.getContent());
-        return ServiceResult.success(new DcpRequestContext(context.holder(), claims));
+        return ServiceResult.success(new DcpRequestContext(context.holder(), claims, context.accessToken()));
     }
 
     private ServiceResult<ClaimToken> parseClaims(String token) {

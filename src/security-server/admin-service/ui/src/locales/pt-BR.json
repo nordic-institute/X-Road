@@ -401,7 +401,15 @@
     "anchor_upload_failed": "Falha no envio da âncora",
     "auth_cert_not_supported": "Certificado de autenticação não suportado",
     "base_endpoint_not_found": "Endpoint base não encontrado",
+    "ca_cert_empty": "O arquivo está vazio",
+    "ca_cert_expired": "O certificado da AC expirou",
+    "ca_cert_key_material": "O arquivo contém material de chave privada. Envie apenas o certificado da AC",
+    "ca_cert_multiple_certificates": "O arquivo contém mais de um certificado. Envie apenas o certificado da AC que emite o certificado",
+    "ca_cert_not_a_ca": "O certificado não é um certificado de AC",
+    "ca_cert_not_a_certificate": "O arquivo não é um certificado codificado em PEM ou DER",
+    "ca_cert_not_yet_valid": "O certificado da AC ainda não é válido",
     "ca_cert_status_processing_failure": "Falha ao processar status do certificado da AC",
+    "ca_cert_unsupported_key_algorithm": "A chave pública do certificado da AC deve ser RSA ou EC",
     "cannot_delete_owner": "Não é possível excluir o proprietário",
     "cannot_register_owner": "Não é possível registrar o proprietário",
     "cannot_unregister_owner": "Não é possível cancelar registro do proprietário",
@@ -440,6 +448,7 @@
     "duplicate_accessright": "Direito de acesso duplicado",
     "endpoint_already_exists": "Endpoint já existe",
     "endpoint_not_found": "Endpoint não encontrado",
+    "external_rpc_ca_not_available": "A AC RPC do Servidor de Segurança não está disponível",
     "forbidden_disable_management_service_client": "O provedor de serviços de gerenciamento não pode ser desativado.",
     "forbidden_enable_maintenance_mode_for_management_service": "O provedor de serviços de gerenciamento não pode ser desativado.",
     "global_conf_download_request_failed": "Falha ao solicitar download da configuração global",
@@ -779,6 +788,26 @@
     "noLocalGroups": "Nenhum grupo local cadastrado",
     "noServiceClients": "Nenhum cliente de serviço",
     "noTimestampingServices": "Nenhum serviço de carimbo de tempo"
+  },
+  "opMonitorTrust": {
+    "externalRpcCa": {
+      "description": "A AC RPC do Servidor de Segurança assina os certificados das conexões RPC deste Servidor de Segurança. Baixe-a e instale-a no host do daemon de monitoramento operacional, para que o host confie neste Servidor de Segurança.",
+      "download": "Baixar",
+      "title": "AC RPC do Servidor de Segurança",
+      "unavailable": "A AC RPC do Servidor de Segurança não está disponível"
+    },
+    "opMonitorCa": {
+      "delete": "Excluir",
+      "deleteConfirmText": "Excluir a AC de Monitoramento Operacional? Este Servidor de Segurança passará então a confiar apenas na AC RPC do Servidor de Segurança, como no caso de um daemon de monitoramento operacional no mesmo host.",
+      "deleteConfirmTitle": "Excluir a AC de Monitoramento Operacional?",
+      "deleted": "A AC de Monitoramento Operacional foi excluída",
+      "description": "A AC de um daemon de monitoramento operacional executado em outro host. Envie-a para que este Servidor de Segurança confie nesse daemon de monitoramento operacional. O arquivo deve conter exatamente um certificado de AC codificado em PEM ou DER e nenhuma chave privada.",
+      "empty": "Nenhuma AC de Monitoramento Operacional armazenada",
+      "replace": "Substituir",
+      "title": "AC de Monitoramento Operacional",
+      "upload": "Enviar",
+      "uploaded": "A AC de Monitoramento Operacional foi armazenada"
+    }
   },
   "serviceClientType": {
     "globalGroup": "GRUPO_GLOBAL",
@@ -1370,6 +1399,7 @@
     },
     "keys": {
       "apiKey": "Chaves de API",
+      "opMonitorTrust": "Confiança do Monitoramento Operacional",
       "signAndAuthKeys": "Chaves SIGN e AUTH",
       "ssTlsCertificate": "Chave TLS do Servidor Seguro"
     },

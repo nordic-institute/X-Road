@@ -292,6 +292,20 @@ class ReusableAgreementLookupPostgresTest {
         assertThat(result.get().getId()).isEqualTo("agreement-neg-new");
     }
 
+    @Test
+    void newerAgreementFromAFallbackNegotiationWinsOverTheRefusedOneWithoutTouchingIt() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-dead", participantContextId, "asset-1", "provider-1", Instant.now().minusSeconds(120));
+
+        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
+                .map(ContractAgreement::getId).contains("agreement-neg-dead");
+
+        saveAgreement(store, "neg-fresh", participantContextId, "asset-1", "provider-1", Instant.now());
+
+        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
+                .map(ContractAgreement::getId).contains("agreement-neg-fresh");
+    }
+
     private ContractNegotiationStore buildStore() throws IOException {
         var manager = new JacksonTypeManager();
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
