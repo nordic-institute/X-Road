@@ -36,6 +36,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.common.util.UriPathRejectedException;
 import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -172,9 +173,13 @@ public abstract class MessageProcessorBase {
     }
 
     private String getNormalizedServicePath(String servicePath) {
-        return Optional.ofNullable(servicePath)
-                .map(UriUtils::decodeAndNormalize)
-                .orElse(servicePath);
+        try {
+            return Optional.ofNullable(servicePath)
+                    .map(UriUtils::decodeAndNormalize)
+                    .orElse(servicePath);
+        } catch (UriPathRejectedException e) {
+            return servicePath;
+        }
     }
 
     /**

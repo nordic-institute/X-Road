@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -359,6 +360,21 @@ public final class TestUtil {
 
     static String service(int serviceDescriptionIdx, int serviceIdx) {
         return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
+    }
+
+    static void addRestGrant(ClientId clientId, String serviceCode, String method, String path) throws Exception {
+        doInTransaction(session -> {
+            ClientEntity client = new ClientDAOImpl().getClient(session, clientId);
+            EndpointEntity endpoint = new EndpointEntity();
+            endpoint.setServiceCode(serviceCode);
+            endpoint.setMethod(method);
+            endpoint.setPath(path);
+            endpoint.setGenerated(false);
+            session.persist(endpoint);
+            client.getEndpoints().add(endpoint);
+            client.getAccessRights().add(createAccessRight(endpoint, client.getIdentifier()));
+            return null;
+        });
     }
 
     static AccessRightEntity createAccessRight(EndpointEntity endpoint, XRoadIdEntity xRoadId) {

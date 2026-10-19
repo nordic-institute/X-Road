@@ -40,12 +40,51 @@ public final class UriUtils {
 
     /**
      * Percent-decodes and normalizes a URI path, assuming UTF-8 character set.
+     * <p>
+     * The path is rejected if, after percent-decoding, it contains a query or fragment delimiter ('?' or '#'),
+     * was percent-encoded more than once, has an empty segment, has a segment starting with ";", ".;" or "..;",
+     * or cannot be parsed.
      *
+     * @throws UriPathRejectedException if the path is rejected
      * @see #uriPathPercentDecode(String, boolean)
      */
     public static String decodeAndNormalize(@Nonnull final String path) {
-        String decoded = uriPathPercentDecode(path, true);
-        return URI.create(decoded).normalize().getPath();
+        final String decoded;
+        try {
+            decoded = uriPathPercentDecode(path, true);
+        } catch (IllegalArgumentException e) {
+            throw new UriPathRejectedException("Path cannot be decoded", e);
+        }
+        rejectAmbiguousPath(path, decoded);
+
+        final String normalized;
+        try {
+            normalized = URI.create(decoded).normalize().getPath();
+        } catch (IllegalArgumentException e) {
+            throw new UriPathRejectedException("Path cannot be parsed", e);
+        }
+        if (normalized == null) {
+            throw new UriPathRejectedException("Path cannot be parsed");
+        }
+        return normalized;
+    }
+
+    private static void rejectAmbiguousPath(final String encoded, final String decoded) {
+        // the decoder keeps "%2D" escaped, so repeated encoding is detected on the encoded path
+        if (encoded.contains("%25")) {
+            throw new UriPathRejectedException("Path is percent-encoded more than once");
+        }
+        if (decoded.indexOf('?') >= 0 || decoded.indexOf('#') >= 0) {
+            throw new UriPathRejectedException("Path contains a query or fragment delimiter");
+        }
+        if (decoded.contains("//")) {
+            throw new UriPathRejectedException("Path contains an empty segment");
+        }
+        for (final String segment : decoded.split("/")) {
+            if (segment.startsWith(";") || segment.startsWith(".;") || segment.startsWith("..;")) {
+                throw new UriPathRejectedException("Path contains a segment starting with a parameter delimiter");
+            }
+        }
     }
 
     /**

@@ -40,6 +40,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.UriPathRejectedException;
 import ee.ria.xroad.common.util.UriUtils;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -476,7 +477,12 @@ public class ServerConfImpl implements ServerConfProvider {
         if (path == null) {
             normalizedPath = null;
         } else {
-            normalizedPath = UriUtils.decodeAndNormalize(path);
+            try {
+                normalizedPath = UriUtils.decodeAndNormalize(path);
+            } catch (UriPathRejectedException e) {
+                log.warn("Request path rejected: {}. Access will be rejected.", path);
+                return false;
+            }
 
             // Explicitly reject any remaining traversal sequences
             if (normalizedPath.contains("..")) {

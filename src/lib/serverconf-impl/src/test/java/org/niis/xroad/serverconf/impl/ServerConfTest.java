@@ -73,6 +73,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_URL;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_VERSION;
 import static org.niis.xroad.serverconf.impl.TestUtil.SUBSYSTEM;
 import static org.niis.xroad.serverconf.impl.TestUtil.XROAD_INSTANCE;
+import static org.niis.xroad.serverconf.impl.TestUtil.addRestGrant;
 import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
@@ -97,6 +98,8 @@ public class ServerConfTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         prepareDB();
+        addRestGrant(createTestClientId(client(1)), "restBase", "GET", "**");
+        addRestGrant(createTestClientId(client(1)), "restPublic", "GET", "/public");
 
         GlobalConfProvider globalConfProvider = new TestGlobalConfImpl();
         serverConfProvider = new ServerConfImpl(globalConfProvider);
@@ -254,6 +257,30 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
+    }
+
+    /**
+     * Tests that ambiguous request paths are not allowed.
+     */
+    @Test
+    public void isQueryAllowedRejectsAmbiguousPaths() {
+        ClientId client1 = createTestClientId(client(1));
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+        ServiceId serviceBase = createTestServiceId(client1.getMemberCode(), "restBase", null);
+        ServiceId servicePublic = createTestServiceId(client1.getMemberCode(), "restPublic", null);
+
+        assertTrue(serverConfProvider.isQueryAllowed(client1, servicePublic, "GET", "/public"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceBase, "GET", "/secret"));
+
+        assertFalse(serverConfProvider.isQueryAllowed(client1, servicePublic, "GET", "/public%3Fx"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/1%3F/../../admin"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo%23x"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceBase, "GET", "/%2F../secret"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2F../api/x"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/.;x/../y"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/;x/../../admin"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test%252Fbar"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo bar"));
     }
 
     /**
