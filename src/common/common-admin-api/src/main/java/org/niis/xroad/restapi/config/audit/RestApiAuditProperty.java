@@ -128,6 +128,7 @@ public enum RestApiAuditProperty {
 
     INSTANCE_IDENTIFIER,
     CENTRAL_SERVER_ADDRESS,
+    ISSUER_SERVICE_HOST,
     HA_NODE,
 
     MEMBER_NAME,

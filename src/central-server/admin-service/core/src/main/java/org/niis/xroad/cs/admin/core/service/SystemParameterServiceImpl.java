@@ -108,6 +108,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     }
 
     @Override
+    public String getIssuerServiceHost() {
+        return getParameterValue(ISSUER_SERVICE_HOST);
+    }
+
+    @Override
     public String getSecurityServerOwnersGroup() {
         return getParameterValue(SECURITY_SERVER_OWNERS_GROUP, "");
     }
