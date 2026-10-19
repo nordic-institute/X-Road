@@ -31,6 +31,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
@@ -41,24 +42,31 @@ import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionResult;
 import org.niis.xroad.edc.issuer.provisioning.proto.DidResolutionServiceGrpc;
 import org.niis.xroad.edc.issuer.provisioning.proto.ResolveDidsReq;
-import org.niis.xroad.edc.issuer.provisioning.proto.ResolveDidsResp;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static io.grpc.Status.Code.CANCELLED;
+import static io.grpc.Status.Code.DEADLINE_EXCEEDED;
+import static io.grpc.Status.Code.UNAVAILABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
  * gRPC transport client for the DID resolution service. The stub does not wait for the Issuer Service to become
- * ready and every call carries its own deadline.
+ * ready; the call deadline comes from the channel. A transport failure maps to a network error, an error reported by
+ * the Issuer Service keeps its own code, and any other failed status maps to an internal error.
  */
 @Slf4j
 @RequiredArgsConstructor
 public class DidResolutionRpcClient extends AbstractRpcClient
         implements DidResolutionService, InitializingBean, DisposableBean {
+
+    private static final Set<Status.Code> TRANSPORT_FAILURES =
+            EnumSet.of(UNAVAILABLE, DEADLINE_EXCEEDED, CANCELLED);
 
     private final RpcChannelFactory rpcChannelFactory;
     private final DidResolutionRpcChannelProperties channelProperties;
@@ -98,34 +106,30 @@ public class DidResolutionRpcClient extends AbstractRpcClient
 
     @Override
     public List<DidResolution> resolve(List<String> dids) {
-        ResolveDidsResp response;
-        try {
-            response = exec(() -> {
-                try {
-                    return stub.withDeadlineAfter(channelProperties.deadlineAfter(), MILLISECONDS)
-                            .resolveDids(ResolveDidsReq.newBuilder().addAllDids(dids).build());
-                } catch (StatusRuntimeException e) {
-                    if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-                        throw XrdRuntimeException.systemException(NETWORK_ERROR)
-                                .origin(getRpcOrigin())
-                                .cause(e)
-                                .details("DID resolution call failed: " + e.getStatus().getCode())
-                                .build();
-                    }
-                    throw e;
-                }
-            });
-        } catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.Code.INTERNAL) {
-                throw XrdRuntimeException.systemException(INTERNAL_ERROR)
-                        .origin(getRpcOrigin())
-                        .cause(e)
-                        .details("DID resolution call failed: " + e.getStatus().getCode())
-                        .build();
-            }
-            throw e;
+        return exec(() -> stub.resolveDids(ResolveDidsReq.newBuilder().addAllDids(dids).build()),
+                response -> response.getResultsList().stream().map(DidResolutionRpcClient::toDomain).toList());
+    }
+
+    @Override
+    protected RuntimeException mapFailedStatus(StatusRuntimeException error) {
+        if (TRANSPORT_FAILURES.contains(error.getStatus().getCode())) {
+            return callFailure(NETWORK_ERROR, error);
         }
-        return response.getResultsList().stream().map(DidResolutionRpcClient::toDomain).toList();
+        var issuerError = mapServerError(error);
+        if (issuerError != null) {
+            return issuerError;
+        }
+        return callFailure(INTERNAL_ERROR, error);
+    }
+
+    private XrdRuntimeException callFailure(ErrorCode errorCode, StatusRuntimeException error) {
+        var code = error.getStatus().getCode();
+        return XrdRuntimeException.systemException(errorCode)
+                .origin(getRpcOrigin())
+                .cause(error)
+                .metadataItems(code.name())
+                .details("DID resolution call failed: " + code)
+                .build();
     }
 
     private static DidResolution toDomain(DidResolutionResult result) {

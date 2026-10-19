@@ -40,10 +40,13 @@ public interface DidResolutionService {
     /**
      * @param dids the DIDs to resolve
      * @return one result per DID, in the order of {@code dids}
-     * @throws XrdRuntimeException with error code {@code network_error} when the Issuer Service is unavailable or the
-     *                             call times out, with the error code reported by the Issuer Service when it fails
-     *                             with one, and with error code {@code internal_error} when it fails without one or
-     *                             answers with a value this client does not recognize
+     * @throws XrdRuntimeException with error code {@code network_error} when the call fails at the transport level
+     *                             (gRPC status UNAVAILABLE, DEADLINE_EXCEEDED or CANCELLED), carrying the status code
+     *                             name as its single metadata item; with the Issuer Service's own error code when it
+     *                             reported one; and with error code {@code internal_error} for any other failed
+     *                             status (carrying the status code name as its single metadata item when the status
+     *                             has no error detail), for a failure that is not a gRPC status, and when the Issuer
+     *                             Service answers with a value this client does not recognize
      */
     List<DidResolution> resolve(List<String> dids);
 }
