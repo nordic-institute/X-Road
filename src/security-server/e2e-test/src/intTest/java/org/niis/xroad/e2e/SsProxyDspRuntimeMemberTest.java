@@ -52,13 +52,16 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
+import static org.niis.xroad.e2e.AdminApi.registerClient;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -133,7 +136,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
-    private static final String CS_ENV = "aux";
     private static final String CA_ENV = "ca";
 
 
@@ -189,7 +191,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     /** Same DN convention {@code setup.hurl} uses for every key generated on ss0's token, regardless of member. */
     private static final String SIGN_KEY_SERIAL_NUMBER = "DEV/SS0/COM";
 
-    private static final String REGISTERED_STATUS = "REGISTERED";
     private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
 
     private static final String REST_REQUEST_BODY = """
@@ -197,8 +198,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
             """;
     private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
 
-    private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
-    private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
     private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration DID_RESOLUTION_TIMEOUT = Duration.ofSeconds(60);
@@ -236,13 +235,13 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
-        var csBaseUrl = adminBaseUrl(env, CS_ENV);
+        var csBaseUrl = CentralServerApi.baseUrl(env);
         var caBaseUrl = caBaseUrl(env);
 
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
 
         var clientId = when("member DEV:COM:4321's new RuntimeService subsystem is added to ss0 as a local client", () ->
-                addLocalClient(ss0BaseUrl, ss0Session));
+                addLocalClient(ss0BaseUrl, ss0Session, NEW_CLIENT_ID));
 
         and("a CA-signed sign certificate for the new member is provisioned on ss0's token", () ->
                 provisionSignCertificate(env, ss0BaseUrl, ss0Session, caBaseUrl));
@@ -304,40 +303,12 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Adds the new local client, tolerating a warm rerun where it already exists: {@code ClientService}
-     * rejects a duplicate with {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped
-     * to 409. Either way the returned id is {@link #NEW_CLIENT_ID}, deterministic from the member/
-     * subsystem constants, so no response-body lookup is needed on either status.
-     */
-    private String addLocalClient(String ss0BaseUrl, AdminSession ss0) {
-        var body = """
-                {
-                  "ignore_warnings": true,
-                  "client": {
-                    "member_class": "%s",
-                    "member_code": "%s",
-                    "subsystem_code": "%s",
-                    "connection_type": "HTTP"
-                  }
-                }
-                """.formatted(NEW_MEMBER_CLASS, NEW_MEMBER_CODE, NEW_SUBSYSTEM_CODE);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients");
-        assertThat(response.getStatusCode())
-                .as("add local client for the new member (201 first run, 409 if it already exists on a warm rerun)")
-                .isIn(201, 409);
-        return NEW_CLIENT_ID;
-    }
-
-    /**
      * Provisions a CA-signed sign certificate for the new member on ss0's token, mirroring
      * {@code setup.hurl}'s own ss0 sign-key block (keys-with-csrs -&gt; fetch CSR PEM -&gt; test CA
      * {@code /testca/sign} -&gt; import) for {@link #NEW_MEMBER_CTX_ID} instead of ss0's own owner
      * member. The admin API rejects a SIGNING CSR for a member id that is not yet a local client
      * (see {@code TokenCertificateService.generateCertRequest}), which is why this runs after
-     * {@link #addLocalClient}, not at environment bring-up.
+     * {@link AdminApi#addLocalClient}, not at environment bring-up.
      *
      * <p>Tolerant of a warm rerun at every stage: an existing certificate for the member is reused
      * outright; an existing CSR with no certificate yet (a previous run that crashed mid-flow) is
@@ -501,65 +472,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         assertThat(response.getStatusCode())
                 .as("activate the new member's sign certificate %s (204 first attempt, 409 if already active)", certHash)
                 .isIn(204, 409);
-    }
-
-    /**
-     * Submits the client registration request, tolerating a warm rerun where the client is already past
-     * {@code SAVED} status: {@code ClientService.registerClient} rejects that with
-     * {@code ActionNotPossibleException}, a {@code ConflictException} mapped to 409. Either status leaves
-     * {@link #awaitClientRegistered} to confirm the actual outcome.
-     */
-    private void registerClient(String ss0BaseUrl, AdminSession ss0, String clientId) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/clients/" + clientId + "/register");
-        assertThat(response.getStatusCode())
-                .as("submit client registration for %s (204 first run, 409 if it is no longer SAVED on a warm rerun)", clientId)
-                .isIn(204, 409);
-    }
-
-    /**
-     * Waits until ss0 reports the new client as REGISTERED, approving the Central Server's pending
-     * request within the same loop. Environments differ: k8s auto-approves, so the request never
-     * surfaces as WAITING; LXD requires an explicit approval and the request may take a moment to
-     * appear as WAITING, then several globalconf-distribution cycles to propagate back to ss0 as
-     * REGISTERED. Approving on each tick — rather than once, up front — covers both, and tolerates
-     * the request not being WAITING yet at the first look.
-     */
-    private void awaitClientRegistered(String ss0BaseUrl, AdminSession ss0, String csBaseUrl, AdminSession cs, String clientId) {
-        Awaitility.await()
-                .pollInterval(REGISTRATION_POLL_INTERVAL)
-                .timeout(REGISTRATION_POLL_TIMEOUT)
-                .untilAsserted(() -> {
-                    approvePendingRegistrationIfPresent(csBaseUrl, cs, clientId);
-                    var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId);
-                    assertThat(response.getStatusCode()).as("GET /clients/%s", clientId).isEqualTo(200);
-                    assertThat(response.jsonPath().getString("status"))
-                            .as("status of client %s", clientId)
-                            .isEqualTo(REGISTERED_STATUS);
-                });
-    }
-
-    /**
-     * Approves this test's own WAITING client registration request if one is present — matched by
-     * request type and the client's encoded id, so a warm shared environment's unrelated pending
-     * requests are never touched. No match means either the environment auto-approved it or it has
-     * not surfaced yet; both are handled by the surrounding registration-status poll, so this
-     * returns quietly rather than asserting.
-     */
-    private void approvePendingRegistrationIfPresent(String csBaseUrl, AdminSession cs, String clientId) {
-        var response = authed(cs).get(csBaseUrl + "/api/v1/management-requests?sort=id&desc=true&status=WAITING");
-        assertThat(response.getStatusCode()).as("list WAITING management requests").isEqualTo(200);
-
-        Integer requestId = response.jsonPath().get(
-                "items.find { it.type == 'CLIENT_REGISTRATION_REQUEST' && it.client_id?.encoded_id == '%s' }?.id"
-                        .formatted(clientId));
-        if (requestId == null) {
-            return;
-        }
-
-        var approval = authed(cs).post(csBaseUrl + "/api/v1/management-requests/" + requestId + "/approval");
-        assertThat(approval.getStatusCode())
-                .as("approve client registration request %s (409 if a prior tick already approved it)", requestId)
-                .isIn(200, 409);
     }
 
     /**

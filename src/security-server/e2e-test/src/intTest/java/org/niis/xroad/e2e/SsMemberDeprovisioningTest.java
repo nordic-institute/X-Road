@@ -27,7 +27,6 @@ package org.niis.xroad.e2e;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -44,6 +44,14 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.e2e.AdminApi.addLocalClient;
+import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
+import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.awaitClientRegistered;
+import static org.niis.xroad.e2e.AdminApi.deleteClient;
+import static org.niis.xroad.e2e.AdminApi.login;
+import static org.niis.xroad.e2e.AdminApi.registerClient;
+import static org.niis.xroad.e2e.AdminApi.unregisterClient;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -92,11 +100,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 class SsMemberDeprovisioningTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
-    private static final String CS_ENV = "aux";
     private static final String CA_ENV = "ca";
-
-    private static final String ADMIN_USERNAME = "xrd";
-    private static final String ADMIN_PASSWORD = "secret123!";
 
     private static final String X_ROAD_INSTANCE = "DEV";
     private static final String MEMBER_CLASS = "COM";
@@ -133,11 +137,8 @@ class SsMemberDeprovisioningTest extends E2eTest {
     /** Same DN convention {@code setup.hurl} uses for every key generated on ss0's token, regardless of member. */
     private static final String SIGN_KEY_SERIAL_NUMBER = "DEV/SS0/COM";
 
-    private static final String REGISTERED_STATUS = "REGISTERED";
     private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
 
-    private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
-    private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
     private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
 
@@ -169,9 +170,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
      */
     private static final int DID_NOT_FOUND_STATUS = 204;
 
-    private record AdminSession(Map<String, String> cookies, String xsrfToken) {
-    }
-
     private record GeneratedCsr(String keyId, String csrId) {
     }
 
@@ -200,13 +198,13 @@ class SsMemberDeprovisioningTest extends E2eTest {
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
-        var csBaseUrl = adminBaseUrl(env, CS_ENV);
+        var csBaseUrl = CentralServerApi.baseUrl(env);
         var caBaseUrl = caBaseUrl(env);
 
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
 
         var clientId = when("a dedicated member's only client is added to ss0 as a local client", () ->
-                addLocalClient(ss0BaseUrl, ss0Session));
+                addLocalClient(ss0BaseUrl, ss0Session, CLIENT_ID));
 
         and("a CA-signed sign certificate for the member is provisioned on ss0's token", () ->
                 provisionSignCertificate(env, ss0BaseUrl, ss0Session, caBaseUrl));
@@ -248,11 +246,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
                 assertCredentialRemainsIssued(issuerDbOps, expectedHolderDid(env, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE)));
     }
 
-    private String adminBaseUrl(E2eEnvironment env, String envName) {
-        var mapping = env.getContainerMapping(envName, SsStackSetup.UI, SsStackSetup.Port.UI);
-        return "https://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
     /**
      * The test CA's cert-issuance endpoint is plain HTTP, unlike the admin APIs above, mirroring
      * {@code setup.hurl}'s own {@code http://{{ca_host}}:8888/testca/sign} calls.
@@ -262,55 +255,12 @@ class SsMemberDeprovisioningTest extends E2eTest {
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
 
-    private AdminSession login(String baseUrl) {
-        var response = RestAssuredFactory.given()
-                .formParam("username", ADMIN_USERNAME)
-                .formParam("password", ADMIN_PASSWORD)
-                .post(baseUrl + "/login");
-        assertThat(response.getStatusCode()).as("login to %s", baseUrl).isEqualTo(200);
-        return new AdminSession(response.getCookies(), response.getCookie("XSRF-TOKEN"));
-    }
-
-    private RequestSpecification authed(AdminSession session) {
-        return RestAssuredFactory.given()
-                .cookies(session.cookies())
-                .header("X-XSRF-TOKEN", session.xsrfToken());
-    }
-
-    /**
-     * Adds the member's local client, tolerating a warm rerun where it already exists: {@code ClientService}
-     * rejects a duplicate with {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped to
-     * 409. Either way the returned id is {@link #CLIENT_ID}, deterministic from the member/subsystem
-     * constants, so no response-body lookup is needed on either status.
-     */
-    private String addLocalClient(String ss0BaseUrl, AdminSession ss0) {
-        var body = """
-                {
-                  "ignore_warnings": true,
-                  "client": {
-                    "member_class": "%s",
-                    "member_code": "%s",
-                    "subsystem_code": "%s",
-                    "connection_type": "HTTP"
-                  }
-                }
-                """.formatted(MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients");
-        assertThat(response.getStatusCode())
-                .as("add local client for the member (201 first run, 409 if it already exists on a warm rerun)")
-                .isIn(201, 409);
-        return CLIENT_ID;
-    }
-
     /**
      * Provisions a CA-signed sign certificate for the member on ss0's token, mirroring
      * {@code setup.hurl}'s own ss0 sign-key block for {@link #MEMBER_CTX_ID} instead of ss0's own owner
      * member. The admin API rejects a SIGNING CSR for a member id that is not yet a local client (see
      * {@code TokenCertificateService.generateCertRequest}), which is why this runs after
-     * {@link #addLocalClient}, not at environment bring-up.
+     * {@link AdminApi#addLocalClient}, not at environment bring-up.
      *
      * <p>Tolerant of a warm rerun at every stage: an existing certificate for the member is reused
      * outright; an existing CSR with no certificate yet (a previous run that crashed mid-flow) is signed
@@ -461,59 +411,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
     }
 
     /**
-     * Submits the client registration request, tolerating a warm rerun where the client is already past
-     * {@code SAVED} status: {@code ClientService.registerClient} rejects that with a
-     * {@code ConflictException} mapped to 409. Either status leaves {@link #awaitClientRegistered} to
-     * confirm the actual outcome.
-     */
-    private void registerClient(String ss0BaseUrl, AdminSession ss0, String clientId) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/clients/" + clientId + "/register");
-        assertThat(response.getStatusCode())
-                .as("submit client registration for %s (204 first run, 409 if it is no longer SAVED on a warm rerun)", clientId)
-                .isIn(204, 409);
-    }
-
-    /**
-     * Waits until ss0 reports the client as REGISTERED, approving the Central Server's pending request
-     * within the same loop, exactly like {@link SsProxyDspRuntimeMemberTest#awaitClientRegistered}.
-     */
-    private void awaitClientRegistered(String ss0BaseUrl, AdminSession ss0, String csBaseUrl, AdminSession cs, String clientId) {
-        Awaitility.await()
-                .pollInterval(REGISTRATION_POLL_INTERVAL)
-                .timeout(REGISTRATION_POLL_TIMEOUT)
-                .untilAsserted(() -> {
-                    approvePendingRegistrationIfPresent(csBaseUrl, cs, clientId);
-                    var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId);
-                    assertThat(response.getStatusCode()).as("GET /clients/%s", clientId).isEqualTo(200);
-                    assertThat(response.jsonPath().getString("status"))
-                            .as("status of client %s", clientId)
-                            .isEqualTo(REGISTERED_STATUS);
-                });
-    }
-
-    /**
-     * Approves this test's own WAITING client registration request if one is present — matched by
-     * request type and the client's encoded id, so a warm shared environment's unrelated pending requests
-     * are never touched.
-     */
-    private void approvePendingRegistrationIfPresent(String csBaseUrl, AdminSession cs, String clientId) {
-        var response = authed(cs).get(csBaseUrl + "/api/v1/management-requests?sort=id&desc=true&status=WAITING");
-        assertThat(response.getStatusCode()).as("list WAITING management requests").isEqualTo(200);
-
-        Integer requestId = response.jsonPath().get(
-                "items.find { it.type == 'CLIENT_REGISTRATION_REQUEST' && it.client_id?.encoded_id == '%s' }?.id"
-                        .formatted(clientId));
-        if (requestId == null) {
-            return;
-        }
-
-        var approval = authed(cs).post(csBaseUrl + "/api/v1/management-requests/" + requestId + "/approval");
-        assertThat(approval.getStatusCode())
-                .as("approve client registration request %s (409 if a prior tick already approved it)", requestId)
-                .isIn(200, 409);
-    }
-
-    /**
      * Polls the same read-only status endpoint used to confirm provisioning in
      * {@link SsProxyDspRuntimeMemberTest#awaitMemberContextIssued}, here only to establish that the
      * member's presence is real before it is torn down — this scenario asserts the teardown outcome
@@ -541,31 +438,6 @@ class SsMemberDeprovisioningTest extends E2eTest {
                             + "without this, the later teardown assertions would not prove a real removal")
                             .formatted(MEMBER_CTX_ID), e);
         }
-    }
-
-    /**
-     * Unregisters the member's client. {@code ClientService.unregisterClient} flips the client straight
-     * to {@code DELINPROG} in the same call (no Central Server approval to wait for, unlike
-     * registration), so {@link #deleteClient} can follow immediately.
-     */
-    private void unregisterClient(String ss0BaseUrl, AdminSession ss0, String clientId) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/clients/" + clientId + "/unregister");
-        assertThat(response.getStatusCode())
-                .as("unregister %s (204 first run, 409 if a prior run already unregistered it)", clientId)
-                .isIn(204, 409);
-    }
-
-    /**
-     * Deletes the member's now-unregistered client — its last on ss0. This is the action that, once
-     * binding rows are written at provisioning time, flips the member's participant binding to
-     * decommissioned in the same transaction, handing the background reconciler its next tombstone to
-     * converge.
-     */
-    private void deleteClient(String ss0BaseUrl, AdminSession ss0, String clientId) {
-        var response = authed(ss0).delete(ss0BaseUrl + "/api/v1/clients/" + clientId);
-        assertThat(response.getStatusCode())
-                .as("delete %s, its member's last client on ss0 (204 first run, 404 if a prior run already deleted it)", clientId)
-                .isIn(204, 404);
     }
 
     /**
@@ -638,7 +510,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
                     .timeout(TEARDOWN_POLL_TIMEOUT)
                     .ignoreExceptions()
                     .until(() -> {
-                        var counts = dbOps.execCsIssuerSql(CS_ENV, sql).split("\\|", -1);
+                        var counts = dbOps.execCsIssuerSql(CentralServerApi.CS_ENV, sql).split("\\|", -1);
                         return Integer.parseInt(counts[0].trim()) > 0 && Integer.parseInt(counts[1].trim()) == 0;
                     });
         } catch (ConditionTimeoutException e) {
@@ -656,7 +528,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
     private void assertCredentialRemainsIssued(CsIssuerDbOps dbOps, String holderDid) {
         var sql = ("SELECT COUNT(*) FROM credential_resource WHERE holder_id = '%s' AND vc_state = %d")
                 .formatted(holderDid, VC_STATE_ISSUED);
-        var issuedCount = Integer.parseInt(dbOps.execCsIssuerSql(CS_ENV, sql).trim());
+        var issuedCount = Integer.parseInt(dbOps.execCsIssuerSql(CentralServerApi.CS_ENV, sql).trim());
         assertThat(issuedCount)
                 .as("holder '%s' keeps at least one ISSUED credential, unaffected by the other member's removal", holderDid)
                 .isPositive();

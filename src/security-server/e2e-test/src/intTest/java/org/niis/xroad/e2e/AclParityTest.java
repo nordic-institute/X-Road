@@ -27,6 +27,7 @@ package org.niis.xroad.e2e;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Order;
@@ -67,9 +68,11 @@ import static org.niis.xroad.e2e.AdminApi.login;
  * negotiation, so ss0 decides by its access rights alone. Every scenario creates namespaced fixtures on ss0,
  * polls until the expected verdict or the cache deadline, and removes its fixtures.
  *
- * <p>Runs only when {@code -Pe2e.acl-mode} is set; otherwise every scenario is skipped. Single-threaded and
- * ordered after every other class, and a failing scenario does not stop the next one: the Gradle task sets
- * the fail-fast threshold to {@code 0} in that mode.
+ * <p>Before the first scenario the shared {@link SubsystemPoolSetup subsystem pool} is registered once.
+ *
+ * <p>Runs only when {@code -Pe2e.acl-mode} is set; otherwise the pool is not registered and every scenario
+ * is skipped. Single-threaded and ordered after every other class, and a failing scenario does not stop
+ * the next one: the Gradle task sets the fail-fast threshold to {@code 0} in that mode.
  */
 @Slf4j
 @Tag("acl-parity")
@@ -82,6 +85,12 @@ class AclParityTest extends E2eTest {
     private static final String SS0_ENV = "ss0";
     private static final String SS1_ENV = "ss1";
     private static final String RUN_TOKEN = Long.toString(Instant.now().getEpochSecond(), Character.MAX_RADIX);
+
+    @BeforeAll
+    static void registerSubsystemPool(E2eEnvironment env) {
+        assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
+        SubsystemPoolSetup.ensure(env);
+    }
 
     static Stream<Named<Scenario>> scenarios() {
         return ScenarioCatalogue.all().stream()

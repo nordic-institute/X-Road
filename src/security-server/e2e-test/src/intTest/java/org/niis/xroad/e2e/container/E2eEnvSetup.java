@@ -58,6 +58,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
 
+    private static final String AUX_ENV = "aux";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
 
     private AuxStackSetup aux;
@@ -114,7 +115,12 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public ContainerMapping getContainerMapping(String envName, String service, int originalPort) {
-        return mapEnvironment(envName).getContainerMapping(service, originalPort);
+        return mapEnvironment(envName).getContainerMapping(composeServiceName(envName, service), originalPort);
+    }
+
+    /** The aux stack's admin UI is the compose service {@code cs}; the other environments' is {@code ui}. */
+    private static String composeServiceName(String envName, String service) {
+        return AUX_ENV.equals(envName) && SsStackSetup.UI.equals(service) ? AuxStackSetup.CS : service;
     }
 
     /**
@@ -226,7 +232,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         return switch (name) {
             case "ss0" -> ss0;
             case "ss1" -> ss1;
-            case "aux" -> aux;
+            case AUX_ENV -> aux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
     }

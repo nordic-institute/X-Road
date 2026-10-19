@@ -46,7 +46,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 public class AuxStackSetup extends BaseComposeSetup {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
-    private static final String CS = "cs";
+    public static final String CS = "cs";
     public static final String HURL = "hurl";
 
     public AuxStackSetup(ApiTestCoreProperties coreProperties) {
