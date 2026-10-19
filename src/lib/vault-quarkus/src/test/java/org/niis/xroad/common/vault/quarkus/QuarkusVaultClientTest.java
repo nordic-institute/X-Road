@@ -28,6 +28,12 @@ package org.niis.xroad.common.vault.quarkus;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.client.VaultClientException;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,10 +44,13 @@ import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -180,6 +189,42 @@ class QuarkusVaultClientTest {
     }
 
     @Test
+    void shouldStoreAndRetrieveOpMonitorCaWithExactlyTheCertificateField() throws Exception {
+        var ca = selfSignedCa("CN=Op-monitor CA");
+
+        vaultClient.createOpMonitorCa(ca);
+
+        assertThat(vaultClient.getOpMonitorCa()).contains(ca);
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH)).containsOnlyKeys(VaultClient.CERTIFICATE_KEY);
+        assertThat(VaultClient.OPMONITOR_CA_PATH).isEqualTo("tls/opmonitor-ca");
+    }
+
+    @Test
+    void shouldReplaceTheStoredOpMonitorCa() throws Exception {
+        var first = selfSignedCa("CN=First CA");
+        var second = selfSignedCa("CN=Second CA");
+
+        vaultClient.createOpMonitorCa(first);
+        vaultClient.createOpMonitorCa(second);
+
+        assertThat(vaultClient.getOpMonitorCa()).contains(second);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenNoOpMonitorCaIsStored() {
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldReadABlankOpMonitorCaRecordAsAbsent() {
+        secretsByPath.put(VaultClient.OPMONITOR_CA_PATH, Map.of(VaultClient.CERTIFICATE_KEY, ""));
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+
+        secretsByPath.put(VaultClient.OPMONITOR_CA_PATH, Map.of(VaultClient.CERTIFICATE_KEY, " \n"));
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
     void shouldStoreAndRetrieveAgreementTokenSigningKeys() {
         String keyPairOne = "{\"kty\":\"EC\",\"kid\":\"1\"}";
         String keyPairTwo = "{\"kty\":\"EC\",\"kid\":\"2\"}";
@@ -237,6 +282,50 @@ class QuarkusVaultClientTest {
 
         verify(kvSecretEngine, never()).deleteSecret(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1");
         verify(kvSecretEngine, never()).deleteSecret(anyString());
+    }
+
+    @Test
+    void shouldClearTheOpMonitorCaByWritingABlankCertificateField() throws Exception {
+        vaultClient.createOpMonitorCa(selfSignedCa("CN=Op-monitor CA"));
+        vaultClient.clearOpMonitorCa();
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH)).containsOnlyKeys(VaultClient.CERTIFICATE_KEY);
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH).get(VaultClient.CERTIFICATE_KEY)).isEqualTo("");
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+    }
+
+    @Test
+    void shouldNeverDeleteTheOpMonitorCaSecretWhenClearing() throws Exception {
+        vaultClient.createOpMonitorCa(selfSignedCa("CN=Op-monitor CA"));
+        vaultClient.clearOpMonitorCa();
+        vaultClient.clearOpMonitorCa();
+        verify(kvSecretEngine, never()).deleteSecret(anyString());
+    }
+
+    @Test
+    void shouldClearAnOpMonitorCaThatWasNeverStored() {
+        vaultClient.clearOpMonitorCa();
+        assertThat(vaultClient.getOpMonitorCa()).isEmpty();
+        assertThat(secretsByPath.get(VaultClient.OPMONITOR_CA_PATH)).containsOnlyKeys(VaultClient.CERTIFICATE_KEY);
+    }
+
+    @Test
+    void shouldStoreAnOpMonitorCaAgainAfterItWasCleared() throws Exception {
+        var first = selfSignedCa("CN=First CA");
+        var second = selfSignedCa("CN=Second CA");
+        vaultClient.createOpMonitorCa(first);
+        vaultClient.clearOpMonitorCa();
+        vaultClient.createOpMonitorCa(second);
+        assertThat(vaultClient.getOpMonitorCa()).contains(second);
+    }
+
+    private static X509Certificate selfSignedCa(String subjectName) throws Exception {
+        var keyPair = generateRsaKeyPair();
+        var subject = new X500Name(subjectName);
+        var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)), subject, keyPair.getPublic())
+                .addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {
