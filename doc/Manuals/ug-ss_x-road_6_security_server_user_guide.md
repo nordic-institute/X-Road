@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.112
+Version: 2.113
 Doc. ID: UG-SS
 
 ---
@@ -141,6 +141,7 @@ Doc. ID: UG-SS
 | 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
 | 29.09.2026 | 2.111   | Message log archive upload example script demo-upload.pl is no longer included in the Security Server packages                                                                                                                                                                                                                                                                                             | Eneli Reimets        |
 | 13.10.2026 | 2.112   | Added the CA certificate exchange with an external operational monitoring daemon in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). Removed the outdated TLS certificate and gRPC keystore steps from section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)                               | Stefan Cvetkovski    |
+| 19.10.2026 | 2.113   | Added chapter [26](#26-managing-the-agreement-token-signing-key) on viewing and rotating the agreement token signing key                                                                                                                                                                                                                                                                                   | Andres Rosenthal     |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -303,6 +304,9 @@ Doc. ID: UG-SS
 - [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
   - [25.1 Steps to Enable EC Based Certificates](#251-steps-to-enable-ec-based-certificates)
   - [25.2 Backwards Compatibility](#252-backwards-compatibility)
+- [26 Managing the Agreement Token Signing Key](#26-managing-the-agreement-token-signing-key)
+  - [26.1 Viewing the Signing Key Status](#261-viewing-the-signing-key-status)
+  - [26.2 Rotating the Signing Key](#262-rotating-the-signing-key)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -3811,3 +3815,36 @@ signing-key-algorithm = EC
 EC based keys are supported starting from X-Road version 7.6.0 (=> 7.6.0). If an X-Road instance contains Security Servers prior to version 7.6.0 (< 7.6.0), then:
 A Security Server prior to version 7.6.0 (< 7.6.0) is able to verify requests signed with EC keys from a Security Server version 7.6.0 or later (=> 7.6.0).
 If a Security Server prior to version 7.6.0 (< 7.6.0) makes a request to a Security Server version 7.6.0 or later (=> 7.6.0), which uses EC based authentication certificate, then "TLS handshake failed" error may occur. To fix this without upgrading the older Security Server, update the Security Server's `xroad-tls-ciphers` property to include EC compatible TLS cipher, e.g.: `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, please see [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md) for details.
+
+## 26 Managing the Agreement Token Signing Key
+
+When the Security Server takes part in data exchange in a dataspace, it signs agreement tokens. An agreement token is a short-lived signed token that a provider Security Server issues to a consumer for a contract agreement; the consumer sends it with each data request, and the provider checks it before serving the request. The Security Server signs the tokens with an agreement token signing key and verifies them with the signing keys it keeps. The keys are stored in the secret store of the Security Server. The Security Server creates the signing key automatically. The Security Server administrator can view the key status and rotate the key, for example if the key may have leaked.
+
+The key status and the rotation are also available in the Management REST API (see chapter [19](#19-management-rest-api)) as the operations `GET /dataspace/agreement-token-key` and `POST /dataspace/agreement-token-key/rotate`.
+
+### 26.1 Viewing the Signing Key Status
+
+To view the status, open the **Keys and Certificates** page and select the **Agreement Token Key** tab. The tab is available to the roles [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator) and [Security Server Observer](#xroad-securityserver-observer).
+
+The tab shows the following information:
+
+* **Signing key ID** - the identifier of the key that signs new tokens now.
+* **Created** - the time when the key was created. The value is **Unknown** if the key was stored without a creation time.
+* **Previous keys retained** - the number of earlier keys that the Security Server keeps. Tokens signed with these keys can still be verified.
+* A note that a new key is waiting to start signing. The note is shown after a rotation, until the new key starts signing.
+
+If the Security Server has not loaded any signing key yet, the tab shows a message instead, and the signing key cannot be rotated.
+
+### 26.2 Rotating the Signing Key
+
+To rotate the signing key, select **Rotate key** on the **Agreement Token Key** tab and confirm the action. The button is available to the roles [Security Officer](#xroad-security-officer) and [System Administrator](#xroad-system-administrator). The button is disabled while the request is in progress and when the signing key is not available.
+
+The rotation works as follows:
+
+* The Security Server generates a new signing key and stores it in the secret store. If the new key cannot be stored, the rotation fails and the current key stays in use.
+* The new key starts signing within two key refresh intervals. The key refresh interval is 30 seconds by default, so by default the new key starts signing within 60 seconds. Until then, the current key keeps signing.
+* If the Security Server has several proxy replicas, every replica of the same Security Server switches to the new key within the same time.
+* Tokens signed with the previous key stay valid until they expire. By default, a token is valid for 60 seconds, and the verifier accepts it for another 5 seconds after that (the expiry leeway).
+* The Security Server keeps the previous keys. They are not deleted by the rotation.
+
+The rotation is recorded in the audit log as the event **Rotate agreement token signing key** (see \[[SPEC-AL](#Ref_SPEC-AL)\]).

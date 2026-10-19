@@ -25,6 +25,20 @@
       "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
     }
   },
+  "agreementTokenKey": {
+    "createdAt": "Created",
+    "createdAtUnknown": "Unknown",
+    "description": "The agreement token signing key signs the tokens that this Security Server issues for data exchange in a dataspace. Rotating the key generates a new key. Earlier keys are kept so that tokens signed with them stay valid until they expire.",
+    "keyId": "Signing key ID",
+    "pending": "A new key ({keyId}) is waiting to start signing.",
+    "previousKeys": "Previous keys retained",
+    "rotate": "Rotate key",
+    "rotateConfirmText": "Tokens already issued keep working until they expire. The new key starts signing within two key refresh intervals.",
+    "rotateConfirmTitle": "Rotate agreement token signing key?",
+    "rotated": "The agreement token signing key is rotated",
+    "title": "Agreement token signing key",
+    "unavailable": "The signing key is not available. The proxy has not loaded any signing key yet, so the key cannot be rotated."
+  },
   "alert": {
     "warningCount": "Amount of same warnings"
   },
@@ -469,7 +483,12 @@
           },
           "UnknownService": "Unknown service"
         }
-      }
+      },
+      "agreement_token_key_generation_failed": "Generating the agreement token signing key failed",
+      "agreement_token_key_not_available": "The agreement token signing key is not available. The proxy has not loaded any signing key yet",
+      "agreement_token_key_store_failed": "The agreement token signing key could not be saved to the secret store. Try again later",
+      "agreement_token_rejected": "The agreement token was rejected",
+      "agreement_token_signing_failed": "Signing the agreement token failed"
     },
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
@@ -1533,7 +1552,8 @@
       "opMonitorTrust": "Operational Monitoring Trust",
       "signAndAuthKeys": "SIGN and AUTH Keys",
       "ssTlsCertificate": "Security Server TLS Key",
-      "dsTlsCertificate": "Dataspace TLS Certificate"
+      "dsTlsCertificate": "Dataspace TLS Certificate",
+      "agreementTokenKey": "Agreement Token Key"
     },
     "main": {
       "clients": "Clients",
