@@ -162,6 +162,17 @@ This is done for security reasons, to hide the endpoint addresses which often po
 to information systems which should be hidden from the clients, and be accessed only through
 the provider Security Server.
 
+The replaced endpoint locations are:
+
+- the `location` attribute of `soap:address` (`http://schemas.xmlsoap.org/wsdl/soap/`),
+  `soap12:address` (`http://schemas.xmlsoap.org/wsdl/soap12/`) and
+  `http:address` (`http://schemas.xmlsoap.org/wsdl/http/`) elements;
+- the text of the WS-Addressing `Address` element (`http://www.w3.org/2005/08/addressing` or
+  `http://schemas.xmlsoap.org/ws/2004/08/addressing`) inside a `wsdl:port` element.
+
+The elements are matched by namespace and local name, regardless of the namespace prefix used.
+All other content of the WSDL, including import locations, is returned unchanged.
+
 For example service definition
 
 ```xml
@@ -182,7 +193,21 @@ becomes
     </wsdl:service>
 ```
 
-when retrieved through the meta-service.
+when retrieved through the meta-service. A SOAP 1.2 port
+
+```xml
+        <wsdl:port binding="tns:testServiceBinding12" name="testServicePort12">
+            <soap12:address location="http://some-server.company.com:8080/testService/Endpoint"/>
+        </wsdl:port>
+```
+
+is replaced the same way:
+
+```xml
+        <wsdl:port binding="tns:testServiceBinding12" name="testServicePort12">
+            <soap12:address location="http://example.org/xroad-endpoint"/>
+        </wsdl:port>
+```
 
 ## Annex A XML Schema for Messages
 

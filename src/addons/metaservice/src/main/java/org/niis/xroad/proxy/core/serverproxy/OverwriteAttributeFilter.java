@@ -33,55 +33,65 @@ import org.xml.sax.helpers.XMLFilterImpl;
 
 import javax.xml.namespace.QName;
 
+import java.util.Set;
+
 /**
- * Filter that replaces specific attributes values with given strings
+ * Filter that replaces the endpoint addresses of a WSDL port with a given string: the location attribute of
+ * SOAP 1.1, SOAP 1.2 and HTTP binding address elements, and the text of WS-Addressing Address elements
+ * inside a port.
  */
 @Slf4j
-public class OverwriteAttributeFilter extends XMLFilterImpl {
-    private String newValue;
-    private QName element;
-    private QName attributeToOverwrite;
+public final class OverwriteAttributeFilter extends XMLFilterImpl {
+    private static final QName WSDL_PORT_ELEMENT = new QName("http://schemas.xmlsoap.org/wsdl/", "port");
 
-    private static final QName WSDL_SOAP_ADDRESS_ELEMENT = new QName(
-            "http://schemas.xmlsoap.org/wsdl/soap/", "address");
+    private static final Set<QName> ADDRESS_ELEMENTS = Set.of(
+            new QName("http://schemas.xmlsoap.org/wsdl/soap/", "address"),
+            new QName("http://schemas.xmlsoap.org/wsdl/soap12/", "address"),
+            new QName("http://schemas.xmlsoap.org/wsdl/http/", "address"));
 
-    private static final QName WSDL_SOAP_ADDRESS_LOCATION_ATTRIBUTE = new QName(
-            null, "location");
+    private static final Set<QName> WS_ADDRESSING_ADDRESS_ELEMENTS = Set.of(
+            new QName("http://www.w3.org/2005/08/addressing", "Address"),
+            new QName("http://schemas.xmlsoap.org/ws/2004/08/addressing", "Address"));
 
-    /**
-     * Create filter which replaces given attribute
-     * @param attributeToOverwrite
-     * @param newValue
-     */
-    public OverwriteAttributeFilter(QName element, QName attributeToOverwrite, String newValue) {
+    private static final QName LOCATION_ATTRIBUTE = new QName(null, "location");
+
+    private final String newValue;
+    private int portDepth;
+    private int addressDepth;
+    private boolean addressTextWritten;
+
+    private OverwriteAttributeFilter(String newValue) {
         super();
-        this.element = element;
-        this.attributeToOverwrite = attributeToOverwrite;
         this.newValue = newValue;
     }
 
     /**
-     * Create filter which replaces soap:address element's location attribute
-     * @param newValue
+     * Create filter which replaces the endpoint addresses of WSDL ports
+     * @param newValue the replacement address
      */
     public static OverwriteAttributeFilter createOverwriteSoapAddressFilter(String newValue) {
-        return new OverwriteAttributeFilter(WSDL_SOAP_ADDRESS_ELEMENT,
-                WSDL_SOAP_ADDRESS_LOCATION_ATTRIBUTE, newValue);
+        return new OverwriteAttributeFilter(newValue);
     }
-
 
     @Override
     public void startElement(String uri, String localName, String qName,
                              Attributes atts)
             throws SAXException {
         QName elementQName = new QName(uri, localName);
-        if (elementQName.equals(element)) {
+        if (WSDL_PORT_ELEMENT.equals(elementQName)) {
+            portDepth++;
+        }
+        if (portDepth > 0 && WS_ADDRESSING_ADDRESS_ELEMENTS.contains(elementQName)) {
+            addressDepth++;
+            addressTextWritten = false;
+        }
+        if (ADDRESS_ELEMENTS.contains(elementQName)) {
             // replace attributes with new copies
             AttributesImpl newAttributes = new AttributesImpl();
             for (int i = 0; i < atts.getLength(); i++) {
                 String attributeValue;
                 QName attributeQName = new QName(atts.getURI(i), atts.getLocalName(i));
-                if (attributeToOverwrite.equals(attributeQName)) {
+                if (LOCATION_ATTRIBUTE.equals(attributeQName)) {
                     attributeValue = newValue;
                 } else {
                     attributeValue = atts.getValue(i);
@@ -93,6 +103,29 @@ public class OverwriteAttributeFilter extends XMLFilterImpl {
             super.startElement(uri, localName, qName, newAttributes);
         } else {
             super.startElement(uri, localName, qName, atts);
+        }
+    }
+
+    @Override
+    public void endElement(String uri, String localName, String qName) throws SAXException {
+        QName elementQName = new QName(uri, localName);
+        if (addressDepth > 0 && WS_ADDRESSING_ADDRESS_ELEMENTS.contains(elementQName)) {
+            addressDepth--;
+        }
+        if (WSDL_PORT_ELEMENT.equals(elementQName)) {
+            portDepth--;
+        }
+        super.endElement(uri, localName, qName);
+    }
+
+    @Override
+    public void characters(char[] ch, int start, int length) throws SAXException {
+        if (addressDepth == 0) {
+            super.characters(ch, start, length);
+        } else if (!addressTextWritten) {
+            addressTextWritten = true;
+            char[] replacement = newValue.toCharArray();
+            super.characters(replacement, 0, replacement.length);
         }
     }
 }

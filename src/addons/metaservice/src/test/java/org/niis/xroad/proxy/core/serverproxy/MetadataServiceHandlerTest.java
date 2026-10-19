@@ -97,7 +97,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -598,6 +600,68 @@ public class MetadataServiceHandlerTest {
     }
 
     @Test
+    public void getWsdlShouldMaskAllPortAddresses() throws Exception {
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
+        var handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        prepareTestConstructsForWsdl(handlerToTest, serviceId, false, "wsdl_all_address_types.wsdl");
+        mockServer.stubFor(WireMock.any(urlPathEqualTo("/types.xsd"))
+                .willReturn(aResponse().withBodyFile("wsdl_types.xsd")));
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
+                handlerToTest.getResponseContentType());
+
+        assertThat("Expected every port address to be masked",
+                handler.getEndpointUrls(),
+                containsInAnyOrder(Collections.nCopies(5, MetadataServiceHandlerImpl.WSDL_ENDPOINT_ADDRESS).toArray()));
+
+        String resultXml = handler.getContentAsString();
+        assertFalse(resultXml.contains("internal.example"));
+        assertEquals(2, countOccurrences(resultXml,
+                ">" + MetadataServiceHandlerImpl.WSDL_ENDPOINT_ADDRESS + "</"));
+        assertThat(resultXml, containsString("keep-this-text"));
+
+        String originalXml = readFile("__files/wsdl_all_address_types.wsdl");
+        var diff = DiffBuilder
+                .compare(Input.fromString(maskAddresses(originalXml)))
+                .withTest(Input.fromString(maskAddresses(resultXml)))
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byName))
+                .checkForSimilar()
+                .ignoreWhitespace()
+                .build();
+        assertFalse(diff.toString(), diff.hasDifferences());
+        assertThat(resultXml, containsString("location=\"http://wsdl-host.example.net/imported.wsdl\""));
+        assertThat(resultXml, containsString("schemaLocation=\"http://localhost:9858/types.xsd\""));
+    }
+
+    @Test
+    public void getWsdlShouldMaskSoap12OnlyWsdlWithCustomPrefix() throws Exception {
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
+        var handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        prepareTestConstructsForWsdl(handlerToTest, serviceId, false, "wsdl_soap12_only.wsdl");
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
+                handlerToTest.getResponseContentType());
+
+        assertThat(handler.getEndpointUrls(), is(List.of(MetadataServiceHandlerImpl.WSDL_ENDPOINT_ADDRESS)));
+        assertFalse(handler.getContentAsString().contains("internal.example"));
+    }
+
+    private static String maskAddresses(String xml) {
+        return xml.replaceAll("(address\\s+location=\")[^\"]*\"", "$1\"")
+                .replaceAll("(<([\\w]+:)?Address>)[^<]*(</)", "$1$3");
+    }
+
+    private static int countOccurrences(String text, String part) {
+        return text.split(Pattern.quote(part), -1).length - 1;
+    }
+
+    @Test
     public void shouldThrowInvalidServiceTypeExWhenGetWsdl() throws Exception {
 
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
@@ -615,9 +679,14 @@ public class MetadataServiceHandlerTest {
      */
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
                                                                                                              Exception {
-        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
-
         TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        prepareTestConstructsForWsdl(handlerToTest, serviceId, isRest, "wsdl.wsdl");
+        return handlerToTest;
+    }
+
+    private void prepareTestConstructsForWsdl(MetadataServiceHandlerImpl handlerToTest, ServiceId serviceId,
+                                              boolean isRest, String wsdlFile) throws Exception {
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
@@ -634,12 +703,10 @@ public class MetadataServiceHandlerTest {
         setUpDatabase(XRoadIdMapper.get().toEntity(requestingWsdlForService), isRest);
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
-                .willReturn(aResponse().withBodyFile("wsdl.wsdl")));
+                .willReturn(aResponse().withBodyFile(wsdlFile)));
         mockServer.start();
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
-
-        return handlerToTest;
     }
 
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId) throws Exception {
@@ -764,6 +831,7 @@ public class MetadataServiceHandlerTest {
                 if (partContentType != null) {
                     try {
                         WSDLReader wsdlReader = WSDLFactory.newInstance().newWSDLReader();
+                        wsdlReader.setFeature("javax.wsdl.importDocuments", false);
                         Definition definition = wsdlReader.readWSDL(null, new InputSource(is));
 
                         operationNames = parseOperationNamesFromWSDLDefinition(definition);

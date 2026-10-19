@@ -60,7 +60,9 @@ import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
 import javax.wsdl.Service;
+import javax.wsdl.extensions.http.HTTPAddress;
 import javax.wsdl.extensions.soap.SOAPAddress;
+import javax.wsdl.extensions.soap12.SOAP12Address;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -207,6 +209,10 @@ public final class MetaserviceTestUtil {
                 for (Object extensibilityElement : port.getExtensibilityElements()) {
                     if (extensibilityElement instanceof SOAPAddress) {
                         endpointUrls.add(((SOAPAddress) extensibilityElement).getLocationURI());
+                    } else if (extensibilityElement instanceof SOAP12Address) {
+                        endpointUrls.add(((SOAP12Address) extensibilityElement).getLocationURI());
+                    } else if (extensibilityElement instanceof HTTPAddress) {
+                        endpointUrls.add(((HTTPAddress) extensibilityElement).getLocationURI());
                     }
                 }
             }
