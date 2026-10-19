@@ -38,18 +38,23 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.e2e.parity.FixtureExecutor;
+import org.niis.xroad.e2e.parity.FixturePlan;
 import org.niis.xroad.e2e.parity.FixturePlanner;
 import org.niis.xroad.e2e.parity.Reply;
 import org.niis.xroad.e2e.parity.RestRequests;
 import org.niis.xroad.e2e.parity.Scenario;
+import org.niis.xroad.e2e.parity.Scenario.RestRequest;
+import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
 import org.niis.xroad.e2e.parity.ScenarioCatalogue;
-import org.niis.xroad.e2e.parity.Verdict;
+import org.niis.xroad.e2e.parity.SoapRequests;
 import org.niis.xroad.e2e.parity.VerdictClassifier;
 import org.niis.xroad.e2e.parity.VerdictPoller;
+import org.niis.xroad.e2e.parity.VerdictPoller.Observation;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -93,25 +98,37 @@ class AclParityTest extends E2eTest {
         var plan = new FixturePlanner(RUN_TOKEN).plan(scenario.id(), scenario.fixture());
 
         try (var fixture = new FixtureExecutor(gateway).open(plan)) {
-            var serviceCode = plan.serviceCodes().get(0);
-            var result = new VerdictPoller().await(() -> call(env, scenario, serviceCode), scenario.expected(),
+            var result = new VerdictPoller().await(() -> call(env, scenario, plan), scenario.expected(),
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT,
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
-            log.info("{}: verdict {} after {} attempts in {} s", scenario.id(), result.last(), result.attempts(),
-                    result.elapsed().toSeconds());
+            log.info("{}: verdict {} ({}) after {} attempts in {} s", scenario.id(), result.last(), result.detail(),
+                    result.attempts(), result.elapsed().toSeconds());
             assertTrue(result.matched(), () -> result.failureMessage(scenario.id(), scenario.expected()));
         }
     }
 
-    private static Verdict call(E2eEnvironment env, Scenario scenario, String serviceCode) {
+    private static Observation call(E2eEnvironment env, Scenario scenario, FixturePlan plan) {
         var proxy = env.getContainerMapping(SS1_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        var request = scenario.request();
-        var url = RestRequests.url("http://%s:%s".formatted(proxy.host(), proxy.port()),
-                scenario.fixture().providerClientId(), serviceCode, request.path());
-        var response = RestAssuredFactory.given()
-                .header(RestRequests.CLIENT_HEADER, RestRequests.clientHeader(request.consumerClientId()))
-                .request(request.method(), url);
-        return VerdictClassifier.classify(toReply(response));
+        var proxyOrigin = "http://%s:%s".formatted(proxy.host(), proxy.port());
+        var providerClientId = scenario.fixture().providerClientId();
+        var serviceCode = plan.serviceCodes().get(scenario.request().serviceIndex());
+        return switch (scenario.request()) {
+            case RestRequest rest -> {
+                var reply = toReply(RestAssuredFactory.given()
+                        .header(RestRequests.CLIENT_HEADER, RestRequests.clientHeader(rest.consumerClientId()))
+                        .request(rest.method(),
+                                RestRequests.url(proxyOrigin, providerClientId, serviceCode, rest.path())));
+                yield new Observation(VerdictClassifier.classify(reply), reply.toString());
+            }
+            case SoapRequest soap -> {
+                var reply = toReply(RestAssuredFactory.given()
+                        .header("Content-Type", "text/xml")
+                        .body(SoapRequests.envelope(soap.consumerClientId(), providerClientId, serviceCode,
+                                soap.serviceVersion(), soap.securityServerHint(), "acl-parity-" + UUID.randomUUID()))
+                        .post(proxyOrigin));
+                yield new Observation(VerdictClassifier.classifySoap(reply), VerdictClassifier.describeSoap(reply));
+            }
+        };
     }
 
     private static Reply toReply(Response response) {

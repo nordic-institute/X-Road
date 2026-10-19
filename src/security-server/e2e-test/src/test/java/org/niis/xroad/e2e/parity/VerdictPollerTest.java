@@ -62,7 +62,7 @@ class VerdictPollerTest {
         var poller = new VerdictPoller(new FakeClock());
 
         var result = poller.await(
-                () -> calls.incrementAndGet() < 4 ? Verdict.ACCESS_DENIED : Verdict.ALLOWED,
+                () -> calls.incrementAndGet() < 4 ? observed(Verdict.ACCESS_DENIED) : observed(Verdict.ALLOWED),
                 Verdict.ALLOWED, TIMEOUT, INTERVAL);
 
         assertThat(result.matched()).isTrue();
@@ -75,7 +75,7 @@ class VerdictPollerTest {
     void stopsAtTheDeadlineWhenTheVerdictNeverFlips() {
         var poller = new VerdictPoller(new FakeClock());
 
-        var result = poller.await(() -> Verdict.ACCESS_DENIED, Verdict.ALLOWED, TIMEOUT, INTERVAL);
+        var result = poller.await(() -> observed(Verdict.ACCESS_DENIED), Verdict.ALLOWED, TIMEOUT, INTERVAL);
 
         assertThat(result.matched()).isFalse();
         assertThat(result.last()).isEqualTo(Verdict.ACCESS_DENIED);
@@ -89,7 +89,7 @@ class VerdictPollerTest {
         var poller = new VerdictPoller(new FakeClock());
 
         var result = poller.await(
-                () -> calls.incrementAndGet() <= 31 ? Verdict.ACCESS_DENIED : Verdict.ALLOWED,
+                () -> calls.incrementAndGet() <= 31 ? observed(Verdict.ACCESS_DENIED) : observed(Verdict.ALLOWED),
                 Verdict.ALLOWED, TIMEOUT, INTERVAL);
 
         assertThat(result.matched()).isFalse();
@@ -105,7 +105,7 @@ class VerdictPollerTest {
             if (calls.incrementAndGet() < 3) {
                 throw new IllegalStateException("connection refused");
             }
-            return Verdict.ALLOWED;
+            return observed(Verdict.ALLOWED);
         }, Verdict.ALLOWED, TIMEOUT, INTERVAL);
 
         assertThat(result.matched()).isTrue();
@@ -116,9 +116,41 @@ class VerdictPollerTest {
     void failureMessageNamesTheScenarioAndBothVerdicts() {
         var poller = new VerdictPoller(new FakeClock());
 
-        var result = poller.await(() -> Verdict.ERROR, Verdict.ACCESS_DENIED, TIMEOUT, INTERVAL);
+        var result = poller.await(() -> observed(Verdict.ERROR), Verdict.ACCESS_DENIED, TIMEOUT, INTERVAL);
 
         assertThat(result.failureMessage("V02", Verdict.ACCESS_DENIED))
-                .startsWith("V02: expected ACCESS_DENIED but got ERROR");
+                .startsWith("V02: expected ACCESS_DENIED but got ERROR")
+                .doesNotContain("last reply");
+    }
+
+    @Test
+    void failureMessageNamesTheLastFaultCode() {
+        var calls = new AtomicInteger();
+        var poller = new VerdictPoller(new FakeClock());
+
+        var result = poller.await(
+                () -> new VerdictPoller.Observation(Verdict.ERROR, "fault " + (calls.incrementAndGet() < 31
+                        ? "Client.Early" : "Server.inconsistent_headers")),
+                Verdict.ALLOWED, TIMEOUT, INTERVAL);
+
+        assertThat(result.failureMessage("V03", Verdict.ALLOWED))
+                .endsWith("; last reply: fault Server.inconsistent_headers");
+    }
+
+    @Test
+    void failureMessageNamesTheExceptionClassNotItsMessage() {
+        var poller = new VerdictPoller(new FakeClock());
+
+        var result = poller.await(() -> {
+            throw new IllegalStateException("Bearer secret-token");
+        }, Verdict.ALLOWED, TIMEOUT, INTERVAL);
+
+        assertThat(result.failureMessage("V03", Verdict.ALLOWED))
+                .endsWith("; last reply: exception IllegalStateException")
+                .doesNotContain("secret-token");
+    }
+
+    private static VerdictPoller.Observation observed(Verdict verdict) {
+        return new VerdictPoller.Observation(verdict, null);
     }
 }

@@ -27,6 +27,7 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
+import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
@@ -84,6 +85,8 @@ public final class FixtureExecutor {
             switch (call) {
                 case AddRestDescription add -> descriptionIds.put(add.serviceCode(),
                         gateway.addRestDescription(add.providerClientId(), add.backendUrl(), add.serviceCode()));
+                case AddWsdlDescription add -> descriptionIds.put(add.serviceCode(),
+                        gateway.addWsdlDescription(add.providerClientId(), add.wsdlUrl()));
                 case EnableDescription enable -> gateway.enableDescription(descriptionIds.get(enable.serviceCode()));
                 case GrantAccess grant -> gateway.grantAccess(
                         grant.providerClientId(), grant.consumerClientId(), grant.serviceCode());

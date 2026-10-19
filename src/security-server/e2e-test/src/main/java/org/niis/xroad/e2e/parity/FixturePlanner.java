@@ -27,10 +27,14 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
+import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
+import org.niis.xroad.e2e.parity.Scenario.RestService;
+import org.niis.xroad.e2e.parity.Scenario.WsdlService;
+import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,22 +60,52 @@ public final class FixturePlanner {
 
     public FixturePlan plan(String scenarioId, FixtureSpec spec) {
         var codes = new ArrayList<String>();
+        var descriptionKeys = new ArrayList<String>();
         var setup = new ArrayList<AdminCall>();
         var services = spec.services();
         for (var index = 0; index < services.size(); index++) {
-            var code = serviceCode(scenarioId, index);
-            codes.add(code);
-            setup.add(new AddRestDescription(spec.providerClientId(), backendUrl(code), code));
-            setup.add(new EnableDescription(code));
-            for (var consumer : services.get(index).grantedConsumerIds()) {
-                setup.add(new GrantAccess(spec.providerClientId(), consumer, code));
+            var base = serviceCode(scenarioId, index);
+            switch (services.get(index)) {
+                case RestService rest -> {
+                    codes.add(base);
+                    descriptionKeys.add(base);
+                    setup.add(new AddRestDescription(spec.providerClientId(), backendUrl(base), base));
+                    setup.add(new EnableDescription(base));
+                    grant(setup, spec.providerClientId(), base, rest.grantedConsumerIds());
+                }
+                case WsdlService wsdl -> {
+                    var wsdlCodes = wsdlCodes(base, wsdl);
+                    var key = wsdlCodes.get(0);
+                    codes.addAll(wsdlCodes);
+                    descriptionKeys.add(key);
+                    setup.add(new AddWsdlDescription(spec.providerClientId(), wsdlUrl(wsdl.shape(), wsdlCodes), key));
+                    setup.add(new EnableDescription(key));
+                    for (var i = 0; i < wsdlCodes.size(); i++) {
+                        grant(setup, spec.providerClientId(), wsdlCodes.get(i), wsdl.grantedConsumerIdsByCode().get(i));
+                    }
+                }
             }
         }
         var cleanup = new ArrayList<AdminCall>();
-        for (var index = codes.size() - 1; index >= 0; index--) {
-            cleanup.add(new DeleteDescription(codes.get(index)));
+        for (var index = descriptionKeys.size() - 1; index >= 0; index--) {
+            cleanup.add(new DeleteDescription(descriptionKeys.get(index)));
         }
         return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(cleanup));
+    }
+
+    private static void grant(List<AdminCall> setup, String providerClientId, String serviceCode,
+                              List<String> consumerIds) {
+        for (var consumer : consumerIds) {
+            setup.add(new GrantAccess(providerClientId, consumer, serviceCode));
+        }
+    }
+
+    private static List<String> wsdlCodes(String base, WsdlService wsdl) {
+        var codes = new ArrayList<String>();
+        for (var i = 0; i < wsdl.shape().codeCount(); i++) {
+            codes.add(base + (i == 0 ? "" : "-b") + wsdl.codeTail());
+        }
+        return codes;
     }
 
     String serviceCode(String scenarioId, int serviceIndex) {
@@ -81,5 +115,13 @@ public final class FixturePlanner {
 
     static String backendUrl(String serviceCode) {
         return BACKEND_ORIGIN + BACKEND_PATH_PREFIX + serviceCode;
+    }
+
+    static String wsdlUrl(WsdlShape shape, List<String> codes) {
+        var query = shape == WsdlShape.PAIR
+                ? "code1=%s&code2=%s".formatted(codes.get(0), codes.get(1))
+                : "code=" + codes.get(0);
+        return "%s%swsdl/%s.wsdl?%s".formatted(BACKEND_ORIGIN, BACKEND_PATH_PREFIX,
+                shape.name().toLowerCase(Locale.ROOT), query);
     }
 }

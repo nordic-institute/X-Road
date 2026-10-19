@@ -28,7 +28,9 @@ package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
-import org.niis.xroad.e2e.parity.Scenario.ServiceSpec;
+import org.niis.xroad.e2e.parity.Scenario.RestService;
+import org.niis.xroad.e2e.parity.Scenario.WsdlService;
+import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +42,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class FixtureExecutorTest {
 
     private static final FixtureSpec TWO_SERVICES = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(
-            new ServiceSpec(List.of(ScenarioCatalogue.CONSUMER)),
-            new ServiceSpec(List.of())));
+            new RestService(List.of(ScenarioCatalogue.CONSUMER)),
+            new RestService(List.of())));
 
     private static final class RecordingGateway implements AdminGateway {
         final List<String> calls = new ArrayList<>();
@@ -56,6 +58,12 @@ class FixtureExecutorTest {
             }
             calls.add("add " + serviceCode);
             return "id-" + serviceCode;
+        }
+
+        @Override
+        public String addWsdlDescription(String providerClientId, String wsdlUrl) {
+            calls.add("add wsdl " + wsdlUrl);
+            return "id-wsdl";
         }
 
         @Override
@@ -141,6 +149,23 @@ class FixtureExecutorTest {
                 .isInstanceOf(AssertionError.class)
                 .hasMessage("grant answered 500");
         assertThat(gateway.calls).endsWith("delete id-pt1-v09");
+    }
+
+    @Test
+    void wsdlDescriptionIsAddedThroughItsFirstCodeAndDeletedOnClose() {
+        var gateway = new RecordingGateway();
+        var wsdlPlan = new FixturePlanner("t1").plan("V04", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new WsdlService(WsdlShape.PAIR, "", List.of(List.of(ScenarioCatalogue.CONSUMER), List.of())))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(wsdlPlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "add wsdl http://isrest:8080/acl-parity/wsdl/pair.wsdl?code1=pt1-v04&code2=pt1-v04-b",
+                    "enable id-wsdl",
+                    "grant pt1-v04 to " + ScenarioCatalogue.CONSUMER);
+        }
+
+        assertThat(gateway.calls).endsWith("delete id-wsdl");
+        assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete")).hasSize(1);
     }
 
     @Test

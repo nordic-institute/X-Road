@@ -44,17 +44,26 @@ public final class VerdictPoller {
     }
 
     /**
+     * @param verdict the verdict the probe reached
+     * @param detail  a short description of what came back, for example a fault code, or {@code null} for none
+     */
+    public record Observation(Verdict verdict, String detail) {
+    }
+
+    /**
      * @param last     the verdict of the final probe
+     * @param detail   what came back on the final probe, or {@code null} for none
      * @param matched  whether the final probe returned the expected verdict
      * @param attempts how many probes ran
      * @param elapsed  time spent from the first probe to the last
      */
-    public record Result(Verdict last, boolean matched, int attempts, Duration elapsed) {
+    public record Result(Verdict last, String detail, boolean matched, int attempts, Duration elapsed) {
 
         /** The assertion message for a scenario that did not reach its expected verdict. */
         public String failureMessage(String scenarioId, Verdict expected) {
-            return "%s: expected %s but got %s after %d attempts in %d s"
+            var message = "%s: expected %s but got %s after %d attempts in %d s"
                     .formatted(scenarioId, expected, last, attempts, elapsed.toSeconds());
+            return detail == null ? message : message + "; last reply: " + detail;
         }
     }
 
@@ -85,26 +94,27 @@ public final class VerdictPoller {
         this.clock = clock;
     }
 
-    public Result await(Supplier<Verdict> probe, Verdict expected, Duration timeout, Duration interval) {
+    public Result await(Supplier<Observation> probe, Verdict expected, Duration timeout, Duration interval) {
         var start = clock.nowMillis();
         var attempts = 0;
         while (true) {
             attempts++;
-            var verdict = probeOnce(probe);
+            var observation = probeOnce(probe);
             var elapsedMillis = clock.nowMillis() - start;
-            var matched = verdict == expected;
+            var matched = observation.verdict() == expected;
             if (matched || elapsedMillis >= timeout.toMillis()) {
-                return new Result(verdict, matched, attempts, Duration.ofMillis(elapsedMillis));
+                return new Result(observation.verdict(), observation.detail(), matched, attempts,
+                        Duration.ofMillis(elapsedMillis));
             }
             clock.sleepMillis(interval.toMillis());
         }
     }
 
-    private static Verdict probeOnce(Supplier<Verdict> probe) {
+    private static Observation probeOnce(Supplier<Observation> probe) {
         try {
             return probe.get();
         } catch (RuntimeException e) {
-            return Verdict.ERROR;
+            return new Observation(Verdict.ERROR, "exception " + e.getClass().getSimpleName());
         }
     }
 }

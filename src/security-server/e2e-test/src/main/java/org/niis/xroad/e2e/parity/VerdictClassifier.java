@@ -27,11 +27,12 @@
 package org.niis.xroad.e2e.parity;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
- * Turns a REST response from the consumer Security Server's proxy into a {@link Verdict}.
+ * Turns a REST or SOAP response from the consumer Security Server's proxy into a {@link Verdict}.
  *
- * <p>{@link Verdict#ALLOWED} needs a 2xx status and the {@code mock-response: true} header the backend stub
+ * <p>For REST, {@link Verdict#ALLOWED} needs a 2xx status and the {@code mock-response: true} header the backend stub
  * adds, so a 2xx that did not reach the backend is an error. A provider refusal arrives as HTTP 500 with an
  * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code. Every other shape
  * is {@link Verdict#ERROR}.
@@ -40,11 +41,16 @@ public final class VerdictClassifier {
 
     static final String ERROR_HEADER = "x-road-error";
     static final String BACKEND_MARKER_HEADER = "mock-response";
+    static final String SOAP_BACKEND_MARKER = "acl-parity-backend";
 
     private static final String FAULT_PREFIX = "server.serverproxy.";
+    private static final String CLIENT_FAULT_PREFIX = "server.clientproxy.";
     private static final int HTTP_OK = 200;
     private static final int HTTP_LAST_SUCCESS = 299;
     private static final int HTTP_SERVER_ERROR = 500;
+
+    private static final Pattern FAULT_CODE =
+            Pattern.compile("<(?:[\\w.-]+:)?faultcode[^>]*>\\s*([^<]*?)\\s*</(?:[\\w.-]+:)?faultcode>");
 
     private static final Map<String, Verdict> FAULTS = Map.of(
             FAULT_PREFIX + "access_denied", Verdict.ACCESS_DENIED,
@@ -52,7 +58,8 @@ public final class VerdictClassifier {
             FAULT_PREFIX + "service_disabled", Verdict.SERVICE_DISABLED,
             FAULT_PREFIX + "service_type", Verdict.INVALID_SERVICE_TYPE,
             FAULT_PREFIX + "unknown_member", Verdict.UNKNOWN_MEMBER,
-            FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER);
+            FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER,
+            CLIENT_FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER);
 
     private VerdictClassifier() {
     }
@@ -69,5 +76,27 @@ public final class VerdictClassifier {
             return fault == null ? Verdict.ERROR : FAULTS.getOrDefault(fault.trim(), Verdict.ERROR);
         }
         return Verdict.ERROR;
+    }
+
+    /**
+     * Classifies a SOAP answer. A fault code in the body decides the verdict whatever the HTTP status; without a
+     * fault, only a 2xx answer carrying the backend's body marker is {@link Verdict#ALLOWED}.
+     */
+    public static Verdict classifySoap(Reply reply) {
+        if (reply == null) {
+            return Verdict.ERROR;
+        }
+        var fault = FAULT_CODE.matcher(reply.body());
+        if (fault.find()) {
+            return FAULTS.getOrDefault(fault.group(1), Verdict.ERROR);
+        }
+        var success = reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS;
+        return success && reply.body().contains(SOAP_BACKEND_MARKER) ? Verdict.ALLOWED : Verdict.ERROR;
+    }
+
+    /** The fault code of a SOAP answer, or its HTTP status when the body holds no fault code. */
+    public static String describeSoap(Reply reply) {
+        var fault = FAULT_CODE.matcher(reply.body());
+        return fault.find() ? "fault " + fault.group(1) : "status " + reply.status();
     }
 }

@@ -45,6 +45,11 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
+    public String addWsdlDescription(String providerClientId, String wsdlUrl) {
+        return AdminApi.addWsdlServiceDescription(baseUrl, session, providerClientId, wsdlUrl);
+    }
+
+    @Override
     public void enableDescription(String descriptionId) {
         AdminApi.enableServiceDescription(baseUrl, session, descriptionId);
     }

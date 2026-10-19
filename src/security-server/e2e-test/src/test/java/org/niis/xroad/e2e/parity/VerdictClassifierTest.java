@@ -84,4 +84,84 @@ class VerdictClassifierTest {
         assertThat(VerdictClassifier.classify(new Reply(302, MARKED, ""))).isEqualTo(Verdict.ERROR);
         assertThat(VerdictClassifier.classify(new Reply(500, MARKED, ""))).isEqualTo(Verdict.ERROR);
     }
+
+    private static final String SOAP_OK = "<Body xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\">acl-parity-backend</Body>";
+
+    private static String soapFault(String code) {
+        return "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><soap:Fault>"
+                + "<faultcode>" + code + "</faultcode><faultstring>refused</faultstring></soap:Fault></soap:Body>"
+                + "</soap:Envelope>";
+    }
+
+    @Test
+    void soapSuccessWithBodyMarkerIsAllowed() {
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), SOAP_OK))).isEqualTo(Verdict.ALLOWED);
+    }
+
+    @Test
+    void soapSuccessWithoutBodyMarkerIsError() {
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), "<Body>ok</Body>")))
+                .isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, MARKED, ""))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void soapMarkerWithoutSuccessStatusIsError() {
+        assertThat(VerdictClassifier.classifySoap(new Reply(500, Map.of(), SOAP_OK))).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifySoap(new Reply(302, Map.of(), SOAP_OK))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void soapFaultDecidesTheVerdictOnStatus200AndOn500() {
+        var denied = soapFault("server.serverproxy.access_denied");
+
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), denied))).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(VerdictClassifier.classifySoap(new Reply(500, Map.of(), denied))).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), soapFault("server.serverproxy.service_type"))))
+                .isEqualTo(Verdict.INVALID_SERVICE_TYPE);
+    }
+
+    @Test
+    void soapFaultBeatsTheBodyMarker() {
+        var body = soapFault("server.serverproxy.access_denied") + SOAP_OK;
+
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), body))).isEqualTo(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void soapClientProxyRefusalOfTheSecurityServerHintIsInvalidSecurityServer() {
+        assertThat(VerdictClassifier.classifySoap(
+                new Reply(200, Map.of(), soapFault("server.clientproxy.invalid_security_server"))))
+                .isEqualTo(Verdict.INVALID_SECURITY_SERVER);
+    }
+
+    @Test
+    void soapFaultCodeToleratesPrefixAndPadding() {
+        var body = "<s:Fault><s:faultcode xmlns:x=\"y\">  server.serverproxy.unknown_service \n</s:faultcode></s:Fault>";
+
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), body))).isEqualTo(Verdict.UNKNOWN_SERVICE);
+    }
+
+    @Test
+    void soapUnknownFaultNullAndUnparseableAreError() {
+        assertThat(VerdictClassifier.classifySoap(null)).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), soapFault("server.serverproxy.something_new"))))
+                .isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), null))).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifySoap(new Reply(200, Map.of(), "not xml at all"))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void describeSoapNamesTheFaultCodeAndNothingElseOfTheBody() {
+        var body = soapFault("Server.ServerProxy.inconsistent_headers") + "<faultstring>secret-detail</faultstring>";
+
+        assertThat(VerdictClassifier.describeSoap(new Reply(500, Map.of(), body)))
+                .isEqualTo("fault Server.ServerProxy.inconsistent_headers");
+    }
+
+    @Test
+    void describeSoapFallsBackToTheStatusWithoutAFaultCode() {
+        assertThat(VerdictClassifier.describeSoap(new Reply(404, Map.of(), "<html>not found</html>")))
+                .isEqualTo("status 404");
+    }
 }

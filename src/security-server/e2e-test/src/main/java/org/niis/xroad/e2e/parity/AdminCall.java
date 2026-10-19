@@ -38,6 +38,10 @@ public sealed interface AdminCall {
     record AddRestDescription(String providerClientId, String backendUrl, String serviceCode) implements AdminCall {
     }
 
+    /** Adds a WSDL description; {@code serviceCode} is the first service code the description offers. */
+    record AddWsdlDescription(String providerClientId, String wsdlUrl, String serviceCode) implements AdminCall {
+    }
+
     record EnableDescription(String serviceCode) implements AdminCall {
     }
 

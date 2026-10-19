@@ -171,6 +171,25 @@ class AdminApi {
         return response.jsonPath().getString("id");
     }
 
+    /** Adds a WSDL service description from {@code wsdlUrl}, ignoring parser warnings, and returns its id. */
+    static String addWsdlServiceDescription(String ss0BaseUrl, AdminSession ss0, String clientId, String wsdlUrl) {
+        var body = """
+                {
+                  "url": "%s",
+                  "type": "WSDL",
+                  "ignore_warnings": true
+                }
+                """.formatted(wsdlUrl);
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
+        assertThat(response.getStatusCode())
+                .as("add WSDL service description %s for %s: %s", wsdlUrl, clientId, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+        return response.jsonPath().getString("id");
+    }
+
     /**
      * Recovers the service description id a 409 from {@link #addRestServiceDescription} could not return:
      * there is no get-by-url endpoint, so the client's service descriptions are listed and matched by the

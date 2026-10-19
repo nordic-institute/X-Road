@@ -32,6 +32,9 @@ public interface AdminGateway {
     /** Adds a REST service description and returns its id. */
     String addRestDescription(String providerClientId, String backendUrl, String serviceCode);
 
+    /** Adds a WSDL service description and returns its id. */
+    String addWsdlDescription(String providerClientId, String wsdlUrl);
+
     void enableDescription(String descriptionId);
 
     void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
