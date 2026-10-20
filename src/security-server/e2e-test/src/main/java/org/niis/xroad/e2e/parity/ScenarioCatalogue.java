@@ -41,7 +41,10 @@ import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.GlobalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.Grant;
+import org.niis.xroad.e2e.parity.Scenario.GrantGroup;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
+import org.niis.xroad.e2e.parity.Scenario.ManagementRequest;
+import org.niis.xroad.e2e.parity.Scenario.ManagementService;
 import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
@@ -78,6 +81,12 @@ public final class ScenarioCatalogue {
     /** The text the rows that disable a service with a notice expect back. */
     public static final String DISABLED_NOTICE = "Scheduled maintenance, please retry later";
 
+    /** The client of the management Security Server that owns the management services. */
+    public static final String MANAGEMENT = "DEV:COM:1234:MANAGEMENT";
+    /** The management service that receives client registrations. */
+    public static final String CLIENT_REG = "clientReg";
+    /** The global group the Central Server fills with the owners of the registered Security Servers. */
+    private static final String OWNERS_GROUP = "DEV:" + GlobalGroupSpec.SECURITY_SERVER_OWNERS;
     private static final String V1 = "v1";
     private static final String LIST_METHODS = "listMethods";
     private static final String ALLOWED_METHODS = "allowedMethods";
@@ -388,6 +397,25 @@ public final class ScenarioCatalogue {
                     List.of(allowed(MetaserviceRequest.soap(CONSUMER, GET_WSDL, 0, "v1",
                             Expectation.masked(MASKED_ADDRESS, BACKEND_ADDRESS)))),
                     WaitClass.ACL_CACHE),
+            new Scenario("V100", "Management service granted to the Security Server owners, owner registers a client",
+                    management(new ManagementService(CLIENT_REG, List.of(), List.of())),
+                    List.of(registration(Verdict.ALLOWED)), WaitClass.ACL_CACHE),
+            new Scenario("V101", "Management service not granted to the Security Server owners",
+                    management(new ManagementService(CLIENT_REG, List.of(OWNERS_GROUP), List.of())),
+                    List.of(registration(Verdict.ACCESS_DENIED)), WaitClass.ACL_CACHE),
+            new Scenario("V106a", "Management service moved from the owners group to the owner's subsystem",
+                    management(new ManagementService(CLIENT_REG, List.of(), List.of())),
+                    List.of(registration(Verdict.ALLOWED)),
+                    List.of(new Phase(List.of(new Revoke(0, OWNERS_GROUP), new Grant(0, CONSUMER)),
+                            List.of(registration(Verdict.ACCESS_DENIED)))),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V106b", "Management service granted to a local group that lists the owner",
+                    new FixtureSpec(MANAGEMENT,
+                            List.of(new ManagementService(CLIENT_REG, List.of(OWNERS_GROUP), List.of())),
+                            List.of(new LocalGroupSpec(MANAGEMENT, GROUP, List.of(MEMBER_OF_CONSUMER)))),
+                    List.of(registration(Verdict.ACCESS_DENIED)),
+                    List.of(new Phase(List.of(new GrantGroup(0, GROUP)), List.of(registration(Verdict.ALLOWED)))),
+                    WaitClass.ACL_CACHE),
             new Scenario("V120", "Granted service disabled with a notice",
                     changed(new Disable(0, DISABLED_NOTICE)),
                     List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.SERVICE_DISABLED,
@@ -450,6 +478,15 @@ public final class ScenarioCatalogue {
 
     public static List<Scenario> all() {
         return ALL;
+    }
+
+    private static Check registration(Verdict expected) {
+        return new Check(new ManagementRequest(MEMBER_OF_CONSUMER, 0), expected);
+    }
+
+    /** The client registration service on the management Security Server, with the changes made to its grants. */
+    private static FixtureSpec management(ManagementService service) {
+        return new FixtureSpec(MANAGEMENT, List.of(service));
     }
 
     private static Check allowed(String method, String path) {

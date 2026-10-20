@@ -61,6 +61,7 @@ class FixtureExecutorTest {
         Map<String, Integer> deleteStatus = Map.of();
         String failOnAddOf;
         String failOnGrantOf;
+        String alreadyGrantedTo;
 
         @Override
         public String addRestDescription(String providerClientId, String backendUrl, String serviceCode) {
@@ -103,11 +104,12 @@ class FixtureExecutorTest {
         }
 
         @Override
-        public void grantAccess(String providerClientId, String consumerClientId, String serviceCode) {
+        public boolean grantAccess(String providerClientId, String consumerClientId, String serviceCode) {
             if (serviceCode.equals(failOnGrantOf)) {
                 throw new AssertionError("grant answered 500");
             }
             calls.add("grant " + serviceCode + " to " + consumerClientId);
+            return !consumerClientId.equals(alreadyGrantedTo);
         }
 
         @Override
@@ -708,6 +710,117 @@ class FixtureExecutorTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("global group pt1-v68-everyone")
                 .hasMessageContaining("500");
+    }
+
+    @Test
+    void managementGrantsChangedInSetupAreChangedBackNewestFirstOnClose() {
+        var gateway = new RecordingGateway();
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new Scenario.ManagementService("clientReg",
+                List.of("DEV:security-server-owners"), List.of(ScenarioCatalogue.CONSUMER))));
+        var managementPlan = new FixturePlanner("t1").plan("VX", spec);
+
+        try (var ignored = new FixtureExecutor(gateway).open(managementPlan)) {
+            assertThat(gateway.calls).containsExactly(
+                    "revoke clientReg from DEV:security-server-owners",
+                    "grant clientReg to " + ScenarioCatalogue.CONSUMER);
+        }
+
+        assertThat(gateway.calls.subList(2, 4)).containsExactly(
+                "revoke clientReg from " + ScenarioCatalogue.CONSUMER,
+                "grant clientReg to DEV:security-server-owners");
+        assertThat(gateway.calls).hasSize(4);
+    }
+
+    @Test
+    void managementRowThatMovesTheGrantInAPhaseGivesTheOwnersGroupItsGrantBackOnClose() {
+        var gateway = new RecordingGateway();
+        var phasePlan = new FixturePlanner("t1").plan(scenario("V106a"));
+
+        try (var fixture = new FixtureExecutor(gateway).open(phasePlan)) {
+            assertThat(gateway.calls).isEmpty();
+            fixture.apply(phasePlan.phases().get(0));
+            assertThat(gateway.calls).containsExactly(
+                    "revoke clientReg from DEV:security-server-owners",
+                    "grant clientReg to " + ScenarioCatalogue.CONSUMER);
+        }
+
+        assertThat(gateway.calls.subList(2, 4)).containsExactly(
+                "revoke clientReg from " + ScenarioCatalogue.CONSUMER,
+                "grant clientReg to DEV:security-server-owners");
+        assertThat(gateway.calls).hasSize(4);
+    }
+
+    @Test
+    void managementGrantThatAlreadyExistedIsNotRevokedOnClose() {
+        var gateway = new RecordingGateway();
+        gateway.alreadyGrantedTo = ScenarioCatalogue.CONSUMER;
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new Scenario.ManagementService("clientReg",
+                List.of(), List.of(ScenarioCatalogue.CONSUMER))));
+        var managementPlan = new FixturePlanner("t1").plan("VX", spec);
+
+        try (var ignored = new FixtureExecutor(gateway).open(managementPlan)) {
+            assertThat(gateway.calls).containsExactly("grant clientReg to " + ScenarioCatalogue.CONSUMER);
+        }
+
+        assertThat(gateway.calls).containsExactly("grant clientReg to " + ScenarioCatalogue.CONSUMER);
+    }
+
+    @Test
+    void managementGrantChangedByAPhaseIsChangedBackOnClose() {
+        var gateway = new RecordingGateway();
+        var fixtureSpec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new Scenario.ManagementService("clientReg", List.of(), List.of())));
+        var row = new Scenario("VX", "test row", fixtureSpec, List.of(), List.of(new Scenario.Phase(
+                List.of(new Scenario.Revoke(0, ScenarioCatalogue.CONSUMER)), List.of())),
+                Scenario.WaitClass.ACL_CACHE);
+        var phasePlan = new FixturePlanner("t1").plan(row);
+
+        try (var fixture = new FixtureExecutor(gateway).open(phasePlan)) {
+            fixture.apply(phasePlan.phases().get(0));
+            assertThat(gateway.calls).containsExactly("revoke clientReg from " + ScenarioCatalogue.CONSUMER);
+        }
+
+        assertThat(gateway.calls).containsExactly(
+                "revoke clientReg from " + ScenarioCatalogue.CONSUMER,
+                "grant clientReg to " + ScenarioCatalogue.CONSUMER);
+    }
+
+    @Test
+    void managementGrantChangedInASetupThatFailsLaterIsChangedBackBeforeTheFailureIsRethrown() {
+        var gateway = new RecordingGateway();
+        gateway.failOnAddOf = "pt1-vx-2";
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(
+                new Scenario.ManagementService("clientReg", List.of("DEV:security-server-owners"), List.of()),
+                new RestService(List.of())));
+        var failingPlan = new FixturePlanner("t1").plan("VX", spec);
+
+        assertThatThrownBy(() -> new FixtureExecutor(gateway).open(failingPlan))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("add refused");
+        assertThat(gateway.calls).containsExactly(
+                "revoke clientReg from DEV:security-server-owners",
+                "grant clientReg to DEV:security-server-owners");
+    }
+
+    @Test
+    void failedManagementRestoreIsReportedAndTheRestOfTheCleanupStillRuns() {
+        var gateway = new RecordingGateway();
+        gateway.failOnGrantOf = "clientReg";
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(
+                new Scenario.ManagementService("clientReg",
+                        List.of("DEV:security-server-owners", ScenarioCatalogue.CONSUMER), List.of()),
+                new RestService(List.of())));
+        var restorePlan = new FixturePlanner("t1").plan("VX", spec);
+        var fixture = new FixtureExecutor(gateway).open(restorePlan);
+
+        assertThatThrownBy(fixture::close)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("fixture cleanup incomplete")
+                .hasMessageContaining("restore of")
+                .hasMessageContaining("DEV:security-server-owners")
+                .hasMessageContaining(ScenarioCatalogue.CONSUMER)
+                .hasMessageContaining("grant answered 500");
+        assertThat(gateway.calls).endsWith("delete id-pt1-vx-2");
     }
 
     private static Scenario scenario(String id) {

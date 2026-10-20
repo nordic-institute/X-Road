@@ -304,10 +304,10 @@ class AdminApi {
 
     /**
      * Grants a consumer access to a provider client's service. Tolerates 409 so this stays safe to run
-     * against a substrate where the grant already exists.
+     * against a substrate where the grant already exists. Returns whether the grant was created.
      */
-    static void grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
-                                          String consumerClientId, String serviceCode) {
+    static boolean grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                             String consumerClientId, String serviceCode) {
         var body = """
                 {
                   "items": [
@@ -322,6 +322,28 @@ class AdminApi {
         assertThat(response.getStatusCode())
                 .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
+        return response.getStatusCode() == HTTP_CREATED;
+    }
+
+    /** Lists the ids of the service clients that hold an access right to the provider client's service, sorted. */
+    static List<String> serviceClientsWithAccess(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                                 String serviceCode) {
+        var clients = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients");
+        assertThat(clients.getStatusCode()).as("list service clients of %s", providerClientId).isEqualTo(HTTP_OK);
+        return clients.jsonPath().getList("id", String.class).stream()
+                .filter(consumerId -> holdsAccessRight(ss0BaseUrl, ss0, providerClientId, consumerId, serviceCode))
+                .sorted()
+                .toList();
+    }
+
+    private static boolean holdsAccessRight(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                            String consumerId, String serviceCode) {
+        var rights = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
+                + consumerId + "/access-rights");
+        assertThat(rights.getStatusCode())
+                .as("list access rights of %s to %s", consumerId, providerClientId)
+                .isEqualTo(HTTP_OK);
+        return rights.jsonPath().getList("service_code", String.class).contains(serviceCode);
     }
 
     /** Revokes a consumer's access to a provider client's service, with its endpoint grants of that service. */

@@ -74,6 +74,16 @@ public sealed interface AdminCall {
     record RevokeAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
     }
 
+    /** Grants the consumer access to a service the provider has from the start, such as a management service. */
+    record GrantManagementAccess(String providerClientId, String consumerClientId, String serviceCode)
+            implements ServiceCall {
+    }
+
+    /** Revokes the consumer's access to a service the provider has from the start. */
+    record RevokeManagementAccess(String providerClientId, String consumerClientId, String serviceCode)
+            implements ServiceCall {
+    }
+
     /** Refreshes the service description from its backend, ignoring warnings. */
     record RefreshDescription(String serviceCode) implements ServiceCall {
     }

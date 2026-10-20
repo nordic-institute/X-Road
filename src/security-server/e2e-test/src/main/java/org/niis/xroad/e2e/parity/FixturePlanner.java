@@ -46,6 +46,7 @@ import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantManagementAccess;
 import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
@@ -53,6 +54,7 @@ import org.niis.xroad.e2e.parity.AdminCall.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
+import org.niis.xroad.e2e.parity.AdminCall.RevokeManagementAccess;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 import org.niis.xroad.e2e.parity.Scenario.Delete;
@@ -66,8 +68,10 @@ import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.GlobalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.Grant;
+import org.niis.xroad.e2e.parity.Scenario.GrantGroup;
 import org.niis.xroad.e2e.parity.Scenario.Kept;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
+import org.niis.xroad.e2e.parity.Scenario.ManagementService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.Phase;
@@ -83,9 +87,11 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Turns a scenario's fixture spec into admin calls. Every service code carries the run token and the
@@ -98,7 +104,8 @@ import java.util.Map;
  * only with the description. Local groups carry the run token and the scenario id in their code too; each group
  * the scenario did not delete itself is deleted in cleanup, after the descriptions. Global groups carry the same
  * namespace and are deleted last; the {@code security-server-owners} group is used under its own code and is never
- * created or deleted.
+ * created or deleted. A management service is one the provider already has: it is used under its own code, gets
+ * no description and no cleanup entry, and its grants are changed back by the executor.
  */
 public final class FixturePlanner {
 
@@ -130,6 +137,7 @@ public final class FixturePlanner {
         var codes = new ArrayList<String>();
         var descriptionKeys = new ArrayList<String>();
         var serviceKeys = new ArrayList<String>();
+        var managementCodes = new HashSet<String>();
         var endpointDeletes = new ArrayList<List<AdminCall>>();
         var setup = new ArrayList<AdminCall>();
         var services = spec.services();
@@ -180,11 +188,17 @@ public final class FixturePlanner {
                     codes.add(base);
                     serviceKeys.add(null);
                 }
+                case ManagementService management -> {
+                    codes.add(management.serviceCode());
+                    serviceKeys.add(null);
+                    managementCodes.add(management.serviceCode());
+                    managementSetup(setup, spec.providerClientId(), management);
+                }
             }
         }
         descriptionChanges(setup, codes, services, serviceKeys, spec.changes());
         groupFollowUps(setup, scenarioId, spec.groups());
-        var phaseCalls = phaseCalls(scenarioId, spec, codes, serviceKeys, phases);
+        var phaseCalls = phaseCalls(scenarioId, spec, codes, serviceKeys, managementCodes, phases);
         var cleanup = new ArrayList<AdminCall>();
         if (phaseCalls.stream().flatMap(List::stream).anyMatch(OverrideBackendStub.class::isInstance)) {
             cleanup.add(new RemoveBackendStubs());
@@ -261,17 +275,36 @@ public final class FixturePlanner {
         }
     }
 
+    private static void managementSetup(List<AdminCall> setup, String providerClientId, ManagementService service) {
+        for (var consumer : service.revokedConsumerIds()) {
+            setup.add(new RevokeManagementAccess(providerClientId, consumer, service.serviceCode()));
+        }
+        for (var consumer : service.grantedConsumerIds()) {
+            setup.add(new GrantManagementAccess(providerClientId, consumer, service.serviceCode()));
+        }
+    }
+
     private List<List<AdminCall>> phaseCalls(String scenarioId, FixtureSpec spec, List<String> codes,
-                                             List<String> serviceKeys, List<Phase> phases) {
+                                             List<String> serviceKeys, Set<String> managementCodes,
+                                             List<Phase> phases) {
         var result = new ArrayList<List<AdminCall>>();
         for (var phase : phases) {
             var calls = new ArrayList<AdminCall>();
             for (var change : phase.changes()) {
                 switch (change) {
-                    case Grant grant -> calls.add(new GrantAccess(spec.providerClientId(), grant.consumerId(),
-                            codes.get(grant.serviceIndex())));
-                    case Revoke revoke -> calls.add(new RevokeAccess(spec.providerClientId(), revoke.consumerId(),
-                            codes.get(revoke.serviceIndex())));
+                    case Grant grant -> calls.add(managementCodes.contains(codes.get(grant.serviceIndex()))
+                            ? new GrantManagementAccess(spec.providerClientId(), grant.consumerId(),
+                                    codes.get(grant.serviceIndex()))
+                            : new GrantAccess(spec.providerClientId(), grant.consumerId(),
+                                    codes.get(grant.serviceIndex())));
+                    case Revoke revoke -> calls.add(managementCodes.contains(codes.get(revoke.serviceIndex()))
+                            ? new RevokeManagementAccess(spec.providerClientId(), revoke.consumerId(),
+                                    codes.get(revoke.serviceIndex()))
+                            : new RevokeAccess(spec.providerClientId(), revoke.consumerId(),
+                                    codes.get(revoke.serviceIndex())));
+                    case GrantGroup grantGroup -> calls.add(new GrantGroupAccess(spec.providerClientId(),
+                            grantedGroupCode(scenarioId, spec, grantGroup.groupCode()),
+                            codes.get(grantGroup.serviceIndex())));
                     case Refresh refresh ->
                             calls.add(new RefreshDescription(descriptionKey(serviceKeys, refresh.serviceIndex())));
                     case SwapOpenApiSpec swap -> calls.add(swapOpenApi(spec, serviceKeys, swap));

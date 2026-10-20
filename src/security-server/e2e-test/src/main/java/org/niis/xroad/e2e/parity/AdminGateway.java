@@ -49,7 +49,8 @@ public interface AdminGateway {
     /** Renames the service code of the REST description, keeping its backend URL. */
     void renameRestService(String descriptionId, String backendUrl, String serviceCode, String newServiceCode);
 
-    void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
+    /** Grants the consumer access to the service and returns whether the grant was created, not already there. */
+    boolean grantAccess(String providerClientId, String consumerClientId, String serviceCode);
 
     /** Revokes the consumer's access to the service, with its endpoint grants of that service. */
     void revokeAccess(String providerClientId, String consumerClientId, String serviceCode);

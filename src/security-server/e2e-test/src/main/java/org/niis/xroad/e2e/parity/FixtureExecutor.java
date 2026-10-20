@@ -46,6 +46,7 @@ import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantManagementAccess;
 import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
@@ -53,10 +54,13 @@ import org.niis.xroad.e2e.parity.AdminCall.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
+import org.niis.xroad.e2e.parity.AdminCall.RevokeManagementAccess;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,7 +72,8 @@ import java.util.function.ToIntFunction;
  * Runs a {@link FixturePlan} against the provider's admin API. A setup that fails part way removes what it
  * created before the failure is rethrown. A grant on a generated endpoint looks the endpoint up by method and
  * path. Cleanup treats a missing service description (HTTP 404) as already
- * removed and keeps going when a step fails.
+ * removed and keeps going when a step fails. Every grant of a management service the fixture changes is changed
+ * back first, newest change first, so the provider ends with the grants it started with.
  */
 public final class FixtureExecutor {
 
@@ -109,6 +114,7 @@ public final class FixtureExecutor {
         private final Map<String, String> groupIds = new HashMap<>();
         private final Set<String> globalGroupCodes = new HashSet<>();
         private final List<String> backendStubIds = new ArrayList<>();
+        private final Deque<AdminCall> restores = new ArrayDeque<>();
 
         private Fixture(FixturePlan plan) {
             this.plan = plan;
@@ -150,6 +156,17 @@ public final class FixtureExecutor {
                         grant.providerClientId(), grant.consumerClientId(), grant.serviceCode());
                 case RevokeAccess revoke -> gateway.revokeAccess(
                         revoke.providerClientId(), revoke.consumerClientId(), revoke.serviceCode());
+                case GrantManagementAccess grant -> {
+                    if (gateway.grantAccess(grant.providerClientId(), grant.consumerClientId(), grant.serviceCode())) {
+                        restores.push(new RevokeManagementAccess(
+                                grant.providerClientId(), grant.consumerClientId(), grant.serviceCode()));
+                    }
+                }
+                case RevokeManagementAccess revoke -> {
+                    gateway.revokeAccess(revoke.providerClientId(), revoke.consumerClientId(), revoke.serviceCode());
+                    restores.push(new GrantManagementAccess(
+                            revoke.providerClientId(), revoke.consumerClientId(), revoke.serviceCode()));
+                }
                 case RefreshDescription refresh ->
                         gateway.refreshDescription(descriptionIds.get(refresh.serviceCode()));
                 case OverrideBackendStub override -> backendStubIds.add(gateway.overrideBackendStub(override));
@@ -234,6 +251,7 @@ public final class FixtureExecutor {
         @Override
         public void close() {
             var failures = new ArrayList<String>();
+            restoreManagementGrants(failures);
             for (var call : plan.cleanup()) {
                 switch (call) {
                     case DeleteEndpoint delete -> {
@@ -258,6 +276,23 @@ public final class FixtureExecutor {
             }
             if (!failures.isEmpty()) {
                 throw new IllegalStateException("fixture cleanup incomplete: " + String.join("; ", failures));
+            }
+        }
+
+        private void restoreManagementGrants(List<String> failures) {
+            while (!restores.isEmpty()) {
+                var call = restores.pop();
+                try {
+                    switch (call) {
+                        case GrantManagementAccess grant -> gateway.grantAccess(
+                                grant.providerClientId(), grant.consumerClientId(), grant.serviceCode());
+                        case RevokeManagementAccess revoke -> gateway.revokeAccess(
+                                revoke.providerClientId(), revoke.consumerClientId(), revoke.serviceCode());
+                        default -> throw new IllegalArgumentException("not a restore call: " + call);
+                    }
+                } catch (RuntimeException | AssertionError e) {
+                    failures.add("restore of %s failed: %s".formatted(call, e.getMessage()));
+                }
             }
         }
 

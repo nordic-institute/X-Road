@@ -52,6 +52,8 @@ public final class VerdictClassifier {
     private static final int HTTP_BAD_REQUEST = 400;
     private static final int HTTP_SERVER_ERROR = 500;
 
+    private static final int DESCRIBED_BODY_LENGTH = 300;
+    private static final Pattern ACCESS_DENIED_CODE = Pattern.compile("server\\.serverproxy\\.access_denied");
     private static final Pattern FAULT_CODE =
             Pattern.compile("<(?:[\\w.-]+:)?faultcode[^>]*>\\s*([^<]*?)\\s*</(?:[\\w.-]+:)?faultcode>");
 
@@ -83,6 +85,29 @@ public final class VerdictClassifier {
             return fault == null ? Verdict.ERROR : FAULTS.getOrDefault(fault.trim(), Verdict.ERROR);
         }
         return Verdict.ERROR;
+    }
+
+    /**
+     * Classifies the answer of the admin API to a client registration, which the Security Server forwards to the
+     * management service. A 2xx answer is {@link Verdict#ALLOWED}; a body that carries the fault code
+     * {@code server.serverproxy.access_denied} is {@link Verdict#ACCESS_DENIED}; every other shape is
+     * {@link Verdict#ERROR}.
+     */
+    public static Verdict classifyManagement(Reply reply) {
+        if (reply == null) {
+            return Verdict.ERROR;
+        }
+        if (reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS) {
+            return Verdict.ALLOWED;
+        }
+        return ACCESS_DENIED_CODE.matcher(reply.body()).find() ? Verdict.ACCESS_DENIED : Verdict.ERROR;
+    }
+
+    /** The status and the start of the body of an admin API answer, for failure messages. */
+    public static String describeManagement(Reply reply) {
+        var body = reply.body();
+        return "status %d; body %s".formatted(reply.status(),
+                body.length() > DESCRIBED_BODY_LENGTH ? body.substring(0, DESCRIBED_BODY_LENGTH) : body);
     }
 
     /**

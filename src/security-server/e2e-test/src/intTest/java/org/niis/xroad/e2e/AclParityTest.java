@@ -26,6 +26,7 @@
 package org.niis.xroad.e2e;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,6 +49,7 @@ import org.niis.xroad.e2e.parity.KnownDefectMarker.Judgement;
 import org.niis.xroad.e2e.parity.RestRequests;
 import org.niis.xroad.e2e.parity.RestSender;
 import org.niis.xroad.e2e.parity.Scenario;
+import org.niis.xroad.e2e.parity.Scenario.ManagementRequest;
 import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
@@ -82,7 +84,9 @@ import static org.niis.xroad.e2e.AdminApi.login;
  * verdict it is aborted with the reason "expected failure", which Gradle reports as skipped; once it meets the
  * verdict it fails with "defect fixed, remove marker".
  *
- * <p>Before the first scenario the shared {@link SubsystemPoolSetup subsystem pool} is registered once.
+ * <p>Before the first scenario the shared {@link SubsystemPoolSetup subsystem pool} is registered once, and the
+ * service clients holding the management client registration service are listed; after the last scenario the list
+ * must be the same.
  *
  * <p>Runs only when {@code -Pe2e.acl-mode} is set; otherwise the pool is not registered and every scenario
  * is skipped. Single-threaded and ordered after every other class, and a failing scenario does not stop
@@ -100,12 +104,30 @@ class AclParityTest extends E2eTest {
     private static final String SS1_ENV = "ss1";
     private static final String RUN_TOKEN = Long.toString(Instant.now().getEpochSecond(), Character.MAX_RADIX);
 
+    private static List<String> managementGrantsBefore;
+
     @BeforeAll
     static void registerSubsystemPool(E2eEnvironment env) {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
         var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
         AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), ScenarioCatalogue.MEMBER_OF_CONSUMER, "HTTP");
         SubsystemPoolSetup.ensure(env);
+        managementGrantsBefore = managementGrants(env);
+    }
+
+    @AfterAll
+    static void managementGrantsAreRestored(E2eEnvironment env) {
+        if (managementGrantsBefore != null) {
+            Assertions.assertEquals(managementGrantsBefore, managementGrants(env),
+                    "service clients holding %s of %s on ss0".formatted(
+                            ScenarioCatalogue.CLIENT_REG, ScenarioCatalogue.MANAGEMENT));
+        }
+    }
+
+    private static List<String> managementGrants(E2eEnvironment env) {
+        var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
+        return AdminApi.serviceClientsWithAccess(ss0BaseUrl, login(ss0BaseUrl), ScenarioCatalogue.MANAGEMENT,
+                ScenarioCatalogue.CLIENT_REG);
     }
 
     static Stream<Named<Scenario>> scenarios() {
@@ -124,9 +146,10 @@ class AclParityTest extends E2eTest {
                 login(csBaseUrl));
         var plan = new FixturePlanner(RUN_TOKEN).plan(scenario);
 
-        try (var fixture = new FixtureExecutor(gateway).open(plan)) {
+        try (var management = new ManagementProbe(adminBaseUrl(env, SS1_ENV), RUN_TOKEN, scenario.id());
+                var fixture = new FixtureExecutor(gateway).open(plan)) {
             var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
-                    request -> call(env, scenario, plan, request),
+                    request -> call(env, management, scenario, plan, request),
                     scenario.knownDefect() == null ? scenario.waitClass().timeout() : Duration.ZERO,
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
             if (scenario.knownDefect() == null) {
@@ -167,7 +190,8 @@ class AclParityTest extends E2eTest {
         return outcomes.stream().map(outcome -> outcome.result().last().name()).collect(Collectors.joining(", "));
     }
 
-    private static Observation call(E2eEnvironment env, Scenario scenario, FixturePlan plan, RequestSpec request) {
+    private static Observation call(E2eEnvironment env, ManagementProbe management, Scenario scenario,
+                                    FixturePlan plan, RequestSpec request) {
         var proxy = env.getContainerMapping(SS1_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         var proxyOrigin = "http://%s:%s".formatted(proxy.host(), proxy.port());
         var providerClientId = scenario.fixture().providerClientId();
@@ -189,6 +213,11 @@ class AclParityTest extends E2eTest {
                 yield new Observation(VerdictClassifier.classifySoap(reply), VerdictClassifier.describeSoap(reply));
             }
             case MetaserviceRequest meta -> callMetaservice(proxyOrigin, providerClientId, plan, meta);
+            case ManagementRequest registration -> {
+                var reply = management.register(registration.consumerClientId());
+                yield new Observation(VerdictClassifier.classifyManagement(reply),
+                        VerdictClassifier.describeManagement(reply));
+            }
         };
     }
 

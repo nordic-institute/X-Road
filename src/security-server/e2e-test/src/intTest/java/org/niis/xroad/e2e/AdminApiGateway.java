@@ -96,8 +96,8 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
-    public void grantAccess(String providerClientId, String consumerClientId, String serviceCode) {
-        AdminApi.grantConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
+    public boolean grantAccess(String providerClientId, String consumerClientId, String serviceCode) {
+        return AdminApi.grantConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
     }
 
     @Override

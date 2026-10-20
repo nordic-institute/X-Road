@@ -321,6 +321,46 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void managementNullAndNon2xxWithoutAnAccessDenialAreError() {
+        assertThat(VerdictClassifier.classifyManagement(null)).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(), "boom"))).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(404, Map.of(), "{}"))).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(302, Map.of(), ""))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void management2xxIsAllowed() {
+        assertThat(VerdictClassifier.classifyManagement(new Reply(200, Map.of(), "{}"))).isEqualTo(Verdict.ALLOWED);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(201, Map.of(), ""))).isEqualTo(Verdict.ALLOWED);
+    }
+
+    @Test
+    void managementAccessDeniedFaultCodeInTheBodyIsAccessDenied() {
+        assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(),
+                "{\"code\":\"core.server.serverproxy.access_denied\"}"))).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(), "server.serverproxy.access_denied")))
+                .isEqualTo(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void managementOtherAccessDenialWordingIsError() {
+        assertThat(VerdictClassifier.classifyManagement(new Reply(403, Map.of(), "ACCESS DENIED for the client")))
+                .isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(), "server.clientproxy.access_denied")))
+                .isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void describeManagementNamesTheStatusAndCutsALongBody() {
+        var longBody = "x".repeat(400);
+
+        assertThat(VerdictClassifier.describeManagement(new Reply(500, Map.of(), "boom")))
+                .isEqualTo("status 500; body boom");
+        assertThat(VerdictClassifier.describeManagement(new Reply(500, Map.of(), longBody)))
+                .isEqualTo("status 500; body " + "x".repeat(300));
+    }
+
+    @Test
     void describeMetaserviceNamesTheFaultOrStatusAndTheWrongTexts() {
         var description = VerdictClassifier.describeMetaservice(new Reply(200, Map.of(), LIST_JSON),
                 List.of("p-v91", "p-v92"), List.of("p-v91b"));

@@ -42,12 +42,14 @@ import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantManagementAccess;
 import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
+import org.niis.xroad.e2e.parity.AdminCall.RevokeManagementAccess;
 import org.niis.xroad.e2e.parity.AdminCall.ServiceCall;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
@@ -60,6 +62,7 @@ import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
+import org.niis.xroad.e2e.parity.Scenario.ManagementService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RenameService;
@@ -576,6 +579,59 @@ class FixturePlannerTest {
                 new AdminCall.AddGlobalGroupMember("pab12-v75-everyone", ScenarioCatalogue.CONSUMER));
         assertThat(plan.phases().get(1)).containsExactly(
                 new AdminCall.RemoveGlobalGroupMember("pab12-v75-everyone", ScenarioCatalogue.CONSUMER));
+    }
+
+    @Test
+    void managementServiceKeepsItsCodeRevokesThenGrantsInSetupAndCreatesAndDeletesNothing() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new ManagementService("clientReg",
+                List.of("DEV:security-server-owners"), List.of(ScenarioCatalogue.CONSUMER))));
+
+        var plan = new FixturePlanner("ab12").plan("V106a", spec);
+
+        assertThat(plan.serviceCodes()).containsExactly("clientReg");
+        assertThat(plan.setup()).containsExactly(
+                new RevokeManagementAccess(ScenarioCatalogue.PROVIDER, "DEV:security-server-owners", "clientReg"),
+                new GrantManagementAccess(ScenarioCatalogue.PROVIDER, ScenarioCatalogue.CONSUMER, "clientReg"));
+        assertThat(plan.cleanup()).isEmpty();
+    }
+
+    @Test
+    void managementRowMovesTheGrantFromTheOwnersGroupToTheSubsystemInItsPhaseAndChangesNothingInSetup() {
+        var plan = new FixturePlanner("ab12").plan(scenario("V106a"));
+
+        assertThat(plan.setup()).isEmpty();
+        assertThat(plan.phases()).containsExactly(List.of(
+                new RevokeManagementAccess("DEV:COM:1234:MANAGEMENT", "DEV:security-server-owners", "clientReg"),
+                new GrantManagementAccess("DEV:COM:1234:MANAGEMENT", ScenarioCatalogue.CONSUMER, "clientReg")));
+        assertThat(plan.cleanup()).isEmpty();
+    }
+
+    @Test
+    void managementRowGrantsItsLocalGroupByTheNamespacedCodeInThePhase() {
+        var plan = new FixturePlanner("ab12").plan(scenario("V106b"));
+
+        assertThat(plan.setup()).contains(
+                new CreateLocalGroup("DEV:COM:1234:MANAGEMENT", "pab12-v106b-partners"));
+        assertThat(plan.phases()).containsExactly(List.of(
+                new GrantGroupAccess("DEV:COM:1234:MANAGEMENT", "pab12-v106b-partners", "clientReg")));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteLocalGroup("DEV:COM:1234:MANAGEMENT", "pab12-v106b-partners"));
+    }
+
+    @Test
+    void grantAndRevokeOfAManagementServiceInAPhasePlanManagementCalls() {
+        var fixture = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new ManagementService("clientReg", List.of(), List.of()), new RestService(List.of())));
+        var row = new Scenario("VX", "test row", fixture, List.of(), List.of(new Scenario.Phase(List.of(
+                new Scenario.Grant(0, ScenarioCatalogue.CONSUMER), new Scenario.Revoke(0, ScenarioCatalogue.CONSUMER),
+                new Scenario.Grant(1, ScenarioCatalogue.CONSUMER)), List.of())), Scenario.WaitClass.ACL_CACHE);
+
+        var plan = new FixturePlanner("ab12").plan(row);
+
+        assertThat(plan.phases()).containsExactly(List.of(
+                new GrantManagementAccess(ScenarioCatalogue.PROVIDER, ScenarioCatalogue.CONSUMER, "clientReg"),
+                new RevokeManagementAccess(ScenarioCatalogue.PROVIDER, ScenarioCatalogue.CONSUMER, "clientReg"),
+                new GrantAccess(ScenarioCatalogue.PROVIDER, ScenarioCatalogue.CONSUMER, "pab12-vx-2")));
     }
 
     private static Scenario withPhase(FixtureSpec fixture, Scenario.PhaseChange change) {

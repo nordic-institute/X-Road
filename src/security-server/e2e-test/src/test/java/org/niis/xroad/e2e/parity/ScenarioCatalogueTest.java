@@ -129,6 +129,10 @@ class ScenarioCatalogueTest {
                         tuple("V93", List.of(Verdict.ALLOWED)),
                         tuple("V94", List.of(Verdict.UNKNOWN_SERVICE)),
                         tuple("V99", List.of(Verdict.ALLOWED)),
+                        tuple("V100", List.of(Verdict.ALLOWED)),
+                        tuple("V101", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V106a", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V106b", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED)),
                         tuple("V120", List.of(Verdict.SERVICE_DISABLED)),
                         tuple("V121", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V122", List.of(Verdict.SERVICE_DISABLED, Verdict.SERVICE_DISABLED)),
@@ -546,7 +550,12 @@ class ScenarioCatalogueTest {
     @Test
     void onlyTheFlipRowsHavePhasesAndEachPhaseMakesItsOwnChange() {
         assertThat(ScenarioCatalogue.all()).filteredOn(row -> !row.phases().isEmpty()).extracting(Scenario::id)
-                .containsExactly("V10", "V11", "V39", "V74", "V75");
+                .containsExactly("V10", "V11", "V39", "V74", "V75", "V106a", "V106b");
+        assertThat(scenario("V106a").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.Revoke(0, "DEV:security-server-owners"),
+                        new Scenario.Grant(0, ScenarioCatalogue.CONSUMER)));
+        assertThat(scenario("V106b").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.GrantGroup(0, "partners")));
         assertThat(scenario("V74").phases()).extracting(Scenario.Phase::changes)
                 .containsExactly(List.of(new Scenario.DeleteGlobalGroup("everyone")));
         assertThat(scenario("V75").phases()).extracting(Scenario.Phase::changes)
@@ -559,6 +568,30 @@ class ScenarioCatalogueTest {
         assertThat(scenario("V39").phases()).extracting(Scenario.Phase::changes)
                 .containsExactly(List.of(new Scenario.SwapOpenApiSpec(0, OpenApiSpec.STATUS_ONLY),
                         new Scenario.Refresh(0)));
+    }
+
+    @Test
+    void managementRowsSendARegistrationAsTheOwnerToTheManagementServiceOfTheManagementClient() {
+        var ids = List.of("V100", "V101", "V106a", "V106b");
+
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> ids.contains(row.id())).hasSameSizeAs(ids)
+                .allSatisfy(row -> {
+                    assertThat(row.fixture().providerClientId()).isEqualTo("DEV:COM:1234:MANAGEMENT");
+                    assertThat(row.fixture().services()).singleElement().isInstanceOf(Scenario.ManagementService.class);
+                    assertThat(allChecks(row).map(Scenario.Check::request))
+                            .containsOnly(new Scenario.ManagementRequest(ScenarioCatalogue.MEMBER_OF_CONSUMER, 0));
+                });
+        assertThat(managementService("V100")).isEqualTo(new Scenario.ManagementService("clientReg", List.of(), List.of()));
+        assertThat(managementService("V101").revokedConsumerIds()).containsExactly("DEV:security-server-owners");
+        assertThat(managementService("V101").grantedConsumerIds()).isEmpty();
+        assertThat(managementService("V106a")).isEqualTo(new Scenario.ManagementService("clientReg", List.of(), List.of()));
+        assertThat(managementService("V106b").grantedConsumerIds()).isEmpty();
+        assertThat(scenario("V106b").fixture().groups()).containsExactly(new LocalGroupSpec(
+                "DEV:COM:1234:MANAGEMENT", "partners", List.of(ScenarioCatalogue.MEMBER_OF_CONSUMER)));
+    }
+
+    private static Scenario.ManagementService managementService(String id) {
+        return (Scenario.ManagementService) scenario(id).fixture().services().get(0);
     }
 
     @Test

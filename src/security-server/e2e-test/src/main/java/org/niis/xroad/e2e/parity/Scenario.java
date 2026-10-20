@@ -80,8 +80,8 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** A change made between two phases. */
-    public sealed interface PhaseChange permits Grant, Revoke, SwapOpenApiSpec, ReplaceWsdlSecondService, Refresh,
-            AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
+    public sealed interface PhaseChange permits Grant, Revoke, GrantGroup, SwapOpenApiSpec, ReplaceWsdlSecondService,
+            Refresh, AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
     }
 
     /**
@@ -122,6 +122,15 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param serviceIndex the position of the service code among all service codes the fixture creates
      */
     public record Revoke(int serviceIndex, String consumerId) implements PhaseChange {
+    }
+
+    /**
+     * The provider's local group is granted the base access to a service code.
+     *
+     * @param serviceIndex the position of the service code among all service codes the fixture creates
+     * @param groupCode    the group code before namespacing
+     */
+    public record GrantGroup(int serviceIndex, String groupCode) implements PhaseChange {
     }
 
     /**
@@ -281,7 +290,21 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** A service description created under the provider. */
-    public sealed interface ServiceSpec permits RestService, WsdlService, OpenApiService, UndefinedService {
+    public sealed interface ServiceSpec permits RestService, WsdlService, OpenApiService, UndefinedService,
+            ManagementService {
+    }
+
+    /**
+     * A service the provider has from the start, such as a management service, whose grants the fixture changes.
+     * No description is created or deleted, and the service code is not namespaced. Every grant the fixture
+     * changes, in setup or in a phase, is changed back when the fixture is closed.
+     *
+     * @param serviceCode        the service code, as the provider already has it
+     * @param revokedConsumerIds consumers whose existing access is revoked in setup
+     * @param grantedConsumerIds consumers granted access in setup
+     */
+    public record ManagementService(String serviceCode, List<String> revokedConsumerIds,
+                                    List<String> grantedConsumerIds) implements ServiceSpec {
     }
 
     /** A service code the fixture reserves without creating any description, so no service by that code exists. */
@@ -449,7 +472,7 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** The call that produces the verdict. */
-    public sealed interface RequestSpec permits RestRequest, SoapRequest, MetaserviceRequest {
+    public sealed interface RequestSpec permits RestRequest, SoapRequest, MetaserviceRequest, ManagementRequest {
 
         /** The calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form. */
         String consumerClientId();
@@ -581,6 +604,21 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
         public String describe() {
             return "%s %s %s%s".formatted(transport, method, code,
                     serviceIndex == NO_SERVICE ? "" : " of service " + serviceIndex);
+        }
+    }
+
+    /**
+     * A registration of a new subsystem that the consumer Security Server sends to the provider's management
+     * service. The sender is always the owner of the consumer Security Server.
+     *
+     * @param consumerClientId the owner of the consumer Security Server, under which the subsystem is added
+     * @param serviceIndex     the position of the management service code among all service codes the fixture
+     *                         creates
+     */
+    public record ManagementRequest(String consumerClientId, int serviceIndex) implements RequestSpec {
+        @Override
+        public String describe() {
+            return "client registration sent by " + consumerClientId;
         }
     }
 }
