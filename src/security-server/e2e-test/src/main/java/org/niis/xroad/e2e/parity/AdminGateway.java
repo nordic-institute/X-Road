@@ -43,6 +43,12 @@ public interface AdminGateway {
 
     void enableDescription(String descriptionId);
 
+    /** Disables the description; a {@code null} notice sends none. */
+    void disableDescription(String descriptionId, String notice);
+
+    /** Renames the service code of the REST description, keeping its backend URL. */
+    void renameRestService(String descriptionId, String backendUrl, String serviceCode, String newServiceCode);
+
     void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
 
     /** Creates an endpoint on the REST service of the description and returns its id. */

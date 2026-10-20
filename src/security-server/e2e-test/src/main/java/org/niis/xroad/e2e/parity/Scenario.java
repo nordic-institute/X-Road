@@ -57,8 +57,13 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     /**
      * @param request  the call that produces the verdict
      * @param expected the verdict legacy access rights give
+     * @param notice   text the reply has to carry besides the verdict, or {@code null} for none
      */
-    public record Check(RequestSpec request, Verdict expected) {
+    public record Check(RequestSpec request, Verdict expected, String notice) {
+
+        public Check(RequestSpec request, Verdict expected) {
+            this(request, expected, null);
+        }
     }
 
     /** The provider-side delay between a configuration change and the verdict it causes. */
@@ -71,12 +76,49 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param providerClientId the service owner, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
      * @param services         the service descriptions to create under the provider
      * @param groups           the local groups to create, before the services whose grants name them
+     * @param changes          the changes applied to the created service descriptions before the requests are sent
      */
-    public record FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups) {
+    public record FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
+                              List<DescriptionChange> changes) {
+
+        public FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups) {
+            this(providerClientId, services, groups, List.of());
+        }
 
         public FixtureSpec(String providerClientId, List<ServiceSpec> services) {
-            this(providerClientId, services, List.of());
+            this(providerClientId, services, List.of(), List.of());
         }
+    }
+
+    /** A change applied to a created service description, which is named by its position among the services. */
+    public sealed interface DescriptionChange permits Disable, Enable, Delete, RenameService {
+
+        /** The position of the changed service description among the fixture's services. */
+        int serviceIndex();
+    }
+
+    /**
+     * The description is disabled.
+     *
+     * @param serviceIndex the position of the description among the fixture's services
+     * @param notice       the text shown to callers, or {@code null} to disable without one
+     */
+    public record Disable(int serviceIndex, String notice) implements DescriptionChange {
+    }
+
+    /** The description is enabled again. */
+    public record Enable(int serviceIndex) implements DescriptionChange {
+    }
+
+    /** The description is deleted, and its access rights with it. */
+    public record Delete(int serviceIndex) implements DescriptionChange {
+    }
+
+    /**
+     * The service code of a REST description is renamed. The renamed code is added after the codes the fixture
+     * creates, in the order of the changes.
+     */
+    public record RenameService(int serviceIndex) implements DescriptionChange {
     }
 
     /**
@@ -98,7 +140,11 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** A service description created under the provider. */
-    public sealed interface ServiceSpec permits RestService, WsdlService, OpenApiService {
+    public sealed interface ServiceSpec permits RestService, WsdlService, OpenApiService, UndefinedService {
+    }
+
+    /** A service code the fixture reserves without creating any description, so no service by that code exists. */
+    public record UndefinedService() implements ServiceSpec {
     }
 
     /**

@@ -105,11 +105,19 @@ class ScenarioCatalogueTest {
                         tuple("V65", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V66", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V67", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V120", List.of(Verdict.SERVICE_DISABLED)),
+                        tuple("V121", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V122", List.of(Verdict.SERVICE_DISABLED, Verdict.SERVICE_DISABLED)),
+                        tuple("V123", List.of(Verdict.SERVICE_DISABLED)),
+                        tuple("V124", List.of(Verdict.ALLOWED)),
+                        tuple("V125", List.of(Verdict.UNKNOWN_SERVICE)),
+                        tuple("V127", List.of(Verdict.UNKNOWN_SERVICE, Verdict.ALLOWED)),
                         tuple("V128", List.of(Verdict.ALLOWED)),
                         tuple("V129", List.of(Verdict.ALLOWED)),
                         tuple("V131", List.of(Verdict.INVALID_SECURITY_SERVER)),
                         tuple("V132a", List.of(Verdict.INVALID_SERVICE_TYPE)),
-                        tuple("V132b", List.of(Verdict.INVALID_SERVICE_TYPE)));
+                        tuple("V132b", List.of(Verdict.INVALID_SERVICE_TYPE)),
+                        tuple("V133", List.of(Verdict.UNKNOWN_SERVICE, Verdict.UNKNOWN_SERVICE)));
     }
 
     @Test
@@ -226,13 +234,14 @@ class ScenarioCatalogueTest {
     void onlyTheRowsHittingAnUnfixedFindingCarryAMarkerNamingJustItsId() {
         assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.knownDefect() != null)
                 .extracting(Scenario::id, Scenario::knownDefect)
-                .containsExactly(tuple("V49", "D3"), tuple("V53", "D3"), tuple("V54", "D12"));
+                .containsExactly(tuple("V49", "D3"), tuple("V53", "D3"), tuple("V54", "D12"), tuple("V123", "D18"));
     }
 
     @Test
     void markedRowsAssertTheSafeVerdict() {
         assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.knownDefect() != null)
-                .allSatisfy(row -> assertThat(expectedVerdicts(row)).containsOnly(Verdict.ACCESS_DENIED));
+                .allSatisfy(row -> assertThat(expectedVerdicts(row))
+                        .isSubsetOf(Verdict.ACCESS_DENIED, Verdict.SERVICE_DISABLED));
     }
 
     @Test
@@ -305,6 +314,57 @@ class ScenarioCatalogueTest {
         assertThat(granted.grantedGroupCodes()).containsExactly("partners");
         assertThat(other.grantedGroupCodes()).isEmpty();
         assertThat(row.checks()).extracting(check -> check.request().serviceIndex()).containsExactly(0, 1);
+    }
+
+    @Test
+    void stateRowsApplyTheirChangesToTheOnlyDescription() {
+        assertThat(scenario("V120").fixture().changes())
+                .containsExactly(new Scenario.Disable(0, ScenarioCatalogue.DISABLED_NOTICE));
+        assertThat(scenario("V123").fixture().changes()).containsExactly(new Scenario.Disable(0, null));
+        assertThat(scenario("V124").fixture().changes())
+                .containsExactly(new Scenario.Disable(0, ScenarioCatalogue.DISABLED_NOTICE), new Scenario.Enable(0));
+        assertThat(scenario("V125").fixture().changes()).containsExactly(new Scenario.Delete(0));
+        assertThat(scenario("V127").fixture().changes()).containsExactly(new Scenario.RenameService(0));
+    }
+
+    @Test
+    void onlyTheNoticeRowChecksTheNoticeText() {
+        assertThat(scenario("V120").checks()).extracting(Scenario.Check::notice)
+                .containsExactly(ScenarioCatalogue.DISABLED_NOTICE);
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> !row.id().equals("V120"))
+                .flatExtracting(Scenario::checks).extracting(Scenario.Check::notice).containsOnlyNulls();
+    }
+
+    @Test
+    void disabledServiceRowWithoutAGrantCallsAsAnotherConsumer() {
+        var row = scenario("V121");
+        var service = (RestService) row.fixture().services().get(0);
+
+        assertThat(service.grantedConsumerIds()).doesNotContain(row.checks().get(0).request().consumerClientId());
+    }
+
+    @Test
+    void disabledWsdlRowCallsBothServicesOfTheDescription() {
+        var row = scenario("V122");
+        var wsdl = (WsdlService) row.fixture().services().get(0);
+
+        assertThat(wsdl.shape()).isEqualTo(WsdlShape.PAIR);
+        assertThat(row.checks()).extracting(check -> check.request().serviceIndex()).containsExactly(0, 1);
+    }
+
+    @Test
+    void renameRowCallsTheOldCodeAndTheNewCode() {
+        assertThat(scenario("V127").checks()).extracting(check -> check.request().serviceIndex())
+                .containsExactly(0, 1);
+    }
+
+    @Test
+    void undefinedServiceRowCallsOverRestAndSoap() {
+        var row = scenario("V133");
+
+        assertThat(row.fixture().services()).containsExactly(new Scenario.UndefinedService());
+        assertThat(row.checks().get(0).request()).isInstanceOf(RestRequest.class);
+        assertThat(row.checks().get(1).request()).isInstanceOf(SoapRequest.class);
     }
 
     @Test

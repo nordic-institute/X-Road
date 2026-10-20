@@ -50,6 +50,10 @@ class KnownDefectMarkerTest {
 
     private static final Check FAULT_CHECK = new Check(
             new RestRequest(ScenarioCatalogue.CONSUMER, 0, "GET", "/z"), Verdict.INTERNAL_ERROR);
+
+    private static final Check DISABLED_CHECK = new Check(
+            new RestRequest(ScenarioCatalogue.CONSUMER, 0, "GET", "/w"), Verdict.SERVICE_DISABLED);
+
     private static Scenario row(String knownDefect, Check... checks) {
         return new Scenario("T1", "test row", new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of()),
                 List.of(checks), WaitClass.ACL_CACHE, knownDefect);
@@ -114,17 +118,49 @@ class KnownDefectMarkerTest {
     void markedRowAllowedWhereAnotherVerdictWasExpectedFailsWithTheUsualMessage() {
         var judgement = KnownDefectMarker.judge(row("D7", FAULT_CHECK),
                 List.of(outcome(FAULT_CHECK, Verdict.ALLOWED)));
+
         assertThat(judgement.status()).isEqualTo(Status.FAILED);
         assertThat(judgement.message()).contains("expected INTERNAL_ERROR but got ALLOWED")
                 .doesNotContain("expected failure");
     }
+
     @Test
     void markedRowWithAnInternalErrorOnTheSafeCheckFailsWithTheUsualMessage() {
         var judgement = KnownDefectMarker.judge(row("D7"), outcomes(Verdict.INTERNAL_ERROR));
+
         assertThat(judgement.status()).isEqualTo(Status.FAILED);
         assertThat(judgement.message()).contains("expected ACCESS_DENIED but got INTERNAL_ERROR")
                 .doesNotContain("defect fixed");
     }
+
+    @Test
+    void markedRowThatIsAllowedWhereAServiceDisabledAnswerIsSafeIsAnExpectedFailureNamingTheFinding() {
+        var judgement = KnownDefectMarker.judge(row("D7", DISABLED_CHECK),
+                List.of(outcome(DISABLED_CHECK, Verdict.ALLOWED)));
+
+        assertThat(judgement.status()).isEqualTo(Status.EXPECTED_FAILURE);
+        assertThat(judgement.message()).contains("T1").contains("expected failure").contains("D7");
+    }
+
+    @Test
+    void markedRowThatMeetsTheServiceDisabledAnswerFailsAskingForTheMarkerToGo() {
+        var judgement = KnownDefectMarker.judge(row("D7", DISABLED_CHECK),
+                List.of(outcome(DISABLED_CHECK, Verdict.SERVICE_DISABLED)));
+
+        assertThat(judgement.status()).isEqualTo(Status.FAILED);
+        assertThat(judgement.message()).contains("T1").contains("defect fixed, remove marker").contains("D7");
+    }
+
+    @Test
+    void markedRowWithAnErrorWhereAServiceDisabledAnswerWasExpectedFailsWithTheUsualMessage() {
+        var judgement = KnownDefectMarker.judge(row("D7", DISABLED_CHECK),
+                List.of(outcome(DISABLED_CHECK, Verdict.ERROR)));
+
+        assertThat(judgement.status()).isEqualTo(Status.FAILED);
+        assertThat(judgement.message()).contains("expected SERVICE_DISABLED but got ERROR")
+                .doesNotContain("defect fixed").doesNotContain("expected failure");
+    }
+
     @Test
     void markedRowThatMeetsTheSafeVerdictFailsAskingForTheMarkerToGo() {
         var judgement = KnownDefectMarker.judge(row("D7"), outcomes(Verdict.ACCESS_DENIED));

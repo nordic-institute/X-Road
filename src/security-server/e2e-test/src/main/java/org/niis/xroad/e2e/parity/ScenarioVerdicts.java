@@ -61,17 +61,28 @@ public final class ScenarioVerdicts {
         return outcomes;
     }
 
-    /** One line per request that missed its verdict, naming the request; empty when every request matched. */
+    /**
+     * One line per request that missed its verdict or its notice, naming the request; empty when every request
+     * matched.
+     */
     public static Optional<String> failureMessage(String scenarioId, List<Outcome> outcomes) {
         var lines = new ArrayList<String>();
         for (var index = 0; index < outcomes.size(); index++) {
             var outcome = outcomes.get(index);
+            var subject = "%s request %d of %d (%s)".formatted(scenarioId, index + 1, outcomes.size(),
+                    outcome.check().request().describe());
             if (!outcome.result().matched()) {
-                var subject = "%s request %d of %d (%s)".formatted(scenarioId, index + 1, outcomes.size(),
-                        outcome.check().request().describe());
                 lines.add(outcome.result().failureMessage(subject, outcome.check().expected()));
+            } else if (!carriesNotice(outcome)) {
+                lines.add("%s: reply does not carry the notice \"%s\"; last reply: %s"
+                        .formatted(subject, outcome.check().notice(), outcome.result().detail()));
             }
         }
         return lines.isEmpty() ? Optional.empty() : Optional.of(String.join("\n", lines));
+    }
+
+    private static boolean carriesNotice(Outcome outcome) {
+        var notice = outcome.check().notice();
+        return notice == null || outcome.result().detail() != null && outcome.result().detail().contains(notice);
     }
 }

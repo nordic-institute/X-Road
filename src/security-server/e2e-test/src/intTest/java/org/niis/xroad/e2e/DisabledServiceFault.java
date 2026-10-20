@@ -25,27 +25,26 @@
  */
 package org.niis.xroad.e2e;
 
-import ee.ria.xroad.common.util.MimeUtils;
-
 import io.restassured.response.ValidatableResponse;
 import lombok.experimental.UtilityClass;
-import org.awaitility.Awaitility;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.e2e.parity.Verdict;
+import org.niis.xroad.e2e.parity.VerdictClassifier;
+import org.niis.xroad.e2e.parity.VerdictPoller;
+import org.niis.xroad.e2e.parity.VerdictPoller.Observation;
 
 import java.time.Duration;
 import java.util.function.Supplier;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The operator's disabled-service notice and the fault it produces on the wire, shared by
+ * The operator's disabled-service notice and the verdicts a call to the service ends in, shared by
  * {@link SsProxyServiceDisableRoundTripTest} and {@link SsProxyFreshNegotiationDisabledNoticeTest}: both
- * disable a service description with the same notice and poll for the same {@code SERVICE_DISABLED} fault
- * shape, differing only in which call they poll and, for the fresh-negotiation scenario, in how long the
- * poll waits for the provider's catalog to pick up a brand new service.
+ * disable a service description with the same notice and wait for the same {@code SERVICE_DISABLED} verdict,
+ * differing only in which call they poll and, for the fresh-negotiation scenario, in how long the
+ * poll waits for the provider's catalog to pick up a brand new service. The wait is the parity suite's
+ * {@link VerdictPoller}.
  *
  * <p>The provider proxy only stops refusing calls (and only starts refusing them) once its own
  * {@code CachingServerConfImpl} reload picks up the disabled flag — there is no invalidation signal on
@@ -57,8 +56,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
  * {@code server.serverproxy} as it encodes the fault. The fault crosses the wire as a SOAP fault (X-Road's
  * proxy-to-proxy protocol represents faults this way even for REST calls); on the consumer side a
  * {@code server.}-prefixed code makes the client-facing handler answer 500, not 400. The REST caller
- * therefore sees an HTTP 500 with an {@code X-Road-Error} header and a JSON body whose {@code type} carries
- * the same prefixed code and whose {@code message} carries the exact notice text.
+ * therefore sees an HTTP 500 with an {@code X-Road-Error} header and a JSON body whose {@code message}
+ * carries the exact notice text.
  */
 @UtilityClass
 @SuppressWarnings("checkstyle:magicnumber")
@@ -69,35 +68,36 @@ class DisabledServiceFault {
     static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
     static final String DISABLED_NOTICE = "Scheduled maintenance window, please retry once it closes";
 
-    static final String EXPECTED_FAULT_CODE = SERVER_SERVERPROXY_X + "." + ErrorCode.SERVICE_DISABLED.code();
-
     static final Duration SERVERCONF_CACHE_EXPIRY_TIMEOUT =
             Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue() + 30);
     static final Duration SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL = Duration.ofSeconds(3);
 
     /** Polls {@code call} until it returns the expected POST service response. */
     static void awaitCallSucceeds(Supplier<ValidatableResponse> call, Duration timeout, Duration pollInterval) {
-        Awaitility.await()
-                .pollDelay(Duration.ZERO)
-                .pollInterval(pollInterval)
-                .timeout(timeout)
-                .ignoreExceptions()
-                .untilAsserted(() -> call.get()
-                        .statusCode(200)
-                        .body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
+        var result = new VerdictPoller().await(() -> observe(call), Verdict.ALLOWED, timeout, pollInterval);
+
+        assertThat(result.matched()).as(() -> result.failureMessage("service call", Verdict.ALLOWED)).isTrue();
     }
 
     /** Polls {@code call} until it returns the {@code SERVICE_DISABLED} fault carrying the operator's notice. */
-    static void awaitCallFailsWithDisabledNotice(Supplier<ValidatableResponse> call, Duration timeout, Duration pollInterval) {
-        Awaitility.await()
-                .pollDelay(Duration.ZERO)
-                .pollInterval(pollInterval)
-                .timeout(timeout)
-                .ignoreExceptions()
-                .untilAsserted(() -> call.get()
-                        .statusCode(500)
-                        .header(MimeUtils.HEADER_ERROR, equalTo(EXPECTED_FAULT_CODE))
-                        .body("type", equalTo(EXPECTED_FAULT_CODE))
-                        .body("message", containsString(DISABLED_NOTICE)));
+    static void awaitCallFailsWithDisabledNotice(Supplier<ValidatableResponse> call, Duration timeout,
+                                                 Duration pollInterval) {
+        var result = new VerdictPoller().await(() -> observe(call), Verdict.SERVICE_DISABLED, timeout, pollInterval);
+
+        assertThat(result.matched())
+                .as(() -> result.failureMessage("service call", Verdict.SERVICE_DISABLED))
+                .isTrue();
+        assertThat(result.detail()).as("reply to the disabled service").contains(DISABLED_NOTICE);
+    }
+
+    private static Observation observe(Supplier<ValidatableResponse> call) {
+        var response = call.get().extract().response();
+        var reply = Replies.toReply(response);
+        if (reply.status() == 200 && EXPECTED_RESPONSE_MESSAGE.equals(response.jsonPath().getString("message"))) {
+            return new Observation(Verdict.ALLOWED, reply.toString());
+        }
+        var classified = VerdictClassifier.classify(reply);
+        var verdict = classified == Verdict.ALLOWED ? Verdict.ERROR : classified;
+        return new Observation(verdict, VerdictClassifier.describe(reply));
     }
 }

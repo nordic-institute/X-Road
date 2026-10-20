@@ -100,6 +100,14 @@ public final class VerdictClassifier {
         return success && reply.body().contains(SOAP_BACKEND_MARKER) ? Verdict.ALLOWED : Verdict.ERROR;
     }
 
+    /**
+     * What a REST answer says, for failure messages: its status and fault header, and for a disabled-service fault
+     * also its body, which carries the operator's notice.
+     */
+    public static String describe(Reply reply) {
+        return classify(reply) == Verdict.SERVICE_DISABLED ? reply + "; body " + reply.body() : reply.toString();
+    }
+
     /** The fault code of a SOAP answer, or its HTTP status when the body holds no fault code. */
     public static String describeSoap(Reply reply) {
         var fault = FAULT_CODE.matcher(reply.body());

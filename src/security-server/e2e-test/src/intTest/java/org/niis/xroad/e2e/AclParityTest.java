@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.e2e;
 
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -45,7 +44,6 @@ import org.niis.xroad.e2e.parity.FixturePlan;
 import org.niis.xroad.e2e.parity.FixturePlanner;
 import org.niis.xroad.e2e.parity.KnownDefectMarker;
 import org.niis.xroad.e2e.parity.KnownDefectMarker.Judgement;
-import org.niis.xroad.e2e.parity.Reply;
 import org.niis.xroad.e2e.parity.RestRequests;
 import org.niis.xroad.e2e.parity.RestSender;
 import org.niis.xroad.e2e.parity.Scenario;
@@ -63,7 +61,6 @@ import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -170,10 +167,10 @@ class AclParityTest extends E2eTest {
                 var reply = RestSender.send(rest.method(),
                         RestRequests.url(proxyOrigin, providerClientId, serviceCode, rest.path()),
                         RestRequests.clientHeader(rest.consumerClientId()));
-                yield new Observation(VerdictClassifier.classify(reply), reply.toString());
+                yield new Observation(VerdictClassifier.classify(reply), VerdictClassifier.describe(reply));
             }
             case SoapRequest soap -> {
-                var reply = toReply(RestAssuredFactory.given()
+                var reply = Replies.toReply(RestAssuredFactory.given()
                         .header("Content-Type", "text/xml")
                         .body(SoapRequests.envelope(soap.consumerClientId(), providerClientId, serviceCode,
                                 soap.serviceVersion(), soap.securityServerHint(), "acl-parity-" + UUID.randomUUID()))
@@ -181,11 +178,5 @@ class AclParityTest extends E2eTest {
                 yield new Observation(VerdictClassifier.classifySoap(reply), VerdictClassifier.describeSoap(reply));
             }
         };
-    }
-
-    private static Reply toReply(Response response) {
-        var headers = new LinkedHashMap<String, String>();
-        response.getHeaders().asList().forEach(header -> headers.putIfAbsent(header.getName(), header.getValue()));
-        return new Reply(response.getStatusCode(), headers, response.getBody().asString());
     }
 }

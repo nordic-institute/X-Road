@@ -57,6 +57,14 @@ public sealed interface AdminCall {
     record EnableDescription(String serviceCode) implements ServiceCall {
     }
 
+    /** Disables the description; a {@code null} notice disables it without one. */
+    record DisableDescription(String serviceCode, String notice) implements ServiceCall {
+    }
+
+    /** Renames the service code of a REST description, keeping its backend URL. */
+    record RenameRestService(String serviceCode, String backendUrl, String newServiceCode) implements ServiceCall {
+    }
+
     record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
     }
 
@@ -80,6 +88,7 @@ public sealed interface AdminCall {
     record DeleteEndpoint(String serviceCode, String method, String path) implements ServiceCall {
     }
 
+    /** Deletes the description and its access rights, in setup or in cleanup. */
     record DeleteDescription(String serviceCode) implements ServiceCall {
     }
 

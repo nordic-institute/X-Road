@@ -65,6 +65,17 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
+    public void disableDescription(String descriptionId, String notice) {
+        AdminApi.disableServiceDescription(baseUrl, session, descriptionId, notice);
+    }
+
+    @Override
+    public void renameRestService(String descriptionId, String backendUrl, String serviceCode,
+                                  String newServiceCode) {
+        AdminApi.renameRestServiceCode(baseUrl, session, descriptionId, backendUrl, serviceCode, newServiceCode);
+    }
+
+    @Override
     public void grantAccess(String providerClientId, String consumerClientId, String serviceCode) {
         AdminApi.grantConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
     }

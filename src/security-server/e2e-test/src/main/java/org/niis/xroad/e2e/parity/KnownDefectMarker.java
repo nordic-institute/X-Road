@@ -28,13 +28,15 @@ package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.ScenarioVerdicts.Outcome;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Turns the polled outcomes of a scenario into the result the test reports. A row without a known defect passes
- * or fails by its outcomes. A row with one asserts the safe verdict: an allowed request where a denial was
- * expected is an expected failure, meeting every expectation fails the row so the marker gets removed, and any
- * other miss fails the row as it would without a marker.
+ * or fails by its outcomes. A row with one asserts the safe verdict: an allowed request where a denial or a
+ * disabled-service answer was expected is an expected failure, meeting every expectation fails the row so the
+ * marker gets removed, and any other miss fails the row as it would without a marker.
  */
 public final class KnownDefectMarker {
 
@@ -52,6 +54,8 @@ public final class KnownDefectMarker {
     public record Judgement(Status status, String message) {
     }
 
+    private static final Set<Verdict> SAFE_VERDICTS = EnumSet.of(Verdict.ACCESS_DENIED, Verdict.SERVICE_DISABLED);
+
     private KnownDefectMarker() {
     }
 
@@ -66,15 +70,15 @@ public final class KnownDefectMarker {
             return new Judgement(Status.FAILED,
                     "%s: defect fixed, remove marker %s".formatted(scenario.id(), finding));
         }
-        if (outcomes.stream().allMatch(KnownDefectMarker::matchedOrAllowedWhereDenialIsSafe)) {
+        if (outcomes.stream().allMatch(KnownDefectMarker::matchedOrAllowedWhereASafeVerdictWasExpected)) {
             return new Judgement(Status.EXPECTED_FAILURE,
                     "%s: expected failure, known defect %s".formatted(scenario.id(), finding));
         }
         return new Judgement(Status.FAILED, failure.get());
     }
 
-    private static boolean matchedOrAllowedWhereDenialIsSafe(Outcome outcome) {
+    private static boolean matchedOrAllowedWhereASafeVerdictWasExpected(Outcome outcome) {
         return outcome.result().matched()
-                || outcome.check().expected() == Verdict.ACCESS_DENIED && outcome.result().last() == Verdict.ALLOWED;
+                || SAFE_VERDICTS.contains(outcome.check().expected()) && outcome.result().last() == Verdict.ALLOWED;
     }
 }

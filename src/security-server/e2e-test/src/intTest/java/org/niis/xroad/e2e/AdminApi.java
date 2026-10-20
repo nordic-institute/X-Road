@@ -111,18 +111,43 @@ class AdminApi {
                 .isEqualTo(HTTP_OK);
     }
 
-    /** Disables the service description, attaching the operator's notice. */
+    /** Disables the service description, attaching the operator's notice unless it is {@code null}. */
     static void disableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId, String notice) {
-        var body = """
-                {"disabled_notice": "%s"}
-                """.formatted(notice);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable");
+        var request = authed(ss0);
+        if (notice != null) {
+            request = request.header("Content-Type", "application/json")
+                    .body("""
+                            {"disabled_notice": "%s"}
+                            """.formatted(notice));
+        }
+        var response = request.put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable");
         assertThat(response.getStatusCode())
                 .as("disable service description %s", serviceDescriptionId)
                 .isBetween(HTTP_OK, HTTP_LAST_SUCCESS);
+    }
+
+    /**
+     * Renames the service code of a REST service description. The description keeps its backend URL and the
+     * access rights of the service follow the new code.
+     */
+    static void renameRestServiceCode(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId,
+                                      String backendUrl, String restServiceCode, String newRestServiceCode) {
+        var body = """
+                {
+                  "url": "%s",
+                  "type": "REST",
+                  "rest_service_code": "%s",
+                  "new_rest_service_code": "%s"
+                }
+                """.formatted(backendUrl, restServiceCode, newRestServiceCode);
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .patch(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId);
+        assertThat(response.getStatusCode())
+                .as("rename service %s of service description %s to %s: %s", restServiceCode, serviceDescriptionId,
+                        newRestServiceCode, response.getBody().asString())
+                .isEqualTo(HTTP_OK);
     }
 
     /**

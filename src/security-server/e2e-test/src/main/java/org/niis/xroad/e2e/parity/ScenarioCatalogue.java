@@ -27,17 +27,23 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.Scenario.Check;
+import org.niis.xroad.e2e.parity.Scenario.Delete;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.DescriptionChange;
+import org.niis.xroad.e2e.parity.Scenario.Disable;
 import org.niis.xroad.e2e.parity.Scenario.EditedTo;
+import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
+import org.niis.xroad.e2e.parity.Scenario.RenameService;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
+import org.niis.xroad.e2e.parity.Scenario.UndefinedService;
 import org.niis.xroad.e2e.parity.Scenario.WaitClass;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
@@ -57,9 +63,12 @@ public final class ScenarioCatalogue {
     public static final String MEMBER_OF_CONSUMER = "DEV:COM:4321";
     /** A Security Server code that no member of the instance registers. */
     public static final String UNREGISTERED_SECURITY_SERVER = "DEV:COM:1234:acl-parity-unregistered";
+    /** The text the rows that disable a service with a notice expect back. */
+    public static final String DISABLED_NOTICE = "Scheduled maintenance, please retry later";
 
     private static final String FINDING_D3 = "D3";
     private static final String FINDING_D12 = "D12";
+    private static final String FINDING_D18 = "D18";
     private static final String V1 = "v1";
     private static final String GROUP = "partners";
     private static final List<String> CONSUMER_ONLY = List.of(CONSUMER);
@@ -256,6 +265,37 @@ public final class ScenarioCatalogue {
                     List.of(allowed("GET", "/a"),
                             new Check(new RestRequest(CONSUMER, 1, "GET", "/a"), Verdict.ACCESS_DENIED)),
                     WaitClass.ACL_CACHE),
+            new Scenario("V120", "Granted service disabled with a notice",
+                    changed(new Disable(0, DISABLED_NOTICE)),
+                    List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.SERVICE_DISABLED,
+                            DISABLED_NOTICE)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V121", "Service disabled, caller without a grant",
+                    changed(new Disable(0, DISABLED_NOTICE)),
+                    List.of(denied(OTHER_CONSUMER, "GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V122", "WSDL with two services, both granted, the description disabled",
+                    new FixtureSpec(PROVIDER, List.of(new WsdlService(WsdlShape.PAIR, "",
+                            List.of(CONSUMER_ONLY, CONSUMER_ONLY))), List.of(),
+                            List.of(new Disable(0, DISABLED_NOTICE))),
+                    List.of(new Check(new SoapRequest(CONSUMER, 0, V1, null), Verdict.SERVICE_DISABLED),
+                            new Check(new SoapRequest(CONSUMER, 1, V1, null), Verdict.SERVICE_DISABLED)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V123", "Granted service disabled, notice not supplied",
+                    changed(new Disable(0, null)),
+                    List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.SERVICE_DISABLED)),
+                    WaitClass.ACL_CACHE, FINDING_D18),
+            new Scenario("V124", "Service disabled and enabled again",
+                    changed(new Disable(0, DISABLED_NOTICE), new Enable(0)),
+                    List.of(allowed("GET", "/a")), WaitClass.ACL_CACHE),
+            new Scenario("V125", "Service description deleted, its grants removed with it",
+                    changed(new Delete(0)),
+                    List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.UNKNOWN_SERVICE)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V127", "REST service code renamed, the old code and the new code called",
+                    changed(new RenameService(0)),
+                    List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.UNKNOWN_SERVICE),
+                            allowed(1, "GET", "/a")),
+                    WaitClass.ACL_CACHE),
             new Scenario("V128", "SOAP service in two versions, the second version called",
                     wsdl(WsdlShape.VERSIONS, "", List.of(CONSUMER_ONLY)),
                     new SoapRequest(CONSUMER, 0, "v2", null),
@@ -275,7 +315,12 @@ public final class ScenarioCatalogue {
             new Scenario("V132b", "SOAP call to a REST service",
                     new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
                     new SoapRequest(CONSUMER, 0, null, null),
-                    Verdict.INVALID_SERVICE_TYPE, WaitClass.ACL_CACHE));
+                    Verdict.INVALID_SERVICE_TYPE, WaitClass.ACL_CACHE),
+            new Scenario("V133", "Service code that no description defines, called over REST and SOAP",
+                    new FixtureSpec(PROVIDER, List.of(new UndefinedService())),
+                    List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.UNKNOWN_SERVICE),
+                            new Check(new SoapRequest(CONSUMER, 0, V1, null), Verdict.UNKNOWN_SERVICE)),
+                    WaitClass.ACL_CACHE));
 
     private ScenarioCatalogue() {
     }
@@ -292,12 +337,21 @@ public final class ScenarioCatalogue {
         return new Check(new RestRequest(consumer, 0, method, path), Verdict.ALLOWED);
     }
 
+    private static Check allowed(int serviceIndex, String method, String path) {
+        return new Check(new RestRequest(CONSUMER, serviceIndex, method, path), Verdict.ALLOWED);
+    }
+
     private static Check denied(String method, String path) {
         return denied(CONSUMER, method, path);
     }
 
     private static Check denied(String consumer, String method, String path) {
         return new Check(new RestRequest(consumer, 0, method, path), Verdict.ACCESS_DENIED);
+    }
+
+    /** A REST service whose base endpoint is granted to the consumer, with the changes applied to its description. */
+    private static FixtureSpec changed(DescriptionChange... changes) {
+        return new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY)), List.of(), List.of(changes));
     }
 
     /** A REST service whose only grant is the consumer's access to one created endpoint. */

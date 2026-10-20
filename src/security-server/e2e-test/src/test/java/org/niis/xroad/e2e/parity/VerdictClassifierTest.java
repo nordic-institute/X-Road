@@ -179,6 +179,17 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void describeCarriesTheBodyOfADisabledServiceFaultOnly() {
+        var disabled = new Reply(500, Map.of("X-Road-Error", "server.serverproxy.service_disabled"),
+                "{\"message\":\"back at noon\"}");
+        var denied = new Reply(500, Map.of("X-Road-Error", "server.serverproxy.access_denied"),
+                "{\"message\":\"back at noon\"}");
+
+        assertThat(VerdictClassifier.describe(disabled)).contains("back at noon");
+        assertThat(VerdictClassifier.describe(denied)).doesNotContain("back at noon");
+    }
+
+    @Test
     void describeSoapFallsBackToTheStatusWithoutAFaultCode() {
         assertThat(VerdictClassifier.describeSoap(new Reply(404, Map.of(), "<html>not found</html>")))
                 .isEqualTo("status 404");

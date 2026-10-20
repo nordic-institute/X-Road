@@ -35,16 +35,22 @@ import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
+import org.niis.xroad.e2e.parity.AdminCall.DisableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
+import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
+import org.niis.xroad.e2e.parity.Scenario.Delete;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.DescriptionChange;
+import org.niis.xroad.e2e.parity.Scenario.Disable;
 import org.niis.xroad.e2e.parity.Scenario.EditedTo;
+import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
@@ -52,7 +58,10 @@ import org.niis.xroad.e2e.parity.Scenario.Kept;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
+import org.niis.xroad.e2e.parity.Scenario.RenameService;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
+import org.niis.xroad.e2e.parity.Scenario.ServiceSpec;
+import org.niis.xroad.e2e.parity.Scenario.UndefinedService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
@@ -65,10 +74,11 @@ import java.util.Locale;
  * scenario id, so fixtures of different scenarios and of earlier runs never collide, and no shared
  * service description is ever touched. Deleting a service description also removes its access rights,
  * so the cleanup is one delete per created description, preceded by the delete of each REST endpoint the scenario
- * created and left in place. The base endpoint and generated endpoints are never deleted on their own, and the
- * endpoints of an OpenAPI description are removed only with the description. Local groups carry the run token
- * and the scenario id in their code too; each group the scenario did not delete itself is deleted in cleanup,
- * after the descriptions.
+ * created and left in place. The cleanup also covers a description the scenario deletes itself, so it is still
+ * removed when the setup fails before that delete; the executor treats the repeat delete as harmless. The base endpoint
+ * and generated endpoints are never deleted on their own, and the endpoints of an OpenAPI description are removed
+ * only with the description. Local groups carry the run token and the scenario id in their code too; each group
+ * the scenario did not delete itself is deleted in cleanup, after the descriptions.
  */
 public final class FixturePlanner {
 
@@ -76,6 +86,7 @@ public final class FixturePlanner {
     public static final String BACKEND_ORIGIN = "http://isrest:8080";
     public static final String BACKEND_PATH_PREFIX = "/acl-parity/";
     private static final String OPENAPI_PATH_PREFIX = BACKEND_PATH_PREFIX + "openapi/";
+    private static final String RENAMED_SUFFIX = "-renamed";
 
     private final String runToken;
 
@@ -86,6 +97,7 @@ public final class FixturePlanner {
     public FixturePlan plan(String scenarioId, FixtureSpec spec) {
         var codes = new ArrayList<String>();
         var descriptionKeys = new ArrayList<String>();
+        var serviceKeys = new ArrayList<String>();
         var endpointDeletes = new ArrayList<List<AdminCall>>();
         var setup = new ArrayList<AdminCall>();
         var services = spec.services();
@@ -96,6 +108,7 @@ public final class FixturePlanner {
                 case RestService rest -> {
                     codes.add(base);
                     descriptionKeys.add(base);
+                    serviceKeys.add(base);
                     setup.add(new AddRestDescription(spec.providerClientId(), backendUrl(base), base));
                     setup.add(new EnableDescription(base));
                     grant(setup, spec.providerClientId(), base, rest.grantedConsumerIds());
@@ -105,6 +118,7 @@ public final class FixturePlanner {
                 case OpenApiService openApi -> {
                     codes.add(base);
                     descriptionKeys.add(base);
+                    serviceKeys.add(base);
                     endpointDeletes.add(List.of());
                     setup.add(new AddOpenApiDescription(spec.providerClientId(),
                             openApiUrl(openApi.spec(), base), base));
@@ -120,6 +134,7 @@ public final class FixturePlanner {
                     var key = wsdlCodes.get(0);
                     codes.addAll(wsdlCodes);
                     descriptionKeys.add(key);
+                    serviceKeys.add(key);
                     endpointDeletes.add(List.of());
                     setup.add(new AddWsdlDescription(spec.providerClientId(), wsdlUrl(wsdl.shape(), wsdlCodes), key));
                     setup.add(new EnableDescription(key));
@@ -127,8 +142,13 @@ public final class FixturePlanner {
                         grant(setup, spec.providerClientId(), wsdlCodes.get(i), wsdl.grantedConsumerIdsByCode().get(i));
                     }
                 }
+                case UndefinedService undefined -> {
+                    codes.add(base);
+                    serviceKeys.add(null);
+                }
             }
         }
+        descriptionChanges(setup, codes, services, serviceKeys, spec.changes());
         groupFollowUps(setup, scenarioId, spec.groups());
         var cleanup = new ArrayList<AdminCall>();
         for (var index = descriptionKeys.size() - 1; index >= 0; index--) {
@@ -168,6 +188,31 @@ public final class FixturePlanner {
             }
         }
         return deletes;
+    }
+
+    private static void descriptionChanges(List<AdminCall> setup, List<String> codes, List<ServiceSpec> services,
+                                           List<String> serviceKeys, List<DescriptionChange> changes) {
+        for (var change : changes) {
+            var key = serviceKeys.get(change.serviceIndex());
+            if (key == null) {
+                throw new IllegalArgumentException("service %d has no description to change"
+                        .formatted(change.serviceIndex()));
+            }
+            switch (change) {
+                case Disable disable -> setup.add(new DisableDescription(key, disable.notice()));
+                case Enable enable -> setup.add(new EnableDescription(key));
+                case Delete delete -> setup.add(new DeleteDescription(key));
+                case RenameService rename -> {
+                    if (!(services.get(rename.serviceIndex()) instanceof RestService)) {
+                        throw new IllegalArgumentException(
+                                "service %d is not a REST service".formatted(rename.serviceIndex()));
+                    }
+                    var renamed = key + RENAMED_SUFFIX;
+                    setup.add(new RenameRestService(key, backendUrl(key), renamed));
+                    codes.add(renamed);
+                }
+            }
+        }
     }
 
     private void groupSetup(List<AdminCall> setup, String scenarioId, List<LocalGroupSpec> groups) {

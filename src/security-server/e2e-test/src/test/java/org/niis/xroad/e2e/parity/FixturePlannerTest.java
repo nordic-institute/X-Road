@@ -36,24 +36,31 @@ import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
+import org.niis.xroad.e2e.parity.AdminCall.DisableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
+import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.ServiceCall;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
+import org.niis.xroad.e2e.parity.Scenario.Delete;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.Disable;
 import org.niis.xroad.e2e.parity.Scenario.EditedTo;
+import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
+import org.niis.xroad.e2e.parity.Scenario.RenameService;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
+import org.niis.xroad.e2e.parity.Scenario.UndefinedService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
@@ -383,6 +390,76 @@ class FixturePlannerTest {
         assertThatThrownBy(() -> planner.plan("V65", spec))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("partners");
+    }
+
+    @Test
+    void disableAndEnableRunAfterTheGrantsInTheOrderOfTheChangesAndCleanupStillDeletesTheDescription() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of())), List.of(),
+                List.of(new Disable(0, null), new Disable(0, "later"), new Enable(0)));
+        var plan = new FixturePlanner("ab12").plan("V124", spec);
+
+        assertThat(plan.setup()).endsWith(
+                new DisableDescription("pab12-v124", null),
+                new DisableDescription("pab12-v124", "later"),
+                new EnableDescription("pab12-v124"));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v124"));
+    }
+
+    @Test
+    void descriptionDeletedInSetupIsAlsoDeletedInCleanupAlongsideTheOtherOne() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of()), new RestService(List.of())), List.of(), List.of(new Delete(0)));
+        var plan = new FixturePlanner("ab12").plan("V125", spec);
+
+        assertThat(plan.setup()).endsWith(new DeleteDescription("pab12-v125"));
+        assertThat(plan.cleanup()).containsExactly(
+                new DeleteDescription("pab12-v125-2"), new DeleteDescription("pab12-v125"));
+    }
+
+    @Test
+    void renamedCodeIsAppendedAfterTheCreatedCodesAndTheBackendUrlStaysTheOldOne() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of())), List.of(),
+                List.of(new RenameService(0)));
+        var plan = new FixturePlanner("ab12").plan("V127", spec);
+
+        assertThat(plan.serviceCodes()).containsExactly("pab12-v127", "pab12-v127-renamed");
+        assertThat(plan.setup()).endsWith(new RenameRestService("pab12-v127",
+                "http://isrest:8080/acl-parity/pab12-v127", "pab12-v127-renamed"));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v127"));
+    }
+
+    @Test
+    void undefinedServiceReservesACodeAndCreatesNothing() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new UndefinedService(), new RestService(List.of())));
+        var plan = new FixturePlanner("ab12").plan("V133", spec);
+
+        assertThat(plan.serviceCodes()).containsExactly("pab12-v133", "pab12-v133-2");
+        assertThat(serviceCodesOf(plan.setup())).containsOnly("pab12-v133-2");
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v133-2"));
+    }
+
+    @Test
+    void changeOfAnUndefinedServiceIsRejected() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new UndefinedService()), List.of(),
+                List.of(new Enable(0)));
+        var planner = new FixturePlanner("ab12");
+
+        assertThatThrownBy(() -> planner.plan("V133", spec))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no description");
+    }
+
+    @Test
+    void renameOfAWsdlServiceIsRejected() {
+        var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new WsdlService(WsdlShape.SINGLE, "", List.of(List.of()))), List.of(),
+                List.of(new RenameService(0)));
+        var planner = new FixturePlanner("ab12");
+
+        assertThatThrownBy(() -> planner.plan("V127", spec))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not a REST service");
     }
 
     private static List<String> serviceCodesOf(List<AdminCall> calls) {

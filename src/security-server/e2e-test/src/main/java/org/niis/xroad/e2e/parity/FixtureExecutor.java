@@ -35,12 +35,14 @@ import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
+import org.niis.xroad.e2e.parity.AdminCall.DisableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
+import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 
@@ -117,6 +119,10 @@ public final class FixtureExecutor {
                 case UpdateOpenApiDescription update -> gateway.updateOpenApiDescription(
                         descriptionIds.get(update.serviceCode()), update.specUrl(), update.serviceCode());
                 case EnableDescription enable -> gateway.enableDescription(descriptionIds.get(enable.serviceCode()));
+                case DisableDescription disable ->
+                        gateway.disableDescription(descriptionIds.get(disable.serviceCode()), disable.notice());
+                case RenameRestService rename -> gateway.renameRestService(descriptionIds.get(rename.serviceCode()),
+                        rename.backendUrl(), rename.serviceCode(), rename.newServiceCode());
                 case GrantAccess grant -> gateway.grantAccess(
                         grant.providerClientId(), grant.consumerClientId(), grant.serviceCode());
                 case AddEndpoint add -> endpointIds.put(endpointKey(add.serviceCode(), add.method(), add.path()),
@@ -161,7 +167,14 @@ public final class FixtureExecutor {
                                 .formatted(delete.code(), delete.ownerClientId(), status));
                     }
                 }
-                case DeleteDescription delete -> throw new IllegalArgumentException("not a setup call: " + delete);
+                case DeleteDescription delete -> {
+                    var status = gateway.deleteDescription(descriptionIds.get(delete.serviceCode()));
+                    if (!isSuccess(status)) {
+                        throw new IllegalStateException("delete of service description %s answered %d"
+                                .formatted(delete.serviceCode(), status));
+                    }
+                    descriptionIds.remove(delete.serviceCode());
+                }
             }
         }
 

@@ -96,6 +96,28 @@ class ScenarioVerdictsTest {
         assertThat(ScenarioVerdicts.failureMessage(ROW.id(), outcomes)).isEmpty();
     }
 
+    @Test
+    void matchedVerdictWithoutTheNoticeInTheReplyIsReported() {
+        var request = new RestRequest(ScenarioCatalogue.CONSUMER, 0, "GET", "/a");
+        var check = new Scenario.Check(request, Verdict.SERVICE_DISABLED, "back at noon");
+        var outcome = new ScenarioVerdicts.Outcome(check,
+                new VerdictPoller.Result(Verdict.SERVICE_DISABLED, "body without it", true, 1, Duration.ZERO));
+
+        var message = ScenarioVerdicts.failureMessage("V120", List.of(outcome));
+
+        assertThat(message).hasValueSatisfying(text -> assertThat(text).contains("back at noon"));
+    }
+
+    @Test
+    void matchedVerdictWithTheNoticeInTheReplyIsNotReported() {
+        var request = new RestRequest(ScenarioCatalogue.CONSUMER, 0, "GET", "/a");
+        var check = new Scenario.Check(request, Verdict.SERVICE_DISABLED, "back at noon");
+        var outcome = new ScenarioVerdicts.Outcome(check,
+                new VerdictPoller.Result(Verdict.SERVICE_DISABLED, "body back at noon", true, 1, Duration.ZERO));
+
+        assertThat(ScenarioVerdicts.failureMessage("V120", List.of(outcome))).isEmpty();
+    }
+
     private static Observation expectedObservation(Scenario.RequestSpec request) {
         return observe(expectedFor(request));
     }

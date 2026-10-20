@@ -27,7 +27,9 @@
 package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.parity.Scenario.Delete;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
+import org.niis.xroad.e2e.parity.Scenario.Disable;
 import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
@@ -35,6 +37,7 @@ import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
+import org.niis.xroad.e2e.parity.Scenario.RenameService;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
@@ -44,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FixtureExecutorTest {
@@ -85,6 +89,17 @@ class FixtureExecutorTest {
         @Override
         public void enableDescription(String descriptionId) {
             calls.add("enable " + descriptionId);
+        }
+
+        @Override
+        public void disableDescription(String descriptionId, String notice) {
+            calls.add("disable %s with %s".formatted(descriptionId, notice));
+        }
+
+        @Override
+        public void renameRestService(String descriptionId, String backendUrl, String serviceCode,
+                                      String newServiceCode) {
+            calls.add("rename %s of %s to %s".formatted(serviceCode, descriptionId, newServiceCode));
         }
 
         @Override
@@ -436,5 +451,110 @@ class FixtureExecutorTest {
         fixture.close();
 
         assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete")).hasSize(2);
+    }
+
+    @Test
+    void disableSendsTheNoticeOrNoneAtAll() {
+        var gateway = new RecordingGateway();
+        var disablePlan = new FixturePlanner("t1").plan("V123", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())), List.of(), List.of(new Disable(0, null))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(disablePlan)) {
+            assertThat(gateway.calls).endsWith("disable id-pt1-v123 with null");
+        }
+    }
+
+    @Test
+    void renameRunsOnTheDescriptionIdOfTheOldCodeAndCleanupStillDeletesThatDescription() {
+        var gateway = new RecordingGateway();
+        var renamePlan = new FixturePlanner("t1").plan("V127", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())), List.of(), List.of(new RenameService(0))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(renamePlan)) {
+            assertThat(gateway.calls).endsWith("rename pt1-v127 of id-pt1-v127 to pt1-v127-renamed");
+        }
+
+        assertThat(gateway.calls).endsWith("delete id-pt1-v127");
+    }
+
+    @Test
+    void descriptionDeletedInSetupIsDeletedOnceAndNotAgainOnClose() {
+        var gateway = new RecordingGateway();
+        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())), List.of(), List.of(new Delete(0))));
+
+        try (var ignored = new FixtureExecutor(gateway).open(deletePlan)) {
+            assertThat(gateway.calls).endsWith("delete id-pt1-v125");
+        }
+
+        assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete")).hasSize(1);
+    }
+
+    @Test
+    void failedGrantBeforeTheSetupDeleteStillDeletesTheDescriptionInCleanup() {
+        var gateway = new RecordingGateway();
+        gateway.failOnGrantOf = "pt1-v125";
+        var executor = new FixtureExecutor(gateway);
+        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(ScenarioCatalogue.CONSUMER))), List.of(), List.of(new Delete(0))));
+
+        assertThatThrownBy(() -> executor.open(deletePlan))
+                .isInstanceOf(AssertionError.class)
+                .hasMessage("grant answered 500");
+        assertThat(gateway.calls).containsExactly("add pt1-v125", "enable id-pt1-v125", "delete id-pt1-v125");
+    }
+
+    @Test
+    void cleanupDeleteOfADescriptionAlreadyGoneIsNotAFailure() {
+        var gateway = new RecordingGateway();
+        gateway.failOnGrantOf = "pt1-v125";
+        gateway.deleteStatus = Map.of("id-pt1-v125", 404);
+        var executor = new FixtureExecutor(gateway);
+        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(ScenarioCatalogue.CONSUMER))), List.of(), List.of(new Delete(0))));
+
+        assertThatThrownBy(() -> executor.open(deletePlan))
+                .isInstanceOf(AssertionError.class)
+                .hasMessage("grant answered 500")
+                .hasNoSuppressedExceptions();
+        assertThat(gateway.calls).endsWith("delete id-pt1-v125");
+    }
+
+    @Test
+    void closeAfterASuccessfulSetupDeleteDoesNotDeleteAgainAndDoesNotFail() {
+        var gateway = new RecordingGateway();
+        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())), List.of(), List.of(new Delete(0))));
+        var fixture = new FixtureExecutor(gateway).open(deletePlan);
+
+        assertThatCode(fixture::close).doesNotThrowAnyException();
+        assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete")).hasSize(1);
+    }
+
+    @Test
+    void descriptionDeleteRefusedDuringSetupKeepsTheIdSoCleanupDeletesIt() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of("id-pt1-v125", 500);
+        var executor = new FixtureExecutor(gateway);
+        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())), List.of(), List.of(new Delete(0))));
+
+        assertThatThrownBy(() -> executor.open(deletePlan))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("pt1-v125 answered 500");
+        assertThat(gateway.calls).filteredOn(call -> call.equals("delete id-pt1-v125")).hasSize(2);
+    }
+
+    @Test
+    void descriptionDeleteRefusedDuringSetupFailsTheSetup() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of("id-pt1-v125", 500);
+        var executor = new FixtureExecutor(gateway);
+        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of())), List.of(), List.of(new Delete(0))));
+
+        assertThatThrownBy(() -> executor.open(deletePlan))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("pt1-v125 answered 500");
     }
 }
