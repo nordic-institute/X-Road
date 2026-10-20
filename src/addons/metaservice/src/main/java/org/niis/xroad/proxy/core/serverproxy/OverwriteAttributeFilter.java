@@ -44,10 +44,12 @@ import java.util.Set;
 public final class OverwriteAttributeFilter extends XMLFilterImpl {
     private static final QName WSDL_PORT_ELEMENT = new QName("http://schemas.xmlsoap.org/wsdl/", "port");
 
+    private static final String ADDRESS = "address";
+
     private static final Set<QName> ADDRESS_ELEMENTS = Set.of(
-            new QName("http://schemas.xmlsoap.org/wsdl/soap/", "address"),
-            new QName("http://schemas.xmlsoap.org/wsdl/soap12/", "address"),
-            new QName("http://schemas.xmlsoap.org/wsdl/http/", "address"));
+            new QName("http://schemas.xmlsoap.org/wsdl/soap/", ADDRESS),
+            new QName("http://schemas.xmlsoap.org/wsdl/soap12/", ADDRESS),
+            new QName("http://schemas.xmlsoap.org/wsdl/http/", ADDRESS));
 
     private static final Set<QName> WS_ADDRESSING_ADDRESS_ELEMENTS = Set.of(
             new QName("http://www.w3.org/2005/08/addressing", "Address"),
