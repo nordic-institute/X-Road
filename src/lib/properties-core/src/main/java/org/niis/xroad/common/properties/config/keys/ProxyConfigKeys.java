@@ -64,7 +64,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final Prefix ADDON_META_SERVICES = ADDON.subPrefix("meta-services");
     private static final Prefix ADDON_OP_MONITOR = ADDON.subPrefix("op-monitor");
     private static final Prefix ADDON_OP_MONITOR_BUFFER = ADDON_OP_MONITOR.subPrefix("buffer");
-    private static final Prefix ADDON_OP_MONITOR_CONNECTION = ADDON_OP_MONITOR.subPrefix("connection");
     private static final Prefix TLS = PROXY.subPrefix("tls");
     private static final Prefix TLS_CERT_PROVISIONING = TLS.subPrefix("certificate-provisioning");
     private static final Prefix ANTI_DOS = Prefix.of(Category.PROXY, "xroad.anti-dos");
@@ -477,75 +476,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Long> ADDON_OP_MONITOR_BUFFER_SENDING_INTERVAL_SECONDS = ADDON_OP_MONITOR_BUFFER
             .longValue("sending-interval-seconds")
             .withDefaultValue(5L)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds}. */
-    public static final ConfigKey<Integer> ADDON_OP_MONITOR_BUFFER_SOCKET_TIMEOUT_SECONDS = ADDON_OP_MONITOR_BUFFER
-            .integer("socket-timeout-seconds")
-            .withDefaultValue(60)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.buffer.connection-timeout-seconds}. */
-    public static final ConfigKey<Integer> ADDON_OP_MONITOR_BUFFER_CONNECTION_TIMEOUT_SECONDS = ADDON_OP_MONITOR_BUFFER
-            .integer("connection-timeout-seconds")
-            .withDefaultValue(50)
-            .exposedInUi()
-            .build();
-
-    // --- xroad.proxy.addon.op-monitor.connection -----------------------------
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.host}. */
-    public static final ConfigKey<String> ADDON_OP_MONITOR_CONNECTION_HOST = ADDON_OP_MONITOR_CONNECTION
-            .string("host")
-            .withDefaultValue("localhost")
-            .withContainerDefaultValue("op-monitor")
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.port}. */
-    public static final ConfigKey<Integer> ADDON_OP_MONITOR_CONNECTION_PORT = ADDON_OP_MONITOR_CONNECTION
-            .integer("port")
-            .withDefaultValue(2080)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.scheme}. */
-    public static final ConfigKey<String> ADDON_OP_MONITOR_CONNECTION_SCHEME = ADDON_OP_MONITOR_CONNECTION
-            .string("scheme")
-            .withDefaultValue("http")
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.client-tls-certificate} — no default (optional, deprecated). */
-    public static final ConfigKey<String> ADDON_OP_MONITOR_CONNECTION_CLIENT_TLS_CERTIFICATE = ADDON_OP_MONITOR_CONNECTION
-            .string("client-tls-certificate")
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.tls-certificate} — no default (optional, deprecated). */
-    public static final ConfigKey<String> ADDON_OP_MONITOR_CONNECTION_TLS_CERTIFICATE = ADDON_OP_MONITOR_CONNECTION
-            .string("tls-certificate")
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds}. */
-    public static final ConfigKey<Integer> ADDON_OP_MONITOR_CONNECTION_SOCKET_TIMEOUT_SECONDS = ADDON_OP_MONITOR_CONNECTION
-            .integer("socket-timeout-seconds")
-            .withDefaultValue(60)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.connection-timeout-seconds}. */
-    public static final ConfigKey<Integer> ADDON_OP_MONITOR_CONNECTION_CONNECTION_TIMEOUT_SECONDS = ADDON_OP_MONITOR_CONNECTION
-            .integer("connection-timeout-seconds")
-            .withDefaultValue(30)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.proxy.addon.op-monitor.connection.xroad-tls-ciphers}. */
-    public static final ConfigKey<String[]> ADDON_OP_MONITOR_CONNECTION_XROAD_TLS_CIPHERS = ADDON_OP_MONITOR_CONNECTION
-            .stringArray("xroad-tls-ciphers")
-            .withDefaultValue(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
             .exposedInUi()
             .build();
 

@@ -41,6 +41,7 @@ import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.io.IOException;
@@ -306,6 +307,25 @@ public interface GlobalConfProvider {
     default Collection<String> getCredentialIssuerDids(
             String instanceIdentifier) {
         return Collections.emptyList();
+    }
+
+    /**
+     * @param serverId the Security Server identifier
+     * @return the SYSTEM DID and DSP base URL published for the server, or empty when the server is unknown or has
+     * no published values
+     */
+    default Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
+        return Optional.empty();
+    }
+
+    /**
+     * @param memberId a member or subsystem identifier; a subsystem is resolved to its member
+     * @param serverId the Security Server identifier
+     * @return the DID published for the member on the server, or empty when the server is unknown or the member has
+     * no published DID on it
+     */
+    default Optional<String> getMemberDid(ClientId memberId, SecurityServerId serverId) {
+        return Optional.empty();
     }
 
     /**

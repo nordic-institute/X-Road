@@ -161,14 +161,14 @@ public class RemoteGlobalConfSource implements ManagedLifecycleGlobalConfSource 
     @Override
     public Optional<SharedParameters> findShared(String xRoadInstance) {
         var instanceIdentifier = getInstanceIdentifier();
-        log.trace("findShared(instance = {})", instanceIdentifier);
+        log.trace("findShared(instance = {}, main instance = {})", xRoadInstance, instanceIdentifier);
 
         Predicate<SharedParametersProvider> isMainInstance = params ->
                 params.getSharedParameters() != null && instanceIdentifier.equals(params.getSharedParameters().getInstanceIdentifier());
         Predicate<SharedParametersProvider> notExpired = params ->
                 params.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow());
 
-        SharedParametersProvider provider = getSharedParameters(getInstanceIdentifier());
+        SharedParametersProvider provider = getSharedParameters(xRoadInstance);
         return Optional.ofNullable(provider)
                 .filter(isMainInstance.or(notExpired))
                 .map(SharedParametersProvider::getSharedParameters);

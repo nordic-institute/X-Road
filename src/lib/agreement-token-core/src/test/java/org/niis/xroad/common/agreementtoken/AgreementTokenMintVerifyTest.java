@@ -38,6 +38,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
 import org.niis.xroad.common.agreementtoken.key.TestKeyPairs;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -229,6 +231,40 @@ class AgreementTokenMintVerifyTest {
                 SCOPE_MISMATCH);
         assertRejected(verifier.verify(token, AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/%2e%2e/admin")),
                 SCOPE_MISMATCH);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "/foo/1%3F/../../admin",
+        "/foo/a%23b",
+        "/%2F../foo/x",
+        "//foo/x",
+        "/foo//x",
+        "/foo/.;x/../y",
+        "/foo/..;x/y",
+        "/foo/;x/../../admin",
+        "/foo/a%252Fb",
+        "/foo/a b"
+    })
+    void shouldRejectRequestPathsTheAclRejects(String requestPath) {
+        var grant = new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("GET", "/foo/**")));
+        var token = minter.mint(grant);
+
+        var result = verifierAt(NOW.plusSeconds(1))
+                .verify(token, AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", requestPath));
+
+        assertRejected(result, SCOPE_MISMATCH);
+    }
+
+    @Test
+    void shouldAcceptEncodedCharactersInsideASegmentWithinTheGrantedScope() {
+        var grant = new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("GET", "/foo/**")));
+        var token = minter.mint(grant);
+
+        var result = verifierAt(NOW.plusSeconds(1))
+                .verify(token, AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/a%3Bb/c"));
+
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
     }
 
     @Test

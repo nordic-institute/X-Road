@@ -68,6 +68,13 @@ class OpMonitorServerPropertiesTest {
         assertThat(properties.maxInboundMessageSize()).contains(65_536);
     }
 
+    @Test
+    void grpcServerIsEnabledWithoutAnyRow() {
+        var properties = new OpMonitorServerProperties(config(Map.of()));
+
+        assertThat(properties.enabled()).isTrue();
+    }
+
     private static XRoadConfig config(Map<String, String> overrides) {
         return XRoadConfigBuilder.create().register(OpMonitorConfigKeys.instance()).overrides(overrides).build();
     }

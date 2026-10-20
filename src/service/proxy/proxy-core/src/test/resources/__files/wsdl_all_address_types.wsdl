@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="testService" targetNamespace="http://test.x-road.fi/producer"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://test.x-road.fi/producer"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:s12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  xmlns:h="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+                  xmlns:wsa04="http://schemas.xmlsoap.org/ws/2004/08/addressing">
+  <wsdl:import namespace="http://test.x-road.fi/imported" location="http://wsdl-host.example.net/imported.wsdl"/>
+  <wsdl:types>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="http://test.x-road.fi/producer">
+      <xsd:import namespace="http://test.x-road.fi/types" schemaLocation="http://localhost:9858/types.xsd"/>
+      <xsd:element name="getRandom" nillable="true">
+        <xsd:complexType/>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="getRandom">
+    <wsdl:part name="body" element="tns:getRandom"/>
+  </wsdl:message>
+  <wsdl:portType name="testServicePortType">
+    <wsdl:operation name="getRandom">
+      <wsdl:input message="tns:getRandom"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="soap11Binding" type="tns:testServicePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getRandom">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="soap12Binding" type="tns:testServicePortType">
+    <s12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getRandom">
+      <s12:operation soapAction=""/>
+      <wsdl:input>
+        <s12:body use="literal"/>
+      </wsdl:input>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="httpBinding" type="tns:testServicePortType">
+    <h:binding verb="POST"/>
+    <wsdl:operation name="getRandom">
+      <h:operation location="getRandom"/>
+      <wsdl:input>
+        <h:urlEncoded/>
+      </wsdl:input>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="testService">
+    <wsdl:port binding="tns:soap11Binding" name="soap11Port">
+      <soap:address location="http://backend-soap11.internal.example:8080/ws"/>
+    </wsdl:port>
+    <wsdl:port binding="tns:soap12Binding" name="soap12Port">
+      <s12:address location="http://backend-soap12.internal.example:8080/ws"/>
+    </wsdl:port>
+    <wsdl:port binding="tns:httpBinding" name="httpPort">
+      <h:address location="http://backend-http.internal.example:8080/ws"/>
+    </wsdl:port>
+    <wsdl:port binding="tns:soap12Binding" name="wsaPort">
+      <s12:address location="http://backend-wsa.internal.example:8080/ws"/>
+      <wsa:EndpointReference>
+        <wsa:Address>http://backend-wsa-epr.internal.example:8080/ws</wsa:Address>
+        <wsa:ReferenceParameters>keep-this-text</wsa:ReferenceParameters>
+      </wsa:EndpointReference>
+    </wsdl:port>
+    <wsdl:port binding="tns:soap11Binding" name="wsa04Port">
+      <soap:address location="http://backend-wsa04.internal.example:8080/ws"/>
+      <wsa04:EndpointReference>
+        <wsa04:Address>http://backend-wsa04-epr.internal.example:8080/ws</wsa04:Address>
+      </wsa04:EndpointReference>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

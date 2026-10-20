@@ -69,11 +69,15 @@ import static org.niis.xroad.serverconf.impl.TestUtil.NUM_SERVICES;
 import static org.niis.xroad.serverconf.impl.TestUtil.NUM_TSPS;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVER_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_DISABLED_BLANK_NOTICE;
+import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_DISABLED_NULL_NOTICE;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_TIMEOUT;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_URL;
 import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_VERSION;
 import static org.niis.xroad.serverconf.impl.TestUtil.SUBSYSTEM;
 import static org.niis.xroad.serverconf.impl.TestUtil.XROAD_INSTANCE;
+import static org.niis.xroad.serverconf.impl.TestUtil.addDisabledService;
+import static org.niis.xroad.serverconf.impl.TestUtil.addRestGrant;
 import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
@@ -104,6 +108,10 @@ public class ServerConfTest {
         serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider, null);
 
         prepareDB(DATABASE_CTX);
+        addRestGrant(DATABASE_CTX, createTestClientId(client(1)), "restBase", "GET", "**");
+        addRestGrant(DATABASE_CTX, createTestClientId(client(1)), "restPublic", "GET", "/public");
+        addDisabledService(DATABASE_CTX, createTestClientId(client(2)), SERVICE_DISABLED_NULL_NOTICE, null);
+        addDisabledService(DATABASE_CTX, createTestClientId(client(2)), SERVICE_DISABLED_BLANK_NOTICE, " ");
     }
 
     @AfterClass
@@ -222,9 +230,25 @@ public class ServerConfTest {
         ServiceId existingService = createTestServiceId(client(1),
                 service(NUM_SERVICEDESCRIPTIONS - 1, NUM_SERVICES - 1), SERVICE_VERSION);
         ServiceId nonExistingService = createTestServiceId("foo", "bar");
+        ServiceId enabledService = createTestServiceId(client(1), service(0, 0), SERVICE_VERSION);
 
-        assertNotNull(serverConfProvider.getDisabledNotice(existingService));
+        assertEquals("disabledNotice", serverConfProvider.getDisabledNotice(existingService));
+        assertNull(serverConfProvider.getDisabledNotice(enabledService));
         assertNull(serverConfProvider.getDisabledNotice(nonExistingService));
+    }
+
+    /**
+     * Tests that a disabled service description without notice text reports the default notice.
+     */
+    @Test
+    public void getDisabledNoticeDefaultsWhenNoticeIsNullOrBlank() {
+        ServiceId nullNoticeService = createTestServiceId(client(2), SERVICE_DISABLED_NULL_NOTICE, SERVICE_VERSION);
+        ServiceId blankNoticeService = createTestServiceId(client(2), SERVICE_DISABLED_BLANK_NOTICE, SERVICE_VERSION);
+
+        assertEquals(String.format("Service '%s' is disabled", nullNoticeService),
+                serverConfProvider.getDisabledNotice(nullNoticeService));
+        assertEquals(String.format("Service '%s' is disabled", blankNoticeService),
+                serverConfProvider.getDisabledNotice(blankNoticeService));
     }
 
     /**
@@ -263,6 +287,30 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/%2e%2e/secret"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/%2e%2e/%2e%2e/secret"));
+    }
+
+    /**
+     * Tests that ambiguous request paths are not allowed.
+     */
+    @Test
+    public void isQueryAllowedRejectsAmbiguousPaths() {
+        ClientId client1 = createTestClientId(client(1));
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+        ServiceId serviceBase = createTestServiceId(client1.getMemberCode(), "restBase", null);
+        ServiceId servicePublic = createTestServiceId(client1.getMemberCode(), "restPublic", null);
+
+        assertTrue(serverConfProvider.isQueryAllowed(client1, servicePublic, "GET", "/public"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceBase, "GET", "/secret"));
+
+        assertFalse(serverConfProvider.isQueryAllowed(client1, servicePublic, "GET", "/public%3Fx"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/1%3F/../../admin"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo%23x"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceBase, "GET", "/%2F../secret"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/%2F../api/x"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/.;x/../y"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/;x/../../admin"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test%252Fbar"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo bar"));
     }
 
     /**

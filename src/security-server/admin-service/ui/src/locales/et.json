@@ -1189,17 +1189,7 @@
                 "buffer": {
                   "size": "Maksimaalne kirjete arv puhvris enne operatsioonide monitorile saatmist.",
                   "max-records-in-message": "Maksimaalne operatsiooniandmete kirjete arv sõnumis, mille operatsioonide monitooringu puhver saadab operatsioonide monitooringu deemonile.",
-                  "sending-interval-seconds": "Intervall sekundites, millega operatsioonide monitooringu puhver (taas)proovib kirjeid operatsioonide monitooringu deemonile saata. Tavaliselt käivitab puhver saatmismehhanismi kohe, kui saab uue kirje. Suure koormuse või saatmise ebaõnnestumise korral kogunevad kirjed puhvrisse ja vajavad perioodilist tähelepanu.",
-                  "socket-timeout-seconds": "Soketi aegumine (SO_TIMEOUT) operatsioonide monitooringu kirjete saatmisel operatsioonide monitooringu puhvrist operatsioonide monitooringu deemonile sekundites.",
-                  "connection-timeout-seconds": "HTTP kliendi ühenduse aegumine sekundites."
-                },
-                "connection": {
-                  "host": "Hosti aadress, millel operatsioonide monitooringu deemon kuulab.",
-                  "port": "TCP port, millel operatsioonide monitooringu deemon kuulab.",
-                  "scheme": "Operatsioonide monitooringu deemoni URI skeemi nimi. Võimalikud väärtused on http ja https.",
-                  "socket-timeout-seconds": "HTTP kliendi ühenduse aegumine sekundites.",
-                  "connection-timeout-seconds": "Soketi aegumine (SO_TIMEOUT) operatsiooniandmete päringu saatmisel operatsioonide monitooringu deemonile sekundites.",
-                  "xroad-tls-ciphers": "TLS šifrid (komaga eraldatud loend eelistatud järjekorras), mida aktsepteeritakse turvaserverite vahelistel päringustel ning operatsiooni jälgimise deemoni ja kliendi vahel. (alates versioonist 6.20)"
+                  "sending-interval-seconds": "Intervall sekundites, millega operatsioonide monitooringu puhver (taas)proovib kirjeid operatsioonide monitooringu deemonile saata. Tavaliselt käivitab puhver saatmismehhanismi kohe, kui saab uue kirje. Suure koormuse või saatmise ebaõnnestumise korral kogunevad kirjed puhvrisse ja vajavad perioodilist tähelepanu."
                 }
               }
             },
@@ -1410,30 +1400,14 @@
             }
           },
           "op-monitor": {
-            "listen-address": "IP-aadress, millel operatsioonide monitooringu deemon kuulab.",
-            "port": "TCP port, millel operatsioonide monitooringu deemon kuulab.",
-            "scheme": "Operatsioonide monitooringu deemoni URI skeem. Võimalikud väärtused on http ja https.",
-            "xroad-tls-ciphers": "TLS šifrid (komaga eraldatud loend eelistatud järjekorras), mida aktsepteeritakse operatsioonide monitooringu deemoniga ühenduste korral.",
             "keep-records-for-days": "Päevade arv, mille jooksul operatsioonide monitooringu kirjeid säilitatakse enne nende kustutamist.",
             "clean-interval": "Cron expression, mis määrab, millal vanad operatsioonide monitooringu kirjed puhastatakse.",
             "max-records-in-payload": "Maksimaalne operatsioonide monitooringu kirjete arv, mis tagastatakse ühe vastuse andmekoormas.",
             "records-available-timestamp-offset-seconds": "Nihe sekundites, mis lahutatakse praegusest ajast saadaolevate kirjete ülempiiri määramisel.",
             "health-statistics-period-seconds": "Periood sekundites, mille jooksul tervisemõõdikuid koondatakse.",
             "rpc": {
-              "enabled": "Luba operatsioonide monitooringu deemoni gRPC server.",
               "listen-address": "IP-aadress, millel operatsioonide monitooringu deemoni gRPC server kuulab.",
               "port": "Port, millel operatsioonide monitooringu deemoni gRPC server kuulab."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse operatsioonide monitooringu deemoni TLS sertifikaadi ettevalmistamisel.",
-                "common-name": "Ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaadile seatud üldnimi.",
-                "alt-names": "DNS-i teema alternatiivsed nimed, mis on lisatud ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaati.",
-                "ip-subject-alt-names": "IP teema alternatiivsed nimed, mis on lisatud ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaati.",
-                "ttl": "Ettevalmistatud operatsioonide monitooringu deemoni TLS sertifikaadi eluiga (nt 3650D).",
-                "secret-store-pki-path": "Vault PKI saladuste mootori ühenduspunkt operatsioonide monitooringu deemoni TLS sertifikaadi ettevalmistamiseks."
-              },
-              "client-certificate-refresh-interval": "Intervall, millega operatsioonide monitooringu deemon uuendab oma kliendi TLS sertifikaati (nt 0S keelamiseks)."
             }
           },
           "message-log-archiver": {

@@ -1131,17 +1131,7 @@
                 "buffer": {
                   "size": "Número máximo de registros armazenados em buffer antes do envio ao monitor operacional.",
                   "max-records-in-message": "Número máximo de registros de dados operacionais em uma mensagem enviada pelo buffer de monitoramento operacional ao daemon de monitoramento operacional.",
-                  "sending-interval-seconds": "O intervalo em segundos no qual o buffer de monitoramento operacional tenta (re)enviar registros ao daemon de monitoramento operacional. Normalmente, o buffer aciona o mecanismo de envio imediatamente ao receber um novo registro. Em caso de alta carga ou falhas de envio, os registros se acumulam no buffer e precisam de atenção periódica.",
-                  "socket-timeout-seconds": "O timeout de socket (SO_TIMEOUT) para envio de registros de monitoramento operacional do buffer ao daemon de monitoramento operacional, em segundos.",
-                  "connection-timeout-seconds": "Timeout de conexão do cliente HTTP em segundos."
-                },
-                "connection": {
-                  "host": "O endereço do host no qual o daemon de monitoramento operacional escuta.",
-                  "port": "Porta TCP na qual o daemon de monitoramento operacional escuta.",
-                  "scheme": "O nome do esquema URI do daemon de monitoramento operacional. Os valores possíveis são http e https.",
-                  "socket-timeout-seconds": "Timeout de conexão do cliente HTTP em segundos.",
-                  "connection-timeout-seconds": "O timeout de socket (SO_TIMEOUT) para envio da requisição de dados operacionais ao daemon de monitoramento operacional, em segundos.",
-                  "xroad-tls-ciphers": "Cifras TLS (lista separada por vírgulas em ordem de preferência) aceitas nas requisições entre servidores de segurança e entre o daemon de monitoramento operacional e o cliente. (desde a versão 6.20)"
+                  "sending-interval-seconds": "O intervalo em segundos no qual o buffer de monitoramento operacional tenta (re)enviar registros ao daemon de monitoramento operacional. Normalmente, o buffer aciona o mecanismo de envio imediatamente ao receber um novo registro. Em caso de alta carga ou falhas de envio, os registros se acumulam no buffer e precisam de atenção periódica."
                 }
               }
             },
@@ -1352,30 +1342,14 @@
             }
           },
           "op-monitor": {
-            "listen-address": "Endereço IP no qual o daemon de monitoramento operacional escuta.",
-            "port": "Porta TCP na qual o daemon de monitoramento operacional escuta.",
-            "scheme": "Esquema URI do daemon de monitoramento operacional. Os valores possíveis são http e https.",
-            "xroad-tls-ciphers": "Cifras TLS (lista separada por vírgulas em ordem de preferência) aceitas nas conexões ao daemon de monitoramento operacional.",
             "keep-records-for-days": "Número de dias para reter os registros de monitoramento operacional antes de serem excluídos.",
             "clean-interval": "Expressão cron que controla quando os registros antigos de monitoramento operacional são limpos.",
             "max-records-in-payload": "Número máximo de registros de monitoramento operacional retornados em um único payload de resposta.",
             "records-available-timestamp-offset-seconds": "Deslocamento em segundos subtraído do tempo atual ao determinar o limite superior dos registros disponíveis.",
             "health-statistics-period-seconds": "Período em segundos sobre o qual as estatísticas de integridade são agregadas.",
             "rpc": {
-              "enabled": "Habilitar o servidor gRPC do daemon de monitoramento operacional.",
               "listen-address": "Endereço IP no qual o servidor gRPC do daemon de monitoramento operacional escuta.",
               "port": "Porta na qual o servidor gRPC do daemon de monitoramento operacional escuta."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Nome da role PKI do Vault utilizado ao provisionar o certificado TLS do daemon de monitoramento operacional.",
-                "common-name": "Nome comum definido no certificado TLS do daemon de monitoramento operacional provisionado.",
-                "alt-names": "Nomes alternativos de sujeito DNS incluídos no certificado TLS do daemon de monitoramento operacional provisionado.",
-                "ip-subject-alt-names": "Nomes alternativos de sujeito IP incluídos no certificado TLS do daemon de monitoramento operacional provisionado.",
-                "ttl": "Tempo de vida do certificado TLS do daemon de monitoramento operacional provisionado (ex.: 3650D).",
-                "secret-store-pki-path": "Caminho de montagem do mecanismo de segredos PKI do Vault para provisionamento do certificado TLS do daemon de monitoramento operacional."
-              },
-              "client-certificate-refresh-interval": "Intervalo no qual o daemon de monitoramento operacional renova seu certificado TLS de cliente (ex.: 0S para desabilitar)."
             }
           },
           "message-log-archiver": {

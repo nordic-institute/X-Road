@@ -42,12 +42,13 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -277,7 +278,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
                 TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, commonProperties,
-                new NoopVaultClient(), mock(MonitorRpcClient.class),
+                mock(RpcChannelFactory.class), mock(XRoadConfig.class), mock(MonitorRpcClient.class),
                 httpSenderProviderServer, httpClientCreator.getHttpClient());
         serviceHandlerLoader.init();
 

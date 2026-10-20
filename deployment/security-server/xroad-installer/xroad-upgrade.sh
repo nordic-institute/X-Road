@@ -189,6 +189,11 @@ main() {
     "OpenBao repository configured" \
     "OpenBao repository setup failed. No destructive steps executed. Check network and OPENBAO_MIRROR settings."
 
+  # Step 6a: Record the 7.8 operational monitoring state — must run before the services stop and before the package step removes the add-on files.
+  run_step "capture_op_monitor_state.sh" \
+    "Operational monitoring state recorded" \
+    "Recording the operational monitoring state failed. No services stopped yet. Fix the issue and re-run the wizard."
+
   # Step 7: Stop X-Road services — dynamic discovery, polling wait.
   run_step "stop_xroad_services.sh" \
     "X-Road services stopped" \
@@ -204,10 +209,10 @@ main() {
     "serverconf.identifier deduplication finished" \
     "serverconf.identifier deduplication failed. Fix the problematic rows manually and re-run the upgrade wizard."
 
-  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver.
+  # Step 10: Upgrade packages — apt-get install / yum update -y for xroad-securityserver, plus xroad-opmonitor when it was installed in 7.8.
   run_step "upgrade_packages.sh" \
     "Security Server packages upgraded to 8.0" \
-    "Package upgrade failed. V8 repo is active but packages are still at V7. Restore V7 repo backup and investigate before retrying."
+    "Package upgrade failed. V8 repo is active. Check this step's log messages for the package that failed; xroad-securityserver may already be at 8.x. Investigate before retrying, because the wizard only accepts 7.8 installations."
 
   # Step 11: Migrate V7 on-disk TLS certificates/keys to the local secret store (KV xrd-secret/tls/*).
   run_step "migrate_tls_to_secret_store.sh" \
@@ -218,6 +223,11 @@ main() {
   run_step "run_migration_cli.sh" \
     "Migration-CLI steps completed" \
     "Migration failed. X-Road services are stopped. V7 repo is still active. Fix the issue and re-run the wizard to resume from checkpoint."
+
+  # Step 12a: Write xroad.proxy.addon.op-monitor.enabled from the recorded state; an existing row is kept.
+  run_step "write_op_monitor_flag.sh" \
+    "Operational monitoring flag written" \
+    "Writing the operational monitoring flag failed. X-Road services are stopped. Verify the configuration database is reachable and the state in /var/lib/xroad-upgrade/op-monitor.state is valid, then set xroad.proxy.addon.op-monitor.enabled with /usr/share/xroad/scripts/db_property.sh."
 
   # Step 13: Start X-Road services, is-active polling.
   run_step "start_xroad_services.sh" \

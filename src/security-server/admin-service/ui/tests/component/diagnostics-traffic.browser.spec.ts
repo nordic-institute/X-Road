@@ -26,7 +26,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { getInstanceByDom } from 'echarts/core';
 import { page } from 'vitest/browser';
+import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
 import { Permissions } from '@/global';
@@ -95,5 +97,184 @@ describe('Diagnostics Traffic — default filter state and chart render (Browser
 
     const chartEl = document.querySelector('x-vue-echarts');
     expect(chartEl).not.toBeNull();
+  });
+});
+
+describe('Diagnostics Traffic — out-of-range request (Browser Mode)', () => {
+  it('shows the English text of the error code returned for an out-of-range request', async () => {
+    await renderRoute('/diagnostics/traffic', {
+      permissions: [Permissions.DIAGNOSTICS],
+      msw: [
+        addonStatusHandler,
+        specHttp.untyped.get('/api/v1/diagnostics/operational-monitoring', () =>
+          HttpResponse.json({ status: 400, error: { code: 'operational_data_intervals_out_of_range' } }, { status: 400 }),
+        ),
+      ],
+    });
+
+    await expect
+      .element(
+        page.getByText(
+          'The selected time period is invalid. Set the end date and time to the start or later. If needed, shorten the selected period.',
+        ),
+      )
+      .toBeVisible();
+  });
+});
+
+function chartSeriesDataLengths(): number[] {
+  const chart = getInstanceByDom(document.querySelector('x-vue-echarts .echarts-host') as HTMLElement);
+  const series = (chart?.getOption().series ?? []) as Array<{ data: unknown[] }>;
+  return series.map((item) => item.data.length);
+}
+
+function chartLoadingBar(): Element | null {
+  return document.querySelector('x-vue-echarts')?.parentElement?.querySelector(':scope > .v-progress-linear') ?? null;
+}
+
+describe('Diagnostics Traffic — end before start (Browser Mode)', () => {
+  it('sends no request and shows no data while the end is before the start, and requests again once the end is not before the start', async () => {
+    const requests: Array<{ from: string; to: string }> = [];
+    await renderRoute('/diagnostics/traffic', {
+      permissions: [Permissions.DIAGNOSTICS],
+      msw: [
+        addonStatusHandler,
+        specHttp.untyped.get('/api/v1/diagnostics/operational-monitoring', ({ request }) => {
+          const params = new URL(request.url).searchParams;
+          const from = params.get('records_from') as string;
+          const to = params.get('records_to') as string;
+          requests.push({ from, to });
+          if (new Date(to) < new Date(from)) {
+            return HttpResponse.json({ status: 400, error: { code: 'operational_data_intervals_out_of_range' } }, { status: 400 });
+          }
+          return HttpResponse.json([{ interval_start_time: from, success_count: 3, failure_count: 1 }]);
+        }),
+      ],
+    });
+
+    await expect.poll(() => requests.length).toBeGreaterThan(0);
+    await expect.poll(chartSeriesDataLengths).toEqual([1, 1]);
+
+    const startDate = page.getByTestId('period-start-date').getByRole('textbox');
+    const endDate = page.getByTestId('period-end-date').getByRole('textbox');
+    await endDate.fill((startDate.query() as HTMLInputElement).value);
+    await endDate.click();
+    await page.getByTestId('period-start-time').getByRole('textbox').fill('12:00');
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('10:00');
+    await expect.poll(chartSeriesDataLengths).toEqual([0, 0]);
+
+    const requestsBeforeGuard = requests.length;
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('10:30');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(requests.length).toBe(requestsBeforeGuard);
+    expect(page.getByTestId('contextual-alert').query()).toBeNull();
+    expect(chartSeriesDataLengths()).toEqual([0, 0]);
+
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('12:00');
+    await expect.poll(() => requests.length).toBeGreaterThan(requestsBeforeGuard);
+    await expect.poll(chartSeriesDataLengths).toEqual([1, 1]);
+    expect(page.getByTestId('contextual-alert').query()).toBeNull();
+  });
+});
+
+describe('Diagnostics Traffic — end before start while a request is in flight (Browser Mode)', () => {
+  it('keeps the chart empty and sends no request when an in-flight request resolves after the end moved before the start', async () => {
+    const requests: Array<{ from: string; to: string }> = [];
+    let gate: Promise<void> | undefined;
+    await renderRoute('/diagnostics/traffic', {
+      permissions: [Permissions.DIAGNOSTICS],
+      msw: [
+        addonStatusHandler,
+        specHttp.untyped.get('/api/v1/diagnostics/operational-monitoring', async ({ request }) => {
+          const params = new URL(request.url).searchParams;
+          const from = params.get('records_from') as string;
+          requests.push({ from, to: params.get('records_to') as string });
+          await gate;
+          return HttpResponse.json([{ interval_start_time: from, success_count: 3, failure_count: 1 }]);
+        }),
+      ],
+    });
+
+    await expect.poll(chartSeriesDataLengths).toEqual([1, 1]);
+
+    const startDate = page.getByTestId('period-start-date').getByRole('textbox');
+    const endDate = page.getByTestId('period-end-date').getByRole('textbox');
+    await endDate.fill((startDate.query() as HTMLInputElement).value);
+    await endDate.click();
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('23:00');
+    await expect.poll(() => requests.length).toBeGreaterThan(1);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    let release!: () => void;
+    gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const requestsBeforeDelayed = requests.length;
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('12:00');
+    await expect.poll(() => requests.length).toBe(requestsBeforeDelayed + 1);
+
+    await page.getByTestId('period-start-time').getByRole('textbox').fill('13:00');
+    await expect.poll(chartSeriesDataLengths).toEqual([0, 0]);
+
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(requests.length).toBe(requestsBeforeDelayed + 1);
+    expect(chartSeriesDataLengths()).toEqual([0, 0]);
+    expect(page.getByTestId('contextual-alert').query()).toBeNull();
+  });
+});
+
+describe('Diagnostics Traffic — end before start while a request that then fails is in flight (Browser Mode)', () => {
+  it('shows no error and no loading indicator and keeps the chart empty when an in-flight request fails after the end moved before the start', async () => {
+    const requests: Array<{ from: string; to: string }> = [];
+    let gate: Promise<void> | undefined;
+    let failHeldRequest = false;
+    await renderRoute('/diagnostics/traffic', {
+      permissions: [Permissions.DIAGNOSTICS],
+      msw: [
+        addonStatusHandler,
+        specHttp.untyped.get('/api/v1/diagnostics/operational-monitoring', async ({ request }) => {
+          const params = new URL(request.url).searchParams;
+          const from = params.get('records_from') as string;
+          requests.push({ from, to: params.get('records_to') as string });
+          await gate;
+          if (failHeldRequest) {
+            return HttpResponse.json({ status: 500, error: { code: 'internal_error' } }, { status: 500 });
+          }
+          return HttpResponse.json([{ interval_start_time: from, success_count: 3, failure_count: 1 }]);
+        }),
+      ],
+    });
+
+    await expect.poll(chartSeriesDataLengths).toEqual([1, 1]);
+
+    const startDate = page.getByTestId('period-start-date').getByRole('textbox');
+    const endDate = page.getByTestId('period-end-date').getByRole('textbox');
+    await endDate.fill((startDate.query() as HTMLInputElement).value);
+    await endDate.click();
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('23:00');
+    await expect.poll(() => requests.length).toBeGreaterThan(1);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    let release!: () => void;
+    gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const requestsBeforeHeld = requests.length;
+    await page.getByTestId('period-end-time').getByRole('textbox').fill('12:00');
+    await expect.poll(() => requests.length).toBe(requestsBeforeHeld + 1);
+    await expect.poll(() => chartLoadingBar()).not.toBeNull();
+
+    await page.getByTestId('period-start-time').getByRole('textbox').fill('13:00');
+    await expect.poll(chartSeriesDataLengths).toEqual([0, 0]);
+    await expect.poll(() => chartLoadingBar()).toBeNull();
+
+    failHeldRequest = true;
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(requests.length).toBe(requestsBeforeHeld + 1);
+    expect(page.getByTestId('contextual-alert').query()).toBeNull();
+    expect(chartSeriesDataLengths()).toEqual([0, 0]);
+    expect(chartLoadingBar()).toBeNull();
   });
 });
