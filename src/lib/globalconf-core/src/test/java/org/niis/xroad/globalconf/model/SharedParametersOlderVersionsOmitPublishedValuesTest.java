@@ -97,7 +97,7 @@ class SharedParametersOlderVersionsOmitPublishedValuesTest {
                 .globalGroups(List.of())
                 .approvedCAs(List.of())
                 .approvedTSAs(List.of())
-                .globalSettings(new SharedParameters.GlobalSettings(List.of(), 60))
+                .globalSettings(new SharedParameters.GlobalSettings(List.of(), 60, false))
                 .build();
     }
 }

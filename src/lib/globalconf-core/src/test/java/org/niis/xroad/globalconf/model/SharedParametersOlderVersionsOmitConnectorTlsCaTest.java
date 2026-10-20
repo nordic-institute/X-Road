@@ -68,7 +68,7 @@ class SharedParametersOlderVersionsOmitConnectorTlsCaTest {
         configurationSource.setInternalVerificationCerts(List.of("internal-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         sharedParamsBuilder.sources(List.of(configurationSource));
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
 
         var approvedConnectorTlsCA = new SharedParameters.ApprovedConnectorTlsCA();
         approvedConnectorTlsCA.setName("Test connector TLS CA");

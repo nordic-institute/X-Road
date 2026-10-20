@@ -177,6 +177,16 @@ class SharedParametersLoaderTest {
         assertThat(parameters.getCredentialIssuerDids()).isEmpty();
     }
 
+    @Test
+    void loadSharedParametersCarriesLegacyProtocolDisabled() {
+        stubDependencies();
+        when(systemParameterService.isLegacyProtocolDisabled()).thenReturn(true);
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getGlobalSettings().isLegacyProtocolDisabled()).isTrue();
+    }
+
     private void stubDependencies() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn(XROAD_INSTANCE);
         when(configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys())
@@ -222,6 +232,7 @@ class SharedParametersLoaderTest {
                 new SharedParameters.MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION));
 
         assertThat(parameters.getGlobalSettings().getOcspFreshnessSeconds()).isEqualTo(OCSP_FRESHNESS_SECONDS);
+        assertThat(parameters.getGlobalSettings().isLegacyProtocolDisabled()).isFalse();
     }
 
     private void assertGlobalGroups(SharedParameters parameters) {

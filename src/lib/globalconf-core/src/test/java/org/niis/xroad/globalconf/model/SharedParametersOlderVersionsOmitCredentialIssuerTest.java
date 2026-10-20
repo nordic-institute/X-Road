@@ -68,7 +68,7 @@ class SharedParametersOlderVersionsOmitCredentialIssuerTest {
         configurationSource.setInternalVerificationCerts(List.of("internal-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         sharedParamsBuilder.sources(List.of(configurationSource));
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
 
         sharedParamsBuilder.credentialIssuerDids(List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer"));
 
