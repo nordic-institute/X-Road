@@ -27,23 +27,29 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddGlobalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
+import org.niis.xroad.e2e.parity.AdminCall.CreateGlobalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteGlobalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DisableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
@@ -58,6 +64,7 @@ import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.GlobalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.Grant;
 import org.niis.xroad.e2e.parity.Scenario.Kept;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
@@ -89,7 +96,9 @@ import java.util.Map;
  * removed when the setup fails before that delete; the executor treats the repeat delete as harmless. The base endpoint
  * and generated endpoints are never deleted on their own, and the endpoints of an OpenAPI description are removed
  * only with the description. Local groups carry the run token and the scenario id in their code too; each group
- * the scenario did not delete itself is deleted in cleanup, after the descriptions.
+ * the scenario did not delete itself is deleted in cleanup, after the descriptions. Global groups carry the same
+ * namespace and are deleted last; the {@code security-server-owners} group is used under its own code and is never
+ * created or deleted.
  */
 public final class FixturePlanner {
 
@@ -124,6 +133,7 @@ public final class FixturePlanner {
         var endpointDeletes = new ArrayList<List<AdminCall>>();
         var setup = new ArrayList<AdminCall>();
         var services = spec.services();
+        globalGroupSetup(setup, scenarioId, spec.globalGroups());
         groupSetup(setup, scenarioId, spec.groups());
         for (var index = 0; index < services.size(); index++) {
             var base = serviceCode(scenarioId, index);
@@ -136,6 +146,7 @@ public final class FixturePlanner {
                     setup.add(new EnableDescription(base));
                     grant(setup, spec.providerClientId(), base, rest.grantedConsumerIds());
                     groupGrants(setup, scenarioId, spec, base, rest.grantedGroupCodes());
+                    globalGroupGrants(setup, scenarioId, spec, base, rest.grantedGlobalGroupCodes());
                     endpointDeletes.add(endpoints(setup, scenarioId, spec, base, rest.endpoints()));
                 }
                 case OpenApiService openApi -> {
@@ -187,6 +198,9 @@ public final class FixturePlanner {
                 cleanup.add(new DeleteLocalGroup(group.ownerClientId(), groupCode(scenarioId, group.code())));
             }
         }
+        for (var group : spec.globalGroups().reversed()) {
+            cleanup.add(new DeleteGlobalGroup(groupCode(scenarioId, group.code())));
+        }
         return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(phaseCalls), List.copyOf(cleanup));
     }
 
@@ -201,6 +215,11 @@ public final class FixturePlanner {
             for (var groupCode : endpoint.grantedGroupCodes()) {
                 setup.add(new GrantGroupEndpointAccess(spec.providerClientId(),
                         grantedGroupCode(scenarioId, spec, groupCode), serviceCode, endpoint.method(),
+                        endpoint.path()));
+            }
+            for (var groupCode : endpoint.grantedGlobalGroupCodes()) {
+                setup.add(new GrantGlobalGroupEndpointAccess(spec.providerClientId(),
+                        globalGroupCode(scenarioId, spec, groupCode), serviceCode, endpoint.method(),
                         endpoint.path()));
             }
             switch (endpoint.followUp()) {
@@ -258,6 +277,12 @@ public final class FixturePlanner {
                     case SwapOpenApiSpec swap -> calls.add(swapOpenApi(spec, serviceKeys, swap));
                     case ReplaceWsdlSecondService replace ->
                             calls.add(replaceWsdlSecondService(scenarioId, spec, codes, replace));
+                    case Scenario.AddGlobalGroupMember add -> calls.add(new AddGlobalGroupMember(
+                            globalGroupCode(scenarioId, spec, add.code()), add.memberId()));
+                    case Scenario.RemoveGlobalGroupMember remove -> calls.add(new RemoveGlobalGroupMember(
+                            globalGroupCode(scenarioId, spec, remove.code()), remove.memberId()));
+                    case Scenario.DeleteGlobalGroup delete ->
+                            calls.add(new DeleteGlobalGroup(globalGroupCode(scenarioId, spec, delete.code())));
                 }
             }
             result.add(List.copyOf(calls));
@@ -309,6 +334,38 @@ public final class FixturePlanner {
                 setup.add(new AddLocalGroupMember(group.ownerClientId(), code, memberId));
             }
         }
+    }
+
+    private void globalGroupSetup(List<AdminCall> setup, String scenarioId, List<GlobalGroupSpec> groups) {
+        for (var group : groups) {
+            if (group.isOwnersGroup()) {
+                throw new IllegalArgumentException(
+                        "group %s exists on every Central Server and is never created".formatted(group.code()));
+            }
+            var code = groupCode(scenarioId, group.code());
+            setup.add(new CreateGlobalGroup(code));
+            for (var memberId : group.memberIds()) {
+                setup.add(new AddGlobalGroupMember(code, memberId));
+            }
+        }
+    }
+
+    private void globalGroupGrants(List<AdminCall> setup, String scenarioId, FixtureSpec spec, String serviceCode,
+                                   List<String> groupCodes) {
+        for (var groupCode : groupCodes) {
+            setup.add(new GrantGlobalGroupAccess(spec.providerClientId(),
+                    globalGroupCode(scenarioId, spec, groupCode), serviceCode));
+        }
+    }
+
+    private String globalGroupCode(String scenarioId, FixtureSpec spec, String code) {
+        if (GlobalGroupSpec.SECURITY_SERVER_OWNERS.equals(code)) {
+            return code;
+        }
+        if (spec.globalGroups().stream().noneMatch(group -> group.code().equals(code))) {
+            throw new IllegalArgumentException("global group %s is used but not created".formatted(code));
+        }
+        return groupCode(scenarioId, code);
     }
 
     private void groupFollowUps(List<AdminCall> setup, String scenarioId, List<LocalGroupSpec> groups) {

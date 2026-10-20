@@ -38,6 +38,7 @@ import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -110,6 +111,15 @@ class ScenarioCatalogueTest {
                         tuple("V65", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V66", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V67", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V68", List.of(Verdict.ALLOWED)),
+                        tuple("V69", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V70", List.of(Verdict.ALLOWED)),
+                        tuple("V71", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V72", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V73", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V74", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V75", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V77", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V120", List.of(Verdict.SERVICE_DISABLED)),
                         tuple("V121", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V122", List.of(Verdict.SERVICE_DISABLED, Verdict.SERVICE_DISABLED)),
@@ -453,7 +463,12 @@ class ScenarioCatalogueTest {
     @Test
     void onlyTheFlipRowsHavePhasesAndEachPhaseMakesItsOwnChange() {
         assertThat(ScenarioCatalogue.all()).filteredOn(row -> !row.phases().isEmpty()).extracting(Scenario::id)
-                .containsExactly("V10", "V11", "V39");
+                .containsExactly("V10", "V11", "V39", "V74", "V75");
+        assertThat(scenario("V74").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.DeleteGlobalGroup("everyone")));
+        assertThat(scenario("V75").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.AddGlobalGroupMember("everyone", ScenarioCatalogue.CONSUMER)),
+                        List.of(new Scenario.RemoveGlobalGroupMember("everyone", ScenarioCatalogue.CONSUMER)));
         assertThat(scenario("V10").phases()).extracting(Scenario.Phase::changes)
                 .containsExactly(List.of(new Scenario.Grant(0, ScenarioCatalogue.CONSUMER)));
         assertThat(scenario("V11").phases()).extracting(Scenario.Phase::changes)
@@ -473,6 +488,25 @@ class ScenarioCatalogueTest {
                 .containsOnly(Verdict.ALLOWED);
         assertThat(scenario("V11").phases().get(0).checks()).extracting(Scenario.Check::expected)
                 .containsOnly(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void globalGroupRowsWaitForGlobalConfiguration() {
+        var ids = List.of("V68", "V69", "V70", "V71", "V72", "V73", "V74", "V75", "V77");
+
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> ids.contains(row.id()))
+                .hasSameSizeAs(ids)
+                .allMatch(row -> row.waitClass() == Scenario.WaitClass.GLOBALCONF);
+    }
+
+    @Test
+    void globalConfigurationBudgetCoversPropagationPlusTheAclCache() {
+        var propagation = Duration.ofSeconds(30);
+        var aclCache = Duration.ofSeconds(60);
+
+        assertThat(Scenario.WaitClass.GLOBALCONF.timeout()).isGreaterThan(propagation.plus(aclCache))
+                .isGreaterThan(Scenario.WaitClass.ACL_CACHE.timeout());
+        assertThat(Scenario.WaitClass.ACL_CACHE.timeout()).isGreaterThan(aclCache);
     }
 
     private static List<Verdict> expectedVerdicts(Scenario scenario) {

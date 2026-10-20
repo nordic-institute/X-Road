@@ -135,6 +135,35 @@ public sealed interface AdminCall {
     record DeleteLocalGroup(String ownerClientId, String code) implements AdminCall {
     }
 
+    /** Creates a global group at the Central Server. */
+    record CreateGlobalGroup(String code) implements AdminCall {
+    }
+
+    /** Adds a member or subsystem to the global group at the Central Server. */
+    record AddGlobalGroupMember(String code, String memberId) implements AdminCall {
+    }
+
+    /** Removes a member or subsystem from the global group at the Central Server. */
+    record RemoveGlobalGroupMember(String code, String memberId) implements AdminCall {
+    }
+
+    /** Deletes the global group at the Central Server, in setup or in cleanup. */
+    record DeleteGlobalGroup(String code) implements AdminCall {
+    }
+
+    /**
+     * Grants the global group, of the provider's instance, access to the service. The provider's Security Server
+     * knows the group only once global configuration has carried it there, so the grant waits for that.
+     */
+    record GrantGlobalGroupAccess(String providerClientId, String groupCode, String serviceCode)
+            implements ServiceCall {
+    }
+
+    /** Grants the global group access to the endpoint of the service with the given method and path. */
+    record GrantGlobalGroupEndpointAccess(String providerClientId, String groupCode, String serviceCode,
+                                          String method, String path) implements ServiceCall {
+    }
+
     /** Grants the provider's local group access to the service. */
     record GrantGroupAccess(String providerClientId, String groupCode, String serviceCode) implements ServiceCall {
     }

@@ -91,4 +91,25 @@ public interface AdminGateway {
 
     /** Deletes the local group and returns the HTTP status of the call. */
     int deleteLocalGroup(String groupId);
+
+    /** Creates a global group at the Central Server. */
+    void createGlobalGroup(String code);
+
+    /** Adds a member or subsystem to the global group at the Central Server. */
+    void addGlobalGroupMember(String code, String memberId);
+
+    /** Removes a member or subsystem from the global group at the Central Server. */
+    void removeGlobalGroupMember(String code, String memberId);
+
+    /** Deletes the global group at the Central Server and returns the HTTP status of the call. */
+    int deleteGlobalGroup(String code);
+
+    /**
+     * Grants the global group, named {@code INSTANCE:CODE}, access to the service, waiting until the provider's
+     * Security Server knows the group.
+     */
+    void grantGlobalGroupAccess(String providerClientId, String groupId, String serviceCode);
+
+    /** Grants the global group, named {@code INSTANCE:CODE}, access to the endpoint, waiting as the service grant. */
+    void grantGlobalGroupEndpointAccess(String endpointId, String groupId);
 }

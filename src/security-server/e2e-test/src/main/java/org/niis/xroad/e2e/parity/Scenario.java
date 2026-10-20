@@ -26,6 +26,7 @@
 
 package org.niis.xroad.e2e.parity;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -78,7 +79,32 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** A change made between two phases. */
-    public sealed interface PhaseChange permits Grant, Revoke, SwapOpenApiSpec, ReplaceWsdlSecondService, Refresh {
+    public sealed interface PhaseChange permits Grant, Revoke, SwapOpenApiSpec, ReplaceWsdlSecondService, Refresh,
+            AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
+    }
+
+    /**
+     * A member or subsystem is added to a global group of the fixture at the Central Server.
+     *
+     * @param code the group code before namespacing
+     */
+    public record AddGlobalGroupMember(String code, String memberId) implements PhaseChange {
+    }
+
+    /**
+     * A member or subsystem is removed from a global group of the fixture at the Central Server.
+     *
+     * @param code the group code before namespacing
+     */
+    public record RemoveGlobalGroupMember(String code, String memberId) implements PhaseChange {
+    }
+
+    /**
+     * A global group of the fixture is deleted at the Central Server.
+     *
+     * @param code the group code before namespacing
+     */
+    public record DeleteGlobalGroup(String code) implements PhaseChange {
     }
 
     /**
@@ -136,8 +162,24 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
 
     /** The provider-side delay between a configuration change and the verdict it causes. */
     public enum WaitClass {
-        /** The provider caches access decisions per client and service. */
-        ACL_CACHE
+        /** The provider caches access decisions per client and service: 60 s of cache plus slack. */
+        ACL_CACHE(Duration.ofSeconds(90)),
+        /**
+         * A Central Server change reaches the provider through global configuration: generation 10 s, configuration
+         * client 10 s and proxy refresh 10 s, then the access decision cache of 60 s, plus slack.
+         */
+        GLOBALCONF(Duration.ofSeconds(120));
+
+        private final Duration timeout;
+
+        WaitClass(Duration timeout) {
+            this.timeout = timeout;
+        }
+
+        /** How long a verdict may take to settle after the change that causes it. */
+        public Duration timeout() {
+            return timeout;
+        }
     }
 
     /**
@@ -145,16 +187,46 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param services         the service descriptions to create under the provider
      * @param groups           the local groups to create, before the services whose grants name them
      * @param changes          the changes applied to the created service descriptions before the requests are sent
+     * @param globalGroups     the global groups to create at the Central Server, before the services whose grants
+     *                         name them
      */
     public record FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
-                              List<DescriptionChange> changes) {
+                              List<DescriptionChange> changes, List<GlobalGroupSpec> globalGroups) {
+
+        public FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
+                           List<DescriptionChange> changes) {
+            this(providerClientId, services, groups, changes, List.of());
+        }
 
         public FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups) {
-            this(providerClientId, services, groups, List.of());
+            this(providerClientId, services, groups, List.of(), List.of());
         }
 
         public FixtureSpec(String providerClientId, List<ServiceSpec> services) {
-            this(providerClientId, services, List.of(), List.of());
+            this(providerClientId, services, List.of(), List.of(), List.of());
+        }
+    }
+
+    /**
+     * A global group kept at the Central Server. Its code is namespaced per run and scenario, except for
+     * {@link #SECURITY_SERVER_OWNERS}, which exists on every Central Server and is never created, changed or
+     * deleted.
+     *
+     * @param code      the group code before namespacing
+     * @param memberIds the members to add, each a member or subsystem id
+     */
+    public record GlobalGroupSpec(String code, List<String> memberIds) {
+
+        /** The code of the group the Central Server fills with the owners of the registered Security Servers. */
+        public static final String SECURITY_SERVER_OWNERS = "security-server-owners";
+
+        public GlobalGroupSpec(String code) {
+            this(code, List.of());
+        }
+
+        /** Whether the group is the Central Server's own owners group. */
+        public boolean isOwnersGroup() {
+            return SECURITY_SERVER_OWNERS.equals(code);
         }
     }
 
@@ -222,16 +294,24 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
      * @param endpoints          the endpoints created next to the base endpoint
      * @param grantedGroupCodes  codes of the provider's local groups granted the base endpoint, before namespacing
+     * @param grantedGlobalGroupCodes codes of the fixture's global groups granted the base endpoint, before
+     *                                namespacing
      */
     public record RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints,
-                              List<String> grantedGroupCodes) implements ServiceSpec {
+                              List<String> grantedGroupCodes, List<String> grantedGlobalGroupCodes)
+            implements ServiceSpec {
+
+        public RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints,
+                           List<String> grantedGroupCodes) {
+            this(grantedConsumerIds, endpoints, grantedGroupCodes, List.of());
+        }
 
         public RestService(List<String> grantedConsumerIds, List<EndpointSpec> endpoints) {
-            this(grantedConsumerIds, endpoints, List.of());
+            this(grantedConsumerIds, endpoints, List.of(), List.of());
         }
 
         public RestService(List<String> grantedConsumerIds) {
-            this(grantedConsumerIds, List.of(), List.of());
+            this(grantedConsumerIds, List.of(), List.of(), List.of());
         }
     }
 
@@ -242,10 +322,20 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param path               the path pattern, starting with {@code /}
      * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
      * @param grantedGroupCodes  codes of the provider's local groups granted the endpoint, before namespacing
+     * @param grantedGlobalGroupCodes codes of the fixture's global groups granted the endpoint, before namespacing
      * @param followUp           what happens to the endpoint after it is created and granted
      */
     public record EndpointSpec(String method, String path, List<String> grantedConsumerIds,
-                               List<String> grantedGroupCodes, FollowUp followUp) {
+                               List<String> grantedGroupCodes, List<String> grantedGlobalGroupCodes,
+                               FollowUp followUp) {
+        public EndpointSpec(String method, String path, List<String> grantedConsumerIds,
+                            List<String> grantedGroupCodes, FollowUp followUp) {
+            this(method, path, grantedConsumerIds, grantedGroupCodes, List.of(), followUp);
+        }
+
+        public static EndpointSpec forGlobalGroups(String method, String path, List<String> grantedGlobalGroupCodes) {
+            return new EndpointSpec(method, path, List.of(), List.of(), grantedGlobalGroupCodes, new Kept());
+        }
 
         public EndpointSpec(String method, String path, List<String> grantedConsumerIds, FollowUp followUp) {
             this(method, path, grantedConsumerIds, List.of(), followUp);

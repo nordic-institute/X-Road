@@ -117,14 +117,15 @@ class AclParityTest extends E2eTest {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
-        var gateway = new AdminApiGateway(ss0BaseUrl, login(ss0BaseUrl), backendAdminUrl(env));
+        var csBaseUrl = CentralServerApi.baseUrl(env);
+        var gateway = new AdminApiGateway(ss0BaseUrl, login(ss0BaseUrl), backendAdminUrl(env), csBaseUrl,
+                login(csBaseUrl));
         var plan = new FixturePlanner(RUN_TOKEN).plan(scenario);
 
         try (var fixture = new FixtureExecutor(gateway).open(plan)) {
             var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
                     request -> call(env, scenario, plan, request),
-                    scenario.knownDefect() == null ? DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT
-                            : Duration.ZERO,
+                    scenario.knownDefect() == null ? scenario.waitClass().timeout() : Duration.ZERO,
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
             if (scenario.knownDefect() == null) {
                 outcomes.forEach(outcome -> log.info("{}: {} -> verdict {} ({}) after {} attempts in {} s",

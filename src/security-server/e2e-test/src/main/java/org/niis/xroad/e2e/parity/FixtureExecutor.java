@@ -27,23 +27,29 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.AdminCall.AddEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.AddGlobalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.AddOpenApiDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddRestDescription;
 import org.niis.xroad.e2e.parity.AdminCall.AddWsdlDescription;
+import org.niis.xroad.e2e.parity.AdminCall.CreateGlobalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.CreateLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteDescription;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteEndpoint;
+import org.niis.xroad.e2e.parity.AdminCall.DeleteGlobalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.AdminCall.DisableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.EnableDescription;
 import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupAccess;
+import org.niis.xroad.e2e.parity.AdminCall.GrantGlobalGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
@@ -52,8 +58,10 @@ import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.ToIntFunction;
 
 /**
@@ -99,6 +107,7 @@ public final class FixtureExecutor {
         private final Map<String, String> descriptionIds = new HashMap<>();
         private final Map<String, String> endpointIds = new HashMap<>();
         private final Map<String, String> groupIds = new HashMap<>();
+        private final Set<String> globalGroupCodes = new HashSet<>();
         private final List<String> backendStubIds = new ArrayList<>();
 
         private Fixture(FixturePlan plan) {
@@ -111,6 +120,10 @@ public final class FixtureExecutor {
 
         private static String groupKey(String ownerClientId, String code) {
             return ownerClientId + " " + code;
+        }
+
+        private static String globalGroupId(String providerClientId, String groupCode) {
+            return providerClientId.substring(0, providerClientId.indexOf(':')) + ":" + groupCode;
         }
 
         /** Runs the calls in order, for the changes a scenario makes while its fixtures are in place. */
@@ -176,6 +189,28 @@ public final class FixtureExecutor {
                                 key -> gateway.findEndpointId(descriptionIds.get(grant.serviceCode()),
                                         grant.serviceCode(), grant.method(), grant.path())),
                         groupIds.get(groupKey(grant.providerClientId(), grant.groupCode())));
+                case CreateGlobalGroup create -> {
+                    gateway.createGlobalGroup(create.code());
+                    globalGroupCodes.add(create.code());
+                }
+                case AddGlobalGroupMember add -> gateway.addGlobalGroupMember(add.code(), add.memberId());
+                case RemoveGlobalGroupMember remove ->
+                        gateway.removeGlobalGroupMember(remove.code(), remove.memberId());
+                case GrantGlobalGroupAccess grant -> gateway.grantGlobalGroupAccess(grant.providerClientId(),
+                        globalGroupId(grant.providerClientId(), grant.groupCode()), grant.serviceCode());
+                case GrantGlobalGroupEndpointAccess grant -> gateway.grantGlobalGroupEndpointAccess(
+                        endpointIds.computeIfAbsent(endpointKey(grant.serviceCode(), grant.method(), grant.path()),
+                                key -> gateway.findEndpointId(descriptionIds.get(grant.serviceCode()),
+                                        grant.serviceCode(), grant.method(), grant.path())),
+                        globalGroupId(grant.providerClientId(), grant.groupCode()));
+                case DeleteGlobalGroup delete -> {
+                    globalGroupCodes.remove(delete.code());
+                    var status = gateway.deleteGlobalGroup(delete.code());
+                    if (!isSuccess(status)) {
+                        throw new IllegalStateException(
+                                "delete of global group %s answered %d".formatted(delete.code(), status));
+                    }
+                }
                 case DeleteLocalGroup delete -> {
                     var id = groupIds.remove(groupKey(delete.ownerClientId(), delete.code()));
                     var status = gateway.deleteLocalGroup(id);
@@ -195,7 +230,7 @@ public final class FixtureExecutor {
             }
         }
 
-        /** Runs the plan's cleanup calls for the endpoints, descriptions and local groups that were created. */
+        /** Runs the plan's cleanup calls for the endpoints, descriptions and groups that were created. */
         @Override
         public void close() {
             var failures = new ArrayList<String>();
@@ -216,6 +251,8 @@ public final class FixtureExecutor {
                     case DeleteLocalGroup delete -> remove(groupIds.remove(groupKey(delete.ownerClientId(),
                                     delete.code())), "local group %s of %s".formatted(delete.code(),
                             delete.ownerClientId()), gateway::deleteLocalGroup, failures);
+                    case DeleteGlobalGroup delete -> remove(globalGroupCodes.remove(delete.code()) ? delete.code() : null,
+                            "global group " + delete.code(), gateway::deleteGlobalGroup, failures);
                     default -> throw new IllegalArgumentException("not a cleanup call: " + call);
                 }
             }

@@ -28,19 +28,35 @@ package org.niis.xroad.e2e;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminGateway;
+import org.niis.xroad.e2e.parity.Scenario.WaitClass;
+
+import java.time.Duration;
+
+import static org.awaitility.Awaitility.await;
 
 /** The provider Security Server's admin API, reached through {@link AdminApi}. */
 final class AdminApiGateway implements AdminGateway {
 
+    private static final Duration GLOBALCONF_POLL_INTERVAL = Duration.ofSeconds(3);
+
     private final String baseUrl;
     private final AdminSession session;
     private final WireMockBackend backend;
+    private final String csBaseUrl;
+    private final AdminSession csSession;
 
-    /** @param backendAdminUrl the backend's admin API, or {@code null} when the scenario makes no backend change */
-    AdminApiGateway(String baseUrl, AdminSession session, String backendAdminUrl) {
+    /**
+     * @param backendAdminUrl the backend's admin API, or {@code null} when the scenario makes no backend change
+     * @param csBaseUrl       the Central Server admin UI, where global groups are kept
+     * @param csSession       the logged-in Central Server admin session
+     */
+    AdminApiGateway(String baseUrl, AdminSession session, String backendAdminUrl, String csBaseUrl,
+                    AdminSession csSession) {
         this.baseUrl = baseUrl;
         this.session = session;
         this.backend = backendAdminUrl == null ? null : new WireMockBackend(backendAdminUrl);
+        this.csBaseUrl = csBaseUrl;
+        this.csSession = csSession;
     }
 
     @Override
@@ -152,6 +168,44 @@ final class AdminApiGateway implements AdminGateway {
     @Override
     public int deleteLocalGroup(String groupId) {
         return AdminApi.requestLocalGroupDeletion(baseUrl, session, groupId);
+    }
+
+    @Override
+    public void createGlobalGroup(String code) {
+        CentralServerApi.createGlobalGroup(csBaseUrl, csSession, code);
+    }
+
+    @Override
+    public void addGlobalGroupMember(String code, String memberId) {
+        CentralServerApi.addGlobalGroupMember(csBaseUrl, csSession, code, memberId);
+    }
+
+    @Override
+    public void removeGlobalGroupMember(String code, String memberId) {
+        CentralServerApi.removeGlobalGroupMember(csBaseUrl, csSession, code, memberId);
+    }
+
+    @Override
+    public int deleteGlobalGroup(String code) {
+        return CentralServerApi.requestGlobalGroupDeletion(csBaseUrl, csSession, code);
+    }
+
+    @Override
+    public void grantGlobalGroupAccess(String providerClientId, String groupId, String serviceCode) {
+        awaitGroupKnown(() -> AdminApi.grantConsumerAccessRights(baseUrl, session, providerClientId, groupId,
+                serviceCode));
+    }
+
+    @Override
+    public void grantGlobalGroupEndpointAccess(String endpointId, String groupId) {
+        awaitGroupKnown(() -> AdminApi.grantEndpointAccess(baseUrl, session, endpointId, groupId));
+    }
+
+    private static void awaitGroupKnown(Runnable grant) {
+        await("the Security Server learns the global group through global configuration")
+                .atMost(WaitClass.GLOBALCONF.timeout())
+                .pollInterval(GLOBALCONF_POLL_INTERVAL)
+                .untilAsserted(grant::run);
     }
 
     private WireMockBackend backend() {

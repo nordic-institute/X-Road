@@ -26,8 +26,10 @@
 
 package org.niis.xroad.e2e.parity;
 
+import org.niis.xroad.e2e.parity.Scenario.AddGlobalGroupMember;
 import org.niis.xroad.e2e.parity.Scenario.Check;
 import org.niis.xroad.e2e.parity.Scenario.Delete;
+import org.niis.xroad.e2e.parity.Scenario.DeleteGlobalGroup;
 import org.niis.xroad.e2e.parity.Scenario.Deleted;
 import org.niis.xroad.e2e.parity.Scenario.DescriptionChange;
 import org.niis.xroad.e2e.parity.Scenario.Disable;
@@ -36,12 +38,14 @@ import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.GlobalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.Grant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.Phase;
 import org.niis.xroad.e2e.parity.Scenario.Refresh;
+import org.niis.xroad.e2e.parity.Scenario.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.Scenario.RenameService;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
@@ -73,6 +77,7 @@ public final class ScenarioCatalogue {
 
     private static final String V1 = "v1";
     private static final String GROUP = "partners";
+    private static final String GLOBAL_GROUP = "everyone";
     private static final List<String> CONSUMER_ONLY = List.of(CONSUMER);
 
     private static final List<Scenario> ALL = List.of(
@@ -286,6 +291,47 @@ public final class ScenarioCatalogue {
                     List.of(allowed("GET", "/a"),
                             new Check(new RestRequest(CONSUMER, 1, "GET", "/a"), Verdict.ACCESS_DENIED)),
                     WaitClass.ACL_CACHE),
+            new Scenario("V68", "Global group granted the base endpoint, consumer subsystem is a member",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP, CONSUMER_ONLY)),
+                    List.of(allowed("GET", "/a")), WaitClass.GLOBALCONF),
+            new Scenario("V69", "Global group with the member only, the member's subsystem calls",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP, List.of(MEMBER_OF_CONSUMER))),
+                    List.of(allowed(MEMBER_OF_CONSUMER, "GET", "/a"), denied("GET", "/a")), WaitClass.GLOBALCONF),
+            new Scenario("V70", "Global group with the member only, request sent as that member",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP, List.of(MEMBER_OF_CONSUMER))),
+                    List.of(allowed(MEMBER_OF_CONSUMER, "GET", "/a")), WaitClass.GLOBALCONF),
+            new Scenario("V71", "Global group with a member and a subsystem, a sibling subsystem calls",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP, List.of(MEMBER_OF_CONSUMER, CONSUMER))),
+                    List.of(allowed("GET", "/a"), allowed(MEMBER_OF_CONSUMER, "GET", "/a"),
+                            denied(SubsystemPool.SIBLING_OF_CONSUMER, "GET", "/a")), WaitClass.GLOBALCONF),
+            new Scenario("V72", "Group security-server-owners granted, an owner and a non-owner call",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(), List.of(),
+                            List.of(GlobalGroupSpec.SECURITY_SERVER_OWNERS)))),
+                    List.of(allowed(MEMBER_OF_CONSUMER, "GET", "/a"), denied(OTHER_CONSUMER, "GET", "/a")),
+                    WaitClass.GLOBALCONF),
+            new Scenario("V73", "Empty global group granted the base endpoint",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP)),
+                    List.of(denied("GET", "/a")), WaitClass.GLOBALCONF),
+            new Scenario("V74", "Global group deleted at the Central Server after the grant",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP, CONSUMER_ONLY)),
+                    List.of(allowed("GET", "/a")),
+                    List.of(new Phase(List.of(new DeleteGlobalGroup(GLOBAL_GROUP)), List.of(denied("GET", "/a")))),
+                    WaitClass.GLOBALCONF),
+            new Scenario("V75", "Member added to and removed from a global group at the Central Server",
+                    globalGroupGranted(new GlobalGroupSpec(GLOBAL_GROUP)),
+                    List.of(denied("GET", "/a")),
+                    List.of(new Phase(List.of(new AddGlobalGroupMember(GLOBAL_GROUP, CONSUMER)),
+                                    List.of(allowed("GET", "/a"))),
+                            new Phase(List.of(new RemoveGlobalGroupMember(GLOBAL_GROUP, CONSUMER)),
+                                    List.of(denied("GET", "/a")))),
+                    WaitClass.GLOBALCONF),
+            new Scenario("V77", "Local group grant on GET /a plus global group grant on GET /b",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/a", List.of(), List.of(GROUP)),
+                            EndpointSpec.forGlobalGroups("GET", "/b", List.of(GLOBAL_GROUP))))),
+                            List.of(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)), List.of(),
+                            List.of(new GlobalGroupSpec(GLOBAL_GROUP, CONSUMER_ONLY))),
+                    List.of(allowed("GET", "/a"), allowed("GET", "/b")), WaitClass.GLOBALCONF),
             new Scenario("V120", "Granted service disabled with a notice",
                     changed(new Disable(0, DISABLED_NOTICE)),
                     List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.SERVICE_DISABLED,
@@ -385,6 +431,12 @@ public final class ScenarioCatalogue {
     private static FixtureSpec groupGranted(LocalGroupSpec... groups) {
         return new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(), List.of(GROUP))),
                 List.of(groups));
+    }
+
+    /** A REST service whose base endpoint is granted to the fixture's global group, with the groups created. */
+    private static FixtureSpec globalGroupGranted(GlobalGroupSpec... groups) {
+        return new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(), List.of(),
+                List.of(GLOBAL_GROUP))), List.of(), List.of(), List.of(groups));
     }
 
     private static FixtureSpec wsdl(WsdlShape shape, String codeTail, List<List<String>> grantedByCode) {

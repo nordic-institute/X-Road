@@ -181,6 +181,37 @@ class FixtureExecutorTest {
             calls.add("delete group " + groupId);
             return deleteStatus.getOrDefault(groupId, 204);
         }
+
+        @Override
+        public void createGlobalGroup(String code) {
+            calls.add("create global group " + code);
+        }
+
+        @Override
+        public void addGlobalGroupMember(String code, String memberId) {
+            calls.add("add %s to global group %s".formatted(memberId, code));
+        }
+
+        @Override
+        public void removeGlobalGroupMember(String code, String memberId) {
+            calls.add("remove %s from global group %s".formatted(memberId, code));
+        }
+
+        @Override
+        public int deleteGlobalGroup(String code) {
+            calls.add("delete global group " + code);
+            return deleteStatus.getOrDefault("global-" + code, 204);
+        }
+
+        @Override
+        public void grantGlobalGroupAccess(String providerClientId, String groupId, String serviceCode) {
+            calls.add("grant %s to global group %s".formatted(serviceCode, groupId));
+        }
+
+        @Override
+        public void grantGlobalGroupEndpointAccess(String endpointId, String groupId) {
+            calls.add("grant endpoint %s to global group %s".formatted(endpointId, groupId));
+        }
     }
 
     private final FixturePlan plan = new FixturePlanner("t1").plan("V09", TWO_SERVICES);
@@ -622,6 +653,61 @@ class FixtureExecutorTest {
         assertThatThrownBy(() -> executor.open(deletePlan))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("pt1-v125 answered 500");
+    }
+
+    @Test
+    void globalGroupIsCreatedBeforeItsGrantAndDeletedInCleanup() {
+        var gateway = new RecordingGateway();
+        var globalPlan = new FixturePlanner("t1").plan(scenario("V68"));
+
+        try (var ignored = new FixtureExecutor(gateway).open(globalPlan)) {
+            assertThat(gateway.calls).containsSubsequence(
+                    "create global group pt1-v68-everyone",
+                    "add %s to global group pt1-v68-everyone".formatted(ScenarioCatalogue.CONSUMER),
+                    "grant pt1-v68 to global group DEV:pt1-v68-everyone");
+        }
+
+        assertThat(gateway.calls).endsWith("delete global group pt1-v68-everyone");
+    }
+
+    @Test
+    void groupDeletedByAPhaseIsNotDeletedAgainInCleanup() {
+        var gateway = new RecordingGateway();
+        var globalPlan = new FixturePlanner("t1").plan(scenario("V74"));
+
+        try (var fixture = new FixtureExecutor(gateway).open(globalPlan)) {
+            fixture.apply(globalPlan.phases().get(0));
+        }
+
+        assertThat(gateway.calls).filteredOn("delete global group pt1-v74-everyone"::equals).hasSize(1);
+    }
+
+    @Test
+    void ownersGroupIsGrantedButNeverCreatedOrDeleted() {
+        var gateway = new RecordingGateway();
+        var ownersPlan = new FixturePlanner("t1").plan(scenario("V72"));
+
+        try (var ignored = new FixtureExecutor(gateway).open(ownersPlan)) {
+            assertThat(gateway.calls).contains("grant pt1-v72 to global group DEV:security-server-owners");
+        }
+
+        assertThat(gateway.calls).noneMatch(call -> call.contains("create global group")
+                || call.contains("delete global group"));
+    }
+
+    @Test
+    void missingGlobalGroupIsToleratedInCleanupAndOtherFailuresAreReported() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of("global-pt1-v68-everyone", 404);
+        var globalPlan = new FixturePlanner("t1").plan(scenario("V68"));
+        assertThatCode(() -> new FixtureExecutor(gateway).open(globalPlan).close()).doesNotThrowAnyException();
+
+        gateway.deleteStatus = Map.of("global-pt1-v68-everyone", 500);
+        var fixture = new FixtureExecutor(gateway).open(globalPlan);
+        assertThatThrownBy(fixture::close)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("global group pt1-v68-everyone")
+                .hasMessageContaining("500");
     }
 
     private static Scenario scenario(String id) {

@@ -535,6 +535,49 @@ class FixturePlannerTest {
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not a PAIR WSDL service");
     }
 
+    @Test
+    void globalGroupIsNamespacedCreatedInSetupAndDeletedLastInCleanup() {
+        var plan = new FixturePlanner("ab12").plan(scenario("V68"));
+
+        assertThat(plan.setup()).contains(new AdminCall.CreateGlobalGroup("pab12-v68-everyone"),
+                new AdminCall.AddGlobalGroupMember("pab12-v68-everyone", ScenarioCatalogue.CONSUMER),
+                new AdminCall.GrantGlobalGroupAccess(ScenarioCatalogue.PROVIDER, "pab12-v68-everyone", "pab12-v68"));
+        assertThat(plan.cleanup()).last().isEqualTo(new AdminCall.DeleteGlobalGroup("pab12-v68-everyone"));
+    }
+
+    @Test
+    void ownersGroupKeepsItsCodeAndIsNeverCreatedOrDeleted() {
+        var plan = new FixturePlanner("ab12").plan(scenario("V72"));
+
+        assertThat(plan.setup()).contains(new AdminCall.GrantGlobalGroupAccess(ScenarioCatalogue.PROVIDER,
+                "security-server-owners", "pab12-v72"));
+        assertThat(plan.setup()).noneMatch(AdminCall.CreateGlobalGroup.class::isInstance);
+        assertThat(plan.cleanup()).noneMatch(AdminCall.DeleteGlobalGroup.class::isInstance);
+    }
+
+    @Test
+    void ownersGroupCannotBeDeclaredAndAnUndeclaredGroupCannotBeGranted() {
+        var owners = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of())), List.of(),
+                List.of(), List.of(new Scenario.GlobalGroupSpec("security-server-owners")));
+        var undeclared = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new RestService(List.of(), List.of(), List.of(), List.of("nobody"))));
+
+        assertThatThrownBy(() -> new FixturePlanner("ab12").plan("V1", owners))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("never created");
+        assertThatThrownBy(() -> new FixturePlanner("ab12").plan("V1", undeclared))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not created");
+    }
+
+    @Test
+    void globalGroupPhaseChangesUseTheNamespacedCode() {
+        var plan = new FixturePlanner("ab12").plan(scenario("V75"));
+
+        assertThat(plan.phases().get(0)).containsExactly(
+                new AdminCall.AddGlobalGroupMember("pab12-v75-everyone", ScenarioCatalogue.CONSUMER));
+        assertThat(plan.phases().get(1)).containsExactly(
+                new AdminCall.RemoveGlobalGroupMember("pab12-v75-everyone", ScenarioCatalogue.CONSUMER));
+    }
+
     private static Scenario withPhase(FixtureSpec fixture, Scenario.PhaseChange change) {
         return new Scenario("VX", "test row", fixture, List.of(), List.of(new Scenario.Phase(List.of(change),
                 List.of())), Scenario.WaitClass.ACL_CACHE);

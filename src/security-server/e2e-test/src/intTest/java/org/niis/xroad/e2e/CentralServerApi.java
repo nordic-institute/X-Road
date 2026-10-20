@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.authed;
 
 /**
- * Central Server admin REST API access: approval of pending client registration requests.
+ * Central Server admin REST API access: approval of pending client registration requests and global groups.
  */
 @UtilityClass
 class CentralServerApi {
@@ -44,6 +44,8 @@ class CentralServerApi {
     static final String CS_ENV = "aux";
 
     private static final int HTTP_OK = 200;
+    private static final int HTTP_CREATED = 201;
+    private static final int HTTP_NO_CONTENT = 204;
     private static final int HTTP_CONFLICT = 409;
     private static final String CLIENT_REGISTRATION_REQUEST = "CLIENT_REGISTRATION_REQUEST";
 
@@ -83,5 +85,51 @@ class CentralServerApi {
         assertThat(approval.getStatusCode())
                 .as("approve client registration request %s (409 if a prior tick already approved it)", requestId)
                 .isIn(HTTP_OK, HTTP_CONFLICT);
+    }
+
+    /** Creates the global group. */
+    static void createGlobalGroup(String csBaseUrl, AdminSession cs, String code) {
+        var body = """
+                {
+                  "code": "%s",
+                  "description": "acl parity"
+                }
+                """.formatted(code);
+        var response = authed(cs)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(csBaseUrl + "/api/v1/global-groups");
+        assertThat(response.getStatusCode())
+                .as("create global group %s: %s", code, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+    }
+
+    /** Adds the member or subsystem to the global group. */
+    static void addGlobalGroupMember(String csBaseUrl, AdminSession cs, String code, String memberId) {
+        var body = """
+                {
+                  "items": [ "%s" ]
+                }
+                """.formatted(memberId);
+        var response = authed(cs)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(csBaseUrl + "/api/v1/global-groups/" + code + "/members/add");
+        assertThat(response.getStatusCode())
+                .as("add %s to global group %s: %s", memberId, code, response.getBody().asString())
+                .isEqualTo(HTTP_CREATED);
+    }
+
+    /** Removes the member or subsystem from the global group. */
+    static void removeGlobalGroupMember(String csBaseUrl, AdminSession cs, String code, String memberId) {
+        var response = authed(cs).delete(csBaseUrl + "/api/v1/global-groups/" + code + "/members/" + memberId);
+        assertThat(response.getStatusCode())
+                .as("remove %s from global group %s: %s", memberId, code, response.getBody().asString())
+                .isEqualTo(HTTP_NO_CONTENT);
+    }
+
+    /** Deletes the global group and returns the HTTP status of the call without asserting it. */
+    static int requestGlobalGroupDeletion(String csBaseUrl, AdminSession cs, String code) {
+        return authed(cs).delete(csBaseUrl + "/api/v1/global-groups/" + code).getStatusCode();
     }
 }
