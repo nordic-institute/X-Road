@@ -39,6 +39,7 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -58,6 +59,9 @@ class ScenarioCatalogueTest {
                         tuple("V02", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V03", List.of(Verdict.ALLOWED)),
                         tuple("V04", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V10", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED)),
+                        tuple("V11", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED,
+                                Verdict.ACCESS_DENIED)),
                         tuple("V20", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V21", List.of(Verdict.ALLOWED)),
                         tuple("V22", List.of(Verdict.ALLOWED)),
@@ -79,6 +83,7 @@ class ScenarioCatalogueTest {
                         tuple("V36", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V37", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V38", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V39", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V40", List.of(Verdict.ALLOWED)),
                         tuple("V41", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V42", List.of(Verdict.ALLOWED)),
@@ -445,8 +450,38 @@ class ScenarioCatalogueTest {
                 .map(EndpointSpec::path).toList();
     }
 
+    @Test
+    void onlyTheFlipRowsHavePhasesAndEachPhaseMakesItsOwnChange() {
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> !row.phases().isEmpty()).extracting(Scenario::id)
+                .containsExactly("V10", "V11", "V39");
+        assertThat(scenario("V10").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.Grant(0, ScenarioCatalogue.CONSUMER)));
+        assertThat(scenario("V11").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.Revoke(0, ScenarioCatalogue.CONSUMER)));
+        assertThat(scenario("V39").phases()).extracting(Scenario.Phase::changes)
+                .containsExactly(List.of(new Scenario.SwapOpenApiSpec(0, OpenApiSpec.STATUS_ONLY),
+                        new Scenario.Refresh(0)));
+    }
+
+    @Test
+    void flipRowsCheckBothSidesOfTheFlip() {
+        assertThat(scenario("V10").checks()).extracting(Scenario.Check::expected)
+                .containsExactly(Verdict.ACCESS_DENIED);
+        assertThat(scenario("V10").phases().get(0).checks()).extracting(Scenario.Check::expected)
+                .containsExactly(Verdict.ALLOWED);
+        assertThat(scenario("V11").checks()).extracting(Scenario.Check::expected)
+                .containsOnly(Verdict.ALLOWED);
+        assertThat(scenario("V11").phases().get(0).checks()).extracting(Scenario.Check::expected)
+                .containsOnly(Verdict.ACCESS_DENIED);
+    }
+
     private static List<Verdict> expectedVerdicts(Scenario scenario) {
-        return scenario.checks().stream().map(Scenario.Check::expected).toList();
+        return allChecks(scenario).map(Scenario.Check::expected).toList();
+    }
+
+    private static Stream<Scenario.Check> allChecks(Scenario scenario) {
+        return Stream.concat(scenario.checks().stream(),
+                scenario.phases().stream().flatMap(phase -> phase.checks().stream()));
     }
 
     private static Scenario scenario(String id) {

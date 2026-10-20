@@ -26,6 +26,7 @@
 package org.niis.xroad.e2e;
 
 import org.niis.xroad.e2e.AdminApi.AdminSession;
+import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.AdminGateway;
 
 /** The provider Security Server's admin API, reached through {@link AdminApi}. */
@@ -33,10 +34,13 @@ final class AdminApiGateway implements AdminGateway {
 
     private final String baseUrl;
     private final AdminSession session;
+    private final WireMockBackend backend;
 
-    AdminApiGateway(String baseUrl, AdminSession session) {
+    /** @param backendAdminUrl the backend's admin API, or {@code null} when the scenario makes no backend change */
+    AdminApiGateway(String baseUrl, AdminSession session, String backendAdminUrl) {
         this.baseUrl = baseUrl;
         this.session = session;
+        this.backend = backendAdminUrl == null ? null : new WireMockBackend(backendAdminUrl);
     }
 
     @Override
@@ -78,6 +82,26 @@ final class AdminApiGateway implements AdminGateway {
     @Override
     public void grantAccess(String providerClientId, String consumerClientId, String serviceCode) {
         AdminApi.grantConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
+    }
+
+    @Override
+    public void revokeAccess(String providerClientId, String consumerClientId, String serviceCode) {
+        AdminApi.revokeConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
+    }
+
+    @Override
+    public void refreshDescription(String descriptionId) {
+        AdminApi.refreshServiceDescription(baseUrl, session, descriptionId);
+    }
+
+    @Override
+    public String overrideBackendStub(OverrideBackendStub override) {
+        return backend().override(override);
+    }
+
+    @Override
+    public int removeBackendStub(String overrideId) {
+        return backend().remove(overrideId);
     }
 
     @Override
@@ -128,5 +152,12 @@ final class AdminApiGateway implements AdminGateway {
     @Override
     public int deleteLocalGroup(String groupId) {
         return AdminApi.requestLocalGroupDeletion(baseUrl, session, groupId);
+    }
+
+    private WireMockBackend backend() {
+        if (backend == null) {
+            throw new IllegalStateException("the backend admin API is not exposed");
+        }
+        return backend;
     }
 }

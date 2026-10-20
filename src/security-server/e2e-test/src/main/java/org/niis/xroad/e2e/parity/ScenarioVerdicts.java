@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /** Polls every request of a scenario and reports each request that missed its expected verdict. */
@@ -53,12 +54,38 @@ public final class ScenarioVerdicts {
     /** Polls each request of the scenario in turn; a request that misses its verdict does not stop the next. */
     public static List<Outcome> poll(VerdictPoller poller, Scenario scenario,
                                      Function<RequestSpec, Observation> probe, Duration timeout, Duration interval) {
+        return poll(poller, scenario.checks(), probe, timeout, interval);
+    }
+
+    /** Polls each of the checks in turn; a request that misses its verdict does not stop the next. */
+    public static List<Outcome> poll(VerdictPoller poller, List<Check> checks,
+                                     Function<RequestSpec, Observation> probe, Duration timeout, Duration interval) {
         var outcomes = new ArrayList<Outcome>();
-        for (var check : scenario.checks()) {
+        for (var check : checks) {
             var result = poller.await(() -> probe.apply(check.request()), check.expected(), timeout, interval);
             outcomes.add(new Outcome(check, result));
         }
         return outcomes;
+    }
+
+    /**
+     * Polls the scenario's checks, then for each phase applies the phase's planned calls and polls the phase's
+     * checks, each with the full timeout so the changes can outlast the provider's caches. Stops at the first
+     * check that misses its verdict, so the later phase changes are not applied.
+     */
+    public static List<Outcome> pollPhased(VerdictPoller poller, Scenario scenario, FixturePlan plan,
+                                           Consumer<List<AdminCall>> apply, Function<RequestSpec, Observation> probe,
+                                           Duration timeout, Duration interval) {
+        var outcomes = new ArrayList<>(poll(poller, scenario, probe, timeout, interval));
+        for (var index = 0; index < scenario.phases().size() && allMatched(outcomes); index++) {
+            apply.accept(plan.phases().get(index));
+            outcomes.addAll(poll(poller, scenario.phases().get(index).checks(), probe, timeout, interval));
+        }
+        return outcomes;
+    }
+
+    private static boolean allMatched(List<Outcome> outcomes) {
+        return outcomes.stream().allMatch(outcome -> outcome.result().matched());
     }
 
     /**

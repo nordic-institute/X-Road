@@ -111,6 +111,28 @@ class FixtureExecutorTest {
         }
 
         @Override
+        public void revokeAccess(String providerClientId, String consumerClientId, String serviceCode) {
+            calls.add("revoke " + serviceCode + " from " + consumerClientId);
+        }
+
+        @Override
+        public void refreshDescription(String descriptionId) {
+            calls.add("refresh " + descriptionId);
+        }
+
+        @Override
+        public String overrideBackendStub(AdminCall.OverrideBackendStub override) {
+            calls.add("override %s at %s".formatted(override.stubName(), override.urlPath()));
+            return "stub-" + override.stubName();
+        }
+
+        @Override
+        public int removeBackendStub(String overrideId) {
+            calls.add("remove " + overrideId);
+            return deleteStatus.getOrDefault(overrideId, 200);
+        }
+
+        @Override
         public String addEndpoint(String descriptionId, String serviceCode, String method, String path) {
             calls.add("add endpoint %s %s on %s".formatted(method, path, descriptionId));
             return "ep-%s-%s".formatted(method, path.replace('/', '_'));
@@ -202,6 +224,50 @@ class FixtureExecutorTest {
                 .hasMessageContaining("pt1-v09-2")
                 .hasMessageContaining("500");
         assertThat(gateway.calls).contains("delete id-pt1-v09");
+    }
+
+    @Test
+    void phaseCallsRunOnDemandAndBackendOverridesAreRemovedBeforeTheDescriptionDeletes() {
+        var gateway = new RecordingGateway();
+        var swapPlan = new FixturePlanner("t1").plan(scenario("V39"));
+
+        try (var fixture = new FixtureExecutor(gateway).open(swapPlan)) {
+            gateway.calls.clear();
+            fixture.apply(swapPlan.phases().get(0));
+            assertThat(gateway.calls).containsExactly(
+                    "override acl_parity_openapi_status_only at /acl-parity/openapi/pets.yaml",
+                    "refresh id-pt1-v39");
+            gateway.calls.clear();
+        }
+
+        assertThat(gateway.calls).containsExactly("remove stub-acl_parity_openapi_status_only", "delete id-pt1-v39");
+    }
+
+    @Test
+    void revokeIsSentToTheGateway() {
+        var gateway = new RecordingGateway();
+        var revokePlan = new FixturePlanner("t1").plan(scenario("V11"));
+
+        try (var fixture = new FixtureExecutor(gateway).open(revokePlan)) {
+            fixture.apply(revokePlan.phases().get(0));
+            assertThat(gateway.calls).contains("revoke pt1-v11 from " + ScenarioCatalogue.CONSUMER);
+        }
+    }
+
+    @Test
+    void missingBackendOverrideIsToleratedAndARefusedRemovalIsReported() {
+        var gateway = new RecordingGateway();
+        var swapPlan = new FixturePlanner("t1").plan(scenario("V39"));
+        gateway.deleteStatus = Map.of("stub-acl_parity_openapi_status_only", 404);
+        var fixture = new FixtureExecutor(gateway).open(swapPlan);
+        fixture.apply(swapPlan.phases().get(0));
+        assertThatCode(fixture::close).doesNotThrowAnyException();
+
+        gateway.deleteStatus = Map.of("stub-acl_parity_openapi_status_only", 500);
+        var refused = new FixtureExecutor(gateway).open(swapPlan);
+        refused.apply(swapPlan.phases().get(0));
+        assertThatThrownBy(refused::close).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("backend override").hasMessageContaining("500");
     }
 
     @Test
@@ -556,5 +622,9 @@ class FixtureExecutorTest {
         assertThatThrownBy(() -> executor.open(deletePlan))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("pt1-v125 answered 500");
+    }
+
+    private static Scenario scenario(String id) {
+        return ScenarioCatalogue.all().stream().filter(row -> row.id().equals(id)).findFirst().orElseThrow();
     }
 }

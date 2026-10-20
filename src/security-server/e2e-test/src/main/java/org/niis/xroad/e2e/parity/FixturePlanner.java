@@ -41,8 +41,12 @@ import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
+import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
+import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
 import org.niis.xroad.e2e.parity.Scenario.Delete;
@@ -54,13 +58,19 @@ import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
+import org.niis.xroad.e2e.parity.Scenario.Grant;
 import org.niis.xroad.e2e.parity.Scenario.Kept;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
+import org.niis.xroad.e2e.parity.Scenario.Phase;
+import org.niis.xroad.e2e.parity.Scenario.Refresh;
 import org.niis.xroad.e2e.parity.Scenario.RenameService;
+import org.niis.xroad.e2e.parity.Scenario.ReplaceWsdlSecondService;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
+import org.niis.xroad.e2e.parity.Scenario.Revoke;
 import org.niis.xroad.e2e.parity.Scenario.ServiceSpec;
+import org.niis.xroad.e2e.parity.Scenario.SwapOpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.UndefinedService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
@@ -68,6 +78,7 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Turns a scenario's fixture spec into admin calls. Every service code carries the run token and the
@@ -87,6 +98,10 @@ public final class FixturePlanner {
     public static final String BACKEND_PATH_PREFIX = "/acl-parity/";
     private static final String OPENAPI_PATH_PREFIX = BACKEND_PATH_PREFIX + "openapi/";
     private static final String RENAMED_SUFFIX = "-renamed";
+    private static final String NEW_SUFFIX = "-new";
+    private static final String OPENAPI_STUB_PREFIX = "acl_parity_openapi_";
+    private static final String WSDL_STUB_PREFIX = "acl_parity_wsdl_";
+    private static final String SECOND_CODE_PLACEHOLDER = "{{request.query.code2}}";
 
     private final String runToken;
 
@@ -94,7 +109,15 @@ public final class FixturePlanner {
         this.runToken = runToken.toLowerCase(Locale.ROOT);
     }
 
+    public FixturePlan plan(Scenario scenario) {
+        return plan(scenario.id(), scenario.fixture(), scenario.phases());
+    }
+
     public FixturePlan plan(String scenarioId, FixtureSpec spec) {
+        return plan(scenarioId, spec, List.of());
+    }
+
+    private FixturePlan plan(String scenarioId, FixtureSpec spec, List<Phase> phases) {
         var codes = new ArrayList<String>();
         var descriptionKeys = new ArrayList<String>();
         var serviceKeys = new ArrayList<String>();
@@ -150,7 +173,11 @@ public final class FixturePlanner {
         }
         descriptionChanges(setup, codes, services, serviceKeys, spec.changes());
         groupFollowUps(setup, scenarioId, spec.groups());
+        var phaseCalls = phaseCalls(scenarioId, spec, codes, serviceKeys, phases);
         var cleanup = new ArrayList<AdminCall>();
+        if (phaseCalls.stream().flatMap(List::stream).anyMatch(OverrideBackendStub.class::isInstance)) {
+            cleanup.add(new RemoveBackendStubs());
+        }
         for (var index = descriptionKeys.size() - 1; index >= 0; index--) {
             cleanup.addAll(endpointDeletes.get(index).reversed());
             cleanup.add(new DeleteDescription(descriptionKeys.get(index)));
@@ -160,7 +187,7 @@ public final class FixturePlanner {
                 cleanup.add(new DeleteLocalGroup(group.ownerClientId(), groupCode(scenarioId, group.code())));
             }
         }
-        return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(cleanup));
+        return new FixturePlan(List.copyOf(codes), List.copyOf(setup), List.copyOf(phaseCalls), List.copyOf(cleanup));
     }
 
     private List<AdminCall> endpoints(List<AdminCall> setup, String scenarioId, FixtureSpec spec,
@@ -213,6 +240,65 @@ public final class FixturePlanner {
                 }
             }
         }
+    }
+
+    private List<List<AdminCall>> phaseCalls(String scenarioId, FixtureSpec spec, List<String> codes,
+                                             List<String> serviceKeys, List<Phase> phases) {
+        var result = new ArrayList<List<AdminCall>>();
+        for (var phase : phases) {
+            var calls = new ArrayList<AdminCall>();
+            for (var change : phase.changes()) {
+                switch (change) {
+                    case Grant grant -> calls.add(new GrantAccess(spec.providerClientId(), grant.consumerId(),
+                            codes.get(grant.serviceIndex())));
+                    case Revoke revoke -> calls.add(new RevokeAccess(spec.providerClientId(), revoke.consumerId(),
+                            codes.get(revoke.serviceIndex())));
+                    case Refresh refresh ->
+                            calls.add(new RefreshDescription(descriptionKey(serviceKeys, refresh.serviceIndex())));
+                    case SwapOpenApiSpec swap -> calls.add(swapOpenApi(spec, serviceKeys, swap));
+                    case ReplaceWsdlSecondService replace ->
+                            calls.add(replaceWsdlSecondService(scenarioId, spec, codes, replace));
+                }
+            }
+            result.add(List.copyOf(calls));
+        }
+        return result;
+    }
+
+    private static AdminCall swapOpenApi(FixtureSpec spec, List<String> serviceKeys, SwapOpenApiSpec swap) {
+        if (!(spec.services().get(swap.serviceIndex()) instanceof OpenApiService openApi)) {
+            throw new IllegalArgumentException("service %d is not an OpenAPI service".formatted(swap.serviceIndex()));
+        }
+        var served = openApi.editedToSpec() != null ? openApi.editedToSpec() : openApi.spec();
+        return new OverrideBackendStub(OPENAPI_STUB_PREFIX + specName(swap.to()), openApiPath(served),
+                Map.of("code", descriptionKey(serviceKeys, swap.serviceIndex())), Map.of());
+    }
+
+    private AdminCall replaceWsdlSecondService(String scenarioId, FixtureSpec spec, List<String> codes,
+                                               ReplaceWsdlSecondService replace) {
+        if (!(spec.services().get(replace.serviceIndex()) instanceof WsdlService wsdl)
+                || wsdl.shape() != WsdlShape.PAIR) {
+            throw new IllegalArgumentException(
+                    "service %d is not a PAIR WSDL service".formatted(replace.serviceIndex()));
+        }
+        var base = serviceCode(scenarioId, replace.serviceIndex());
+        var served = wsdlCodes(base, wsdl);
+        codes.add(base + NEW_SUFFIX + wsdl.codeTail());
+        return new OverrideBackendStub(WSDL_STUB_PREFIX + specName(WsdlShape.PAIR), wsdlPath(WsdlShape.PAIR),
+                Map.of("code1", served.get(0), "code2", served.get(1)),
+                Map.of(SECOND_CODE_PLACEHOLDER, codes.getLast()));
+    }
+
+    private static String descriptionKey(List<String> serviceKeys, int serviceIndex) {
+        var key = serviceKeys.get(serviceIndex);
+        if (key == null) {
+            throw new IllegalArgumentException("service %d has no description".formatted(serviceIndex));
+        }
+        return key;
+    }
+
+    private static String specName(Enum<?> spec) {
+        return spec.name().toLowerCase(Locale.ROOT);
     }
 
     private void groupSetup(List<AdminCall> setup, String scenarioId, List<LocalGroupSpec> groups) {
@@ -293,15 +379,21 @@ public final class FixturePlanner {
     }
 
     static String openApiUrl(OpenApiSpec spec, String serviceCode) {
-        return "%s%s%s.yaml?code=%s".formatted(BACKEND_ORIGIN, OPENAPI_PATH_PREFIX,
-                spec.name().toLowerCase(Locale.ROOT), serviceCode);
+        return "%s%s?code=%s".formatted(BACKEND_ORIGIN, openApiPath(spec), serviceCode);
+    }
+
+    static String openApiPath(OpenApiSpec spec) {
+        return "%s%s.yaml".formatted(OPENAPI_PATH_PREFIX, specName(spec));
+    }
+
+    static String wsdlPath(WsdlShape shape) {
+        return "%swsdl/%s.wsdl".formatted(BACKEND_PATH_PREFIX, specName(shape));
     }
 
     static String wsdlUrl(WsdlShape shape, List<String> codes) {
         var query = shape == WsdlShape.PAIR
                 ? "code1=%s&code2=%s".formatted(codes.get(0), codes.get(1))
                 : "code=" + codes.get(0);
-        return "%s%swsdl/%s.wsdl?%s".formatted(BACKEND_ORIGIN, BACKEND_PATH_PREFIX,
-                shape.name().toLowerCase(Locale.ROOT), query);
+        return "%s%s?%s".formatted(BACKEND_ORIGIN, wsdlPath(shape), query);
     }
 }

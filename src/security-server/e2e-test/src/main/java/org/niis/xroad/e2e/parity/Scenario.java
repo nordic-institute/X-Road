@@ -36,22 +36,90 @@ import java.util.List;
  * @param description  a short human-readable summary of the row
  * @param fixture      what to create on the provider before the requests
  * @param checks       the requests to send from the consumer Security Server, each with its expected verdict
+ * @param phases       the changes made after the checks, each followed by the checks it leads to; empty for a row
+ *                     whose verdicts do not change over time
  * @param waitClass    which propagation delay the verdicts have to wait out
  * @param knownDefect  the id of the unfixed finding the row hits, or {@code null} for none; the row then asserts
  *                     the safe verdict and is an expected failure until the finding is fixed
  */
 public record Scenario(String id, String description, FixtureSpec fixture, List<Check> checks,
-                       WaitClass waitClass, String knownDefect) {
+                       WaitClass waitClass, String knownDefect, List<Phase> phases) {
 
     /** A row without a known defect. */
     public Scenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass) {
-        this(id, description, fixture, checks, waitClass, null);
+        this(id, description, fixture, checks, waitClass, null, List.of());
+    }
+
+    /** A row with a known defect. */
+    public Scenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass,
+                    String knownDefect) {
+        this(id, description, fixture, checks, waitClass, knownDefect, List.of());
     }
 
     /** A row with a single request. */
     public Scenario(String id, String description, FixtureSpec fixture, RequestSpec request, Verdict expected,
                     WaitClass waitClass) {
-        this(id, description, fixture, List.of(new Check(request, expected)), waitClass, null);
+        this(id, description, fixture, List.of(new Check(request, expected)), waitClass, null, List.of());
+    }
+
+    /** A row whose verdicts change over time. */
+    public Scenario(String id, String description, FixtureSpec fixture, List<Check> checks, List<Phase> phases,
+                    WaitClass waitClass) {
+        this(id, description, fixture, checks, waitClass, null, phases);
+    }
+
+    /**
+     * Changes made while the fixture is in place, and the checks that follow them.
+     *
+     * @param changes the changes, applied in order
+     * @param checks  the requests sent after the changes, each with its expected verdict
+     */
+    public record Phase(List<PhaseChange> changes, List<Check> checks) {
+    }
+
+    /** A change made between two phases. */
+    public sealed interface PhaseChange permits Grant, Revoke, SwapOpenApiSpec, ReplaceWsdlSecondService, Refresh {
+    }
+
+    /**
+     * The consumer is granted the base access to a service code.
+     *
+     * @param serviceIndex the position of the service code among all service codes the fixture creates
+     */
+    public record Grant(int serviceIndex, String consumerId) implements PhaseChange {
+    }
+
+    /**
+     * The consumer's access to a service code is revoked, with its endpoint grants of that service.
+     *
+     * @param serviceIndex the position of the service code among all service codes the fixture creates
+     */
+    public record Revoke(int serviceIndex, String consumerId) implements PhaseChange {
+    }
+
+    /**
+     * The backend starts serving another OpenAPI description at the URL the service description was added from.
+     *
+     * @param serviceIndex the position of the OpenAPI service among the fixture's services
+     */
+    public record SwapOpenApiSpec(int serviceIndex, OpenApiSpec to) implements PhaseChange {
+    }
+
+    /**
+     * The backend starts serving a WSDL whose second service code is another one, which is added after the
+     * codes the fixture has so far.
+     *
+     * @param serviceIndex the position of the {@link WsdlShape#PAIR} service among the fixture's services
+     */
+    public record ReplaceWsdlSecondService(int serviceIndex) implements PhaseChange {
+    }
+
+    /**
+     * The service description is refreshed from the backend.
+     *
+     * @param serviceIndex the position of the service among the fixture's services
+     */
+    public record Refresh(int serviceIndex) implements PhaseChange {
     }
 
     /**

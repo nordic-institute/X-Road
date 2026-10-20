@@ -26,6 +26,8 @@
 
 package org.niis.xroad.e2e.parity;
 
+import java.util.Map;
+
 /**
  * One Security Server admin API call on the provider. A call about a service names it by service code and a
  * call about a local group names it by owner and group code; the executor resolves both to ids.
@@ -66,6 +68,31 @@ public sealed interface AdminCall {
     }
 
     record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
+    }
+
+    /** Revokes the consumer's access to the service, with its endpoint grants of that service. */
+    record RevokeAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
+    }
+
+    /** Refreshes the service description from its backend, ignoring warnings. */
+    record RefreshDescription(String serviceCode) implements ServiceCall {
+    }
+
+    /**
+     * Makes the backend serve the named stub in place of the stub it normally serves at the path, for the requests
+     * whose query carries the given values. The override is removed by {@link RemoveBackendStubs}.
+     *
+     * @param stubName     the stub whose response is served, without the {@code .json} suffix
+     * @param urlPath      the path the response is served at
+     * @param query        query parameters the request has to carry, by name
+     * @param replacements text to replace in the served body, by the text it replaces
+     */
+    record OverrideBackendStub(String stubName, String urlPath, Map<String, String> query,
+                               Map<String, String> replacements) implements AdminCall {
+    }
+
+    /** Removes every backend override made by {@link OverrideBackendStub}, in cleanup. */
+    record RemoveBackendStubs() implements AdminCall {
     }
 
     record AddEndpoint(String serviceCode, String method, String path) implements ServiceCall {

@@ -38,6 +38,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.e2e.container.AuxStackSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.e2e.parity.FixtureExecutor;
 import org.niis.xroad.e2e.parity.FixturePlan;
@@ -116,11 +117,11 @@ class AclParityTest extends E2eTest {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
 
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
-        var gateway = new AdminApiGateway(ss0BaseUrl, login(ss0BaseUrl));
-        var plan = new FixturePlanner(RUN_TOKEN).plan(scenario.id(), scenario.fixture());
+        var gateway = new AdminApiGateway(ss0BaseUrl, login(ss0BaseUrl), backendAdminUrl(env));
+        var plan = new FixturePlanner(RUN_TOKEN).plan(scenario);
 
         try (var fixture = new FixtureExecutor(gateway).open(plan)) {
-            var outcomes = ScenarioVerdicts.poll(new VerdictPoller(), scenario,
+            var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
                     request -> call(env, scenario, plan, request),
                     scenario.knownDefect() == null ? DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT
                             : Duration.ZERO,
@@ -133,6 +134,12 @@ class AclParityTest extends E2eTest {
             }
             report(scenario, outcomes, KnownDefectMarker.judge(scenario, outcomes));
         }
+    }
+
+    private static String backendAdminUrl(E2eEnvironment env) {
+        var mapping = env.getContainerMapping(CentralServerApi.CS_ENV, AuxStackSetup.ISREST,
+                AuxStackSetup.Port.ISREST);
+        return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
 
     private static String displayName(Scenario scenario) {

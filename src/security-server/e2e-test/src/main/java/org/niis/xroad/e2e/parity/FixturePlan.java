@@ -35,5 +35,11 @@ import java.util.List;
  * @param setup        calls in execution order
  * @param cleanup      calls in execution order: the reverse of the creation order
  */
-public record FixturePlan(List<String> serviceCodes, List<AdminCall> setup, List<AdminCall> cleanup) {
+public record FixturePlan(List<String> serviceCodes, List<AdminCall> setup, List<List<AdminCall>> phases,
+                          List<AdminCall> cleanup) {
+
+    /** A plan without phases. */
+    public FixturePlan(List<String> serviceCodes, List<AdminCall> setup, List<AdminCall> cleanup) {
+        this(serviceCodes, setup, List.of(), cleanup);
+    }
 }

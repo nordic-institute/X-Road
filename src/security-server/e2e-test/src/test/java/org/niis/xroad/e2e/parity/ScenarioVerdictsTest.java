@@ -118,6 +118,61 @@ class ScenarioVerdictsTest {
         assertThat(ScenarioVerdicts.failureMessage("V120", List.of(outcome))).isEmpty();
     }
 
+    @Test
+    void phasedRowPollsItsChecksThenAppliesTheChangeThenPollsTheChecksOfThePhase() {
+        var row = ScenarioCatalogue.all().stream().filter(scenario -> scenario.id().equals("V10")).findFirst()
+                .orElseThrow();
+        var plan = new FixturePlanner("t1").plan(row);
+        var events = new ArrayList<String>();
+        var granted = new boolean[1];
+
+        var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), row, plan, calls -> {
+            events.add("apply " + calls.size());
+            granted[0] = true;
+        }, request -> {
+            events.add("probe");
+            return observe(granted[0] ? Verdict.ALLOWED : Verdict.ACCESS_DENIED);
+        }, TIMEOUT, INTERVAL);
+
+        assertThat(events).containsExactly("probe", "apply 1", "probe");
+        assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, true);
+        assertThat(outcomes).extracting(outcome -> outcome.check().expected())
+                .containsExactly(Verdict.ACCESS_DENIED, Verdict.ALLOWED);
+    }
+
+    @Test
+    void phasedRowThatMissesItsVerdictBeforeTheChangeAppliesNoChange() {
+        var row = scenarioById("V10");
+        var plan = new FixturePlanner("t1").plan(row);
+        var applied = new ArrayList<Integer>();
+
+        var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), row, plan, calls -> applied.add(calls.size()),
+                request -> observe(Verdict.ALLOWED), TIMEOUT, INTERVAL);
+
+        assertThat(applied).isEmpty();
+        assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(false);
+    }
+
+    @Test
+    void phasedRowThatMissesItsVerdictInAPhaseAppliesNoLaterPhase() {
+        var base = scenarioById("V10");
+        var twoPhases = new Scenario("VX", "test row", base.fixture(), base.checks(),
+                List.of(base.phases().get(0), base.phases().get(0)), base.waitClass());
+        var plan = new FixturePlanner("t1").plan(twoPhases);
+        var applied = new ArrayList<Integer>();
+
+        var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), twoPhases, plan,
+                calls -> applied.add(calls.size()), request -> observe(Verdict.ACCESS_DENIED), TIMEOUT, INTERVAL);
+
+        assertThat(applied).hasSize(1);
+        assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, false);
+    }
+
+    private static Scenario scenarioById(String id) {
+        return ScenarioCatalogue.all().stream().filter(scenario -> scenario.id().equals(id)).findFirst()
+                .orElseThrow();
+    }
+
     private static Observation expectedObservation(Scenario.RequestSpec request) {
         return observe(expectedFor(request));
     }

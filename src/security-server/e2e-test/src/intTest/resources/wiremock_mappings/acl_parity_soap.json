@@ -6,7 +6,7 @@
   },
   "response": {
     "status": 200,
-    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n{{{regexExtract request.body '<(?:[\\w.-]+:)?Envelope[^>]*>'}}}\n{{{regexExtract request.body '(?s)<(?:[\\w.-]+:)?Header[^>]*>.*</(?:[\\w.-]+:)?Header>'}}}\n<Body xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\">\n  <ap:{{request.pathSegments.[2]}}Response xmlns:ap=\"http://acl-parity.test/producer\"><ap:marker>acl-parity-backend</ap:marker></ap:{{request.pathSegments.[2]}}Response>\n</Body>\n{{{regexExtract request.body '</(?:[\\w.-]+:)?Envelope>'}}}\n",
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n{{{regexExtract request.body '<(?:[\\w.-]+:)?Envelope[^>]*>'}}}\n{{{regexExtract request.body '(?s)<(?:[\\w.-]+:)?Header[^>]*>.*</(?:[\\w.-]+:)?Header>'}}}\n{{regexExtract request.body '<(?:[\\w.-]+:)?serviceCode>([^<]+)<' 'svc'}}<Body xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\">\n  <ap:{{svc.0}}Response xmlns:ap=\"http://acl-parity.test/producer\"><ap:marker>acl-parity-backend</ap:marker></ap:{{svc.0}}Response>\n</Body>\n{{{regexExtract request.body '</(?:[\\w.-]+:)?Envelope>'}}}\n",
     "headers": {
       "Content-Type": "text/xml; charset=UTF-8"
     },

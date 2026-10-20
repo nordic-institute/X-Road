@@ -51,6 +51,18 @@ public interface AdminGateway {
 
     void grantAccess(String providerClientId, String consumerClientId, String serviceCode);
 
+    /** Revokes the consumer's access to the service, with its endpoint grants of that service. */
+    void revokeAccess(String providerClientId, String consumerClientId, String serviceCode);
+
+    /** Refreshes the service description from its backend. */
+    void refreshDescription(String descriptionId);
+
+    /** Starts serving the override from the backend and returns its id. */
+    String overrideBackendStub(AdminCall.OverrideBackendStub override);
+
+    /** Stops serving the override and returns the HTTP status of the call. */
+    int removeBackendStub(String overrideId);
+
     /** Creates an endpoint on the REST service of the description and returns its id. */
     String addEndpoint(String descriptionId, String serviceCode, String method, String path);
 

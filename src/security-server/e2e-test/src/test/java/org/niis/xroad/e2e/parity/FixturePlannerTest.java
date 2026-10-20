@@ -42,8 +42,12 @@ import org.niis.xroad.e2e.parity.AdminCall.GrantAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.AdminCall.GrantGroupEndpointAccess;
+import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
+import org.niis.xroad.e2e.parity.AdminCall.RefreshDescription;
+import org.niis.xroad.e2e.parity.AdminCall.RemoveBackendStubs;
 import org.niis.xroad.e2e.parity.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.AdminCall.RenameRestService;
+import org.niis.xroad.e2e.parity.AdminCall.RevokeAccess;
 import org.niis.xroad.e2e.parity.AdminCall.ServiceCall;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.AdminCall.UpdateOpenApiDescription;
@@ -65,6 +69,7 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlService;
 import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -465,6 +470,78 @@ class FixturePlannerTest {
     private static List<String> serviceCodesOf(List<AdminCall> calls) {
         return calls.stream().filter(ServiceCall.class::isInstance)
                 .map(call -> ((ServiceCall) call).serviceCode()).toList();
+    }
+
+    @Test
+    void grantAndRevokeRowsPlanOneCallPerPhaseAndNeedNoBackendCleanup() {
+        var grant = new FixturePlanner("ab12").plan(scenario("V10"));
+        var revoke = new FixturePlanner("ab12").plan(scenario("V11"));
+
+        assertThat(grant.phases()).containsExactly(
+                List.of(new GrantAccess(ScenarioCatalogue.PROVIDER, ScenarioCatalogue.CONSUMER, "pab12-v10")));
+        assertThat(revoke.phases()).containsExactly(
+                List.of(new RevokeAccess(ScenarioCatalogue.PROVIDER, ScenarioCatalogue.CONSUMER, "pab12-v11")));
+        assertThat(grant.cleanup()).containsExactly(new DeleteDescription("pab12-v10"));
+        assertThat(revoke.cleanup()).doesNotContain(new RemoveBackendStubs());
+    }
+
+    @Test
+    void rowWithoutPhasesPlansNone() {
+        assertThat(new FixturePlanner("ab12").plan("V09", TWO_SERVICES).phases()).isEmpty();
+    }
+
+    @Test
+    void openApiSwapServesTheReplacementSpecAtTheOriginalPathAndRefreshesTheDescription() {
+        var plan = new FixturePlanner("ab12").plan(scenario("V39"));
+
+        assertThat(plan.phases()).containsExactly(List.of(
+                new OverrideBackendStub("acl_parity_openapi_status_only", "/acl-parity/openapi/pets.yaml",
+                        Map.of("code", "pab12-v39"), Map.of()),
+                new RefreshDescription("pab12-v39")));
+        assertThat(plan.cleanup()).containsExactly(new RemoveBackendStubs(), new DeleteDescription("pab12-v39"));
+    }
+
+    @Test
+    void wsdlReplacementKeepsTheFirstCodeDropsTheSecondAndAppendsANewCode() {
+        var consumerOnly = List.of(ScenarioCatalogue.CONSUMER);
+        var fixture = new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                List.of(new WsdlService(WsdlShape.PAIR, "", List.of(consumerOnly, consumerOnly))));
+        var pair = new Scenario("V126", "test row", fixture,
+                List.of(), List.of(new Scenario.Phase(
+                List.of(new Scenario.ReplaceWsdlSecondService(0), new Scenario.Refresh(0)), List.of())),
+                Scenario.WaitClass.ACL_CACHE);
+
+        var plan = new FixturePlanner("ab12").plan(pair);
+
+        assertThat(plan.serviceCodes()).containsExactly("pab12-v126", "pab12-v126-b", "pab12-v126-new");
+        assertThat(plan.phases()).containsExactly(List.of(
+                new OverrideBackendStub("acl_parity_wsdl_pair", "/acl-parity/wsdl/pair.wsdl",
+                        Map.of("code1", "pab12-v126", "code2", "pab12-v126-b"),
+                        Map.of("{{request.query.code2}}", "pab12-v126-new")),
+                new RefreshDescription("pab12-v126")));
+        assertThat(plan.cleanup()).containsExactly(new RemoveBackendStubs(), new DeleteDescription("pab12-v126"));
+    }
+
+    @Test
+    void swapOfAServiceThatIsNotOpenApiAndReplacementOfOneThatIsNotAPairAreRejected() {
+        var rest = new FixtureSpec(ScenarioCatalogue.PROVIDER, List.of(new RestService(List.of())));
+        var single = wsdlSpec(WsdlShape.SINGLE, "", List.of());
+
+        assertThatThrownBy(() -> new FixturePlanner("ab12").plan(withPhase(rest,
+                new Scenario.SwapOpenApiSpec(0, OpenApiSpec.PETS))))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not an OpenAPI service");
+        assertThatThrownBy(() -> new FixturePlanner("ab12").plan(withPhase(single,
+                new Scenario.ReplaceWsdlSecondService(0))))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not a PAIR WSDL service");
+    }
+
+    private static Scenario withPhase(FixtureSpec fixture, Scenario.PhaseChange change) {
+        return new Scenario("VX", "test row", fixture, List.of(), List.of(new Scenario.Phase(List.of(change),
+                List.of())), Scenario.WaitClass.ACL_CACHE);
+    }
+
+    private static Scenario scenario(String id) {
+        return ScenarioCatalogue.all().stream().filter(row -> row.id().equals(id)).findFirst().orElseThrow();
     }
 
     private static FixtureSpec wsdlSpec(WsdlShape shape, String codeTail, List<String> granted) {

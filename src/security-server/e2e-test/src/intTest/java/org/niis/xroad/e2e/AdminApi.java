@@ -324,6 +324,27 @@ class AdminApi {
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
     }
 
+    /** Revokes a consumer's access to a provider client's service, with its endpoint grants of that service. */
+    static void revokeConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                           String consumerClientId, String serviceCode) {
+        var body = """
+                {
+                  "items": [
+                    { "service_code": "%s" }
+                  ]
+                }
+                """.formatted(serviceCode);
+        var response = authed(ss0)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId
+                        + "/access-rights/delete");
+        assertThat(response.getStatusCode())
+                .as("revoke %s access to %s's %s service: %s", consumerClientId, providerClientId, serviceCode,
+                        response.getBody().asString())
+                .isEqualTo(HTTP_NO_CONTENT);
+    }
+
     /**
      * Creates an endpoint on the REST service {@code serviceCode} of the service description and returns its id.
      * The service id is resolved from the description, because it is the path key of the endpoint call. The
