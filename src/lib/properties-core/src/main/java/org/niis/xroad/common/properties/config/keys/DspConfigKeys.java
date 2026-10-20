@@ -41,9 +41,10 @@ import static org.niis.xroad.common.properties.config.Validator.range;
 /**
  * The {@code xroad.dsp.*} keys shared by the dataspace components.
  *
- * <p>A key is consumed in one of three ways. The control-plane extensions read a key through
- * {@code ServiceExtensionContext.getSetting}: the catalog cache keys, the built-in services keys and the
- * issuer-trust refresh interval. An X-Road process reads a key through {@code XRoadConfig}: the admin
+ * <p>A key is consumed in one of three ways. An EDC extension reads a key through
+ * {@code ServiceExtensionContext.getSetting}: the control-plane extensions read the catalog cache keys, the
+ * built-in services keys and the issuer-trust refresh interval, and the Issuer Service's DID resolution
+ * extension reads the DID resolution fetch timeout. An X-Road process reads a key through {@code XRoadConfig}: the admin
  * service reads both port keys through {@code AdminServiceProperties.Dataspace.getDidPort()} and
  * {@code getDspPort()}. An application configuration interpolates a
  * key with {@code ${...}}: the identity hub's DID web context port uses {@code ${xroad.dsp.did-port}}.
@@ -58,6 +59,7 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     private static final Prefix CATALOG_CACHE = DSP.subPrefix("catalog").subPrefix("cache");
     private static final Prefix BUILTIN_SERVICES = DSP.subPrefix("builtin-services");
     private static final Prefix ISSUER_TRUST = DSP.subPrefix("issuer-trust");
+    private static final Prefix DID_RESOLUTION = DSP.subPrefix("did-resolution");
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
 
@@ -133,6 +135,14 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Long> ISSUER_TRUST_REFRESH_INTERVAL_SECONDS = ISSUER_TRUST
             .longValue("refresh-interval-seconds")
             .withDefaultValue(60L)
+            .withValidator(positiveLong())
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.did-resolution.fetch-timeout-ms}. */
+    public static final ConfigKey<Long> DID_RESOLUTION_FETCH_TIMEOUT_MS = DID_RESOLUTION
+            .longValue("fetch-timeout-ms")
+            .withDefaultValue(3000L)
             .withValidator(positiveLong())
             .publishedToFramework()
             .build();

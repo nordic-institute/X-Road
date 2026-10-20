@@ -1,0 +1,33 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/jws-2020/v1"
+  ],
+  "id": "%DID%",
+  "controller": "%DID%",
+  "alsoKnownAs": ["https://ss0.example.org/about"],
+  "verificationMethod": [
+    {
+      "id": "%DID%#key-1",
+      "type": "JsonWebKey2020",
+      "controller": "%DID%",
+      "revoked": false,
+      "publicKeyJwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+        "y": "x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0"
+      }
+    }
+  ],
+  "authentication": ["%DID%#key-1"],
+  "assertionMethod": ["%DID%#key-1"],
+  "service": [
+    {
+      "id": "%DID%#credential-service",
+      "type": "CredentialService",
+      "serviceEndpoint": "https://ss0.example.org:7183/api/presentation/v1",
+      "description": "Presentation endpoint"
+    }
+  ]
+}

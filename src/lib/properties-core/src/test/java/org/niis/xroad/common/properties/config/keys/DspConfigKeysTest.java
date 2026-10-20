@@ -81,6 +81,14 @@ class DspConfigKeysTest {
     }
 
     @Test
+    void didResolutionFetchTimeoutRejectsZeroAndNegativeAndDefaultsToThreeSeconds() {
+        assertThat(DspConfigKeys.DID_RESOLUTION_FETCH_TIMEOUT_MS.validate(0L).valid()).isFalse();
+        assertThat(DspConfigKeys.DID_RESOLUTION_FETCH_TIMEOUT_MS.validate(-1L).valid()).isFalse();
+        assertThat(DspConfigKeys.DID_RESOLUTION_FETCH_TIMEOUT_MS.validate(1L).valid()).isTrue();
+        assertThat(DspConfigKeys.DID_RESOLUTION_FETCH_TIMEOUT_MS.convertedDefaultValue()).isEqualTo(3000L);
+    }
+
+    @Test
     void serverProxyUrlRejectsBlank() {
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate("").valid()).isFalse();
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate(null).valid()).isFalse();
@@ -110,7 +118,8 @@ class DspConfigKeysTest {
                         "xroad.dsp.builtin-services.opMonitor.enabled",
                         "xroad.dsp.builtin-services.metaservices.enabled",
                         "xroad.dsp.builtin-services.server-proxy-url",
-                        "xroad.dsp.issuer-trust.refresh-interval-seconds");
+                        "xroad.dsp.issuer-trust.refresh-interval-seconds",
+                        "xroad.dsp.did-resolution.fetch-timeout-ms");
     }
 
     @Test
