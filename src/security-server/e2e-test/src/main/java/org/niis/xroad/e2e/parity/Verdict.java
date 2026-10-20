@@ -38,5 +38,7 @@ public enum Verdict {
     INVALID_SERVICE_TYPE,
     UNKNOWN_MEMBER,
     INVALID_SECURITY_SERVER,
+    /** The consumer's own proxy refused the request before it reached the provider. */
+    CONSUMER_REJECTED,
     ERROR
 }

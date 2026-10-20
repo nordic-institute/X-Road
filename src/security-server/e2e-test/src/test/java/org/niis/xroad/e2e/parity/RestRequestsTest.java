@@ -42,6 +42,14 @@ class RestRequestsTest {
     }
 
     @Test
+    void keepsEncodedLettersDotSegmentsAndQueryAsWritten() {
+        var path = "/api/%2e%2e/t%65st%2D/../x?a=%20";
+
+        assertThat(RestRequests.url("http://h:1", "DEV:COM:1234:TestService", "svc", path))
+                .isEqualTo("http://h:1/r1/DEV/COM/1234/TestService/svc/api/%2e%2e/t%65st%2D/../x?a=%20");
+    }
+
+    @Test
     void rejectsAPathWithoutLeadingSlash() {
         assertThatThrownBy(() -> RestRequests.url("http://h:1", "DEV:COM:1234:TestService", "pab-v01", "a"))
                 .isInstanceOf(IllegalArgumentException.class);

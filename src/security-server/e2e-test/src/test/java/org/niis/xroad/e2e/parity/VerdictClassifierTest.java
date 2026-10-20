@@ -74,6 +74,18 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void badRequestWithoutAnXRoadErrorIsRejectedByTheConsumer() {
+        assertThat(VerdictClassifier.classify(new Reply(400, Map.of("Content-Type", "text/html"), "<html/>")))
+                .isEqualTo(Verdict.CONSUMER_REJECTED);
+    }
+
+    @Test
+    void otherClientErrorsWithoutAnXRoadErrorAreError() {
+        assertThat(VerdictClassifier.classify(new Reply(403, Map.of(), ""))).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classify(new Reply(404, Map.of(), ""))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
     void unexpectedResponsesAreError() {
         assertThat(VerdictClassifier.classify(null)).isEqualTo(Verdict.ERROR);
         assertThat(VerdictClassifier.classify(fault("server.serverproxy.something_new"))).isEqualTo(Verdict.ERROR);

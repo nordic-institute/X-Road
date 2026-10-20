@@ -80,6 +80,16 @@ class ScenarioCatalogueTest {
                         tuple("V37", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V38", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V40", List.of(Verdict.ALLOWED)),
+                        tuple("V41", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V42", List.of(Verdict.ALLOWED)),
+                        tuple("V43", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
+                        tuple("V44", List.of(Verdict.ALLOWED)),
+                        tuple("V45", List.of(Verdict.ALLOWED, Verdict.CONSUMER_REJECTED, Verdict.ACCESS_DENIED)),
+                        tuple("V46", List.of(Verdict.ALLOWED)),
+                        tuple("V47", List.of(Verdict.ALLOWED)),
+                        tuple("V52", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED,
+                                Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED,
+                                Verdict.ACCESS_DENIED)),
                         tuple("V60", List.of(Verdict.ALLOWED)),
                         tuple("V61", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V62", List.of(Verdict.ACCESS_DENIED)),
@@ -174,6 +184,30 @@ class ScenarioCatalogueTest {
                 new EndpointSpec("GET", "/pets/*", List.of(ScenarioCatalogue.CONSUMER)));
         assertThat(scenario("V40").checks()).extracting(check -> ((RestRequest) check.request()).path())
                 .containsExactly("/pets/123");
+    }
+
+    @Test
+    void pathRowsSendTheEncodedPathsAsTheCatalogueWritesThem() {
+        assertThat(requestPaths("V42")).containsExactly("/foo?x=1");
+        assertThat(requestPaths("V44")).containsExactly("/api/t%65st/foo");
+        assertThat(requestPaths("V45")).containsExactly("/api/x", "/api/%2e%2e/secret", "/../x");
+        assertThat(requestPaths("V46")).containsExactly("/api/test/foo/../bar");
+        assertThat(requestPaths("V47")).containsExactly("/api/test%2Dbar");
+    }
+
+    @Test
+    void methodRowCallsEachUnusualMethodOnTheAnyMethodEndpointAndOnItsOwn() {
+        var row = scenario("V52");
+        var service = (RestService) row.fixture().services().get(0);
+
+        assertThat(service.endpoints()).extracting(EndpointSpec::method, EndpointSpec::path)
+                .containsExactly(tuple("*", "/any"), tuple("HEAD", "/head"), tuple("OPTIONS", "/options"),
+                        tuple("TRACE", "/trace"), tuple("PATCH", "/patch"));
+        assertThat(row.checks()).extracting(check -> ((RestRequest) check.request()).method(),
+                        check -> ((RestRequest) check.request()).path())
+                .containsExactly(tuple("HEAD", "/any"), tuple("OPTIONS", "/any"), tuple("TRACE", "/any"),
+                        tuple("PATCH", "/any"), tuple("HEAD", "/head"), tuple("OPTIONS", "/options"),
+                        tuple("TRACE", "/trace"), tuple("PATCH", "/patch"), tuple("PATCH", "/head"));
     }
 
     @Test
@@ -300,6 +334,10 @@ class ScenarioCatalogueTest {
         var request = (SoapRequest) scenario("V132b").checks().get(0).request();
 
         assertThat(request.serviceVersion()).isNull();
+    }
+
+    private static List<String> requestPaths(String id) {
+        return scenario(id).checks().stream().map(check -> ((RestRequest) check.request()).path()).toList();
     }
 
     private static List<Verdict> expectedVerdicts(Scenario scenario) {

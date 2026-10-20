@@ -44,6 +44,7 @@ import org.niis.xroad.e2e.parity.FixturePlan;
 import org.niis.xroad.e2e.parity.FixturePlanner;
 import org.niis.xroad.e2e.parity.Reply;
 import org.niis.xroad.e2e.parity.RestRequests;
+import org.niis.xroad.e2e.parity.RestSender;
 import org.niis.xroad.e2e.parity.Scenario;
 import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
@@ -129,10 +130,9 @@ class AclParityTest extends E2eTest {
         var serviceCode = plan.serviceCodes().get(request.serviceIndex());
         return switch (request) {
             case RestRequest rest -> {
-                var reply = toReply(RestAssuredFactory.given()
-                        .header(RestRequests.CLIENT_HEADER, RestRequests.clientHeader(rest.consumerClientId()))
-                        .request(rest.method(),
-                                RestRequests.url(proxyOrigin, providerClientId, serviceCode, rest.path())));
+                var reply = RestSender.send(rest.method(),
+                        RestRequests.url(proxyOrigin, providerClientId, serviceCode, rest.path()),
+                        RestRequests.clientHeader(rest.consumerClientId()));
                 yield new Observation(VerdictClassifier.classify(reply), reply.toString());
             }
             case SoapRequest soap -> {

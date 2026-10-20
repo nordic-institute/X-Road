@@ -34,8 +34,9 @@ import java.util.regex.Pattern;
  *
  * <p>For REST, {@link Verdict#ALLOWED} needs a 2xx status and the {@code mock-response: true} header the backend stub
  * adds, so a 2xx that did not reach the backend is an error. A provider refusal arrives as HTTP 500 with an
- * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code. Every other shape
- * is {@link Verdict#ERROR}.
+ * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code. HTTP 400 without an
+ * {@code X-Road-Error} header is the consumer proxy's HTTP server refusing the request URI before any X-Road
+ * handler ran, which is {@link Verdict#CONSUMER_REJECTED}. Every other shape is {@link Verdict#ERROR}.
  */
 public final class VerdictClassifier {
 
@@ -47,6 +48,7 @@ public final class VerdictClassifier {
     private static final String CLIENT_FAULT_PREFIX = "server.clientproxy.";
     private static final int HTTP_OK = 200;
     private static final int HTTP_LAST_SUCCESS = 299;
+    private static final int HTTP_BAD_REQUEST = 400;
     private static final int HTTP_SERVER_ERROR = 500;
 
     private static final Pattern FAULT_CODE =
@@ -70,6 +72,9 @@ public final class VerdictClassifier {
         }
         if (reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS) {
             return "true".equalsIgnoreCase(reply.header(BACKEND_MARKER_HEADER)) ? Verdict.ALLOWED : Verdict.ERROR;
+        }
+        if (reply.status() == HTTP_BAD_REQUEST && reply.header(ERROR_HEADER) == null) {
+            return Verdict.CONSUMER_REJECTED;
         }
         if (reply.status() == HTTP_SERVER_ERROR) {
             var fault = reply.header(ERROR_HEADER);
