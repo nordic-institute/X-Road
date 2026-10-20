@@ -43,9 +43,23 @@ import java.util.stream.Stream;
  * @param waitClass    which propagation delay the verdicts have to wait out
  * @param knownDefect  the id of the unfixed finding the row hits, or {@code null} for none; the row then asserts
  *                     the safe verdict and is an expected failure until the finding is fixed
+ * @param adminGrant   the admin API grant the row issues once the fixture is in place and the status it expects;
+ *                     a row with a grant has no checks and does not poll. {@code null} for a row that sends requests
  */
 public record Scenario(String id, String description, FixtureSpec fixture, List<Check> checks,
-                       WaitClass waitClass, String knownDefect, List<Phase> phases) {
+                       WaitClass waitClass, String knownDefect, List<Phase> phases,
+                       AdminGrantExpectation adminGrant) {
+
+    public Scenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass,
+                    String knownDefect, List<Phase> phases) {
+        this(id, description, fixture, checks, waitClass, knownDefect, phases, null);
+    }
+
+    /** A row whose outcome is the admin API status of one grant. */
+    public Scenario(String id, String description, FixtureSpec fixture, AdminGrantExpectation adminGrant,
+                    WaitClass waitClass) {
+        this(id, description, fixture, List.of(), waitClass, null, List.of(), adminGrant);
+    }
 
     /** A row without a known defect. */
     public Scenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass) {
@@ -170,6 +184,21 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
         }
     }
 
+    /**
+     * A grant made through the provider's admin API, and the HTTP status the API is expected to answer with.
+     *
+     * @param subjectId      the member or subsystem the access is granted to
+     * @param serviceIndex   the index of the fixture service the grant names
+     * @param expectedStatus the HTTP status of the grant call
+     */
+    public record AdminGrantExpectation(String subjectId, int serviceIndex, int expectedStatus) {
+    }
+
+    /** The Security Server that hosts the provider client. */
+    public enum ProviderHost {
+        SS0, SS1
+    }
+
     /** The provider-side delay between a configuration change and the verdict it causes. */
     public enum WaitClass {
         /** The provider caches access decisions per client and service: 60 s of cache plus slack. */
@@ -199,9 +228,16 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
      * @param changes          the changes applied to the created service descriptions before the requests are sent
      * @param globalGroups     the global groups to create at the Central Server, before the services whose grants
      *                         name them
+     * @param providerHost     the Security Server that hosts the provider and receives the admin API calls
      */
     public record FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
-                              List<DescriptionChange> changes, List<GlobalGroupSpec> globalGroups) {
+                              List<DescriptionChange> changes, List<GlobalGroupSpec> globalGroups,
+                              ProviderHost providerHost) {
+
+        public FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
+                           List<DescriptionChange> changes, List<GlobalGroupSpec> globalGroups) {
+            this(providerClientId, services, groups, changes, globalGroups, ProviderHost.SS0);
+        }
 
         public FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
                            List<DescriptionChange> changes) {

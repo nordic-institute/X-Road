@@ -101,6 +101,11 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
+    public int requestAccessGrant(String providerClientId, String subjectId, String serviceCode) {
+        return AdminApi.requestConsumerAccessGrant(baseUrl, session, providerClientId, subjectId, serviceCode);
+    }
+
+    @Override
     public void revokeAccess(String providerClientId, String consumerClientId, String serviceCode) {
         AdminApi.revokeConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
     }

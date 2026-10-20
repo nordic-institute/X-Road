@@ -51,6 +51,7 @@ import org.niis.xroad.e2e.parity.RestSender;
 import org.niis.xroad.e2e.parity.Scenario;
 import org.niis.xroad.e2e.parity.Scenario.ManagementRequest;
 import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
+import org.niis.xroad.e2e.parity.Scenario.ProviderHost;
 import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
@@ -77,8 +78,10 @@ import static org.niis.xroad.e2e.AdminApi.login;
 
 /**
  * Records the verdict legacy access rights give for each catalogue scenario: ss1 calls ss0 without data space
- * negotiation, so ss0 decides by its access rights alone. Every scenario creates namespaced fixtures on ss0,
- * polls until the expected verdict or the cache deadline, and removes its fixtures.
+ * negotiation, so ss0 decides by its access rights alone. Every scenario creates namespaced fixtures on its
+ * provider's Security Server (ss0 unless the fixture names ss1), polls until the expected verdict or the cache
+ * deadline, and removes its fixtures. A scenario that expects an admin API status instead issues one grant and
+ * checks the status, without polling.
  *
  * <p>A scenario with a known-defect marker asserts the safe verdict and is probed once. While it misses that
  * verdict it is aborted with the reason "expected failure", which Gradle reports as skipped; once it meets the
@@ -140,14 +143,18 @@ class AclParityTest extends E2eTest {
     void scenarioGetsItsExpectedVerdict(Scenario scenario, E2eEnvironment env) {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
 
-        var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
+        var providerBaseUrl = adminBaseUrl(env, providerEnv(scenario));
         var csBaseUrl = CentralServerApi.baseUrl(env);
-        var gateway = new AdminApiGateway(ss0BaseUrl, login(ss0BaseUrl), backendAdminUrl(env), csBaseUrl,
+        var gateway = new AdminApiGateway(providerBaseUrl, login(providerBaseUrl), backendAdminUrl(env), csBaseUrl,
                 login(csBaseUrl));
         var plan = new FixturePlanner(RUN_TOKEN).plan(scenario);
 
         try (var management = new ManagementProbe(adminBaseUrl(env, SS1_ENV), RUN_TOKEN, scenario.id());
                 var fixture = new FixtureExecutor(gateway).open(plan)) {
+            if (scenario.adminGrant() != null) {
+                assertAdminGrantStatus(scenario, plan, gateway);
+                return;
+            }
             var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
                     request -> call(env, management, scenario, plan, request),
                     scenario.knownDefect() == null ? scenario.waitClass().timeout() : Duration.ZERO,
@@ -160,6 +167,19 @@ class AclParityTest extends E2eTest {
             }
             report(scenario, outcomes, KnownDefectMarker.judge(scenario, outcomes));
         }
+    }
+
+    private static void assertAdminGrantStatus(Scenario scenario, FixturePlan plan, AdminApiGateway gateway) {
+        var grant = scenario.adminGrant();
+        var status = gateway.requestAccessGrant(scenario.fixture().providerClientId(), grant.subjectId(),
+                plan.serviceCodes().get(grant.serviceIndex()));
+        log.info("{}: grant to {} -> admin API status {}", scenario.id(), grant.subjectId(), status);
+        Assertions.assertEquals(grant.expectedStatus(), status,
+                "admin API status of the grant to " + grant.subjectId());
+    }
+
+    private static String providerEnv(Scenario scenario) {
+        return scenario.fixture().providerHost() == ProviderHost.SS1 ? SS1_ENV : SS0_ENV;
     }
 
     private static String backendAdminUrl(E2eEnvironment env) {

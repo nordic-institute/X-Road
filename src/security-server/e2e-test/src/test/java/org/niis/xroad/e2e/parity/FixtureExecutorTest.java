@@ -113,6 +113,12 @@ class FixtureExecutorTest {
         }
 
         @Override
+        public int requestAccessGrant(String providerClientId, String subjectId, String serviceCode) {
+            calls.add("request grant " + serviceCode + " to " + subjectId);
+            return 201;
+        }
+
+        @Override
         public void revokeAccess(String providerClientId, String consumerClientId, String serviceCode) {
             calls.add("revoke " + serviceCode + " from " + consumerClientId);
         }

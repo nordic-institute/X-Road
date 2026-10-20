@@ -308,6 +308,16 @@ class AdminApi {
      */
     static boolean grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
                                              String consumerClientId, String serviceCode) {
+        var status = requestConsumerAccessGrant(ss0BaseUrl, ss0, providerClientId, consumerClientId, serviceCode);
+        assertThat(status)
+                .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
+                .isIn(HTTP_CREATED, HTTP_CONFLICT);
+        return status == HTTP_CREATED;
+    }
+
+    /** Asks for the subject to be granted access to a provider client's service and returns the HTTP status. */
+    static int requestConsumerAccessGrant(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                          String subjectId, String serviceCode) {
         var body = """
                 {
                   "items": [
@@ -315,14 +325,11 @@ class AdminApi {
                   ]
                 }
                 """.formatted(serviceCode);
-        var response = authed(ss0)
+        return authed(ss0)
                 .header("Content-Type", "application/json")
                 .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId + "/access-rights");
-        assertThat(response.getStatusCode())
-                .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
-                .isIn(HTTP_CREATED, HTTP_CONFLICT);
-        return response.getStatusCode() == HTTP_CREATED;
+                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + subjectId + "/access-rights")
+                .getStatusCode();
     }
 
     /** Lists the ids of the service clients that hold an access right to the provider client's service, sorted. */

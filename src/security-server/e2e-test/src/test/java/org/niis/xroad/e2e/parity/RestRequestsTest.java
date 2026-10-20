@@ -71,4 +71,9 @@ class RestRequestsTest {
     void clientHeaderUsesSlashes() {
         assertThat(RestRequests.clientHeader("DEV:COM:4321:TestClient")).isEqualTo("DEV/COM/4321/TestClient");
     }
+
+    @Test
+    void clientHeaderOfAMemberHasNoSubsystemPart() {
+        assertThat(RestRequests.clientHeader(ScenarioCatalogue.MEMBER_OF_CONSUMER)).isEqualTo("DEV/COM/4321");
+    }
 }

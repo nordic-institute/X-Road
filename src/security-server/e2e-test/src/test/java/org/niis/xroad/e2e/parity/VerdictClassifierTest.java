@@ -75,6 +75,15 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void clientProxyUnknownMemberFaultIsUnknownMember() {
+        assertThat(VerdictClassifier.classify(fault("server.clientproxy.unknown_member")))
+                .isEqualTo(Verdict.UNKNOWN_MEMBER);
+        assertThat(VerdictClassifier.classifySoap(
+                new Reply(500, Map.of(), soapFault("server.clientproxy.unknown_member"))))
+                .isEqualTo(Verdict.UNKNOWN_MEMBER);
+    }
+
+    @Test
     void internalErrorFaultIsInternalError() {
         assertThat(VerdictClassifier.classify(fault("server.serverproxy.internal_error")))
                 .isEqualTo(Verdict.INTERNAL_ERROR);

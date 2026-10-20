@@ -27,6 +27,7 @@
 package org.niis.xroad.e2e.parity;
 
 import org.niis.xroad.e2e.parity.Scenario.AddGlobalGroupMember;
+import org.niis.xroad.e2e.parity.Scenario.AdminGrantExpectation;
 import org.niis.xroad.e2e.parity.Scenario.Check;
 import org.niis.xroad.e2e.parity.Scenario.Delete;
 import org.niis.xroad.e2e.parity.Scenario.DeleteGlobalGroup;
@@ -49,6 +50,7 @@ import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.Phase;
+import org.niis.xroad.e2e.parity.Scenario.ProviderHost;
 import org.niis.xroad.e2e.parity.Scenario.Refresh;
 import org.niis.xroad.e2e.parity.Scenario.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.Scenario.RenameService;
@@ -65,9 +67,12 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.util.List;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+
 /**
- * The scenarios the parity suite runs. Every scenario calls from the consumer Security Server (ss1) to the
- * provider (ss0).
+ * The scenarios the parity suite runs. A scenario calls from the consumer Security Server (ss1) to the
+ * provider (ss0), except one whose fixture names ss1 as the provider host.
  */
 public final class ScenarioCatalogue {
 
@@ -116,6 +121,27 @@ public final class ScenarioCatalogue {
                     wsdl(WsdlShape.PAIR, "", List.of(CONSUMER_ONLY, List.of())),
                     new SoapRequest(CONSUMER, 1, V1, null),
                     Verdict.ACCESS_DENIED, WaitClass.ACL_CACHE),
+            new Scenario("V05", "Sibling subsystem of the granted consumer, no grant",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    new RestRequest(SubsystemPool.SIBLING_OF_CONSUMER, 0, "GET", "/a"),
+                    Verdict.ACCESS_DENIED, WaitClass.ACL_CACHE),
+            new Scenario("V06", "Request sent as the owning member of the granted consumer",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    new RestRequest(MEMBER_OF_CONSUMER, 0, "GET", "/a"),
+                    Verdict.ACCESS_DENIED, WaitClass.ACL_CACHE),
+            new Scenario("V07", "Provider's own subsystem calls its own service without a grant, both on ss1",
+                    new FixtureSpec(CONSUMER, List.of(new RestService(List.of())), List.of(), List.of(), List.of(),
+                            ProviderHost.SS1),
+                    new RestRequest(CONSUMER, 0, "GET", "/a"),
+                    Verdict.ACCESS_DENIED, WaitClass.ACL_CACHE),
+            new Scenario("V08", "Consumer and provider's own subsystem both granted, consumer calls",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(CONSUMER, PROVIDER)))),
+                    new RestRequest(CONSUMER, 0, "GET", "/a"),
+                    Verdict.ALLOWED, WaitClass.ACL_CACHE),
+            new Scenario("V09", "Subsystem of the provider's member on ss1, granted",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(SubsystemPool.SECOND_CONSUMER)))),
+                    new RestRequest(SubsystemPool.SECOND_CONSUMER, 0, "GET", "/a"),
+                    Verdict.ALLOWED, WaitClass.ACL_CACHE),
             new Scenario("V10", "Grant added after an earlier denial",
                     new FixtureSpec(PROVIDER, List.of(new RestService(List.of()))),
                     List.of(denied("GET", "/a")),
@@ -128,6 +154,12 @@ public final class ScenarioCatalogue {
                     List.of(new Phase(List.of(new Revoke(0, CONSUMER)),
                             List.of(denied("GET", "/a"), denied("GET", "/foo")))),
                     WaitClass.ACL_CACHE),
+            new Scenario("V12", "Same subsystem granted twice through the admin API",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    new AdminGrantExpectation(CONSUMER, 0, HTTP_CONFLICT), WaitClass.ACL_CACHE),
+            new Scenario("V13", "Member granted through the admin API",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of()))),
+                    new AdminGrantExpectation(MEMBER_OF_CONSUMER, 0, HTTP_BAD_REQUEST), WaitClass.ACL_CACHE),
             new Scenario("V20", "Base endpoint granted, any method and any path",
                     new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
                     List.of(allowed("GET", "/a/b/c"), allowed("POST", "/a/b/c")), WaitClass.ACL_CACHE),
@@ -455,6 +487,10 @@ public final class ScenarioCatalogue {
                     wsdl(WsdlShape.SINGLE, ".x", List.of(CONSUMER_ONLY)),
                     new SoapRequest(CONSUMER, 0, V1, null),
                     Verdict.ALLOWED, WaitClass.ACL_CACHE),
+            new Scenario("V130", "Provider client registered on its Security Server only as saved",
+                    new FixtureSpec(SubsystemPool.UNREGISTERED_PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    new RestRequest(CONSUMER, 0, "GET", "/a"),
+                    Verdict.UNKNOWN_MEMBER, WaitClass.ACL_CACHE),
             new Scenario("V131", "SOAP header naming a Security Server that does not provide the service",
                     wsdl(WsdlShape.SINGLE, "", List.of(CONSUMER_ONLY)),
                     new SoapRequest(CONSUMER, 0, V1, UNREGISTERED_SECURITY_SERVER),

@@ -62,9 +62,16 @@ class ScenarioCatalogueTest {
                         tuple("V02", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V03", List.of(Verdict.ALLOWED)),
                         tuple("V04", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V05", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V06", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V07", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V08", List.of(Verdict.ALLOWED)),
+                        tuple("V09", List.of(Verdict.ALLOWED)),
                         tuple("V10", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED)),
                         tuple("V11", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ACCESS_DENIED,
                                 Verdict.ACCESS_DENIED)),
+                        tuple("V12", List.of()),
+                        tuple("V13", List.of()),
                         tuple("V20", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V21", List.of(Verdict.ALLOWED)),
                         tuple("V22", List.of(Verdict.ALLOWED)),
@@ -142,6 +149,7 @@ class ScenarioCatalogueTest {
                         tuple("V127", List.of(Verdict.UNKNOWN_SERVICE, Verdict.ALLOWED)),
                         tuple("V128", List.of(Verdict.ALLOWED)),
                         tuple("V129", List.of(Verdict.ALLOWED)),
+                        tuple("V130", List.of(Verdict.UNKNOWN_MEMBER)),
                         tuple("V131", List.of(Verdict.INVALID_SECURITY_SERVER)),
                         tuple("V132a", List.of(Verdict.INVALID_SERVICE_TYPE)),
                         tuple("V132b", List.of(Verdict.INVALID_SERVICE_TYPE)),
@@ -604,6 +612,41 @@ class ScenarioCatalogueTest {
                 .containsOnly(Verdict.ALLOWED);
         assertThat(scenario("V11").phases().get(0).checks()).extracting(Scenario.Check::expected)
                 .containsOnly(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void adminApiRowsExpectAStatusAndSendNoRequest() {
+        assertThat(scenario("V12").adminGrant()).isEqualTo(
+                new Scenario.AdminGrantExpectation(ScenarioCatalogue.CONSUMER, 0, 409));
+        assertThat(scenario("V13").adminGrant()).isEqualTo(
+                new Scenario.AdminGrantExpectation(ScenarioCatalogue.MEMBER_OF_CONSUMER, 0, 400));
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.adminGrant() != null)
+                .extracting(Scenario::id).containsExactly("V12", "V13");
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.adminGrant() != null)
+                .allSatisfy(row -> assertThat(allChecks(row)).isEmpty());
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.adminGrant() == null)
+                .allSatisfy(row -> assertThat(row.checks()).isNotEmpty());
+    }
+
+    @Test
+    void onlyV07HostsTheProviderOnSs1() {
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.fixture().providerHost() == Scenario.ProviderHost.SS1)
+                .extracting(Scenario::id).containsExactly("V07");
+        assertThat(scenario("V07").fixture().providerClientId()).isEqualTo(ScenarioCatalogue.CONSUMER);
+        assertThat(scenario("V01").fixture().providerHost()).isEqualTo(Scenario.ProviderHost.SS0);
+    }
+
+    @Test
+    void callerIdentityRowsNameTheirCallers() {
+        assertThat(scenario("V05").checks()).extracting(check -> check.request().consumerClientId())
+                .containsExactly(SubsystemPool.SIBLING_OF_CONSUMER);
+        assertThat(scenario("V06").checks()).extracting(check -> check.request().consumerClientId())
+                .containsExactly(ScenarioCatalogue.MEMBER_OF_CONSUMER);
+        assertThat(((RestService) scenario("V08").fixture().services().get(0)).grantedConsumerIds())
+                .containsExactly(ScenarioCatalogue.CONSUMER, ScenarioCatalogue.PROVIDER);
+        assertThat(scenario("V09").checks()).extracting(check -> check.request().consumerClientId())
+                .containsExactly(SubsystemPool.SECOND_CONSUMER);
+        assertThat(scenario("V130").fixture().providerClientId()).isEqualTo(SubsystemPool.UNREGISTERED_PROVIDER);
     }
 
     @Test

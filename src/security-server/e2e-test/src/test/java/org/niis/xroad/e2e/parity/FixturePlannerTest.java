@@ -132,6 +132,10 @@ class FixturePlannerTest {
             var codes = planner.plan(scenario.id(), scenario.fixture()).serviceCodes();
 
             assertThat(codes).as(scenario.id()).isNotEmpty().doesNotHaveDuplicates();
+            if (scenario.adminGrant() != null) {
+                assertThat(scenario.adminGrant().serviceIndex()).as(scenario.id()).isLessThan(codes.size());
+                continue;
+            }
             assertThat(scenario.checks()).as(scenario.id()).isNotEmpty()
                     .allSatisfy(check -> assertThat(check.request().serviceIndex()).isLessThan(codes.size()));
         }
