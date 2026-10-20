@@ -46,6 +46,6 @@ public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
 
     @Override
     protected String phasedSuiteClassName() {
-        return OpMonitorIntTest.class.getName();
+        return OpMonitorIntTestSuite.class.getName();
     }
 }

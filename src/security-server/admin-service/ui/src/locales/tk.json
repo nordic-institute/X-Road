@@ -332,7 +332,15 @@
     "backup_generation_failed": "Äiýaçlyk nusgasy döredilmedi",
     "backup_restore_interrupted": "Äiýaçlyk nusgasynyň dikeldilmegi bölündi",
     "base_endpoint_not_found": "Esasy ahyrky nokat tapylmady",
+    "ca_cert_empty": "Faýl boş",
+    "ca_cert_expired": "CA şahadatnamasynyň möhleti geçdi",
+    "ca_cert_key_material": "Faýlda şahsy açar maglumatlary bar. Diňe CA şahadatnamasyny ýükläň",
+    "ca_cert_multiple_certificates": "Faýlda birden köp şahadatnama bar. Diňe şahadatnamany berýän CA şahadatnamasyny ýükläň",
+    "ca_cert_not_a_ca": "Şahadatnama CA şahadatnamasy däl",
+    "ca_cert_not_a_certificate": "Faýl PEM ýa-da DER kodlaşdyrylan şahadatnama däl",
+    "ca_cert_not_yet_valid": "CA şahadatnamasy entek güýje girmedi",
     "ca_cert_status_processing_failure": "CA şahdatnamanyň statusyny işlemek prossesi bolmady",
+    "ca_cert_unsupported_key_algorithm": "CA şahadatnamasynyň açyk açary RSA ýa-da EC bolmaly",
     "cannot_delete_owner": "Eýesini pozup bolmaýar",
     "cannot_register_owner": "Eýesini hasaba alyp bolmaýar",
     "cannot_unregister_owner": "Eýesini hasapdan çykaryp bolmaýar",
@@ -378,6 +386,7 @@
     "duplicate_accessright": "Giriş hukuklaryny dublirlemek",
     "endpoint_already_exists": "Ahyrky nokat eýýäm bar",
     "endpoint_not_found": "Ahyrky nokat tapylmady",
+    "external_rpc_ca_not_available": "Howpsuz serweriň RPC CA-sy elýeterli däl",
     "global_conf_download_request_failed": "Global konfigurasiýany ýükläp bolmady",
     "global_conf_outdated": "Global konfigurasiýa köneldi",
     "gpg_key_generation_failed": "GPG jübüt açary döredip bolmady",
@@ -701,6 +710,26 @@
     "noServiceClients": "Müşderileriň gullugy ýok",
     "noTimestampingServices": "Wagt belleme boýunça hyzmat ýok"
   },
+  "opMonitorTrust": {
+    "externalRpcCa": {
+      "description": "Howpsuz serweriň RPC CA-sy bu Howpsuz serweriň RPC birikmeleriniň şahadatnamalaryna gol çekýär. Ony ýükläp alyň we operasion gözegçilik demonynyň hostuna guruň, şonda host bu Howpsuz servere ynanar.",
+      "download": "Ýükläp al",
+      "title": "Howpsuz serweriň RPC CA-sy",
+      "unavailable": "Howpsuz serweriň RPC CA-sy elýeterli däl"
+    },
+    "opMonitorCa": {
+      "delete": "Poz",
+      "deleteConfirmText": "Operasion gözegçilik CA-sy pozulsynmy? Şondan soň bu Howpsuz serwer diňe Howpsuz serweriň RPC CA-syna ynanar, edil şol bir hostdaky operasion gözegçilik demony ýaly.",
+      "deleteConfirmTitle": "Operasion gözegçilik CA-sy pozulsynmy?",
+      "deleted": "Operasion gözegçilik CA-sy pozuldy",
+      "description": "Başga hostda işleýän operasion gözegçilik demonynyň CA-sy. Ony ýükläň, şonda bu Howpsuz serwer şol operasion gözegçilik demonyna ynanar. Faýlda PEM ýa-da DER kodlaşdyrylan dogry bir CA şahadatnamasy bolmaly we şahsy açar bolmaly däl.",
+      "empty": "Operasion gözegçilik CA-sy saklanmaýar",
+      "replace": "Çalyş",
+      "title": "Operasion gözegçilik CA-sy",
+      "upload": "Ýükle",
+      "uploaded": "Operasion gözegçilik CA-sy saklandy"
+    }
+  },
   "serviceClientType": {
     "globalGroup": "GLOBALTOPAR",
     "localGroup": "ÝERLITOPAR",
@@ -1023,17 +1052,7 @@
                 "buffer": {
                   "size": "Operasion monitora iberilmezden öň saklanylýan iň köp ýazgy sany.",
                   "max-records-in-message": "Operasion gözegçilik buferi tarapyndan operasion gözegçilik demonyna iberilen habardaky iň köp operasion maglumat ýazgysy sany.",
-                  "sending-interval-seconds": "Operasion gözegçilik buferiniň operasion gözegçilik demonyna ýazgylary ibermeye (gaýtadan) synanyşýan wagtyndaky sekuntlardaky aralyk. Adatça, buffer täze ýazgy alanynda iberme mehanizmini dessine işledýär. Agyr ýük ýa-da iberme şowsuzlyklary ýagdaýynda ýazgylar buferde birikýär we döwürleýin ünsü talap edýär.",
-                  "socket-timeout-seconds": "Operasion gözegçilik buferinden operasion gözegçilik demonyna sekuntlardaky operasion gözegçilik ýazgylarynyň iberlişiniň soket möhleti (SO_TIMEOUT).",
-                  "connection-timeout-seconds": "HTTP müşderisi birikme möhleti sekuntlarda."
-                },
-                "connection": {
-                  "host": "Operasion gözegçilik demoniniň diňleýän hosta salgysy.",
-                  "port": "Operasion gözegçilik demoniniň diňleýän TCP porty.",
-                  "scheme": "Operasion gözegçilik demoniniň URI shemasy ady. Mümkin bahalar: http we https.",
-                  "socket-timeout-seconds": "HTTP müşderisi birikme möhleti sekuntlarda.",
-                  "connection-timeout-seconds": "Operasion gözegçilik demonina operasion maglumat soragyny ibermegiň sekuntlardaky soket möhleti (SO_TIMEOUT).",
-                  "xroad-tls-ciphers": "Howpsuzlyk serwerleri arasynda we operasion gözegçilik demony bilen müşderi arasynda soraglarda kabul edilýän TLS şifrlemesi (üstünlik tertibinde ütirli bölünen sanaw). (6.20 wersiýasyndan bäri)"
+                  "sending-interval-seconds": "Operasion gözegçilik buferiniň operasion gözegçilik demonyna ýazgylary ibermeye (gaýtadan) synanyşýan wagtyndaky sekuntlardaky aralyk. Adatça, buffer täze ýazgy alanynda iberme mehanizmini dessine işledýär. Agyr ýük ýa-da iberme şowsuzlyklary ýagdaýynda ýazgylar buferde birikýär we döwürleýin ünsü talap edýär."
                 }
               }
             },
@@ -1244,30 +1263,14 @@
             }
           },
           "op-monitor": {
-            "listen-address": "Operasion gözegçilik demoninyň diňleýän IP salgysy.",
-            "port": "Operasion gözegçilik demoninyň diňleýän TCP porty.",
-            "scheme": "Operasion gözegçilik demoniniň URI shemasy. Mümkin bahalar: http we https.",
-            "xroad-tls-ciphers": "Operasion gözegçilik demonyna birikmelerde kabul edilýän TLS şifrlemesi (üstünlik tertibinde ütirli bölünen sanaw).",
             "keep-records-for-days": "Operasion gözegçilik ýazgylarynyň pozulmazdan öň saklanylýan günleriň sany.",
             "clean-interval": "Köne operasion gözegçilik ýazgylarynyň haçan arassalanýandygyny dolandyrýan cron aňlatmasy.",
             "max-records-in-payload": "Ýeke jogap ýüküne gaýtarylýan operasion gözegçilik ýazgylarynyň iň köp sany.",
             "records-available-timestamp-offset-seconds": "Elýeterli ýazgylaryň ýokarky çägini kesgitlenende häzirki wagtdan aýyrylýan sekuntlardaky ofset.",
             "health-statistics-period-seconds": "Saglyk statistikasynyň jemlenýän sekuntlardaky döwür.",
             "rpc": {
-              "enabled": "Operasion gözegçilik demony gRPC serweri işe giriziň.",
               "listen-address": "Operasion gözegçilik demony gRPC serweri diňleýän IP salgysy.",
               "port": "Operasion gözegçilik demony gRPC serweri diňleýän porty."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Operasion gözegçilik demony TLS şahadatnamasy üpjün edilende ulanylýan Vault PKI rol ady.",
-                "common-name": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasynda kesgitlenen umumy at.",
-                "alt-names": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasyna goşulan DNS subýekt alternatiw atlary.",
-                "ip-subject-alt-names": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasyna goşulan IP subýekt alternatiw atlary.",
-                "ttl": "Üpjün edilen operasion gözegçilik demony TLS şahadatnamasynyň ömür dowamlylygy (mysal üçin 3650D).",
-                "secret-store-pki-path": "Operasion gözegçilik demony TLS şahadatnamasy üpjünçiligi üçin Vault PKI syrlar dwigateli gurnamasy ýoly."
-              },
-              "client-certificate-refresh-interval": "Operasion gözegçilik demoniniň müşderi TLS şahadatnamasyny täzeleýän aralygny (mysal üçin 0S öçürmek üçin)."
             }
           },
           "message-log-archiver": {
@@ -1317,6 +1320,7 @@
     },
     "keys": {
       "apiKey": "API açarlary",
+      "opMonitorTrust": "Operasion gözegçilik ynamy",
       "signAndAuthKeys": "SIGN we AUTH açarlary",
       "ssTlsCertificate": "Howpsuz serweriň TLS açary"
     },

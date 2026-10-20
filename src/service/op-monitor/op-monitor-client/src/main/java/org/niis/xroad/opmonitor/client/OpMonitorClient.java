@@ -27,6 +27,7 @@ package org.niis.xroad.opmonitor.client;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -43,6 +45,8 @@ import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 
@@ -59,6 +63,18 @@ public class OpMonitorClient extends AbstractRpcClient {
     private ManagedChannel channel;
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
 
+
+    /**
+     * Creates an initialised client for the op-monitor channel configured in {@code config}.
+     * @param rpcChannelFactory the factory of the channel
+     * @param config the configuration the channel properties are read from
+     * @return the client, to be closed after use
+     */
+    public static OpMonitorClient create(RpcChannelFactory rpcChannelFactory, XRoadConfig config) {
+        var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(config));
+        opMonitorClient.init();
+        return opMonitorClient;
+    }
 
     @Override
     public ErrorOrigin getRpcOrigin() {
@@ -95,6 +111,20 @@ public class OpMonitorClient extends AbstractRpcClient {
     public void storeOperationalData(List<OperationalDataRecordProto> records) {
         exec(() -> opMonitoringServiceBlockingStub.storeOperationalData(
                 StoreOperationalDataReq.newBuilder().addAllRecords(records).build()));
+    }
+
+    /**
+     * Sends a monitoring query to op-monitor as is. A SOAP fault built by op-monitor is part of the response.
+     * @param soapQuery the SOAP query message
+     * @param contentType the content type of the query message
+     * @return the response message and its content type
+     */
+    public QueryOperationalDataResp queryOperationalData(byte[] soapQuery, String contentType) {
+        return exec(() -> opMonitoringServiceBlockingStub.queryOperationalData(
+                QueryOperationalDataReq.newBuilder()
+                        .setSoapQuery(ByteString.copyFrom(soapQuery))
+                        .setContentType(contentType)
+                        .build()));
     }
 
     public List<OperationalDataInterval> getOperationalDataIntervals(Long recordsFrom,

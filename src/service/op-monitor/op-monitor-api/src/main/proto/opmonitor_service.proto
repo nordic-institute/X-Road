@@ -35,6 +35,7 @@ option java_multiple_files = true;
 service OpMonitorService {
   rpc GetOperationalDataIntervals(GetOperationalDataIntervalsReq) returns (GetOperationalDataIntervalsResp) {}
   rpc StoreOperationalData(StoreOperationalDataReq) returns (StoreOperationalDataResp) {}
+  rpc QueryOperationalData(QueryOperationalDataReq) returns (QueryOperationalDataResp) {}
 }
 
 message GetOperationalDataIntervalsReq {
@@ -67,6 +68,27 @@ message StoreOperationalDataReq {
 }
 
 message StoreOperationalDataResp {
+}
+
+// Which operational data a query may see. op-monitor does not read this value yet: every query is filtered by
+// the client rules of the query handler, whatever the scope.
+enum AccessScope {
+  ACCESS_SCOPE_UNSPECIFIED = 0;
+  FULL_VIEW = 1;
+  CALLER_ONLY = 2;
+}
+
+// A monitoring query tunnelled as is: the SOAP request message and its content type.
+message QueryOperationalDataReq {
+  bytes soap_query = 1;
+  string content_type = 2;
+  AccessScope access_scope = 3;
+}
+
+// The response message of the query, including a SOAP fault, and its content type.
+message QueryOperationalDataResp {
+  bytes response = 1;
+  string content_type = 2;
 }
 
 // One operational monitoring record as sent by the Security Server.

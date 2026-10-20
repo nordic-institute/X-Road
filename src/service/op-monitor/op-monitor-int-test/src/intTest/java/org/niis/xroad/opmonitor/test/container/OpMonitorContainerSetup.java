@@ -48,7 +48,14 @@ import java.time.Duration;
 @Slf4j
 public class OpMonitorContainerSetup extends BaseComposeSetup {
 
+    /** Exit code of curl when the connection is refused. */
+    public static final int CURL_CONNECTION_REFUSED = 7;
+
+    public static final String OPENBAO = "openbao";
     private static final Duration OP_MONITOR_STARTUP_TIMEOUT = Duration.ofSeconds(45);
+    private static final Duration OPENBAO_STARTUP_TIMEOUT = Duration.ofSeconds(60);
+    private static final int OPENBAO_PORT = 8200;
+    private static final String CLIENT_TOKEN_FILE = "/etc/xroad/secret-store-client-token";
     private static final String OP_MONITOR = "op-monitor";
     private static final String DB_OP_MONITOR = "db-opmonitor";
     private static final String DB_OP_MONITOR_INIT = "db-opmonitor-init";
@@ -74,6 +81,7 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
                         CommonRpcConfigKeys.CHANNEL_OP_MONITOR_PORT.convertedDefaultValue(),
                         Wait.forHealthcheck().withStartupTimeout(OP_MONITOR_STARTUP_TIMEOUT))
                 .withExposedService(DB_OP_MONITOR, DB_OP_MONITOR_PORT, Wait.forListeningPort())
+                .withExposedService(OPENBAO, OPENBAO_PORT, Wait.forHealthcheck().withStartupTimeout(OPENBAO_STARTUP_TIMEOUT))
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(DB_OP_MONITOR_INIT, createLogConsumer(DB_OP_MONITOR_INIT));
     }
@@ -101,6 +109,35 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
 
         opMonitorClient = new OpMonitorClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), properties);
         opMonitorClient.init();
+    }
+
+    /**
+     * Returns the base URL of the OpenBao HTTP API as reachable from the test JVM.
+     */
+    public String openBaoUrl() {
+        var mapping = getContainerMapping(OPENBAO, OPENBAO_PORT);
+        return "http://%s:%d".formatted(mapping.host(), mapping.port());
+    }
+
+    /**
+     * Returns the client token that the OpenBao init issued for the X-Road services, read from the container.
+     */
+    public String openBaoClientToken() {
+        var result = execInContainer(OPENBAO, "cat", CLIENT_TOKEN_FILE);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("Could not read " + CLIENT_TOKEN_FILE + ": " + result.getStderr());
+        }
+        return result.getStdout().trim();
+    }
+
+    /**
+     * Probes a TCP port from inside the op-monitor container with an HTTP request.
+     *
+     * @return the exit code of curl: 0 when the port answered, {@value #CURL_CONNECTION_REFUSED} when nothing listens
+     */
+    public int probeFromInside(int port) {
+        return execInContainer(OP_MONITOR, "curl", "-s", "-o", "/dev/null", "--max-time", "2",
+                "http://127.0.0.1:" + port + "/q/health/live").getExitCode();
     }
 
     /**

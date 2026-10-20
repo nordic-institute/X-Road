@@ -23,16 +23,13 @@ set_property xroad.proxy.dsp.serverproxy-endpoint "https://${XROAD_DSP_SERVERPRO
 # Batch signing (compose.ss-batch-signature-enabled.e2e.yaml).
 set_property xroad.proxy.batch-signing-enabled true
 
-# Operational monitoring over mutual TLS (compose.ss-opmonitor.e2e.yaml).
-# The connection host/port are left at their built-in defaults: this
+# Operational monitoring (compose.ss-opmonitor.e2e.yaml).
+# The op-monitor channel host/port are left at their built-in defaults: this
 # container's proxy stays in NATIVE deployment mode (see
 # _entrypoint_common.sh), whose default already resolves to the co-located
-# op-monitor listener on localhost.
+# op-monitor on localhost.
 set_property xroad.proxy.addon.op-monitor.enabled true
-set_property xroad.proxy.addon.op-monitor.connection.scheme https
-set_property xroad.op-monitor.scheme https
 set_property xroad.op-monitor.records-available-timestamp-offset-seconds 1
-set_property xroad.op-monitor.tls.client-certificate-refresh-interval 60S
 
 # Message-log archiver (compose.ss-msglog.e2e.yaml): the harness triggers
 # archiving and cleanup explicitly, so the built-in scheduled jobs are

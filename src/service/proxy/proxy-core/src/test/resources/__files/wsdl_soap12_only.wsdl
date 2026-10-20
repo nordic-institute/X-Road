@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="testService" targetNamespace="http://test.x-road.fi/producer"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://test.x-road.fi/producer"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:custom="http://schemas.xmlsoap.org/wsdl/soap12/">
+  <wsdl:types>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="http://test.x-road.fi/producer">
+      <xsd:element name="getRandom" nillable="true">
+        <xsd:complexType/>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="getRandom">
+    <wsdl:part name="body" element="tns:getRandom"/>
+  </wsdl:message>
+  <wsdl:portType name="testServicePortType">
+    <wsdl:operation name="getRandom">
+      <wsdl:input message="tns:getRandom"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="soap12Binding" type="tns:testServicePortType">
+    <custom:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getRandom">
+      <custom:operation soapAction=""/>
+      <wsdl:input>
+        <custom:body use="literal"/>
+      </wsdl:input>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="testService">
+    <wsdl:port binding="tns:soap12Binding" name="soap12Port">
+      <custom:address location="http://backend-only12.internal.example:8080/ws"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

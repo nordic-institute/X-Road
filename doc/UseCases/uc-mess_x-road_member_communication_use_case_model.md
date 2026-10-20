@@ -2,8 +2,8 @@
 
 **Analysis**
 
-Version: 1.11  
-07.01.2025
+Version: 1.12  
+19.10.2026
 <!-- 38 pages -->
 Doc. ID: UC-MESS
 
@@ -30,6 +30,7 @@ Doc. ID: UC-MESS
 | 17.04.2023 | 1.9     | Remove central services support                                                                                                                                                                                                                                          | Justas Samuolis    |
 | 01.06.2023 | 1.10    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
 | 07.01.2025 | 1.11    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
+| 19.10.2026 | 1.12    | Operational monitoring store and query over gRPC                                                                                                                                                                                                                         | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -588,37 +589,29 @@ The system receives a communication request from Client SS; verifies that the sy
 
       - 13c.2b.1. System sends a SOAP Fault message with fault string “Server certificate is not trusted” to the Client SS. The use case terminates.
 
-13d. The request is either operational monitoring data request or security server health data request. System verifies that the operational monitoring daemon should be connected using HTTP protocol. System initiates a connection with the operational monitoring daemon.
+13d. The request is either operational monitoring data request or security server health data request. System connects to the operational monitoring daemon over gRPC.
 
   - 13d.1. Use case continues from step 14.
 
-    - 13d.1a. System fails to initiate a connection with the operational monitoring daemon.
+    - 13d.1a. System cannot establish a connection with the operational monitoring daemon before the gRPC deadline expires, for example because the operational monitoring daemon is stopped.
 
-      - 13d.1a.1. System sends a SOAP Fault message with fault string containing the error details to the Client SS. The use case terminates.
+      - 13d.1a.1. System sends a SOAP Fault message with fault code `server.serverproxy.service_failed.network_error` to the Client SS. The use case terminates.
 
-13e. The request is either operational monitoring data request or security server health data request. System verifies that the operational monitoring daemon should be connected using HTTPS and the operational monitoring daemon certificate should be verified.
+13e. The request is either operational monitoring data request or security server health data request. The gRPC connection to the operational monitoring daemon is secured with TLS.
 
-  - 13e.1. System uses the internal TLS certificate of the security server for connection.
+  - 13e.1. System uses the shared internal gRPC identity of the security server for the connection, and the operational monitoring daemon uses the same shared internal gRPC identity. Use case continues from step 14.
 
-  - 13e.2. System finds the operational monitoring daemon TLS certificate from the connection.
+    - 13e.1a. The TLS connection cannot be established before the gRPC deadline expires.
 
-    - 13e.2a. System fails to find the TLS certificate.
-
-      - 13e.2a.1. System sends a SOAP Fault message with fault string to the Client SS. The use case terminates.
-
-  - 13e.3. System verifies that the TLS certificate sent by the operational monitoring daemon matches the TLS certificate configured for the operational monitoring daemon in the system configuration. Use case continues from step 14.
-
-    - 13e.3a. System does not find TLS certificate for the operational monitoring daemon from the system configuration.
-
-      - 13e.3a.1. System sends a SOAP Fault message with fault string to the Client SS. The use case terminates.
-
-    - 13e.3b. The TLS certificate configured for the operational monitoring daemon does not match the certificate the operational monitoring daemon presented for TLS authentication.
-
-      - 13e.3b.1. System sends a SOAP Fault message with fault string to the Client SS. The use case terminates.
+      - 13e.1a.1. System sends a SOAP Fault message with fault code `server.serverproxy.service_failed.network_error` to the Client SS. The use case terminates.
 
 14a. System does not receive a response within the timeout period configured for the service in the system configuration.
 
   - 14a.1. System sends a SOAP Fault message containing the fault details to the Client SS. The use case terminates.
+
+14b. The request is either operational monitoring data request or security server health data request. The response of the operational monitoring daemon is larger than the message size limit of the gRPC channel.
+
+  - 14b.1. System sends a SOAP Fault message with fault code `server.serverproxy.service_failed.operational_data_response_too_large` to the Client SS. The use case terminates.
 
 15a. The validation process terminates with an exception message.
 
@@ -1487,11 +1480,11 @@ The value of *ocspFreshnessSeconds* determines the validity period of the cached
 
     -   SOAP fault reason.
 
-2.  System verifies how many records there are in operational monitoring buffer and composes a JSON message.
+2.  System verifies how many records there are in operational monitoring buffer and composes a message.
 
-3.  System verifies that the operational monitoring daemon should be connected using HTTP protocol. System initiates a connection with the operational monitoring daemon.
+3.  System connects to the operational monitoring daemon over gRPC.
 
-4.  System forwards the operational data record(s) to the operational monitoring daemon. The number of records included in one message is defined by a system parameter.
+4.  System forwards the operational data record(s) to the operational monitoring daemon. The number of records included in one message and the maximum size of a message are defined by system parameters.
 
 5.  System receives an acknowledgement from operational monitoring daemon.
 
@@ -1519,29 +1512,17 @@ The value of *ocspFreshnessSeconds* determines the validity period of the cached
 
   - 2b.1. Use case terminates.
 
-3a. System fails to initiate a connection with the operational monitoring daemon.
+3a. System cannot establish a connection with the operational monitoring daemon before the gRPC deadline expires.
 
   - 3a.1. System logs an error message. The use case terminates.
 
-3b. System verifies that the operational monitoring daemon should be connected using HTTPS and the operational monitoring daemon certificate should be verified.
+3b. The gRPC connection to the operational monitoring daemon is secured with TLS.
 
-  - 3b.1. System uses the internal TLS certificate of the security server for connection.
+  - 3b.1. System uses the shared internal gRPC identity of the security server for the connection, and the operational monitoring daemon uses the same shared internal gRPC identity. Use case continues from step 4.
 
-  - 3b.2. System finds the operational monitoring daemon TLS certificate from the connection.
+    - 3b.1a. The TLS connection cannot be established before the gRPC deadline expires.
 
-    - 3b.2a. System fails to find the TLS certificate.
-
-      - 3b.2a.1. System logs an error message. The use case terminates.
-
-  - 3b.3. System verifies that the TLS certificate sent by the operational monitoring daemon matches the TLS certificate configured for the operational monitoring daemon in the system configuration. Use case continues from step 4.
-
-    - 3b.3a. System does not find the TLS certificate for the operational monitoring daemon from the system configuration.
-
-      - 3b.3a.1. System logs an error message. The use case terminates.
-
-    - 3b.3b. TLS certificate configured for the operational monitoring daemon does not match the certificate the operational monitoring daemon presented for TLS authentication.
-
-      - 3b.3b.1. System logs an error message. The use case terminates.
+      - 3b.1a.1. System logs an error message. The use case terminates.
 
 5a. Storing operational monitoring data in operational monitoring daemon failed.
 

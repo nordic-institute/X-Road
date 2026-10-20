@@ -2583,7 +2583,18 @@ paths:
         - diagnostics
       summary: view operational information
       operationId: getOperationalDataIntervals
-      description: <h3>Administrator views the Security Server's operational information on diagnostics page</h3>
+      description: >-
+        <h3>Administrator views the Security Server's operational information on diagnostics page</h3>
+        <p>
+        The request is rejected with status 400 and error code <code>operational_data_intervals_out_of_range</code> when
+        <ul>
+        <li>the interval is less than 1 or more than 35791 minutes,</li>
+        <li>records_to is before records_from, or</li>
+        <li>the range divided into intervals would produce more than 100000 time buckets. The number of buckets is
+        <code>max(0, floor(to / interval) - floor(from / interval) + 2)</code>, where from and to are epoch milliseconds
+        and interval is in milliseconds.</li>
+        </ul>
+        </p>
       parameters:
         - in: query
           name: records_from
@@ -2603,7 +2614,7 @@ paths:
             example: '2025-05-15T00:00:00.001Z'
         - in: query
           name: interval
-          description: interval in minutes the requests are divided into
+          description: interval in minutes the requests are divided into, from 1 to 35791. The range must produce at most 100000 time buckets.
           required: true
           schema:
             type: integer
@@ -2643,6 +2654,15 @@ paths:
                 description: array of operational info objects
                 items:
                   $ref: '#/components/schemas/OperationalDataInterval'
+        '400':
+          description: interval, time range or number of time buckets is out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4902,6 +4922,176 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/external-rpc-ca:
+    get:
+      tags:
+        - system
+      summary: view the Security Server external RPC CA details
+      operationId: getExternalRpcCa
+      description: <h3>Administrator views the details of the Security Server RPC CA, the certificate authority that signs the
+        Security Server's external RPC certificates.</h3>
+      responses:
+        '200':
+          description: Security Server RPC CA details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: the Security Server RPC CA is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '500':
+          description: the Security Server RPC CA could not be read from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+  /system/external-rpc-ca/download:
+    get:
+      tags:
+        - system
+      summary: download the Security Server external RPC CA as a PEM file
+      operationId: downloadExternalRpcCa
+      description: <h3>Administrator downloads the Security Server external RPC CA as one PEM encoded certificate.</h3>
+      responses:
+        '200':
+          description: Security Server RPC CA certificate in PEM format
+          content:
+            application/x-pem-file:
+              schema:
+                type: string
+                format: binary
+                description: PEM file with exactly one certificate
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: the Security Server RPC CA is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '500':
+          description: the Security Server RPC CA could not be read from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+  /system/op-monitor-ca:
+    get:
+      tags:
+        - system
+      summary: view the op-monitor CA details
+      operationId: getOpMonitorCa
+      description: <h3>Administrator views the details of the stored op-monitor CA, the certificate authority of an
+        operational monitoring daemon running on another host. The response is empty when no op-monitor CA is stored.</h3>
+      responses:
+        '200':
+          description: op-monitor CA details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '204':
+          description: no op-monitor CA is stored
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: the op-monitor CA could not be read from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+    post:
+      tags:
+        - system
+      summary: upload or replace the op-monitor CA
+      operationId: uploadOpMonitorCa
+      description: <h3>Administrator uploads the CA certificate of an operational monitoring daemon running on another
+        host, as one PEM or DER encoded file. The uploaded certificate replaces the stored one.</h3>
+      requestBody:
+        description: CA certificate file
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+      responses:
+        '200':
+          description: op-monitor CA stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: the file is not exactly one valid CA certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: the op-monitor CA could not be stored in the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+    delete:
+      tags:
+        - system
+      summary: delete the op-monitor CA
+      operationId: deleteOpMonitorCa
+      description: <h3>Administrator deletes the stored op-monitor CA. Deleting when no op-monitor CA is stored succeeds
+        and changes nothing.</h3>
+      responses:
+        '204':
+          description: no op-monitor CA is stored any more
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: the op-monitor CA could not be deleted from the secret store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
   /system/server-address:
     get:
       tags:

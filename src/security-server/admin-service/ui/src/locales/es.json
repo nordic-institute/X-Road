@@ -352,7 +352,15 @@
     "anchor_upload_failed": "Falló la carga del Ancla",
     "auth_cert_not_supported": "El certificado de autenticación no es compatible",
     "base_endpoint_not_found": "El endpoint base no se ha encontrado",
+    "ca_cert_empty": "El archivo está vacío",
+    "ca_cert_expired": "El certificado de la CA ha expirado",
+    "ca_cert_key_material": "El archivo contiene material de clave privada. Suba solo el certificado de la CA",
+    "ca_cert_multiple_certificates": "El archivo contiene más de un certificado. Suba solo el certificado de la CA que emite el certificado",
+    "ca_cert_not_a_ca": "El certificado no es un certificado de CA",
+    "ca_cert_not_a_certificate": "El archivo no es un certificado codificado en PEM o DER",
+    "ca_cert_not_yet_valid": "El certificado de la CA aún no es válido",
     "ca_cert_status_processing_failure": "Error al procesar el estado del certificado de la CA",
+    "ca_cert_unsupported_key_algorithm": "La clave pública del certificado de la CA debe ser RSA o EC",
     "cannot_delete_owner": "No se puede eliminar al propietario",
     "cannot_register_owner": "No se puede quitar el registro al propietario",
     "cannot_unregister_owner": "No se puede anular al propietario",
@@ -391,6 +399,7 @@
     "duplicate_accessright": "Permiso de acceso duplicado",
     "endpoint_already_exists": "El enpoint ya existe",
     "endpoint_not_found": "El endpoint no se ha encontrado",
+    "external_rpc_ca_not_available": "La CA RPC del Servidor de Seguridad no está disponible",
     "global_conf_download_request_failed": "La solicitud de descarga de la configuración global falló",
     "global_conf_outdated": "La configuración global está desactualizada",
     "gpg_key_generation_failed": "Falló en la generación del GPG KeyPair",
@@ -723,6 +732,26 @@
     "noServiceClients": "No hay clientes de servicio",
     "noTimestampingServices": "Sin servicios de marca de tiempo"
   },
+  "opMonitorTrust": {
+    "externalRpcCa": {
+      "description": "La CA RPC del Servidor de Seguridad firma los certificados de las conexiones RPC de este Servidor de Seguridad. Descárguela e instálela en el host del daemon de monitorización de datos operativos, para que el host confíe en este Servidor de Seguridad.",
+      "download": "Descargar",
+      "title": "CA RPC del Servidor de Seguridad",
+      "unavailable": "La CA RPC del Servidor de Seguridad no está disponible"
+    },
+    "opMonitorCa": {
+      "delete": "Borrar",
+      "deleteConfirmText": "¿Borrar la CA de monitoreo operacional? Este Servidor de Seguridad confiará entonces solo en la CA RPC del Servidor de Seguridad, como en el caso de un daemon de monitorización de datos operativos en el mismo host.",
+      "deleteConfirmTitle": "¿Borrar la CA de monitoreo operacional?",
+      "deleted": "La CA de monitoreo operacional se ha borrado",
+      "description": "La CA de un daemon de monitorización de datos operativos que se ejecuta en otro host. Suba la CA para que este Servidor de Seguridad confíe en ese daemon de monitorización de datos operativos. El archivo debe contener exactamente un certificado de CA codificado en PEM o DER y ninguna clave privada.",
+      "empty": "No hay ninguna CA de monitoreo operacional almacenada",
+      "replace": "Reemplazar",
+      "title": "CA de monitorización de datos operativos",
+      "upload": "Subir",
+      "uploaded": "La CA de monitoreo operacional está almacenada"
+    }
+  },
   "serviceClientType": {
     "globalGroup": "Grupo global",
     "localGroup": "Grupo local",
@@ -1045,17 +1074,7 @@
                 "buffer": {
                   "size": "Número máximo de registros almacenados en búfer antes de enviarlos al monitor operacional.",
                   "max-records-in-message": "Número máximo de registros de datos operacionales en un mensaje enviado por el búfer de monitoreo operacional al daemon de monitoreo operacional.",
-                  "sending-interval-seconds": "El intervalo en segundos en el que el búfer de monitoreo operacional intenta (re)enviar registros al daemon de monitoreo operacional. Normalmente, el búfer activa el mecanismo de envío inmediatamente cuando recibe un nuevo registro. En caso de alta carga o fallos de envío, los registros se acumulan en el búfer y necesitan atención periódica.",
-                  "socket-timeout-seconds": "El tiempo de espera del socket (SO_TIMEOUT) para el envío de registros de monitoreo operacional desde el búfer al daemon de monitoreo operacional, en segundos.",
-                  "connection-timeout-seconds": "Tiempo de espera de conexión del cliente HTTP en segundos."
-                },
-                "connection": {
-                  "host": "La dirección del host en la que escucha el daemon de monitoreo operacional.",
-                  "port": "Puerto TCP en el que escucha el daemon de monitoreo operacional.",
-                  "scheme": "El nombre del esquema URI del daemon de monitoreo operacional. Los valores posibles son http y https.",
-                  "socket-timeout-seconds": "Tiempo de espera de conexión del cliente HTTP en segundos.",
-                  "connection-timeout-seconds": "El tiempo de espera del socket (SO_TIMEOUT) para el envío de la solicitud de datos operacionales al daemon de monitoreo operacional, en segundos.",
-                  "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las solicitudes entre servidores de seguridad y entre el daemon de monitoreo operacional y el cliente. (desde la versión 6.20)"
+                  "sending-interval-seconds": "El intervalo en segundos en el que el búfer de monitoreo operacional intenta (re)enviar registros al daemon de monitoreo operacional. Normalmente, el búfer activa el mecanismo de envío inmediatamente cuando recibe un nuevo registro. En caso de alta carga o fallos de envío, los registros se acumulan en el búfer y necesitan atención periódica."
                 }
               }
             },
@@ -1266,30 +1285,14 @@
             }
           },
           "op-monitor": {
-            "listen-address": "Dirección IP en la que escucha el daemon de monitoreo operacional.",
-            "port": "Puerto TCP en el que escucha el daemon de monitoreo operacional.",
-            "scheme": "Esquema URI del daemon de monitoreo operacional. Los valores posibles son http y https.",
-            "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las conexiones al daemon de monitoreo operacional.",
             "keep-records-for-days": "Número de días que se retienen los registros de monitoreo operacional antes de ser eliminados.",
             "clean-interval": "Expresión cron que controla cuándo se limpian los registros de monitoreo operacional antiguos.",
             "max-records-in-payload": "Número máximo de registros de monitoreo operacional devueltos en una sola respuesta.",
             "records-available-timestamp-offset-seconds": "Desplazamiento en segundos que se resta del tiempo actual al determinar el límite superior de los registros disponibles.",
             "health-statistics-period-seconds": "Período en segundos durante el cual se agregan las estadísticas de salud.",
             "rpc": {
-              "enabled": "Habilitar el servidor gRPC del daemon de monitoreo operacional.",
               "listen-address": "Dirección IP en la que escucha el servidor gRPC del daemon de monitoreo operacional.",
               "port": "Puerto en el que escucha el servidor gRPC del daemon de monitoreo operacional."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Nombre del rol PKI de Vault utilizado al aprovisionar el certificado TLS del daemon de monitoreo operacional.",
-                "common-name": "Nombre común establecido en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
-                "alt-names": "Nombres alternativos de sujeto DNS incluidos en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
-                "ip-subject-alt-names": "Nombres alternativos de sujeto IP incluidos en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
-                "ttl": "Tiempo de vida del certificado TLS del daemon de monitoreo operacional aprovisionado (p. ej. 3650D).",
-                "secret-store-pki-path": "Ruta de montaje del motor de secretos PKI de Vault para el aprovisionamiento del certificado TLS del daemon de monitoreo operacional."
-              },
-              "client-certificate-refresh-interval": "Intervalo con el que el daemon de monitoreo operacional renueva su certificado TLS de cliente (p. ej. 0S para deshabilitar)."
             }
           },
           "message-log-archiver": {
@@ -1339,6 +1342,7 @@
     },
     "keys": {
       "apiKey": "Clave de API",
+      "opMonitorTrust": "Confianza del monitoreo operacional",
       "signAndAuthKeys": "Clave de firma y autenticación",
       "ssTlsCertificate": "Clave TLS del servidor de seguridad"
     },

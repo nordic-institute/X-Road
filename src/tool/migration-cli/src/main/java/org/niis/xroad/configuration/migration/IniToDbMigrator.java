@@ -34,7 +34,15 @@ import java.util.Map;
 @Slf4j
 public class IniToDbMigrator extends BasePropertiesToDbMigrator {
 
-    private final IniUtil iniUtil = new IniUtil();
+    private final IniUtil iniUtil;
+
+    public IniToDbMigrator() {
+        this(new IniUtil());
+    }
+
+    IniToDbMigrator(IniUtil iniUtil) {
+        this.iniUtil = iniUtil;
+    }
 
     @Override
     Map<String, String> loadProperties(String filePath) {

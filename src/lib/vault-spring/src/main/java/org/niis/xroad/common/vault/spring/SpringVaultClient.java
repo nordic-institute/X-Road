@@ -67,11 +67,6 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() {
-        throw new NotImplementedException();
-    }
-
-    @Override
     public InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return getTlsCredentials(ADMIN_SERVICE_TLS_CREDENTIALS_PATH);
     }
@@ -83,11 +78,6 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new NotImplementedException();
     }
 
@@ -129,6 +119,21 @@ public class SpringVaultClient implements VaultClient {
     @Override
     public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
         vaultClient.put(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
+    }
+
+    @Override
+    public Optional<X509Certificate> getOpMonitorCa() {
+        return readSecret(OPMONITOR_CA_PATH).flatMap(this::toOpMonitorCa);
+    }
+
+    @Override
+    public void createOpMonitorCa(X509Certificate certificate) {
+        vaultClient.put(OPMONITOR_CA_PATH, toOpMonitorCaSecret(certificate));
+    }
+
+    @Override
+    public void clearOpMonitorCa() {
+        vaultClient.put(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
     }
 
     @Override

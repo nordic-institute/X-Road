@@ -72,11 +72,6 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return getTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH);
-    }
-
-    @Override
     public InternalSSLKey getAdminServiceTlsCredentials() {
         throw new NotImplementedException();
     }
@@ -89,11 +84,6 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH, internalSSLKey);
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
-        createTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
     @Override
@@ -134,6 +124,21 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
         kvSecretEngine.writeSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
+    }
+
+    @Override
+    public Optional<X509Certificate> getOpMonitorCa() {
+        return readSecret(OPMONITOR_CA_PATH).flatMap(this::toOpMonitorCa);
+    }
+
+    @Override
+    public void createOpMonitorCa(X509Certificate certificate) {
+        kvSecretEngine.writeSecret(OPMONITOR_CA_PATH, toOpMonitorCaSecret(certificate));
+    }
+
+    @Override
+    public void clearOpMonitorCa() {
+        kvSecretEngine.writeSecret(OPMONITOR_CA_PATH, toClearedOpMonitorCaSecret());
     }
 
     @Override
