@@ -32,6 +32,7 @@ import org.junit.Test;
 import static ee.ria.xroad.common.util.UriUtils.uriPathPercentDecode;
 import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 /**
  * Unit tests for uri path segment percent decoding
@@ -99,6 +100,68 @@ public class UriUtilsTest {
         assertEquals("/a/b/c", UriUtils.decodeAndNormalize("/a/b/d/%2e%2e/c"));
         assertEquals("/c", UriUtils.decodeAndNormalize("/a/b/%2e%2e/%2e%2e/c"));
         assertEquals("/../c/d", UriUtils.decodeAndNormalize("/a/b/../../%2e%2e/c/d"));
+    }
+
+    @Test
+    public void shouldRejectEncodedQueryDelimiter() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/b%3Fc"));
+    }
+
+    @Test
+    public void shouldRejectEncodedFragmentDelimiter() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/b%23c"));
+    }
+
+    @Test
+    public void shouldRejectEncodedSlashLeadingToEmptySegment() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/%2F../a"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a%2F%2Fb"));
+    }
+
+    @Test
+    public void shouldRejectLiteralEmptySegment() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("//a/b"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a//b"));
+    }
+
+    @Test
+    public void shouldRejectDotSegmentWithParameters() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/.;x/../b"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/..;x/b"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/%2e;x/b"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/.%3Bx/b"));
+    }
+
+    @Test
+    public void shouldRejectParameterOnlySegment() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/;x/b"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/api/test/;x/../../admin"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/%3Bx/b"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/b/;"));
+    }
+    @Test
+    public void shouldRejectRepeatedPercentEncoding() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/foo%252Fbar"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/foo%25"));
+    }
+
+    @Test
+    public void shouldRejectUnparsablePath() {
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/b c"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("/a/%XY"));
+        assertThrows(UriPathRejectedException.class, () -> UriUtils.decodeAndNormalize("a:b"));
+    }
+
+    @Test
+    public void shouldAcceptOrdinaryPathsWithEncodedCharacters() {
+        assertEquals("/a/b;c", UriUtils.decodeAndNormalize("/a/b%3Bc"));
+        assertEquals("/a/b;c/d", UriUtils.decodeAndNormalize("/a/b%3Bc/d"));
+        assertEquals("/a/b;c", UriUtils.decodeAndNormalize("/a/b;c"));
+        assertEquals("/a/bc", UriUtils.decodeAndNormalize("/a/%62c"));
+        assertEquals("/a/b-c", UriUtils.decodeAndNormalize("/a/b%2dc"));
+        assertEquals("/b", UriUtils.decodeAndNormalize("/a/../b"));
+        assertEquals("/a/", UriUtils.decodeAndNormalize("/a/"));
+        assertEquals("", UriUtils.decodeAndNormalize(""));
     }
 
 }

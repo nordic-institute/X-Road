@@ -62,6 +62,9 @@ import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKey
 import DsTlsCertificateView from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateView.vue';
 import DsTlsCertificateDetails from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateDetails.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
+import ExternalRpcCaDetails from '@/views/KeysAndCertificates/OpMonitorTrust/ExternalRpcCaDetails.vue';
+import OpMonitorCaDetails from '@/views/KeysAndCertificates/OpMonitorTrust/OpMonitorCaDetails.vue';
+import OpMonitorTrustView from '@/views/KeysAndCertificates/OpMonitorTrust/OpMonitorTrustView.vue';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
 import LocalGroup from '@/views/Clients/LocalGroups/LocalGroup/LocalGroup.vue';
@@ -157,6 +160,12 @@ const routes: RouteRecordRaw[] = [
             component: DsTlsCertificateView,
             props: true,
             meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
+          },
+          {
+            name: RouteName.OpMonitorTrust,
+            path: 'op-monitor-trust',
+            component: OpMonitorTrustView,
+            meta: { permissions: [Permissions.VIEW_EXTERNAL_RPC_CA] },
           },
         ],
       },
@@ -522,6 +531,26 @@ const routes: RouteRecordRaw[] = [
         },
         props: { default: true },
         meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
+      },
+      {
+        name: RouteName.ExternalRpcCaDetails,
+        path: '/external-rpc-ca-details',
+        components: {
+          default: ExternalRpcCaDetails,
+          navigation: XrdMainNavigationContainer,
+        },
+        props: { default: true },
+        meta: { permissions: [Permissions.VIEW_EXTERNAL_RPC_CA] },
+      },
+      {
+        name: RouteName.OpMonitorCaDetails,
+        path: '/op-monitor-ca-details',
+        components: {
+          default: OpMonitorCaDetails,
+          navigation: XrdMainNavigationContainer,
+        },
+        props: { default: true },
+        meta: { permissions: [Permissions.VIEW_OP_MONITOR_CA] },
       },
       {
         path: '/not-found',

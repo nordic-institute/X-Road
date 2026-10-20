@@ -136,6 +136,19 @@ class OpMonitoringDataHelperTest {
     }
 
     @Test
+    void shouldRecordRawRestPathWhenPathIsRejected() {
+        OpMonitoringData data = mock(OpMonitoringData.class);
+        when(data.isProducer()).thenReturn(true);
+        RestRequest request = mock(RestRequest.class);
+        when(request.getVerb()).thenReturn(RestRequest.Verb.GET);
+        when(request.getServicePath()).thenReturn("/service/path%3Fx/../../admin");
+
+        helper.updateOpMonitoringDataByRestRequest(data, request);
+
+        verify(data).setRestPath("/service/path%3Fx/../../admin");
+    }
+
+    @Test
     void testUpdateOpMonitoringDataBySoapMessage() {
         OpMonitoringData data = mock(OpMonitoringData.class);
         SoapMessageImpl soapMessage = mock(SoapMessageImpl.class);

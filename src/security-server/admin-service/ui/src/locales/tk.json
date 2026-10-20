@@ -332,7 +332,15 @@
     "backup_generation_failed": "Äiýaçlyk nusgasy döredilmedi",
     "backup_restore_interrupted": "Äiýaçlyk nusgasynyň dikeldilmegi bölündi",
     "base_endpoint_not_found": "Esasy ahyrky nokat tapylmady",
+    "ca_cert_empty": "Faýl boş",
+    "ca_cert_expired": "CA şahadatnamasynyň möhleti geçdi",
+    "ca_cert_key_material": "Faýlda şahsy açar maglumatlary bar. Diňe CA şahadatnamasyny ýükläň",
+    "ca_cert_multiple_certificates": "Faýlda birden köp şahadatnama bar. Diňe şahadatnamany berýän CA şahadatnamasyny ýükläň",
+    "ca_cert_not_a_ca": "Şahadatnama CA şahadatnamasy däl",
+    "ca_cert_not_a_certificate": "Faýl PEM ýa-da DER kodlaşdyrylan şahadatnama däl",
+    "ca_cert_not_yet_valid": "CA şahadatnamasy entek güýje girmedi",
     "ca_cert_status_processing_failure": "CA şahdatnamanyň statusyny işlemek prossesi bolmady",
+    "ca_cert_unsupported_key_algorithm": "CA şahadatnamasynyň açyk açary RSA ýa-da EC bolmaly",
     "cannot_delete_owner": "Eýesini pozup bolmaýar",
     "cannot_register_owner": "Eýesini hasaba alyp bolmaýar",
     "cannot_unregister_owner": "Eýesini hasapdan çykaryp bolmaýar",
@@ -378,6 +386,7 @@
     "duplicate_accessright": "Giriş hukuklaryny dublirlemek",
     "endpoint_already_exists": "Ahyrky nokat eýýäm bar",
     "endpoint_not_found": "Ahyrky nokat tapylmady",
+    "external_rpc_ca_not_available": "Howpsuz serweriň RPC CA-sy elýeterli däl",
     "global_conf_download_request_failed": "Global konfigurasiýany ýükläp bolmady",
     "global_conf_outdated": "Global konfigurasiýa köneldi",
     "gpg_key_generation_failed": "GPG jübüt açary döredip bolmady",
@@ -700,6 +709,26 @@
     "noLocalGroups": "ýerli toparlar ýok",
     "noServiceClients": "Müşderileriň gullugy ýok",
     "noTimestampingServices": "Wagt belleme boýunça hyzmat ýok"
+  },
+  "opMonitorTrust": {
+    "externalRpcCa": {
+      "description": "Howpsuz serweriň RPC CA-sy bu Howpsuz serweriň RPC birikmeleriniň şahadatnamalaryna gol çekýär. Ony ýükläp alyň we operasion gözegçilik demonynyň hostuna guruň, şonda host bu Howpsuz servere ynanar.",
+      "download": "Ýükläp al",
+      "title": "Howpsuz serweriň RPC CA-sy",
+      "unavailable": "Howpsuz serweriň RPC CA-sy elýeterli däl"
+    },
+    "opMonitorCa": {
+      "delete": "Poz",
+      "deleteConfirmText": "Operasion gözegçilik CA-sy pozulsynmy? Şondan soň bu Howpsuz serwer diňe Howpsuz serweriň RPC CA-syna ynanar, edil şol bir hostdaky operasion gözegçilik demony ýaly.",
+      "deleteConfirmTitle": "Operasion gözegçilik CA-sy pozulsynmy?",
+      "deleted": "Operasion gözegçilik CA-sy pozuldy",
+      "description": "Başga hostda işleýän operasion gözegçilik demonynyň CA-sy. Ony ýükläň, şonda bu Howpsuz serwer şol operasion gözegçilik demonyna ynanar. Faýlda PEM ýa-da DER kodlaşdyrylan dogry bir CA şahadatnamasy bolmaly we şahsy açar bolmaly däl.",
+      "empty": "Operasion gözegçilik CA-sy saklanmaýar",
+      "replace": "Çalyş",
+      "title": "Operasion gözegçilik CA-sy",
+      "upload": "Ýükle",
+      "uploaded": "Operasion gözegçilik CA-sy saklandy"
+    }
   },
   "serviceClientType": {
     "globalGroup": "GLOBALTOPAR",
@@ -1317,6 +1346,7 @@
     },
     "keys": {
       "apiKey": "API açarlary",
+      "opMonitorTrust": "Operasion gözegçilik ynamy",
       "signAndAuthKeys": "SIGN we AUTH açarlary",
       "ssTlsCertificate": "Howpsuz serweriň TLS açary"
     },

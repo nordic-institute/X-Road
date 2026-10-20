@@ -40,6 +40,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.UriPathRejectedException;
 import ee.ria.xroad.common.util.UriUtils;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -92,6 +93,7 @@ import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.serverconf.model.ServerConf;
 import org.niis.xroad.serverconf.model.Service;
 import org.niis.xroad.serverconf.model.ServiceDescription;
+import org.niis.xroad.serverconf.model.ServiceDescriptionBase;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.io.IOException;
@@ -344,16 +346,20 @@ public class ServerConfImpl implements ServerConfProvider {
     public String getDisabledNotice(ServiceId serviceId) {
         return tx(session -> {
             ServiceDescription serviceDescription = getServiceDescription(session, serviceId);
-            if (serviceDescription != null && serviceDescription.isDisabled()) {
-                if (serviceDescription.getDisabledNotice() == null) {
-                    return String.format("Service '%s' is disabled", serviceId);
-                }
-
-                return serviceDescription.getDisabledNotice();
-            }
-
-            return null;
+            return disabledNotice(serviceDescription, serviceId);
         });
+    }
+
+    static String disabledNotice(ServiceDescriptionBase serviceDescription, ServiceId serviceId) {
+        if (serviceDescription == null || !serviceDescription.isDisabled()) {
+            return null;
+        }
+
+        if (StringUtils.isBlank(serviceDescription.getDisabledNotice())) {
+            return String.format("Service '%s' is disabled", serviceId);
+        }
+
+        return serviceDescription.getDisabledNotice();
     }
 
     @Override
@@ -521,7 +527,12 @@ public class ServerConfImpl implements ServerConfProvider {
         if (path == null) {
             normalizedPath = null;
         } else {
-            normalizedPath = UriUtils.decodeAndNormalize(path);
+            try {
+                normalizedPath = UriUtils.decodeAndNormalize(path);
+            } catch (UriPathRejectedException e) {
+                log.warn("Request path rejected: {}. Access will be rejected.", path);
+                return false;
+            }
 
             // Explicitly reject any remaining traversal sequences
             if (normalizedPath.contains("..")) {
