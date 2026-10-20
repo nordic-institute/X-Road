@@ -15,7 +15,6 @@
     - { question: "xroad-common/global-conf-subject", value: "/CN={{ xroad_host_fqdn }}" }
     - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}" }
     - { question: "xroad-common/skip-cs-db-migrations", value: "false" }
-    - { question: "xroad-common/dataspace-issuer-host", value: "{{ groups['cs_servers'] | first }}" }
   tags:
     - install-xroad-cs-packages
 
