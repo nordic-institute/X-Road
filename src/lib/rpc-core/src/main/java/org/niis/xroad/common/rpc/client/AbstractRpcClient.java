@@ -36,6 +36,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -69,17 +70,7 @@ public abstract class AbstractRpcClient implements AutoCloseable {
         try {
             return grpcCall.call();
         } catch (StatusRuntimeException error) {
-            if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw XrdRuntimeException.systemException(NETWORK_ERROR)
-                        .origin(getRpcOrigin())
-                        .details("gRPC client timed out.")
-                        .build();
-            }
-            com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
-            if (status != null) {
-                handleGenericStatusRuntimeException(status);
-            }
-            throw error;
+            throw mapFailedStatus(error);
         } catch (Exception e) {
             if (e instanceof XrdRuntimeException xrdRuntimeException) {
                 throw xrdRuntimeException;
@@ -94,7 +85,27 @@ public abstract class AbstractRpcClient implements AutoCloseable {
     }
 
 
-    private void handleGenericStatusRuntimeException(com.google.rpc.Status status) {
+    /** Maps a failed call to the exception thrown; never null, the default returns the status exception when nothing maps. */
+    protected RuntimeException mapFailedStatus(StatusRuntimeException error) {
+        if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+            return XrdRuntimeException.systemException(NETWORK_ERROR)
+                    .origin(getRpcOrigin())
+                    .details("gRPC client timed out.")
+                    .build();
+        }
+        return mapServerError(error).map(RuntimeException.class::cast).orElse(error);
+    }
+
+    /**
+     * Maps the {@link XrdRuntimeExceptionProto} carried by the status details of the failure to an exception.
+     *
+     * @return the server-reported error, or empty when the failure carries no such detail
+     */
+    protected Optional<XrdRuntimeException> mapServerError(StatusRuntimeException error) {
+        com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
+        if (status == null) {
+            return Optional.empty();
+        }
         for (Any any : status.getDetailsList()) {
             if (any.is(XrdRuntimeExceptionProto.class)) {
                 try {
@@ -109,15 +120,17 @@ public abstract class AbstractRpcClient implements AutoCloseable {
                     if (!ce.getErrorMetadataList().isEmpty()) {
                         exceptionBuilder.metadataItems(ce.getErrorMetadataList());
                     }
-                    throw exceptionBuilder.build();
+                    return Optional.of(exceptionBuilder.build());
                 } catch (InvalidProtocolBufferException e) {
-                    throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
+                    return Optional.of(XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
                             .cause(e)
                             .details("Failed to parse XrdRuntimeExceptionProto from gRPC status details")
-                            .build();
+                            .origin(getRpcOrigin())
+                            .build());
                 }
             }
         }
+        return Optional.empty();
     }
 
     /**

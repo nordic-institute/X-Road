@@ -1,1 +1,2 @@
 org.niis.xroad.edc.issuer.provisioning.IssuerProvisioningExtension
+org.niis.xroad.edc.issuer.didresolution.DidResolutionExtension
