@@ -27,6 +27,16 @@ Content-Type: application/json
 # https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1344
 HTTP 200
 
+# Set the Issuer Service host, as early as possible since the provisioning worker binds the
+# issuer identity only after it sees a host, around 30 seconds later.
+PUT https://{{cs_host}}:4000/api/v1/issuer-service/host
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "host": "{{is_host}}"
+}
+
+HTTP 200
 
 # Add member classes to Central Server
 POST https://{{cs_host}}:4000/api/v1/member-classes

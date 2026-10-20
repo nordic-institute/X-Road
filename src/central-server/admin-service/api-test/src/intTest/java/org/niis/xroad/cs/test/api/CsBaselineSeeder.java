@@ -105,6 +105,12 @@ public class CsBaselineSeeder {
     /** Instance identifier of the initialized CS. */
     public static final String INSTANCE_IDENTIFIER = "CS";
 
+    /**
+     * Issuer Service host set through the admin API during baseline seeding, the compose service
+     * name the DS TLS ACME worker's HTTP-01 challenge must reach through the real public nginx.
+     */
+    private static final String ISSUER_SERVICE_HOST = "cs-admin-service";
+
     private static final String DB_PROPERTIES_PATH = "/etc/xroad/db.properties";
     private static final String DB_NAME = "centerui_production";
     private static final String BOOTSTRAP_ENCODED_KEY = "ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1";
@@ -288,6 +294,7 @@ public class CsBaselineSeeder {
         var session = new AdminApiSession(adminBaseUrl);
         ensureInitialized(session);
         ensureBaselineMemberClass(session);
+        ensureIssuerServiceHost(session);
         seedConfigurationTestData();
 
         log.info("Central Server baseline is ready");
@@ -589,6 +596,32 @@ public class CsBaselineSeeder {
                 .post("/initialization")
                 .then()
                 .statusCode(200);
+    }
+
+    /**
+     * Sets the Issuer Service host through the admin API, the same way an operator would. Idempotent:
+     * skips the call once the host already matches, so a warm stack that already bound the issuer is
+     * never asked to change it again.
+     */
+    private void ensureIssuerServiceHost(AdminApiSession session) {
+        var currentHost = session.givenSilent()
+                .get("/issuer-service")
+                .jsonPath()
+                .getString("host");
+        if (ISSUER_SERVICE_HOST.equals(currentHost)) {
+            return;
+        }
+        session.givenSilent()
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                          "host": "%s"
+                        }
+                        """.formatted(ISSUER_SERVICE_HOST))
+                .put("/issuer-service/host")
+                .then()
+                .statusCode(200);
+        log.info("Issuer Service host set to {}", ISSUER_SERVICE_HOST);
     }
 
     private void ensureBaselineMemberClass(AdminApiSession session) {
