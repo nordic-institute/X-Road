@@ -66,6 +66,7 @@ public class SharedParametersCache {
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
+    private final Map<ClientId, Map<SecurityServerId, String>> memberDids = new HashMap<>();
     private final Map<ClientId, Set<SharedParameters.SecurityServer>> securityServersByClientId = new HashMap<>();
     private final Map<String, SharedParameters.SecurityServer> securityServersByAddress = new HashMap<>();
 
@@ -79,6 +80,7 @@ public class SharedParametersCache {
         cacheCaCerts();
         cacheKnownAddresses();
         cacheSecurityServers();
+        cacheMemberDids();
     }
 
 
@@ -158,6 +160,15 @@ public class SharedParametersCache {
             securityServersByAddress.put(securityServer.getAddress(), securityServer);
 
             securityServer.getClients().forEach(client -> addServerClient(client, securityServer));
+        }
+    }
+
+    private void cacheMemberDids() {
+        if (sharedParameters.getMembers() == null) {
+            return;
+        }
+        for (SharedParameters.Member member : sharedParameters.getMembers()) {
+            memberDids.computeIfAbsent(member.getId(), k -> new HashMap<>()).putAll(member.getDids());
         }
     }
 
