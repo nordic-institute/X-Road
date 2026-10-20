@@ -27,64 +27,59 @@
 package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.TimeUtils;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringDaemonHttpClient;
-import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.proxy.core.addon.opmonitoring.InboundMessageSizeRejection;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
-import org.niis.xroad.proxy.core.serverproxy.ProxyMessageSoapEntity;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerResult;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.OPERATIONAL_DATA_RESPONSE_TOO_LARGE;
+import static org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys.CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.MAX_RECORDS_IN_PAYLOAD;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 
 /**
- * Service handler for operational monitoring.
+ * Service handler for operational monitoring. The monitoring queries are sent to op-monitor over gRPC.
+ * The op-monitor client is created on the first query.
  */
 @Slf4j
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
-    private final ProxyProperties proxyProperties;
-    private final String opMonitorAddress;
-    private final CloseableHttpClient opMonitorHttpClient;
+    private final Supplier<OpMonitorClient> opMonitorClientFactory;
+    private OpMonitorClient opMonitorClient;
 
     public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider,
                                           GlobalConfProvider globalConfProvider,
-                                          VaultClient vaultClient,
-                                          ProxyProperties proxyProperties) {
+                                          Supplier<OpMonitorClient> opMonitorClientFactory) {
         super(serverConfProvider, globalConfProvider);
-        this.proxyProperties = proxyProperties;
-        this.opMonitorAddress = getOpMonitorAddress();
-        try {
-            this.opMonitorHttpClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                    proxyProperties.addon().opMonitor().connection(), vaultClient,
-                    serverConfProvider.getSSLKey());
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemException(e);
-        }
+        this.opMonitorClientFactory = opMonitorClientFactory;
     }
 
     @Override
-    public void destroy() {
-        IOUtils.closeQuietly(opMonitorHttpClient);
+    public synchronized void destroy() {
+        if (opMonitorClient != null) {
+            opMonitorClient.close();
+            opMonitorClient = null;
+        }
     }
 
     @Override
@@ -116,60 +111,80 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
                                               OpMonitoringData opMonitoringData) {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
-        var sender = createHttpSender(opMonitorHttpClient);
-        var connectionProps = proxyProperties.addon().opMonitor().connection();
-        sender.setConnectionTimeout(TimeUtils.secondsToMillis(connectionProps.connectionTimeoutSeconds()));
-        sender.setSocketTimeout(TimeUtils.secondsToMillis(connectionProps.socketTimeoutSeconds()));
-        sender.addHeader("accept-encoding", "");
-
-        sendRequest(sender, proxyRequestMessage, opMonitoringData);
-
-        return new ServiceHandlerResult(sender.getResponseContentType(), sender.getResponseContent(), sender);
-    }
-
-    private HttpSender createHttpSender(HttpClient opMonitorClient) {
-        return new HttpSender(opMonitorClient, proxyProperties.clientProxy().poolEnableConnectionReuse());
-    }
-
-    private void sendRequest(HttpSender sender, ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {
-        log.trace("sendRequest {}", opMonitorAddress);
-
-        URI opMonitorUri;
-
         try {
-            opMonitorUri = getOpMonitorUri();
-        } catch (URISyntaxException e) {
-            log.error("Malformed operational monitoring daemon address '{}'", opMonitorAddress, e);
+            var query = writeQuery(proxyRequestMessage);
+            var response = sendQuery(query, proxyRequestMessage.getSoapContentType(), opMonitoringData);
 
-            throw XrdRuntimeException.systemInternalError("Malformed operational monitoring daemon address");
-        }
-
-        log.info("Sending request to {}", opMonitorUri);
-
-        try {
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
-
-            sender.doPost(opMonitorUri, new ProxyMessageSoapEntity(proxyRequestMessage));
-
-            opMonitoringData.setResponseInTs(getEpochMillisecond());
+            return new ServiceHandlerResult(response.getContentType(), response.getResponse().newInput());
         } catch (Exception ex) {
-            if (ex instanceof XrdRuntimeException) {
-                opMonitoringData.setResponseInTs(getEpochMillisecond());
-            }
-
             throw XrdRuntimeException.systemException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
     }
 
-    private String getOpMonitorAddress() {
-        return String.format("%s://%s:%s%s",
-                proxyProperties.addon().opMonitor().connection().scheme(),
-                proxyProperties.addon().opMonitor().connection().host(),
-                proxyProperties.addon().opMonitor().connection().port(),
-                OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
+    private QueryOperationalDataResp sendQuery(byte[] query, String contentType, OpMonitoringData opMonitoringData) {
+        var client = opMonitorClient();
+
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
+
+        QueryOperationalDataResp response;
+        try {
+            response = client.queryOperationalData(query, contentType);
+        } catch (StatusRuntimeException ex) {
+            if (isTransportFailure(ex.getStatus().getCode())) {
+                throw networkError(ex, ex.getStatus().toString());
+            }
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+            var rejection = InboundMessageSizeRejection.from(ex.getStatus());
+            if (rejection.isPresent()) {
+                throw responseTooLarge(rejection.get(), ex);
+            }
+            throw ex;
+        } catch (XrdRuntimeException ex) {
+            if (ex.isCausedBy(NETWORK_ERROR)) {
+                throw networkError(ex, ex.getDetails());
+            }
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+            throw ex;
+        }
+
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
+
+        if (response.getContentType().isEmpty()) {
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE, "Could not get content type from response");
+        }
+        return response;
     }
 
-    private URI getOpMonitorUri() throws URISyntaxException {
-        return new URI(opMonitorAddress);
+    private static boolean isTransportFailure(Status.Code code) {
+        return code == Status.Code.UNAVAILABLE || code == Status.Code.DEADLINE_EXCEEDED || code == Status.Code.CANCELLED;
+    }
+
+    private static XrdRuntimeException networkError(Exception cause, String details) {
+        return XrdRuntimeException.systemException(NETWORK_ERROR)
+                .cause(cause)
+                .details(details)
+                .build();
+    }
+
+    private static XrdRuntimeException responseTooLarge(InboundMessageSizeRejection rejection, Exception cause) {
+        return XrdRuntimeException.systemException(OPERATIONAL_DATA_RESPONSE_TOO_LARGE)
+                .cause(cause)
+                .details("The op-monitor response of %d bytes exceeds the limit of %d bytes set by %s. Lower %s or raise the limit."
+                        .formatted(rejection.size(), rejection.limit(), CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE.key(),
+                                MAX_RECORDS_IN_PAYLOAD.key()))
+                .build();
+    }
+
+    private static byte[] writeQuery(ProxyMessage proxyRequestMessage) throws IOException {
+        var query = new ByteArrayOutputStream();
+        proxyRequestMessage.writeSoapContent(query);
+        return query.toByteArray();
+    }
+
+    private synchronized OpMonitorClient opMonitorClient() {
+        if (opMonitorClient == null) {
+            opMonitorClient = opMonitorClientFactory.get();
+        }
+        return opMonitorClient;
     }
 }

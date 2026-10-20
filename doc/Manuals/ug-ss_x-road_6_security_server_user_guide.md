@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.112
+Version: 2.113
 Doc. ID: UG-SS
 
 ---
@@ -141,6 +141,7 @@ Doc. ID: UG-SS
 | 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
 | 29.09.2026 | 2.111   | Message log archive upload example script demo-upload.pl is no longer included in the Security Server packages                                                                                                                                                                                                                                                                                             | Eneli Reimets        |
 | 13.10.2026 | 2.112   | Added the CA certificate exchange with an external operational monitoring daemon in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). Removed the outdated TLS certificate and gRPC keystore steps from section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)                               | Stefan Cvetkovski    |
+| 19.10.2026 | 2.113   | Updated the Diagnostics traffic limits and the operational monitoring daemon endpoint parameters for gRPC                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -271,7 +272,7 @@ Doc. ID: UG-SS
   - [15.2 Operational Monitoring Daemon](#152-operational-monitoring-daemon)
     - [15.2.1 Configuring the Health Statistics Period](#1521-configuring-the-health-statistics-period)
     - [15.2.2 Configuring the Parameters Related to Database Cleanup](#1522-configuring-the-parameters-related-to-database-cleanup)
-    - [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
+    - [15.2.3 Configuring the Parameters related to the gRPC Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-grpc-endpoint-of-the-operational-monitoring-daemon)
     - [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     - [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
     - [15.2.6 Exchanging CA Certificates with an External Operational Monitoring Daemon](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)
@@ -2694,6 +2695,8 @@ By default, the page displays all the requests handled during the last 7 days. T
 - **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
 - **Status** - the status of the message exchange. The options are "Success" and "Failure".
 
+While the end of the period is before its start, the page sends no request and displays no data. A client of the Security Server REST API that sends such a request, or a request that is outside the supported limits, receives the HTTP status 400 with the error code `operational_data_intervals_out_of_range`. The limits are stated in the OpenAPI definition of the Security Server REST API.
+
 ### 14.3 Security Server Connection Testing
 
 The "Connection Testing" tab in the Diagnostics page allows testing connectivity from the Security Server to the Central Server and other Security Servers.
@@ -2842,22 +2845,40 @@ The following parameters must be placed in the `[op-monitor]` section of the fil
 The parameter `keep-records-for-days` should be edited, for instance if the disk fills up before cleanup occurs, or alternatively, if the default period of 7 days is too short. The parameter `clean-interval` (a Cron expression \[[CRON](#Ref_CRON)\]) defines how often the system checks whether cleanup should be done. If the default period of 12 hours is too long or short it should be edited according to your needs.
 
 
-#### 15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon
+#### 15.2.3 Configuring the Parameters related to the gRPC Endpoint of the Operational Monitoring Daemon
 
-For configuring the endpoint of the operational monitoring daemon, the following parameters are available in the `[op-monitor]` section of the configuration:
+The Security Server communicates with the operational monitoring daemon over gRPC. For configuring the endpoint, the following parameters are available.
 
-**host** – listening host of the daemon (by default the value is set to *localhost*).
+In the configuration of the operational monitoring daemon (the listener):
 
-**port** – listening port (by default the value is set to *2080*).
+`xroad.op-monitor.rpc.listen-address` – listening address of the daemon (by default the value is set to *127.0.0.1*).
 
-**scheme** – connection type (by default the value is set to *HTTP*).
+`xroad.op-monitor.rpc.port` – listening port (by default the value is set to *2081*).
 
-If any of these values are changed, both the proxy and the operational monitoring daemon services must be restarted:
+In the configuration of the Security Server (the channel to the daemon):
+
+`xroad.common-rpc.channel.op-monitor.host` – host of the daemon (by default the value is set to *127.0.0.1*).
+
+`xroad.common-rpc.channel.op-monitor.port` – port of the daemon (by default the value is set to *2081*).
+
+The connection is secured with TLS using the shared internal gRPC identity of the Security Server. The parameter `xroad.common-rpc.use-tls` (by default *true*) turns TLS on or off for all the internal gRPC connections of the Security Server, including this one.
+
+The values are changed in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. A changed value takes effect when the services that use it are restarted:
+
+- after changing the listening address or the port of the daemon, restart the operational monitoring daemon:
+
+```bash
+service xroad-opmonitor restart
+```
+
+- after changing the host or the port of the channel, restart the proxy and the user interface and API services:
 
 ```bash
 service xroad-proxy restart
-service xroad-opmonitor restart
+service xroad-proxy-ui-api restart
 ```
+
+- after changing the parameter `xroad.common-rpc.use-tls`, restart all the X-Road services of the Security Server.
 
 
 #### 15.2.4 Installing an External Operational Monitoring Daemon

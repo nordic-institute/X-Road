@@ -30,8 +30,9 @@ package org.niis.xroad.proxy.core.test;
 import lombok.Getter;
 import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
-import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -207,7 +208,7 @@ public class TestContext {
 
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
                         serverConfProvider, globalConfProvider, proxyProperties, commonProperties,
-                        new NoopVaultClient(), monitorRpcClient,
+                        mock(RpcChannelFactory.class), mock(XRoadConfig.class), monitorRpcClient,
                         httpSenderProvider, httpClientCreator.getHttpClient());
                 serviceHandlerLoader.init();
 

@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
@@ -185,6 +186,24 @@ class ConfigurablePropertiesCatalogueTest {
                 .doesNotContain(
                         "xroad.signer.modules",
                         "xroad.message-log-encryption.archive.grouping-keys");
+    }
+
+    @Test
+    void storedOpMonitorRpcPortIsListedInCatalogue() {
+        when(repository.findAll()).thenReturn(List.of(row()));
+
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties).filteredOn(dto -> "xroad.op-monitor.rpc.port".equals(dto.getPropertyName()))
+                .singleElement()
+                .satisfies(dto -> assertThat(dto.getCurrentValue()).isEqualTo("2091"));
+    }
+
+    private static ConfigurationPropertyEntity row() {
+        var entity = new ConfigurationPropertyEntity();
+        entity.setPropertyKey("xroad.op-monitor.rpc.port");
+        entity.setPropertyValue("2091");
+        return entity;
     }
 
     private static Map<String, ExpectedProperty> expectedCrossModuleProperties() {

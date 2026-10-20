@@ -26,6 +26,7 @@
 package org.niis.xroad.opmonitor.core;
 
 import com.codahale.metrics.MetricRegistry;
+import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Getter;
 
@@ -34,6 +35,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 /**
  * Holds the health data metrics of the operational monitoring daemon, shared by the store and query paths.
  */
+@Startup
 @ApplicationScoped
 class HealthDataRegistry {
 

@@ -71,7 +71,6 @@ public interface VaultClient {
     String LAST_ERROR_KEY = "lastError";
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
-    String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
     String OPMONITOR_CA_PATH = "tls/opmonitor-ca";
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
@@ -92,15 +91,11 @@ public interface VaultClient {
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
-
     InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getManagementServicesTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
-
-    void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 

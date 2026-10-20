@@ -1,0 +1,37 @@
+multipart/related; type="text/xml"; charset=UTF-8; boundary=xroadBOUNDARY
+
+--xroadBOUNDARY\r
+content-type:text/xml; charset=utf-8\r
+\r
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="SUBSYSTEM">
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>00000001</id:memberCode>
+           <id:subsystemCode>System1</id:subsystemCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">  
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>  
+           <id:memberClass>GOV</id:memberClass>  
+           <id:memberCode>00000001</id:memberCode>  
+           <id:serviceCode>getSecurityServerOperationalData</id:serviceCode>  
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:serverCode>00000001_1</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>DBOxxqv2csKysKHNwRCrU4QV0EWkqSUY</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body><om:getSecurityServerOperationalDataResponse><om:recordsCount>0</om:recordsCount><om:records>cid:operational-monitoring-data.json.gz</om:records></om:getSecurityServerOperationalDataResponse></SOAP-ENV:Body>
+</SOAP-ENV:Envelope>\r
+--xroadBOUNDARY\r
+content-type:application/gzip\r
+content-transfer-encoding: binary\r
+content-id: <operational-monitoring-data.json.gz>\r
+\r
+{"records":[]}\r
+--xroadBOUNDARY--\r

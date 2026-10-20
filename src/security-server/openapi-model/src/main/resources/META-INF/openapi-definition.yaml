@@ -2583,7 +2583,18 @@ paths:
         - diagnostics
       summary: view operational information
       operationId: getOperationalDataIntervals
-      description: <h3>Administrator views the Security Server's operational information on diagnostics page</h3>
+      description: >-
+        <h3>Administrator views the Security Server's operational information on diagnostics page</h3>
+        <p>
+        The request is rejected with status 400 and error code <code>operational_data_intervals_out_of_range</code> when
+        <ul>
+        <li>the interval is less than 1 or more than 35791 minutes,</li>
+        <li>records_to is before records_from, or</li>
+        <li>the range divided into intervals would produce more than 100000 time buckets. The number of buckets is
+        <code>max(0, floor(to / interval) - floor(from / interval) + 2)</code>, where from and to are epoch milliseconds
+        and interval is in milliseconds.</li>
+        </ul>
+        </p>
       parameters:
         - in: query
           name: records_from
@@ -2603,7 +2614,7 @@ paths:
             example: '2025-05-15T00:00:00.001Z'
         - in: query
           name: interval
-          description: interval in minutes the requests are divided into
+          description: interval in minutes the requests are divided into, from 1 to 35791. The range must produce at most 100000 time buckets.
           required: true
           schema:
             type: integer
@@ -2643,6 +2654,15 @@ paths:
                 description: array of operational info objects
                 items:
                   $ref: '#/components/schemas/OperationalDataInterval'
+        '400':
+          description: interval, time range or number of time buckets is out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
         '401':
           description: authentication credentials are missing
         '403':

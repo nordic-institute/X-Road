@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+package org.niis.xroad.common.properties.config.keys;
 
-import java.util.ArrayList;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.ConfigCatalogue;
+
 import java.util.List;
-import java.util.Map;
 
-/**
- * Store operational monitoring data request.
- */
-@Setter
-@Getter
-@ToString
-public class StoreOpMonitoringDataRequest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @JsonProperty("records")
-    private final List<Map<String, Object>> records = new ArrayList<>();
+class OpMonitorConfigKeysTest {
 
-    public void addRecord(Map<String, Object> record) {
-        records.add(record);
+    private static final List<String> KEPT_KEYS = List.of(
+            "xroad.op-monitor.rpc.listen-address",
+            "xroad.op-monitor.rpc.port",
+            "xroad.op-monitor.rpc.max-inbound-message-size",
+            "xroad.common-rpc.channel.op-monitor.host",
+            "xroad.common-rpc.channel.op-monitor.port",
+            "xroad.common-rpc.channel.op-monitor.deadline-after",
+            "xroad.common-rpc.channel.op-monitor.max-inbound-message-size");
+
+    private final List<String> catalogueKeys = ConfigCatalogue.from(ConfigKeyProviders.allProviders()).stream()
+            .map(ConfigCatalogue.Entry::key)
+            .toList();
+
+    @Test
+    void keptKeysAreInTheCatalogue() {
+        assertThat(catalogueKeys).containsAll(KEPT_KEYS);
     }
 }

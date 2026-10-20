@@ -54,6 +54,7 @@ dependencies {
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":lib:agreement-token-core"))
   testFixturesImplementation(project(":lib:properties-core"))
+  testFixturesImplementation(project(":lib:rpc-core"))
   testFixturesImplementation(project(":lib:messagelog-core"))
   testFixturesImplementation(project(":service:configuration-client:configuration-client-rpc-client"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
