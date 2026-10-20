@@ -169,16 +169,7 @@ configure_pki() {
     "max_ttl": "87600h"
   }' "$token" "Creating PKI role xrd-internal" || return 1
 
-  echo "[OPENBAO] PKI configuration completed"
-  return 0
-}
-
-configure_policy() {
-  local addr="${1:-$BAO_ADDR}"
-  local token="${2:-$BAO_TOKEN}"
-  local policy policy_payload
-
-  policy=$(cat <<EOF
+  POLICY=$(cat <<EOF
 path "xrd-pki/*" {
   capabilities = ["create", "read", "update", "delete", "list"]
 }
@@ -227,12 +218,12 @@ path "sys/internal/ui/mounts/*" {
 EOF
 )
 
-  policy_payload=$(echo "$policy" | jq -R -s '{ policy: . }')
+  POLICY_PAYLOAD=$(echo "$POLICY" | jq -R -s '{ policy: . }')
 
   bao_api "PUT" "$addr" "/v1/sys/policies/acl/xroad-policy" \
-    "$policy_payload" "$token" "Writing policy" || return 1
+    "$POLICY_PAYLOAD" "$token" "Creating policy" || return 1
 
-  echo "[OPENBAO] Policy configuration completed"
+  echo "[OPENBAO] PKI configuration completed"
   return 0
 }
 

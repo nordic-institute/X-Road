@@ -290,13 +290,6 @@ configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
   exit 1
 }
 
-# The policy is rewritten on every boot so that a persisted store gets the current permissions.
-log "Configuring access policy..."
-configure_policy "$BAO_ADDR" "$BAO_TOKEN" || {
-  warn "Failed to configure access policy"
-  exit 1
-}
-
 regenerate_client_token=true
 if [ -f "$CLIENT_TOKEN_FILE" ]; then
   EXISTING_TOKEN=$(cat "$CLIENT_TOKEN_FILE")
