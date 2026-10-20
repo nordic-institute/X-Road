@@ -37,14 +37,21 @@ import java.util.List;
  * @param fixture      what to create on the provider before the requests
  * @param checks       the requests to send from the consumer Security Server, each with its expected verdict
  * @param waitClass    which propagation delay the verdicts have to wait out
+ * @param knownDefect  the id of the unfixed finding the row hits, or {@code null} for none; the row then asserts
+ *                     the safe verdict and is an expected failure until the finding is fixed
  */
 public record Scenario(String id, String description, FixtureSpec fixture, List<Check> checks,
-                       WaitClass waitClass) {
+                       WaitClass waitClass, String knownDefect) {
+
+    /** A row without a known defect. */
+    public Scenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass) {
+        this(id, description, fixture, checks, waitClass, null);
+    }
 
     /** A row with a single request. */
     public Scenario(String id, String description, FixtureSpec fixture, RequestSpec request, Verdict expected,
                     WaitClass waitClass) {
-        this(id, description, fixture, List.of(new Check(request, expected)), waitClass);
+        this(id, description, fixture, List.of(new Check(request, expected)), waitClass, null);
     }
 
     /**

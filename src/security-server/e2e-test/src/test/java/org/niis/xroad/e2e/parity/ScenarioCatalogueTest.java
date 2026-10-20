@@ -87,9 +87,16 @@ class ScenarioCatalogueTest {
                         tuple("V45", List.of(Verdict.ALLOWED, Verdict.CONSUMER_REJECTED, Verdict.ACCESS_DENIED)),
                         tuple("V46", List.of(Verdict.ALLOWED)),
                         tuple("V47", List.of(Verdict.ALLOWED)),
+                        tuple("V48", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V49", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V50", List.of(Verdict.ALLOWED, Verdict.INTERNAL_ERROR)),
+                        tuple("V51", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V52", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED,
                                 Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED,
                                 Verdict.ACCESS_DENIED)),
+                        tuple("V53", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V54", List.of(Verdict.ACCESS_DENIED)),
+                        tuple("V55", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V60", List.of(Verdict.ALLOWED)),
                         tuple("V61", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V62", List.of(Verdict.ACCESS_DENIED)),
@@ -193,6 +200,39 @@ class ScenarioCatalogueTest {
         assertThat(requestPaths("V45")).containsExactly("/api/x", "/api/%2e%2e/secret", "/../x");
         assertThat(requestPaths("V46")).containsExactly("/api/test/foo/../bar");
         assertThat(requestPaths("V47")).containsExactly("/api/test%2Dbar");
+        assertThat(requestPaths("V48")).containsExactly("/foo/x", "/foo%2Fbar");
+        assertThat(requestPaths("V49")).containsExactly("/public%3Fx");
+        assertThat(requestPaths("V50")).containsExactly("/files/my-file.pdf", "/files/my%20file.pdf");
+        assertThat(requestPaths("V53")).containsExactly("/api/items/1%3F/../../other");
+        assertThat(requestPaths("V54")).containsExactly("/%2F../other");
+    }
+
+    @Test
+    void v54GrantsTheBaseEndpointOnly() {
+        var service = (RestService) scenario("V54").fixture().services().get(0);
+        assertThat(service.grantedConsumerIds()).isNotEmpty();
+        assertThat(service.endpoints()).isEmpty();
+    }
+
+    @Test
+    void patternShapeRowsGrantTheEndpointPathsAsWritten() {
+        assertThat(endpointPaths("V51")).containsExactly("/foo?");
+        assertThat(endpointPaths("V55")).containsExactly("/files/*.json", "/files/ok");
+        assertThat(requestPaths("V51")).containsExactly("/foo", "/fo");
+        assertThat(requestPaths("V55")).containsExactly("/files/ok", "/files/a.json");
+    }
+
+    @Test
+    void onlyTheRowsHittingAnUnfixedFindingCarryAMarkerNamingJustItsId() {
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.knownDefect() != null)
+                .extracting(Scenario::id, Scenario::knownDefect)
+                .containsExactly(tuple("V49", "D3"), tuple("V53", "D3"), tuple("V54", "D12"));
+    }
+
+    @Test
+    void markedRowsAssertTheSafeVerdict() {
+        assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.knownDefect() != null)
+                .allSatisfy(row -> assertThat(expectedVerdicts(row)).containsOnly(Verdict.ACCESS_DENIED));
     }
 
     @Test
@@ -338,6 +378,11 @@ class ScenarioCatalogueTest {
 
     private static List<String> requestPaths(String id) {
         return scenario(id).checks().stream().map(check -> ((RestRequest) check.request()).path()).toList();
+    }
+
+    private static List<String> endpointPaths(String id) {
+        return ((RestService) scenario(id).fixture().services().get(0)).endpoints().stream()
+                .map(EndpointSpec::path).toList();
     }
 
     private static List<Verdict> expectedVerdicts(Scenario scenario) {

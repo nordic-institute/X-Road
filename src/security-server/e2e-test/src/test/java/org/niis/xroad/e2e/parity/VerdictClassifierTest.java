@@ -74,6 +74,13 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void internalErrorFaultIsInternalError() {
+        assertThat(VerdictClassifier.classify(fault("server.serverproxy.internal_error")))
+                .isEqualTo(Verdict.INTERNAL_ERROR);
+        assertThat(VerdictClassifier.classify(fault("server.clientproxy.internal_error"))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
     void badRequestWithoutAnXRoadErrorIsRejectedByTheConsumer() {
         assertThat(VerdictClassifier.classify(new Reply(400, Map.of("Content-Type", "text/html"), "<html/>")))
                 .isEqualTo(Verdict.CONSUMER_REJECTED);

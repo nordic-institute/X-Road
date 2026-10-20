@@ -58,6 +58,8 @@ public final class ScenarioCatalogue {
     /** A Security Server code that no member of the instance registers. */
     public static final String UNREGISTERED_SECURITY_SERVER = "DEV:COM:1234:acl-parity-unregistered";
 
+    private static final String FINDING_D3 = "D3";
+    private static final String FINDING_D12 = "D12";
     private static final String V1 = "v1";
     private static final String GROUP = "partners";
     private static final List<String> CONSUMER_ONLY = List.of(CONSUMER);
@@ -182,6 +184,21 @@ public final class ScenarioCatalogue {
             new Scenario("V47", "Endpoint /api/test-bar granted, the hyphen percent-encoded",
                     endpointOnly("*", "/api/test-bar"),
                     List.of(allowed("GET", "/api/test%2Dbar")), WaitClass.ACL_CACHE),
+            new Scenario("V48", "Endpoint /foo/* granted, an encoded slash inside the segment",
+                    endpointOnly("*", "/foo/*"),
+                    List.of(allowed("GET", "/foo/x"), allowed("GET", "/foo%2Fbar")), WaitClass.ACL_CACHE),
+            new Scenario("V49", "Endpoint /public granted, request path with a percent-encoded character",
+                    endpointOnly("*", "/public"),
+                    List.of(denied("GET", "/public%3Fx")), WaitClass.ACL_CACHE, FINDING_D3),
+            new Scenario("V50", "Any grant on the base endpoint, request path with an encoded space",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    List.of(allowed("GET", "/files/my-file.pdf"),
+                            new Check(new RestRequest(CONSUMER, 0, "GET", "/files/my%20file.pdf"),
+                                    Verdict.INTERNAL_ERROR)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V51", "Endpoint /foo? granted, the question mark read as an optional character",
+                    endpointOnly("*", "/foo?"),
+                    List.of(allowed("GET", "/foo"), allowed("GET", "/fo")), WaitClass.ACL_CACHE),
             new Scenario("V52", "Methods HEAD, OPTIONS, TRACE and PATCH against any-method and specific endpoints",
                     new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
                             new EndpointSpec("*", "/any", CONSUMER_ONLY),
@@ -193,6 +210,19 @@ public final class ScenarioCatalogue {
                             allowed("PATCH", "/any"), allowed("HEAD", "/head"), allowed("OPTIONS", "/options"),
                             allowed("TRACE", "/trace"), allowed("PATCH", "/patch"), denied("PATCH", "/head")),
                     WaitClass.ACL_CACHE),
+            new Scenario("V53", "GET /api/items/* endpoint granted, request path with an encoded character and "
+                    + "dot segments",
+                    endpointOnly("GET", "/api/items/*"),
+                    List.of(denied("GET", "/api/items/1%3F/../../other")), WaitClass.ACL_CACHE, FINDING_D3),
+            new Scenario("V54", "Any grant on the base endpoint, request path with an encoded character and a "
+                    + "dot segment",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
+                    List.of(denied("GET", "/%2F../other")), WaitClass.ACL_CACHE, FINDING_D12),
+            new Scenario("V55", "GET /files/*.json endpoint granted, text after the wildcard in one segment",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
+                            new EndpointSpec("GET", "/files/*.json", CONSUMER_ONLY),
+                            new EndpointSpec("GET", "/files/ok", CONSUMER_ONLY))))),
+                    List.of(allowed("GET", "/files/ok"), denied("GET", "/files/a.json")), WaitClass.ACL_CACHE),
             new Scenario("V60", "Local group granted the base endpoint, consumer is a member",
                     groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)),
                     List.of(allowed("GET", "/a")), WaitClass.ACL_CACHE),

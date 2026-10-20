@@ -61,6 +61,7 @@ public final class VerdictClassifier {
             FAULT_PREFIX + "service_type", Verdict.INVALID_SERVICE_TYPE,
             FAULT_PREFIX + "unknown_member", Verdict.UNKNOWN_MEMBER,
             FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER,
+            FAULT_PREFIX + "internal_error", Verdict.INTERNAL_ERROR,
             CLIENT_FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER);
 
     private VerdictClassifier() {
