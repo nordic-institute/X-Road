@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -42,4 +43,8 @@ public interface JpaSystemParameterRepository extends CrudRepository<SystemParam
     Optional<SystemParameterEntity> findByKeyAndHaNodeName(String key, String haNodeName);
 
     List<SystemParameterEntity> findByKey(String key);
+
+    @Override
+    @Query(value = "SELECT pg_advisory_xact_lock(hashtext(:key))", nativeQuery = true)
+    void lockKeyForWrite(String key);
 }

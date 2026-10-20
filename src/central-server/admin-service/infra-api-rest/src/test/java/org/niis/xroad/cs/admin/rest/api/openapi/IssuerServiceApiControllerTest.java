@@ -68,6 +68,22 @@ class IssuerServiceApiControllerTest {
     }
 
     @Test
+    void settingADifferentHostIsReflectedByTheNextGet() {
+        when(issuerHostService.getState()).thenReturn(new IssuerHostState("first.example.org", false));
+        assertThat(issuerServiceApiController.getIssuerServiceState().getBody().getHost()).isEqualTo("first.example.org");
+
+        when(issuerHostService.setHost("second.example.org")).thenReturn(new IssuerHostState("second.example.org", false));
+        issuerServiceApiController.setIssuerServiceHost(new IssuerServiceHostDto().host("second.example.org"));
+
+        when(issuerHostService.getState()).thenReturn(new IssuerHostState("second.example.org", false));
+        var response = issuerServiceApiController.getIssuerServiceState();
+
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getHost()).isEqualTo("second.example.org");
+        assertThat(response.getBody().getBound()).isFalse();
+    }
+
+    @Test
     void setIssuerServiceHostAuditsTheNewHostAndStoresIt() {
         when(issuerHostService.setHost("cs.example.org")).thenReturn(new IssuerHostState("cs.example.org", false));
 

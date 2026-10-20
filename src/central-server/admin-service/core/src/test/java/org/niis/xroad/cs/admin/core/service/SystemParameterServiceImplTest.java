@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -48,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -97,6 +99,17 @@ class SystemParameterServiceImplTest {
                         centralServerAddress
                 );
         assertEquals(centralServerAddress, systemParameter.getValue());
+        verify(systemParameterRepository, never()).lockKeyForWrite(any());
+    }
+
+    @Test
+    void sharedParameterIsLockedBeforeTheExistingRowLookup() {
+        InOrder order = inOrder(systemParameterRepository);
+
+        systemParameterService.updateOrCreateParameter(INSTANCE_IDENTIFIER, "VALID_INSTANCE");
+
+        order.verify(systemParameterRepository).lockKeyForWrite(INSTANCE_IDENTIFIER);
+        order.verify(systemParameterRepository).findByKey(INSTANCE_IDENTIFIER);
     }
 
     @Test

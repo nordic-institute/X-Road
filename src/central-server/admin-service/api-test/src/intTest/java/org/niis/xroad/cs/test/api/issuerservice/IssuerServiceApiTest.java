@@ -50,30 +50,32 @@ class IssuerServiceApiTest extends CsApiTest {
     void settingTheHostIsReflectedByTheNextGet(CsBaselineSeeder seeder) {
         var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
 
-        // There is no API to clear the host, and the destructive phase may have already bound it on a
-        // warm, reused stack: pass whether the host starts unset or already set.
-        var hostBeforeSet = given("the current issuer service host", () ->
+        // The seeder sets a host before any test runs. Setting that host again keeps the seeded host for
+        // the tests that follow; the destructive phase covers changing it to a different host.
+        var stateBeforeSet = given("the current issuer service state", () ->
                 issuerService.getIssuerServiceState()
                         .statusCode(200)
-                        .extract().jsonPath().getString("host"));
+                        .extract().jsonPath());
 
-        if (hostBeforeSet == null) {
-            when("a host is set", () ->
-                    issuerService.setIssuerServiceHost("cs.example.org")
+        var host = stateBeforeSet.getString("host");
+
+        if (!stateBeforeSet.getBoolean("bound")) {
+            when("the current host is set again", () ->
+                    issuerService.setIssuerServiceHost(host)
                             .statusCode(200)
-                            .body("host", equalTo("cs.example.org"))
+                            .body("host", equalTo(host))
                             .body("bound", equalTo(false)));
 
-            then("a following get returns the host that was set", () ->
+            then("a following get returns the same host", () ->
                     issuerService.getIssuerServiceState()
                             .statusCode(200)
-                            .body("host", equalTo("cs.example.org"))
+                            .body("host", equalTo(host))
                             .body("bound", equalTo(false)));
         } else {
-            then("a following get still returns the already-set host", () ->
+            then("a following get still returns the already-bound host", () ->
                     issuerService.getIssuerServiceState()
                             .statusCode(200)
-                            .body("host", equalTo(hostBeforeSet)));
+                            .body("host", equalTo(host)));
         }
     }
 

@@ -228,6 +228,30 @@ class IssuerHostServiceImplTest {
     }
 
     /**
+     * Exercises the real {@link SystemParameterServiceImpl} behind a fake repository so that changing
+     * the host to a different valid value while unbound is proven to actually replace the stored value,
+     * not merely return it in the response, with the next read reflecting the change.
+     */
+    @Test
+    void setHostChangesToADifferentHostWhileUnboundAndTheNextReadReturnsIt() {
+        var repository = new FakeSystemParameterRepository();
+        var haConfigStatus = mock(HAConfigStatus.class);
+        var realSystemParameterService = new SystemParameterServiceImpl(repository, haConfigStatus, new SystemParameterMapperImpl());
+        var dataspaceIssuerDidServiceMock = mock(DataspaceIssuerDidService.class);
+        when(dataspaceIssuerDidServiceMock.findAll()).thenReturn(List.of());
+        var realIssuerHostService =
+                new IssuerHostServiceImpl(realSystemParameterService, dataspaceIssuerDidServiceMock, new DnsNameValidator());
+
+        realIssuerHostService.setHost("first.example.org");
+        var state = realIssuerHostService.setHost("second.example.org");
+
+        assertEquals("second.example.org", state.host());
+        assertFalse(state.bound());
+        assertEquals("second.example.org", realIssuerHostService.getState().host());
+        assertEquals(1, repository.rowCount());
+    }
+
+    /**
      * Proves {@code getState()} has no cache of its own: a value changed directly in {@code system_parameters},
      * bypassing {@code setHost}, is seen by the very next call.
      */
@@ -279,6 +303,11 @@ class IssuerHostServiceImplTest {
         @Override
         public List<SystemParameterEntity> findByKey(String key) {
             return rows.stream().filter(row -> key.equals(row.getKey())).toList();
+        }
+
+        @Override
+        public void lockKeyForWrite(String key) {
+            // single-process fake with no concurrent writers: nothing to serialise against
         }
 
         @Override

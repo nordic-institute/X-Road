@@ -147,6 +147,11 @@ class DataspaceIssuerHostReadersIntegrationTest {
         }
 
         @Override
+        public void lockKeyForWrite(String key) {
+            // single-process fake with no concurrent writers: nothing to serialise against
+        }
+
+        @Override
         public <S extends SystemParameterEntity> S save(S entity) {
             if (rows.stream().noneMatch(row -> row == entity)) {
                 rows.add(entity);

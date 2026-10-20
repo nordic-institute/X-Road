@@ -185,6 +185,10 @@ public class SystemParameterServiceImpl implements SystemParameterService {
 
     @Override
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
+        if (!isNodeLocalParameter(lookupKey)) {
+            systemParameterRepository.lockKeyForWrite(lookupKey);
+        }
+
         Optional<SystemParameterEntity> systemParameter =
                 getSystemParameterOptional(lookupKey);
 
