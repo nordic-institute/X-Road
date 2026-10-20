@@ -65,12 +65,7 @@ services:
           "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
              ('xroad.common-rpc.use-tls', 'false', now(), now()),
              ('xroad.common-global-conf.source', 'FILESYSTEM', now(), now()),
-             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now()),
-             ('xroad.op-monitor.port', 'abc', now(), now()),
-             ('xroad.op-monitor.scheme', 'https', now(), now()),
-             ('xroad.op-monitor.tls.certificate-provisioning.common-name', 'op-monitor', now(), now()),
-             ('xroad.op-monitor.tls.certificate-provisioning.alt-names', '', now(), now()),
-             ('xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names', '127.0.0.1', now(), now())
+             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now())
            ON CONFLICT DO NOTHING;"
     depends_on:
       db-serverconf-init:

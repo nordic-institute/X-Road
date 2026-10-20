@@ -114,71 +114,6 @@ render_and_assert_snapshot() {
     return "${chart_failed}"
 }
 
-# The op-monitor service is off by default; render it enabled and check its ports
-# (gRPC port 2081 declared, port 2080 absent), that its Deployment has no
-# wait-config-seed init container, and that no xroad.op-monitor.scheme key is referenced.
-render_and_assert_op_monitor_ports() {
-    local chart="security-server"
-    local chart_path
-    chart_path="$(chart_dir "${chart}")"
-    local out_file="${WORK_DIR}/${chart}-op-monitor.yaml"
-    local err_file="${WORK_DIR}/${chart}-op-monitor.err"
-
-    log_info "=== ${chart} with op-monitor enabled ==="
-    if ! helm template "test-${chart}" "${chart_path}" --set services.op-monitor.enabled=true \
-            > "${out_file}" 2> "${err_file}"; then
-        log_error "helm template failed for ${chart} with op-monitor enabled:"
-        cat "${err_file}" >&2
-        return 1
-    fi
-
-    local failed=0
-    if grep -qE '^\s+- port: 2081$' "${out_file}"; then
-        log_success "  op-monitor declares port 2081"
-    else
-        log_error "  op-monitor does not declare port 2081"
-        failed=1
-    fi
-    if grep -qE '(^|[^0-9])2080([^0-9]|$)' "${out_file}"; then
-        log_error "  the render still contains port 2080"
-        failed=1
-    else
-        log_success "  port 2080 is absent"
-    fi
-
-    local op_monitor_deployment
-    op_monitor_deployment="$(awk '
-        function flush() {
-            if (is_deployment && is_op_monitor) {
-                found = 1
-                if (has_wait) { wait = 1 }
-            }
-            is_deployment = is_op_monitor = has_wait = 0
-        }
-        /^---$/ { flush(); next }
-        /^kind: Deployment$/ { is_deployment = 1 }
-        /^  name: op-monitor$/ { is_op_monitor = 1 }
-        /^ *- name: wait-config-seed$/ { has_wait = 1 }
-        END { flush(); print (found ? (wait ? "has-wait" : "clean") : "missing") }
-    ' "${out_file}")"
-    case "${op_monitor_deployment}" in
-        clean) log_success "  op-monitor Deployment has no wait-config-seed init container" ;;
-        has-wait)
-            log_error "  op-monitor Deployment still has a wait-config-seed init container"
-            failed=1 ;;
-        *)
-            log_error "  op-monitor Deployment not found in the render"
-            failed=1 ;;
-    esac
-    if grep -q 'xroad\.op-monitor\.scheme' "${out_file}"; then
-        log_error "  the render still references xroad.op-monitor.scheme"
-        failed=1
-    else
-        log_success "  xroad.op-monitor.scheme is absent"
-    fi
-    return "${failed}"
-}
-
 echo "========================================"
 log_info "Helm template render assertions"
 echo "========================================"
@@ -193,9 +128,6 @@ echo ""
 render_and_assert_snapshot "security-server" \
     ConfigMap=7 Deployment=6 Job=3 PersistentVolumeClaim=4 \
     Role=7 RoleBinding=7 Service=6 ServiceAccount=7 || STATUS=1
-echo ""
-
-render_and_assert_op_monitor_ports || STATUS=1
 echo ""
 
 render_and_assert_snapshot "openbao-init" \

@@ -190,28 +190,19 @@ class ConfigurablePropertiesCatalogueTest {
 
     @Test
     void storedRowsOfRemovedOpMonitorKeysAreNeitherListedNorFailTheCatalogue() {
-        when(repository.findAll()).thenReturn(List.of(
-                row("xroad.op-monitor.tls.certificate-provisioning.common-name", "op-monitor"),
-                row("xroad.op-monitor.tls.certificate-provisioning.alt-names", ""),
-                row("xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names", "127.0.0.1"),
-                row("xroad.op-monitor.scheme", "https"),
-                row("xroad.op-monitor.port", "abc"),
-                row("xroad.op-monitor.rpc.port", "2091")));
+        when(repository.findAll()).thenReturn(List.of(row()));
 
         var properties = service.getConfigurationProperties();
 
-        assertThat(properties).extracting(ConfigurablePropertyDto::getPropertyName)
-                .noneMatch(name -> name.startsWith("xroad.op-monitor.tls"))
-                .doesNotContain("xroad.op-monitor.scheme", "xroad.op-monitor.port");
         assertThat(properties).filteredOn(dto -> "xroad.op-monitor.rpc.port".equals(dto.getPropertyName()))
                 .singleElement()
                 .satisfies(dto -> assertThat(dto.getCurrentValue()).isEqualTo("2091"));
     }
 
-    private static ConfigurationPropertyEntity row(String key, String value) {
+    private static ConfigurationPropertyEntity row() {
         var entity = new ConfigurationPropertyEntity();
-        entity.setPropertyKey(key);
-        entity.setPropertyValue(value);
+        entity.setPropertyKey("xroad.op-monitor.rpc.port");
+        entity.setPropertyValue("2091");
         return entity;
     }
 

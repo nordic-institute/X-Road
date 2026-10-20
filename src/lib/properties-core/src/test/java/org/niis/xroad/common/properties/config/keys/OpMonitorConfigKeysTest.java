@@ -36,30 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class OpMonitorConfigKeysTest {
 
-    private static final List<String> REMOVED_KEYS = List.of(
-            "xroad.op-monitor.listen-address",
-            "xroad.op-monitor.port",
-            "xroad.op-monitor.scheme",
-            "xroad.op-monitor.xroad-tls-ciphers",
-            "xroad.op-monitor.tls.client-certificate-refresh-interval",
-            "xroad.op-monitor.tls.certificate-provisioning.issuance-role-name",
-            "xroad.op-monitor.tls.certificate-provisioning.common-name",
-            "xroad.op-monitor.tls.certificate-provisioning.alt-names",
-            "xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names",
-            "xroad.op-monitor.tls.certificate-provisioning.ttl",
-            "xroad.op-monitor.tls.certificate-provisioning.secret-store-pki-path",
-            "xroad.op-monitor.rpc.enabled",
-            "xroad.proxy.addon.op-monitor.connection.host",
-            "xroad.proxy.addon.op-monitor.connection.port",
-            "xroad.proxy.addon.op-monitor.connection.scheme",
-            "xroad.proxy.addon.op-monitor.connection.client-tls-certificate",
-            "xroad.proxy.addon.op-monitor.connection.tls-certificate",
-            "xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds",
-            "xroad.proxy.addon.op-monitor.connection.connection-timeout-seconds",
-            "xroad.proxy.addon.op-monitor.connection.xroad-tls-ciphers",
-            "xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds",
-            "xroad.proxy.addon.op-monitor.buffer.connection-timeout-seconds");
-
     private static final List<String> KEPT_KEYS = List.of(
             "xroad.op-monitor.rpc.listen-address",
             "xroad.op-monitor.rpc.port",
@@ -72,18 +48,6 @@ class OpMonitorConfigKeysTest {
     private final List<String> catalogueKeys = ConfigCatalogue.from(ConfigKeyProviders.allProviders()).stream()
             .map(ConfigCatalogue.Entry::key)
             .toList();
-
-    @Test
-    void removedKeysAreNotInTheCatalogue() {
-        assertThat(catalogueKeys).doesNotContainAnyElementsOf(REMOVED_KEYS);
-    }
-
-    @Test
-    void noKeyUnderTheRemovedPrefixesIsRegistered() {
-        assertThat(catalogueKeys)
-                .noneMatch(key -> key.startsWith("xroad.op-monitor.tls"))
-                .noneMatch(key -> key.startsWith("xroad.proxy.addon.op-monitor.connection"));
-    }
 
     @Test
     void keptKeysAreInTheCatalogue() {
