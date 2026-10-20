@@ -48,9 +48,11 @@ import org.niis.xroad.e2e.parity.KnownDefectMarker.Judgement;
 import org.niis.xroad.e2e.parity.RestRequests;
 import org.niis.xroad.e2e.parity.RestSender;
 import org.niis.xroad.e2e.parity.Scenario;
+import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
+import org.niis.xroad.e2e.parity.Scenario.Transport;
 import org.niis.xroad.e2e.parity.ScenarioCatalogue;
 import org.niis.xroad.e2e.parity.ScenarioVerdicts;
 import org.niis.xroad.e2e.parity.ScenarioVerdicts.Outcome;
@@ -169,15 +171,16 @@ class AclParityTest extends E2eTest {
         var proxy = env.getContainerMapping(SS1_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         var proxyOrigin = "http://%s:%s".formatted(proxy.host(), proxy.port());
         var providerClientId = scenario.fixture().providerClientId();
-        var serviceCode = plan.serviceCodes().get(request.serviceIndex());
         return switch (request) {
             case RestRequest rest -> {
+                var serviceCode = plan.serviceCodes().get(rest.serviceIndex());
                 var reply = RestSender.send(rest.method(),
                         RestRequests.url(proxyOrigin, providerClientId, serviceCode, rest.path()),
                         RestRequests.clientHeader(rest.consumerClientId()));
                 yield new Observation(VerdictClassifier.classify(reply), VerdictClassifier.describe(reply));
             }
             case SoapRequest soap -> {
+                var serviceCode = plan.serviceCodes().get(soap.serviceIndex());
                 var reply = Replies.toReply(RestAssuredFactory.given()
                         .header("Content-Type", "text/xml")
                         .body(SoapRequests.envelope(soap.consumerClientId(), providerClientId, serviceCode,
@@ -185,6 +188,26 @@ class AclParityTest extends E2eTest {
                         .post(proxyOrigin));
                 yield new Observation(VerdictClassifier.classifySoap(reply), VerdictClassifier.describeSoap(reply));
             }
+            case MetaserviceRequest meta -> callMetaservice(proxyOrigin, providerClientId, plan, meta);
         };
+    }
+
+    private static Observation callMetaservice(String proxyOrigin, String providerClientId, FixturePlan plan,
+                                               MetaserviceRequest meta) {
+        var target = meta.serviceIndex() == MetaserviceRequest.NO_SERVICE
+                ? null : plan.serviceCodes().get(meta.serviceIndex());
+        var required = meta.expectation().required(plan.serviceCodes());
+        var forbidden = meta.expectation().forbidden(plan.serviceCodes());
+        var reply = meta.transport() == Transport.REST
+                ? RestSender.send(meta.method(),
+                        RestRequests.metaserviceUrl(proxyOrigin, providerClientId, meta.code(), target),
+                        RestRequests.clientHeader(meta.consumerClientId()), "application/json")
+                : Replies.toReply(RestAssuredFactory.given()
+                        .header("Content-Type", "text/xml")
+                        .body(SoapRequests.metaserviceEnvelope(meta.consumerClientId(), providerClientId, meta.code(),
+                                target, meta.targetVersion(), "acl-parity-" + UUID.randomUUID()))
+                        .post(proxyOrigin));
+        return new Observation(VerdictClassifier.classifyMetaservice(reply, required, forbidden),
+                VerdictClassifier.describeMetaservice(reply, required, forbidden));
     }
 }

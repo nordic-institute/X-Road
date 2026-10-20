@@ -125,6 +125,49 @@ class SoapRequestsTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void metaserviceEnvelopeWithoutATargetCallsTheMetaserviceWithAnEmptyBody() throws Exception {
+        var xml = SoapRequests.metaserviceEnvelope(CONSUMER, PROVIDER, "listMethods", null, null, "ID-9");
+
+        var doc = parse(xml);
+
+        assertThat(xml)
+                .contains("<iden:serviceCode>listMethods</iden:serviceCode>")
+                .contains("<xro:id>ID-9</xro:id>")
+                .doesNotContain("serviceVersion")
+                .doesNotContain("securityServer")
+                .doesNotContain("null");
+        assertThat(doc.getElementsByTagNameNS("http://x-road.eu/xsd/xroad.xsd", "listMethods").getLength())
+                .isEqualTo(1);
+        assertThat(doc.getElementsByTagNameNS("http://x-road.eu/xsd/xroad.xsd", "serviceCode").getLength()).isZero();
+    }
+
+    @Test
+    void metaserviceEnvelopeWithATargetNamesItInTheBody() throws Exception {
+        var xml = SoapRequests.metaserviceEnvelope(CONSUMER, PROVIDER, "getWsdl", "pab-v92", null, "ID-9");
+
+        var doc = parse(xml);
+
+        var target = doc.getElementsByTagNameNS("http://x-road.eu/xsd/xroad.xsd", "serviceCode");
+        assertThat(target.getLength()).isEqualTo(1);
+        assertThat(target.item(0).getTextContent()).isEqualTo("pab-v92");
+        assertThat(target.item(0).getParentNode().getLocalName()).isEqualTo("getWsdl");
+        assertThat(xml).contains("<iden:serviceCode>getWsdl</iden:serviceCode>").doesNotContain("serviceVersion");
+    }
+
+    @Test
+    void metaserviceEnvelopeWithATargetVersionNamesItBesideTheTargetCode() throws Exception {
+        var xml = SoapRequests.metaserviceEnvelope(CONSUMER, PROVIDER, "getWsdl", "pab-v92", "v1", "ID-9");
+
+        var doc = parse(xml);
+
+        var version = doc.getElementsByTagNameNS("http://x-road.eu/xsd/xroad.xsd", "serviceVersion");
+        assertThat(version.getLength()).isEqualTo(1);
+        assertThat(version.item(0).getTextContent()).isEqualTo("v1");
+        assertThat(version.item(0).getParentNode().getLocalName()).isEqualTo("getWsdl");
+        assertThat(xml).doesNotContain("iden:serviceVersion");
+    }
+
     private static Document parse(String xml) throws Exception {
         var factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);

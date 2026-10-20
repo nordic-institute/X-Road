@@ -36,11 +36,13 @@ import org.niis.xroad.e2e.parity.Scenario.Disable;
 import org.niis.xroad.e2e.parity.Scenario.EditedTo;
 import org.niis.xroad.e2e.parity.Scenario.Enable;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
+import org.niis.xroad.e2e.parity.Scenario.Expectation;
 import org.niis.xroad.e2e.parity.Scenario.FixtureSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.GlobalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.Grant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
+import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.Phase;
@@ -52,6 +54,7 @@ import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.Revoke;
 import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
 import org.niis.xroad.e2e.parity.Scenario.SwapOpenApiSpec;
+import org.niis.xroad.e2e.parity.Scenario.Transport;
 import org.niis.xroad.e2e.parity.Scenario.UndefinedService;
 import org.niis.xroad.e2e.parity.Scenario.WaitClass;
 import org.niis.xroad.e2e.parity.Scenario.WsdlService;
@@ -76,6 +79,13 @@ public final class ScenarioCatalogue {
     public static final String DISABLED_NOTICE = "Scheduled maintenance, please retry later";
 
     private static final String V1 = "v1";
+    private static final String LIST_METHODS = "listMethods";
+    private static final String ALLOWED_METHODS = "allowedMethods";
+    private static final String GET_WSDL = "getWsdl";
+    private static final int NO_SERVICE = MetaserviceRequest.NO_SERVICE;
+    /** What a metaservice reply shows in place of a backend's own address. */
+    private static final String MASKED_ADDRESS = "example.org/xroad-endpoint";
+    private static final String BACKEND_ADDRESS = "isrest:8080";
     private static final String GROUP = "partners";
     private static final String GLOBAL_GROUP = "everyone";
     private static final List<String> CONSUMER_ONLY = List.of(CONSUMER);
@@ -332,6 +342,52 @@ public final class ScenarioCatalogue {
                             List.of(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)), List.of(),
                             List.of(new GlobalGroupSpec(GLOBAL_GROUP, CONSUMER_ONLY))),
                     List.of(allowed("GET", "/a"), allowed("GET", "/b")), WaitClass.GLOBALCONF),
+            new Scenario("V90", "listMethods needs no grant and lists disabled services too",
+                    new FixtureSpec(PROVIDER, List.of(new WsdlService(WsdlShape.SINGLE, "", List.of(List.of())),
+                            new RestService(List.of()), new RestService(List.of())), List.of(),
+                            List.of(new Disable(0, null), new Disable(2, null))),
+                    List.of(allowed(MetaserviceRequest.soap(CONSUMER, LIST_METHODS, NO_SERVICE,
+                                    Expectation.listing(List.of(0), List.of(1, 2)))),
+                            allowed(MetaserviceRequest.rest(CONSUMER, LIST_METHODS, NO_SERVICE,
+                                    Expectation.listing(List.of(1, 2), List.of(0))))),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V91", "allowedMethods lists only the services and endpoints the caller is granted",
+                    new FixtureSpec(PROVIDER, List.of(
+                            new WsdlService(WsdlShape.SINGLE, "", List.of(CONSUMER_ONLY)),
+                            new WsdlService(WsdlShape.SINGLE, "", List.of(List.of())),
+                            new RestService(List.of(), List.of(new EndpointSpec("GET", "/foo", CONSUMER_ONLY))),
+                            new RestService(List.of()))),
+                    List.of(allowed(MetaserviceRequest.soap(CONSUMER, ALLOWED_METHODS, NO_SERVICE,
+                                    Expectation.listing(List.of(0), List.of(1)))),
+                            allowed(MetaserviceRequest.rest(CONSUMER, ALLOWED_METHODS, NO_SERVICE,
+                                    new Expectation(List.of("/foo"), List.of("**"), List.of(2), List.of(3))))),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V92", "getWsdl of a WSDL service, a REST service and a service no description defines",
+                    new FixtureSpec(PROVIDER, List.of(new WsdlService(WsdlShape.SINGLE, "", List.of(List.of())),
+                            new RestService(List.of()), new UndefinedService())),
+                    List.of(allowed(MetaserviceRequest.soap(CONSUMER, GET_WSDL, 0, "v1",
+                                    Expectation.listing(List.of(0), List.of()))),
+                            new Check(MetaserviceRequest.soap(CONSUMER, GET_WSDL, 1, Expectation.NONE),
+                                    Verdict.INVALID_SERVICE_TYPE),
+                            new Check(MetaserviceRequest.soap(CONSUMER, GET_WSDL, 2, Expectation.NONE),
+                                    Verdict.UNKNOWN_SERVICE)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V93", "getOpenAPI needs no grant and ignores a disabled description",
+                    new FixtureSpec(PROVIDER, List.of(new OpenApiService(OpenApiSpec.STATUS_ONLY, List.of(),
+                            List.of(), null)), List.of(), List.of(new Disable(0, null))),
+                    List.of(allowed(MetaserviceRequest.rest(CONSUMER, "getOpenAPI", 0,
+                            Expectation.carrying("/status")))),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V94", "REST metaservice code called with POST is an unknown service",
+                    new FixtureSpec(PROVIDER, List.of(new RestService(List.of()))),
+                    List.of(new Check(new MetaserviceRequest(CONSUMER, Transport.REST, LIST_METHODS, "POST",
+                            NO_SERVICE, null, Expectation.NONE), Verdict.UNKNOWN_SERVICE)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V99", "getWsdl of a WSDL with a SOAP 1.2 address shows the Security Server's address",
+                    wsdl(WsdlShape.SOAP12, "", List.of(List.of())),
+                    List.of(allowed(MetaserviceRequest.soap(CONSUMER, GET_WSDL, 0, "v1",
+                            Expectation.masked(MASKED_ADDRESS, BACKEND_ADDRESS)))),
+                    WaitClass.ACL_CACHE),
             new Scenario("V120", "Granted service disabled with a notice",
                     changed(new Disable(0, DISABLED_NOTICE)),
                     List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.SERVICE_DISABLED,
@@ -406,6 +462,10 @@ public final class ScenarioCatalogue {
 
     private static Check allowed(int serviceIndex, String method, String path) {
         return new Check(new RestRequest(CONSUMER, serviceIndex, method, path), Verdict.ALLOWED);
+    }
+
+    private static Check allowed(MetaserviceRequest request) {
+        return new Check(request, Verdict.ALLOWED);
     }
 
     private static Check denied(String method, String path) {

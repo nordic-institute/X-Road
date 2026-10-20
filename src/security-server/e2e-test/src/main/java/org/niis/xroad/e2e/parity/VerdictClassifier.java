@@ -26,6 +26,7 @@
 
 package org.niis.xroad.e2e.parity;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -98,6 +99,55 @@ public final class VerdictClassifier {
         }
         var success = reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS;
         return success && reply.body().contains(SOAP_BACKEND_MARKER) ? Verdict.ALLOWED : Verdict.ERROR;
+    }
+
+    /**
+     * Classifies a REST or SOAP metaservice answer. A fault, in the body or in the {@code X-Road-Error} header,
+     * decides the verdict; without one, a 2xx answer is {@link Verdict#ALLOWED} only when it carries every required
+     * text and none of the forbidden ones, so a list that has not yet caught up with a change reads as
+     * {@link Verdict#ERROR} and is polled again. Texts match as whole tokens, see {@link Scenario.Expectation}.
+     */
+    public static Verdict classifyMetaservice(Reply reply, List<String> required, List<String> forbidden) {
+        if (reply == null) {
+            return Verdict.ERROR;
+        }
+        var fault = FAULT_CODE.matcher(reply.body());
+        if (fault.find()) {
+            return FAULTS.getOrDefault(fault.group(1), Verdict.ERROR);
+        }
+        if (reply.header(ERROR_HEADER) != null) {
+            return FAULTS.getOrDefault(reply.header(ERROR_HEADER).trim(), Verdict.ERROR);
+        }
+        var success = reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS;
+        return success && missing(reply, required).isEmpty() && present(reply, forbidden).isEmpty()
+                ? Verdict.ALLOWED : Verdict.ERROR;
+    }
+
+    /** What a metaservice answer says, for failure messages: its fault or status, and the texts it got wrong. */
+    public static String describeMetaservice(Reply reply, List<String> required, List<String> forbidden) {
+        return "%s; missing %s; unexpected %s".formatted(faultOrStatus(reply), missing(reply, required),
+                present(reply, forbidden));
+    }
+
+    private static String faultOrStatus(Reply reply) {
+        var fault = FAULT_CODE.matcher(reply.body());
+        if (fault.find()) {
+            return "fault " + fault.group(1);
+        }
+        var header = reply.header(ERROR_HEADER);
+        return header == null ? "status " + reply.status() : "x-road-error " + header;
+    }
+
+    private static List<String> missing(Reply reply, List<String> required) {
+        return required.stream().filter(text -> !mentions(reply.body(), text)).toList();
+    }
+
+    private static List<String> present(Reply reply, List<String> forbidden) {
+        return forbidden.stream().filter(text -> mentions(reply.body(), text)).toList();
+    }
+
+    private static boolean mentions(String body, String text) {
+        return Pattern.compile("(?<![\\w.-])" + Pattern.quote(text) + "(?![\\w.-])").matcher(body).find();
     }
 
     /**

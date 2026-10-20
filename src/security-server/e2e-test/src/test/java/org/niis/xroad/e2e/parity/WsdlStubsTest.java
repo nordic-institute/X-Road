@@ -58,6 +58,15 @@ class WsdlStubsTest {
         }
     }
 
+    @Test
+    void theSoap12StubBindsAndAddressesTheServiceWithSoap12() throws IOException {
+        assertThat(stub(WsdlShape.SOAP12))
+                .contains("xmlns:soap12=\\\"http://schemas.xmlsoap.org/wsdl/soap12/\\\"")
+                .contains("<soap12:binding")
+                .contains("<soap12:address location=\\\"http://isrest:8080/acl-parity/soap/")
+                .doesNotContain("soap:address");
+    }
+
     private static String stub(WsdlShape shape) throws IOException {
         return Files.readString(MAPPINGS.resolve("acl_parity_wsdl_" + shape.name().toLowerCase(Locale.ROOT) + ".json"));
     }

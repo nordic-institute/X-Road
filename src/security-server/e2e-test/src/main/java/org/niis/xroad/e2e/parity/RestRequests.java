@@ -47,6 +47,18 @@ public final class RestRequests {
         return "%s/r1/%s/%s%s".formatted(proxyOrigin, slashed(providerClientId), serviceCode, path);
     }
 
+    /**
+     * @param proxyOrigin      scheme, host and port of the consumer's proxy
+     * @param providerClientId the service owner in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param metaserviceCode  the metaservice code, for example {@code listMethods}
+     * @param targetServiceCode the service code the metaservice is asked about, or {@code null} for none
+     */
+    public static String metaserviceUrl(String proxyOrigin, String providerClientId, String metaserviceCode,
+                                        String targetServiceCode) {
+        var url = url(proxyOrigin, providerClientId, metaserviceCode, "");
+        return targetServiceCode == null ? url : url + "?serviceCode=" + targetServiceCode;
+    }
+
     /** The {@code x-road-client} header value for a client in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form. */
     public static String clientHeader(String clientId) {
         return slashed(clientId);

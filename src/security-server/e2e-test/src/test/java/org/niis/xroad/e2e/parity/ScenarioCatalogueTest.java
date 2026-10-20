@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.Scenario.EndpointSpec;
 import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
+import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
@@ -40,6 +41,7 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,6 +122,13 @@ class ScenarioCatalogueTest {
                         tuple("V74", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V75", List.of(Verdict.ACCESS_DENIED, Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V77", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V90", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V91", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V92", List.of(Verdict.ALLOWED, Verdict.INVALID_SERVICE_TYPE,
+                                Verdict.UNKNOWN_SERVICE)),
+                        tuple("V93", List.of(Verdict.ALLOWED)),
+                        tuple("V94", List.of(Verdict.UNKNOWN_SERVICE)),
+                        tuple("V99", List.of(Verdict.ALLOWED)),
                         tuple("V120", List.of(Verdict.SERVICE_DISABLED)),
                         tuple("V121", List.of(Verdict.ACCESS_DENIED)),
                         tuple("V122", List.of(Verdict.SERVICE_DISABLED, Verdict.SERVICE_DISABLED)),
@@ -449,6 +458,80 @@ class ScenarioCatalogueTest {
         var request = (SoapRequest) scenario("V132b").checks().get(0).request();
 
         assertThat(request.serviceVersion()).isNull();
+    }
+
+    @Test
+    void everyAllowedMetaserviceCheckStatesWhatTheReplyHasToSay() {
+        assertThat(ScenarioCatalogue.all()).flatExtracting(Scenario::checks)
+                .filteredOn(check -> check.request() instanceof MetaserviceRequest && check.expected() == Verdict.ALLOWED)
+                .isNotEmpty()
+                .allSatisfy(check -> assertThat(((MetaserviceRequest) check.request()).expectation().isEmpty())
+                        .isFalse());
+    }
+
+    @Test
+    void metaserviceIndicesPointAtAServiceCodeOfTheFixtureOrNone() {
+        var metaserviceRows = ScenarioCatalogue.all().stream()
+                .filter(row -> row.checks().stream().anyMatch(check -> check.request() instanceof MetaserviceRequest))
+                .toList();
+
+        assertThat(metaserviceRows).extracting(Scenario::id).containsExactly("V90", "V91", "V92", "V93", "V94", "V99");
+        for (var row : metaserviceRows) {
+            var codes = row.fixture().services().stream()
+                    .mapToInt(service -> service instanceof WsdlService wsdl ? wsdl.shape().codeCount() : 1).sum();
+            for (var check : row.checks()) {
+                var request = (MetaserviceRequest) check.request();
+                var positions = Stream.of(request.expectation().listed(), request.expectation().unlisted())
+                        .flatMap(List::stream).collect(Collectors.toList());
+                positions.add(request.serviceIndex());
+                assertThat(positions).as(row.id()).allSatisfy(position -> assertThat(position)
+                        .isBetween(MetaserviceRequest.NO_SERVICE, codes - 1));
+                assertThat(request.expectation().listed()).as(row.id()).doesNotContain(MetaserviceRequest.NO_SERVICE);
+                assertThat(request.expectation().unlisted()).as(row.id()).doesNotContain(MetaserviceRequest.NO_SERVICE);
+            }
+        }
+    }
+
+    @Test
+    void metaserviceRowsAreUnmarkedPlainRows() {
+        for (var id : List.of("V90", "V91", "V92", "V93", "V94", "V99")) {
+            assertThat(scenario(id).knownDefect()).as(id).isNull();
+        }
+    }
+
+    @Test
+    void soapMetaserviceCallsAreSoapPostsAndRestOnesAreGets() {
+        assertThat(ScenarioCatalogue.all()).flatExtracting(Scenario::checks)
+                .map(Scenario.Check::request).filteredOn(MetaserviceRequest.class::isInstance)
+                .map(MetaserviceRequest.class::cast)
+                .filteredOn(request -> request.transport() == Scenario.Transport.SOAP)
+                .isNotEmpty()
+                .allSatisfy(request -> assertThat(request.method()).isEqualTo("POST"));
+    }
+
+    @Test
+    void soap12RowReadsTheWsdlOfAGrantlessSoap12Service() {
+        var row = scenario("V99");
+        var wsdl = (WsdlService) row.fixture().services().get(0);
+        var request = (MetaserviceRequest) row.checks().get(0).request();
+
+        assertThat(wsdl.shape()).isEqualTo(WsdlShape.SOAP12);
+        assertThat(wsdl.grantedConsumerIdsByCode()).containsExactly(List.of());
+        assertThat(request.transport()).isEqualTo(Scenario.Transport.SOAP);
+        assertThat(request.code()).isEqualTo("getWsdl");
+        assertThat(request.expectation().contains()).containsExactly("example.org/xroad-endpoint");
+        assertThat(request.expectation().without()).containsExactly("isrest:8080");
+    }
+
+    @Test
+    void getWsdlOfAWsdlServiceNamesTheStubVersionAndTheOtherV92CallsNameNone() {
+        assertThat(targetVersions("V92")).containsExactly("v1", null, null);
+        assertThat(targetVersions("V99")).containsExactly("v1");
+    }
+
+    private static List<String> targetVersions(String id) {
+        return scenario(id).checks().stream().map(check -> ((MetaserviceRequest) check.request()).targetVersion())
+                .toList();
     }
 
     private static List<String> requestPaths(String id) {

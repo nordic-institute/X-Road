@@ -28,6 +28,7 @@ package org.niis.xroad.e2e.parity;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * One row of the parity catalogue: the fixtures to create, the requests to send, and the verdict legacy
@@ -414,7 +415,9 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
         /** Two service codes in version v1. */
         PAIR(2),
         /** One service code offered in versions v1 and v2. */
-        VERSIONS(1);
+        VERSIONS(1),
+        /** One service code in version v1, served at a SOAP 1.2 address. */
+        SOAP12(1);
 
         private final int codeCount;
 
@@ -446,12 +449,15 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** The call that produces the verdict. */
-    public sealed interface RequestSpec permits RestRequest, SoapRequest {
+    public sealed interface RequestSpec permits RestRequest, SoapRequest, MetaserviceRequest {
 
         /** The calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form. */
         String consumerClientId();
 
-        /** The position of the called service code among all service codes the fixture creates. */
+        /**
+         * The position of the called service code among all service codes the fixture creates, or
+         * {@link MetaserviceRequest#NO_SERVICE} for a metaservice call that names none.
+         */
         int serviceIndex();
 
         /** A short text naming the call, for failure messages. */
@@ -487,6 +493,94 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
         @Override
         public String describe() {
             return "SOAP call as " + consumerClientId + " to service " + serviceIndex;
+        }
+    }
+
+    /** How a metaservice is called. */
+    public enum Transport {
+        REST, SOAP
+    }
+
+    /**
+     * What a metaservice reply has to say. Texts match as whole tokens: the characters around a match are none of
+     * letters, digits, {@code _}, {@code .} and {@code -}.
+     *
+     * @param contains the texts the reply has to carry
+     * @param without  the texts the reply must not carry
+     * @param listed   the positions of the service codes the reply has to carry
+     * @param unlisted the positions of the service codes the reply must not carry
+     */
+    public record Expectation(List<String> contains, List<String> without, List<Integer> listed,
+                              List<Integer> unlisted) {
+        /** No requirement on the reply beyond the absence of a fault. */
+        public static final Expectation NONE = new Expectation(List.of(), List.of(), List.of(), List.of());
+
+        public static Expectation listing(List<Integer> listed, List<Integer> unlisted) {
+            return new Expectation(List.of(), List.of(), listed, unlisted);
+        }
+
+        public static Expectation carrying(String... texts) {
+            return new Expectation(List.of(texts), List.of(), List.of(), List.of());
+        }
+
+        public static Expectation masked(String shown, String hidden) {
+            return new Expectation(List.of(shown), List.of(hidden), List.of(), List.of());
+        }
+
+        public boolean isEmpty() {
+            return contains.isEmpty() && without.isEmpty() && listed.isEmpty() && unlisted.isEmpty();
+        }
+
+        /** The texts the reply has to carry, with the listed positions resolved to service codes. */
+        public List<String> required(List<String> serviceCodes) {
+            return Stream.concat(contains.stream(), listed.stream().map(serviceCodes::get)).toList();
+        }
+
+        /** The texts the reply must not carry, with the unlisted positions resolved to service codes. */
+        public List<String> forbidden(List<String> serviceCodes) {
+            return Stream.concat(without.stream(), unlisted.stream().map(serviceCodes::get)).toList();
+        }
+    }
+
+    /**
+     * A call to a metaservice of the provider. The provider's Security Server answers it itself, so the reply
+     * never reaches the backend.
+     *
+     * @param consumerClientId the calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param transport        whether the call is REST or SOAP
+     * @param code             the metaservice code, for example {@code listMethods}
+     * @param method           the HTTP method; SOAP calls always post
+     * @param serviceIndex     the position of the service code the call asks about, or {@link #NO_SERVICE}
+     * @param targetVersion    the version of that service a SOAP call names, or {@code null} for none
+     * @param expectation      what the reply has to say
+     */
+    public record MetaserviceRequest(String consumerClientId, Transport transport, String code, String method,
+                                     int serviceIndex, String targetVersion, Expectation expectation)
+            implements RequestSpec {
+        /** The service index of a call that asks about no particular service. */
+        public static final int NO_SERVICE = -1;
+
+        public static MetaserviceRequest rest(String consumerClientId, String code, int serviceIndex,
+                                              Expectation expectation) {
+            return new MetaserviceRequest(consumerClientId, Transport.REST, code, "GET", serviceIndex, null,
+                    expectation);
+        }
+
+        public static MetaserviceRequest soap(String consumerClientId, String code, int serviceIndex,
+                                              Expectation expectation) {
+            return soap(consumerClientId, code, serviceIndex, null, expectation);
+        }
+
+        public static MetaserviceRequest soap(String consumerClientId, String code, int serviceIndex,
+                                              String targetVersion, Expectation expectation) {
+            return new MetaserviceRequest(consumerClientId, Transport.SOAP, code, "POST", serviceIndex,
+                    targetVersion, expectation);
+        }
+
+        @Override
+        public String describe() {
+            return "%s %s %s%s".formatted(transport, method, code,
+                    serviceIndex == NO_SERVICE ? "" : " of service " + serviceIndex);
         }
     }
 }

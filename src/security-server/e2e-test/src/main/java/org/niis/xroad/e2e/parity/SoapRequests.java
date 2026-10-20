@@ -48,6 +48,36 @@ public final class SoapRequests {
      */
     public static String envelope(String consumerClientId, String providerClientId, String serviceCode,
                                   String serviceVersion, String securityServerHint, String messageId) {
+        return envelope(consumerClientId, providerClientId, serviceCode, serviceVersion, securityServerHint,
+                messageId, "<ap:%s xmlns:ap=\"http://acl-parity.test/producer\"/>".formatted(serviceCode));
+    }
+
+    /**
+     * Builds the envelope of a call to a metaservice. The envelope header names no service version; the
+     * target service version, when given, goes in the body.
+     *
+     * @param consumerClientId  the calling client in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param providerClientId  the service owner in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param metaserviceCode   the metaservice code, for example {@code listMethods}
+     * @param targetServiceCode the service code the metaservice is asked about, or {@code null} for none
+     * @param targetServiceVersion the version of that service, or {@code null} for none
+     * @param messageId         the unique message id
+     */
+    public static String metaserviceEnvelope(String consumerClientId, String providerClientId,
+                                             String metaserviceCode, String targetServiceCode,
+                                             String targetServiceVersion, String messageId) {
+        var version = targetServiceVersion == null
+                ? "" : "<xro:serviceVersion>%s</xro:serviceVersion>".formatted(targetServiceVersion);
+        var body = targetServiceCode == null
+                ? "<xro:%s/>".formatted(metaserviceCode)
+                : "<xro:%1$s><xro:serviceCode>%2$s</xro:serviceCode>%3$s</xro:%1$s>"
+                        .formatted(metaserviceCode, targetServiceCode, version);
+        return envelope(consumerClientId, providerClientId, metaserviceCode, null, null, messageId, body);
+    }
+
+    private static String envelope(String consumerClientId, String providerClientId, String serviceCode,
+                                   String serviceVersion, String securityServerHint, String messageId,
+                                   String body) {
         var consumer = parts(consumerClientId);
         var provider = parts(providerClientId);
         var version = serviceVersion == null
@@ -77,11 +107,11 @@ public final class SoapRequests {
                         <xro:protocolVersion>4.0</xro:protocolVersion>
                     </soapenv:Header>
                     <soapenv:Body>
-                        <ap:%s xmlns:ap="http://acl-parity.test/producer"/>
+                        %s
                     </soapenv:Body>
                 </soapenv:Envelope>
                 """.formatted(Stream.of(List.of(consumer), List.of(provider),
-                        List.of(serviceCode, version, server, messageId, serviceCode))
+                        List.of(serviceCode, version, server, messageId, body))
                 .flatMap(List::stream).toArray());
     }
 

@@ -28,6 +28,7 @@ package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -193,5 +194,142 @@ class VerdictClassifierTest {
     void describeSoapFallsBackToTheStatusWithoutAFaultCode() {
         assertThat(VerdictClassifier.describeSoap(new Reply(404, Map.of(), "<html>not found</html>")))
                 .isEqualTo("status 404");
+    }
+
+    private static final String LIST_JSON = "{\"service\":[{\"service_code\":\"p-v91\"},{\"service_code\":\"p-v91b\"}]}";
+
+    private static Verdict meta(Reply reply, List<String> required, List<String> forbidden) {
+        return VerdictClassifier.classifyMetaservice(reply, required, forbidden);
+    }
+
+    @Test
+    void metaserviceListWithEveryRequiredAndNoForbiddenTextIsAllowed() {
+        assertThat(meta(new Reply(200, Map.of(), LIST_JSON), List.of("p-v91", "p-v91b"), List.of("p-v92")))
+                .isEqualTo(Verdict.ALLOWED);
+        assertThat(meta(new Reply(200, Map.of(), "{}"), List.of(), List.of())).isEqualTo(Verdict.ALLOWED);
+    }
+
+    @Test
+    void metaserviceListMissingARequiredTextIsError() {
+        assertThat(meta(new Reply(200, Map.of(), LIST_JSON), List.of("p-v91", "p-v92"), List.of()))
+                .isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void metaserviceListCarryingAForbiddenTextIsError() {
+        assertThat(meta(new Reply(200, Map.of(), LIST_JSON), List.of("p-v91"), List.of("p-v91b")))
+                .isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void metaserviceTextsMatchAsWholeTokens() {
+        var body = "{\"service\":[{\"service_code\":\"p-v91-2\"}]}";
+
+        assertThat(meta(new Reply(200, Map.of(), body), List.of("p-v91"), List.of())).isEqualTo(Verdict.ERROR);
+        assertThat(meta(new Reply(200, Map.of(), body), List.of(), List.of("p-v91"))).isEqualTo(Verdict.ALLOWED);
+        assertThat(meta(new Reply(200, Map.of(), body), List.of("p-v91-2"), List.of("p-v91")))
+                .isEqualTo(Verdict.ALLOWED);
+        assertThat(meta(new Reply(200, Map.of(), "<a>p-v91</a>"), List.of("p-v91"), List.of()))
+                .isEqualTo(Verdict.ALLOWED);
+    }
+
+    private static final String SOAP_LIST_METHODS_REPLY = """
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xro="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+                <soapenv:Header>
+                    <xro:id>acl-parity-1</xro:id>
+                    <xro:protocolVersion>4.0</xro:protocolVersion>
+                </soapenv:Header>
+                <soapenv:Body>
+                    <xro:listMethodsResponse>
+                        <xro:service id:objectType="SERVICE">
+                            <id:xRoadInstance>DEV</id:xRoadInstance>
+                            <id:memberClass>COM</id:memberClass>
+                            <id:memberCode>1234</id:memberCode>
+                            <id:subsystemCode>PROVIDER</id:subsystemCode>
+                            <id:serviceCode>p-v90</id:serviceCode>
+                            <id:serviceVersion>v1</id:serviceVersion>
+                        </xro:service>
+                    </xro:listMethodsResponse>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            """;
+
+    private static final String SOAP_GET_WSDL_REPLY = """
+            --jetty123
+            Content-Type: text/xml; charset=UTF-8
+
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
+                <soapenv:Body><xro:getWsdlResponse/></soapenv:Body>
+            </soapenv:Envelope>
+            --jetty123
+            Content-Type: text/xml
+            Content-Transfer-Encoding: binary
+
+            <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                    xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/">
+                <wsdl:service name="ProducerService">
+                    <wsdl:port name="ProducerPort" binding="tns:ProducerBinding">
+                        <soap12:address location="http://example.org/xroad-endpoint"/>
+                    </wsdl:port>
+                </wsdl:service>
+            </wsdl:definitions>
+            --jetty123--
+            """;
+
+    @Test
+    void metaserviceSoapListMethodsReplyIsAllowedWhenItListsTheRequiredServices() {
+        var reply = new Reply(200, Map.of(), SOAP_LIST_METHODS_REPLY);
+
+        assertThat(meta(reply, List.of("p-v90"), List.of("p-v91"))).isEqualTo(Verdict.ALLOWED);
+        assertThat(meta(reply, List.of("p-v91"), List.of())).isEqualTo(Verdict.ERROR);
+        assertThat(meta(reply, List.of(), List.of("p-v90"))).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void metaserviceSoapGetWsdlReplyIsAllowedOnlyWithTheMaskedAddress() {
+        var reply = new Reply(200, Map.of(), SOAP_GET_WSDL_REPLY);
+
+        assertThat(meta(reply, List.of("example.org/xroad-endpoint"), List.of("isrest:8080")))
+                .isEqualTo(Verdict.ALLOWED);
+        assertThat(meta(reply, List.of(), List.of("example.org/xroad-endpoint"))).isEqualTo(Verdict.ERROR);
+        assertThat(meta(reply, List.of("isrest:8080"), List.of())).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void metaserviceSoapFaultDecidesTheVerdictBeforeTheTexts() {
+        var body = soapFault("server.serverproxy.service_type");
+
+        assertThat(meta(new Reply(500, Map.of(), body), List.of(), List.of())).isEqualTo(Verdict.INVALID_SERVICE_TYPE);
+        assertThat(meta(new Reply(200, Map.of(), body), List.of(), List.of())).isEqualTo(Verdict.INVALID_SERVICE_TYPE);
+    }
+
+    @Test
+    void metaserviceRestFaultHeaderDecidesTheVerdict() {
+        assertThat(meta(fault("server.serverproxy.unknown_service"), List.of(), List.of()))
+                .isEqualTo(Verdict.UNKNOWN_SERVICE);
+        assertThat(meta(fault("server.serverproxy.something_new"), List.of(), List.of())).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void metaserviceNullAndNon2xxWithoutAFaultAreError() {
+        assertThat(meta(null, List.of(), List.of())).isEqualTo(Verdict.ERROR);
+        assertThat(meta(new Reply(404, Map.of(), "{}"), List.of(), List.of())).isEqualTo(Verdict.ERROR);
+        assertThat(meta(new Reply(500, Map.of(), "boom"), List.of(), List.of())).isEqualTo(Verdict.ERROR);
+        assertThat(meta(new Reply(302, Map.of(), LIST_JSON), List.of("p-v91"), List.of())).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void describeMetaserviceNamesTheFaultOrStatusAndTheWrongTexts() {
+        var description = VerdictClassifier.describeMetaservice(new Reply(200, Map.of(), LIST_JSON),
+                List.of("p-v91", "p-v92"), List.of("p-v91b"));
+
+        assertThat(description).isEqualTo("status 200; missing [p-v92]; unexpected [p-v91b]");
+        assertThat(VerdictClassifier.describeMetaservice(fault("server.serverproxy.access_denied"), List.of(),
+                List.of())).startsWith("x-road-error server.serverproxy.access_denied");
+        assertThat(VerdictClassifier.describeMetaservice(
+                new Reply(200, Map.of(), soapFault("server.serverproxy.service_type")), List.of(), List.of()))
+                .startsWith("fault server.serverproxy.service_type");
     }
 }

@@ -49,11 +49,15 @@ class RestSenderTest {
     }
 
     private static Exchange exchange(String method, String path) throws Exception {
+        return exchange(method, path, null);
+    }
+
+    private static Exchange exchange(String method, String path, String accept) throws Exception {
         try (var server = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
             var requestHead = CompletableFuture.supplyAsync(() -> answerOneRequest(server));
             var url = RestRequests.url("http://127.0.0.1:" + server.getLocalPort(), "DEV:COM:1234:TestService",
                     "svc", path);
-            var reply = RestSender.send(method, url, "DEV/COM/4321/TestClient");
+            var reply = RestSender.send(method, url, "DEV/COM/4321/TestClient", accept);
             return new Exchange(requestHead.get(), reply);
         }
     }
@@ -98,5 +102,16 @@ class RestSenderTest {
 
         assertThat(exchange.requestHead().toLowerCase()).contains("x-road-client: dev/com/4321/testclient");
         assertThat(exchange.reply().header("Mock-Response")).isEqualTo("true");
+    }
+
+    @Test
+    void sendsTheAcceptHeaderWhenGiven() throws Exception {
+        assertThat(exchange("GET", "/a", "application/json").requestHead().toLowerCase())
+                .contains("accept: application/json");
+    }
+
+    @Test
+    void sendsNoAcceptHeaderWhenNoneIsGiven() throws Exception {
+        assertThat(exchange("GET", "/a", null).requestHead().toLowerCase()).doesNotContain("accept:");
     }
 }

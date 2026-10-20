@@ -56,6 +56,18 @@ class RestRequestsTest {
     }
 
     @Test
+    void metaserviceUrlHasNoQueryWithoutATarget() {
+        assertThat(RestRequests.metaserviceUrl("http://h:1", "DEV:COM:1234:TestService", "listMethods", null))
+                .isEqualTo("http://h:1/r1/DEV/COM/1234/TestService/listMethods");
+    }
+
+    @Test
+    void metaserviceUrlNamesTheTargetServiceCodeInTheQuery() {
+        assertThat(RestRequests.metaserviceUrl("http://h:1", "DEV:COM:1234:TestService", "getOpenAPI", "pab-v93"))
+                .isEqualTo("http://h:1/r1/DEV/COM/1234/TestService/getOpenAPI?serviceCode=pab-v93");
+    }
+
+    @Test
     void clientHeaderUsesSlashes() {
         assertThat(RestRequests.clientHeader("DEV:COM:4321:TestClient")).isEqualTo("DEV/COM/4321/TestClient");
     }

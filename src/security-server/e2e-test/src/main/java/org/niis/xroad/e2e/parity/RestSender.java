@@ -52,11 +52,19 @@ public final class RestSender {
     }
 
     public static Reply send(String method, String url, String clientHeaderValue) {
-        var request = HttpRequest.newBuilder(URI.create(url))
+        return send(method, url, clientHeaderValue, null);
+    }
+
+    /** Sends the call with an {@code Accept} header of the given value, or none when it is {@code null}. */
+    public static Reply send(String method, String url, String clientHeaderValue, String accept) {
+        var builder = HttpRequest.newBuilder(URI.create(url))
                 .method(method, HttpRequest.BodyPublishers.noBody())
                 .header(RestRequests.CLIENT_HEADER, clientHeaderValue)
-                .timeout(REQUEST_TIMEOUT)
-                .build();
+                .timeout(REQUEST_TIMEOUT);
+        if (accept != null) {
+            builder.header("Accept", accept);
+        }
+        var request = builder.build();
         try {
             var response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             var headers = new LinkedHashMap<String, String>();
