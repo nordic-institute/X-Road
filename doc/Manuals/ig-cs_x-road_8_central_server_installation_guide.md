@@ -1,14 +1,15 @@
 # X-Road 8: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 1.0
+Version: 1.1
 Doc. ID: IG-CS-8
 
 ---
 
 ## Version history <!-- omit in toc -->
-| Date       | Version | Description     | Author          |
-|------------|---------|-----------------|-----------------|
-| 07.10.2025 | 1.0     | Initial version | Justas Samuolis |
+| Date       | Version | Description                                                          | Author               |
+|------------|---------|-----------------------------------------------------------------------|----------------------|
+| 07.10.2025 | 1.0     | Initial version                                                        | Justas Samuolis      |
+| 20.10.2026 | 1.1     | Added that the installer no longer asks for the Issuer Service host   | Ovidijus Narkevicius |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -217,6 +218,8 @@ Upon the first installation of the Central Server software, the system asks for 
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+The installer does not ask for the Issuer Service's host. Set it after installation through the Central Server's management REST API. See the Central Server User Guide [UG-CS](#Ref_UG-CS), section "Configuring the Issuer Service Host".
 
 #### 2.6.1 Configuring TLS Certificates for global configuration distribution
 
