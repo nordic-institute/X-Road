@@ -83,7 +83,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { XrdBtn, XrdCard, XrdConfirmDialog, XrdDateTime, XrdSubView, XrdView, useNotifications } from '@niis/shared-ui';
 import { AgreementTokenKeyStatus } from '@/openapi-types';
 import { Permissions } from '@/global';
@@ -100,6 +100,11 @@ const loading = ref(false);
 const rotating = ref(false);
 const confirmRotate = ref(false);
 
+const PENDING_POLL_INTERVAL_MS = 10_000;
+let pollTimer: ReturnType<typeof setInterval> | undefined;
+let readInFlight: Promise<void> | undefined;
+let unmounted = false;
+
 const canRotate = computed(() => hasPermission(Permissions.ROTATE_AGREEMENT_TOKEN_KEY));
 
 const previousKeyCount = computed(() => {
@@ -111,14 +116,51 @@ const previousKeyCount = computed(() => {
   return Math.max(current.retained_key_count - notPrevious, 0);
 });
 
-function fetchData(): Promise<void> {
-  loading.value = true;
+function stopPolling(): void {
+  clearInterval(pollTimer);
+  pollTimer = undefined;
+}
+
+function updatePolling(): void {
+  if (status.value?.pending_key_id && !unmounted) {
+    pollTimer ??= setInterval(pollStatus, PENDING_POLL_INTERVAL_MS);
+  } else {
+    stopPolling();
+  }
+}
+
+function pollStatus(): void {
+  if (!readInFlight) {
+    loadStatus();
+  }
+}
+
+function loadStatus(): Promise<void> {
+  const read = (readInFlight ?? Promise.resolve()).then(readStatus);
+  const tracked = read.finally(() => {
+    if (readInFlight === tracked) {
+      readInFlight = undefined;
+    }
+  });
+  readInFlight = tracked;
+  return tracked;
+}
+
+function readStatus(): Promise<void> {
   return fetchStatus()
     .then((result) => {
       status.value = result;
+      updatePolling();
     })
-    .catch((error) => addError(error))
-    .finally(() => (loading.value = false));
+    .catch((error) => {
+      stopPolling();
+      addError(error);
+    });
+}
+
+function fetchData(): Promise<void> {
+  loading.value = true;
+  return loadStatus().finally(() => (loading.value = false));
 }
 
 function rotateConfirmed(): void {
@@ -130,6 +172,11 @@ function rotateConfirmed(): void {
     .catch((error) => addError(error))
     .finally(() => (rotating.value = false));
 }
+
+onBeforeUnmount(() => {
+  unmounted = true;
+  stopPolling();
+});
 
 fetchData();
 </script>

@@ -31,13 +31,18 @@ import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyInfo;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
+import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
 import org.niis.xroad.common.agreementtoken.key.VaultAgreementTokenKeyProvider;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.random.RandomGenerator;
@@ -63,10 +68,18 @@ import java.util.random.RandomGenerator;
  * When DSP is enabled and {@link ProxyAgreementTokenProperties#keyRetention()} is non-zero, each successful
  * refresh is also followed by deleting the keys that can no longer back a valid token. A key is kept for the
  * retention period after it stops signing, which is when its successor (the next higher id) starts signing: the
- * successor's issue time plus the activation delay. The key signing now and the highest id, from which the next
- * id is derived, are never deleted, and neither is a key whose successor has no issue time. A failed deletion
- * never affects the refresh or the snapshot; it is logged as a warning at most once per
+ * successor's issue time plus the activation delay. A key is also deleted only after this replica has itself
+ * seen it stop signing for at least the token lifetime plus the expiry leeway: the first refresh in which it
+ * is not the signing key starts that period, and a restart starts it again. The key signing now and the highest
+ * id, from which the next id is derived, are never deleted, and neither is a key whose successor has no issue
+ * time. A failed deletion never affects the refresh or the snapshot; it is logged as a warning at most once per
  * {@value #PRUNE_FAILURE_WARNING_TICKS} consecutive failing ticks.
+ * <p>
+ * When {@link ProxyAgreementTokenProperties#keyRetention()} is non-zero, the provider handed out by
+ * {@link #provider()} refuses to hand out its signing key once the last successful refresh is older than
+ * {@link ProxyAgreementTokenProperties#staleSigningKeyLimit()}, with
+ * {@link ErrorCode#AGREEMENT_TOKEN_SIGNING_KEY_STALE}. Verification with retained keys is never limited. The
+ * refusal is logged once at warn when it starts and once at info when the next successful refresh lifts it.
  */
 @Slf4j
 @ApplicationScoped
@@ -80,6 +93,8 @@ public class AgreementTokenKeyMaterial {
     private final Clock clock;
     private final RandomGenerator random;
     private final AtomicReference<AgreementTokenKeyProvider> provider = new AtomicReference<>();
+    private final AtomicReference<RefreshState> refreshState = new AtomicReference<>(new RefreshState(Instant.EPOCH, false));
+    private final Map<String, Instant> notSigningSince = new HashMap<>();
     private Instant rotationDeadline;
     private int ticksSincePruneFailureWarning = PRUNE_FAILURE_WARNING_TICKS;
 
@@ -178,11 +193,15 @@ public class AgreementTokenKeyMaterial {
         if (!proxyProperties.dspEnabled() || retention.isZero()) {
             return;
         }
-        var supersededBefore = clock.instant().minus(retention).minus(properties.keyRefreshInterval());
+        var now = clock.instant();
+        var supersededBefore = now.minus(retention).minus(properties.keyRefreshInterval());
+        var notSigningBefore = now.minus(properties.tokenTtl()).minus(properties.expiryLeeway());
         var keys = current.listKeys();
+        observeKeysNotSigning(keys, now);
         for (var i = 0; i < keys.size() - 1; i++) {
             var key = keys.get(i);
-            if (key.signing() || !startedSigningBefore(keys.get(i + 1), supersededBefore)) {
+            if (key.signing() || !startedSigningBefore(keys.get(i + 1), supersededBefore)
+                    || !seenNotSigningAtOrBefore(key.keyId(), notSigningBefore)) {
                 continue;
             }
             try {
@@ -194,6 +213,17 @@ public class AgreementTokenKeyMaterial {
             log.info("Deleted agreement-token signing key '{}'", key.keyId());
         }
         ticksSincePruneFailureWarning = PRUNE_FAILURE_WARNING_TICKS;
+    }
+
+    private void observeKeysNotSigning(List<AgreementTokenKeyInfo> keys, Instant now) {
+        var notSigning = keys.stream().filter(key -> !key.signing()).map(AgreementTokenKeyInfo::keyId).toList();
+        notSigningSince.keySet().retainAll(notSigning);
+        notSigning.forEach(keyId -> notSigningSince.putIfAbsent(keyId, now));
+    }
+
+    private boolean seenNotSigningAtOrBefore(String keyId, Instant notSigningBefore) {
+        var seenAt = notSigningSince.get(keyId);
+        return seenAt != null && !seenAt.isAfter(notSigningBefore);
     }
 
     private static boolean startedSigningBefore(AgreementTokenKeyInfo successor, Instant supersededBefore) {
@@ -213,11 +243,89 @@ public class AgreementTokenKeyMaterial {
 
     private void tryBuild() {
         try {
-            provider.set(new VaultAgreementTokenKeyProvider(vaultClient, properties.keyRefreshInterval(), clock));
+            var built = new VaultAgreementTokenKeyProvider(vaultClient, properties.keyRefreshInterval(), clock);
+            refreshState.set(new RefreshState(clock.instant(), false));
+            provider.set(new RefreshTrackingProvider(built));
             log.info("Agreement-token signing key material initialized");
         } catch (Exception e) {
             log.warn("Agreement-token signing key material unavailable; agreement tokens will not be minted or "
                     + "verified until the secret store is reachable", e);
+        }
+    }
+
+    private void markRefreshed() {
+        var previous = refreshState.getAndSet(new RefreshState(clock.instant(), false));
+        if (previous.refusing()) {
+            log.info("Agreement-token signing key material refreshed; minting agreement tokens again");
+        }
+    }
+
+    private AgreementTokenSigningKey activeKeyUnlessStale(AgreementTokenKeyProvider delegate) {
+        properties.staleSigningKeyLimit().ifPresent(this::refuseIfStale);
+        return delegate.activeKey();
+    }
+
+    private void refuseIfStale(Duration limit) {
+        while (true) {
+            var state = refreshState.get();
+            var sinceRefresh = Duration.between(state.lastSuccessfulRefresh(), clock.instant());
+            if (sinceRefresh.compareTo(limit) <= 0) {
+                return;
+            }
+            if (!state.refusing()) {
+                if (!refreshState.compareAndSet(state, state.withRefusing())) {
+                    continue;
+                }
+                log.warn("Agreement-token signing key material has not been refreshed for {}, longer than the limit of {}; "
+                        + "refusing to mint agreement tokens until a refresh succeeds", sinceRefresh, limit);
+            }
+            throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_SIGNING_KEY_STALE)
+                    .details("Agreement-token signing key material was last refreshed " + sinceRefresh
+                            + " ago, longer than the limit of " + limit)
+                    .build();
+        }
+    }
+
+    private record RefreshState(Instant lastSuccessfulRefresh, boolean refusing) {
+        RefreshState withRefusing() {
+            return new RefreshState(lastSuccessfulRefresh, true);
+        }
+    }
+
+    private final class RefreshTrackingProvider implements AgreementTokenKeyProvider {
+
+        private final AgreementTokenKeyProvider delegate;
+
+        private RefreshTrackingProvider(AgreementTokenKeyProvider delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public AgreementTokenSigningKey activeKey() {
+            return activeKeyUnlessStale(delegate);
+        }
+
+        @Override
+        public Optional<AgreementTokenSigningKey> keyById(String keyId) {
+            return delegate.keyById(keyId);
+        }
+
+        @Override
+        public List<AgreementTokenKeyInfo> listKeys() {
+            return delegate.listKeys();
+        }
+
+        @Override
+        public AgreementTokenSigningKey rotate() {
+            var rotated = delegate.rotate();
+            markRefreshed();
+            return rotated;
+        }
+
+        @Override
+        public void refresh() {
+            delegate.refresh();
+            markRefreshed();
         }
     }
 }

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
@@ -208,5 +208,146 @@ describe('SS Agreement token key tab — rotate (Browser Mode)', () => {
     await page.getByTestId('dialog-save-button').click();
 
     await expect.element(page.getByText(text, { exact: false })).toBeVisible();
+  });
+});
+
+describe('SS Agreement token key tab — pending key polling (Browser Mode)', () => {
+  const pendingStatus: AgreementTokenKeyStatus = { ...activeStatus, retained_key_count: 4, pending_key_id: '4' };
+  const switchedStatus: AgreementTokenKeyStatus = { ...activeStatus, active_key_id: '4', retained_key_count: 4 };
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  type ServerState = { status: AgreementTokenKeyStatus | 'error'; gate: Promise<void> | undefined; reads: number };
+
+  async function renderWithServer(initial: AgreementTokenKeyStatus) {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    const server: ServerState = { status: initial, gate: undefined, reads: 0 };
+    const rendered = await renderRoute(AGREEMENT_TOKEN_KEY_PATH, {
+      permissions: viewOnly,
+      msw: [
+        specHttp.untyped.get('/api/v1/dataspace/agreement-token-key', async () => {
+          server.reads++;
+          await server.gate;
+          return server.status === 'error' ? HttpResponse.json({ status: 500 }, { status: 500 }) : HttpResponse.json(server.status);
+        }),
+      ],
+    });
+    await expect.element(page.getByTestId('agreement-token-key-id')).toBeVisible();
+    return { ...rendered, server };
+  }
+
+  function holdReads(server: ServerState): () => void {
+    let release: () => void = () => {};
+    server.gate = new Promise<void>((resolve) => (release = resolve));
+    return () => {
+      server.gate = undefined;
+      release();
+    };
+  }
+
+  it('re-reads the status after 10 seconds while a key is pending and switches the card once it is gone', async () => {
+    const { server } = await renderWithServer(pendingStatus);
+    await expect.element(page.getByTestId('agreement-token-key-pending')).toBeVisible();
+    const readsAfterLoad = server.reads;
+
+    await vi.advanceTimersByTimeAsync(9_999);
+    expect(server.reads).toBe(readsAfterLoad);
+
+    server.status = switchedStatus;
+    await vi.advanceTimersByTimeAsync(1);
+
+    await expect.poll(() => server.reads).toBe(readsAfterLoad + 1);
+    await expect.element(page.getByTestId('agreement-token-key-id')).toHaveTextContent('4');
+    await expect.poll(() => page.getByTestId('agreement-token-key-pending').query()).toBeNull();
+  });
+
+  it('keeps polling while the key stays pending', async () => {
+    const { server } = await renderWithServer(pendingStatus);
+    const readsAfterLoad = server.reads;
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expect.poll(() => server.reads).toBe(readsAfterLoad + 1);
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    await expect.poll(() => server.reads).toBe(readsAfterLoad + 2);
+  });
+
+  it('starts no read while a previous read is still in flight', async () => {
+    const { server } = await renderWithServer(pendingStatus);
+    const readsAfterLoad = server.reads;
+    const release = holdReads(server);
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expect.poll(() => server.reads).toBe(readsAfterLoad + 1);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(server.reads).toBe(readsAfterLoad + 1);
+
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(server.reads).toBe(readsAfterLoad + 1);
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    await expect.poll(() => server.reads).toBe(readsAfterLoad + 2);
+  });
+
+  it('stops polling once no key is pending', async () => {
+    const { server } = await renderWithServer(pendingStatus);
+    server.status = switchedStatus;
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expect.poll(() => page.getByTestId('agreement-token-key-pending').query()).toBeNull();
+    const readsAfterSwitch = server.reads;
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(server.reads).toBe(readsAfterSwitch);
+  });
+
+  it('does not poll while no key is pending', async () => {
+    const { server } = await renderWithServer(activeStatus);
+    const readsAfterLoad = server.reads;
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(server.reads).toBe(readsAfterLoad);
+  });
+
+  it('stops polling when a status read fails', async () => {
+    const { server } = await renderWithServer(pendingStatus);
+    const readsAfterLoad = server.reads;
+    server.status = 'error';
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expect.poll(() => server.reads).toBe(readsAfterLoad + 1);
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(server.reads).toBe(readsAfterLoad + 1);
+  });
+
+  it('stops polling when the view is unmounted', async () => {
+    const { router, server } = await renderWithServer(pendingStatus);
+    await router.push('/forbidden');
+    await expect.poll(() => page.getByTestId('agreement-token-key-view').query()).toBeNull();
+    const readsAfterUnmount = server.reads;
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(server.reads).toBe(readsAfterUnmount);
+  });
+
+  it('does not restart polling when a read finishes after the view is unmounted', async () => {
+    const { router, server } = await renderWithServer(pendingStatus);
+    const release = holdReads(server);
+    await vi.advanceTimersByTimeAsync(10_000);
+    await expect.poll(() => server.reads).toBeGreaterThan(1);
+    await router.push('/forbidden');
+    await expect.poll(() => page.getByTestId('agreement-token-key-view').query()).toBeNull();
+    const readsAtUnmount = server.reads;
+
+    release();
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(server.reads).toBe(readsAtUnmount);
   });
 });

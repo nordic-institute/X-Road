@@ -135,10 +135,10 @@ class ProxyAgreementTokenPropertiesTest {
     }
 
     @Test
-    void keyRetentionShorterThanTheKeyRefreshIntervalPlusTokenLifetimeAndLeewayIsRefused() {
+    void keyRetentionBelowThreeRefreshIntervalsPlusTokenLifetimeAndLeewayIsRefused() {
         var properties = propertiesWith(Map.of(
                 "xroad.proxy.agreement-token.key-refresh-interval", "PT10M",
-                "xroad.proxy.agreement-token.key-retention", "PT11M4S"));
+                "xroad.proxy.agreement-token.key-retention", "PT31M4S"));
 
         assertThatThrownBy(properties::validateKeyLifecycle)
                 .isInstanceOf(IllegalStateException.class)
@@ -147,12 +147,48 @@ class ProxyAgreementTokenPropertiesTest {
     }
 
     @Test
-    void keyRetentionOfTheKeyRefreshIntervalPlusTokenLifetimeAndLeewayIsAccepted() {
+    void keyRetentionOfThreeRefreshIntervalsPlusTokenLifetimeAndLeewayIsAccepted() {
         var properties = propertiesWith(Map.of(
                 "xroad.proxy.agreement-token.key-refresh-interval", "PT10M",
-                "xroad.proxy.agreement-token.key-retention", "PT11M5S"));
+                "xroad.proxy.agreement-token.key-retention", "PT31M5S"));
 
         assertThatCode(properties::validateKeyLifecycle).doesNotThrowAnyException();
+    }
+
+    @Test
+    void aRetentionThatWouldRefuseMintingDuringTheLastPartOfEveryRefreshCycleIsRefused() {
+        var properties = propertiesWith(Map.of(
+                "xroad.proxy.agreement-token.key-refresh-interval", "PT5M",
+                "xroad.proxy.agreement-token.key-retention", "PT10M"));
+
+        assertThatThrownBy(properties::validateKeyLifecycle)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("key-retention");
+    }
+
+    @Test
+    void theEndToEndPruningSettingsPassTheKeyLifecycleCheck() {
+        var properties = propertiesWith(Map.of(
+                "xroad.proxy.agreement-token.token-ttl", "PT30S",
+                "xroad.proxy.agreement-token.key-refresh-interval", "PT5S",
+                "xroad.proxy.agreement-token.max-key-age", "PT1M",
+                "xroad.proxy.agreement-token.key-retention", "PT5M"));
+
+        assertThatCode(properties::validateKeyLifecycle).doesNotThrowAnyException();
+    }
+
+    @Test
+    void staleSigningKeyLimitIsTheRetentionMinusRefreshIntervalTokenLifetimeAndLeeway() {
+        var properties = propertiesWith(Map.of("xroad.proxy.agreement-token.key-retention", "PT1H"));
+
+        assertThat(properties.staleSigningKeyLimit()).contains(Duration.ofSeconds(3600 - 30 - 60 - 5));
+    }
+
+    @Test
+    void staleSigningKeyLimitIsAbsentWhenTheRetentionIsZero() {
+        var properties = propertiesWith(Map.of("xroad.proxy.agreement-token.key-retention", "PT0S"));
+
+        assertThat(properties.staleSigningKeyLimit()).isEmpty();
     }
 
     @Test

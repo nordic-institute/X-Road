@@ -946,8 +946,9 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /**
      * {@code xroad.proxy.agreement-token.key-retention} — how long a signing key is kept after it stops signing,
      * which is when its successor starts signing, before the proxy deletes it from the secret store; zero keeps
-     * every key. A non-zero value must be at least ten times the token lifetime and longer than the key refresh
-     * interval.
+     * every key. A non-zero value must be at least ten times the token lifetime and at least three key refresh
+     * intervals plus the token lifetime and the expiry leeway. A proxy that has not refreshed its keys for longer
+     * than this value minus one key refresh interval, the token lifetime and the expiry leeway stops minting.
      */
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_KEY_RETENTION = AGREEMENT_TOKEN
             .keyDuration("key-retention")

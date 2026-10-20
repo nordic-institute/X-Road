@@ -3835,7 +3835,7 @@ The tab shows the following information:
 * **Signing key ID** - the identifier of the key that signs new tokens now.
 * **Created** - the time when the key was created. The value is **Unknown** if the key was stored without a creation time.
 * **Previous keys retained** - the number of earlier keys that the Security Server keeps. Tokens signed with these keys can still be verified.
-* A note that a new key is waiting to start signing. The note is shown after a rotation, until the new key starts signing.
+* A note that a new key is waiting to start signing. The note is shown after a rotation, until the new key starts signing. While the note is shown, the tab reads the status again every 10 seconds, and it stops when the note is gone.
 
 If the Security Server has not loaded any signing key yet, the tab shows a message instead, and the signing key cannot be rotated.
 
@@ -3849,7 +3849,7 @@ The rotation works as follows:
 * The new key starts signing within two key refresh intervals. The key refresh interval is 30 seconds by default, so by default the new key starts signing within 60 seconds. Until then, the current key keeps signing.
 * If the Security Server has several proxy replicas, every replica of the same Security Server switches to the new key within the same time.
 * Tokens signed with the previous key stay valid until they expire. By default, a token is valid for 60 seconds, and the verifier accepts it for another 5 seconds after that (the expiry leeway).
-* The rotation does not delete the previous key. The Security Server keeps it for the key retention period after it stops signing, that is, after the new key starts signing, and deletes it then (see section [26.4](#264-key-retention)).
+* The rotation does not delete the previous key. The Security Server keeps it for the key retention period after it stops signing, that is, after the new key starts signing, and then deletes it as described in section [26.4](#264-key-retention).
 
 The rotation is recorded in the audit log as the event **Rotate agreement token signing key** (see \[[SPEC-AL](#Ref_SPEC-AL)\]).
 
@@ -3863,9 +3863,16 @@ The maximum key age is set with the property `xroad.proxy.agreement-token.max-ke
 
 ### 26.4 Key Retention
 
-The Security Server deletes the previous signing keys that can no longer be needed to verify a valid token. A key is kept for the key retention period after it stops signing, that is, after the next key (the key with the next higher ID) starts signing. After each key refresh, the Security Server deletes the keys for which this period has passed. It never deletes the key that signs now or the key with the highest ID. The deletion runs only when the dataspace protocol is enabled on the Security Server. Each deleted key is written to the proxy log with its ID.
+The Security Server deletes the previous signing keys that can no longer be needed to verify a valid token. A key is kept for the key retention period after it stops signing, that is, after the next key (the key with the next higher ID) starts signing. After each key refresh, the Security Server deletes the keys for which this period has passed. It never deletes the key that signs now or the key with the highest ID. A proxy also deletes a key only after it has itself seen the key stop signing at least the token validity period plus the expiry leeway earlier. The proxy sees a key stop signing in the first key refresh in which the key is no longer the signing key. The proxy keeps this observation in memory only, so after a proxy restart the period starts again and the first deletion waits that much longer. The deletion runs only when the dataspace protocol is enabled on the Security Server. Each deleted key is written to the proxy log with its ID.
 
-The key retention period is set with the property `xroad.proxy.agreement-token.key-retention`. The value is a duration in the ISO 8601 format, for example `P1D` for one day. The default value is one day. The value `0` keeps all keys. A non-zero value must be at least 10 times the token validity period (`xroad.proxy.agreement-token.token-ttl`, 60 seconds by default) and at least the key refresh interval plus the token validity period plus the expiry leeway (`xroad.proxy.agreement-token.expiry-leeway`, 5 seconds by default). Otherwise the proxy does not start, and the proxy log tells which property is wrong.
+The key retention period is set with the property `xroad.proxy.agreement-token.key-retention`. The value is a duration in the ISO 8601 format, for example `P1D` for one day. The default value is one day. The value `0` keeps all keys. A non-zero value must be at least 10 times the token validity period (`xroad.proxy.agreement-token.token-ttl`, 60 seconds by default) and at least 3 times the key refresh interval plus the token validity period plus the expiry leeway (`xroad.proxy.agreement-token.expiry-leeway`, 5 seconds by default). Otherwise the proxy does not start, and the proxy log tells which property is wrong.
+
+A proxy that cannot reach the secret store keeps signing with the keys it loaded last, but not for longer than a limit. When the last successful key refresh is older than the key retention period minus the key refresh interval, the token validity period and the expiry leeway, the proxy stops issuing agreement tokens, because a token it signed after that time could still be valid when another proxy replica deletes the key. The limit is at least two key refresh intervals, so a proxy that misses one key refresh normally keeps issuing tokens. The proxy still verifies tokens with the keys it has, and data exchange falls back to endpoint-only access without an agreement token. With the default values the limit is 1 day minus 95 seconds. The limit does not apply when the key retention period is `0`. A successful key refresh, or a successful key rotation, lifts the limit again.
+
+The proxy log shows the state of this limit:
+
+* When the proxy first refuses to issue an agreement token, it writes one warning: `Agreement-token signing key material has not been refreshed for <time>, longer than the limit of <limit>; refusing to mint agreement tokens until a refresh succeeds`. The warning is not repeated for each refused token. If no token is requested while the limit is exceeded, neither line is written.
+* When the next key refresh succeeds, the proxy writes one info line: `Agreement-token signing key material refreshed; minting agreement tokens again`.
 
 If a key cannot be deleted, the Security Server keeps using the key material it has and tries again on the next key refresh. The failure is written to the proxy log as a warning, and the warning is repeated at most once in every 20 key refreshes. The usual cause is that the secret store access policy does not allow deleting the keys (see section [26.5](#265-secret-store-requirements)).
 

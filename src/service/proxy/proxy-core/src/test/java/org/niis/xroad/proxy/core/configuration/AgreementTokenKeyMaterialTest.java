@@ -46,6 +46,10 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyInfo;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.test.MutableClock;
 
@@ -65,6 +69,8 @@ import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
@@ -78,6 +84,7 @@ import static org.mockito.Mockito.when;
 class AgreementTokenKeyMaterialTest {
 
     private static final Duration RETENTION = Duration.ofHours(1);
+    private static final Duration STALE_LIMIT = RETENTION.minusSeconds(30 + 60 + 5);
 
     private static final AgreementTokenProtocolProperties TOKEN_PROPERTIES = new AgreementTokenProtocolProperties() {
         @Override
@@ -126,6 +133,9 @@ class AgreementTokenKeyMaterialTest {
         lenient().when(properties.keyRefreshInterval()).thenReturn(Duration.ofSeconds(30));
         lenient().when(properties.maxKeyAge()).thenReturn(Duration.ofDays(30));
         lenient().when(properties.keyRetention()).thenReturn(Duration.ZERO);
+        lenient().when(properties.tokenTtl()).thenReturn(Duration.ofSeconds(60));
+        lenient().when(properties.expiryLeeway()).thenReturn(Duration.ofSeconds(5));
+        lenient().when(properties.staleSigningKeyLimit()).thenCallRealMethod();
         lenient().when(proxyProperties.dspEnabled()).thenReturn(true);
         originalLogLevel = materialLogger.getLevel();
         materialLogger.addHandler(logHandler);
@@ -399,6 +409,7 @@ class AgreementTokenKeyMaterialTest {
         when(properties.keyRetention()).thenReturn(RETENTION);
         var keyMaterial = newKeyMaterial();
         storeThreeKeysTheFirstTenDaysOld(keyMaterial);
+        clock.advance(Duration.ofMinutes(10));
 
         keyMaterial.retryOrRefresh();
 
@@ -427,6 +438,9 @@ class AgreementTokenKeyMaterialTest {
         var keyMaterial = newKeyMaterial();
         clock.advance(Duration.ofDays(10));
         keyMaterial.provider().orElseThrow().rotate();
+        clock.advance(Duration.ofSeconds(60));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
         clock.advance(Duration.ofDays(10));
 
         keyMaterial.retryOrRefresh();
@@ -446,6 +460,8 @@ class AgreementTokenKeyMaterialTest {
         provider.rotate();
         clock.advance(Duration.ofSeconds(60));
         provider.rotate();
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
         clock.advance(RETENTION);
 
         keyMaterial.retryOrRefresh();
@@ -459,7 +475,8 @@ class AgreementTokenKeyMaterialTest {
         when(properties.maxKeyAge()).thenReturn(Duration.ZERO);
         var keyMaterial = newKeyMaterial();
         keyPairsByKeyId.put("2", new ECKeyGenerator(Curve.P_256).keyID("2").generate().toJSONString());
-        keyMaterial.provider().orElseThrow().refresh();
+        keyMaterial.retryOrRefresh();
+        assertThat(keyMaterial.provider().orElseThrow().activeKey().keyId()).isEqualTo("2");
         clock.advance(Duration.ofDays(10));
 
         keyMaterial.retryOrRefresh();
@@ -470,9 +487,11 @@ class AgreementTokenKeyMaterialTest {
 
     @Test
     void nothingIsDeletedWhenTheRetentionIsZero() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
         var keyMaterial = newKeyMaterial();
         storeThreeKeysTheFirstTenDaysOld(keyMaterial);
-        clock.advance(Duration.ofDays(1));
+        advanceUntilOnlyTheFirstKeyIsDue();
+        when(properties.keyRetention()).thenReturn(Duration.ZERO);
 
         keyMaterial.retryOrRefresh();
 
@@ -609,10 +628,179 @@ class AgreementTokenKeyMaterialTest {
                 rejected -> assertThat(rejected.reason()).isEqualTo(AgreementTokenRejectionReason.UNKNOWN_KEY_ID));
     }
 
+    @Test
+    void mintingWorksAtTheStaleLimitFailsOneSecondPastItAndWorksAgainAfterARefresh() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        var keyMaterial = newKeyMaterial();
+        var provider = keyMaterial.provider().orElseThrow();
+        var minter = new AgreementTokenMinter(provider, TOKEN_PROPERTIES, clock);
+        var verifier = new AgreementTokenVerifier(provider, TOKEN_PROPERTIES, clock);
+
+        clock.advance(STALE_LIMIT);
+        var token = minter.mint(GRANT);
+
+        clock.advance(Duration.ofSeconds(1));
+        assertThatThrownBy(() -> minter.mint(GRANT)).isInstanceOfSatisfying(XrdRuntimeException.class,
+                e -> assertThat(e.isCausedBy(ErrorCode.AGREEMENT_TOKEN_SIGNING_KEY_STALE)).isTrue());
+        assertThat(verifier.verify(token, CONTEXT)).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+
+        keyMaterial.retryOrRefresh();
+        assertThatCode(() -> minter.mint(GRANT)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void mintingIsNeverRefusedWhenTheRetentionIsZero() {
+        var keyMaterial = newKeyMaterial();
+        var minter = new AgreementTokenMinter(keyMaterial.provider().orElseThrow(), TOKEN_PROPERTIES, clock);
+        clock.advance(Duration.ofDays(365));
+
+        assertThatCode(() -> minter.mint(GRANT)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void aReplicaThatRecoversFromALongOutageKeepsTheKeyItJustSawStopSigningForTheTokenLifetime() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        when(properties.maxKeyAge()).thenReturn(Duration.ofDays(7));
+        var keyMaterial = newKeyMaterial();
+        var provider = keyMaterial.provider().orElseThrow();
+        clock.advance(Duration.ofDays(8));
+        keyMaterial.retryOrRefresh();
+        assertThat(keyPairsByKeyId).containsOnlyKeys("1", "2");
+        clock.advance(Duration.ofSeconds(29));
+        keyMaterial.retryOrRefresh();
+        assertThat(provider.activeKey().keyId()).isEqualTo("1");
+        var token = new AgreementTokenMinter(provider, TOKEN_PROPERTIES, clock).mint(GRANT);
+        var verifier = new AgreementTokenVerifier(provider, TOKEN_PROPERTIES,
+                Clock.fixed(clock.instant().plusSeconds(1), ZoneOffset.UTC));
+
+        when(vaultClient.getAgreementTokenSigningKeys()).thenThrow(new IllegalStateException("vault sealed"));
+        clock.advance(RETENTION.plusMinutes(10));
+        keyMaterial.retryOrRefresh();
+        lenient().doAnswer(invocation -> new HashMap<>(keyPairsByKeyId)).when(vaultClient).getAgreementTokenSigningKeys();
+        keyMaterial.retryOrRefresh();
+
+        assertThat(provider.activeKey().keyId()).isEqualTo("2");
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+        assertThat(verifier.verify(token, CONTEXT)).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+
+        clock.advance(Duration.ofSeconds(64));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+        assertThat(verifier.verify(token, CONTEXT)).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+
+        clock.advance(Duration.ofSeconds(1));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient).deleteAgreementTokenSigningKey("1");
+        assertThat(keyPairsByKeyId).containsOnlyKeys("2");
+    }
+
+    @Test
+    void aKeySeenSigningAgainStartsItsObservationAnew() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        when(properties.maxKeyAge()).thenReturn(Duration.ZERO);
+        var keyMaterial = newKeyMaterial();
+        clock.advance(Duration.ofDays(10));
+        keyMaterial.provider().orElseThrow().rotate();
+        clock.advance(Duration.ofSeconds(60));
+        keyMaterial.retryOrRefresh();
+        assertThat(keyMaterial.provider().orElseThrow().activeKey().keyId()).isEqualTo("2");
+        var key2 = keyPairsByKeyId.remove("2");
+        keyMaterial.retryOrRefresh();
+        assertThat(keyMaterial.provider().orElseThrow().activeKey().keyId()).isEqualTo("1");
+
+        keyPairsByKeyId.put("2", key2);
+        clock.advance(Duration.ofHours(2));
+        keyMaterial.retryOrRefresh();
+        assertThat(keyMaterial.provider().orElseThrow().activeKey().keyId()).isEqualTo("2");
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+
+        clock.advance(Duration.ofSeconds(64));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+
+        clock.advance(Duration.ofSeconds(1));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient).deleteAgreementTokenSigningKey("1");
+    }
+
+    @Test
+    void aKeyThatWasNotListedForARefreshStartsItsObservationAnew() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        when(properties.maxKeyAge()).thenReturn(Duration.ZERO);
+        var keyMaterial = newKeyMaterial();
+        clock.advance(Duration.ofDays(10));
+        keyMaterial.provider().orElseThrow().rotate();
+        clock.advance(Duration.ofSeconds(60));
+        keyMaterial.retryOrRefresh();
+        assertThat(keyMaterial.provider().orElseThrow().activeKey().keyId()).isEqualTo("2");
+        var key1 = keyPairsByKeyId.remove("1");
+        keyMaterial.retryOrRefresh();
+
+        keyPairsByKeyId.put("1", key1);
+        clock.advance(Duration.ofHours(2));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+
+        clock.advance(Duration.ofSeconds(64));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
+
+        clock.advance(Duration.ofSeconds(1));
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient).deleteAgreementTokenSigningKey("1");
+    }
+
+    @Test
+    void mintingNeverRefusesAtTheStartupMinimumRetentionAcrossHealthyCyclesAndOneMissedTick() {
+        var realProperties = realPropertiesWith(Map.of(
+                "xroad.proxy.agreement-token.token-ttl", "PT1M",
+                "xroad.proxy.agreement-token.key-refresh-interval", "PT5M",
+                "xroad.proxy.agreement-token.expiry-leeway", "PT5S",
+                "xroad.proxy.agreement-token.key-retention", "PT16M5S"));
+        realProperties.validateKeyLifecycle();
+        var keyMaterial = new AgreementTokenKeyMaterial(vaultClient, realProperties, proxyProperties, clock, fixedDelay(Duration.ZERO));
+        var minter = new AgreementTokenMinter(keyMaterial.provider().orElseThrow(), TOKEN_PROPERTIES, clock);
+
+        for (var minute = 1; minute <= 20; minute++) {
+            clock.advance(Duration.ofMinutes(1));
+            assertThatCode(() -> minter.mint(GRANT)).doesNotThrowAnyException();
+            var missedTick = minute == 10;
+            if (minute % 5 == 0 && !missedTick) {
+                keyMaterial.retryOrRefresh();
+            }
+        }
+    }
+
+    @Test
+    void repeatedRefusedMintsWarnOnceWithoutAStackTraceAndTheRecoveryIsLoggedAtInfo() {
+        when(properties.keyRetention()).thenReturn(RETENTION);
+        var keyMaterial = newKeyMaterial();
+        var provider = keyMaterial.provider().orElseThrow();
+        clock.advance(STALE_LIMIT.plusSeconds(1));
+        logHandler.records.clear();
+
+        for (var attempt = 0; attempt < 5; attempt++) {
+            assertThatThrownBy(provider::activeKey).isInstanceOf(XrdRuntimeException.class);
+        }
+
+        assertThat(logRecordsAt(Level.WARNING)).hasSize(1);
+        assertThat(logHandler.records).allSatisfy(logRecord -> assertThat(logRecord.getThrown()).isNull());
+        assertThat(logRecordsAt(Level.INFO)).isEmpty();
+
+        keyMaterial.retryOrRefresh();
+        assertThat(logRecordsAt(Level.INFO)).hasSize(1);
+        assertThat(logRecordsAt(Level.WARNING)).hasSize(1);
+
+        clock.advance(STALE_LIMIT.plusSeconds(1));
+        assertThatThrownBy(provider::activeKey).isInstanceOf(XrdRuntimeException.class);
+        assertThat(logRecordsAt(Level.WARNING)).hasSize(2);
+    }
+
     /**
      * Leaves keys 1 to 3 in the store: key 1 was issued ten days before key 2, key 2 two minutes and key 3 one
      * minute before the clock's current time. Key 3 is the highest id and the signing key, key 1 stopped signing
-     * 90 seconds ago and key 2 30 seconds ago.
+     * 90 seconds ago and key 2 30 seconds ago. The material has refreshed once since then, so with a non-zero
+     * retention it has seen keys 1 and 2 not signing, and neither is due yet.
      */
     private void storeThreeKeysTheFirstTenDaysOld(AgreementTokenKeyMaterial keyMaterial) {
         var provider = keyMaterial.provider().orElseThrow();
@@ -623,6 +811,8 @@ class AgreementTokenKeyMaterialTest {
         clock.advance(Duration.ofSeconds(60));
         provider.refresh();
         assertThat(provider.activeKey().keyId()).isEqualTo("3");
+        keyMaterial.retryOrRefresh();
+        verify(vaultClient, never()).deleteAgreementTokenSigningKey(anyString());
     }
 
     /**
@@ -630,6 +820,15 @@ class AgreementTokenKeyMaterialTest {
      */
     private void advanceUntilOnlyTheFirstKeyIsDue() {
         clock.advance(RETENTION.minusSeconds(60));
+    }
+
+    private List<LogRecord> logRecordsAt(Level level) {
+        return logHandler.records.stream().filter(logRecord -> logRecord.getLevel().intValue() == level.intValue()).toList();
+    }
+
+    private static ProxyAgreementTokenProperties realPropertiesWith(Map<String, String> overrides) {
+        var config = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(overrides).build();
+        return new ProxyAgreementTokenProperties(config);
     }
 
     private long pruneFailureWarnings() {
