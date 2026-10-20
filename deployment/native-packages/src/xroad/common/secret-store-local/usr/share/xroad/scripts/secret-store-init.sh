@@ -80,6 +80,13 @@ configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
   exit 1
 }
 
+# The policy is rewritten on every run so that an initialised store gets the current permissions.
+echo "Configuring access policy..."
+configure_policy "$BAO_ADDR" "$BAO_TOKEN" || {
+  echo "Failed to configure access policy" >&2
+  exit 1
+}
+
 
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 

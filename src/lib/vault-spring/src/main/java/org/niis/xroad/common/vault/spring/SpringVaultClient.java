@@ -255,6 +255,11 @@ public class SpringVaultClient implements VaultClient {
         );
     }
 
+    @Override
+    public void deleteAgreementTokenSigningKey(String keyId) {
+        vaultClient.delete(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
+    }
+
     /**
      * Spring Vault's {@code list} already resolves a missing path to an empty list rather than throwing —
      * matching {@link #readSecret(String)}'s contract where a missing secret comes back as {@code null}

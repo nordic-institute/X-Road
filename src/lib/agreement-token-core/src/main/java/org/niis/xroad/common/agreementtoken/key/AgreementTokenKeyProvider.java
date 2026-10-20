@@ -61,8 +61,8 @@ public interface AgreementTokenKeyProvider {
 
     /**
      * Generates a new signing key, stores it, and makes it the active key for future minting. Previously
-     * issued keys are kept, never deleted, so tokens already minted with them keep verifying until they expire.
-     * Operator-driven: nothing in this library calls it on its own.
+     * issued keys are kept, so tokens already minted with them keep verifying until they expire; this library
+     * never deletes them. Nothing in this library calls it on its own.
      *
      * @return the newly created, now-active key
      */

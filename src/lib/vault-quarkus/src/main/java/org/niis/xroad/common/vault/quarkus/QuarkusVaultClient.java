@@ -267,6 +267,11 @@ public class QuarkusVaultClient implements VaultClient {
         );
     }
 
+    @Override
+    public void deleteAgreementTokenSigningKey(String keyId) {
+        kvSecretEngine.deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
+    }
+
     /**
      * A 404 on the base path means no agreement-token signing key has ever been written — a legitimate
      * first-boot state — and maps to an empty listing, exactly like {@link #readSecret(String)} maps a

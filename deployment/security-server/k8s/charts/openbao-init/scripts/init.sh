@@ -139,6 +139,13 @@ else
   }
 fi
 
+# The policy is rewritten on every run so that an initialised store gets the current permissions.
+echo "[SETUP] Configuring access policy..."
+configure_policy "$BAO_ADDR" "$ROOT_TOKEN" || {
+  echo "[SETUP] Failed to configure access policy" >&2
+  exit 1
+}
+
 
 NEEDS_NEW_TOKEN=true
 if EXISTING_SECRET=$(k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_NAME}" "" "Retrieving X-Road client token") && [ -n "$EXISTING_SECRET" ]; then

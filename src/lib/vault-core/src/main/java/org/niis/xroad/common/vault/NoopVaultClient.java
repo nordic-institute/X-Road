@@ -182,4 +182,9 @@ public class NoopVaultClient implements VaultClient {
     public Map<String, String> getAgreementTokenSigningKeys() {
         return Map.of();
     }
+
+    @Override
+    public void deleteAgreementTokenSigningKey(String keyId) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }

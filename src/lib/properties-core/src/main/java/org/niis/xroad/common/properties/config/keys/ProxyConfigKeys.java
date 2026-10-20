@@ -943,6 +943,19 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /**
+     * {@code xroad.proxy.agreement-token.key-retention} — how long a signing key is kept after it stops signing,
+     * which is when its successor starts signing, before the proxy deletes it from the secret store; zero keeps
+     * every key. A non-zero value must be at least ten times the token lifetime and longer than the key refresh
+     * interval.
+     */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_KEY_RETENTION = AGREEMENT_TOKEN
+            .keyDuration("key-retention")
+            .withDefaultValue(Duration.ofDays(1))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.proxy.agreement-token.expiry-leeway} — clock-skew leeway the verifier allows past a token's exp. */
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_EXPIRY_LEEWAY = AGREEMENT_TOKEN
             .keyDuration("expiry-leeway")

@@ -59,10 +59,20 @@ import java.util.random.RandomGenerator;
  * activation delay). A due rotation waits for a random per-replica delay of up to twice the refresh interval,
  * so replicas sharing one secret store rarely rotate together, and is re-checked against the freshly refreshed
  * snapshot before it runs.
+ * <p>
+ * When DSP is enabled and {@link ProxyAgreementTokenProperties#keyRetention()} is non-zero, each successful
+ * refresh is also followed by deleting the keys that can no longer back a valid token. A key is kept for the
+ * retention period after it stops signing, which is when its successor (the next higher id) starts signing: the
+ * successor's issue time plus the activation delay. The key signing now and the highest id, from which the next
+ * id is derived, are never deleted, and neither is a key whose successor has no issue time. A failed deletion
+ * never affects the refresh or the snapshot; it is logged as a warning at most once per
+ * {@value #PRUNE_FAILURE_WARNING_TICKS} consecutive failing ticks.
  */
 @Slf4j
 @ApplicationScoped
 public class AgreementTokenKeyMaterial {
+
+    static final int PRUNE_FAILURE_WARNING_TICKS = 20;
 
     private final VaultClient vaultClient;
     private final ProxyAgreementTokenProperties properties;
@@ -71,6 +81,7 @@ public class AgreementTokenKeyMaterial {
     private final RandomGenerator random;
     private final AtomicReference<AgreementTokenKeyProvider> provider = new AtomicReference<>();
     private Instant rotationDeadline;
+    private int ticksSincePruneFailureWarning = PRUNE_FAILURE_WARNING_TICKS;
 
     @Inject
     public AgreementTokenKeyMaterial(VaultClient vaultClient, ProxyAgreementTokenProperties properties,
@@ -97,8 +108,8 @@ public class AgreementTokenKeyMaterial {
 
     /**
      * Retries construction if it has not yet succeeded, otherwise refreshes the existing provider's cached
-     * snapshot and rotates the signing key when it is due. Never throws: a failed refresh or rotation is logged
-     * at warn and the last good snapshot stays in use.
+     * snapshot, rotates the signing key when it is due and deletes the keys past their retention. Never throws:
+     * a failed refresh, rotation or deletion is logged at warn and the last good snapshot stays in use.
      */
     public synchronized void retryOrRefresh() {
         var current = provider.get();
@@ -113,6 +124,7 @@ public class AgreementTokenKeyMaterial {
             return;
         }
         rotateIfDue(current);
+        pruneIfDue(current);
     }
 
     private void rotateIfDue(AgreementTokenKeyProvider current) {
@@ -158,6 +170,44 @@ public class AgreementTokenKeyMaterial {
                     newestKeyId, rotated.keyId());
         } catch (Exception e) {
             log.warn("Failed to rotate agreement-token signing key automatically; will retry on the next refresh", e);
+        }
+    }
+
+    private void pruneIfDue(AgreementTokenKeyProvider current) {
+        var retention = properties.keyRetention();
+        if (!proxyProperties.dspEnabled() || retention.isZero()) {
+            return;
+        }
+        var supersededBefore = clock.instant().minus(retention).minus(properties.keyRefreshInterval());
+        var keys = current.listKeys();
+        for (var i = 0; i < keys.size() - 1; i++) {
+            var key = keys.get(i);
+            if (key.signing() || !startedSigningBefore(keys.get(i + 1), supersededBefore)) {
+                continue;
+            }
+            try {
+                vaultClient.deleteAgreementTokenSigningKey(key.keyId());
+            } catch (Exception e) {
+                warnAboutPruneFailure(key.keyId(), e);
+                return;
+            }
+            log.info("Deleted agreement-token signing key '{}'", key.keyId());
+        }
+        ticksSincePruneFailureWarning = PRUNE_FAILURE_WARNING_TICKS;
+    }
+
+    private static boolean startedSigningBefore(AgreementTokenKeyInfo successor, Instant supersededBefore) {
+        return successor.issueTime().map(issueTime -> issueTime.isBefore(supersededBefore)).orElse(false);
+    }
+
+    private void warnAboutPruneFailure(String keyId, Exception cause) {
+        if (ticksSincePruneFailureWarning >= PRUNE_FAILURE_WARNING_TICKS) {
+            ticksSincePruneFailureWarning = 1;
+            log.warn("Failed to delete agreement-token signing key '{}'; the key stays in the secret store and the "
+                    + "deletion is retried on every refresh, with this warning repeated at most every {} refreshes",
+                    keyId, PRUNE_FAILURE_WARNING_TICKS, cause);
+        } else {
+            ticksSincePruneFailureWarning++;
         }
     }
 

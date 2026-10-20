@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.113
+Version: 2.114
 Doc. ID: UG-SS
 
 ---
@@ -142,6 +142,7 @@ Doc. ID: UG-SS
 | 29.09.2026 | 2.111   | Message log archive upload example script demo-upload.pl is no longer included in the Security Server packages                                                                                                                                                                                                                                                                                             | Eneli Reimets        |
 | 13.10.2026 | 2.112   | Added the CA certificate exchange with an external operational monitoring daemon in section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon). Removed the outdated TLS certificate and gRPC keystore steps from section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)                               | Stefan Cvetkovski    |
 | 19.10.2026 | 2.113   | Added chapter [26](#26-managing-the-agreement-token-signing-key) on viewing and rotating the agreement token signing key                                                                                                                                                                                                                                                                                   | Andres Rosenthal     |
+| 20.10.2026 | 2.114   | Added automatic rotation, key retention and the remote secret store requirements to chapter [26](#26-managing-the-agreement-token-signing-key)                                                                                                                                                                                                                                                             | Andres Rosenthal     |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -307,6 +308,9 @@ Doc. ID: UG-SS
 - [26 Managing the Agreement Token Signing Key](#26-managing-the-agreement-token-signing-key)
   - [26.1 Viewing the Signing Key Status](#261-viewing-the-signing-key-status)
   - [26.2 Rotating the Signing Key](#262-rotating-the-signing-key)
+  - [26.3 Automatic Rotation](#263-automatic-rotation)
+  - [26.4 Key Retention](#264-key-retention)
+  - [26.5 Secret Store Requirements](#265-secret-store-requirements)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -3818,7 +3822,7 @@ If a Security Server prior to version 7.6.0 (< 7.6.0) makes a request to a Secur
 
 ## 26 Managing the Agreement Token Signing Key
 
-When the Security Server takes part in data exchange in a dataspace, it signs agreement tokens. An agreement token is a short-lived signed token that a provider Security Server issues to a consumer for a contract agreement; the consumer sends it with each data request, and the provider checks it before serving the request. The Security Server signs the tokens with an agreement token signing key and verifies them with the signing keys it keeps. The keys are stored in the secret store of the Security Server. The Security Server creates the signing key automatically. The Security Server administrator can view the key status and rotate the key, for example if the key may have leaked.
+When the Security Server takes part in data exchange in a dataspace, it signs agreement tokens. An agreement token is a short-lived signed token that a provider Security Server issues to a consumer for a contract agreement; the consumer sends it with each data request, and the provider checks it before serving the request. The Security Server signs the tokens with an agreement token signing key and verifies them with the signing keys it keeps. The keys are stored in the secret store of the Security Server. The Security Server creates the signing key automatically, rotates it automatically when it gets old (see section [26.3](#263-automatic-rotation)) and deletes the old keys that are no longer needed (see section [26.4](#264-key-retention)). The Security Server administrator can view the key status and rotate the key at any time, for example if the key may have leaked.
 
 The key status and the rotation are also available in the Management REST API (see chapter [19](#19-management-rest-api)) as the operations `GET /dataspace/agreement-token-key` and `POST /dataspace/agreement-token-key/rotate`.
 
@@ -3845,6 +3849,35 @@ The rotation works as follows:
 * The new key starts signing within two key refresh intervals. The key refresh interval is 30 seconds by default, so by default the new key starts signing within 60 seconds. Until then, the current key keeps signing.
 * If the Security Server has several proxy replicas, every replica of the same Security Server switches to the new key within the same time.
 * Tokens signed with the previous key stay valid until they expire. By default, a token is valid for 60 seconds, and the verifier accepts it for another 5 seconds after that (the expiry leeway).
-* The Security Server keeps the previous keys. They are not deleted by the rotation.
+* The rotation does not delete the previous key. The Security Server keeps it for the key retention period after it stops signing, that is, after the new key starts signing, and deletes it then (see section [26.4](#264-key-retention)).
 
 The rotation is recorded in the audit log as the event **Rotate agreement token signing key** (see \[[SPEC-AL](#Ref_SPEC-AL)\]).
+
+### 26.3 Automatic Rotation
+
+The Security Server rotates the signing key by itself when the newest key is older than the maximum key age. The automatic rotation works as the rotation described in section [26.2](#262-rotating-the-signing-key). It runs only when the dataspace protocol is enabled on the Security Server.
+
+If the Security Server has several proxy replicas, each replica waits for a random time of up to two key refresh intervals before it rotates, and checks again whether the rotation is still needed. Therefore the replicas rarely rotate the key at the same time.
+
+The maximum key age is set with the property `xroad.proxy.agreement-token.max-key-age`. The value is a duration in the ISO 8601 format, for example `P30D` for 30 days. The default value is 30 days. The value `0` disables the automatic rotation. A non-zero value must be longer than the key refresh interval (`xroad.proxy.agreement-token.key-refresh-interval`, 30 seconds by default). Otherwise the proxy does not start.
+
+### 26.4 Key Retention
+
+The Security Server deletes the previous signing keys that can no longer be needed to verify a valid token. A key is kept for the key retention period after it stops signing, that is, after the next key (the key with the next higher ID) starts signing. After each key refresh, the Security Server deletes the keys for which this period has passed. It never deletes the key that signs now or the key with the highest ID. The deletion runs only when the dataspace protocol is enabled on the Security Server. Each deleted key is written to the proxy log with its ID.
+
+The key retention period is set with the property `xroad.proxy.agreement-token.key-retention`. The value is a duration in the ISO 8601 format, for example `P1D` for one day. The default value is one day. The value `0` keeps all keys. A non-zero value must be at least 10 times the token validity period (`xroad.proxy.agreement-token.token-ttl`, 60 seconds by default) and at least the key refresh interval plus the token validity period plus the expiry leeway (`xroad.proxy.agreement-token.expiry-leeway`, 5 seconds by default). Otherwise the proxy does not start, and the proxy log tells which property is wrong.
+
+If a key cannot be deleted, the Security Server keeps using the key material it has and tries again on the next key refresh. The failure is written to the proxy log as a warning, and the warning is repeated at most once in every 20 key refreshes. The usual cause is that the secret store access policy does not allow deleting the keys (see section [26.5](#265-secret-store-requirements)).
+
+### 26.5 Secret Store Requirements
+
+If the Security Server uses a remote secret store (package `xroad-secret-store-remote`), the operator of the remote secret store must give the token of the Security Server the following access to the signing keys. The signing keys are stored in the key-value secrets engine (version 1) mounted at `xrd-secret`.
+
+```
+path "xrd-secret/agreement-token/signing-keys/*" {
+  capabilities = ["read", "list", "create", "update", "delete"]
+}
+```
+
+Without the `delete` capability the Security Server works normally but never deletes the old keys, and it writes the warning described in section [26.4](#264-key-retention).
+

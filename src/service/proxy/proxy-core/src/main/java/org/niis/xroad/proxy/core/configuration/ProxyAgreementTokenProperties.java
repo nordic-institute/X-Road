@@ -37,6 +37,7 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREE
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_GRANT_LOOKUP_DEADLINE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_ISSUER;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_KEY_REFRESH_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_KEY_RETENTION;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_MAX_KEY_AGE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREEMENT_TOKEN_TOKEN_TTL;
 
@@ -45,11 +46,14 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.AGREE
  * the verifying server proxy read {@link #issuer()}, {@link #audience()}, {@link #tokenTtl()} and
  * {@link #expiryLeeway()} from the same bean; {@link #keyRefreshInterval()} additionally bounds how often the
  * key material bean reloads its snapshot from the secret store, {@link #maxKeyAge()} sets when it rotates the
- * key on its own, and {@link #grantLookupDeadline()} bounds the control-plane grant lookup on the data-flow
- * start path.
+ * key on its own, {@link #keyRetention()} sets how long it keeps a superseded key before deleting it, and
+ * {@link #grantLookupDeadline()} bounds the control-plane grant lookup on the data-flow start path.
  */
 @RequiredArgsConstructor
 public class ProxyAgreementTokenProperties implements AgreementTokenProtocolProperties {
+
+    /** How many token lifetimes a superseded key is kept at least. */
+    static final int MIN_RETENTION_TOKEN_TTL_MULTIPLE = 10;
 
     private final XRoadConfig xRoadConfig;
 
@@ -83,8 +87,50 @@ public class ProxyAgreementTokenProperties implements AgreementTokenProtocolProp
         return xRoadConfig.value(AGREEMENT_TOKEN_MAX_KEY_AGE);
     }
 
+    /** @return how long a signing key is kept after it stops signing before it is deleted; zero keeps every key */
+    public Duration keyRetention() {
+        return xRoadConfig.value(AGREEMENT_TOKEN_KEY_RETENTION);
+    }
+
     /** @return the deadline for the control-plane grant lookup on the data-flow start path */
     public Duration grantLookupDeadline() {
         return xRoadConfig.value(AGREEMENT_TOKEN_GRANT_LOOKUP_DEADLINE);
+    }
+
+    /**
+     * Checks the key lifecycle settings against each other.
+     *
+     * A superseded key can still back tokens for one key refresh interval after it stops signing on the
+     * slowest replica, plus the token lifetime and expiry leeway, so a shorter retention could delete a key
+     * that another replica's valid tokens still need.
+     *
+     * @throws IllegalStateException when a non-zero {@code max-key-age} is not longer than the key refresh
+     *                               interval, or a non-zero {@code key-retention} is shorter than ten token
+     *                               lifetimes or than the key refresh interval plus the token lifetime and
+     *                               expiry leeway
+     */
+    public void validateKeyLifecycle() {
+        var refreshInterval = keyRefreshInterval();
+        var maxKeyAge = maxKeyAge();
+        if (!maxKeyAge.isZero() && maxKeyAge.compareTo(refreshInterval) <= 0) {
+            throw new IllegalStateException(("Invalid agreement-token configuration: max-key-age (%s) must be 0 or longer "
+                    + "than key-refresh-interval (%s)").formatted(maxKeyAge, refreshInterval));
+        }
+        var retention = keyRetention();
+        if (retention.isZero()) {
+            return;
+        }
+        var minimumRetention = tokenTtl().multipliedBy(MIN_RETENTION_TOKEN_TTL_MULTIPLE);
+        if (retention.compareTo(minimumRetention) < 0) {
+            throw new IllegalStateException(("Invalid agreement-token configuration: key-retention (%s) must be 0 or at least "
+                    + "%d times token-ttl (%s), which is %s").formatted(
+                    retention, MIN_RETENTION_TOKEN_TTL_MULTIPLE, tokenTtl(), minimumRetention));
+        }
+        var tokenLifetimeAfterSwitch = refreshInterval.plus(tokenTtl()).plus(expiryLeeway());
+        if (retention.compareTo(tokenLifetimeAfterSwitch) < 0) {
+            throw new IllegalStateException(("Invalid agreement-token configuration: key-retention (%s) must be 0 or at least "
+                    + "key-refresh-interval (%s) plus token-ttl (%s) plus expiry-leeway (%s), which is %s").formatted(
+                    retention, refreshInterval, tokenTtl(), expiryLeeway(), tokenLifetimeAfterSwitch));
+        }
     }
 }
