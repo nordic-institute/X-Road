@@ -189,7 +189,7 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     @Test
-    void storedRowsOfRemovedOpMonitorKeysAreNeitherListedNorFailTheCatalogue() {
+    void storedOpMonitorRpcPortIsListedInCatalogue() {
         when(repository.findAll()).thenReturn(List.of(row()));
 
         var properties = service.getConfigurationProperties();
