@@ -33,6 +33,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.common.util.UriPathRejectedException;
 import ee.ria.xroad.common.util.UriUtils;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -162,9 +163,13 @@ public class OpMonitoringDataHelper {
     }
 
     private String getNormalizedServicePath(String servicePath) {
-        return Optional.ofNullable(servicePath)
-                .map(UriUtils::decodeAndNormalize)
-                .orElse(servicePath);
+        try {
+            return Optional.ofNullable(servicePath)
+                    .map(UriUtils::decodeAndNormalize)
+                    .orElse(servicePath);
+        } catch (UriPathRejectedException e) {
+            return servicePath;
+        }
     }
 
     private String getSecurityServerAddress() {
