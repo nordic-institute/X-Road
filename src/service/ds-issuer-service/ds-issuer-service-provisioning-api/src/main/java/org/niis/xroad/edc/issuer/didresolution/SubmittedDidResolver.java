@@ -127,7 +127,7 @@ public class SubmittedDidResolver {
         try {
             var url = HttpUrl.parse("https://" + ParticipantIdentifierScheme.decodeDid(did).ssHost());
             return Optional.ofNullable(url).map(parsed -> new Endpoint(parsed.host(), parsed.port()));
-        } catch (RuntimeException e) {
+        } catch (RuntimeException _) {
             return Optional.empty();
         }
     }

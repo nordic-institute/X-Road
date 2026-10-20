@@ -212,7 +212,7 @@ class SubmittedDidResolverTest {
         "did:web:xrd-ss1%3A7183:v1:DEV%2d:COM:222",
         "did:web:xrd-ss1%3A7183:v1:%2e%2E:COM:222",
         "did:web:xrd-ss1%3A7183:v1:DEV+X:COM:222"})
-    void aDidThatDoesNotMapToItsOwnDocumentUrlIsMalformedAndSendsNoRequest(String did) throws Exception {
+    void aDidThatDoesNotMapToItsOwnDocumentUrlIsMalformedAndSendsNoRequest(String did) {
         var delegate = mock(EdcHttpClient.class);
 
         var resolution = resolverOver(delegate).resolve(did);

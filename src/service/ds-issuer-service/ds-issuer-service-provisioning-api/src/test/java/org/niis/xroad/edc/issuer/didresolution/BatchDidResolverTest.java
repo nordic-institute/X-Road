@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -154,7 +155,7 @@ class BatchDidResolverTest {
 
         var resolutions = batchResolver().resolveAll(dids, null);
 
-        assertThat(resolutions).allMatch(Resolution::isResolved);
+        assertThat(resolutions).hasSameSizeAs(dids).allMatch(Resolution::isResolved);
         assertThat(peak.get()).isGreaterThan(1).isLessThanOrEqualTo(BOUND);
     }
 
@@ -201,6 +202,55 @@ class BatchDidResolverTest {
         assertThat(resolutions.getFirst().isResolved()).isTrue();
         assertThat(resolutions.subList(1, resolutions.size()))
                 .allMatch(resolution -> resolution.reason() == Reason.FETCH_FAILURE);
+    }
+
+    @Test
+    void resolutionsStillInFlightWhenTheBudgetExpiresAreInterrupted() {
+        var resolver = mock(SubmittedDidResolver.class);
+        var did = unservedDid(1);
+        var interrupted = new CountDownLatch(1);
+        when(resolver.resolve(did)).thenAnswer(invocation -> {
+            try {
+                new CountDownLatch(1).await();
+            } catch (InterruptedException _) {
+                interrupted.countDown();
+            }
+            return Resolution.resolved(did);
+        });
+
+        var started = System.nanoTime();
+
+        var resolutions = new BatchDidResolver(resolver, monitor).resolveAll(List.of(did), Duration.ofMillis(200));
+
+        assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(1));
+        assertThat(resolutions).extracting(Resolution::reason).containsExactly(Reason.FETCH_FAILURE);
+        assertThat(awaitInterruption(interrupted)).isTrue();
+    }
+
+    @Test
+    void resolutionsStillInFlightWhenAnErrorPropagatesOutOfResolveAllAreInterrupted() {
+        var resolver = mock(SubmittedDidResolver.class);
+        var dids = List.of(unservedDid(1), unservedDid(2));
+        var secondStarted = new CountDownLatch(1);
+        var interrupted = new CountDownLatch(1);
+        when(resolver.resolve(dids.getFirst())).thenAnswer(invocation -> {
+            awaitUninterruptibly(secondStarted);
+            throw new NoClassDefFoundError("missing");
+        });
+        when(resolver.resolve(dids.getLast())).thenAnswer(invocation -> {
+            secondStarted.countDown();
+            try {
+                new CountDownLatch(1).await();
+            } catch (InterruptedException _) {
+                interrupted.countDown();
+            }
+            return Resolution.resolved(dids.getLast());
+        });
+        var batchResolver = new BatchDidResolver(resolver, monitor);
+
+        assertThatThrownBy(() -> batchResolver.resolveAll(dids, null)).isInstanceOf(NoClassDefFoundError.class);
+
+        assertThat(awaitInterruption(interrupted)).isTrue();
     }
 
     @Test
@@ -302,7 +352,7 @@ class BatchDidResolverTest {
 
         var resolutions = batchResolver().resolveAll(dids, null);
 
-        assertThat(resolutions).allMatch(Resolution::isResolved);
+        assertThat(resolutions).hasSameSizeAs(dids).allMatch(Resolution::isResolved);
         assertThat(clientPorts).hasSizeLessThan(dids.size() / 2);
     }
 
@@ -372,15 +422,24 @@ class BatchDidResolverTest {
     private static void sleep(long millis) {
         try {
             Thread.sleep(millis);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private static boolean awaitInterruption(CountDownLatch interrupted) {
+        try {
+            return interrupted.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+            return false;
         }
     }
 
     private static void awaitUninterruptibly(CountDownLatch latch) {
         try {
             latch.await();
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }

@@ -89,6 +89,7 @@ class BatchDidResolver {
                     .toList();
         } finally {
             executor.shutdownNow();
+            executor.close();
         }
     }
 
@@ -99,7 +100,7 @@ class BatchDidResolver {
                 return true;
             }
             return inFlight.tryAcquire(deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             return false;
         }
@@ -126,7 +127,7 @@ class BatchDidResolver {
             return deadline == null
                     ? future.get()
                     : future.get(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             future.cancel(true);
             return unfinished(did);
@@ -136,7 +137,7 @@ class BatchDidResolver {
             }
             monitor.severe("Resolving DID %s failed unexpectedly".formatted(did), e.getCause());
             return fetchFailure(did);
-        } catch (TimeoutException | CancellationException e) {
+        } catch (TimeoutException | CancellationException _) {
             future.cancel(true);
             return unfinished(did);
         }

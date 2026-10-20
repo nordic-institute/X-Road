@@ -354,7 +354,7 @@ class DidResolutionRpcClientTest {
     private void stallThenAnswer(StreamObserver<ResolveDidsResp> observer) {
         try {
             release.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
         observer.onNext(ResolveDidsResp.getDefaultInstance());
