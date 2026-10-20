@@ -28,11 +28,13 @@ package org.niis.xroad.e2e.parity;
 
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -166,6 +168,104 @@ class SoapRequestsTest {
         assertThat(version.item(0).getTextContent()).isEqualTo("v1");
         assertThat(version.item(0).getParentNode().getLocalName()).isEqualTo("getWsdl");
         assertThat(xml).doesNotContain("iden:serviceVersion");
+    }
+
+    private static final String XRO = "http://x-road.eu/xsd/xroad.xsd";
+    private static final String IDEN = "http://x-road.eu/xsd/identifiers";
+    private static final String OM = "http://x-road.eu/xsd/op-monitoring.xsd";
+    private static final String MON = "http://x-road.eu/xsd/monitoring";
+    private static final String MEMBER_CLIENT = "DEV:COM:4321";
+    private static final String OWNER = "DEV:COM:1234";
+    private static final String SERVER = "DEV:COM:1234:SS0";
+
+    private static Element header(Document doc, String name) {
+        return (Element) doc.getElementsByTagNameNS(XRO, name).item(0);
+    }
+
+    private static String identifier(Element parent, String name) {
+        var found = parent.getElementsByTagNameNS(IDEN, name);
+        return found.getLength() == 0 ? null : found.item(0).getTextContent();
+    }
+
+    @Test
+    void monitoringEnvelopeOfAMemberClientIsTypedMemberAndHasNoSubsystem() throws Exception {
+        var doc = parse(SoapRequests.monitoringEnvelope(MEMBER_CLIENT, OWNER, SoapRequests.METRICS, SERVER, null,
+                "ID-1"));
+
+        var client = header(doc, "client");
+        assertThat(client.getAttributeNS(IDEN, "objectType")).isEqualTo("MEMBER");
+        assertThat(identifier(client, "memberCode")).isEqualTo("4321");
+        assertThat(identifier(client, "subsystemCode")).isNull();
+    }
+
+    @Test
+    void monitoringEnvelopeOfASubsystemClientIsTypedSubsystemAndNamesTheSubsystem() throws Exception {
+        var doc = parse(SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.METRICS, SERVER, null, "ID-1"));
+
+        var client = header(doc, "client");
+        assertThat(client.getAttributeNS(IDEN, "objectType")).isEqualTo("SUBSYSTEM");
+        assertThat(identifier(client, "subsystemCode")).isEqualTo("TestClient");
+    }
+
+    @Test
+    void monitoringEnvelopeNamesTheOwnerMemberAsServiceAndTheAnsweringSecurityServer() throws Exception {
+        var xml = SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.HEALTH_DATA, SERVER, null, "ID-3");
+
+        var doc = parse(xml);
+
+        var service = header(doc, "service");
+        assertThat(identifier(service, "memberCode")).isEqualTo("1234");
+        assertThat(identifier(service, "subsystemCode")).isNull();
+        assertThat(identifier(service, "serviceCode")).isEqualTo(SoapRequests.HEALTH_DATA);
+        var server = header(doc, "securityServer");
+        assertThat(server.getAttributeNS(IDEN, "objectType")).isEqualTo("SERVER");
+        assertThat(identifier(server, "serverCode")).isEqualTo("SS0");
+        assertThat(header(doc, "id").getTextContent()).isEqualTo("ID-3");
+        assertThat(xml).doesNotContain("null");
+    }
+
+    @Test
+    void monitoringEnvelopeOfMetricsHasTheMetricsElementInTheBody() throws Exception {
+        var doc = parse(SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.METRICS, SERVER, null, "ID-1"));
+
+        assertThat(doc.getElementsByTagNameNS(MON, "getSecurityServerMetrics").getLength()).isEqualTo(1);
+    }
+
+    @Test
+    void monitoringEnvelopeOfHealthDataFiltersOnTheGivenClientOnly() throws Exception {
+        var filtered = parse(SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.HEALTH_DATA, SERVER,
+                "DEV:COM:1234:TestService", "ID-1"));
+        var unfiltered = parse(SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.HEALTH_DATA, SERVER,
+                null, "ID-1"));
+
+        var filter = (Element) filtered.getElementsByTagNameNS(OM, "filterCriteria").item(0);
+        var client = (Element) filter.getElementsByTagNameNS(OM, "client").item(0);
+        assertThat(client.getAttributeNS(IDEN, "objectType")).isEqualTo("SUBSYSTEM");
+        assertThat(identifier(client, "subsystemCode")).isEqualTo("TestService");
+        assertThat(unfiltered.getElementsByTagNameNS(OM, "getSecurityServerHealthData").getLength()).isEqualTo(1);
+        assertThat(unfiltered.getElementsByTagNameNS(OM, "filterCriteria").getLength()).isZero();
+    }
+
+    @Test
+    void monitoringEnvelopeOfOperationalDataSearchesFromZeroUpToNow() throws Exception {
+        var before = Instant.now().getEpochSecond();
+
+        var doc = parse(SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.OPERATIONAL_DATA, SERVER,
+                null, "ID-1"));
+
+        assertThat(doc.getElementsByTagNameNS(OM, "recordsFrom").item(0).getTextContent()).isEqualTo("0");
+        assertThat(Long.parseLong(doc.getElementsByTagNameNS(OM, "recordsTo").item(0).getTextContent()))
+                .isGreaterThanOrEqualTo(before);
+    }
+
+    @Test
+    void monitoringEnvelopeRejectsAnUnknownCodeAndAnIdentifierOfTheWrongSize() {
+        assertThatThrownBy(() -> SoapRequests.monitoringEnvelope(CONSUMER, OWNER, "listMethods", SERVER, null, "ID-1"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> SoapRequests.monitoringEnvelope("DEV:COM", OWNER, SoapRequests.METRICS, SERVER,
+                null, "ID-1")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> SoapRequests.monitoringEnvelope(CONSUMER, OWNER, SoapRequests.HEALTH_DATA, SERVER,
+                "DEV:COM:1:S:X", "ID-1")).isInstanceOf(IllegalArgumentException.class);
     }
 
     private static Document parse(String xml) throws Exception {

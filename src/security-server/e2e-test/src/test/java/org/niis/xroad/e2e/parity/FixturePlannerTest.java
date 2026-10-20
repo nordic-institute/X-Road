@@ -131,7 +131,12 @@ class FixturePlannerTest {
         for (var scenario : ScenarioCatalogue.all()) {
             var codes = planner.plan(scenario.id(), scenario.fixture()).serviceCodes();
 
-            assertThat(codes).as(scenario.id()).isNotEmpty().doesNotHaveDuplicates();
+            assertThat(codes).as(scenario.id()).doesNotHaveDuplicates();
+            if (codes.isEmpty()) {
+                assertThat(scenario.checks()).as(scenario.id()).isNotEmpty().allSatisfy(check ->
+                        assertThat(check.request().serviceIndex()).isEqualTo(Scenario.MetaserviceRequest.NO_SERVICE));
+                continue;
+            }
             if (scenario.adminGrant() != null) {
                 assertThat(scenario.adminGrant().serviceIndex()).as(scenario.id()).isLessThan(codes.size());
                 continue;

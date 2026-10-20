@@ -43,10 +43,12 @@ import org.niis.xroad.e2e.parity.Scenario.GeneratedEndpointGrant;
 import org.niis.xroad.e2e.parity.Scenario.GlobalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.Grant;
 import org.niis.xroad.e2e.parity.Scenario.GrantGroup;
+import org.niis.xroad.e2e.parity.Scenario.ListClientsRequest;
 import org.niis.xroad.e2e.parity.Scenario.LocalGroupSpec;
 import org.niis.xroad.e2e.parity.Scenario.ManagementRequest;
 import org.niis.xroad.e2e.parity.Scenario.ManagementService;
 import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
+import org.niis.xroad.e2e.parity.Scenario.MonitoringRequest;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiService;
 import org.niis.xroad.e2e.parity.Scenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.Scenario.Phase;
@@ -54,6 +56,7 @@ import org.niis.xroad.e2e.parity.Scenario.ProviderHost;
 import org.niis.xroad.e2e.parity.Scenario.Refresh;
 import org.niis.xroad.e2e.parity.Scenario.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.Scenario.RenameService;
+import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
 import org.niis.xroad.e2e.parity.Scenario.RestService;
 import org.niis.xroad.e2e.parity.Scenario.Revoke;
@@ -85,6 +88,11 @@ public final class ScenarioCatalogue {
     public static final String UNREGISTERED_SECURITY_SERVER = "DEV:COM:1234:acl-parity-unregistered";
     /** The text the rows that disable a service with a notice expect back. */
     public static final String DISABLED_NOTICE = "Scheduled maintenance, please retry later";
+
+    /** The member that owns the provider Security Server, named at member level by the monitoring rows. */
+    public static final String OWNER_MEMBER = "DEV:COM:1234";
+    /** The provider Security Server, named in the header of the monitoring rows. */
+    public static final String OWNER_SECURITY_SERVER = "DEV:COM:1234:SS0";
 
     /** The client of the management Security Server that owns the management services. */
     public static final String MANAGEMENT = "DEV:COM:1234:MANAGEMENT";
@@ -424,6 +432,27 @@ public final class ScenarioCatalogue {
                     List.of(new Check(new MetaserviceRequest(CONSUMER, Transport.REST, LIST_METHODS, "POST",
                             NO_SERVICE, null, Expectation.NONE), Verdict.UNKNOWN_SERVICE)),
                     WaitClass.ACL_CACHE),
+            new Scenario("V96", "getSecurityServerMetrics is refused to a caller that is neither owner nor monitoring client",
+                    new FixtureSpec(OWNER_MEMBER, List.of()),
+                    List.of(new Check(monitoring(MEMBER_OF_CONSUMER, SoapRequests.METRICS, null, Expectation.NONE),
+                                    Verdict.ACCESS_DENIED),
+                            new Check(monitoring(CONSUMER, SoapRequests.METRICS, null, Expectation.NONE),
+                                    Verdict.ACCESS_DENIED)),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V97", "Health data and operational data of the owner's Security Server need no grant",
+                    new FixtureSpec(OWNER_MEMBER, List.of()),
+                    List.of(allowed(monitoring(CONSUMER, SoapRequests.HEALTH_DATA, CONSUMER,
+                                    new Expectation(List.of("getSecurityServerHealthDataResponse",
+                                            "statisticsPeriodSeconds"), List.of("serviceEvents"), List.of(),
+                                            List.of()))),
+                            allowed(monitoring(CONSUMER, SoapRequests.OPERATIONAL_DATA, null,
+                                    Expectation.carrying("getSecurityServerOperationalDataResponse")))),
+                    WaitClass.ACL_CACHE),
+            new Scenario("V98", "listClients answers without a client header and lists the members of the instance",
+                    new FixtureSpec(OWNER_MEMBER, List.of()),
+                    List.of(allowed(new ListClientsRequest(Expectation.carrying("1234", "4321", "Test member",
+                            "Test client")))),
+                    WaitClass.ACL_CACHE),
             new Scenario("V99", "getWsdl of a WSDL with a SOAP 1.2 address shows the Security Server's address",
                     wsdl(WsdlShape.SOAP12, "", List.of(List.of())),
                     List.of(allowed(MetaserviceRequest.soap(CONSUMER, GET_WSDL, 0, "v1",
@@ -537,8 +566,13 @@ public final class ScenarioCatalogue {
         return new Check(new RestRequest(CONSUMER, serviceIndex, method, path), Verdict.ALLOWED);
     }
 
-    private static Check allowed(MetaserviceRequest request) {
+    private static Check allowed(RequestSpec request) {
         return new Check(request, Verdict.ALLOWED);
+    }
+
+    private static MonitoringRequest monitoring(String consumer, String code, String filterClientId,
+                                                Expectation expectation) {
+        return new MonitoringRequest(consumer, code, filterClientId, expectation);
     }
 
     private static Check denied(String method, String path) {

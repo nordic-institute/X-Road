@@ -369,6 +369,94 @@ class VerdictClassifierTest {
                 .isEqualTo("status 500; body " + "x".repeat(300));
     }
 
+    private static final String HEALTH_REPLY = """
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd">
+                <soapenv:Body>
+                    <om:getSecurityServerHealthDataResponse>
+                        <om:monitoringStartupTimestamp>1760000000</om:monitoringStartupTimestamp>
+                        <om:statisticsPeriodSeconds>600</om:statisticsPeriodSeconds>
+                        %s
+                    </om:getSecurityServerHealthDataResponse>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            """;
+
+    private static final String LIST_CLIENTS_REPLY = """
+            {"member":[
+              {"id":{"xroad_instance":"DEV","member_class":"COM","member_code":"1234","object_type":"MEMBER"},
+               "name":"Test member"},
+              {"id":{"xroad_instance":"DEV","member_class":"COM","member_code":"4321","object_type":"MEMBER"},
+               "name":"Test client"}]}
+            """;
+
+    private static Scenario.Expectation expectationOf(String scenarioId, int check) {
+        var row = ScenarioCatalogue.all().stream().filter(scenario -> scenario.id().equals(scenarioId)).findFirst()
+                .orElseThrow();
+        return switch (row.checks().get(check).request()) {
+            case Scenario.MonitoringRequest request -> request.expectation();
+            case Scenario.ListClientsRequest request -> request.expectation();
+            default -> throw new IllegalStateException(scenarioId);
+        };
+    }
+
+    private static Verdict metaCatalogued(Reply reply, Scenario.Expectation expectation) {
+        return meta(reply, expectation.required(List.of()), expectation.forbidden(List.of()));
+    }
+
+    @Test
+    void healthDataReplyIsAllowedOnlyWithTheResponseElementAndNoServiceEvents() {
+        var expectation = expectationOf("V97", 0);
+
+        assertThat(metaCatalogued(new Reply(200, Map.of(), HEALTH_REPLY.formatted("")), expectation))
+                .isEqualTo(Verdict.ALLOWED);
+        assertThat(metaCatalogued(new Reply(200, Map.of(),
+                HEALTH_REPLY.formatted("<om:servicesEvents/>")), expectation)).isEqualTo(Verdict.ALLOWED);
+        assertThat(metaCatalogued(new Reply(200, Map.of(),
+                HEALTH_REPLY.formatted("<om:servicesEvents><om:serviceEvents/></om:servicesEvents>")), expectation))
+                .isEqualTo(Verdict.ERROR);
+        assertThat(metaCatalogued(new Reply(200, Map.of(), "<soapenv:Body/>"), expectation))
+                .isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void operationalDataReplyNeedsTheResponseElementInTheSoapPart() {
+        var expectation = expectationOf("V97", 1);
+        var multipart = """
+                --jetty123
+                Content-Type: text/xml
+
+                <soapenv:Body xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd">
+                    <om:getSecurityServerOperationalDataResponse><om:recordsCount>0</om:recordsCount>
+                    </om:getSecurityServerOperationalDataResponse>
+                </soapenv:Body>
+                --jetty123--
+                """;
+
+        assertThat(metaCatalogued(new Reply(200, Map.of(), multipart), expectation)).isEqualTo(Verdict.ALLOWED);
+        assertThat(metaCatalogued(new Reply(200, Map.of(), "--jetty123--"), expectation)).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void monitoringAccessDeniedFaultIsAccessDeniedWhateverTheExpectation() {
+        var reply = new Reply(500, Map.of(), soapFault("server.serverproxy.access_denied"));
+
+        assertThat(metaCatalogued(reply, expectationOf("V96", 0))).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(metaCatalogued(reply, expectationOf("V97", 0))).isEqualTo(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void listClientsReplyIsAllowedOnlyWhenItListsTheSeededMembers() {
+        var expectation = expectationOf("V98", 0);
+
+        assertThat(metaCatalogued(new Reply(200, Map.of(), LIST_CLIENTS_REPLY), expectation))
+                .isEqualTo(Verdict.ALLOWED);
+        for (var missing : new String[] {"1234", "4321", "Test member", "Test client"}) {
+            assertThat(metaCatalogued(new Reply(200, Map.of(), LIST_CLIENTS_REPLY.replace(missing, "other")),
+                    expectation)).as(missing).isEqualTo(Verdict.ERROR);
+        }
+    }
+
     @Test
     void describeMetaserviceNamesTheFaultOrStatusAndTheWrongTexts() {
         var description = VerdictClassifier.describeMetaservice(new Reply(200, Map.of(), LIST_JSON),

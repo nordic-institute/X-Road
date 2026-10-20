@@ -26,12 +26,18 @@
 
 package org.niis.xroad.e2e.parity;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
 /** Builds the SOAP envelope a client sends to the consumer Security Server's proxy. */
 public final class SoapRequests {
 
+    public static final String METRICS = "getSecurityServerMetrics";
+    public static final String HEALTH_DATA = "getSecurityServerHealthData";
+    public static final String OPERATIONAL_DATA = "getSecurityServerOperationalData";
+
+    private static final int MEMBER_PARTS = 3;
     private static final int ID_PARTS = 4;
 
     private SoapRequests() {
@@ -73,6 +79,83 @@ public final class SoapRequests {
                 : "<xro:%1$s><xro:serviceCode>%2$s</xro:serviceCode>%3$s</xro:%1$s>"
                         .formatted(metaserviceCode, targetServiceCode, version);
         return envelope(consumerClientId, providerClientId, metaserviceCode, null, null, messageId, body);
+    }
+
+    /**
+     * Builds the envelope of a call to a monitoring metaservice. The client and the service owner are named at
+     * member level when the identifier has no subsystem; the header names the Security Server that answers.
+     *
+     * @param consumerClientId the calling client in {@code INSTANCE:CLASS:MEMBER[:SUBSYSTEM]} form
+     * @param ownerMemberId    the member that owns the answering Security Server, in {@code INSTANCE:CLASS:MEMBER} form
+     * @param monitoringCode   the monitoring metaservice code, one of {@link #METRICS}, {@link #HEALTH_DATA} and
+     *                         {@link #OPERATIONAL_DATA}
+     * @param securityServerId the answering Security Server in {@code INSTANCE:CLASS:MEMBER:SERVERCODE} form
+     * @param filterClientId   the provider client a health data call filters on in
+     *                         {@code INSTANCE:CLASS:MEMBER[:SUBSYSTEM]} form, or {@code null} for none
+     * @param messageId        the unique message id
+     */
+    public static String monitoringEnvelope(String consumerClientId, String ownerMemberId, String monitoringCode,
+                                            String securityServerId, String filterClientId, String messageId) {
+        var consumer = clientParts(consumerClientId);
+        var owner = clientParts(ownerMemberId);
+        var server = parts(securityServerId);
+        return """
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                        xmlns:xro="http://x-road.eu/xsd/xroad.xsd" xmlns:iden="http://x-road.eu/xsd/identifiers"
+                        xmlns:mon="http://x-road.eu/xsd/monitoring" xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd">
+                    <soapenv:Header>
+                        <xro:client iden:objectType="%s">%s</xro:client>
+                        <xro:service iden:objectType="SERVICE">%s<iden:serviceCode>%s</iden:serviceCode></xro:service>
+                        %s
+                        <xro:id>%s</xro:id>
+                        <xro:protocolVersion>4.0</xro:protocolVersion>
+                    </soapenv:Header>
+                    <soapenv:Body>
+                        %s
+                    </soapenv:Body>
+                </soapenv:Envelope>
+                """.formatted(objectType(consumer), identifierElements(consumer), identifierElements(owner),
+                monitoringCode, securityServerElement(server), messageId,
+                monitoringBody(monitoringCode, filterClientId));
+    }
+
+    private static String monitoringBody(String monitoringCode, String filterClientId) {
+        return switch (monitoringCode) {
+            case METRICS -> "<mon:getSecurityServerMetrics/>";
+            case HEALTH_DATA -> "<om:getSecurityServerHealthData>%s</om:getSecurityServerHealthData>"
+                    .formatted(filterClientId == null ? "" : filterCriteria(clientParts(filterClientId)));
+            case OPERATIONAL_DATA -> ("<om:getSecurityServerOperationalData><om:searchCriteria>"
+                    + "<om:recordsFrom>0</om:recordsFrom><om:recordsTo>%d</om:recordsTo></om:searchCriteria>"
+                    + "</om:getSecurityServerOperationalData>").formatted(Instant.now().getEpochSecond());
+            default -> throw new IllegalArgumentException("not a monitoring metaservice: " + monitoringCode);
+        };
+    }
+
+    private static String filterCriteria(String[] client) {
+        return "<om:filterCriteria><om:client iden:objectType=\"%s\">%s</om:client></om:filterCriteria>"
+                .formatted(objectType(client), identifierElements(client));
+    }
+
+    private static String objectType(String[] client) {
+        return client.length == MEMBER_PARTS ? "MEMBER" : "SUBSYSTEM";
+    }
+
+    private static String identifierElements(String[] client) {
+        var elements = new StringBuilder("<iden:xRoadInstance>%s</iden:xRoadInstance>".formatted(client[0]))
+                .append("<iden:memberClass>%s</iden:memberClass>".formatted(client[1]))
+                .append("<iden:memberCode>%s</iden:memberCode>".formatted(client[2]));
+        if (client.length == ID_PARTS) {
+            elements.append("<iden:subsystemCode>%s</iden:subsystemCode>".formatted(client[MEMBER_PARTS]));
+        }
+        return elements.toString();
+    }
+
+    private static String[] clientParts(String id) {
+        var parts = id.split(":", -1);
+        if (parts.length != MEMBER_PARTS && parts.length != ID_PARTS) {
+            throw new IllegalArgumentException("expected INSTANCE:CLASS:MEMBER[:SUBSYSTEM] but got " + id);
+        }
+        return parts;
     }
 
     private static String envelope(String consumerClientId, String providerClientId, String serviceCode,

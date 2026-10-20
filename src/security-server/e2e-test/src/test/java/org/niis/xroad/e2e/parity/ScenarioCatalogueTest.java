@@ -135,6 +135,9 @@ class ScenarioCatalogueTest {
                                 Verdict.UNKNOWN_SERVICE)),
                         tuple("V93", List.of(Verdict.ALLOWED)),
                         tuple("V94", List.of(Verdict.UNKNOWN_SERVICE)),
+                        tuple("V96", List.of(Verdict.ACCESS_DENIED, Verdict.ACCESS_DENIED)),
+                        tuple("V97", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
+                        tuple("V98", List.of(Verdict.ALLOWED)),
                         tuple("V99", List.of(Verdict.ALLOWED)),
                         tuple("V100", List.of(Verdict.ALLOWED)),
                         tuple("V101", List.of(Verdict.ACCESS_DENIED)),
@@ -519,6 +522,49 @@ class ScenarioCatalogueTest {
                 .filteredOn(request -> request.transport() == Scenario.Transport.SOAP)
                 .isNotEmpty()
                 .allSatisfy(request -> assertThat(request.method()).isEqualTo("POST"));
+    }
+
+    @Test
+    void v96CallsGetSecurityServerMetricsAsTheMemberAndAsASubsystemOfTheConsumer() {
+        assertThat(scenario("V96").checks()).extracting(Scenario.Check::request)
+                .containsExactly(
+                        new Scenario.MonitoringRequest(ScenarioCatalogue.MEMBER_OF_CONSUMER, SoapRequests.METRICS,
+                                null, Scenario.Expectation.NONE),
+                        new Scenario.MonitoringRequest(ScenarioCatalogue.CONSUMER, SoapRequests.METRICS, null,
+                                Scenario.Expectation.NONE));
+    }
+
+    @Test
+    void v97ReadsHealthDataFilteredOnTheConsumerAndOperationalDataAsTheConsumer() {
+        var checks = scenario("V97").checks();
+
+        assertThat(checks).extracting(check -> ((Scenario.MonitoringRequest) check.request()).code())
+                .containsExactly(SoapRequests.HEALTH_DATA, SoapRequests.OPERATIONAL_DATA);
+        assertThat(checks).extracting(check -> ((Scenario.MonitoringRequest) check.request()).consumerClientId())
+                .containsOnly(ScenarioCatalogue.CONSUMER);
+        assertThat(((Scenario.MonitoringRequest) checks.get(0).request()).filterClientId())
+                .isEqualTo(ScenarioCatalogue.CONSUMER);
+        assertThat(((Scenario.MonitoringRequest) checks.get(1).request()).filterClientId()).isNull();
+        assertThat(((Scenario.MonitoringRequest) checks.get(0).request()).expectation().without())
+                .containsExactly("serviceEvents");
+    }
+
+    @Test
+    void v98CallsListClientsWithoutAClientAndExpectsTheSeededMembers() {
+        var request = (Scenario.ListClientsRequest) scenario("V98").checks().get(0).request();
+
+        assertThat(request.consumerClientId()).isNull();
+        assertThat(request.expectation().contains()).containsExactly("1234", "4321", "Test member", "Test client");
+    }
+
+    @Test
+    void monitoringAndListClientsRowsHostNoServiceOfTheirOwn() {
+        for (var id : List.of("V96", "V97", "V98")) {
+            assertThat(scenario(id).fixture().services()).as(id).isEmpty();
+            assertThat(scenario(id).checks()).as(id)
+                    .allSatisfy(check -> assertThat(check.request().serviceIndex())
+                            .isEqualTo(MetaserviceRequest.NO_SERVICE));
+        }
     }
 
     @Test

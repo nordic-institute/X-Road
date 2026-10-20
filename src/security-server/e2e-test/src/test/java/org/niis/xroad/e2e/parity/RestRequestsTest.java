@@ -68,6 +68,11 @@ class RestRequestsTest {
     }
 
     @Test
+    void listClientsUrlIsTheMetaserviceOfTheGivenProxyOrigin() {
+        assertThat(RestRequests.listClientsUrl("http://localhost:32768")).isEqualTo("http://localhost:32768/listClients");
+    }
+
+    @Test
     void clientHeaderUsesSlashes() {
         assertThat(RestRequests.clientHeader("DEV:COM:4321:TestClient")).isEqualTo("DEV/COM/4321/TestClient");
     }

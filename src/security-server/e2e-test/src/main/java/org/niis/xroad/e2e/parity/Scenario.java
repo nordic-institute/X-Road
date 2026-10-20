@@ -508,9 +508,10 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
     }
 
     /** The call that produces the verdict. */
-    public sealed interface RequestSpec permits RestRequest, SoapRequest, MetaserviceRequest, ManagementRequest {
+    public sealed interface RequestSpec permits RestRequest, SoapRequest, MetaserviceRequest, MonitoringRequest,
+            ListClientsRequest, ManagementRequest {
 
-        /** The calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form. */
+        /** The calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form, or {@code null} for a call with none. */
         String consumerClientId();
 
         /**
@@ -640,6 +641,53 @@ public record Scenario(String id, String description, FixtureSpec fixture, List<
         public String describe() {
             return "%s %s %s%s".formatted(transport, method, code,
                     serviceIndex == NO_SERVICE ? "" : " of service " + serviceIndex);
+        }
+    }
+
+    /**
+     * A SOAP call to a monitoring metaservice of the provider member's Security Server. Both the client and the
+     * service are named at member level when the identifier has no subsystem, and the header names the Security
+     * Server that answers.
+     *
+     * @param consumerClientId the calling client, in {@code INSTANCE:CLASS:MEMBER[:SUBSYSTEM]} form
+     * @param code             the monitoring metaservice code, for example {@code getSecurityServerHealthData}
+     * @param filterClientId   the provider client a health data call filters on, or {@code null} for none
+     * @param expectation      what the reply has to say
+     */
+    public record MonitoringRequest(String consumerClientId, String code, String filterClientId,
+                                    Expectation expectation) implements RequestSpec {
+
+        @Override
+        public int serviceIndex() {
+            return MetaserviceRequest.NO_SERVICE;
+        }
+
+        @Override
+        public String describe() {
+            return "SOAP %s as %s".formatted(code, consumerClientId);
+        }
+    }
+
+    /**
+     * A {@code listClients} call to the consumer Security Server's own proxy. The call carries no client header.
+     *
+     * @param expectation what the reply has to say
+     */
+    public record ListClientsRequest(Expectation expectation) implements RequestSpec {
+
+        @Override
+        public String consumerClientId() {
+            return null;
+        }
+
+        @Override
+        public int serviceIndex() {
+            return MetaserviceRequest.NO_SERVICE;
+        }
+
+        @Override
+        public String describe() {
+            return "GET listClients";
         }
     }
 

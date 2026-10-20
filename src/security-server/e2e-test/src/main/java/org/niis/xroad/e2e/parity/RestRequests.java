@@ -59,6 +59,11 @@ public final class RestRequests {
         return targetServiceCode == null ? url : url + "?serviceCode=" + targetServiceCode;
     }
 
+    /** The URL of the {@code listClients} metaservice of the consumer's own proxy. */
+    public static String listClientsUrl(String proxyOrigin) {
+        return proxyOrigin + "/listClients";
+    }
+
     /** The {@code x-road-client} header value for a client in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form. */
     public static String clientHeader(String clientId) {
         return slashed(clientId);

@@ -46,11 +46,15 @@ import org.niis.xroad.e2e.parity.FixturePlan;
 import org.niis.xroad.e2e.parity.FixturePlanner;
 import org.niis.xroad.e2e.parity.KnownDefectMarker;
 import org.niis.xroad.e2e.parity.KnownDefectMarker.Judgement;
+import org.niis.xroad.e2e.parity.Reply;
 import org.niis.xroad.e2e.parity.RestRequests;
 import org.niis.xroad.e2e.parity.RestSender;
 import org.niis.xroad.e2e.parity.Scenario;
+import org.niis.xroad.e2e.parity.Scenario.Expectation;
+import org.niis.xroad.e2e.parity.Scenario.ListClientsRequest;
 import org.niis.xroad.e2e.parity.Scenario.ManagementRequest;
 import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
+import org.niis.xroad.e2e.parity.Scenario.MonitoringRequest;
 import org.niis.xroad.e2e.parity.Scenario.ProviderHost;
 import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
 import org.niis.xroad.e2e.parity.Scenario.RestRequest;
@@ -233,6 +237,18 @@ class AclParityTest extends E2eTest {
                 yield new Observation(VerdictClassifier.classifySoap(reply), VerdictClassifier.describeSoap(reply));
             }
             case MetaserviceRequest meta -> callMetaservice(proxyOrigin, providerClientId, plan, meta);
+            case MonitoringRequest monitoring -> {
+                var reply = Replies.toReply(RestAssuredFactory.given()
+                        .header("Content-Type", "text/xml")
+                        .body(SoapRequests.monitoringEnvelope(monitoring.consumerClientId(), providerClientId,
+                                monitoring.code(), ScenarioCatalogue.OWNER_SECURITY_SERVER,
+                                monitoring.filterClientId(), "acl-parity-" + UUID.randomUUID()))
+                        .post(proxyOrigin));
+                yield observe(reply, plan, monitoring.expectation());
+            }
+            case ListClientsRequest listClients -> observe(
+                    RestSender.send("GET", RestRequests.listClientsUrl(proxyOrigin), null), plan,
+                    listClients.expectation());
             case ManagementRequest registration -> {
                 var reply = management.register(registration.consumerClientId());
                 yield new Observation(VerdictClassifier.classifyManagement(reply),
@@ -245,8 +261,6 @@ class AclParityTest extends E2eTest {
                                                MetaserviceRequest meta) {
         var target = meta.serviceIndex() == MetaserviceRequest.NO_SERVICE
                 ? null : plan.serviceCodes().get(meta.serviceIndex());
-        var required = meta.expectation().required(plan.serviceCodes());
-        var forbidden = meta.expectation().forbidden(plan.serviceCodes());
         var reply = meta.transport() == Transport.REST
                 ? RestSender.send(meta.method(),
                         RestRequests.metaserviceUrl(proxyOrigin, providerClientId, meta.code(), target),
@@ -256,6 +270,12 @@ class AclParityTest extends E2eTest {
                         .body(SoapRequests.metaserviceEnvelope(meta.consumerClientId(), providerClientId, meta.code(),
                                 target, meta.targetVersion(), "acl-parity-" + UUID.randomUUID()))
                         .post(proxyOrigin));
+        return observe(reply, plan, meta.expectation());
+    }
+
+    private static Observation observe(Reply reply, FixturePlan plan, Expectation expectation) {
+        var required = expectation.required(plan.serviceCodes());
+        var forbidden = expectation.forbidden(plan.serviceCodes());
         return new Observation(VerdictClassifier.classifyMetaservice(reply, required, forbidden),
                 VerdictClassifier.describeMetaservice(reply, required, forbidden));
     }
