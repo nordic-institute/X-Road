@@ -66,9 +66,6 @@ public final class ScenarioCatalogue {
     /** The text the rows that disable a service with a notice expect back. */
     public static final String DISABLED_NOTICE = "Scheduled maintenance, please retry later";
 
-    private static final String FINDING_D3 = "D3";
-    private static final String FINDING_D12 = "D12";
-    private static final String FINDING_D18 = "D18";
     private static final String V1 = "v1";
     private static final String GROUP = "partners";
     private static final List<String> CONSUMER_ONLY = List.of(CONSUMER);
@@ -198,12 +195,12 @@ public final class ScenarioCatalogue {
                     List.of(allowed("GET", "/foo/x"), allowed("GET", "/foo%2Fbar")), WaitClass.ACL_CACHE),
             new Scenario("V49", "Endpoint /public granted, request path with a percent-encoded character",
                     endpointOnly("*", "/public"),
-                    List.of(denied("GET", "/public%3Fx")), WaitClass.ACL_CACHE, FINDING_D3),
+                    List.of(denied("GET", "/public%3Fx")), WaitClass.ACL_CACHE),
             new Scenario("V50", "Any grant on the base endpoint, request path with an encoded space",
                     new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
                     List.of(allowed("GET", "/files/my-file.pdf"),
                             new Check(new RestRequest(CONSUMER, 0, "GET", "/files/my%20file.pdf"),
-                                    Verdict.INTERNAL_ERROR)),
+                                    Verdict.ACCESS_DENIED)),
                     WaitClass.ACL_CACHE),
             new Scenario("V51", "Endpoint /foo? granted, the question mark read as an optional character",
                     endpointOnly("*", "/foo?"),
@@ -222,11 +219,11 @@ public final class ScenarioCatalogue {
             new Scenario("V53", "GET /api/items/* endpoint granted, request path with an encoded character and "
                     + "dot segments",
                     endpointOnly("GET", "/api/items/*"),
-                    List.of(denied("GET", "/api/items/1%3F/../../other")), WaitClass.ACL_CACHE, FINDING_D3),
+                    List.of(denied("GET", "/api/items/1%3F/../../other")), WaitClass.ACL_CACHE),
             new Scenario("V54", "Any grant on the base endpoint, request path with an encoded character and a "
                     + "dot segment",
                     new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY))),
-                    List.of(denied("GET", "/%2F../other")), WaitClass.ACL_CACHE, FINDING_D12),
+                    List.of(denied("GET", "/%2F../other")), WaitClass.ACL_CACHE),
             new Scenario("V55", "GET /files/*.json endpoint granted, text after the wildcard in one segment",
                     new FixtureSpec(PROVIDER, List.of(new RestService(List.of(), List.of(
                             new EndpointSpec("GET", "/files/*.json", CONSUMER_ONLY),
@@ -283,7 +280,7 @@ public final class ScenarioCatalogue {
             new Scenario("V123", "Granted service disabled, notice not supplied",
                     changed(new Disable(0, null)),
                     List.of(new Check(new RestRequest(CONSUMER, 0, "GET", "/a"), Verdict.SERVICE_DISABLED)),
-                    WaitClass.ACL_CACHE, FINDING_D18),
+                    WaitClass.ACL_CACHE),
             new Scenario("V124", "Service disabled and enabled again",
                     changed(new Disable(0, DISABLED_NOTICE), new Enable(0)),
                     List.of(allowed("GET", "/a")), WaitClass.ACL_CACHE),

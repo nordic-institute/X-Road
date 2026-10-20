@@ -89,7 +89,7 @@ class ScenarioCatalogueTest {
                         tuple("V47", List.of(Verdict.ALLOWED)),
                         tuple("V48", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V49", List.of(Verdict.ACCESS_DENIED)),
-                        tuple("V50", List.of(Verdict.ALLOWED, Verdict.INTERNAL_ERROR)),
+                        tuple("V50", List.of(Verdict.ALLOWED, Verdict.ACCESS_DENIED)),
                         tuple("V51", List.of(Verdict.ALLOWED, Verdict.ALLOWED)),
                         tuple("V52", List.of(Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED,
                                 Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED, Verdict.ALLOWED,
@@ -234,7 +234,7 @@ class ScenarioCatalogueTest {
     void onlyTheRowsHittingAnUnfixedFindingCarryAMarkerNamingJustItsId() {
         assertThat(ScenarioCatalogue.all()).filteredOn(row -> row.knownDefect() != null)
                 .extracting(Scenario::id, Scenario::knownDefect)
-                .containsExactly(tuple("V49", "D3"), tuple("V53", "D3"), tuple("V54", "D12"), tuple("V123", "D18"));
+                .isEmpty();
     }
 
     @Test
