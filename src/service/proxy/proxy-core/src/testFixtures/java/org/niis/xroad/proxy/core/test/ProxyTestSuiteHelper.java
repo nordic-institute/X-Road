@@ -31,6 +31,7 @@ import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static java.lang.String.valueOf;
@@ -41,6 +42,12 @@ public class ProxyTestSuiteHelper {
     public final int serviceSslPort = findRandomPort();
     public final int proxyPort = findRandomPort();
     public final int dummyServerProxyPort = findRandomPort();
+
+    /**
+     * The {@code legacyProtocolDisabled} value the test global configuration publishes per instance identifier.
+     * An instance without an entry publishes {@code false}.
+     */
+    public final Map<String, Boolean> legacyProtocolDisabledByInstance = new ConcurrentHashMap<>();
 
     public volatile MessageTestCase currentTestCase;
     public ProxyProperties proxyProperties;
