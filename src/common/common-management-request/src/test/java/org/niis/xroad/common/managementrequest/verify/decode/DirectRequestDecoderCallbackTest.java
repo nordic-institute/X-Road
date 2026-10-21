@@ -30,19 +30,28 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.SystemDidRegRequestType;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
+import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.model.MultiPartOutputStream;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
@@ -51,7 +60,13 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -104,14 +119,226 @@ class DirectRequestDecoderCallbackTest {
         assertThat(typed.getAuthCert()).isEqualTo(authCert);
     }
 
-    @Test
-    void systemDidRegSignedByWrongAuthKeyIsRejected() throws Exception {
+    @ParameterizedTest
+    @MethodSource("directRequestTypes")
+    void missingAttachmentIsRejectedAsInvalidRequest(RequestFactory requestFactory) throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
-        var request = builder().buildSystemDidRegRequest(serverId, SYSTEM_DID, DSP_BASE_URL);
-        var payload = envelope(authCert, request, ownerKeyPair.getPrivate()).createPayload();
+        var envelope = partsEnvelope(requestFactory, authCert, authCert, EnumSet.of(Attachment.OWNER_OCSP), false);
 
-        assertThatExceptionOfType(Exception.class)
-                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()));
+        assertRejectedWith(envelope, ErrorCode.INVALID_REQUEST);
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypes")
+    void missingOwnerSignatureIsRejectedAsInvalidRequest(RequestFactory requestFactory) throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var envelope = partsEnvelope(requestFactory, authCert, authCert, EnumSet.of(Attachment.OWNER_SIGNATURE), false);
+
+        assertRejectedWith(envelope, ErrorCode.INVALID_REQUEST, "Owner signature algorithm id is missing");
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypesAndSignatureParts")
+    void signatureWithoutAlgorithmIdIsRejectedAsInvalidRequest(RequestFactory requestFactory, Attachment signature,
+                                                               String expectedDetails) throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var envelope = partsEnvelope(requestFactory, authCert, authCert, EnumSet.noneOf(Attachment.class), false)
+                .withoutAlgorithmHeader(signature);
+
+        assertRejectedWith(envelope, ErrorCode.INVALID_REQUEST, expectedDetails);
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypesAndUnknownAlgorithmIds")
+    void signatureWithUnknownAlgorithmIdIsRejectedAsInvalidRequest(RequestFactory requestFactory,
+                                                                   Attachment signature, String algorithmId,
+                                                                   String expectedDetails) throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var envelope = partsEnvelope(requestFactory, authCert, authCert, EnumSet.noneOf(Attachment.class), false)
+                .withAlgorithmHeaderValue(signature, algorithmId);
+
+        assertRejectedWith(envelope, ErrorCode.INVALID_REQUEST, expectedDetails);
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypes")
+    void extraAttachmentIsRejected(RequestFactory requestFactory) throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var envelope = partsEnvelope(requestFactory, authCert, authCert, EnumSet.noneOf(Attachment.class), true);
+
+        assertRejectedWith(envelope, ErrorCode.INTERNAL_ERROR);
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypes")
+    void authSignatureNotMadeByAttachedAuthCertIsRejected(RequestFactory requestFactory) throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var otherAuthCert = TestCertUtil.generateAuthCert(ownerKeyPair.getPublic());
+        var envelope = partsEnvelope(requestFactory, authCert, otherAuthCert, EnumSet.noneOf(Attachment.class), false);
+
+        assertRejectedWith(envelope, ErrorCode.INVALID_SIGNATURE_VALUE);
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypes")
+    void ownerSignatureMadeByWrongKeyIsRejected(RequestFactory requestFactory) throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var request = requestFactory.build(builder(), serverId, authCert);
+        var envelope = new PartsEnvelope(request, authCert, authKeyPair.getPrivate(), authKeyPair.getPrivate(),
+                ownerCertBytes(), ownerOcspBytes(), EnumSet.noneOf(Attachment.class), false);
+
+        assertRejectedWith(envelope, ErrorCode.INVALID_SIGNATURE_VALUE);
+    }
+
+    @Test
+    void authCertRegWithAttachedCertDifferingFromRequestIsRejected() throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var otherAuthCert = TestCertUtil.generateAuthCert(ownerKeyPair.getPublic());
+        var request = builder().buildAuthCertRegRequest(serverId, ADDRESS, otherAuthCert);
+        var envelope = new PartsEnvelope(request, authCert, authKeyPair.getPrivate(), ownerKeyPair.getPrivate(),
+                ownerCertBytes(), ownerOcspBytes(), EnumSet.noneOf(Attachment.class), false);
+
+        assertRejectedWith(envelope, ErrorCode.CERT_VALIDATION);
+    }
+
+    private static Stream<Arguments> directRequestTypes() {
+        RequestFactory authCertReg = (builder, server, authCert) -> builder.buildAuthCertRegRequest(server, ADDRESS, authCert);
+        RequestFactory systemDidReg = (builder, server, authCert) ->
+                builder.buildSystemDidRegRequest(server, SYSTEM_DID, DSP_BASE_URL);
+        return Stream.of(
+                Arguments.of(Named.of("authCertReg", authCertReg)),
+                Arguments.of(Named.of("systemDidReg", systemDidReg)));
+    }
+
+    private static Stream<Arguments> directRequestTypesAndSignatureParts() {
+        return directRequestTypes().flatMap(types -> Stream.of(
+                Arguments.of(types.get()[0], Attachment.AUTH_SIGNATURE, "Auth signature algorithm id is missing"),
+                Arguments.of(types.get()[0], Attachment.OWNER_SIGNATURE, "Owner signature algorithm id is missing")));
+    }
+
+    private static Stream<Arguments> directRequestTypesAndUnknownAlgorithmIds() {
+        return directRequestTypes().flatMap(types -> Stream.of(
+                Arguments.of(types.get()[0], Attachment.AUTH_SIGNATURE, "SHA512withFOO",
+                        "Auth signature algorithm 'SHA512withFOO' is unknown"),
+                Arguments.of(types.get()[0], Attachment.AUTH_SIGNATURE, "",
+                        "Auth signature algorithm ' ' is unknown"),
+                Arguments.of(types.get()[0], Attachment.OWNER_SIGNATURE, "SHA512withFOO",
+                        "Owner signature algorithm 'SHA512withFOO' is unknown"),
+                Arguments.of(types.get()[0], Attachment.OWNER_SIGNATURE, "",
+                        "Owner signature algorithm ' ' is unknown")));
+    }
+
+    private PartsEnvelope partsEnvelope(RequestFactory requestFactory, byte[] signingCert, byte[] attachedAuthCert,
+                                        Set<Attachment> omitted, boolean extraPart) throws Exception {
+        var request = requestFactory.build(builder(), serverId, signingCert);
+        return new PartsEnvelope(request, attachedAuthCert, authKeyPair.getPrivate(), ownerKeyPair.getPrivate(),
+                ownerCertBytes(), ownerOcspBytes(), omitted, extraPart);
+    }
+
+    private void assertRejectedWith(TestBaseManagementRequest envelope, ErrorCode expected, String expectedDetails)
+            throws Exception {
+        var payload = envelope.createPayload();
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .satisfies(e -> {
+                    assertThat(e.getCode()).isEqualTo(expected.code());
+                    assertThat(e.getDetails()).isEqualTo(expectedDetails);
+                });
+    }
+
+    private void assertRejectedWith(TestBaseManagementRequest envelope, ErrorCode expected) throws Exception {
+        var payload = envelope.createPayload();
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .satisfies(e -> assertThat(e.getCode()).isEqualTo(expected.code()));
+    }
+
+    private byte[] ownerCertBytes() throws Exception {
+        return TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner()).getEncoded();
+    }
+
+    private byte[] ownerOcspBytes() throws Exception {
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+        return OcspTestUtils.createOCSPResponse(ownerCert,
+                TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key,
+                CertificateStatus.GOOD).getEncoded();
+    }
+
+    private interface RequestFactory {
+        SoapMessageImpl build(TestManagementRequestBuilder builder, SecurityServerId.Conf server, byte[] authCert)
+                throws Exception;
+    }
+
+    private enum Attachment {
+        AUTH_SIGNATURE, OWNER_SIGNATURE, AUTH_CERT, OWNER_CERT, OWNER_OCSP
+    }
+
+    private static final class PartsEnvelope extends TestBaseManagementRequest {
+        private final byte[] authCert;
+        private final PrivateKey authKey;
+        private final PrivateKey ownerKey;
+        private final byte[] ownerCert;
+        private final byte[] ownerOcsp;
+        private final Set<Attachment> omitted;
+        private final boolean extraPart;
+        private final Set<Attachment> withoutAlgorithmHeader = EnumSet.noneOf(Attachment.class);
+        private final Map<Attachment, String> algorithmHeaderValues = new EnumMap<>(Attachment.class);
+
+        PartsEnvelope(SoapMessageImpl request, byte[] authCert, PrivateKey authKey, PrivateKey ownerKey,
+                      byte[] ownerCert, byte[] ownerOcsp, Set<Attachment> omitted, boolean extraPart) {
+            super(request.getBytes());
+            this.authCert = authCert;
+            this.authKey = authKey;
+            this.ownerKey = ownerKey;
+            this.ownerCert = ownerCert;
+            this.ownerOcsp = ownerOcsp;
+            this.omitted = omitted;
+            this.extraPart = extraPart;
+        }
+
+        PartsEnvelope withoutAlgorithmHeader(Attachment signature) {
+            withoutAlgorithmHeader.add(signature);
+            return this;
+        }
+
+        PartsEnvelope withAlgorithmHeaderValue(Attachment signature, String value) {
+            algorithmHeaderValues.put(signature, value);
+            return this;
+        }
+
+        @Override
+        protected void writeMultipart(MultiPartOutputStream multipart) throws Exception {
+            var algorithm = SignAlgorithm.SHA512_WITH_RSA;
+            writePart(multipart, Attachment.AUTH_SIGNATURE, createSignature(authKey, algorithm),
+                    algorithmHeader(Attachment.AUTH_SIGNATURE, algorithm));
+            writePart(multipart, Attachment.OWNER_SIGNATURE, createSignature(ownerKey, algorithm),
+                    algorithmHeader(Attachment.OWNER_SIGNATURE, algorithm));
+            writePart(multipart, Attachment.AUTH_CERT, authCert);
+            writePart(multipart, Attachment.OWNER_CERT, ownerCert);
+            writePart(multipart, Attachment.OWNER_OCSP, ownerOcsp);
+            if (extraPart) {
+                multipart.startPart(MimeTypes.BINARY);
+                multipart.write(ownerOcsp);
+            }
+        }
+
+        private String[] algorithmHeader(Attachment signature, SignAlgorithm algorithm) {
+            return withoutAlgorithmHeader.contains(signature)
+                    ? new String[0]
+                    : new String[] {HEADER_SIG_ALGO_ID + ": " + algorithmHeaderValues.getOrDefault(signature, algorithm.name())};
+        }
+
+        private void writePart(MultiPartOutputStream multipart, Attachment attachment, byte[] content,
+                               String... headers) throws Exception {
+            if (!omitted.contains(attachment)) {
+                multipart.startPart(MimeTypes.BINARY, headers);
+                multipart.write(content);
+            }
+        }
     }
 
     private TestManagementRequestBuilder builder() {

@@ -94,10 +94,10 @@ public abstract class DirectRequestDecoderCallback<T> implements ManagementReque
     @Override
     public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
         if (authSignatureBytes == null) {
-            authSignatureAlgoId = SignAlgorithm.ofName(additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID));
+            authSignatureAlgoId = signatureAlgorithm("Auth", additionalHeaders);
             authSignatureBytes = IOUtils.toByteArray(content);
         } else if (ownerSignatureBytes == null) {
-            ownerSignatureAlgoId = SignAlgorithm.ofName(additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID));
+            ownerSignatureAlgoId = signatureAlgorithm("Owner", additionalHeaders);
             ownerSignatureBytes = IOUtils.toByteArray(content);
         } else if (authCertBytes == null) {
             authCertBytes = IOUtils.toByteArray(content);
@@ -108,6 +108,19 @@ public abstract class DirectRequestDecoderCallback<T> implements ManagementReque
         } else {
             throw XrdRuntimeException.systemInternalError("Unexpected content in multipart");
         }
+    }
+
+    private static SignAlgorithm signatureAlgorithm(String part, Map<String, String> additionalHeaders) {
+        String name = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+        if (name == null) {
+            return null;
+        }
+        SignAlgorithm algorithm = SignAlgorithm.ofName(name);
+        if (!(algorithm instanceof SignAlgorithm.KnownSignAlgorithm)) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "%s signature algorithm '%s' is unknown".formatted(part, name));
+        }
+        return algorithm;
     }
 
     @Override
