@@ -62,7 +62,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
     private static final ClientId OWNER = ClientId.Conf.create("DEV", "ORG", "9999", "Prov");
     private static final String GROUP_CODE = "myLocalGroup";
-    private static final String CONSTRAINT_VALUE = LocalGroupConstraintValue.encode(OWNER, GROUP_CODE);
+    private static final String CONSTRAINT_VALUE = new LocalGroupConstraintValue(OWNER, GROUP_CODE).encode();
 
     @Mock
     ServerConfProvider serverConfProvider;

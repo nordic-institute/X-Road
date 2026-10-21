@@ -81,7 +81,7 @@ import static org.mockito.Mockito.when;
 class StoredAgreementClaimsPostgresTest {
 
     private static final ClientId LOCAL_GROUP_OWNER = ClientId.Conf.create("DEV", "COM", "111", "Owner");
-    private static final String LOCAL_GROUP = LocalGroupConstraintValue.encode(LOCAL_GROUP_OWNER, "security-server-owners");
+    private static final String LOCAL_GROUP = new LocalGroupConstraintValue(LOCAL_GROUP_OWNER, "security-server-owners").encode();
 
     private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
     private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());

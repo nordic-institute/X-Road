@@ -30,32 +30,34 @@ package org.niis.xroad.edc.extension.policy.controlplane.util;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
 /**
- * Encodes and decodes the DSP {@code xroad:localGroupMember} constraint value. The value carries
- * the group owner's client id alongside the group code, so evaluation never has to look the
- * consumer up as a client of the provider Security Server. Shared by {@code PolicyMapper}, which
- * writes the value, and {@code XRoadLocalGroupMemberConstraintFunction}, which reads it.
+ * The DSP {@code xroad:localGroupMember} constraint value: the group owner's client id alongside
+ * the group code, so evaluation never has to look the consumer up as a client of the provider
+ * Security Server. Shared by {@code PolicyMapper}, which writes the value, and
+ * {@code XRoadLocalGroupMemberConstraintFunction}, which reads it.
  */
 @Slf4j
-@UtilityClass
-public class LocalGroupConstraintValue {
+public record LocalGroupConstraintValue(ClientId owner, String groupCode) {
 
     private static final char SEPARATOR = ';';
 
-    public static String encode(ClientId owner, String groupCode) {
+    public String encode() {
         return owner.asEncodedId() + SEPARATOR + groupCode;
+    }
+
+    public LocalGroupId localGroupId() {
+        return LocalGroupId.Conf.create(groupCode);
     }
 
     /**
      * An old-format value (bare group code, no separator) or a malformed one (unparseable owner,
      * blank group code) decodes to empty rather than throwing.
      */
-    public static Optional<Decoded> decode(String value) {
+    public static Optional<LocalGroupConstraintValue> decode(String value) {
         int sepIndex = value.indexOf(SEPARATOR);
         if (sepIndex < 0) {
             log.debug("Local-group constraint value '{}' has no owner separator", value);
@@ -65,14 +67,11 @@ public class LocalGroupConstraintValue {
         var groupCode = value.substring(sepIndex + 1);
         try {
             var owner = PolicyContextHelper.parseClientId(ownerPart);
-            var localGroupId = LocalGroupId.Conf.create(groupCode);
-            return Optional.of(new Decoded(owner, localGroupId));
+            LocalGroupId.Conf.create(groupCode);
+            return Optional.of(new LocalGroupConstraintValue(owner, groupCode));
         } catch (RuntimeException e) {
             log.debug("Local-group constraint value '{}' could not be decoded: {}", value, e.getMessage());
             return Optional.empty();
         }
-    }
-
-    public record Decoded(ClientId owner, LocalGroupId localGroupId) {
     }
 }

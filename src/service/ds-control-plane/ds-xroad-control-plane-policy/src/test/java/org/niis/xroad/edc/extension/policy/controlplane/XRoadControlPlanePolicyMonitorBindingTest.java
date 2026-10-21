@@ -159,7 +159,7 @@ class XRoadControlPlanePolicyMonitorBindingTest {
         var constraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_LOCAL_GROUP))
                 .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression(LocalGroupConstraintValue.encode(GROUP_OWNER, "security-server-owners")))
+                .rightExpression(new LiteralExpression(new LocalGroupConstraintValue(GROUP_OWNER, "security-server-owners").encode()))
                 .build();
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance().constraint(constraint).build())

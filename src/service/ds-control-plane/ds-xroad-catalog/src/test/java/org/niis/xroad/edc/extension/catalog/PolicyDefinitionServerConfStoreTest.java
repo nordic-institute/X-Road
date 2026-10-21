@@ -460,7 +460,7 @@ class PolicyDefinitionServerConfStoreTest {
         assertThat(result).hasSize(1);
         var constraint = (AtomicConstraint) result.getFirst().getPolicy().getPermissions().getFirst().getConstraints().getFirst();
         var rightValue = ((LiteralExpression) constraint.getRightExpression()).getValue().toString();
-        assertThat(rightValue).isEqualTo(LocalGroupConstraintValue.encode(SERVICE_1.getClientId(), localGroupSubject.getGroupCode()));
+        assertThat(rightValue).isEqualTo(new LocalGroupConstraintValue(SERVICE_1.getClientId(), localGroupSubject.getGroupCode()).encode());
     }
 
     @Test

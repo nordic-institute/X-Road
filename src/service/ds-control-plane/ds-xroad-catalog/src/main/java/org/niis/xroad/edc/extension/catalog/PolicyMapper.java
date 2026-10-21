@@ -158,26 +158,20 @@ class PolicyMapper {
     }
 
     private AtomicConstraint createClientConstraint(ClientId serviceOwner, XRoadId subjectId) {
-        String constraintKey;
-        String constraintValue;
-        if (subjectId instanceof GlobalGroupId) {
-            constraintKey = XROAD_GLOBALGROUP_CONSTRAINT;
-            constraintValue = subjectId.asEncodedId();
-        } else if (subjectId instanceof LocalGroupId localGroupId) {
-            constraintKey = XROAD_LOCALGROUP_CONSTRAINT;
-            constraintValue = LocalGroupConstraintValue.encode(serviceOwner, localGroupId.getGroupCode());
-        } else {
-            constraintKey = XROAD_CLIENT_ID_CONSTRAINT;
-            constraintValue = subjectId.asEncodedId();
-        }
+        var constraint = switch (subjectId) {
+            case GlobalGroupId globalGroupId -> Map.entry(XROAD_GLOBALGROUP_CONSTRAINT, globalGroupId.asEncodedId());
+            case LocalGroupId localGroupId -> Map.entry(XROAD_LOCALGROUP_CONSTRAINT,
+                    new LocalGroupConstraintValue(serviceOwner, localGroupId.getGroupCode()).encode());
+            default -> Map.entry(XROAD_CLIENT_ID_CONSTRAINT, subjectId.asEncodedId());
+        };
         if (log.isTraceEnabled()) {
-            log.trace("createClientConstraint subjectId={} constraintKey={}", subjectId.asEncodedId(), constraintKey);
+            log.trace("createClientConstraint subjectId={} constraintKey={}", subjectId.asEncodedId(), constraint.getKey());
         }
 
         return AtomicConstraint.Builder.newInstance()
-                .leftExpression(new LiteralExpression(constraintKey))
+                .leftExpression(new LiteralExpression(constraint.getKey()))
                 .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression(constraintValue))
+                .rightExpression(new LiteralExpression(constraint.getValue()))
                 .build();
     }
 

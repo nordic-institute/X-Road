@@ -96,7 +96,7 @@ class PolicyMapperTest {
 
         assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_LOCALGROUP_CONSTRAINT);
         assertThat(rightExpressionValue(clientConstraint))
-                .isEqualTo(LocalGroupConstraintValue.encode(SERVICE_OWNER, LOCAL_GROUP_SUBJECT.getGroupCode()));
+                .isEqualTo(new LocalGroupConstraintValue(SERVICE_OWNER, LOCAL_GROUP_SUBJECT.getGroupCode()).encode());
     }
 
     @Test
