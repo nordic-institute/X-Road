@@ -32,18 +32,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SystemDidRegistrationService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ManagementRequestDtoConverter;
 import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
+import org.niis.xroad.restapi.exceptions.ExceptionTranslator;
+import org.niis.xroad.restapi.exceptions.ValidationErrorHelper;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FINAL_CONFLICT;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FIXABLE_CONFLICT;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_NOT_RESOLVED;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementRequestsApiControllerTest {
@@ -74,5 +84,46 @@ class ManagementRequestsApiControllerTest {
         assertThat(response.getBody()).isSameAs(responseDto);
         verify(systemDidRegistrationService).add(request);
         verifyNoInteractions(service);
+    }
+
+    @Test
+    void finalConflictIsAnsweredAs409WithTheReasonInTheMetadata() {
+        var response = answerOf(new ConflictException(MR_DID_FINAL_CONFLICT.build("WRONG_SCHEME")));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody().getStatus()).isEqualTo(409);
+        assertThat(response.getBody().getError().getCode()).isEqualTo("management_request_did_final_conflict");
+        assertThat(response.getBody().getError().getMetadata()).containsExactly("WRONG_SCHEME");
+    }
+
+    @Test
+    void fixableConflictIsAnsweredAs409WithTheReasonInTheMetadata() {
+        var response = answerOf(new ConflictException(MR_DID_FIXABLE_CONFLICT.build("HOST_DIFFERS")));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody().getStatus()).isEqualTo(409);
+        assertThat(response.getBody().getError().getCode()).isEqualTo("management_request_did_fixable_conflict");
+        assertThat(response.getBody().getError().getMetadata()).containsExactly("HOST_DIFFERS");
+    }
+
+    @Test
+    void notResolvedIsAnsweredAs400WithTheReasonInTheMetadata() {
+        var response = answerOf(new BadRequestException(MR_DID_NOT_RESOLVED.build("NO_DOCUMENT")));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().getError().getCode()).isEqualTo("management_request_did_not_resolved");
+        assertThat(response.getBody().getError().getMetadata()).containsExactly("NO_DOCUMENT");
+    }
+
+    private ResponseEntity<ErrorInfo> answerOf(RuntimeException failure) {
+        var dto = new SystemDidRegistrationRequestDto();
+        var request = mock(SystemDidRegistrationRequest.class);
+        when(converter.fromDto(dto)).thenReturn(request);
+        when(systemDidRegistrationService.add(request)).thenThrow(failure);
+
+        var thrown = catchThrowableOfType(RuntimeException.class, () -> controller.addManagementRequest(dto));
+
+        assertThat(thrown).isSameAs(failure);
+        return new ExceptionTranslator(new ValidationErrorHelper()).toResponseEntity(thrown, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

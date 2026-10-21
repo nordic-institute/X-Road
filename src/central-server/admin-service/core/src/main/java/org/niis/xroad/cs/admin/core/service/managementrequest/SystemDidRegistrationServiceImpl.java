@@ -28,9 +28,11 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.BadRequestException;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
+import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
@@ -41,8 +43,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_SERVER_ADDRESS;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationService {
@@ -54,13 +55,16 @@ public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationSe
 
     @Override
     public SystemDidRegistrationRequest add(SystemDidRegistrationRequest request) {
-        int serverRowId = authCertServerCheck.requireServerRowId(request.getSecurityServerId(), request.getCertificate());
+        var server = authCertServerCheck.requireServer(request.getSecurityServerId(), request.getCertificate());
 
-        var check = publishedValueStore.checkSystemPair(serverRowId, request.getSystemDid(), request.getDspBaseUrl());
+        var check = publishedValueStore.checkSystemPair(server.id(), request.getSystemDid(), request.getDspBaseUrl());
         if (check.verdict() == Verdict.REJECTED) {
-            throw reject(check.rejection().name());
+            throw SystemDidRegistrationOutcome.of(check.rejection(), server.address()).toException();
         }
-        if (check.verdict() == Verdict.NOT_EQUAL) {
+        if (check.verdict() == Verdict.VALUE_DIFFERS) {
+            throw SystemDidRegistrationOutcome.of(PublishedValueRejection.VALUE_DIFFERS, server.address()).toException();
+        }
+        if (check.verdict() != Verdict.EQUAL) {
             requireResolves(request.getSystemDid());
         }
 
@@ -68,13 +72,19 @@ public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationSe
     }
 
     private void requireResolves(String systemDid) {
-        DidResolution resolution = didResolutionService.resolve(List.of(systemDid)).getFirst();
-        if (resolution.outcome() != DidResolutionOutcome.RESOLVED) {
-            throw reject(String.valueOf(resolution.reason()));
+        List<DidResolution> resolutions;
+        try {
+            resolutions = didResolutionService.resolve(List.of(systemDid));
+        } catch (XrdRuntimeException e) {
+            log.warn("DID resolution of {} failed", systemDid, e);
+            throw SystemDidRegistrationOutcome.resolverUnavailable().toException();
         }
-    }
-
-    private static BadRequestException reject(String reason) {
-        return new BadRequestException(MR_INVALID_SERVER_ADDRESS.build(reason));
+        if (resolutions.isEmpty() || !systemDid.equals(resolutions.getFirst().did())) {
+            throw SystemDidRegistrationOutcome.resolverUnavailable().toException();
+        }
+        var resolution = resolutions.getFirst();
+        if (resolution.outcome() != DidResolutionOutcome.RESOLVED) {
+            throw SystemDidRegistrationOutcome.notResolved(resolution).toException();
+        }
     }
 }

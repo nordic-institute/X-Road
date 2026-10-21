@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
+import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
 import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
@@ -65,8 +66,9 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_COD
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 /**
- * Every operation locks the server row before it reads or writes any published value, then validates the
- * values against the server as it is under the lock. Uniqueness is decided here, not by the database: the
+ * Writes lock the server row before they read or write any published value, then validate the values
+ * against the server as it is under the lock. {@code checkSystemPair} is a dry run that takes no lock and
+ * writes nothing. Uniqueness is decided here, not by the database: the
  * hash-indexed member DID constraint cannot be an {@code ON CONFLICT} target, so equal resends are told
  * apart from conflicts by comparing the stored value.
  */
@@ -97,11 +99,12 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
                 .orElseThrow(() -> serverNotFound(securityServerId));
         var pair = new SystemPair(systemDid, dspBaseUrl);
 
-        var rejection = new PublishedValueValidator(contextOf(server)).validate(pair);
-        if (rejection.isPresent()) {
-            return SystemPairCheck.rejected(rejection.get());
+        var check = verdictOf(server, new PublishedValueValidator(contextOf(server)), pair);
+        boolean wouldWrite = check.verdict() == Verdict.ABSENT || check.verdict() == Verdict.STALE_REPLACEABLE;
+        if (wouldWrite && isHeldByAnotherServer(server, pair)) {
+            return SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER);
         }
-        return isStoredPair(server, pair) ? SystemPairCheck.EQUAL : SystemPairCheck.NOT_EQUAL;
+        return check;
     }
 
     @Override
@@ -121,26 +124,19 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
 
     private PublishedValueResult storeSystemPair(int securityServerId, SystemPair pair, Mode mode) {
         var server = lockAndLoad(securityServerId);
-        var validator = new PublishedValueValidator(contextOf(server));
+        var check = verdictOf(server, new PublishedValueValidator(contextOf(server)), pair);
 
-        var rejection = validator.validate(pair);
-        if (rejection.isPresent()) {
-            return PublishedValueResult.rejected(rejection.get());
+        var verdict = check.verdict();
+        if (verdict == Verdict.REJECTED) {
+            return PublishedValueResult.rejected(check.rejection());
         }
-
-        var storedDid = server.getSystemDid();
-        if (storedDid == null && mode == Mode.ADMIN_REPLACE) {
+        if (verdict == Verdict.EQUAL || (verdict == Verdict.ABSENT && mode == Mode.ADMIN_REPLACE)) {
             return PublishedValueResult.UNCHANGED;
         }
-        if (storedDid != null) {
-            if (isStoredPair(server, pair)) {
-                return PublishedValueResult.UNCHANGED;
-            }
-            if (mode == Mode.WRITE_ONCE && !validator.isSystemPairStale(storedDid, server.getDspBaseUrl())) {
-                return PublishedValueResult.rejected(VALUE_DIFFERS);
-            }
+        if (verdict == Verdict.VALUE_DIFFERS && mode == Mode.WRITE_ONCE) {
+            return PublishedValueResult.rejected(VALUE_DIFFERS);
         }
-        if (securityServerRepository.existsBySystemDidAndIdNot(pair.did(), server.getId())) {
+        if (isHeldByAnotherServer(server, pair)) {
             return heldByAnotherServer(server, null);
         }
 
@@ -148,6 +144,27 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         server.setDspBaseUrl(pair.dspBaseUrl());
         securityServerRepository.saveAndFlush(server);
         return PublishedValueResult.STORED;
+    }
+
+    private SystemPairCheck verdictOf(SecurityServerEntity server, PublishedValueValidator validator, SystemPair pair) {
+        var rejection = validator.validate(pair);
+        if (rejection.isPresent()) {
+            return SystemPairCheck.rejected(rejection.get());
+        }
+        var storedDid = server.getSystemDid();
+        if (storedDid == null) {
+            return SystemPairCheck.ABSENT;
+        }
+        if (isStoredPair(server, pair)) {
+            return SystemPairCheck.EQUAL;
+        }
+        return validator.isSystemPairStale(storedDid, server.getDspBaseUrl())
+                ? SystemPairCheck.STALE_REPLACEABLE
+                : SystemPairCheck.VALUE_DIFFERS;
+    }
+
+    private boolean isHeldByAnotherServer(SecurityServerEntity server, SystemPair pair) {
+        return securityServerRepository.existsBySystemDidAndIdNot(pair.did(), server.getId());
     }
 
     private static boolean isStoredPair(SecurityServerEntity server, SystemPair pair) {

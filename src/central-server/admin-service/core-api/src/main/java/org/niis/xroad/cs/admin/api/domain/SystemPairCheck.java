@@ -27,26 +27,33 @@
 package org.niis.xroad.cs.admin.api.domain;
 
 /**
- * What a read-only check of a SYSTEM pair found.
+ * What a read-only check of a SYSTEM pair found. It reports what the write-once operation would do for the
+ * same input.
  *
  * @param verdict   whether the pair is valid for the server and how it compares with the stored pair
- * @param rejection the reason when the pair is not valid for the server, otherwise {@code null}
+ * @param rejection the reason when the pair is refused, otherwise {@code null}
  */
 public record SystemPairCheck(Verdict verdict, PublishedValueRejection rejection) {
 
+    public static final SystemPairCheck ABSENT = new SystemPairCheck(Verdict.ABSENT, null);
     public static final SystemPairCheck EQUAL = new SystemPairCheck(Verdict.EQUAL, null);
-    public static final SystemPairCheck NOT_EQUAL = new SystemPairCheck(Verdict.NOT_EQUAL, null);
+    public static final SystemPairCheck STALE_REPLACEABLE = new SystemPairCheck(Verdict.STALE_REPLACEABLE, null);
+    public static final SystemPairCheck VALUE_DIFFERS = new SystemPairCheck(Verdict.VALUE_DIFFERS, null);
 
     public static SystemPairCheck rejected(PublishedValueRejection rejection) {
         return new SystemPairCheck(Verdict.REJECTED, rejection);
     }
 
     public enum Verdict {
+        /** The pair is valid and the server has no pair stored. */
+        ABSENT,
         /** The pair is valid and equal to the stored pair. */
         EQUAL,
-        /** The pair is valid and the server has no equal pair stored. */
-        NOT_EQUAL,
-        /** The pair is not valid for the server; the reason is in {@link #rejection()}. */
+        /** The pair is valid and differs from a stored pair that no longer matches the registered address. */
+        STALE_REPLACEABLE,
+        /** The pair is valid and differs from a stored pair that matches the registered address. */
+        VALUE_DIFFERS,
+        /** The pair is refused; the reason is in {@link #rejection()}. */
         REJECTED
     }
 }

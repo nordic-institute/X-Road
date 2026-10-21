@@ -33,6 +33,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
@@ -52,23 +53,46 @@ public class AuthCertServerCheck {
     private final SecurityServerRepository securityServerRepository;
 
     /**
+     * Checks that the certificate is an authentication certificate of the named server.
+     *
      * @param serverId    the identifier of the server
      * @param certificate the DER-encoded authentication certificate
-     * @return the id of the server row
-     * @throws NotFoundException when the server is unknown
-     * @throws ConflictException when the certificate is unknown or belongs to another server
+     * @return the server the certificate belongs to
+     * @throws NotFoundException when the certificate and the server are both unknown
+     * @throws ConflictException when the certificate is unknown; with the fixable outcome when the named server
+     *                           does not exist and the certificate belongs to the server that has the same
+     *                           instance and server code under another owner; with the final outcome when the
+     *                           certificate belongs to any other server
      */
-    public int requireServerRowId(SecurityServerId serverId, byte[] certificate) {
-        var server = securityServerRepository.findBy(serverId)
-                .orElseThrow(() -> new NotFoundException(MR_SERVER_NOT_FOUND.build(serverId.toString())));
-        var authCert = authCertRepository.findByCert(certificate).orElseThrow(AuthCertServerCheck::invalidCertificate);
-        if (authCert.getSecurityServer().getId() != server.getId()) {
-            throw invalidCertificate();
+    public CheckedServer requireServer(SecurityServerId serverId, byte[] certificate) {
+        var named = securityServerRepository.findBy(serverId);
+        var authCert = authCertRepository.findByCert(certificate);
+        if (authCert.isEmpty()) {
+            if (named.isEmpty()) {
+                throw new NotFoundException(MR_SERVER_NOT_FOUND.build(serverId.toString()));
+            }
+            throw new ConflictException(MR_INVALID_AUTH_CERTIFICATE.build());
         }
-        return server.getId();
+
+        var certificateServer = authCert.get().getSecurityServer();
+        if (named.isPresent() && named.get().getId() == certificateServer.getId()) {
+            return new CheckedServer(certificateServer.getId(), certificateServer.getAddress());
+        }
+        if (named.isEmpty() && isSameServerUnderAnotherOwner(serverId, certificateServer)) {
+            throw SystemDidRegistrationOutcome.ownerChanged().toException();
+        }
+        throw SystemDidRegistrationOutcome.certificateOfAnotherServer().toException();
     }
 
-    private static ConflictException invalidCertificate() {
-        return new ConflictException(MR_INVALID_AUTH_CERTIFICATE.build());
+    private static boolean isSameServerUnderAnotherOwner(SecurityServerId serverId, SecurityServerEntity certificateServer) {
+        return certificateServer.getServerId().getXRoadInstance().equals(serverId.getXRoadInstance())
+                && certificateServer.getServerCode().equals(serverId.getServerCode());
+    }
+
+    /**
+     * @param id      the id of the server row
+     * @param address the registered address of the server
+     */
+    public record CheckedServer(int id, String address) {
     }
 }

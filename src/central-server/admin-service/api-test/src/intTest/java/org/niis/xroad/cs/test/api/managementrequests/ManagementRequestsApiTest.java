@@ -1500,7 +1500,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
-    void systemDidRegistrationFromSecurityServerReachesResolve(CsBaselineSeeder seeder) throws Exception {
+    void systemDidRegistrationFromSecurityServerIsAnsweredNotResolved(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
         var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr32", MEMBER_CLASS));
@@ -1513,12 +1513,13 @@ class ManagementRequestsApiTest extends CsApiTest {
         Step.given("auth cert registration approved", () ->
                 new ManagementRequestsAdminClient(session).approveRequest(regId).statusCode(200));
 
-        Step.then("guard and store check pass and the Issuer Service call fails", () ->
+        Step.then("guard and store check pass and the unreachable resolver is answered as not resolved", () ->
                 new ManagementRequestsAdminClient(msSession)
                         .addManagementRequest(systemDidRegistration(serverId, cert,
                                 ManagementRequestOriginDto.SECURITY_SERVER, SSMR32_ADDRESS))
-                        .statusCode(500)
-                        .body("error.code", equalTo("core.ds_issuer_service.network_error")));
+                        .statusCode(400)
+                        .body("error.code", equalTo("management_request_did_not_resolved"))
+                        .body("error.metadata", hasItem("RESOLVER_UNAVAILABLE")));
     }
 
     private SystemDidRegistrationRequestDto systemDidRegistration(String serverId, byte[] cert,

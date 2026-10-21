@@ -32,6 +32,8 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -177,10 +179,10 @@ class PublishedValueStoreImplTest {
     }
 
     @Test
-    void shouldCheckSystemPairAsNotEqualWhenServerHasNoneAndWriteNothing() {
+    void shouldCheckSystemPairAsAbsentWhenServerHasNoneAndWriteNothing() {
         var result = store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(SystemPairCheck.NOT_EQUAL);
+        assertThat(result).isEqualTo(SystemPairCheck.ABSENT);
         assertThat(server.getSystemDid()).isNull();
         verify(securityServerRepository, never()).saveAndFlush(any());
         verify(securityServerRepository, never()).lockForUpdateById(anyInt());
@@ -196,11 +198,85 @@ class PublishedValueStoreImplTest {
     }
 
     @Test
-    void shouldCheckSystemPairAsNotEqualWhenOnlyTheDspBaseUrlDiffers() {
+    void shouldCheckSystemPairAsStaleReplaceableWhenOnlyTheStoredDspBaseUrlIsStale() {
         server.setSystemDid(SYSTEM_DID);
         server.setDspBaseUrl(OLD_DSP_URL);
 
-        assertThat(store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL)).isEqualTo(SystemPairCheck.NOT_EQUAL);
+        assertThat(store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL)).isEqualTo(SystemPairCheck.STALE_REPLACEABLE);
+    }
+
+    @Test
+    void shouldCheckSystemPairAsValueDiffersWhenTheStoredPairIsCurrent() {
+        server.setSystemDid(SYSTEM_DID);
+        server.setDspBaseUrl(DSP_URL);
+
+        assertThat(store.checkSystemPair(SERVER_ID, SYSTEM_DID, OTHER_DSP_URL)).isEqualTo(SystemPairCheck.VALUE_DIFFERS);
+    }
+
+    @Test
+    void shouldCheckSystemPairAsRejectedWhenAnotherServerHoldsTheDid() {
+        when(securityServerRepository.existsBySystemDidAndIdNot(SYSTEM_DID, SERVER_ID)).thenReturn(true);
+
+        var result = store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        assertThat(result).isEqualTo(SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        verifyNoInteractions(auditLogging);
+    }
+
+    @ParameterizedTest
+    @MethodSource("systemPairCases")
+    void shouldAnswerTheSystemPairCheckTheWayTheWriteOnceOperationDecides(SystemPairCase pairCase) {
+        pairCase.storedDid().ifPresent(server::setSystemDid);
+        pairCase.storedDspBaseUrl().ifPresent(server::setDspBaseUrl);
+        lenient().when(securityServerRepository.existsBySystemDidAndIdNot(any(), eq(SERVER_ID))).thenReturn(pairCase.heldByAnother());
+
+        var check = store.checkSystemPair(SERVER_ID, pairCase.did(), pairCase.dspBaseUrl());
+        var written = store.writeSystemPairOnce(SERVER_ID, pairCase.did(), pairCase.dspBaseUrl());
+
+        assertThat(check).isEqualTo(pairCase.expectedCheck());
+        assertThat(written).isEqualTo(pairCase.expectedWrite());
+    }
+
+    private static Stream<SystemPairCase> systemPairCases() {
+        return Stream.of(
+                new SystemPairCase("absent", SYSTEM_DID, DSP_URL, null, null, false,
+                        SystemPairCheck.ABSENT, PublishedValueResult.STORED),
+                new SystemPairCase("equal", SYSTEM_DID, DSP_URL, SYSTEM_DID, DSP_URL, false,
+                        SystemPairCheck.EQUAL, PublishedValueResult.UNCHANGED),
+                new SystemPairCase("stale", SYSTEM_DID, DSP_URL, OLD_SYSTEM_DID, OLD_DSP_URL, false,
+                        SystemPairCheck.STALE_REPLACEABLE, PublishedValueResult.STORED),
+                new SystemPairCase("value differs", OTHER_SYSTEM_DID, OTHER_DSP_URL, SYSTEM_DID, DSP_URL, false,
+                        SystemPairCheck.VALUE_DIFFERS, PublishedValueResult.rejected(VALUE_DIFFERS)),
+                new SystemPairCase("validator rejection", null, null, null, null, false,
+                        SystemPairCheck.rejected(WRONG_SCHEME), PublishedValueResult.rejected(WRONG_SCHEME)),
+                new SystemPairCase("held, absent", SYSTEM_DID, DSP_URL, null, null, true,
+                        SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER),
+                        PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
+                new SystemPairCase("held, stale", SYSTEM_DID, DSP_URL, OLD_SYSTEM_DID, OLD_DSP_URL, true,
+                        SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER),
+                        PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
+                new SystemPairCase("held, equal", SYSTEM_DID, DSP_URL, SYSTEM_DID, DSP_URL, true,
+                        SystemPairCheck.EQUAL, PublishedValueResult.UNCHANGED),
+                new SystemPairCase("held, value differs", OTHER_SYSTEM_DID, OTHER_DSP_URL, SYSTEM_DID, DSP_URL, true,
+                        SystemPairCheck.VALUE_DIFFERS, PublishedValueResult.rejected(VALUE_DIFFERS)));
+    }
+
+    private record SystemPairCase(String name, String did, String dspBaseUrl, String storedDidOrNull,
+                                  String storedDspBaseUrlOrNull, boolean heldByAnother,
+                                  SystemPairCheck expectedCheck, PublishedValueResult expectedWrite) {
+
+        Optional<String> storedDid() {
+            return Optional.ofNullable(storedDidOrNull);
+        }
+
+        Optional<String> storedDspBaseUrl() {
+            return Optional.ofNullable(storedDspBaseUrlOrNull);
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     @Test

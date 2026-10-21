@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
@@ -39,8 +38,6 @@ import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.springframework.stereotype.Service;
-
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_SERVER_ADDRESS;
 
 @Service
 @Transactional
@@ -60,11 +57,11 @@ public class SystemDidRegistrationRequestHandler implements RequestHandler<Syste
 
     @Override
     public SystemDidRegistrationRequest add(SystemDidRegistrationRequest request) {
-        int serverRowId = authCertServerCheck.requireServerRowId(request.getSecurityServerId(), request.getCertificate());
+        var server = authCertServerCheck.requireServer(request.getSecurityServerId(), request.getCertificate());
 
-        var result = publishedValueStore.writeSystemPairOnce(serverRowId, request.getSystemDid(), request.getDspBaseUrl());
+        var result = publishedValueStore.writeSystemPairOnce(server.id(), request.getSystemDid(), request.getDspBaseUrl());
         if (result.outcome() == PublishedValueResult.Outcome.REJECTED) {
-            throw new BadRequestException(MR_INVALID_SERVER_ADDRESS.build(result.rejection().name()));
+            throw SystemDidRegistrationOutcome.of(result.rejection(), server.address()).toException();
         }
 
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));

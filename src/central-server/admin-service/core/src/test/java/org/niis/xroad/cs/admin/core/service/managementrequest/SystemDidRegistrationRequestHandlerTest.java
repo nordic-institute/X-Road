@@ -29,12 +29,15 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.core.exception.DeviationAware;
+import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
@@ -47,6 +50,7 @@ import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
+import org.niis.xroad.cs.admin.core.service.managementrequest.AuthCertServerCheck.CheckedServer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -56,6 +60,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FINAL_CONFLICT;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FIXABLE_CONFLICT;
 
 @ExtendWith(MockitoExtension.class)
 class SystemDidRegistrationRequestHandlerTest {
@@ -94,7 +100,7 @@ class SystemDidRegistrationRequestHandlerTest {
     void addStoresThePairWriteOnceWithTheRequestValuesAndSavesTheRequestRow() {
         var serverIdEntity = mock(SecurityServerIdEntity.class);
         var mapped = mock(SystemDidRegistrationRequest.class);
-        when(authCertServerCheck.requireServerRowId(securityServerId, CERTIFICATE)).thenReturn(SERVER_ROW_ID);
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
         when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL)).thenReturn(PublishedValueResult.STORED);
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(serverIdEntity);
         when(systemDidRegistrationRequests.save(entityCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
@@ -110,7 +116,7 @@ class SystemDidRegistrationRequestHandlerTest {
 
     @Test
     void addAcceptsAnUnchangedPair() {
-        when(authCertServerCheck.requireServerRowId(securityServerId, CERTIFICATE)).thenReturn(SERVER_ROW_ID);
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
         when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL)).thenReturn(PublishedValueResult.UNCHANGED);
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mock(SecurityServerIdEntity.class));
         when(systemDidRegistrationRequests.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -122,7 +128,7 @@ class SystemDidRegistrationRequestHandlerTest {
 
     @Test
     void addRejectsWhenTheCertificateCheckFailsAndWritesNothing() {
-        when(authCertServerCheck.requireServerRowId(securityServerId, CERTIFICATE)).thenThrow(mock(ConflictException.class));
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenThrow(mock(ConflictException.class));
 
         assertThatThrownBy(() -> handler.add(request)).isInstanceOf(ConflictException.class);
 
@@ -130,13 +136,31 @@ class SystemDidRegistrationRequestHandlerTest {
         verify(systemDidRegistrationRequests, never()).save(any());
     }
 
-    @Test
-    void addRejectsWhenTheStoreRefusesThePairAndSavesNoRow() {
-        when(authCertServerCheck.requireServerRowId(securityServerId, CERTIFICATE)).thenReturn(SERVER_ROW_ID);
+    @ParameterizedTest
+    @EnumSource(PublishedValueRejection.class)
+    void addMapsEveryStoreRejectionThroughTheOutcomeTableAndSavesNoRow(PublishedValueRejection rejection) {
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
         when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
-                .thenReturn(PublishedValueResult.rejected(PublishedValueRejection.VALUE_DIFFERS));
+                .thenReturn(PublishedValueResult.rejected(rejection));
 
-        assertThatThrownBy(() -> handler.add(request)).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> handler.add(request))
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((DeviationAware) e).getErrorDeviation()).isEqualTo(expectedDeviation(rejection)));
+
+        verify(systemDidRegistrationRequests, never()).save(any());
+    }
+
+    @Test
+    void addTreatsANonAsciiHostAsFixableWhenTheRegisteredAddressIsNonAscii() {
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE))
+                .thenReturn(new CheckedServer(SERVER_ROW_ID, "ss.exämple.org"));
+        when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
+                .thenReturn(PublishedValueResult.rejected(PublishedValueRejection.NON_ASCII_HOST));
+
+        assertThatThrownBy(() -> handler.add(request))
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((DeviationAware) e).getErrorDeviation())
+                        .isEqualTo(MR_DID_FIXABLE_CONFLICT.build("NON_ASCII_HOST")));
 
         verify(systemDidRegistrationRequests, never()).save(any());
     }
@@ -144,5 +168,18 @@ class SystemDidRegistrationRequestHandlerTest {
     @Test
     void handlesOnlySystemDidRegistrationRequests() {
         assertThat(handler.requestType()).isEqualTo(SystemDidRegistrationRequest.class);
+    }
+
+    private static CheckedServer checkedServer() {
+        return new CheckedServer(SERVER_ROW_ID, "ss.example.org");
+    }
+
+    private static ErrorDeviation expectedDeviation(PublishedValueRejection rejection) {
+        return switch (rejection) {
+            case NOT_CANONICAL, DID_TOO_LONG, WRONG_SCHEME, DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL,
+                 FOREIGN_SYSTEM_DID, UNRELATED_MEMBER, NON_ASCII_HOST -> MR_DID_FINAL_CONFLICT.build(rejection.name());
+            case HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS, DID_HELD_BY_ANOTHER_SERVER ->
+                    MR_DID_FIXABLE_CONFLICT.build(rejection.name());
+        };
     }
 }

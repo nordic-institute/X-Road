@@ -56,12 +56,13 @@ public interface PublishedValueStore {
     PublishedValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl);
 
     /**
-     * Checks a SYSTEM pair against a server without writing anything and without locking the server row.
+     * Checks a SYSTEM pair against a server without writing anything and without locking the server row. The
+     * verdict agrees with {@link #writeSystemPairOnce} for the same input.
      *
      * @param securityServerId the id of the server row
      * @param systemDid        the SYSTEM DID
      * @param dspBaseUrl       the DSP base URL
-     * @return the validator's rejection, or whether the pair equals the stored pair
+     * @return the rejection, or how the pair compares with the stored pair
      */
     SystemPairCheck checkSystemPair(int securityServerId, String systemDid, String dspBaseUrl);
 
