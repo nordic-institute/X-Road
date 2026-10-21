@@ -50,7 +50,6 @@ public class DnsNameValidator {
         }
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     public boolean isValid(String host) {
         if (host == null || host.isBlank()) {
             return false;
