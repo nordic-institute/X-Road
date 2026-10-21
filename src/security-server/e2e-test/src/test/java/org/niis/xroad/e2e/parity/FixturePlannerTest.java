@@ -340,7 +340,7 @@ class FixturePlannerTest {
     }
 
     @Test
-    void removedMembersAndDeletedGroupAreAppliedInSetupAfterTheGrantsAndNotDeletedAgainInCleanup() {
+    void removedMembersAndDeletedGroupAreAppliedInSetupAfterTheGrantsAndStillCoveredByCleanup() {
         var spec = new FixtureSpec(ScenarioCatalogue.PROVIDER,
                 List.of(new RestService(List.of(), List.of(), List.of("partners"))),
                 List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners", List.of(ScenarioCatalogue.CONSUMER),
@@ -350,7 +350,8 @@ class FixturePlannerTest {
                 new GrantGroupAccess(ScenarioCatalogue.PROVIDER, "pab12-v63-partners", "pab12-v63"),
                 new RemoveLocalGroupMember(ScenarioCatalogue.PROVIDER, "pab12-v63-partners", ScenarioCatalogue.CONSUMER),
                 new DeleteLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v63-partners"));
-        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v63"));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v63"),
+                new DeleteLocalGroup(ScenarioCatalogue.PROVIDER, "pab12-v63-partners"));
     }
 
     @Test

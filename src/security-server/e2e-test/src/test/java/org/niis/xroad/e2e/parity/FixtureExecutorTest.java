@@ -45,6 +45,7 @@ import org.niis.xroad.e2e.parity.Scenario.WsdlShape;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -56,9 +57,18 @@ class FixtureExecutorTest {
             new RestService(List.of(ScenarioCatalogue.CONSUMER)),
             new RestService(List.of())));
 
+    private static final FixturePlan DELETED_GROUP_PLAN = new FixturePlanner("t1").plan("V63",
+            new FixtureSpec(ScenarioCatalogue.PROVIDER,
+                    List.of(new RestService(List.of(), List.of(), List.of("partners"))),
+                    List.of(new LocalGroupSpec(ScenarioCatalogue.PROVIDER, "partners",
+                            List.of(ScenarioCatalogue.CONSUMER), List.of(ScenarioCatalogue.CONSUMER), true))));
+
+    private static final String DELETED_GROUP_ID = "grp-%s-pt1-v63-partners".formatted(ScenarioCatalogue.PROVIDER);
+
     private static final class RecordingGateway implements AdminGateway {
         final List<String> calls = new ArrayList<>();
         Map<String, Integer> deleteStatus = Map.of();
+        Set<String> throwOnDeleteOf = Set.of();
         String failOnAddOf;
         String failOnGrantOf;
         String alreadyGrantedTo;
@@ -187,6 +197,9 @@ class FixtureExecutorTest {
         @Override
         public int deleteLocalGroup(String groupId) {
             calls.add("delete group " + groupId);
+            if (throwOnDeleteOf.contains(groupId)) {
+                throw new IllegalStateException("gateway down");
+            }
             return deleteStatus.getOrDefault(groupId, 204);
         }
 
@@ -208,6 +221,9 @@ class FixtureExecutorTest {
         @Override
         public int deleteGlobalGroup(String code) {
             calls.add("delete global group " + code);
+            if (throwOnDeleteOf.contains("global-" + code)) {
+                throw new IllegalStateException("gateway down");
+            }
             return deleteStatus.getOrDefault("global-" + code, 204);
         }
 
@@ -504,6 +520,64 @@ class FixtureExecutorTest {
                     "delete group " + groupId);
         }
         assertThat(gateway.calls).filteredOn(call -> call.startsWith("delete group")).hasSize(1);
+    }
+
+    @Test
+    void localGroupWhoseSetupDeleteAnswersAnErrorIsDeletedAgainInCleanup() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of(DELETED_GROUP_ID, 500);
+
+        assertThatThrownBy(() -> new FixtureExecutor(gateway).open(DELETED_GROUP_PLAN))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("delete of local group pt1-v63-partners")
+                .hasMessageContaining("500");
+
+        assertThat(gateway.calls).filteredOn(("delete group " + DELETED_GROUP_ID)::equals).hasSize(2);
+    }
+
+    @Test
+    void localGroupWhoseSetupDeleteThrowsIsDeletedAgainInCleanup() {
+        var gateway = new RecordingGateway();
+        gateway.throwOnDeleteOf = Set.of(DELETED_GROUP_ID);
+
+        assertThatThrownBy(() -> new FixtureExecutor(gateway).open(DELETED_GROUP_PLAN))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("gateway down");
+
+        assertThat(gateway.calls).filteredOn(("delete group " + DELETED_GROUP_ID)::equals).hasSize(2);
+    }
+
+    @Test
+    void globalGroupWhoseDeleteAnswersAnErrorIsDeletedAgainInCleanup() {
+        var gateway = new RecordingGateway();
+        gateway.deleteStatus = Map.of("global-pt1-v74-everyone", 500);
+        var globalPlan = new FixturePlanner("t1").plan(scenario("V74"));
+
+        try (var fixture = new FixtureExecutor(gateway).open(globalPlan)) {
+            assertThatThrownBy(() -> fixture.apply(globalPlan.phases().get(0)))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("delete of global group pt1-v74-everyone")
+                    .hasMessageContaining("500");
+            assertThatThrownBy(fixture::close).isInstanceOf(IllegalStateException.class);
+        }
+
+        assertThat(gateway.calls).filteredOn("delete global group pt1-v74-everyone"::equals).hasSize(2);
+    }
+
+    @Test
+    void globalGroupWhoseDeleteThrowsIsDeletedAgainInCleanup() {
+        var gateway = new RecordingGateway();
+        gateway.throwOnDeleteOf = Set.of("global-pt1-v74-everyone");
+        var globalPlan = new FixturePlanner("t1").plan(scenario("V74"));
+
+        try (var fixture = new FixtureExecutor(gateway).open(globalPlan)) {
+            assertThatThrownBy(() -> fixture.apply(globalPlan.phases().get(0)))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("gateway down");
+            assertThatThrownBy(fixture::close).isInstanceOf(IllegalStateException.class);
+        }
+
+        assertThat(gateway.calls).filteredOn("delete global group pt1-v74-everyone"::equals).hasSize(2);
     }
 
     @Test

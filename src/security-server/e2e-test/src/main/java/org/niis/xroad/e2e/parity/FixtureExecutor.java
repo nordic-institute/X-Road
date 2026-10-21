@@ -221,20 +221,21 @@ public final class FixtureExecutor {
                                         grant.serviceCode(), grant.method(), grant.path())),
                         globalGroupId(grant.providerClientId(), grant.groupCode()));
                 case DeleteGlobalGroup delete -> {
-                    globalGroupCodes.remove(delete.code());
                     var status = gateway.deleteGlobalGroup(delete.code());
                     if (!isSuccess(status)) {
                         throw new IllegalStateException(
                                 "delete of global group %s answered %d".formatted(delete.code(), status));
                     }
+                    globalGroupCodes.remove(delete.code());
                 }
                 case DeleteLocalGroup delete -> {
-                    var id = groupIds.remove(groupKey(delete.ownerClientId(), delete.code()));
-                    var status = gateway.deleteLocalGroup(id);
+                    var key = groupKey(delete.ownerClientId(), delete.code());
+                    var status = gateway.deleteLocalGroup(groupIds.get(key));
                     if (!isSuccess(status)) {
                         throw new IllegalStateException("delete of local group %s of %s answered %d"
                                 .formatted(delete.code(), delete.ownerClientId(), status));
                     }
+                    groupIds.remove(key);
                 }
                 case DeleteDescription delete -> {
                     var status = gateway.deleteDescription(descriptionIds.get(delete.serviceCode()));

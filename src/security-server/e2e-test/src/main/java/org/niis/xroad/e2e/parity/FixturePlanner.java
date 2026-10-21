@@ -208,9 +208,7 @@ public final class FixturePlanner {
             cleanup.add(new DeleteDescription(descriptionKeys.get(index)));
         }
         for (var group : spec.groups().reversed()) {
-            if (!group.deleted()) {
-                cleanup.add(new DeleteLocalGroup(group.ownerClientId(), groupCode(scenarioId, group.code())));
-            }
+            cleanup.add(new DeleteLocalGroup(group.ownerClientId(), groupCode(scenarioId, group.code())));
         }
         for (var group : spec.globalGroups().reversed()) {
             cleanup.add(new DeleteGlobalGroup(groupCode(scenarioId, group.code())));

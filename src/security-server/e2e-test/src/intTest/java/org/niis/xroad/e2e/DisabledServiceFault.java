@@ -25,8 +25,12 @@
  */
 package org.niis.xroad.e2e;
 
+import ee.ria.xroad.common.util.MimeUtils;
+
+import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.e2e.parity.Verdict;
 import org.niis.xroad.e2e.parity.VerdictClassifier;
@@ -34,8 +38,10 @@ import org.niis.xroad.e2e.parity.VerdictPoller;
 import org.niis.xroad.e2e.parity.VerdictPoller.Observation;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -56,8 +62,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code server.serverproxy} as it encodes the fault. The fault crosses the wire as a SOAP fault (X-Road's
  * proxy-to-proxy protocol represents faults this way even for REST calls); on the consumer side a
  * {@code server.}-prefixed code makes the client-facing handler answer 500, not 400. The REST caller
- * therefore sees an HTTP 500 with an {@code X-Road-Error} header and a JSON body whose {@code message}
- * carries the exact notice text.
+ * therefore sees an HTTP 500 with an {@code X-Road-Error} header and a JSON body whose {@code type} carries
+ * the same prefixed code and whose {@code message} carries the exact notice text.
  */
 @UtilityClass
 @SuppressWarnings("checkstyle:magicnumber")
@@ -68,13 +74,15 @@ class DisabledServiceFault {
     static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
     static final String DISABLED_NOTICE = "Scheduled maintenance window, please retry once it closes";
 
+    static final String EXPECTED_FAULT_CODE = SERVER_SERVERPROXY_X + "." + ErrorCode.SERVICE_DISABLED.code();
     static final Duration SERVERCONF_CACHE_EXPIRY_TIMEOUT =
             Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue() + 30);
     static final Duration SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL = Duration.ofSeconds(3);
 
     /** Polls {@code call} until it returns the expected POST service response. */
     static void awaitCallSucceeds(Supplier<ValidatableResponse> call, Duration timeout, Duration pollInterval) {
-        var result = new VerdictPoller().await(() -> observe(call), Verdict.ALLOWED, timeout, pollInterval);
+        var result = new VerdictPoller().await(() -> observe(call.get().extract().response()), Verdict.ALLOWED,
+                timeout, pollInterval);
 
         assertThat(result.matched()).as(() -> result.failureMessage("service call", Verdict.ALLOWED)).isTrue();
     }
@@ -82,16 +90,24 @@ class DisabledServiceFault {
     /** Polls {@code call} until it returns the {@code SERVICE_DISABLED} fault carrying the operator's notice. */
     static void awaitCallFailsWithDisabledNotice(Supplier<ValidatableResponse> call, Duration timeout,
                                                  Duration pollInterval) {
-        var result = new VerdictPoller().await(() -> observe(call), Verdict.SERVICE_DISABLED, timeout, pollInterval);
-
+        var lastResponse = new AtomicReference<Response>();
+        var result = new VerdictPoller().await(() -> {
+            var response = call.get().extract().response();
+            lastResponse.set(response);
+            return observe(response);
+        }, Verdict.SERVICE_DISABLED, timeout, pollInterval);
         assertThat(result.matched())
                 .as(() -> result.failureMessage("service call", Verdict.SERVICE_DISABLED))
                 .isTrue();
-        assertThat(result.detail()).as("reply to the disabled service").contains(DISABLED_NOTICE);
+        var response = lastResponse.get();
+        assertThat(response.getStatusCode()).as("status of the reply to the disabled service").isEqualTo(500);
+        assertThat(response.getHeader(MimeUtils.HEADER_ERROR)).as(MimeUtils.HEADER_ERROR)
+                .isEqualTo(EXPECTED_FAULT_CODE);
+        assertThat(response.jsonPath().getString("type")).as("fault type").isEqualTo(EXPECTED_FAULT_CODE);
+        assertThat(response.jsonPath().getString("message")).as("fault message").contains(DISABLED_NOTICE);
     }
 
-    private static Observation observe(Supplier<ValidatableResponse> call) {
-        var response = call.get().extract().response();
+    private static Observation observe(Response response) {
         var reply = Replies.toReply(response);
         if (reply.status() == 200 && EXPECTED_RESPONSE_MESSAGE.equals(response.jsonPath().getString("message"))) {
             return new Observation(Verdict.ALLOWED, reply.toString());
