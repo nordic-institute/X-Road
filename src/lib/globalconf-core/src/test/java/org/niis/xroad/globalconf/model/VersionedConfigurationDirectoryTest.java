@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -460,6 +462,33 @@ public class VersionedConfigurationDirectoryTest {
 
         assertTrue(dir.findPrivate("foo").isEmpty());
         assertTrue(dir.findShared("foo").isEmpty());
+    }
+
+    @Test
+    public void findFileExpiresOnReturnsExpirationDateWhenPresent() {
+        Path filePath = Path.of("src/test/resources/globalconf_good_v4/EE/shared-params.xml");
+
+        Optional<OffsetDateTime> expiresOn = VersionedConfigurationDirectory.findFileExpiresOn(filePath);
+
+        assertEquals(Optional.of(OffsetDateTime.parse("2124-05-20T17:42:55Z")), expiresOn);
+    }
+
+    @Test
+    public void findFileExpiresOnReturnsEmptyWhenMetadataHasNoExpirationDate() {
+        Path filePath = Path.of("src/test/resources/globalconf_good2_v3/DEV/shared-params.xml");
+
+        Optional<OffsetDateTime> expiresOn = VersionedConfigurationDirectory.findFileExpiresOn(filePath);
+
+        assertTrue(expiresOn.isEmpty());
+    }
+
+    @Test
+    public void findFileExpiresOnReturnsEmptyWhenMetadataFileIsMissing() {
+        Path filePath = Path.of("src/test/resources/globalconf_malformed/foo/private-params.xml");
+
+        Optional<OffsetDateTime> expiresOn = VersionedConfigurationDirectory.findFileExpiresOn(filePath);
+
+        assertTrue(expiresOn.isEmpty());
     }
 
     @Test

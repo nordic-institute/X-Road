@@ -26,7 +26,6 @@
 package org.niis.xroad.confclient.core.globalconf;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,18 +38,24 @@ import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class GlobalConfRpcCacheTest {
     private static final String GOOD_CONF_DIR = "../../../lib/globalconf-core/src/test/resources/globalconf_good_v4";
     private static final String EXPIRED_CONF_DIR = "src/test/resources/globalconf_expired";
+    private static final String NO_EXPIRY_CONF_DIR = "../../../lib/globalconf-core/src/test/resources/globalconf_good2_v3";
+    private static final Instant EXPIRED_COPY_EXPIRES_ON = Instant.parse("2000-01-01T00:00:00Z");
 
     @Spy
     FSGlobalConfValidator globalConfValidator = new FSGlobalConfValidator();
@@ -106,20 +111,48 @@ class GlobalConfRpcCacheTest {
     }
 
     @Test
-    @Disabled("the cache does not check part expiry at start-up, so it reports OK for an expired copy on disk; "
-            + "which non-OK status to expect is left to the fix")
-    void shouldNotReportOkForExpiredCopyOnDisk() {
-        var expiredProperties = new ConfigurationClientProperties(XRoadConfigBuilder.create()
-                .register(ConfClientConfigKeys.instance())
-                .overrides(Map.of("xroad.configuration-client.global-conf-dir", EXPIRED_CONF_DIR))
-                .build());
-        var expiredCache = new GlobalConfRpcCache(new FSGlobalConfValidator(),
-                new GetGlobalConfRespFactory(expiredProperties), expiredProperties);
+    void shouldServeExpiredCopyOnDiskWithItsExpiry() {
+        var expiredCache = expiredCache();
 
         expiredCache.refreshCache();
 
-        assertThat(expiredCache.getGlobalConf().status()).isNotEqualTo(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK);
+        var cached = expiredCache.getGlobalConf();
+        assertThat(cached.status()).isEqualTo(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK);
+        assertThat(cached.globalConf()).isPresent();
+        assertThat(cached.globalConf().get().getInstances(0).getFilesList())
+                .filteredOn(f -> Set.of(FILE_NAME_PRIVATE_PARAMETERS, FILE_NAME_SHARED_PARAMETERS).contains(f.getName()))
+                .hasSize(2)
+                .allSatisfy(f -> {
+                    assertThat(f.hasExpiresOn()).isTrue();
+                    assertThat(f.getExpiresOn()).isEqualTo(EXPIRED_COPY_EXPIRES_ON.toEpochMilli());
+                });
+    }
+
+    @Test
+    void shouldServeCopyWithoutExpiryOnDiskWithoutExpiry() {
+        var noExpiryCache = cacheFor(NO_EXPIRY_CONF_DIR);
+
+        noExpiryCache.refreshCache();
+
+        var cached = noExpiryCache.getGlobalConf();
+        assertThat(cached.status()).isEqualTo(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK);
+        assertThat(cached.globalConf()).isPresent();
+        assertThat(cached.globalConf().get().getInstances(0).getFilesList())
+                .filteredOn(f -> FILE_NAME_SHARED_PARAMETERS.equals(f.getName()))
+                .hasSize(1)
+                .allSatisfy(f -> assertThat(f.hasExpiresOn()).isFalse());
+    }
+
+    private static GlobalConfRpcCache expiredCache() {
+        return cacheFor(EXPIRED_CONF_DIR);
+    }
+
+    private static GlobalConfRpcCache cacheFor(String confDir) {
+        var properties = new ConfigurationClientProperties(XRoadConfigBuilder.create()
+                .register(ConfClientConfigKeys.instance())
+                .overrides(Map.of("xroad.configuration-client.global-conf-dir", confDir))
+                .build());
+        return new GlobalConfRpcCache(new FSGlobalConfValidator(), new GetGlobalConfRespFactory(properties), properties);
     }
 
 }
-

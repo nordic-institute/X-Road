@@ -67,6 +67,7 @@ message GlobalConfFile {
   string name = 1;
   string content = 2;
   string checksum = 3;
+  optional int64 expires_on = 4;
 }
 
 message GetVerificationConfResp {
