@@ -83,6 +83,7 @@ import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
@@ -287,15 +288,19 @@ public abstract class AbstractProxyIntegrationTest {
         var agreementTokenAccessCheck = new AgreementTokenAccessCheck(
                 mock(AgreementTokenKeyMaterial.class), mock(ProxyAgreementTokenProperties.class));
 
+        var legacyCallRefusalPolicy = new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF);
+
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck,
+                legacyCallRefusalPolicy);
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck,
+                legacyCallRefusalPolicy);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
                 serverSoapMessageProcessor, proxyProperties.server(),

@@ -36,6 +36,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
@@ -61,6 +62,7 @@ class ServerRestMessageProcessorTest {
 
     private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
     private final AgreementTokenAccessCheck agreementTokenAccessCheck = mock(AgreementTokenAccessCheck.class);
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy = mock(LegacyCallRefusalPolicy.class);
 
     private final ServerRestMessageProcessor processor = new ServerRestMessageProcessor(
             mock(MessageSigningService.class),
@@ -73,7 +75,8 @@ class ServerRestMessageProcessorTest {
             mock(OcspVerifierFactory.class),
             mock(ServiceHandlerLoader.class),
             mock(IdentifierValidationService.class),
-            agreementTokenAccessCheck);
+            agreementTokenAccessCheck,
+            legacyCallRefusalPolicy);
 
     @Test
     void shouldSkipAclWhenAgreementTokenIsAccepted() {
@@ -135,6 +138,81 @@ class ServerRestMessageProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue());
         verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRefuseTokenlessRequestAndSkipAclWhenRefusalIsInForce() {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
+        var requestMessage = requestMessageFor(CLIENT);
+        assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, null))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
+                .hasMessageContaining("TOKEN_REQUIRED");
+        verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRefuseUnverifiableTokenAndSkipAclWhenRefusalIsInForce() {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Unavailable());
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
+        var requestMessage = requestMessageFor(CLIENT);
+        assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, AGREEMENT_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
+                .hasMessageContaining("KEY_MATERIAL_UNAVAILABLE");
+        verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldServeAcceptedTokenWithoutConsultingThePolicy() {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Accepted());
+        processor.verifyAccess(SERVICE, requestMessageFor(CLIENT), AGREEMENT_TOKEN);
+        verify(legacyCallRefusalPolicy, never()).refusedAsProvider();
+    }
+
+    @Test
+    void shouldRefuseTokenlessRequestOnHandlerWithoutAccessCheckWhenRefusalIsInForce() {
+        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
+        var requestMessage = requestMessageFor(CLIENT);
+        assertThatThrownBy(() -> processor.verifyAgreementToken(SERVICE, requestMessage, null))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
+                .hasMessageContaining("TOKEN_REQUIRED");
+    }
+
+    @Test
+    void shouldRefuseRejectedTokenOnHandlerWithoutAccessCheckWhenRefusalIsInForce() {
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Rejected("SCOPE_MISMATCH"));
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
+        var requestMessage = requestMessageFor(CLIENT);
+        assertThatThrownBy(() -> processor.verifyAgreementToken(SERVICE, requestMessage, AGREEMENT_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("SCOPE_MISMATCH");
+    }
+
+    @Test
+    void shouldPassAcceptedTokenOnHandlerWithoutAccessCheckWhenRefusalIsInForce() {
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Accepted());
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
+        processor.verifyAgreementToken(SERVICE, requestMessageFor(CLIENT), AGREEMENT_TOKEN);
+    }
+
+    @Test
+    void shouldNotVerifyTokenOnHandlerWithoutAccessCheckWhenRefusalIsOff() {
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(false);
+        processor.verifyAgreementToken(SERVICE, requestMessageFor(CLIENT), AGREEMENT_TOKEN);
+        verify(agreementTokenAccessCheck, never()).decide(any(), any(), any(), any(), any());
     }
 
     private static ServerRestMessageProcessor.VerifyingProxyMessage requestMessageFor(ClientId.Conf client) {

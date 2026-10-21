@@ -55,6 +55,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
@@ -106,6 +107,7 @@ public class ServerSoapMessageProcessor {
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final IdentifierValidationService identifierValidationService;
     private final AgreementTokenAccessCheck agreementTokenAccessCheck;
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     /**
      * Processes a server-side SOAP request.
@@ -226,6 +228,8 @@ public class ServerSoapMessageProcessor {
 
         if (handler.shouldVerifyAccess(requestMessage)) {
             verifyAccess(requestMessage, requestServiceId, jRequest.getHeaders().get(HEADER_AGREEMENT_TOKEN));
+        } else {
+            verifyAgreementToken(requestMessage, requestServiceId, jRequest.getHeaders().get(HEADER_AGREEMENT_TOKEN));
         }
 
         if (handler.shouldVerifySignature()) {
@@ -258,6 +262,7 @@ public class ServerSoapMessageProcessor {
             throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
                     "Agreement token rejected: %s".formatted(reasonClass));
         }
+        LegacyCallGate.refuseLegacyCall(decision, legacyCallRefusalPolicy);
         var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(client, requestServiceId)) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
@@ -269,6 +274,14 @@ public class ServerSoapMessageProcessor {
             throw XrdRuntimeException.systemException(SERVICE_DISABLED, "Service %s is disabled: %s".formatted(requestServiceId,
                     disabledNotice));
         }
+    }
+
+    void verifyAgreementToken(ProxyMessage requestMessage, ServiceId requestServiceId, String agreementToken) {
+        if (!legacyCallRefusalPolicy.refusedAsProvider()) {
+            return;
+        }
+        var decision = agreementTokenAccessCheck.decide(agreementToken, requestMessage.getSoap().getClient(), requestServiceId);
+        LegacyCallGate.requireAcceptedToken(decision);
     }
 
     private void verifySignature(ProxyMessage requestMessage) {

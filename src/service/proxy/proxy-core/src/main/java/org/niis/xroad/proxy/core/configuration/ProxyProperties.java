@@ -66,6 +66,7 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALT
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_INTERFACE;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_PORT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HSM_HEALTH_CHECK_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.LEGACY_PROTOCOL_DISABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.LOG_CLIENT_CERT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_SIGN_DIGEST_NAME;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT;
@@ -118,6 +119,10 @@ public class ProxyProperties {
 
     public boolean dspEnabled() {
         return xRoadConfig.value(DSP_ENABLED);
+    }
+
+    public boolean legacyProtocolDisabled() {
+        return xRoadConfig.value(LEGACY_PROTOCOL_DISABLED);
     }
 
     public boolean sslEnabled() {
