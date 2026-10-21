@@ -219,7 +219,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         return switch (coreProperties.ss0Stack()) {
             case DEFAULT -> new SsStackSetup(coreProperties, "ss0",
                     Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER,
-                            SsStackSetup.Feature.OP_MONITOR));
+                            SsStackSetup.Feature.OP_MONITOR, SsStackSetup.Feature.AGREEMENT_TOKEN_KEY_PRUNING));
             case SIDECAR -> new SidecarSsStackSetup(coreProperties, "ss0");
         };
     }

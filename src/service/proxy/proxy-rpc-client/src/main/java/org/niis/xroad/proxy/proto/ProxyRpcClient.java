@@ -46,6 +46,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
+import org.niis.xroad.proxy.proto.dto.AgreementTokenKeyStatus;
 import org.niis.xroad.proxy.proto.dto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.rpc.common.Empty;
@@ -173,6 +174,16 @@ public class ProxyRpcClient extends AbstractRpcClient {
     public String rotateAgreementTokenSigningKey() {
         var response = exec(() -> adminServiceBlockingStub.rotateAgreementTokenSigningKey(Empty.getDefaultInstance()));
         return response.getKeyId();
+    }
+
+    public AgreementTokenKeyStatus getAgreementTokenKeyStatus() {
+        var response = exec(() -> adminServiceBlockingStub.getAgreementTokenKeyStatus(Empty.getDefaultInstance()));
+        return new AgreementTokenKeyStatus(
+                response.getAvailable(),
+                response.hasActiveKeyId() ? response.getActiveKeyId() : null,
+                response.hasActiveKeyCreatedAt() ? ofEpochMilli(response.getActiveKeyCreatedAt()) : null,
+                response.getRetainedKeyCount(),
+                response.hasPendingKeyId() ? response.getPendingKeyId() : null);
     }
 
     // Internal TLS management methods

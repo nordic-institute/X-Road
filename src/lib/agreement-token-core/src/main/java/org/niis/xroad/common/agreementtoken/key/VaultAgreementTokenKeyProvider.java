@@ -40,8 +40,10 @@ import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,8 +59,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * The active signing key is the highest-versioned key whose issue time is at least {@code activationDelay} in
  * the past — new enough to have appeared in every replica's cache by the time it starts signing — falling back
  * to the highest id when none qualifies yet (first boot, or every key freshly rotated). A key with no issue
- * time (stored before this class tracked one) counts as old enough. Nothing is ever deleted from the store, so
- * a token signed with a superseded key keeps verifying until it expires.
+ * time (stored before this class tracked one) counts as old enough. This class never deletes a key: a
+ * superseded key stays in the snapshot until the host removes it from the store, so a token signed with it keeps
+ * verifying until then.
  * <p>
  * {@link #activeKey()} and {@link #keyById(String)} read a single, atomically swapped snapshot populated by
  * {@link #refresh()}; they never call {@link VaultClient} themselves, so verifying a token is always
@@ -84,6 +87,14 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
      */
     public VaultAgreementTokenKeyProvider(VaultClient vaultClient, Duration activationDelay) {
         this(vaultClient, new SecureRandom(), activationDelay, Clock.systemUTC());
+    }
+
+    /**
+     * @param activationDelay how long a freshly rotated key is verify-only before it starts signing
+     * @param clock           the time source for key issue times and the activation delay
+     */
+    public VaultAgreementTokenKeyProvider(VaultClient vaultClient, Duration activationDelay, Clock clock) {
+        this(vaultClient, new SecureRandom(), activationDelay, clock);
     }
 
     VaultAgreementTokenKeyProvider(VaultClient vaultClient, SecureRandom secureRandom) {
@@ -118,14 +129,25 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         return Optional.ofNullable(snapshot.get().keysById().get(keyId));
     }
 
+    @Override
+    public List<AgreementTokenKeyInfo> listKeys() {
+        var current = snapshot.get();
+        return current.keysById().values().stream()
+                .sorted(Comparator.comparingLong((AgreementTokenSigningKey key) -> parseVersion(key.keyId()))
+                        .thenComparing(AgreementTokenSigningKey::keyId))
+                .map(key -> AgreementTokenKeyInfo.of(key, key.keyId().equals(current.activeKeyId())))
+                .toList();
+    }
+
     /**
      * Re-lists Vault immediately before writing rather than trusting the (possibly stale) cached snapshot, so
      * the id it advances to reflects whatever the last successful {@link #refresh()} or another replica's
      * write may have missed. This narrows the cross-replica id-collision window to the time between this
      * listing and the write below — it does not remove it: OpenBao's KV v1 mount used here has no
      * compare-and-swap, so two callers racing inside that window can still both compute the same next id and
-     * one write overwrites the other. Rotation is operator-driven and rare, so that residual window is
-     * accepted rather than solved with a coordination mechanism this store cannot provide.
+     * one write overwrites the other. Rotation is rare (on operator request, or when the newest key is past its maximum
+     * age, with replicas staggered by a random delay), so that residual window is accepted rather than solved
+     * with a coordination mechanism this store cannot provide.
      */
     @Override
     public synchronized AgreementTokenSigningKey rotate() {

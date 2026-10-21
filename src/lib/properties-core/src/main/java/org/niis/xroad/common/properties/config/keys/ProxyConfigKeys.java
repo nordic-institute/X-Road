@@ -862,6 +862,31 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /**
+     * {@code xroad.proxy.agreement-token.max-key-age} — how old the newest signing key may get before the proxy
+     * rotates it automatically; zero disables automatic rotation.
+     */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_MAX_KEY_AGE = AGREEMENT_TOKEN
+            .keyDuration("max-key-age")
+            .withDefaultValue(Duration.ofDays(30))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
+    /**
+     * {@code xroad.proxy.agreement-token.key-retention} — how long a signing key is kept after it stops signing,
+     * which is when its successor starts signing, before the proxy deletes it from the secret store; zero keeps
+     * every key. A non-zero value must be at least ten times the token lifetime and at least three key refresh
+     * intervals plus the token lifetime and the expiry leeway. A proxy that has not refreshed its keys for longer
+     * than this value minus one key refresh interval, the token lifetime and the expiry leeway stops minting.
+     */
+    public static final ConfigKey<Duration> AGREEMENT_TOKEN_KEY_RETENTION = AGREEMENT_TOKEN
+            .keyDuration("key-retention")
+            .withDefaultValue(Duration.ofDays(1))
+            .withValidator(nonNegative())
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.proxy.agreement-token.expiry-leeway} — clock-skew leeway the verifier allows past a token's exp. */
     public static final ConfigKey<Duration> AGREEMENT_TOKEN_EXPIRY_LEEWAY = AGREEMENT_TOKEN
             .keyDuration("expiry-leeway")

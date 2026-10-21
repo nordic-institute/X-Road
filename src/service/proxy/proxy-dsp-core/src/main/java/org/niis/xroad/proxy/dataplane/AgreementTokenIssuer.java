@@ -33,6 +33,8 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
@@ -69,7 +71,12 @@ public class AgreementTokenIssuer {
         try {
             return issueTokenInternal(agreementId);
         } catch (Exception e) {
-            log.warn("Could not mint an agreement token for agreement id '{}'; falling back to endpoint-only", agreementId, e);
+            if (e instanceof XrdRuntimeException xrdException
+                    && xrdException.isCausedBy(ErrorCode.AGREEMENT_TOKEN_SIGNING_KEY_STALE)) {
+                log.debug("Agreement-token signing key material is stale; not minting for agreement id '{}'", agreementId);
+            } else {
+                log.warn("Could not mint an agreement token for agreement id '{}'; falling back to endpoint-only", agreementId, e);
+            }
             return Optional.empty();
         }
     }

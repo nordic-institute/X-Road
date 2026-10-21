@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Security Server admin REST API access: session login, service-description CRUD, access rights, and
- * service lookup, plus the external RPC CA and op-monitor CA endpoints.
+ * service lookup, plus the external RPC CA, op-monitor CA and agreement-token key endpoints.
  */
 @Slf4j
 @UtilityClass
@@ -236,6 +236,16 @@ class AdminApi {
     /** Deletes the op-monitor CA; the API answers 204 also when none is stored. */
     static Response deleteOpMonitorCa(String baseUrl, AdminSession session) {
         return authed(session).delete(baseUrl + "/api/v1/system/op-monitor-ca");
+    }
+
+    /** Reads the agreement-token signing key status of the proxy behind this admin API. */
+    static Response getAgreementTokenKeyStatus(String baseUrl, AdminSession session) {
+        return authed(session).get(baseUrl + "/api/v1/dataspace/agreement-token-key");
+    }
+
+    /** Rotates the agreement-token signing key; the 200 body carries the new key id. */
+    static Response rotateAgreementTokenKey(String baseUrl, AdminSession session) {
+        return authed(session).post(baseUrl + "/api/v1/dataspace/agreement-token-key/rotate");
     }
 
     /** One logged-in admin session: the cookies to replay and the XSRF token to echo back. */

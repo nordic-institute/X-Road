@@ -57,6 +57,7 @@ import InitialAdminUserView from '@/views/InitialAdminUser/InitialAdminUserView.
 import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
+import AgreementTokenKeyView from '@/views/KeysAndCertificates/AgreementTokenKey/AgreementTokenKeyView.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysView.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 import DsTlsCertificateView from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateView.vue';
@@ -160,6 +161,12 @@ const routes: RouteRecordRaw[] = [
             component: DsTlsCertificateView,
             props: true,
             meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
+          },
+          {
+            name: RouteName.AgreementTokenKey,
+            path: 'agreement-token-key',
+            component: AgreementTokenKeyView,
+            meta: { permissions: [Permissions.VIEW_AGREEMENT_TOKEN_KEY] },
           },
           {
             name: RouteName.OpMonitorTrust,
