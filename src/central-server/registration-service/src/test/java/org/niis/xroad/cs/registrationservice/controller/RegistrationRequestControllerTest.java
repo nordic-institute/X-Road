@@ -65,6 +65,8 @@ import java.util.Random;
         properties = "spring.main.lazy-initialization=true")
 class RegistrationRequestControllerTest {
     public static final String CONTENT_TYPE = "multipart/related; boundary=partboundary";
+    private static final String SYSTEM_DID = "did:web:ss1.example.org:v1:system";
+    private static final String DSP_BASE_URL = "https://ss1.example.org:8443/dsp";
     private static KeyPair ownerKeyPair;
     private static KeyPair authKeyPair;
 
@@ -74,12 +76,38 @@ class RegistrationRequestControllerTest {
     private RegistrationRequestController controller;
     @Autowired
     private GlobalConfProvider globalConfProvider;
+    @Autowired
+    private RecordingAdminApiService adminApiService;
+
+    static class RecordingAdminApiService implements AdminApiService {
+        static final int SYSTEM_DID_REQUEST_ID = 42;
+
+        private SecurityServerId systemDidServerId;
+        private String systemDid;
+        private String dspBaseUrl;
+        private byte[] systemDidCertificate;
+
+        @Override
+        public int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate) {
+            return 0;
+        }
+
+        @Override
+        public int addSystemDidRegistrationRequest(SecurityServerId serverId, String did, String baseUrl,
+                                                   byte[] certificate) {
+            this.systemDidServerId = serverId;
+            this.systemDid = did;
+            this.dspBaseUrl = baseUrl;
+            this.systemDidCertificate = certificate;
+            return SYSTEM_DID_REQUEST_ID;
+        }
+    }
 
     @TestConfiguration
     static class TestConfig {
         @Bean
-        AdminApiService adminApiServiceImpl() {
-            return (serverId, address, certificate) -> 0;
+        RecordingAdminApiService adminApiServiceImpl() {
+            return new RecordingAdminApiService();
         }
 
         @Bean
@@ -252,6 +280,37 @@ class RegistrationRequestControllerTest {
         var result = registerWithInvalidCerts(serverId);
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), ErrorCode.INCORRECT_CERTIFICATE.code());
+    }
+
+    @Test
+    void shouldForwardValidSystemDidRegRequest() throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+        var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
+                TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key,
+                CertificateStatus.GOOD);
+
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), globalConfProvider.getManagementRequestService());
+        var req = builder.buildSystemDidRegRequest(serverId, SYSTEM_DID, DSP_BASE_URL);
+
+        var envelope = new TestAuthRegTypeRequest(authCert,
+                ownerCert.getEncoded(),
+                ownerOcsp.getEncoded(),
+                req,
+                authKeyPair.getPrivate(),
+                ownerKeyPair.getPrivate());
+
+        var payload = envelope.createPayload();
+        var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
+
+        Assertions.assertTrue(result.getStatusCode().is2xxSuccessful());
+        Assertions.assertTrue(result.getBody().contains(String.valueOf(RecordingAdminApiService.SYSTEM_DID_REQUEST_ID)));
+        Assertions.assertEquals(serverId, adminApiService.systemDidServerId);
+        Assertions.assertEquals(SYSTEM_DID, adminApiService.systemDid);
+        Assertions.assertEquals(DSP_BASE_URL, adminApiService.dspBaseUrl);
+        Assertions.assertArrayEquals(authCert, adminApiService.systemDidCertificate);
     }
 
     private ResponseEntity<String> register(SecurityServerId.Conf sid, String address) throws Exception {

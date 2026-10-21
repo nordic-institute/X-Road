@@ -33,6 +33,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
@@ -91,6 +92,19 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
     }
 
     @Override
+    public SystemPairCheck checkSystemPair(int securityServerId, String systemDid, String dspBaseUrl) {
+        var server = securityServerRepository.findById(securityServerId)
+                .orElseThrow(() -> serverNotFound(securityServerId));
+        var pair = new SystemPair(systemDid, dspBaseUrl);
+
+        var rejection = new PublishedValueValidator(contextOf(server)).validate(pair);
+        if (rejection.isPresent()) {
+            return SystemPairCheck.rejected(rejection.get());
+        }
+        return isStoredPair(server, pair) ? SystemPairCheck.EQUAL : SystemPairCheck.NOT_EQUAL;
+    }
+
+    @Override
     public PublishedValueResult replaceSystemPair(int securityServerId, String systemDid, String dspBaseUrl) {
         return storeSystemPair(securityServerId, new SystemPair(systemDid, dspBaseUrl), Mode.ADMIN_REPLACE);
     }
@@ -115,15 +129,14 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         }
 
         var storedDid = server.getSystemDid();
-        var storedDspBaseUrl = server.getDspBaseUrl();
         if (storedDid == null && mode == Mode.ADMIN_REPLACE) {
             return PublishedValueResult.UNCHANGED;
         }
         if (storedDid != null) {
-            if (storedDid.equals(pair.did()) && Objects.equals(storedDspBaseUrl, pair.dspBaseUrl())) {
+            if (isStoredPair(server, pair)) {
                 return PublishedValueResult.UNCHANGED;
             }
-            if (mode == Mode.WRITE_ONCE && !validator.isSystemPairStale(storedDid, storedDspBaseUrl)) {
+            if (mode == Mode.WRITE_ONCE && !validator.isSystemPairStale(storedDid, server.getDspBaseUrl())) {
                 return PublishedValueResult.rejected(VALUE_DIFFERS);
             }
         }
@@ -135,6 +148,10 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         server.setDspBaseUrl(pair.dspBaseUrl());
         securityServerRepository.saveAndFlush(server);
         return PublishedValueResult.STORED;
+    }
+
+    private static boolean isStoredPair(SecurityServerEntity server, SystemPair pair) {
+        return Objects.equals(server.getSystemDid(), pair.did()) && Objects.equals(server.getDspBaseUrl(), pair.dspBaseUrl());
     }
 
     private Map<ClientId, PublishedValueResult> storeMemberDids(int securityServerId, Map<ClientId, String> memberDids, Mode mode) {

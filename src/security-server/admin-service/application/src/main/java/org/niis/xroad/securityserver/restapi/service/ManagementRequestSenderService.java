@@ -88,6 +88,37 @@ public class ManagementRequestSenderService {
     }
 
     /**
+     * Sends the SYSTEM DID registration request directly to the central server
+     * as a signed mime multipart message, for this security server.
+     *
+     * @param systemDid  the SYSTEM DID of this security server
+     * @param dspBaseUrl the DSP base URL of this security server
+     * @param authCert   the authentication certificate bytes
+     * @return {@code STORED} with the central server request id, or {@code SEND_FAILURE} with the cause
+     */
+    public SystemDidRegistrationSendOutcome sendSystemDidRegisterRequest(String systemDid, String dspBaseUrl, byte[] authCert)
+            throws GlobalConfOutdatedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            Integer requestId = sender.sendSystemDidRegRequest(currentSecurityServerId.getServerId(), systemDid, dspBaseUrl,
+                    authCert);
+            if (requestId == null) {
+                return SystemDidRegistrationSendOutcome.sendFailure(
+                        new IllegalStateException("Response carries no request id"));
+            }
+            return SystemDidRegistrationSendOutcome.stored(requestId);
+        } catch (XrdRuntimeException e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            return SystemDidRegistrationSendOutcome.sendFailure(e);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            return SystemDidRegistrationSendOutcome.sendFailure(e);
+        }
+    }
+
+    /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
      * <p>
@@ -231,7 +262,7 @@ public class ManagementRequestSenderService {
         }
     }
 
-    private ManagementRequestSender createManagementRequestSender()
+    ManagementRequestSender createManagementRequestSender()
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();

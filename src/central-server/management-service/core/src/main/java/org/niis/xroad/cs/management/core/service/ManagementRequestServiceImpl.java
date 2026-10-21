@@ -114,6 +114,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             case CLIENT_DELETION_REQUEST -> ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
             case AUTH_CERT_DELETION_REQUEST -> ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
             case ADDRESS_CHANGE_REQUEST -> ManagementRequestTypeDto.ADDRESS_CHANGE_REQUEST;
+            case SYSTEM_DID_REGISTRATION_REQUEST -> ManagementRequestTypeDto.SYSTEM_DID_REGISTRATION_REQUEST;
             case CLIENT_DISABLE_REQUEST -> ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST;
             case CLIENT_ENABLE_REQUEST -> ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
             case CLIENT_RENAME_REQUEST -> ManagementRequestTypeDto.CLIENT_RENAME_REQUEST;

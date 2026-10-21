@@ -46,6 +46,7 @@ import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
+import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
@@ -64,6 +65,7 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.DtoConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -107,6 +109,10 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     .subsystemName(req.getSubsystemName());
             case OwnerChangeRequest req -> new OwnerChangeRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
             case AddressChangeRequest req -> new AddressChangeRequestDto().serverAddress(req.getServerAddress());
+            case SystemDidRegistrationRequest req -> new SystemDidRegistrationRequestDto()
+                    .systemDid(req.getSystemDid())
+                    .dspBaseUrl(req.getDspBaseUrl())
+                    .certificate(req.getCertificate());
             case MaintenanceModeEnableRequest req -> new MaintenanceModeEnableRequestDto().message(req.getComments());
             case MaintenanceModeDisableRequest ignored -> new MaintenanceModeDisableRequestDto();
             case null -> throw new BadRequestException(MR_UNKNOWN_TYPE.build());
@@ -164,6 +170,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     req.getServerAddress());
+            case SystemDidRegistrationRequestDto req -> new SystemDidRegistrationRequest(
+                    originMapper.convert(req.getOrigin()),
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
+                    req.getSystemDid(),
+                    req.getDspBaseUrl(),
+                    req.getCertificate());
             case MaintenanceModeEnableRequestDto req -> new MaintenanceModeEnableRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),

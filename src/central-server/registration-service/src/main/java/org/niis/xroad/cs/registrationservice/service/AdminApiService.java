@@ -43,4 +43,15 @@ public interface AdminApiService {
      * @throws XrdRuntimeException in case the request fails
      */
     int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate);
+
+    /**
+     * Makes a SYSTEM DID registration request to the central server API.
+     * @param serverId sender server identifier
+     * @param systemDid SYSTEM DID of the server
+     * @param dspBaseUrl DSP base URL of the server
+     * @param certificate X.509 authentication certificate that signed the request, in encoded form
+     * @return registration request id
+     * @throws XrdRuntimeException in case the request fails
+     */
+    int addSystemDidRegistrationRequest(SecurityServerId serverId, String systemDid, String dspBaseUrl, byte[] certificate);
 }

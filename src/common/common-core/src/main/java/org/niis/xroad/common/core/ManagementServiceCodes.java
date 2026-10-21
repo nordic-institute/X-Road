@@ -48,13 +48,14 @@ public class ManagementServiceCodes {
     public static final String CLIENT_DELETION = "clientDeletion";
     public static final String AUTH_CERT_DELETION = "authCertDeletion";
     public static final String ADDRESS_CHANGE = "addressChange";
+    public static final String SYSTEM_DID_REG = "systemDidReg";
     public static final String CLIENT_DISABLE = "clientDisable";
     public static final String CLIENT_ENABLE = "clientEnable";
     public static final String CLIENT_RENAME = "clientRename";
     public static final String MAINTENANCE_MODE_ENABLE = "maintenanceModeEnable";
     public static final String MAINTENANCE_MODE_DISABLE = "maintenanceModeDisable";
 
-    /** All management-request service codes, {@link #AUTH_CERT_REG} included. */
+    /** All management-request service codes, {@link #AUTH_CERT_REG} and {@link #SYSTEM_DID_REG} included. */
     public static final List<String> ALL = List.of(
             AUTH_CERT_REG,
             CLIENT_REG,
@@ -62,6 +63,7 @@ public class ManagementServiceCodes {
             CLIENT_DELETION,
             AUTH_CERT_DELETION,
             ADDRESS_CHANGE,
+            SYSTEM_DID_REG,
             CLIENT_DISABLE,
             CLIENT_ENABLE,
             CLIENT_RENAME,
@@ -69,11 +71,11 @@ public class ManagementServiceCodes {
             MAINTENANCE_MODE_DISABLE);
 
     /**
-     * {@link #ALL} minus {@link #AUTH_CERT_REG}: it is never negotiated over the data space
-     * protocol — it goes as direct HTTPS to the Central Server — so it is excluded from both the
+     * {@link #ALL} minus {@link #AUTH_CERT_REG} and {@link #SYSTEM_DID_REG}: they are never negotiated over the
+     * data space protocol — they go as direct HTTPS to the Central Server — so they are excluded from both the
      * SYSTEM catalog publication and the consumer-side SYSTEM-context routing check.
      */
     public static final Set<String> DSP_NEGOTIATED = ALL.stream()
-            .filter(code -> !AUTH_CERT_REG.equals(code))
+            .filter(code -> !AUTH_CERT_REG.equals(code) && !SYSTEM_DID_REG.equals(code))
             .collect(Collectors.toUnmodifiableSet());
 }

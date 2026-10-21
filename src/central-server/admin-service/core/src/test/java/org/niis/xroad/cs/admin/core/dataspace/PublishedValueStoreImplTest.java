@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -173,6 +174,47 @@ class PublishedValueStoreImplTest {
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
         verify(securityServerRepository).saveAndFlush(server);
+    }
+
+    @Test
+    void shouldCheckSystemPairAsNotEqualWhenServerHasNoneAndWriteNothing() {
+        var result = store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        assertThat(result).isEqualTo(SystemPairCheck.NOT_EQUAL);
+        assertThat(server.getSystemDid()).isNull();
+        verify(securityServerRepository, never()).saveAndFlush(any());
+        verify(securityServerRepository, never()).lockForUpdateById(anyInt());
+        verify(securityServerRepository, never()).lockForUpdateBy(any());
+    }
+
+    @Test
+    void shouldCheckSystemPairAsEqualWhenStoredPairMatches() {
+        server.setSystemDid(SYSTEM_DID);
+        server.setDspBaseUrl(DSP_URL);
+
+        assertThat(store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL)).isEqualTo(SystemPairCheck.EQUAL);
+    }
+
+    @Test
+    void shouldCheckSystemPairAsNotEqualWhenOnlyTheDspBaseUrlDiffers() {
+        server.setSystemDid(SYSTEM_DID);
+        server.setDspBaseUrl(OLD_DSP_URL);
+
+        assertThat(store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL)).isEqualTo(SystemPairCheck.NOT_EQUAL);
+    }
+
+    @Test
+    void shouldPassTheValidatorRejectionThroughOnCheck() {
+        var result = store.checkSystemPair(SERVER_ID, null, null);
+
+        assertThat(result).isEqualTo(SystemPairCheck.rejected(WRONG_SCHEME));
+    }
+
+    @Test
+    void shouldFailTheSystemPairCheckForUnknownServer() {
+        when(securityServerRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> store.checkSystemPair(99, SYSTEM_DID, DSP_URL)).isInstanceOf(NotFoundException.class);
     }
 
     @Test

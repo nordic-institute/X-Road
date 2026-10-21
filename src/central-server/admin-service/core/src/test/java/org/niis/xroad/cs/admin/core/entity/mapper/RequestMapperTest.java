@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
+import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
@@ -44,6 +45,7 @@ import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -157,6 +159,21 @@ class RequestMapperTest {
         assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.ADDRESS_CHANGE_REQUEST);
         assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
         assertThat(((AddressChangeRequest) result).getServerAddress()).isEqualTo("https://server.address");
+    }
+
+    @Test
+    void shouldMapSystemDidRegistrationRequestEntityWithServerTypeAndOriginOnly() {
+        var source = new SystemDidRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY);
+
+        var result = mapper.toTarget(source);
+
+        assertThat(result).isExactlyInstanceOf(SystemDidRegistrationRequest.class);
+        assertThat(result.getOrigin()).isEqualTo(Origin.SECURITY_SERVER);
+        assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST);
+        assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
+        assertThat(((SystemDidRegistrationRequest) result).getSystemDid()).isNull();
+        assertThat(((SystemDidRegistrationRequest) result).getDspBaseUrl()).isNull();
+        assertThat(((SystemDidRegistrationRequest) result).getCertificate()).isNull();
     }
 
 }

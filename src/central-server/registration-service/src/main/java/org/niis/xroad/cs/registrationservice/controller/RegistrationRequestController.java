@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,12 +27,14 @@
 package org.niis.xroad.cs.registrationservice.controller;
 
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.request.SystemDidRegRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -64,25 +66,49 @@ public class RegistrationRequestController {
             consumes = {MediaType.MULTIPART_RELATED_VALUE})
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
         return managementRequestSoapExecutor.process(contentType, body,
-                result -> {
-                    var authRequest = result.getRequest(AuthCertRegRequestType.class)
-                            .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "AuthCertRegRequest is missing"));
-
-                    log.debug("Making a registration request for {}", authRequest.getServer());
-
-                    if (BooleanUtils.isTrue(authRequest.isDryRun())) {
-                        log.info("Processed dry-run registration request for {}", authRequest.getServer());
-                        return 0;
-                    }
-
-                    var requestId = adminApiService.addRegistrationRequest(
-                            authRequest.getServer(),
-                            authRequest.getAddress(),
-                            authRequest.getAuthCert());
-
-                    log.info("Processed registration request {} for {}", requestId, authRequest.getServer());
-                    return requestId;
+                result -> switch (result.requestType()) {
+                    case AUTH_CERT_REGISTRATION_REQUEST -> registerAuthCert(result);
+                    case SYSTEM_DID_REGISTRATION_REQUEST -> registerSystemDid(result);
+                    default -> throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                            "Unsupported request type '%s'", result.requestType().getServiceCode());
                 });
+    }
+
+    private int registerAuthCert(ManagementRequestVerifier.Result result) {
+        var authRequest = result.getRequest(AuthCertRegRequestType.class)
+                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "AuthCertRegRequest is missing"));
+
+        log.debug("Making a registration request for {}", authRequest.getServer());
+
+        if (BooleanUtils.isTrue(authRequest.isDryRun())) {
+            log.info("Processed dry-run registration request for {}", authRequest.getServer());
+            return 0;
+        }
+
+        var requestId = adminApiService.addRegistrationRequest(
+                authRequest.getServer(),
+                authRequest.getAddress(),
+                authRequest.getAuthCert());
+
+        log.info("Processed registration request {} for {}", requestId, authRequest.getServer());
+        return requestId;
+    }
+
+    private int registerSystemDid(ManagementRequestVerifier.Result result) {
+        var request = result.getRequest(SystemDidRegRequestType.class)
+                .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "SystemDidRegRequest is missing"));
+
+        log.debug("Making a SYSTEM DID registration request for {}", request.getServer());
+
+        var requestId = adminApiService.addSystemDidRegistrationRequest(
+                request.getServer(),
+                request.getSystemDid(),
+                request.getDspBaseUrl(),
+                result.callback().attachedAuthCert()
+                        .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST, "Auth certificate is missing")));
+
+        log.info("Processed SYSTEM DID registration request {} for {}", requestId, request.getServer());
+        return requestId;
     }
 
 }

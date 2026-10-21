@@ -449,3 +449,26 @@ describe('0900 — CS Management Requests — detail page renders client registr
     await expect.element(page.getByText('e2e-tc2-subsystem').first()).toBeVisible();
   });
 });
+
+describe('0900 — CS Management Requests — system DID registration row shows its own label (Browser Mode)', () => {
+  it('a SYSTEM_DID_REGISTRATION_REQUEST row is labelled Register system DID', async () => {
+    const systemDidRequest: ManagementRequestListView = {
+      ...waitingRequest,
+      id: 303,
+      type: 'SYSTEM_DID_REGISTRATION_REQUEST',
+    };
+
+    await renderRoute(MR_LIST_PATH, {
+      permissions: basePermissions,
+      msw: [
+        specHttp.get('/management-requests', ({ response }) =>
+          response(200).json(singleItemPage(systemDidRequest) as never),
+        ),
+      ],
+    });
+
+    const table = page.getByTestId('management-requests-table');
+    await expect.element(table).toBeVisible();
+    await expect.element(table.getByText('Register system DID').first()).toBeVisible();
+  });
+});

@@ -5230,6 +5230,7 @@ components:
           CLIENT_RENAME_REQUEST: "#/components/schemas/ClientRenameRequest"
           OWNER_CHANGE_REQUEST: "#/components/schemas/OwnerChangeRequest"
           ADDRESS_CHANGE_REQUEST: "#/components/schemas/AddressChangeRequest"
+          SYSTEM_DID_REGISTRATION_REQUEST: "#/components/schemas/SystemDidRegistrationRequest"
           MAINTENANCE_MODE_ENABLE_REQUEST: "#/components/schemas/MaintenanceModeEnableRequest"
           MAINTENANCE_MODE_DISABLE_REQUEST: "#/components/schemas/MaintenanceModeDisableRequest"
       properties:
@@ -5306,6 +5307,7 @@ components:
         - CLIENT_RENAME_REQUEST
         - AUTH_CERT_DELETION_REQUEST
         - ADDRESS_CHANGE_REQUEST
+        - SYSTEM_DID_REGISTRATION_REQUEST
         - MAINTENANCE_MODE_ENABLE_REQUEST
         - MAINTENANCE_MODE_DISABLE_REQUEST
     ManagementRequestStatus:
@@ -5529,6 +5531,28 @@ components:
           type: string
       required:
         - server_address
+    SystemDidRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        system_did:
+          type: string
+          description: SYSTEM DID of the security server
+          writeOnly: true
+        dsp_base_url:
+          type: string
+          description: DSP base URL of the security server
+          writeOnly: true
+        certificate:
+          type: string
+          format: byte
+          description: Authentication certificate (DER) that signed the request
+          writeOnly: true
+      required:
+        - system_did
+        - dsp_base_url
+        - certificate
     MaintenanceModeEnableRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'

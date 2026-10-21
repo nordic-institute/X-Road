@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 
 import java.util.Map;
 
@@ -53,6 +54,16 @@ public interface PublishedValueStore {
      * @return the outcome for the pair
      */
     PublishedValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl);
+
+    /**
+     * Checks a SYSTEM pair against a server without writing anything and without locking the server row.
+     *
+     * @param securityServerId the id of the server row
+     * @param systemDid        the SYSTEM DID
+     * @param dspBaseUrl       the DSP base URL
+     * @return the validator's rejection, or whether the pair equals the stored pair
+     */
+    SystemPairCheck checkSystemPair(int securityServerId, String systemDid, String dspBaseUrl);
 
     /**
      * Replaces the stored SYSTEM pair of a server. A server without a stored pair is left without one.

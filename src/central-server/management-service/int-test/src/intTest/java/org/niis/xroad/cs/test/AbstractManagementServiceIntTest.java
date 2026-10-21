@@ -53,6 +53,7 @@ import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.cs.test.container.ManagementServiceIntTestContainerSetup;
 import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
@@ -197,6 +198,7 @@ abstract class AbstractManagementServiceIntTest {
             case CLIENT_RENAME_REQUEST -> new ClientRenameRequestDto();
             case AUTH_CERT_DELETION_REQUEST -> new AuthenticationCertificateDeletionRequestDto();
             case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestDto();
+            case SYSTEM_DID_REGISTRATION_REQUEST -> new SystemDidRegistrationRequestDto();
             case MAINTENANCE_MODE_ENABLE_REQUEST -> new MaintenanceModeEnableRequestDto();
             case MAINTENANCE_MODE_DISABLE_REQUEST -> new MaintenanceModeDisableRequestDto();
         };

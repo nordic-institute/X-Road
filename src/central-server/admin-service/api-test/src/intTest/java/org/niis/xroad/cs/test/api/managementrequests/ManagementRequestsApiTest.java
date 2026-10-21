@@ -44,6 +44,7 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.ManagementRequestsAdminClient;
@@ -67,6 +68,7 @@ import static org.niis.xroad.cs.test.api.CsBaselineSeeder.INSTANCE_IDENTIFIER;
 class ManagementRequestsApiTest extends CsApiTest {
 
     private static final String MEMBER_CLASS = CsBaselineSeeder.BASELINE_MEMBER_CLASS;
+    private static final String SSMR32_ADDRESS = "security-server-address-ssmr32";
     private static final String OWNERS_GROUP = "security-server-owners";
 
     @Test
@@ -1473,6 +1475,68 @@ class ManagementRequestsApiTest extends CsApiTest {
             assertThat(values.stream().filter(java.util.Objects::nonNull).toList())
                     .isSortedAccordingTo(String.CASE_INSENSITIVE_ORDER);
         });
+    }
+
+    @Test
+    void systemDidRegistrationFromCenterOriginIsForbidden(CsBaselineSeeder seeder) throws Exception {
+        var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
+        var client = new ManagementRequestsAdminClient(msSession);
+        var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr30:ssmr30";
+
+        Step.then("CENTER origin is refused", () ->
+                client.addManagementRequest(systemDidRegistration(serverId, new byte[] {1},
+                        ManagementRequestOriginDto.CENTER)).statusCode(403));
+    }
+
+    @Test
+    void systemDidRegistrationByOtherRoleIsForbidden(CsBaselineSeeder seeder) throws Exception {
+        var roSession = Step.given("registration officer session opened", seeder::newRegistrationOfficerSession);
+        var client = new ManagementRequestsAdminClient(roSession);
+        var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr31:ssmr31";
+
+        Step.then("non management service role is refused", () ->
+                client.addManagementRequest(systemDidRegistration(serverId, new byte[] {1},
+                        ManagementRequestOriginDto.SECURITY_SERVER)).statusCode(403));
+    }
+
+    @Test
+    void systemDidRegistrationFromSecurityServerReachesResolve(CsBaselineSeeder seeder) throws Exception {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr32", MEMBER_CLASS));
+        var serverId = memberId + ":ssmr32";
+        var cert = seeder.generateCertForServer(serverId);
+
+        var regId = Step.given("auth cert registration posted", () ->
+                postAuthCertReg(new ManagementRequestsAdminClient(session), cert, serverId,
+                        SSMR32_ADDRESS, ManagementRequestOriginDto.SECURITY_SERVER));
+        Step.given("auth cert registration approved", () ->
+                new ManagementRequestsAdminClient(session).approveRequest(regId).statusCode(200));
+
+        Step.then("guard and store check pass and the Issuer Service call fails", () ->
+                new ManagementRequestsAdminClient(msSession)
+                        .addManagementRequest(systemDidRegistration(serverId, cert,
+                                ManagementRequestOriginDto.SECURITY_SERVER, SSMR32_ADDRESS))
+                        .statusCode(500)
+                        .body("error.code", equalTo("core.ds_issuer_service.network_error")));
+    }
+
+    private SystemDidRegistrationRequestDto systemDidRegistration(String serverId, byte[] cert,
+                                                                  ManagementRequestOriginDto origin) {
+        return systemDidRegistration(serverId, cert, origin, "ss.example.org");
+    }
+
+    private SystemDidRegistrationRequestDto systemDidRegistration(String serverId, byte[] cert,
+                                                                  ManagementRequestOriginDto origin,
+                                                                  String registeredAddress) {
+        var req = new SystemDidRegistrationRequestDto()
+                .systemDid("did:web:" + registeredAddress + "%3A7183:v1:system")
+                .dspBaseUrl("https://" + registeredAddress + ":8183/api/dsp")
+                .certificate(cert);
+        req.setType(ManagementRequestTypeDto.SYSTEM_DID_REGISTRATION_REQUEST);
+        req.setOrigin(origin);
+        req.setSecurityServerId(serverId);
+        return req;
     }
 
     private int postAuthCertReg(ManagementRequestsAdminClient client, byte[] cert, String serverId,
