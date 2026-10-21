@@ -29,6 +29,7 @@ package org.niis.xroad.serverconf.impl;
 import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
@@ -40,15 +41,19 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -60,6 +65,9 @@ import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 import static org.niis.xroad.serverconf.impl.TestUtil.BASE64_CERT;
 import static org.niis.xroad.serverconf.impl.TestUtil.CLIENT_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.CROSS_SS_GROUP_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.CROSS_SS_MEMBER_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.CROSS_SS_SUBSYSTEM_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.MEMBER_CLASS;
 import static org.niis.xroad.serverconf.impl.TestUtil.MEMBER_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.NUM_CLIENTS;
@@ -471,5 +479,63 @@ public class CachingServerConfTest {
         DATABASE_CTX.commitTransaction();
         DATABASE_CTX.beginTransaction();
         serverConfProvider.clearCache();
+    }
+
+    /**
+     * A cached {@code isLocalGroupMember} result must keep serving the old answer after the group's
+     * membership changes in the database, keyed separately per member, and {@code clearCache()} must
+     * discard it so the next read sees the change.
+     */
+    @Test
+    public void isLocalGroupMemberIsCachedPerOwnerGroupAndMember() {
+        ClientId owner = createTestClientId(client(1));
+        LocalGroupId groupId = LocalGroupId.Conf.create(CROSS_SS_GROUP_CODE);
+        ClientId crossSsMember = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE);
+        ClientId nonMember = ClientId.Conf.create(
+                XROAD_INSTANCE, MEMBER_CLASS, "cachingNonMember", CROSS_SS_SUBSYSTEM_CODE);
+
+        assertFalse(serverConfProvider.isLocalGroupMember(owner, groupId, nonMember));
+
+        addMemberToCrossSsGroup(owner, nonMember);
+        try {
+            assertFalse(serverConfProvider.isLocalGroupMember(owner, groupId, nonMember));
+            assertTrue(serverConfProvider.isLocalGroupMember(owner, groupId, crossSsMember));
+
+            serverConfProvider.clearCache();
+
+            assertTrue(serverConfProvider.isLocalGroupMember(owner, groupId, nonMember));
+        } finally {
+            removeMemberFromCrossSsGroup(owner, nonMember);
+            serverConfProvider.clearCache();
+        }
+    }
+
+    private static void addMemberToCrossSsGroup(ClientId owner, ClientId member) {
+        var memberEntity = SubsystemIdEntity.create(
+                member.getXRoadInstance(), member.getMemberClass(), member.getMemberCode(), member.getSubsystemCode());
+        DATABASE_CTX.getSession().persist(memberEntity);
+
+        var groupMember = new GroupMemberEntity();
+        groupMember.setAdded(new Date());
+        groupMember.setGroupMemberId(memberEntity);
+        crossSsGroup(owner).getGroupMembers().add(groupMember);
+
+        DATABASE_CTX.commitTransaction();
+        DATABASE_CTX.beginTransaction();
+    }
+
+    private static void removeMemberFromCrossSsGroup(ClientId owner, ClientId member) {
+        crossSsGroup(owner).getGroupMembers()
+                .removeIf(groupMember -> groupMember.getGroupMemberId().memberEquals(member));
+        DATABASE_CTX.commitTransaction();
+        DATABASE_CTX.beginTransaction();
+    }
+
+    private static LocalGroupEntity crossSsGroup(ClientId owner) {
+        var ownerEntity = new ClientDAOImpl().getClient(DATABASE_CTX.getSession(), owner);
+        return ownerEntity.getLocalGroups().stream()
+                .filter(group -> CROSS_SS_GROUP_CODE.equals(group.getGroupCode()))
+                .findFirst()
+                .orElseThrow();
     }
 }

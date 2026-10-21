@@ -2577,6 +2577,81 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /dataspace/agreement-token-key:
+    get:
+      tags:
+        - dataspace
+      summary: view agreement token signing key status
+      operationId: getAgreementTokenKeyStatus
+      description: <h3>Administrator views the status of the agreement token signing key of the connected proxy.</h3>
+      responses:
+        '200':
+          description: agreement token signing key status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgreementTokenKeyStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /dataspace/agreement-token-key/rotate:
+    post:
+      tags:
+        - dataspace
+      summary: rotate the agreement token signing key
+      operationId: rotateAgreementTokenKey
+      description: >
+        <h3>Administrator rotates the agreement token signing key.</h3>
+        A new key is generated and starts signing within two key refresh intervals. Earlier keys are kept so that
+        tokens already issued keep verifying until they expire.
+      responses:
+        '200':
+          description: id of the newly generated key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgreementTokenKeyRotation'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        '503':
+          description: key material or the secret store is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
   /diagnostics/operational-monitoring:
     get:
       tags:
@@ -8747,5 +8822,43 @@ components:
             - UNBOUND
             - DRIFTED
             - UNKNOWN
+    AgreementTokenKeyStatus:
+      type: object
+      description: status of the agreement token signing key of the connected proxy
+      required:
+        - available
+        - retained_key_count
+      properties:
+        available:
+          type: boolean
+          readOnly: true
+          description: false when the proxy has not loaded any signing key material since it started
+        active_key_id:
+          type: string
+          readOnly: true
+          description: id of the key signing new tokens now
+        active_key_created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: creation time of the signing key, absent for keys stored without a creation time
+        retained_key_count:
+          type: integer
+          readOnly: true
+          description: number of retained signing keys
+        pending_key_id:
+          type: string
+          readOnly: true
+          description: id of the newest key when it does not sign yet, absent otherwise
+    AgreementTokenKeyRotation:
+      type: object
+      description: result of an agreement token signing key rotation
+      required:
+        - key_id
+      properties:
+        key_id:
+          type: string
+          readOnly: true
+          description: id of the newly generated key
 security:
   - ApiKeyAuth: []

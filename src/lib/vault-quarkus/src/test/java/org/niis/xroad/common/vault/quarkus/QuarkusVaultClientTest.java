@@ -52,12 +52,14 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -88,6 +90,11 @@ class QuarkusVaultClientTest {
             String path = invocation.getArgument(0);
             return secretsByPath.get(path);
         });
+
+        lenient().doAnswer(invocation -> {
+            secretsByPath.remove(invocation.<String>getArgument(0));
+            return null;
+        }).when(kvSecretEngine).deleteSecret(any());
 
         lenient().when(kvSecretEngine.listSecrets(any())).thenAnswer(invocation -> {
             String basePath = invocation.getArgument(0);
@@ -255,6 +262,16 @@ class QuarkusVaultClientTest {
     }
 
     @Test
+    void shouldSkipAnAgreementTokenSigningKeyDeletedBetweenListingAndReading() {
+        vaultClient.createAgreementTokenSigningKey("1", "jwk-one");
+        when(kvSecretEngine.listSecrets(any())).thenReturn(List.of("1", "2"));
+
+        var retrieved = vaultClient.getAgreementTokenSigningKeys();
+
+        assertThat(retrieved).containsExactlyEntriesOf(Map.of("1", "jwk-one"));
+    }
+
+    @Test
     void shouldPropagateAgreementTokenSigningKeyListingFailureRatherThanReturningEmpty() {
         when(kvSecretEngine.listSecrets(any()))
                 .thenThrow(new VaultClientException("list", "agreement-token/signing-keys", 500, "sealed", null));
@@ -276,12 +293,32 @@ class QuarkusVaultClientTest {
     }
 
     @Test
-    void shouldNeverDeleteAnAgreementTokenSigningKey() {
+    void shouldNotDeleteAnythingWhenStoringOrReadingAgreementTokenSigningKeys() {
         vaultClient.createAgreementTokenSigningKey("1", "some-key-pair-jwk");
         vaultClient.getAgreementTokenSigningKeys();
 
-        verify(kvSecretEngine, never()).deleteSecret(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1");
         verify(kvSecretEngine, never()).deleteSecret(anyString());
+    }
+
+    @Test
+    void shouldDeleteOnlyTheNamedAgreementTokenSigningKey() {
+        vaultClient.createAgreementTokenSigningKey("1", "jwk-one");
+        vaultClient.createAgreementTokenSigningKey("2", "jwk-two");
+
+        vaultClient.deleteAgreementTokenSigningKey("1");
+
+        verify(kvSecretEngine).deleteSecret(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1");
+        verify(kvSecretEngine, never()).deleteSecret(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/2");
+        assertThat(vaultClient.getAgreementTokenSigningKeys()).containsExactlyEntriesOf(Map.of("2", "jwk-two"));
+    }
+
+    @Test
+    void shouldPropagateAgreementTokenSigningKeyDeleteFailure() {
+        doThrow(new VaultClientException("delete", "agreement-token/signing-keys/1", 403, "denied", null))
+                .when(kvSecretEngine).deleteSecret(any());
+
+        assertThatThrownBy(() -> vaultClient.deleteAgreementTokenSigningKey("1"))
+                .isInstanceOf(VaultClientException.class);
     }
 
     @Test
