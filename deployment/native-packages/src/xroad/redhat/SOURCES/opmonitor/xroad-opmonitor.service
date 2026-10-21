@@ -1,9 +1,9 @@
 [Unit]
 Description=X-Road opmonitor daemon
-After=network.target xroad-base.service xroad-confclient.service
+After=network.target xroad-base.service xroad-secret-store-local.service xroad-secret-store-remote.service
 Requires=xroad-base.service
 Wants=postgresql.service
-Wants=xroad-confclient.service
+Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/xroad-opmonitor
