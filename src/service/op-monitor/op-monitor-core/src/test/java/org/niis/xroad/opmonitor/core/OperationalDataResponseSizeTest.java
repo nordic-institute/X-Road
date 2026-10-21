@@ -40,7 +40,6 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
@@ -86,7 +85,6 @@ class OperationalDataResponseSizeTest extends BaseTestUsingDB {
     private static final String SIZE_REJECTION = "gRPC message exceeds maximum size";
 
     private final InsecureRpcCredentialsConfigurer credentials = new InsecureRpcCredentialsConfigurer();
-    private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
     private final List<ManagedChannel> channels = new ArrayList<>();
     private Server grpcServer;
 
@@ -103,8 +101,7 @@ class OperationalDataResponseSizeTest extends BaseTestUsingDB {
     void startQueryService() throws Exception {
         DATABASE_CTX.doInTransaction(session -> session.createMutationQuery("delete OperationalDataRecordEntity").executeUpdate());
         var healthDataRegistry = new HealthDataRegistry(new HealthDataMetrics(OP_MONITOR_PROPERTIES));
-        var queryService = new OperationalDataQueryService(globalConfProvider, healthDataRegistry, operationalDataRecordManager,
-                OP_MONITOR_PROPERTIES);
+        var queryService = new OperationalDataQueryService(healthDataRegistry, operationalDataRecordManager, OP_MONITOR_PROPERTIES);
         var service = new OpMonitorRpcService(operationalDataRecordManager, mock(OperationalDataStore.class), queryService);
         grpcServer = NettyServerBuilder.forAddress(new InetSocketAddress(LOOPBACK, 0), credentials.createServerCredentials())
                 .addService(service)

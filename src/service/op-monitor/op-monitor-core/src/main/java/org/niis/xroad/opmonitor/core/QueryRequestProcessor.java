@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
@@ -62,15 +61,12 @@ class QueryRequestProcessor {
     private final OperationalDataRequestHandler operationalDataHandler;
     private final HealthDataRequestHandler healthDataHandler;
 
-    QueryRequestProcessor(GlobalConfProvider globalConfProvider,
-                          MetricRegistry healthMetricRegistry,
+    QueryRequestProcessor(MetricRegistry healthMetricRegistry,
                           OperationalDataRecordManager operationalDataRecordManager,
                           OpMonitorProperties opMonitorProperties) {
         this.operationalDataHandler = new OperationalDataRequestHandler(operationalDataRecordManager, opMonitorProperties);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
-
-        globalConfProvider.verifyValidity();
     }
 
     /**

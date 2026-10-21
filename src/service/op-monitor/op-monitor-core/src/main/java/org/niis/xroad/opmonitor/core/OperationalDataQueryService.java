@@ -31,7 +31,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
@@ -51,7 +50,6 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
 class OperationalDataQueryService {
     private static final String FAULT_CONTENT_TYPE = "text/xml;charset=utf-8";
 
-    private final GlobalConfProvider globalConfProvider;
     private final HealthDataRegistry healthDataRegistry;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final OpMonitorProperties opMonitorProperties;
@@ -66,8 +64,7 @@ class OperationalDataQueryService {
             var contentType = QueryContentType.spell(queryContentType);
             QueryRequestProcessor.checkContentType(contentType);
 
-            new QueryRequestProcessor(globalConfProvider, healthDataRegistry.getRegistry(), operationalDataRecordManager,
-                    opMonitorProperties)
+            new QueryRequestProcessor(healthDataRegistry.getRegistry(), operationalDataRecordManager, opMonitorProperties)
                     .process(new ByteArrayInputStream(soapQuery), contentType, () -> responseBody, responseContentType::set, accessScope);
 
             return new Response(responseBody.toByteArray(), responseContentType.get());

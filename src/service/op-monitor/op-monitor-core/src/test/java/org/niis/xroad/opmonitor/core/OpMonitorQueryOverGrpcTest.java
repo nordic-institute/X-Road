@@ -43,7 +43,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -63,7 +62,6 @@ import java.util.zip.GZIPInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.storeFullOperationalDataRecord;
@@ -88,7 +86,6 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     private static final Pattern RECORDS_COUNT = Pattern.compile("<om:recordsCount>(\\d+)</om:recordsCount>");
 
     private final InsecureRpcCredentialsConfigurer credentials = new InsecureRpcCredentialsConfigurer();
-    private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
     private final HealthDataMetrics healthDataMetrics = new HealthDataMetrics(OP_MONITOR_PROPERTIES);
     private final HealthDataRegistry healthDataRegistry = new HealthDataRegistry(healthDataMetrics);
 
@@ -102,8 +99,7 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
         healthDataMetrics.processRecords(healthDataRegistry.getRegistry(), List.of(producerRecord(true), producerRecord(false)));
 
         var operationalDataStore = new OperationalDataStore(operationalDataRecordManager, healthDataMetrics, healthDataRegistry);
-        var queryService = new OperationalDataQueryService(globalConfProvider, healthDataRegistry, operationalDataRecordManager,
-                OP_MONITOR_PROPERTIES);
+        var queryService = new OperationalDataQueryService(healthDataRegistry, operationalDataRecordManager, OP_MONITOR_PROPERTIES);
         startRpcServer(new OpMonitorRpcService(operationalDataRecordManager, operationalDataStore, queryService));
     }
 
