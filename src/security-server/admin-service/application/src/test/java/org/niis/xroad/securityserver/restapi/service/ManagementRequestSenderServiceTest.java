@@ -31,8 +31,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -96,6 +99,57 @@ class ManagementRequestSenderServiceTest {
         var outcome = service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT);
 
         assertThat(outcome.status()).isEqualTo(SystemDidRegistrationSendOutcome.Status.SEND_FAILURE);
+        assertThat(outcome.cause()).isSameAs(failure);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "system_did_final_conflict, FINAL_CONFLICT, CERTIFICATE_OF_ANOTHER_SERVER",
+            "system_did_fixable_conflict, FIXABLE_CONFLICT, OWNER_CHANGED",
+            "system_did_not_resolved, NOT_RESOLVED, RESOLVER_UNAVAILABLE"
+    })
+    void systemDidRegisterReturnsClassifiedOutcomeWithReasonForClassFault(String faultCode,
+                                                                         SystemDidRegistrationSendOutcome.Status expected,
+                                                                         String reason) throws Exception {
+        var fault = XrdRuntimeException.systemException(ErrorCode.withCode(faultCode)).details(reason).build();
+        when(sender.sendSystemDidRegRequest(SERVER_ID, SYSTEM_DID, DSP_BASE_URL, AUTH_CERT)).thenThrow(fault);
+
+        var outcome = service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT);
+
+        assertThat(outcome.status()).isEqualTo(expected);
+        assertThat(outcome.reason()).isEqualTo(reason);
+        assertThat(outcome.requestId()).isNull();
+        assertThat(outcome.cause()).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "system_did_final_conflict, FINAL_CONFLICT",
+            "system_did_fixable_conflict, FIXABLE_CONFLICT",
+            "system_did_not_resolved, NOT_RESOLVED"
+    })
+    void systemDidRegisterFallsBackToFaultCodeWhenClassFaultHasNoDetails(String faultCode,
+                                                                       SystemDidRegistrationSendOutcome.Status expected)
+            throws Exception {
+        var fault = XrdRuntimeException.systemException(ErrorCode.withCode(faultCode)).build();
+        when(sender.sendSystemDidRegRequest(SERVER_ID, SYSTEM_DID, DSP_BASE_URL, AUTH_CERT)).thenThrow(fault);
+
+        var outcome = service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT);
+
+        assertThat(outcome.status()).isEqualTo(expected);
+        assertThat(outcome.reason()).isEqualTo(faultCode);
+    }
+
+    @Test
+    void systemDidRegisterIsSendFailureWhenRateLimiterAnswersWithHttpError() throws Exception {
+        var failure = XrdRuntimeException.systemException(ErrorCode.HTTP_ERROR,
+                "Server responded with error %s: %s", 429, "Too Many Requests");
+        when(sender.sendSystemDidRegRequest(SERVER_ID, SYSTEM_DID, DSP_BASE_URL, AUTH_CERT)).thenThrow(failure);
+
+        var outcome = service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT);
+
+        assertThat(outcome.status()).isEqualTo(SystemDidRegistrationSendOutcome.Status.SEND_FAILURE);
+        assertThat(outcome.reason()).isNull();
         assertThat(outcome.cause()).isSameAs(failure);
     }
 

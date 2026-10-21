@@ -29,29 +29,50 @@ package org.niis.xroad.cs.admin.client;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SYSTEM_DID_FINAL_CONFLICT;
+import static org.niis.xroad.common.core.exception.ErrorCode.SYSTEM_DID_FIXABLE_CONFLICT;
+import static org.niis.xroad.common.core.exception.ErrorCode.SYSTEM_DID_NOT_RESOLVED;
 
 @Component
 @RequiredArgsConstructor
 public class FeignRestErrorDecoder implements ErrorDecoder {
     public static final String REQUEST_FAILED = "Management request failed";
 
+    private static final Map<String, ErrorCode> OUTCOME_CODES = Map.of(
+            "management_request_did_final_conflict", SYSTEM_DID_FINAL_CONFLICT,
+            "management_request_did_fixable_conflict", SYSTEM_DID_FIXABLE_CONFLICT,
+            "management_request_did_not_resolved", SYSTEM_DID_NOT_RESOLVED);
+
     private final ObjectMapper mapper;
 
     @Override
     public Exception decode(String methodKey, Response response) {
+        if (response.body() == null) {
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, REQUEST_FAILED);
+        }
         try (var inputStream = response.body().asInputStream()) {
             var errorInfo = mapper.readValue(inputStream, ErrorInfoDto.class);
-            var detail = errorInfo.getError() != null ? errorInfo.getError().getCode() : REQUEST_FAILED;
+            var adminCode = errorInfo.getError() != null ? errorInfo.getError().getCode() : null;
+            var outcomeCode = adminCode == null ? null : OUTCOME_CODES.get(adminCode);
+            if (outcomeCode != null) {
+                var metadata = errorInfo.getError().getMetadata();
+                var reason = metadata == null || metadata.isEmpty() ? adminCode : metadata.getFirst();
+                throw XrdRuntimeException.systemException(outcomeCode).details(reason).build();
+            }
+            var detail = adminCode != null ? adminCode : REQUEST_FAILED;
             throw XrdRuntimeException.systemException(INTERNAL_ERROR, "%s with statusCode %s", detail, errorInfo.getStatus());
-        } catch (IOException ex) {
+        } catch (IOException | JacksonException ex) {
             throw XrdRuntimeException.systemException(INTERNAL_ERROR, ex, REQUEST_FAILED);
         }
 

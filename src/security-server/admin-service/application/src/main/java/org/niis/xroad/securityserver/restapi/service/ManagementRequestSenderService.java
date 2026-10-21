@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -94,7 +95,8 @@ public class ManagementRequestSenderService {
      * @param systemDid  the SYSTEM DID of this security server
      * @param dspBaseUrl the DSP base URL of this security server
      * @param authCert   the authentication certificate bytes
-     * @return {@code STORED} with the central server request id, or {@code SEND_FAILURE} with the cause
+     * @return {@code STORED} with the central server request id, the conflict or not resolved outcome with its reason,
+     * or {@code SEND_FAILURE} with the cause
      */
     public SystemDidRegistrationSendOutcome sendSystemDidRegisterRequest(String systemDid, String dspBaseUrl, byte[] authCert)
             throws GlobalConfOutdatedException {
@@ -108,14 +110,32 @@ public class ManagementRequestSenderService {
             }
             return SystemDidRegistrationSendOutcome.stored(requestId);
         } catch (XrdRuntimeException e) {
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
-            return SystemDidRegistrationSendOutcome.sendFailure(e);
+            return systemDidFaultOutcome(e);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             return SystemDidRegistrationSendOutcome.sendFailure(e);
         }
+    }
+
+    private static String reasonOf(XrdRuntimeException fault, ErrorCode outcomeClass) {
+        var details = fault.getDetails();
+        return details == null || details.isBlank() ? outcomeClass.code() : details;
+    }
+
+    private static SystemDidRegistrationSendOutcome systemDidFaultOutcome(XrdRuntimeException fault) {
+        if (fault.isCausedBy(ErrorCode.SYSTEM_DID_FINAL_CONFLICT)) {
+            return SystemDidRegistrationSendOutcome.finalConflict(reasonOf(fault, ErrorCode.SYSTEM_DID_FINAL_CONFLICT));
+        }
+        if (fault.isCausedBy(ErrorCode.SYSTEM_DID_FIXABLE_CONFLICT)) {
+            return SystemDidRegistrationSendOutcome.fixableConflict(reasonOf(fault, ErrorCode.SYSTEM_DID_FIXABLE_CONFLICT));
+        }
+        if (fault.isCausedBy(ErrorCode.SYSTEM_DID_NOT_RESOLVED)) {
+            return SystemDidRegistrationSendOutcome.notResolved(reasonOf(fault, ErrorCode.SYSTEM_DID_NOT_RESOLVED));
+        }
+        log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, fault);
+        return SystemDidRegistrationSendOutcome.sendFailure(fault);
     }
 
     /**

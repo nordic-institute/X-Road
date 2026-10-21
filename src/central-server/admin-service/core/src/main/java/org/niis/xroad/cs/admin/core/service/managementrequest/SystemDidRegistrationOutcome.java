@@ -38,12 +38,9 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FIXABLE_
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_NOT_RESOLVED;
 
 /**
- * How a refused {@code systemDidReg} request is answered: one outcome class and the reason within it. Every
- * way a request can be refused is mapped here, so the pre-transaction service and the handler answer the same
- * cause the same way.
- *
- * <p>A final conflict stops the Security Server's retries, a fixable conflict is retried after the cause has
- * changed, and not resolved is retried later.
+ * The classification of a refused {@code systemDidReg} request: one of three outcome classes and the reason
+ * within it. Every way a request can be refused is mapped here, so the pre-transaction service, the handler and
+ * the certificate check classify the same cause the same way.
  *
  * @param outcomeClass the class of the answer
  * @param reason       the cause within the class

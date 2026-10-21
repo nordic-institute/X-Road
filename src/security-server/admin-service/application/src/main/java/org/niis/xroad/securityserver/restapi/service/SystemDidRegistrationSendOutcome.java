@@ -29,22 +29,38 @@ package org.niis.xroad.securityserver.restapi.service;
 /**
  * Outcome of sending a SYSTEM DID registration request to the Central Server.
  *
- * @param status    {@link Status#STORED} when the Central Server answered with a request id
+ * @param status    the class of the Central Server's answer or {@link Status#SEND_FAILURE}
  * @param requestId request id in the Central Server database, set only when stored
+ * @param reason    reason name reported by the Central Server, set only for the conflict and not resolved statuses
  * @param cause     send failure cause, set only when sending failed
  */
-public record SystemDidRegistrationSendOutcome(Status status, Integer requestId, Exception cause) {
+public record SystemDidRegistrationSendOutcome(Status status, Integer requestId, String reason, Exception cause) {
 
     public enum Status {
         STORED,
+        FINAL_CONFLICT,
+        FIXABLE_CONFLICT,
+        NOT_RESOLVED,
         SEND_FAILURE
     }
 
     public static SystemDidRegistrationSendOutcome stored(int requestId) {
-        return new SystemDidRegistrationSendOutcome(Status.STORED, requestId, null);
+        return new SystemDidRegistrationSendOutcome(Status.STORED, requestId, null, null);
+    }
+
+    public static SystemDidRegistrationSendOutcome finalConflict(String reason) {
+        return new SystemDidRegistrationSendOutcome(Status.FINAL_CONFLICT, null, reason, null);
+    }
+
+    public static SystemDidRegistrationSendOutcome fixableConflict(String reason) {
+        return new SystemDidRegistrationSendOutcome(Status.FIXABLE_CONFLICT, null, reason, null);
+    }
+
+    public static SystemDidRegistrationSendOutcome notResolved(String reason) {
+        return new SystemDidRegistrationSendOutcome(Status.NOT_RESOLVED, null, reason, null);
     }
 
     public static SystemDidRegistrationSendOutcome sendFailure(Exception cause) {
-        return new SystemDidRegistrationSendOutcome(Status.SEND_FAILURE, null, cause);
+        return new SystemDidRegistrationSendOutcome(Status.SEND_FAILURE, null, null, cause);
     }
 }
