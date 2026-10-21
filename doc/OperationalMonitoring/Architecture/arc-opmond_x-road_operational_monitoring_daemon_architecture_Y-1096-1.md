@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.10  
+Version: 1.11  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                           | Author             |
@@ -21,6 +21,7 @@ Document ID: ARC-OPMOND
 | 11.11.2025 | 1.8     | Drop JMX interface                                                    | Justas Samuolis    |
 | 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
 | 19.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
+| 21.10.2026 | 1.11    | Operational monitoring daemon needs no global configuration           | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -36,12 +37,10 @@ Document ID: ARC-OPMOND
     - [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
     - [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
     - [2.1.3 Operational Monitoring gRPC Service](#213-operational-monitoring-grpc-service)
-  - [2.2 Configuration Client](#22-configuration-client)
 - [3 Protocols and Interfaces](#3-protocols-and-interfaces)
   - [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
   - [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
   - [3.3 Operational Monitoring Query in Fixed Intervals](#33-operational-monitoring-query-in-fixed-intervals)
-  - [3.4 Download Configuration](#34-download-configuration)
 - [4 Deployment View](#4-deployment-view)
 - [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
   - [A.1 Protocol Buffers Definition of the Store Operational Monitoring Data Messages](#a1-protocol-buffers-definition-of-the-store-operational-monitoring-data-messages)
@@ -67,16 +66,12 @@ This document is aimed at technical readers who want to acquire an overview of i
 
 The main function of the monitoring daemon is to collect operational data of the X-Road security server(s) and make it available for external monitoring systems (e.g., Zabbix, Nagios) via corresponding interfaces.
 
-The monitoring daemon also depends on central server that provides the global configuration.
-
 ### 1.2 Terms and Abbrevations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-<a name="ARC-G"/>**ARC-G** -- X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture.md).  
-<a name="PR-GCONF"/>**PR-GCONF** -- X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
 <a name="PR-MESS"/>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
 <a name="PR-OPMON"/>**PR-OPMON** -- X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
 <a name="UG-OPMONSYSPAR"/>**UG-OPMONSYSPAR** -- X-Road: Operational Monitoring System Parameters. Document ID: [UG-OPMONSYSPAR](../Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md).  
@@ -109,7 +104,9 @@ Outdated data records are deleted periodically from the database according to th
 
 The operational monitoring service receives and processes operational monitoring requests via *operational monitoring query* interface. There are two requests used by the security server(s) - *get operational monitoring data* and *get operational health data*.
 
-In case the sender of the *get operational monitoring data* request is a regular client, only operational monitoring data records associated with that client are returned. In case the request sender is the central monitoring client (described in the global configuration) or owner of the current security server (described in the global configuration), it has access to all the records.
+In case the sender of the *get operational monitoring data* request is a regular client, only operational monitoring data records associated with that client are returned. In case the request sender is the central monitoring client or owner of the current security server, it has access to all the records. The internal IP address of the security server is included in the response only when the sender has access to all the records.
+
+The security server decides which of the two applies and sends its decision to the monitoring daemon in the access scope field of the request (see [Section 3.2](#32-operational-monitoring-query)). The monitoring daemon does not decide it: it only filters the records by the access scope. When the access scope is *full view*, all records are returned. For any other value, including a missing or unknown value, only the records associated with the sender of the request are returned. A request without a sender is rejected with a SOAP fault unless the access scope is *full view*.
 
 For performance purposes, the operational monitoring service limits the number of records in the *get operational monitoring data* response message. The maximum number of records is configurable (however, all the records having the same timestamp second as the last queried record are still included into the response, so the response size is not strictly limited). In case some queried records still do not fit into the response, the timestamp of the first excluded record is returned in the response to indicate overflow. The response must also fit into the message size limit of the security server's gRPC channel to the daemon (see [Section 3.2](#32-operational-monitoring-query)).
 
@@ -118,12 +115,6 @@ For performance purposes, the operational monitoring service limits the number o
 The operational monitoring gRPC service is the network interface of the monitoring daemon. It is a single gRPC service with three methods, one for each of the interfaces described in Section 3: *store operational monitoring data*, *operational monitoring query* and *operational monitoring query in fixed intervals*. The last one retrieves the number of successful and failed requests in fixed time intervals which can be used to visualize the request traffic in a graph.
 
 The service listens on the address and port defined in the system parameters of the daemon (by default `127.0.0.1` and port 2081), see [[UG-OPMONSYSPAR]](#UG-OPMONSYSPAR). It accepts only TLS connections with client authentication unless TLS is turned off for the internal gRPC connections of the security server.
-
-### 2.2 Configuration Client
-
-The configuration client is responsible for downloading remote global configuration files. The source location of the global configuration is taken from the anchor file that was manually copied to the configuration directory of the operational monitoring daemon (or uploaded from the security server user interface in case monitoring daemon is deployed together with the security server).
-
-The component is a standalone Java daemon application.
 
 ## 3 Protocols and Interfaces
 
@@ -143,7 +134,7 @@ The security server splits the records into messages so that a message has at mo
 
 ### 3.2 Operational Monitoring Query
 
-The operational monitoring query interface is used by the security server to retrieve operational monitoring data. The X-Road operational monitoring protocol [[PR-OPMON]](#PR-OPMON) (based on [[PR-MESS]](#PR-MESS)) is used between the monitoring client and the security server. The security server passes the SOAP query message on as it is to the monitoring daemon by calling the `QueryOperationalData` method of the operational monitoring gRPC service. The request carries the query message and its content type. The request also has an access scope field, which is not used: the security server leaves it unset and the monitoring daemon ignores it. The monitoring daemon returns the response message, including a SOAP fault if the query failed, and its content type. The connection is secured and the channel behaves as described in [Section 3.1](#31-store-operational-monitoring-data).
+The operational monitoring query interface is used by the security server to retrieve operational monitoring data. The X-Road operational monitoring protocol [[PR-OPMON]](#PR-OPMON) (based on [[PR-MESS]](#PR-MESS)) is used between the monitoring client and the security server. The security server passes the SOAP query message on as it is to the monitoring daemon by calling the `QueryOperationalData` method of the operational monitoring gRPC service. The request carries the query message and its content type. The request also has an access scope field. The security server decides the access scope and sets it in the field, and the monitoring daemon filters the records by it, as described in [Section 2.1.2](#212-operational-monitoring-service). The monitoring daemon returns the response message, including a SOAP fault if the query failed, and its content type. The connection is secured and the channel behaves as described in [Section 3.1](#31-store-operational-monitoring-data).
 
 The monitoring of the security servers is not the main functionality of the X-Road system, therefore the availability and responsiveness of this service is not paramount. Operational data records are held in the database and are available for configured days.
 
@@ -155,21 +146,9 @@ The channel accepts a response up to a message size limit (16 MiB by default, at
 
 This query is used by the Security Server to retrieve operational monitoring data in fixed intervals so that it can be used to visualize the request traffic in the UI. It will return the count of successful and failed requests in each time interval. The query is the `GetOperationalDataIntervals` method of the operational monitoring gRPC service, and the connection and the channel behave as described in [Section 3.1](#31-store-operational-monitoring-data).
 
-### 3.4 Download Configuration
-
-The operational monitoring daemon downloads the generated global configuration files from a configuration source.
-
-The configuration download interface is a synchronous interface that is required by the operational monitoring daemon. It is provided by a configuration source such as a central server or a configuration proxy.
-
-The interface is described in more detail in [[ARC-G]](#ARC-G) and [[PR-GCONF]](#PR-GCONF).
-
 ## 4 Deployment View
 
-Figure 2 shows the deployment diagram.
-
-![Operational monitoring daemon deployment diagram](img/x-road_operational_monitoring_daemon_deployment.png)
-
-**Figure 2. Operational monitoring daemon deployment**
+The operational monitoring daemon is deployed as a single node that runs the operational monitoring daemon main.
 
 
 <a name="AppendixA"/>

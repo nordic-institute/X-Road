@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.12  
+Version: 0.13  
 Doc ID: TEST-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -13,6 +13,7 @@ Doc ID: TEST-OPMON
 | 01.06.2023 | 0.10    | Update references                                                    | Petteri Kivimäki |
 | 11.11.2025 | 0.11    | Drop JMX interface                                                   | Justas Samuolis  |
 | 19.10.2026 | 0.12    | Store and query over gRPC                                            | Eneli Reimets    |
+| 21.10.2026 | 0.13    | Operational monitoring daemon needs no global configuration          | Eneli Reimets    |
 
 ## Table of Contents
 <!-- toc -->
@@ -65,7 +66,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 2 Components of the Operational Monitoring System in the Context of Testing
 
-The operational monitoring system involves the X-Road security server and the operational monitoring daemon. In addition, global configuration is obtained from the X-Road central server.
+The operational monitoring system involves the X-Road security server and the operational monitoring daemon.
 
 According to the architecture of the operational monitoring daemon (\[[ARC-OPMOND](#ARC-OPMOND)\]), the daemon is divided into the following components:
 * operational monitoring database
