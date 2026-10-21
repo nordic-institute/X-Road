@@ -75,4 +75,36 @@ class AccessScopeDeciderTest {
     void otherClientSeesOwnRecordsOnly() {
         assertThat(AccessScopeDecider.decide(OTHER_CLIENT, SERVER, globalConfProvider)).isEqualTo(AccessScope.CALLER_ONLY);
     }
+
+    @Test
+    void subsystemOfTheOwnerSeesOwnRecordsOnly() {
+        var ownerSubsystem = ClientId.Conf.create("DEV", "COM", "1234", "SUB");
+
+        assertThat(AccessScopeDecider.decide(ownerSubsystem, SERVER, globalConfProvider)).isEqualTo(AccessScope.CALLER_ONLY);
+    }
+
+    @Test
+    void memberMonitoringClientDoesNotMatchItsSubsystem() {
+        var monitoringClientSubsystem = ClientId.Conf.create("DEV", "COM", "5678", "SUB");
+
+        assertThat(AccessScopeDecider.decide(monitoringClientSubsystem, SERVER, globalConfProvider))
+                .isEqualTo(AccessScope.CALLER_ONLY);
+    }
+
+    @Test
+    void subsystemMonitoringClientDoesNotMatchItsMember() {
+        var subsystemMonitoringClient = ClientId.Conf.create("DEV", "COM", "5678", "SUB");
+        when(globalConfProvider.getGlobalConfExtensions().getMonitoringClient()).thenReturn(subsystemMonitoringClient);
+
+        assertThat(AccessScopeDecider.decide(MONITORING_CLIENT, SERVER, globalConfProvider)).isEqualTo(AccessScope.CALLER_ONLY);
+        assertThat(AccessScopeDecider.decide(subsystemMonitoringClient, SERVER, globalConfProvider))
+                .isEqualTo(AccessScope.FULL_VIEW);
+    }
+
+    @Test
+    void ownerSeesOwnRecordsOnlyWhenTheHeaderNamesAnUnknownServer() {
+        var unknownServer = SecurityServerId.Conf.create("DEV", "COM", "1234", "UNKNOWN");
+
+        assertThat(AccessScopeDecider.decide(OWNER, unknownServer, globalConfProvider)).isEqualTo(AccessScope.CALLER_ONLY);
+    }
 }

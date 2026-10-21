@@ -220,7 +220,15 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     }
 
     protected ClientId getClientForFilter(ClientId clientId, AccessScope accessScope) {
-        return accessScope == AccessScope.FULL_VIEW ? null : clientId;
+        if (accessScope == AccessScope.FULL_VIEW) {
+            return null;
+        }
+        if (clientId == null) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Query has no client and its access scope is not full view")
+                    .withPrefix(CLIENT_X);
+        }
+        return clientId;
     }
 
     private  long getRecordsAvailableBeforeTimestamp() {

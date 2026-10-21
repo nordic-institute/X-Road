@@ -96,6 +96,7 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
         FAULT_MIME_ENCODED_QUERY,
         FAULT_INVALID_SOAP,
         FAULT_MISSING_CLIENT,
+        FAULT_MISSING_CLIENT_OPERATIONAL_DATA,
         FAULT_UNKNOWN_SERVICE,
         FAULT_INVALID_GLOBAL_CONF
     }
@@ -181,9 +182,11 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
             case FAULT_BAD_CONTENT_TYPE -> new Query(read(HEALTH_DATA_REQUEST), "text/plain; charset=UTF-8");
             case FAULT_MIME_ENCODED_QUERY -> mimeEncodedHealthDataQuery();
             case FAULT_INVALID_SOAP -> new Query("not a SOAP message".getBytes(StandardCharsets.UTF_8), PROXY_SOAP_CONTENT_TYPE);
-            case FAULT_MISSING_CLIENT -> new Query(new String(read(HEALTH_DATA_REQUEST), StandardCharsets.UTF_8)
-                    .replaceAll("(?s)<xroad:client .*?</xroad:client>", "").getBytes(StandardCharsets.UTF_8),
-                    PROXY_SOAP_CONTENT_TYPE);
+            case FAULT_MISSING_CLIENT -> new Query(withoutClient(read(HEALTH_DATA_REQUEST)), PROXY_SOAP_CONTENT_TYPE);
+            case FAULT_MISSING_CLIENT_OPERATIONAL_DATA -> {
+                storeFullOperationalDataRecord(RECORDS_WINDOW_START + 1, QUERY_CLIENT, SERVICE_PROVIDER, operationalDataRecordManager);
+                yield new Query(withoutClient(operationalDataQuery(RECORDS_WINDOW_START)), PROXY_SOAP_CONTENT_TYPE);
+            }
             case FAULT_UNKNOWN_SERVICE -> new Query(new String(read(HEALTH_DATA_REQUEST), StandardCharsets.UTF_8)
                     .replace("<id:serviceCode>getSecurityServerHealthData<", "<id:serviceCode>getSecurityServerUnknownData<")
                     .getBytes(StandardCharsets.UTF_8),
@@ -216,6 +219,11 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
                 + new String(read(HEALTH_DATA_REQUEST), StandardCharsets.UTF_8) + "\r\n--" + MIME_BOUNDARY + "--\r\n";
         return new Query(message.getBytes(StandardCharsets.UTF_8),
                 "multipart/related; type=\"text/xml\"; charset=UTF-8; boundary=" + MIME_BOUNDARY);
+    }
+
+    private static byte[] withoutClient(byte[] request) {
+        return new String(request, StandardCharsets.UTF_8)
+                .replaceAll("(?s)<xroad:client .*?</xroad:client>", "").getBytes(StandardCharsets.UTF_8);
     }
 
     private static byte[] operationalDataQuery(long windowStart) throws IOException {

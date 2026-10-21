@@ -70,8 +70,12 @@ message StoreOperationalDataReq {
 message StoreOperationalDataResp {
 }
 
-// Which operational data a query may see. op-monitor does not read this value yet: every query is filtered by
-// the client rules of the query handler, whatever the scope.
+// Which operational data a query may see, decided by the proxy.
+// FULL_VIEW: the records of all clients, including the internal IP address of the Security Server.
+// CALLER_ONLY: only the records in which the caller of the query is the client or the service provider,
+// without the internal IP address.
+// ACCESS_SCOPE_UNSPECIFIED and any value this version does not know are treated as CALLER_ONLY.
+// A query without a caller is refused unless the scope is FULL_VIEW.
 enum AccessScope {
   ACCESS_SCOPE_UNSPECIFIED = 0;
   FULL_VIEW = 1;

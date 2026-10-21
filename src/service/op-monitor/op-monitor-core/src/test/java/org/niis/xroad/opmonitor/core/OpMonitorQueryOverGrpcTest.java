@@ -39,6 +39,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
@@ -49,6 +50,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +59,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,6 +83,8 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
     private static final ClientId.Conf CALLER = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000001", "System1");
     private static final ClientId.Conf OTHER_CLIENT = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000002", "System2");
     private static final ClientId.Conf PROVIDER = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000000", "Center");
+    private static final String INTERNAL_IP_FIELD = "securityServerInternalIp";
+    private static final String INTERNAL_IP = "192.168.3.250";
     private static final Pattern RECORDS_COUNT = Pattern.compile("<om:recordsCount>(\\d+)</om:recordsCount>");
 
     private final InsecureRpcCredentialsConfigurer credentials = new InsecureRpcCredentialsConfigurer();
@@ -136,6 +141,29 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
         assertThat(recordsCount(callerOnly)).isEqualTo(2);
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, 2, 99})
+    void callerOnlyUnspecifiedAndUnknownScopesReturnOnlyTheCallersRecords(int accessScopeValue) throws Exception {
+        storeFullOperationalDataRecord(WINDOW_START + 1, CALLER, PROVIDER, operationalDataRecordManager);
+        storeFullOperationalDataRecord(WINDOW_START + 2, OTHER_CLIENT, PROVIDER, operationalDataRecordManager);
+        storeFullOperationalDataRecord(WINDOW_START + 3, OTHER_CLIENT, PROVIDER, operationalDataRecordManager);
+
+        var response = queryWithScopeValue(operationalDataQuery(), accessScopeValue);
+
+        assertThat(recordsCount(response)).isEqualTo(1);
+    }
+
+    @Test
+    void internalIpIsShownInFullViewOnly() throws Exception {
+        storeFullOperationalDataRecord(WINDOW_START + 1, CALLER, PROVIDER, operationalDataRecordManager);
+        var query = operationalDataQuery();
+
+        assertThat(recordsJson(queryWithScopeValue(query, AccessScope.FULL_VIEW_VALUE))).contains(INTERNAL_IP_FIELD, INTERNAL_IP);
+        for (var scopeValue : List.of(AccessScope.CALLER_ONLY_VALUE, AccessScope.ACCESS_SCOPE_UNSPECIFIED_VALUE, 99)) {
+            assertThat(recordsJson(queryWithScopeValue(query, scopeValue))).doesNotContain(INTERNAL_IP_FIELD, INTERNAL_IP);
+        }
+    }
+
     @Test
     void healthDataIsAnsweredFromTheHealthMetrics() throws Exception {
         var response = query(Files.readAllBytes(Path.of(HEALTH_DATA_REQUEST)), QUERY_CONTENT_TYPE,
@@ -175,6 +203,25 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
                 .setContentType(contentType)
                 .setAccessScope(accessScope)
                 .build());
+    }
+
+    private QueryOperationalDataResp queryWithScopeValue(byte[] query, int accessScopeValue) {
+        return stub.queryOperationalData(QueryOperationalDataReq.newBuilder()
+                .setSoapQuery(ByteString.copyFrom(query))
+                .setContentType(QUERY_CONTENT_TYPE)
+                .setAccessScopeValue(accessScopeValue)
+                .build());
+    }
+
+    private static String recordsJson(QueryOperationalDataResp response) throws IOException {
+        var text = new String(response.getResponse().toByteArray(), StandardCharsets.ISO_8859_1);
+        var attachmentStart = "content-id: <" + QueryResponses.ATTACHMENT_CONTENT_ID + ">\r\n\r\n";
+        int start = text.indexOf(attachmentStart) + attachmentStart.length();
+        int end = text.lastIndexOf("\r\n--" + QueryResponses.boundary(response.getContentType()) + "--");
+        var gzip = text.substring(start, end).getBytes(StandardCharsets.ISO_8859_1);
+        try (var in = new GZIPInputStream(new ByteArrayInputStream(gzip))) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     private static byte[] operationalDataQuery() throws IOException {
