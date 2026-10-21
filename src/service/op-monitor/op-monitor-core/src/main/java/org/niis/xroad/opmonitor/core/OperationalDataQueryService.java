@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.ByteArrayInputStream;
@@ -58,7 +59,7 @@ class OperationalDataQueryService {
     record Response(byte[] body, String contentType) {
     }
 
-    Response query(byte[] soapQuery, String queryContentType) {
+    Response query(byte[] soapQuery, String queryContentType, AccessScope accessScope) {
         var responseBody = new ByteArrayOutputStream();
         var responseContentType = new AtomicReference<String>();
         try {
@@ -67,7 +68,7 @@ class OperationalDataQueryService {
 
             new QueryRequestProcessor(globalConfProvider, healthDataRegistry.getRegistry(), operationalDataRecordManager,
                     opMonitorProperties)
-                    .process(new ByteArrayInputStream(soapQuery), contentType, () -> responseBody, responseContentType::set);
+                    .process(new ByteArrayInputStream(soapQuery), contentType, () -> responseBody, responseContentType::set, accessScope);
 
             return new Response(responseBody.toByteArray(), responseContentType.get());
         } catch (Throwable t) { // We want to catch serious errors as well

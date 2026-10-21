@@ -34,6 +34,7 @@ import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
@@ -113,7 +114,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
         try {
             var query = writeQuery(proxyRequestMessage);
-            var response = sendQuery(query, proxyRequestMessage.getSoapContentType(), opMonitoringData);
+            var response = sendQuery(query, proxyRequestMessage.getSoapContentType(), accessScope(proxyRequestMessage),
+                    opMonitoringData);
 
             return new ServiceHandlerResult(response.getContentType(), response.getResponse().newInput());
         } catch (Exception ex) {
@@ -121,14 +123,22 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-    private QueryOperationalDataResp sendQuery(byte[] query, String contentType, OpMonitoringData opMonitoringData) {
+    private AccessScope accessScope(ProxyMessage proxyRequestMessage) {
+        var soap = proxyRequestMessage.getSoap();
+        return GET_SECURITY_SERVER_OPERATIONAL_DATA.equals(soap.getService().getServiceCode())
+                ? AccessScopeDecider.decide(soap.getClient(), soap.getSecurityServer(), globalConfProvider)
+                : AccessScope.ACCESS_SCOPE_UNSPECIFIED;
+    }
+
+    private QueryOperationalDataResp sendQuery(byte[] query, String contentType, AccessScope accessScope,
+                                               OpMonitoringData opMonitoringData) {
         var client = opMonitorClient();
 
         opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
         QueryOperationalDataResp response;
         try {
-            response = client.queryOperationalData(query, contentType);
+            response = client.queryOperationalData(query, contentType, accessScope);
         } catch (StatusRuntimeException ex) {
             if (isTransportFailure(ex.getStatus().getCode())) {
                 throw networkError(ex, ex.getStatus().toString());

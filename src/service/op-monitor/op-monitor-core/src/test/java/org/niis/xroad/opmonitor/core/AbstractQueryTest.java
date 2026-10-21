@@ -42,7 +42,6 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
@@ -121,8 +120,6 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
     @BeforeEach
     void startGrpcQueryMethod() throws Exception {
         DATABASE_CTX.doInTransaction(session -> session.createMutationQuery("delete OperationalDataRecordEntity").executeUpdate());
-        var globalConfExtensions = mock(GlobalConfExtensions.class);
-        when(globalConfProvider.getGlobalConfExtensions()).thenReturn(globalConfExtensions);
         when(healthDataRegistry.getRegistry()).thenReturn(healthMetricRegistry);
         healthDataMetrics.registerInitialMetrics(healthMetricRegistry, () -> HEALTH_STARTUP_TIMESTAMP);
         healthDataMetrics.processRecords(healthMetricRegistry, List.of(producerRecord(true), producerRecord(false)));

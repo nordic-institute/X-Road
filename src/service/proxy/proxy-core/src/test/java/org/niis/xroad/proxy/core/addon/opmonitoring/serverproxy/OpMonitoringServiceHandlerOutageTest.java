@@ -47,7 +47,6 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
@@ -74,6 +73,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImplTest.globalConfProvider;
 import static org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImplTest.proxyMessage;
 
 /**
@@ -187,7 +187,7 @@ class OpMonitoringServiceHandlerOutageTest {
                 .register(CommonRpcConfigKeys.instance())
                 .overrides(Map.of("xroad.common-rpc.channel.op-monitor.port", String.valueOf(port)))
                 .build();
-        var handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), mock(GlobalConfProvider.class),
+        var handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), globalConfProvider(),
                 () -> OpMonitorClient.create(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), config));
         handlers.add(handler);
 
@@ -234,7 +234,7 @@ class OpMonitoringServiceHandlerOutageTest {
     }
 
     private OpMonitoringServiceHandlerImpl handler(OpMonitorClient client) {
-        var handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), mock(GlobalConfProvider.class),
+        var handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), globalConfProvider(),
                 () -> client);
         handlers.add(handler);
         return handler;

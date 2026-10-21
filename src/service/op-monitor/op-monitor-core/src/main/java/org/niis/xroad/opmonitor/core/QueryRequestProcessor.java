@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.InputStream;
@@ -65,8 +66,7 @@ class QueryRequestProcessor {
                           MetricRegistry healthMetricRegistry,
                           OperationalDataRecordManager operationalDataRecordManager,
                           OpMonitorProperties opMonitorProperties) {
-        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager,
-                opMonitorProperties);
+        this.operationalDataHandler = new OperationalDataRequestHandler(operationalDataRecordManager, opMonitorProperties);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 
@@ -93,12 +93,13 @@ class QueryRequestProcessor {
      * @param responseOut          opens the stream the response is written to, called once the query is parsed;
      *                             the stream is closed when the response is written
      * @param contentTypeAssigner  receives the content type of the response before it is written
+     * @param accessScope          the access scope the proxy decided for the query
      * @throws Exception in case of any errors
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
     void process(InputStream requestIn, String contentType, Supplier<OutputStream> responseOut,
-                 Consumer<String> contentTypeAssigner) throws Exception {
-        try (var handler = new QueryRequestHandler(responseOut, contentTypeAssigner); requestIn) {
+                 Consumer<String> contentTypeAssigner, AccessScope accessScope) throws Exception {
+        try (var handler = new QueryRequestHandler(responseOut, contentTypeAssigner, accessScope); requestIn) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(contentType, handler, new SoapParserImpl());
 
             soapMessageDecoder.parse(requestIn);
@@ -110,6 +111,7 @@ class QueryRequestProcessor {
     private final class QueryRequestHandler implements SoapMessageDecoder.Callback {
         private final Supplier<OutputStream> responseOut;
         private final Consumer<String> contentTypeAssigner;
+        private final AccessScope accessScope;
 
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
@@ -122,10 +124,10 @@ class QueryRequestProcessor {
             try (var out = responseOut.get()) {
                 switch (requestSoap.getService().getServiceCode()) {
                     case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                        operationalDataHandler.handle(requestSoap, out, contentTypeAssigner);
+                        operationalDataHandler.handle(requestSoap, out, contentTypeAssigner, accessScope);
                         break;
                     case GET_SECURITY_SERVER_HEALTH_DATA:
-                        healthDataHandler.handle(requestSoap, out, contentTypeAssigner);
+                        healthDataHandler.handle(requestSoap, out, contentTypeAssigner, accessScope);
                         break;
                     default:
                         throw XrdRuntimeException.systemInternalError(

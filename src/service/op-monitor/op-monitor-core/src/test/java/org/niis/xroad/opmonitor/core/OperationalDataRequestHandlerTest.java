@@ -32,7 +32,6 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResp
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.Collections;
@@ -71,7 +70,7 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
         OpMonitorProperties opMonitorProperties = mock(OpMonitorProperties.class);
         when(opMonitorProperties.recordsAvailableTimestampOffsetSeconds()).thenReturn(60);
         OperationalDataRequestHandler handler =
-                new OperationalDataRequestHandler(mock(GlobalConfProvider.class), operationalDataRecordManager, opMonitorProperties);
+                new OperationalDataRequestHandler(operationalDataRecordManager, opMonitorProperties);
         long recordsAvailableBefore = TimeUtils.getEpochSecond();
 
         GetSecurityServerOperationalDataResponseType response = handler
