@@ -19,6 +19,20 @@
     "enable": "Işe giriz",
     "order": "Sargyt et"
   },
+  "agreementTokenKey": {
+    "createdAt": "Döredildi",
+    "createdAtUnknown": "Näbelli",
+    "description": "Ylalaşyk tokeniniň gol çekiş açary bu Howpsuzlyk Serweriniň maglumat giňişliginde maglumat alyş-çalşygy üçin berýän tokenlerine gol çekýär. Açary çalyşmak täze açar döredýär. Öňki açarlar saklanýar, şonuň üçin olar bilen gol çekilen tokenler möhletleri gutarýança hereketde galýar.",
+    "keyId": "Gol çekiş açarynyň ID-si",
+    "pending": "Täze açar ({keyId}) gol çekip başlamaga garaşýar.",
+    "previousKeys": "Saklanýan öňki açarlar",
+    "rotate": "Açary çalyş",
+    "rotateConfirmText": "Eýýäm berlen tokenler möhletleri gutarýança işlemegini dowam etdirýär. Täze açar iki sany açar täzeleme aralygynyň dowamynda gol çekip başlaýar.",
+    "rotateConfirmTitle": "Ylalaşyk tokeniniň gol çekiş açaryny çalyşmalymy?",
+    "rotated": "Ylalaşyk tokeniniň gol çekiş açary çalşyldy",
+    "title": "Ylalaşyk tokeniniň gol çekiş açary",
+    "unavailable": "Gol çekiş açary elýeterli däl. Proksi entek hiç bir gol çekiş açaryny ýüklemedi, şonuň üçin açary çalyşmak mümkin däl."
+  },
   "alert": {
     "warningCount": "Şol bir duýduryşlaryň jemi Amount of same warnings"
   },
@@ -373,6 +387,11 @@
           "UnknownService": "Näbelli gulluk"
         }
       },
+      "agreement_token_key_generation_failed": "Ylalaşyk tokeniniň gol çekiş açaryny döretmek başa barmady",
+      "agreement_token_key_not_available": "Ylalaşyk tokeniniň gol çekiş açary elýeterli däl. Proksi entek hiç bir gol çekiş açaryny ýüklemedi",
+      "agreement_token_key_store_failed": "Ylalaşyk tokeniniň gol çekiş açaryny gizlin maglumatlar ammaryna ýazdyryp bolmady. Soňrak gaýtadan synanyşyň",
+      "agreement_token_rejected": "Ylalaşyk tokeni ret edildi",
+      "agreement_token_signing_failed": "Ylalaşyk tokenine gol çekmek başa barmady",
       "Signer": {
         "CertNotFound": "Şahadatnama tapylmady",
         "KeyNotFound": "Açar tapylmady",
@@ -1322,7 +1341,8 @@
       "apiKey": "API açarlary",
       "opMonitorTrust": "Operasion gözegçilik ynamy",
       "signAndAuthKeys": "SIGN we AUTH açarlary",
-      "ssTlsCertificate": "Howpsuz serweriň TLS açary"
+      "ssTlsCertificate": "Howpsuz serweriň TLS açary",
+      "agreementTokenKey": "Ylalaşyk tokeni açary"
     },
     "main": {
       "clients": "Müşderiler",

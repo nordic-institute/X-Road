@@ -41,7 +41,7 @@ class SharedParametersV2MarshallerTest {
 
     @Test
     void marshall() {
-        var sharedParams = getSharedParams(new SharedParameters.GlobalSettings(List.of(), 333), "CS");
+        var sharedParams = getSharedParams(new SharedParameters.GlobalSettings(List.of(), 333, false), "CS");
 
         final String result = marshaller.marshall(sharedParams);
 
@@ -57,7 +57,7 @@ class SharedParametersV2MarshallerTest {
     @Test
     void marshallShouldFailWhenInvalid() {
         // missing setInstanceIdentifier("CS");
-        SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, 60), null);
+        SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, 60, false), null);
 
 
         assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParams));
@@ -74,7 +74,7 @@ class SharedParametersV2MarshallerTest {
     @Test
     void marshallShouldFailWhenInvalid3() {
         // missing ocspFreshnessSeconds
-        SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, null), "CS");
+        SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, null, false), "CS");
 
         assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParams));
     }

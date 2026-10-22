@@ -50,7 +50,7 @@ class SharedParametersV6MarshallerTest {
         configurationSource.setAddress("cs");
         configurationSource.setInternalVerificationCerts(List.of("internal-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
         sharedParamsBuilder.sources(List.of(configurationSource));
 
         SharedParameters.ApprovedCA approvedCA = new SharedParameters.ApprovedCA();
@@ -81,7 +81,7 @@ class SharedParametersV6MarshallerTest {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
         SharedParameters sharedParameters = sharedParamsBuilder.build();
         assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParameters));
     }

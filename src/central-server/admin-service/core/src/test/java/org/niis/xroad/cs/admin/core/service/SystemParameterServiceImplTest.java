@@ -36,14 +36,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.LEGACY_PROTOCOL_DISABLED;
 
 @ExtendWith(MockitoExtension.class)
 class SystemParameterServiceImplTest {
@@ -60,7 +70,7 @@ class SystemParameterServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        when(systemParameterRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(systemParameterRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -89,4 +99,32 @@ class SystemParameterServiceImplTest {
         assertEquals(centralServerAddress, systemParameter.getValue());
     }
 
+    @Test
+    void legacyProtocolDisabledDefaultsToFalse() {
+        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED)).thenReturn(List.of());
+
+        assertFalse(systemParameterService.isLegacyProtocolDisabled());
+    }
+
+    @Test
+    void legacyProtocolDisabledReadsStoredValue() {
+        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED)).thenReturn(List.of(parameter("true")));
+
+        assertTrue(systemParameterService.isLegacyProtocolDisabled());
+    }
+
+    @Test
+    void legacyProtocolDisabledIsReadFromSharedRowWhenHaConfigured() {
+        when(currentHaConfigStatus.isHaConfigured()).thenReturn(true);
+        when(systemParameterRepository.findByKey(LEGACY_PROTOCOL_DISABLED)).thenReturn(List.of(parameter("true")));
+
+        assertTrue(systemParameterService.isLegacyProtocolDisabled());
+        verify(systemParameterRepository, never()).findByKeyAndHaNodeName(anyString(), any());
+    }
+
+    private static SystemParameterEntity parameter(String value) {
+        var entity = new SystemParameterEntity(LEGACY_PROTOCOL_DISABLED);
+        entity.setValue(value);
+        return entity;
+    }
 }

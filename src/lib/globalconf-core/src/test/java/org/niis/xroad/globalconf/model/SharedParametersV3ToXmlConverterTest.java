@@ -155,7 +155,7 @@ class SharedParametersV3ToXmlConverterTest {
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))),
                 getMembers(), List.of(getSecurityServer()), List.of(new SharedParameters.GlobalGroup("group-code",
                 "group-description", List.of(subsystemId(memberId(), "SUB1")))),
-                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
+                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333, false));
     }
 
     private static List<SharedParameters.ConfigurationSource> getConfigurationSources() {
