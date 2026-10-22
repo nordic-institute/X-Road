@@ -81,11 +81,13 @@ import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.login;
 
 /**
- * Records the verdict legacy access rights give for each catalogue scenario: ss1 calls ss0 without data space
- * negotiation, so ss0 decides by its access rights alone. Every scenario creates namespaced fixtures on its
- * provider's Security Server (ss0 unless the fixture names ss1), polls until the expected verdict or the cache
- * deadline, and removes its fixtures. A scenario that expects an admin API status instead issues one grant and
- * checks the status, without polling.
+ * Calls each catalogue scenario from ss1 to ss0 and compares the outcome with the legacy verdict. The legacy
+ * verdicts are the expectation in both modes: with {@code -Pe2e.acl-mode=legacy} ss1 sends calls without data
+ * space negotiation, so ss0 decides by its access rights alone; with {@code -Pe2e.acl-mode=dsp} ss1 negotiates
+ * through the data space protocol, and every difference from the legacy verdict shows as a failure. Every
+ * scenario creates namespaced fixtures on its provider's Security Server (ss0 unless the fixture names ss1),
+ * polls until the expected verdict or the cache deadline, and removes its fixtures. A scenario that expects an
+ * admin API status instead issues one grant and checks the status, without polling.
  *
  * <p>A scenario with a known-defect marker asserts the safe verdict and is probed once. While it misses that
  * verdict it is aborted with the reason "expected failure", which Gradle reports as skipped; once it meets the
@@ -104,7 +106,7 @@ import static org.niis.xroad.e2e.AdminApi.login;
 @Order(500)
 @Isolated
 @Execution(ExecutionMode.SAME_THREAD)
-@DisplayName("ACL parity - legacy access rights decide service calls from ss1 to ss0")
+@DisplayName("ACL parity - catalogue scenarios called from ss1 to ss0")
 class AclParityTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
@@ -149,7 +151,7 @@ class AclParityTest extends E2eTest {
 
         var providerBaseUrl = adminBaseUrl(env, providerEnv(scenario));
         var csBaseUrl = CentralServerApi.baseUrl(env);
-        var gateway = new AdminApiGateway(providerBaseUrl, login(providerBaseUrl), backendAdminUrl(env), csBaseUrl,
+        var gateway = new AdminApiGateway(providerBaseUrl, login(providerBaseUrl), backendUrl(env), csBaseUrl,
                 login(csBaseUrl));
         var plan = new FixturePlanner(RUN_TOKEN).plan(scenario);
 
@@ -186,7 +188,7 @@ class AclParityTest extends E2eTest {
         return scenario.fixture().providerHost() == ProviderHost.SS1 ? SS1_ENV : SS0_ENV;
     }
 
-    private static String backendAdminUrl(E2eEnvironment env) {
+    private static String backendUrl(E2eEnvironment env) {
         var mapping = env.getContainerMapping(CentralServerApi.CS_ENV, AuxStackSetup.ISREST,
                 AuxStackSetup.Port.ISREST);
         return "http://%s:%s".formatted(mapping.host(), mapping.port());

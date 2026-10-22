@@ -39,6 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OpenApiStubsTest {
     private static final Path MAPPINGS = Path.of("src/intTest/resources/wiremock_mappings");
     private static final String PETS_PATH = "/pets/{petId}:";
+    private static final String SCENARIO = "\"scenarioName\": \"acl-parity-openapi-pets-then-status-only\"";
+
     @Test
     void everySpecHasAStubServingItsYamlPath() throws IOException {
         for (var spec : OpenApiSpec.values()) {
@@ -59,8 +61,42 @@ class OpenApiStubsTest {
     @Test
     void onlyThePetsSpecDeclaresThePetPath() throws IOException {
         for (var spec : OpenApiSpec.values()) {
-            assertThat(stub(spec).contains(PETS_PATH)).as(spec.name()).isEqualTo(spec == OpenApiSpec.PETS);
+            assertThat(stub(spec).contains(PETS_PATH)).as(spec.name()).isEqualTo(spec != OpenApiSpec.STATUS_ONLY);
         }
+    }
+
+    @Test
+    void swappableSpecServesPetsFromTheStartedStateAndStatusOnlyFromTheSwappedState() throws IOException {
+        var started = file("acl_parity_openapi_pets_then_status_only");
+        var swapped = file("acl_parity_openapi_pets_then_status_only_swapped");
+
+        assertThat(started).contains(SCENARIO).contains("\"requiredScenarioState\": \"Started\"")
+                .contains(PETS_PATH).doesNotContain("/status:");
+        assertThat(swapped).contains(SCENARIO).contains("\"requiredScenarioState\": \"Swapped\"")
+                .contains("/status:").doesNotContain(PETS_PATH);
+    }
+
+    @Test
+    void swapMappingMovesTheScenarioStateOnItsOwnPath() throws IOException {
+        var swap = file("acl_parity_openapi_pets_then_status_only_swap");
+
+        assertThat(swap).contains(SCENARIO).contains("\"newScenarioState\": \"Swapped\"")
+                .contains("\"urlPath\": \"/acl-parity/openapi/pets_then_status_only/swap\"");
+    }
+
+    @Test
+    void onlyTheSwappableSpecMappingsUseTheScenarioAndItsPaths() throws IOException {
+        try (var files = Files.list(MAPPINGS)) {
+            for (var path : files.filter(file -> !file.getFileName().toString()
+                    .startsWith("acl_parity_openapi_pets_then_status_only")).toList()) {
+                assertThat(Files.readString(path)).as(path.getFileName().toString())
+                        .doesNotContain("scenarioName").doesNotContain("pets_then_status_only");
+            }
+        }
+    }
+
+    private static String file(String name) throws IOException {
+        return Files.readString(MAPPINGS.resolve(name + ".json"));
     }
 
     private static String stub(OpenApiSpec spec) throws IOException {

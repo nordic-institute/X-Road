@@ -48,7 +48,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.clearInvocations;
@@ -87,6 +86,8 @@ class FixtureExecutorTest {
 
     private static final String DELETED_GROUP_ID = "grp-%s-pt1-v63-partners".formatted(AclParticipants.PROVIDER);
 
+    private static final String SWAP_PATH = "/acl-parity/openapi/pets_then_status_only/swap";
+
     private final AdminGateway gateway = mock(AdminGateway.class);
     private final FixtureExecutor executor = new FixtureExecutor(gateway);
     private final FixturePlan plan = new FixturePlanner("t1").plan("V09", TWO_SERVICES);
@@ -97,9 +98,7 @@ class FixtureExecutorTest {
         when(gateway.addWsdlDescription(any(), any())).thenReturn("id-wsdl");
         when(gateway.addOpenApiDescription(any(), any(), any())).thenAnswer(call -> "id-" + call.getArgument(2));
         when(gateway.grantAccess(any(), any(), any())).thenReturn(true);
-        when(gateway.overrideBackendStub(any())).thenAnswer(call ->
-                "stub-" + call.<AdminCall.OverrideBackendStub>getArgument(0).stubName());
-        when(gateway.removeBackendStub(any())).thenReturn(200);
+        when(gateway.swapBackendSpec(any())).thenReturn(200);
         when(gateway.addEndpoint(any(), any(), any(), any())).thenAnswer(call ->
                 "ep-%s-%s".formatted(call.getArgument(2), call.<String>getArgument(3).replace('/', '_')));
         when(gateway.findEndpointId(any(), any(), any(), any())).thenAnswer(call ->
@@ -155,25 +154,33 @@ class FixtureExecutorTest {
     }
 
     @Test
-    void phaseCallsRunOnDemandAndBackendOverridesAreRemovedBeforeTheDescriptionDeletes() {
+    void phaseSwapsTheBackendSpecBeforeTheRefresh() {
         var swapPlan = new FixturePlanner("t1").plan(openApiSwapRow());
 
         try (var fixture = executor.open(swapPlan)) {
             clearInvocations(gateway);
             fixture.apply(swapPlan.phases().get(0));
             var applied = inOrder(gateway);
-            applied.verify(gateway).overrideBackendStub(argThat(override ->
-                    override.stubName().equals("acl_parity_openapi_status_only")
-                            && override.urlPath().equals("/acl-parity/openapi/pets.yaml")));
+            applied.verify(gateway).swapBackendSpec(SWAP_PATH);
             applied.verify(gateway).refreshDescription("id-pt1-v39");
             verifyNoMoreInteractions(gateway);
             clearInvocations(gateway);
         }
 
-        var closed = inOrder(gateway);
-        closed.verify(gateway).removeBackendStub("stub-acl_parity_openapi_status_only");
-        closed.verify(gateway).deleteDescription("id-pt1-v39");
+        verify(gateway).deleteDescription("id-pt1-v39");
         verifyNoMoreInteractions(gateway);
+    }
+
+    @Test
+    void refusedBackendSwapStopsThePhaseBeforeTheRefresh() {
+        var swapPlan = new FixturePlanner("t1").plan(openApiSwapRow());
+        doReturn(404).when(gateway).swapBackendSpec(SWAP_PATH);
+        var fixture = executor.open(swapPlan);
+
+        assertThatThrownBy(() -> fixture.apply(swapPlan.phases().get(0)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(SWAP_PATH).hasMessageContaining("404");
+        verify(gateway, never()).refreshDescription(any());
     }
 
     @Test
@@ -184,21 +191,6 @@ class FixtureExecutorTest {
             fixture.apply(revokePlan.phases().get(0));
             verify(gateway).revokeAccess(any(), eq(AclParticipants.CONSUMER), eq("pt1-v11"));
         }
-    }
-
-    @Test
-    void missingBackendOverrideIsToleratedAndARefusedRemovalIsReported() {
-        var swapPlan = new FixturePlanner("t1").plan(openApiSwapRow());
-        doReturn(404).when(gateway).removeBackendStub("stub-acl_parity_openapi_status_only");
-        var fixture = executor.open(swapPlan);
-        fixture.apply(swapPlan.phases().get(0));
-        assertThatCode(fixture::close).doesNotThrowAnyException();
-
-        doReturn(500).when(gateway).removeBackendStub("stub-acl_parity_openapi_status_only");
-        var refused = executor.open(swapPlan);
-        refused.apply(swapPlan.phases().get(0));
-        assertThatThrownBy(refused::close).isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("backend override").hasMessageContaining("500");
     }
 
     @Test
@@ -823,8 +815,8 @@ class FixtureExecutorTest {
     }
 
     private static AclScenario openApiSwapRow() {
-        return phased("V39", openApiGranted(AclScenario.OpenApiSpec.PETS, "GET", "/pets/*"), List.of(),
-                phase(List.of(new AclScenario.SwapOpenApiSpec(0, AclScenario.OpenApiSpec.STATUS_ONLY),
+        return phased("V39", openApiGranted(AclScenario.OpenApiSpec.PETS_THEN_STATUS_ONLY, "GET", "/pets/*"),
+                List.of(), phase(List.of(new AclScenario.SwapBackendSpec(0),
                         new AclScenario.Refresh(0)))).as("swap row");
     }
 

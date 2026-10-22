@@ -27,8 +27,8 @@ package org.niis.xroad.e2e;
 
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.parity.acl.AclScenario.WaitClass;
-import org.niis.xroad.e2e.parity.acl.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.acl.AdminGateway;
+import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
 
@@ -41,20 +41,20 @@ final class AdminApiGateway implements AdminGateway {
 
     private final String baseUrl;
     private final AdminSession session;
-    private final WireMockBackend backend;
+    private final String backendOrigin;
     private final String csBaseUrl;
     private final AdminSession csSession;
 
     /**
-     * @param backendAdminUrl the backend's admin API, or {@code null} when the scenario makes no backend change
-     * @param csBaseUrl       the Central Server admin UI, where global groups are kept
-     * @param csSession       the logged-in Central Server admin session
+     * @param backendOrigin the origin the backend answers on, as the test reaches it
+     * @param csBaseUrl      the Central Server admin UI, where global groups are kept
+     * @param csSession      the logged-in Central Server admin session
      */
-    AdminApiGateway(String baseUrl, AdminSession session, String backendAdminUrl, String csBaseUrl,
+    AdminApiGateway(String baseUrl, AdminSession session, String backendOrigin, String csBaseUrl,
                     AdminSession csSession) {
         this.baseUrl = baseUrl;
         this.session = session;
-        this.backend = backendAdminUrl == null ? null : new WireMockBackend(backendAdminUrl);
+        this.backendOrigin = backendOrigin;
         this.csBaseUrl = csBaseUrl;
         this.csSession = csSession;
     }
@@ -116,14 +116,10 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
-    public String overrideBackendStub(OverrideBackendStub override) {
-        return backend().override(override);
+    public int swapBackendSpec(String urlPath) {
+        return requestBackend(urlPath);
     }
 
-    @Override
-    public int removeBackendStub(String overrideId) {
-        return backend().remove(overrideId);
-    }
 
     @Override
     public String addEndpoint(String descriptionId, String serviceCode, String method, String path) {
@@ -213,10 +209,7 @@ final class AdminApiGateway implements AdminGateway {
                 .untilAsserted(grant::run);
     }
 
-    private WireMockBackend backend() {
-        if (backend == null) {
-            throw new IllegalStateException("the backend admin API is not exposed");
-        }
-        return backend;
+    private int requestBackend(String urlPath) {
+        return RestAssuredFactory.given().get(backendOrigin + urlPath).getStatusCode();
     }
 }

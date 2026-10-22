@@ -47,14 +47,13 @@ import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGlobalGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantManagementAccess;
-import org.niis.xroad.e2e.parity.acl.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RefreshDescription;
-import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveBackendStubs;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeManagementAccess;
+import org.niis.xroad.e2e.parity.acl.AdminCall.SwapBackendSpec;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateOpenApiDescription;
 
@@ -113,7 +112,6 @@ public final class FixtureExecutor {
         private final Map<String, String> endpointIds = new HashMap<>();
         private final Map<String, String> groupIds = new HashMap<>();
         private final Set<String> globalGroupCodes = new HashSet<>();
-        private final List<String> backendStubIds = new ArrayList<>();
         private final Deque<AdminCall> restores = new ArrayDeque<>();
 
         private Fixture(FixturePlan plan) {
@@ -169,9 +167,13 @@ public final class FixtureExecutor {
                 }
                 case RefreshDescription refresh ->
                         gateway.refreshDescription(descriptionIds.get(refresh.serviceCode()));
-                case OverrideBackendStub override -> backendStubIds.add(gateway.overrideBackendStub(override));
-                case RemoveBackendStubs remove ->
-                        throw new IllegalArgumentException("not a setup call: " + remove);
+                case SwapBackendSpec swap -> {
+                    var status = gateway.swapBackendSpec(swap.urlPath());
+                    if (!isSuccess(status)) {
+                        throw new IllegalStateException(
+                                "backend swap request %s answered %d".formatted(swap.urlPath(), status));
+                    }
+                }
                 case AddEndpoint add -> endpointIds.put(endpointKey(add.serviceCode(), add.method(), add.path()),
                         gateway.addEndpoint(descriptionIds.get(add.serviceCode()), add.serviceCode(), add.method(),
                                 add.path()));
@@ -262,11 +264,6 @@ public final class FixtureExecutor {
                     }
                     case DeleteDescription delete -> remove(descriptionIds.remove(delete.serviceCode()),
                             delete.serviceCode(), gateway::deleteDescription, failures);
-                    case RemoveBackendStubs removeStubs -> {
-                        backendStubIds.forEach(id -> remove(id, "backend override " + id,
-                                gateway::removeBackendStub, failures));
-                        backendStubIds.clear();
-                    }
                     case DeleteLocalGroup delete -> remove(groupIds.remove(groupKey(delete.ownerClientId(),
                                     delete.code())), "local group %s of %s".formatted(delete.code(),
                             delete.ownerClientId()), gateway::deleteLocalGroup, failures);

@@ -60,19 +60,17 @@ import org.niis.xroad.e2e.parity.acl.AdminCall.GrantEndpointAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantManagementAccess;
-import org.niis.xroad.e2e.parity.acl.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RefreshDescription;
-import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveBackendStubs;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeManagementAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.ServiceCall;
+import org.niis.xroad.e2e.parity.acl.AdminCall.SwapBackendSpec;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateOpenApiDescription;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -88,6 +86,7 @@ import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restService;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restToGlobalGroup;
 
 class FixturePlannerTest {
+
 
     private static final FixtureSpec TWO_SERVICES = new FixtureSpec(AclParticipants.PROVIDER, List.of(
             new RestService(List.of(AclParticipants.CONSUMER, AclParticipants.OTHER_CONSUMER)),
@@ -461,7 +460,7 @@ class FixturePlannerTest {
     }
 
     @Test
-    void grantAndRevokeRowsPlanOneCallPerPhaseAndNeedNoBackendCleanup() {
+    void grantAndRevokeRowsPlanOneCallPerPhase() {
         var grantRow = phased("V10", restService(List.of()), List.of(),
                 phase(new AclScenario.Grant(0, AclParticipants.CONSUMER))).as("grant row");
         var revokeRow = phased("V11", restService(AclScenarioBuilders.CONSUMER_ONLY), List.of(),
@@ -474,7 +473,7 @@ class FixturePlannerTest {
         assertThat(revoke.phases()).containsExactly(
                 List.of(new RevokeAccess(AclParticipants.PROVIDER, AclParticipants.CONSUMER, "pab12-v11")));
         assertThat(grant.cleanup()).containsExactly(new DeleteDescription("pab12-v10"));
-        assertThat(revoke.cleanup()).doesNotContain(new RemoveBackendStubs());
+        assertThat(revoke.cleanup()).containsExactly(new DeleteDescription("pab12-v11"));
     }
 
     @Test
@@ -483,52 +482,29 @@ class FixturePlannerTest {
     }
 
     @Test
-    void openApiSwapServesTheReplacementSpecAtTheOriginalPathAndRefreshesTheDescription() {
-        var row = phased("V39", openApiGranted(OpenApiSpec.PETS, "GET", "/pets/*"), List.of(),
-                phase(List.of(new AclScenario.SwapOpenApiSpec(0, OpenApiSpec.STATUS_ONLY),
-                        new AclScenario.Refresh(0)))).as("swap row");
+    void openApiSwapRequestsTheBackendSwapBeforeTheRefresh() {
+        var row = phased("V39", openApiGranted(OpenApiSpec.PETS_THEN_STATUS_ONLY, "GET", "/pets/*"), List.of(),
+                phase(List.of(new AclScenario.SwapBackendSpec(0), new AclScenario.Refresh(0)))).as("swap row");
 
         var plan = new FixturePlanner("ab12").plan(row);
 
+        assertThat(plan.setup().get(0)).isEqualTo(new AddOpenApiDescription(AclParticipants.PROVIDER,
+                "http://isrest:8080/acl-parity/openapi/pets_then_status_only.yaml?code=pab12-v39", "pab12-v39"));
         assertThat(plan.phases()).containsExactly(List.of(
-                new OverrideBackendStub("acl_parity_openapi_status_only", "/acl-parity/openapi/pets.yaml",
-                        Map.of("code", "pab12-v39"), Map.of()),
+                new SwapBackendSpec("/acl-parity/openapi/pets_then_status_only/swap"),
                 new RefreshDescription("pab12-v39")));
-        assertThat(plan.cleanup()).containsExactly(new RemoveBackendStubs(), new DeleteDescription("pab12-v39"));
+        assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v39"));
     }
 
     @Test
-    void wsdlReplacementKeepsTheFirstCodeDropsTheSecondAndAppendsANewCode() {
-        var consumerOnly = List.of(AclParticipants.CONSUMER);
-        var fixture = new FixtureSpec(AclParticipants.PROVIDER,
-                List.of(new WsdlService(WsdlShape.PAIR, "", List.of(consumerOnly, consumerOnly))));
-        var pair = new AclScenario("V126", "test row", fixture,
-                List.of(), List.of(new AclScenario.Phase(
-                List.of(new AclScenario.ReplaceWsdlSecondService(0), new AclScenario.Refresh(0)), List.of())),
-                AclScenario.WaitClass.ACL_CACHE);
-
-        var plan = new FixturePlanner("ab12").plan(pair);
-
-        assertThat(plan.serviceCodes()).containsExactly("pab12-v126", "pab12-v126-b", "pab12-v126-new");
-        assertThat(plan.phases()).containsExactly(List.of(
-                new OverrideBackendStub("acl_parity_wsdl_pair", "/acl-parity/wsdl/pair.wsdl",
-                        Map.of("code1", "pab12-v126", "code2", "pab12-v126-b"),
-                        Map.of("{{request.query.code2}}", "pab12-v126-new")),
-                new RefreshDescription("pab12-v126")));
-        assertThat(plan.cleanup()).containsExactly(new RemoveBackendStubs(), new DeleteDescription("pab12-v126"));
-    }
-
-    @Test
-    void swapOfAServiceThatIsNotOpenApiAndReplacementOfOneThatIsNotAPairAreRejected() {
+    void swapOfAServiceThatIsNotTheSwappableOpenApiSpecIsRejected() {
         var rest = new FixtureSpec(AclParticipants.PROVIDER, List.of(new RestService(List.of())));
-        var single = wsdlSpec(WsdlShape.SINGLE, "", List.of());
+        var pets = openApiGranted(OpenApiSpec.PETS, "GET", "/pets/*");
 
-        assertThatThrownBy(() -> new FixturePlanner("ab12").plan(withPhase(rest,
-                new AclScenario.SwapOpenApiSpec(0, OpenApiSpec.PETS))))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not an OpenAPI service");
-        assertThatThrownBy(() -> new FixturePlanner("ab12").plan(withPhase(single,
-                new AclScenario.ReplaceWsdlSecondService(0))))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not a PAIR WSDL service");
+        assertThatThrownBy(() -> new FixturePlanner("ab12").plan(withPhase(rest, new AclScenario.SwapBackendSpec(0))))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not a swappable OpenAPI service");
+        assertThatThrownBy(() -> new FixturePlanner("ab12").plan(withPhase(pets, new AclScenario.SwapBackendSpec(0))))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("not a swappable OpenAPI service");
     }
 
     @Test

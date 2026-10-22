@@ -94,8 +94,8 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     }
 
     /** A change made between two phases. */
-    public sealed interface PhaseChange permits Grant, Revoke, GrantGroup, SwapOpenApiSpec, ReplaceWsdlSecondService,
-            Refresh, AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
+    public sealed interface PhaseChange permits Grant, Revoke, GrantGroup, SwapBackendSpec, Refresh,
+            AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
     }
 
     /**
@@ -148,22 +148,13 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     }
 
     /**
-     * The backend starts serving another OpenAPI description at the URL the service description was added from.
+     * The backend starts serving the second spec of the {@link OpenApiSpec#PETS_THEN_STATUS_ONLY} description at
+     * the URL the service description was added from.
      *
      * @param serviceIndex the position of the OpenAPI service among the fixture's services
      */
-    public record SwapOpenApiSpec(int serviceIndex, OpenApiSpec to) implements PhaseChange {
+    public record SwapBackendSpec(int serviceIndex) implements PhaseChange {
     }
-
-    /**
-     * The backend starts serving a WSDL whose second service code is another one, which is added after the
-     * codes the fixture has so far.
-     *
-     * @param serviceIndex the position of the {@link WsdlShape#PAIR} service among the fixture's services
-     */
-    public record ReplaceWsdlSecondService(int serviceIndex) implements PhaseChange {
-    }
-
     /**
      * The service description is refreshed from the backend.
      *
@@ -437,7 +428,9 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
         /** Declares only {@code GET /status}. */
         STATUS_ONLY,
         /** Declares {@code GET /pets/{petId}}, stored as {@code /pets/*}. */
-        PETS
+        PETS,
+        /** Serves {@link #PETS} until a {@link SwapBackendSpec}, then {@link #STATUS_ONLY}. */
+        PETS_THEN_STATUS_ONLY
     }
 
     /**

@@ -61,12 +61,8 @@ public interface AdminGateway {
     /** Refreshes the service description from its backend. */
     void refreshDescription(String descriptionId);
 
-    /** Starts serving the override from the backend and returns its id. */
-    String overrideBackendStub(AdminCall.OverrideBackendStub override);
-
-    /** Stops serving the override and returns the HTTP status of the call. */
-    int removeBackendStub(String overrideId);
-
+    /** Requests the backend path that swaps the OpenAPI description it serves and returns the HTTP status. */
+    int swapBackendSpec(String urlPath);
     /** Creates an endpoint on the REST service of the description and returns its id. */
     String addEndpoint(String descriptionId, String serviceCode, String method, String path);
 

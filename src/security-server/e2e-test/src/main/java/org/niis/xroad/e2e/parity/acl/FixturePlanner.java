@@ -46,11 +46,9 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Phase;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Refresh;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RenameService;
-import org.niis.xroad.e2e.parity.acl.AclScenario.ReplaceWsdlSecondService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RestService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Revoke;
 import org.niis.xroad.e2e.parity.acl.AclScenario.ServiceSpec;
-import org.niis.xroad.e2e.parity.acl.AclScenario.SwapOpenApiSpec;
 import org.niis.xroad.e2e.parity.acl.AclScenario.UndefinedService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.WsdlService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.WsdlShape;
@@ -75,14 +73,13 @@ import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGlobalGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGroupAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantGroupEndpointAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.GrantManagementAccess;
-import org.niis.xroad.e2e.parity.acl.AdminCall.OverrideBackendStub;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RefreshDescription;
-import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveBackendStubs;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeManagementAccess;
+import org.niis.xroad.e2e.parity.acl.AdminCall.SwapBackendSpec;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateOpenApiDescription;
 
@@ -90,7 +87,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -114,10 +110,6 @@ public final class FixturePlanner {
     public static final String BACKEND_PATH_PREFIX = "/acl-parity/";
     private static final String OPENAPI_PATH_PREFIX = BACKEND_PATH_PREFIX + "openapi/";
     private static final String RENAMED_SUFFIX = "-renamed";
-    private static final String NEW_SUFFIX = "-new";
-    private static final String OPENAPI_STUB_PREFIX = "acl_parity_openapi_";
-    private static final String WSDL_STUB_PREFIX = "acl_parity_wsdl_";
-    private static final String SECOND_CODE_PLACEHOLDER = "{{request.query.code2}}";
 
     private final String runToken;
 
@@ -200,9 +192,6 @@ public final class FixturePlanner {
         groupFollowUps(setup, scenarioId, spec.groups());
         var phaseCalls = phaseCalls(scenarioId, spec, codes, serviceKeys, managementCodes, phases);
         var cleanup = new ArrayList<AdminCall>();
-        if (phaseCalls.stream().flatMap(List::stream).anyMatch(OverrideBackendStub.class::isInstance)) {
-            cleanup.add(new RemoveBackendStubs());
-        }
         for (var index = descriptionKeys.size() - 1; index >= 0; index--) {
             cleanup.addAll(endpointDeletes.get(index).reversed());
             cleanup.add(new DeleteDescription(descriptionKeys.get(index)));
@@ -305,9 +294,7 @@ public final class FixturePlanner {
                             codes.get(grantGroup.serviceIndex())));
                     case Refresh refresh ->
                             calls.add(new RefreshDescription(descriptionKey(serviceKeys, refresh.serviceIndex())));
-                    case SwapOpenApiSpec swap -> calls.add(swapOpenApi(spec, serviceKeys, swap));
-                    case ReplaceWsdlSecondService replace ->
-                            calls.add(replaceWsdlSecondService(scenarioId, spec, codes, replace));
+                    case AclScenario.SwapBackendSpec swap -> calls.add(swapBackendSpec(spec, swap));
                     case AclScenario.AddGlobalGroupMember add -> calls.add(new AddGlobalGroupMember(
                             globalGroupCode(scenarioId, spec, add.code()), add.memberId()));
                     case AclScenario.RemoveGlobalGroupMember remove -> calls.add(new RemoveGlobalGroupMember(
@@ -321,28 +308,13 @@ public final class FixturePlanner {
         return result;
     }
 
-    private static AdminCall swapOpenApi(FixtureSpec spec, List<String> serviceKeys, SwapOpenApiSpec swap) {
-        if (!(spec.services().get(swap.serviceIndex()) instanceof OpenApiService openApi)) {
-            throw new IllegalArgumentException("service %d is not an OpenAPI service".formatted(swap.serviceIndex()));
-        }
-        var served = openApi.editedToSpec() != null ? openApi.editedToSpec() : openApi.spec();
-        return new OverrideBackendStub(OPENAPI_STUB_PREFIX + specName(swap.to()), openApiPath(served),
-                Map.of("code", descriptionKey(serviceKeys, swap.serviceIndex())), Map.of());
-    }
-
-    private AdminCall replaceWsdlSecondService(String scenarioId, FixtureSpec spec, List<String> codes,
-                                               ReplaceWsdlSecondService replace) {
-        if (!(spec.services().get(replace.serviceIndex()) instanceof WsdlService wsdl)
-                || wsdl.shape() != WsdlShape.PAIR) {
+    private static AdminCall swapBackendSpec(FixtureSpec spec, AclScenario.SwapBackendSpec swap) {
+        if (!(spec.services().get(swap.serviceIndex()) instanceof OpenApiService openApi)
+                || openApi.spec() != OpenApiSpec.PETS_THEN_STATUS_ONLY) {
             throw new IllegalArgumentException(
-                    "service %d is not a PAIR WSDL service".formatted(replace.serviceIndex()));
+                    "service %d is not a swappable OpenAPI service".formatted(swap.serviceIndex()));
         }
-        var base = serviceCode(scenarioId, replace.serviceIndex());
-        var served = wsdlCodes(base, wsdl);
-        codes.add(base + NEW_SUFFIX + wsdl.codeTail());
-        return new OverrideBackendStub(WSDL_STUB_PREFIX + specName(WsdlShape.PAIR), wsdlPath(WsdlShape.PAIR),
-                Map.of("code1", served.get(0), "code2", served.get(1)),
-                Map.of(SECOND_CODE_PLACEHOLDER, codes.getLast()));
+        return new SwapBackendSpec(swapPath(openApi.spec()));
     }
 
     private static String descriptionKey(List<String> serviceKeys, int serviceIndex) {
@@ -472,6 +444,10 @@ public final class FixturePlanner {
 
     static String openApiPath(OpenApiSpec spec) {
         return "%s%s.yaml".formatted(OPENAPI_PATH_PREFIX, specName(spec));
+    }
+
+    static String swapPath(OpenApiSpec spec) {
+        return "%s%s/swap".formatted(OPENAPI_PATH_PREFIX, specName(spec));
     }
 
     static String wsdlPath(WsdlShape shape) {

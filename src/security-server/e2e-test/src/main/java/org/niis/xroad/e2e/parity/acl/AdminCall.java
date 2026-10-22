@@ -26,8 +26,6 @@
 
 package org.niis.xroad.e2e.parity.acl;
 
-import java.util.Map;
-
 /**
  * One Security Server admin API call on the provider. A call about a service names it by service code and a
  * call about a local group names it by owner and group code; the executor resolves both to ids.
@@ -88,23 +86,9 @@ public sealed interface AdminCall {
     record RefreshDescription(String serviceCode) implements ServiceCall {
     }
 
-    /**
-     * Makes the backend serve the named stub in place of the stub it normally serves at the path, for the requests
-     * whose query carries the given values. The override is removed by {@link RemoveBackendStubs}.
-     *
-     * @param stubName     the stub whose response is served, without the {@code .json} suffix
-     * @param urlPath      the path the response is served at
-     * @param query        query parameters the request has to carry, by name
-     * @param replacements text to replace in the served body, by the text it replaces
-     */
-    record OverrideBackendStub(String stubName, String urlPath, Map<String, String> query,
-                               Map<String, String> replacements) implements AdminCall {
+    /** Requests the backend path that makes the swappable OpenAPI description serve its second spec. */
+    record SwapBackendSpec(String urlPath) implements AdminCall {
     }
-
-    /** Removes every backend override made by {@link OverrideBackendStub}, in cleanup. */
-    record RemoveBackendStubs() implements AdminCall {
-    }
-
     record AddEndpoint(String serviceCode, String method, String path) implements ServiceCall {
     }
 

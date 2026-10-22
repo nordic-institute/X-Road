@@ -47,7 +47,7 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.Refresh;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveGlobalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RenameService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Revoke;
-import org.niis.xroad.e2e.parity.acl.AclScenario.SwapOpenApiSpec;
+import org.niis.xroad.e2e.parity.acl.AclScenario.SwapBackendSpec;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Transport;
 import org.niis.xroad.e2e.parity.acl.AclScenario.UndefinedService;
 import org.niis.xroad.e2e.parity.acl.SoapRequests;
@@ -70,6 +70,7 @@ import static org.niis.xroad.e2e.parity.acl.AclParticipants.PROVIDER;
 import static org.niis.xroad.e2e.parity.acl.AclParticipants.UNREGISTERED_SECURITY_SERVER;
 import static org.niis.xroad.e2e.parity.acl.AclScenario.MetaserviceRequest.NO_SERVICE;
 import static org.niis.xroad.e2e.parity.acl.AclScenario.OpenApiSpec.PETS;
+import static org.niis.xroad.e2e.parity.acl.AclScenario.OpenApiSpec.PETS_THEN_STATUS_ONLY;
 import static org.niis.xroad.e2e.parity.acl.AclScenario.OpenApiSpec.STATUS_ONLY;
 import static org.niis.xroad.e2e.parity.acl.AclScenario.WsdlShape.PAIR;
 import static org.niis.xroad.e2e.parity.acl.AclScenario.WsdlShape.SINGLE;
@@ -164,7 +165,7 @@ public final class AclScenarioCatalogue {
             row("V36", restService(List.of(), endpoint("GET", "/foo", new Deleted()), endpoint("GET", "/bar")), allowed("GET", "/bar"), denied("GET", "/foo")).as("Granted manual endpoint deleted"),
             row("V37", restService(List.of(), endpoint("GET", "/foo", new EditedTo("GET", "/bar"))), allowed("GET", "/bar"), denied("GET", "/foo")).as("Granted manual endpoint edited from /foo to /bar"),
             row("V38", openApiGranted(PETS, "GET", "/pets/*"), allowed("GET", "/pets/123"), denied("GET", "/pets/1/x")).as("OpenAPI GET /pets/{petId} granted, stored as /pets/*"),
-            phased("V39", openApiGranted(PETS, "GET", "/pets/*"), List.of(allowed("GET", "/pets/123")), phase(List.of(new SwapOpenApiSpec(0, STATUS_ONLY), new Refresh(0)), denied("GET", "/pets/123"))).as("OpenAPI refresh removes a granted endpoint"),
+            phased("V39", openApiGranted(PETS_THEN_STATUS_ONLY, "GET", "/pets/*"), List.of(allowed("GET", "/pets/123")), phase(List.of(new SwapBackendSpec(0), new Refresh(0)), denied("GET", "/pets/123"))).as("OpenAPI refresh removes a granted endpoint"),
             row("V40", provided(new OpenApiService(STATUS_ONLY, List.of(endpoint("GET", "/pets/*")), List.of(), PETS)), allowed("GET", "/pets/123")).as("Granted manual endpoint equal to one a description edit then generates"),
             row("V41", endpointOnly("*", "/v1.0/x"), allowed("GET", "/v1.0/x"), denied("GET", "/v1x0/x")).as("Endpoint with a dot in its path, a different character in the dot's place"),
             row("V42", endpointOnly("GET", "/foo"), allowed("GET", "/foo?x=1")).as("GET /foo endpoint granted, request with a query string"),
