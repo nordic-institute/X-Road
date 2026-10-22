@@ -27,7 +27,7 @@ package org.niis.xroad.e2e;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithName;
-import org.niis.xroad.e2e.parity.AclMode;
+import org.niis.xroad.e2e.parity.acl.AclMode;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
 
 import java.util.Optional;

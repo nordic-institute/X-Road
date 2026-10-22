@@ -31,7 +31,7 @@ import org.niis.xroad.e2e.AclParityProperties;
 import org.niis.xroad.e2e.E2eEnvironment;
 import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
-import org.niis.xroad.e2e.parity.AclMode;
+import org.niis.xroad.e2e.parity.acl.AclMode;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.Container;

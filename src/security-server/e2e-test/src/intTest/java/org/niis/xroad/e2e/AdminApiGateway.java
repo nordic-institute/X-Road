@@ -26,9 +26,9 @@
 package org.niis.xroad.e2e;
 
 import org.niis.xroad.e2e.AdminApi.AdminSession;
-import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
-import org.niis.xroad.e2e.parity.AdminGateway;
-import org.niis.xroad.e2e.parity.Scenario.WaitClass;
+import org.niis.xroad.e2e.parity.acl.AclScenario.WaitClass;
+import org.niis.xroad.e2e.parity.acl.AdminCall.OverrideBackendStub;
+import org.niis.xroad.e2e.parity.acl.AdminGateway;
 
 import java.time.Duration;
 

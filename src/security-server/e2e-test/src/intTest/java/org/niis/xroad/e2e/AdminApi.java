@@ -32,7 +32,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.e2e.parity.EndpointIds;
+import org.niis.xroad.e2e.parity.acl.EndpointIds;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;

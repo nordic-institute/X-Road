@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
-import org.niis.xroad.e2e.parity.AdminCall.OverrideBackendStub;
+import org.niis.xroad.e2e.parity.acl.AdminCall.OverrideBackendStub;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;

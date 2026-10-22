@@ -32,10 +32,10 @@ import io.restassured.response.ValidatableResponse;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
-import org.niis.xroad.e2e.parity.Verdict;
-import org.niis.xroad.e2e.parity.VerdictClassifier;
-import org.niis.xroad.e2e.parity.VerdictPoller;
-import org.niis.xroad.e2e.parity.VerdictPoller.Observation;
+import org.niis.xroad.e2e.parity.acl.Verdict;
+import org.niis.xroad.e2e.parity.acl.VerdictClassifier;
+import org.niis.xroad.e2e.parity.acl.VerdictPoller;
+import org.niis.xroad.e2e.parity.acl.VerdictPoller.Observation;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;

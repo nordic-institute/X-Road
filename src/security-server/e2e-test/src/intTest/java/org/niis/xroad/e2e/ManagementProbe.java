@@ -26,7 +26,7 @@
 
 package org.niis.xroad.e2e;
 
-import org.niis.xroad.e2e.parity.Reply;
+import org.niis.xroad.e2e.parity.acl.Reply;
 
 import java.util.ArrayList;
 import java.util.List;

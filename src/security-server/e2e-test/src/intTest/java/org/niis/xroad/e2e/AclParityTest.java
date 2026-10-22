@@ -41,32 +41,32 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.e2e.container.AuxStackSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.e2e.parity.FixtureExecutor;
-import org.niis.xroad.e2e.parity.FixturePlan;
-import org.niis.xroad.e2e.parity.FixturePlanner;
-import org.niis.xroad.e2e.parity.KnownDefectMarker;
-import org.niis.xroad.e2e.parity.KnownDefectMarker.Judgement;
-import org.niis.xroad.e2e.parity.Reply;
-import org.niis.xroad.e2e.parity.RestRequests;
-import org.niis.xroad.e2e.parity.RestSender;
-import org.niis.xroad.e2e.parity.Scenario;
-import org.niis.xroad.e2e.parity.Scenario.Expectation;
-import org.niis.xroad.e2e.parity.Scenario.ListClientsRequest;
-import org.niis.xroad.e2e.parity.Scenario.ManagementRequest;
-import org.niis.xroad.e2e.parity.Scenario.MetaserviceRequest;
-import org.niis.xroad.e2e.parity.Scenario.MonitoringRequest;
-import org.niis.xroad.e2e.parity.Scenario.ProviderHost;
-import org.niis.xroad.e2e.parity.Scenario.RequestSpec;
-import org.niis.xroad.e2e.parity.Scenario.RestRequest;
-import org.niis.xroad.e2e.parity.Scenario.SoapRequest;
-import org.niis.xroad.e2e.parity.Scenario.Transport;
-import org.niis.xroad.e2e.parity.ScenarioCatalogue;
-import org.niis.xroad.e2e.parity.ScenarioVerdicts;
-import org.niis.xroad.e2e.parity.ScenarioVerdicts.Outcome;
-import org.niis.xroad.e2e.parity.SoapRequests;
-import org.niis.xroad.e2e.parity.VerdictClassifier;
-import org.niis.xroad.e2e.parity.VerdictPoller;
-import org.niis.xroad.e2e.parity.VerdictPoller.Observation;
+import org.niis.xroad.e2e.parity.acl.AclParticipants;
+import org.niis.xroad.e2e.parity.acl.AclScenario;
+import org.niis.xroad.e2e.parity.acl.AclScenario.Expectation;
+import org.niis.xroad.e2e.parity.acl.AclScenario.ListClientsRequest;
+import org.niis.xroad.e2e.parity.acl.AclScenario.ManagementRequest;
+import org.niis.xroad.e2e.parity.acl.AclScenario.MetaserviceRequest;
+import org.niis.xroad.e2e.parity.acl.AclScenario.MonitoringRequest;
+import org.niis.xroad.e2e.parity.acl.AclScenario.ProviderHost;
+import org.niis.xroad.e2e.parity.acl.AclScenario.RequestSpec;
+import org.niis.xroad.e2e.parity.acl.AclScenario.RestRequest;
+import org.niis.xroad.e2e.parity.acl.AclScenario.SoapRequest;
+import org.niis.xroad.e2e.parity.acl.AclScenario.Transport;
+import org.niis.xroad.e2e.parity.acl.AclScenarioVerdicts;
+import org.niis.xroad.e2e.parity.acl.AclScenarioVerdicts.Outcome;
+import org.niis.xroad.e2e.parity.acl.FixtureExecutor;
+import org.niis.xroad.e2e.parity.acl.FixturePlan;
+import org.niis.xroad.e2e.parity.acl.FixturePlanner;
+import org.niis.xroad.e2e.parity.acl.KnownDefectMarker;
+import org.niis.xroad.e2e.parity.acl.KnownDefectMarker.Judgement;
+import org.niis.xroad.e2e.parity.acl.Reply;
+import org.niis.xroad.e2e.parity.acl.RestRequests;
+import org.niis.xroad.e2e.parity.acl.RestSender;
+import org.niis.xroad.e2e.parity.acl.SoapRequests;
+import org.niis.xroad.e2e.parity.acl.VerdictClassifier;
+import org.niis.xroad.e2e.parity.acl.VerdictPoller;
+import org.niis.xroad.e2e.parity.acl.VerdictPoller.Observation;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
@@ -117,7 +117,7 @@ class AclParityTest extends E2eTest {
     static void registerSubsystemPool(E2eEnvironment env) {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
         var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
-        AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), ScenarioCatalogue.MEMBER_OF_CONSUMER, "HTTP");
+        AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), AclParticipants.MEMBER_OF_CONSUMER, "HTTP");
         SubsystemPoolSetup.ensure(env);
         managementGrantsBefore = managementGrants(env);
     }
@@ -127,24 +127,24 @@ class AclParityTest extends E2eTest {
         if (managementGrantsBefore != null) {
             Assertions.assertEquals(managementGrantsBefore, managementGrants(env),
                     "service clients holding %s of %s on ss0".formatted(
-                            ScenarioCatalogue.CLIENT_REG, ScenarioCatalogue.MANAGEMENT));
+                            AclParticipants.CLIENT_REG, AclParticipants.MANAGEMENT));
         }
     }
 
     private static List<String> managementGrants(E2eEnvironment env) {
         var ss0BaseUrl = adminBaseUrl(env, SS0_ENV);
-        return AdminApi.serviceClientsWithAccess(ss0BaseUrl, login(ss0BaseUrl), ScenarioCatalogue.MANAGEMENT,
-                ScenarioCatalogue.CLIENT_REG);
+        return AdminApi.serviceClientsWithAccess(ss0BaseUrl, login(ss0BaseUrl), AclParticipants.MANAGEMENT,
+                AclParticipants.CLIENT_REG);
     }
 
-    static Stream<Named<Scenario>> scenarios() {
-        return ScenarioCatalogue.all().stream()
+    static Stream<Named<AclScenario>> scenarios() {
+        return AclScenarioCatalogue.all().stream()
                 .map(scenario -> Named.of(displayName(scenario), scenario));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("scenarios")
-    void scenarioGetsItsExpectedVerdict(Scenario scenario, E2eEnvironment env) {
+    void scenarioGetsItsExpectedVerdict(AclScenario scenario, E2eEnvironment env) {
         assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
 
         var providerBaseUrl = adminBaseUrl(env, providerEnv(scenario));
@@ -159,7 +159,7 @@ class AclParityTest extends E2eTest {
                 assertAdminGrantStatus(scenario, plan, gateway);
                 return;
             }
-            var outcomes = ScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
+            var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
                     request -> call(env, management, scenario, plan, request),
                     scenario.knownDefect() == null ? scenario.waitClass().timeout() : Duration.ZERO,
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
@@ -173,7 +173,7 @@ class AclParityTest extends E2eTest {
         }
     }
 
-    private static void assertAdminGrantStatus(Scenario scenario, FixturePlan plan, AdminApiGateway gateway) {
+    private static void assertAdminGrantStatus(AclScenario scenario, FixturePlan plan, AdminApiGateway gateway) {
         var grant = scenario.adminGrant();
         var status = gateway.requestAccessGrant(scenario.fixture().providerClientId(), grant.subjectId(),
                 plan.serviceCodes().get(grant.serviceIndex()));
@@ -182,7 +182,7 @@ class AclParityTest extends E2eTest {
                 "admin API status of the grant to " + grant.subjectId());
     }
 
-    private static String providerEnv(Scenario scenario) {
+    private static String providerEnv(AclScenario scenario) {
         return scenario.fixture().providerHost() == ProviderHost.SS1 ? SS1_ENV : SS0_ENV;
     }
 
@@ -192,12 +192,12 @@ class AclParityTest extends E2eTest {
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
 
-    private static String displayName(Scenario scenario) {
+    private static String displayName(AclScenario scenario) {
         var name = scenario.id() + " " + scenario.description();
         return scenario.knownDefect() == null ? name : name + " [known defect " + scenario.knownDefect() + "]";
     }
 
-    private static void report(Scenario scenario, List<Outcome> outcomes, Judgement judgement) {
+    private static void report(AclScenario scenario, List<Outcome> outcomes, Judgement judgement) {
         if (scenario.knownDefect() != null) {
             log.info("{}: known defect {}: {}, observed {}", scenario.id(), scenario.knownDefect(), judgement.status(),
                     observedVerdicts(outcomes));
@@ -214,7 +214,7 @@ class AclParityTest extends E2eTest {
         return outcomes.stream().map(outcome -> outcome.result().last().name()).collect(Collectors.joining(", "));
     }
 
-    private static Observation call(E2eEnvironment env, ManagementProbe management, Scenario scenario,
+    private static Observation call(E2eEnvironment env, ManagementProbe management, AclScenario scenario,
                                     FixturePlan plan, RequestSpec request) {
         var proxy = env.getContainerMapping(SS1_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         var proxyOrigin = "http://%s:%s".formatted(proxy.host(), proxy.port());
@@ -241,7 +241,7 @@ class AclParityTest extends E2eTest {
                 var reply = Replies.toReply(RestAssuredFactory.given()
                         .header("Content-Type", "text/xml")
                         .body(SoapRequests.monitoringEnvelope(monitoring.consumerClientId(), providerClientId,
-                                monitoring.code(), ScenarioCatalogue.OWNER_SECURITY_SERVER,
+                                monitoring.code(), AclParticipants.OWNER_SECURITY_SERVER,
                                 monitoring.filterClientId(), "acl-parity-" + UUID.randomUUID()))
                         .post(proxyOrigin));
                 yield observe(reply, plan, monitoring.expectation());

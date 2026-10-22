@@ -28,8 +28,8 @@ package org.niis.xroad.e2e;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
-import org.niis.xroad.e2e.parity.SubsystemPool;
-import org.niis.xroad.e2e.parity.SubsystemPool.Entry;
+import org.niis.xroad.e2e.parity.acl.SubsystemPool;
+import org.niis.xroad.e2e.parity.acl.SubsystemPool.Entry;
 
 import java.time.Duration;
 import java.time.Instant;

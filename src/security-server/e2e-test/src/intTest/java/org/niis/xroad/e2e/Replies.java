@@ -28,7 +28,7 @@ package org.niis.xroad.e2e;
 
 import io.restassured.response.Response;
 import lombok.experimental.UtilityClass;
-import org.niis.xroad.e2e.parity.Reply;
+import org.niis.xroad.e2e.parity.acl.Reply;
 
 import java.util.LinkedHashMap;
 
