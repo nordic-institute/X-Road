@@ -292,21 +292,20 @@ public abstract class AbstractProxyIntegrationTest {
 
         var identifierValidationService = new IdentifierValidationService(proxyProperties);
 
-        var agreementTokenAccessCheck = new AgreementTokenAccessCheck(AGREEMENT_TOKEN_KEY_MATERIAL, AGREEMENT_TOKEN_PROPERTIES);
-
         var legacyCallRefusalPolicy = new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF);
+
+        var agreementTokenAccessCheck = new AgreementTokenAccessCheck(AGREEMENT_TOKEN_KEY_MATERIAL, AGREEMENT_TOKEN_PROPERTIES,
+                legacyCallRefusalPolicy);
 
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck,
-                legacyCallRefusalPolicy);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
 
         var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
                 TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
-                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck,
-                legacyCallRefusalPolicy);
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
                 serverSoapMessageProcessor, proxyProperties.server(),

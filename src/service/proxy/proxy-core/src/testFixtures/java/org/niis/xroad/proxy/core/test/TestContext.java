@@ -228,22 +228,21 @@ public class TestContext {
                 var agreementTokenKeyMaterial = mock(AgreementTokenKeyMaterial.class);
                 when(agreementTokenKeyMaterial.provider()).thenReturn(Optional.of(agreementTokenKeyProvider));
 
-                var agreementTokenAccessCheck = new AgreementTokenAccessCheck(agreementTokenKeyMaterial, agreementTokenProperties);
-
                 var serverSideProperties = serverProxyProperties != null ? serverProxyProperties : proxyProperties;
                 var legacyCallRefusalPolicy = new LegacyCallRefusalPolicy(serverSideProperties, globalConfProvider);
+
+                var agreementTokenAccessCheck = new AgreementTokenAccessCheck(agreementTokenKeyMaterial, agreementTokenProperties,
+                        legacyCallRefusalPolicy);
 
                 var serverRestMessageProcessor = new ServerRestMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
                         globalConfProvider, serverConfProvider, serverSideProperties, commonProperties,
-                        ocspVerifierFactory, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck,
-                        legacyCallRefusalPolicy);
+                        ocspVerifierFactory, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
 
                 var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,
                         globalConfProvider, serverConfProvider, serverSideProperties, commonProperties,
-                        ocspVerifierFactory, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck,
-                        legacyCallRefusalPolicy);
+                        ocspVerifierFactory, serviceHandlerLoader, identifierValidationService, agreementTokenAccessCheck);
 
 
                 ServerProxyHandler proxyHandler = new ServerProxyHandler(serverRestMessageProcessor,

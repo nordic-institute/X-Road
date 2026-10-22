@@ -55,7 +55,6 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
-import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
@@ -107,7 +106,6 @@ public class ServerSoapMessageProcessor {
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final IdentifierValidationService identifierValidationService;
     private final AgreementTokenAccessCheck agreementTokenAccessCheck;
-    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     /**
      * Processes a server-side SOAP request.
@@ -260,7 +258,6 @@ public class ServerSoapMessageProcessor {
             throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
                     "Agreement token rejected: %s".formatted(reasonClass));
         }
-        LegacyCallGate.requireLegacyCallAllowed(decision, legacyCallRefusalPolicy);
         var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(client, requestServiceId)) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));

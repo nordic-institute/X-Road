@@ -36,6 +36,7 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 
 import java.util.function.Supplier;
 
@@ -46,8 +47,10 @@ import java.util.function.Supplier;
  * itself — a malformed or expired token, any claim mismatch, an unknown key id, an unbuildable request context,
  * or an unexpected failure while verifying — is a {@link Decision.Rejected} that refuses the request outright.
  * Only the absence of a header ({@link Decision.Absent}) or the absence of key material to judge it with
- * ({@link Decision.Unavailable}) falls back to the ACL, exactly as today. The token never authenticates: it is
- * never read before the header is known to be present, and a rejection never widens access.
+ * ({@link Decision.Unavailable}) falls back to the ACL, and only while the {@link LegacyCallRefusalPolicy} does not
+ * refuse legacy calls; under refusal, or when the policy cannot be read, both become a {@link Decision.Rejected}.
+ * The token never authenticates: it is never read before the header is known to be present, and a rejection never
+ * widens access.
  */
 @Slf4j
 @ApplicationScoped
@@ -58,21 +61,32 @@ public class AgreementTokenAccessCheck {
     private static final Decision UNAVAILABLE = new Decision.Unavailable();
     private static final Decision ACCEPTED = new Decision.Accepted();
 
+    static final String AGREEMENT_TOKEN_REQUIRED = "AGREEMENT_TOKEN_REQUIRED";
+    static final String KEY_MATERIAL_UNAVAILABLE = "KEY_MATERIAL_UNAVAILABLE";
+    static final String REFUSAL_POLICY_ERROR = "REFUSAL_POLICY_ERROR";
+
     private final AgreementTokenKeyMaterial keyMaterial;
     private final ProxyAgreementTokenProperties agreementTokenProperties;
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     /** What a presented (or absent) agreement token means for the request at hand. */
     public sealed interface Decision {
-        /** No header was presented; the ACL runs exactly as today. */
+        /** No header was presented and legacy calls are not refused; the ACL runs. */
         record Absent() implements Decision { }
 
-        /** A header was presented but no key material is available to judge it; the ACL runs, logged at warn. */
+        /**
+         * A header was presented but no key material is available to judge it, and legacy calls are not refused;
+         * the ACL runs, logged at warn.
+         */
         record Unavailable() implements Decision { }
 
         /** The token fully matches the request; the ACL is skipped. */
         record Accepted() implements Decision { }
 
-        /** The token was presented but refused; the request must be refused, never the ACL. */
+        /**
+         * The token was refused, or no usable token was presented while legacy calls are refused (or the refusal
+         * could not be read); the request must be refused, never the ACL.
+         */
         record Rejected(String reasonClass) implements Decision { }
     }
 
@@ -99,14 +113,12 @@ public class AgreementTokenAccessCheck {
     private Decision decide(String agreementToken, ClientId requestClient, ServiceId requestService,
                              Supplier<AgreementTokenRequestContext> contextSupplier) {
         if (agreementToken == null || agreementToken.isBlank()) {
-            return ABSENT;
+            return withoutToken(requestClient, requestService);
         }
 
         var provider = keyMaterial.provider();
         if (provider.isEmpty()) {
-            log.warn("agreement token presented but no key material is available to verify it; falling back to the ACL: "
-                    + "client={}, service={}", requestClient, requestService);
-            return UNAVAILABLE;
+            return withoutKeyMaterial(requestClient, requestService);
         }
 
         AgreementTokenRequestContext context;
@@ -133,4 +145,40 @@ public class AgreementTokenAccessCheck {
             return new Decision.Rejected("VERIFIER_ERROR");
         }
     }
+
+    private Decision withoutToken(ClientId requestClient, ServiceId requestService) {
+        return switch (legacyCallsRefused(requestClient, requestService)) {
+            case NOT_REFUSED -> ABSENT;
+            case REFUSED -> new Decision.Rejected(AGREEMENT_TOKEN_REQUIRED);
+            case UNKNOWN -> new Decision.Rejected(REFUSAL_POLICY_ERROR);
+        };
+    }
+
+    private Decision withoutKeyMaterial(ClientId requestClient, ServiceId requestService) {
+        return switch (legacyCallsRefused(requestClient, requestService)) {
+            case NOT_REFUSED -> {
+                log.warn("agreement token presented but no key material is available to verify it; falling back to the ACL: "
+                        + "client={}, service={}", requestClient, requestService);
+                yield UNAVAILABLE;
+            }
+            case REFUSED -> {
+                log.warn("agreement token presented but no key material is available to verify it and legacy calls are "
+                        + "refused; refusing the request: client={}, service={}", requestClient, requestService);
+                yield new Decision.Rejected(KEY_MATERIAL_UNAVAILABLE);
+            }
+            case UNKNOWN -> new Decision.Rejected(REFUSAL_POLICY_ERROR);
+        };
+    }
+
+    private Refusal legacyCallsRefused(ClientId requestClient, ServiceId requestService) {
+        try {
+            return legacyCallRefusalPolicy.refusedAsProvider() ? Refusal.REFUSED : Refusal.NOT_REFUSED;
+        } catch (RuntimeException e) {
+            log.warn("could not read whether legacy calls are refused; refusing the request: client={}, service={}",
+                    requestClient, requestService, e);
+            return Refusal.UNKNOWN;
+        }
+    }
+
+    private enum Refusal { REFUSED, NOT_REFUSED, UNKNOWN }
 }

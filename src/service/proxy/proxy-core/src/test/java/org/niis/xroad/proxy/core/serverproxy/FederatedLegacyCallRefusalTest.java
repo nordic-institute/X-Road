@@ -28,159 +28,151 @@ package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RestRequest;
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.util.TimeUtils;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.service.ClientVerificationService;
-import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
-import org.niis.xroad.proxy.core.service.MessageSigningService;
-import org.niis.xroad.proxy.core.util.IdentifierValidationService;
-import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.test.Message;
+import org.niis.xroad.proxy.core.test.MessageTestCase;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
+import org.niis.xroad.proxy.core.test.TestContext;
+import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
+/**
+ * Proves, through a real client proxy and server proxy, that a provider decides whether to refuse a tokenless call
+ * by the {@code legacyProtocolDisabled} value of its own instance, never by the value of the caller's instance. The
+ * test global configuration names the provider's own instance {@value #OWN_INSTANCE} while the caller belongs to
+ * {@value #CALLER_INSTANCE}, and publishes the value per instance through
+ * {@link ProxyTestSuiteHelper#legacyProtocolDisabledByInstance}.
+ */
 class FederatedLegacyCallRefusalTest {
 
-    private static final String OWN_INSTANCE = "XRD8";
-    private static final String CALLER_INSTANCE = "DEV";
-    private static final ClientId.Conf CALLER = ClientId.Conf.create(CALLER_INSTANCE, "COM", "222", "TESTCLIENT");
-    private static final ServiceId.Conf SERVICE =
-            ServiceId.Conf.create(ClientId.Conf.create(OWN_INSTANCE, "COM", "111", "PROVIDER"), "getData", "v1");
-    private static final String REQUEST_PATH = "/foo/bar";
+    private static final String OWN_INSTANCE = "DEV";
+    private static final String CALLER_INSTANCE = "EE";
+    private static final String AGREEMENT_TOKEN_REJECTED_FAULT = SERVER_SERVERPROXY_X + "." + AGREEMENT_TOKEN_REJECTED.code();
 
-    private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
-    private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
-    private final AgreementTokenAccessCheck agreementTokenAccessCheck = mock(AgreementTokenAccessCheck.class);
-    private final ProxyProperties proxyProperties = mock(ProxyProperties.class);
-    private final LegacyCallRefusalPolicy policy = new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider);
+    private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
 
-    private final ServerRestMessageProcessor restProcessor = new ServerRestMessageProcessor(
-            mock(MessageSigningService.class),
-            mock(ClientVerificationService.class),
-            mock(OpMonitoringDataHelper.class),
-            globalConfProvider,
-            serverConfProvider,
-            proxyProperties,
-            mock(CommonProperties.class),
-            mock(OcspVerifierFactory.class),
-            mock(ServiceHandlerLoader.class),
-            mock(IdentifierValidationService.class),
-            agreementTokenAccessCheck,
-            policy);
+    private TestContext ctx;
 
-    private final ServerSoapMessageProcessor soapProcessor = new ServerSoapMessageProcessor(
-            mock(MessageSigningService.class),
-            mock(ClientVerificationService.class),
-            mock(OpMonitoringDataHelper.class),
-            globalConfProvider,
-            serverConfProvider,
-            proxyProperties,
-            mock(CommonProperties.class),
-            mock(OcspVerifierFactory.class),
-            mock(ServiceHandlerLoader.class),
-            mock(IdentifierValidationService.class),
-            agreementTokenAccessCheck,
-            policy);
+    @BeforeAll
+    static void beforeAll() throws Exception {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
-    @BeforeEach
-    void setUp() {
-        when(proxyProperties.legacyProtocolDisabled()).thenReturn(false);
-        when(globalConfProvider.getInstanceIdentifier()).thenReturn(OWN_INSTANCE);
-        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(serverConfProvider.isQueryAllowed(any(), any())).thenReturn(true);
-        when(serverConfProvider.isQueryAllowed(any(), any(), any(), any())).thenReturn(true);
-        when(agreementTokenAccessCheck.decide(any(), any(), any()))
-                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
-        when(agreementTokenAccessCheck.decide(any(), any(), any(), any(), any()))
-                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
+        Map<String, String> props = new HashMap<>();
+        props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
+        props.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
+        props.put("xroad.proxy.ssl-enabled", "false");
+
+        PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(props);
+        props.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
+
+        PROXY_TEST_SUITE_HELPER.proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(props)
+                .build());
+        PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of("xroad.common.temp-files-path", "build/"))
+                .build());
+        PROXY_TEST_SUITE_HELPER.startTestServices();
     }
 
-    @ParameterizedTest(name = "own instance={0}, caller instance={1} -> refused={2}")
-    @CsvSource({
-            "true,  false, true",
-            "false, true,  false",
-            "false, false, false"
-    })
-    void restRefusalFollowsTheProvidersOwnInstance(boolean ownInstance, boolean callerInstance, boolean refused) {
-        publish(ownInstance, callerInstance);
-        var requestMessage = restRequestMessage();
+    @AfterAll
+    static void afterAll() {
+        PROXY_TEST_SUITE_HELPER.destroyTestServices();
+    }
 
-        if (refused) {
-            assertThatThrownBy(() -> restProcessor.verifyAccess(SERVICE, requestMessage, null))
-                    .isInstanceOf(XrdRuntimeException.class)
-                    .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
-                    .hasMessageContaining("AGREEMENT_TOKEN_REQUIRED");
-            verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
-        } else {
-            restProcessor.verifyAccess(SERVICE, requestMessage, null);
-            verify(serverConfProvider).isQueryAllowed(CALLER, SERVICE, "GET", REQUEST_PATH);
+    @AfterEach
+    void tearDown() {
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.clear();
+        if (ctx != null) {
+            ctx.destroy();
         }
     }
 
-    @ParameterizedTest(name = "own instance={0}, caller instance={1} -> refused={2}")
+    @ParameterizedTest(name = "own instance refuses={0}, caller instance refuses={1} -> refused={2}")
     @CsvSource({
             "true,  false, true",
             "false, true,  false",
             "false, false, false"
     })
-    void soapRefusalFollowsTheProvidersOwnInstance(boolean ownInstance, boolean callerInstance, boolean refused)
+    void refusalFollowsTheProvidersOwnInstance(boolean ownInstanceRefuses, boolean callerInstanceRefuses, boolean refused)
             throws Exception {
-        publish(ownInstance, callerInstance);
-        var requestMessage = soapRequestMessage();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, ownInstanceRefuses);
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(CALLER_INSTANCE, callerInstanceRefuses);
+        ctx = new TestContext(PROXY_TEST_SUITE_HELPER);
+
+        var request = new FederatedProbe();
+        request.execute(ctx);
 
         if (refused) {
-            assertThatThrownBy(() -> soapProcessor.verifyAccess(requestMessage, SERVICE, null))
-                    .isInstanceOf(XrdRuntimeException.class)
-                    .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
-                    .hasMessageContaining("AGREEMENT_TOKEN_REQUIRED");
-            verify(serverConfProvider, never()).isQueryAllowed(any(), any());
+            assertThat(request.faultCode).isEqualTo(AGREEMENT_TOKEN_REJECTED_FAULT);
+            assertThat(request.aclChecks).hasValue(0);
         } else {
-            soapProcessor.verifyAccess(requestMessage, SERVICE, null);
-            verify(serverConfProvider).isQueryAllowed(CALLER, SERVICE);
+            assertThat(request.faultCode).isNull();
+            assertThat(request.served).isTrue();
+            assertThat(request.aclChecks.get()).isPositive();
         }
     }
 
-    private void publish(boolean ownInstance, boolean callerInstance) {
-        when(globalConfProvider.isLegacyProtocolDisabled(OWN_INSTANCE)).thenReturn(ownInstance);
-        when(globalConfProvider.isLegacyProtocolDisabled(CALLER_INSTANCE)).thenReturn(callerInstance);
-    }
+    private static final class FederatedProbe extends MessageTestCase {
+        private final AtomicInteger aclChecks = new AtomicInteger();
+        private String faultCode;
+        private boolean served;
 
-    private static ServerRestMessageProcessor.VerifyingProxyMessage restRequestMessage() {
-        var rest = mock(RestRequest.class);
-        when(rest.getClientId()).thenReturn(CALLER);
-        when(rest.getVerb()).thenReturn(RestRequest.Verb.GET);
-        when(rest.getServicePath()).thenReturn(REQUEST_PATH);
+        private FederatedProbe() {
+            this.requestFileName = "getstate.query";
+            this.responseFile = "getstate.answer";
+        }
 
-        var requestMessage = mock(ServerRestMessageProcessor.VerifyingProxyMessage.class);
-        when(requestMessage.getRest()).thenReturn(rest);
-        return requestMessage;
-    }
+        @Override
+        public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+            assertThat(sender.getXRoadInstance()).isEqualTo(CALLER_INSTANCE);
+            aclChecks.incrementAndGet();
+            return true;
+        }
 
-    private static ProxyMessage soapRequestMessage() throws Exception {
-        var soapMessage = mock(SoapMessageImpl.class);
-        when(soapMessage.getClient()).thenReturn(CALLER);
+        @Override
+        protected void startUp() throws Exception {
+            super.startUp();
+            globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
+                @Override
+                public String getInstanceIdentifier() {
+                    return OWN_INSTANCE;
+                }
+            });
+        }
 
-        var requestMessage = new ProxyMessage(null, null);
-        requestMessage.soap(soapMessage, Map.of());
-        return requestMessage;
+        @Override
+        protected void validateNormalResponse(Message response) {
+            served = true;
+        }
+
+        @Override
+        protected void validateFaultResponse(Message response) {
+            faultCode = ((SoapFault) response.getSoap()).getCode();
+        }
     }
 }

@@ -36,7 +36,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
-import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
@@ -62,7 +61,6 @@ class ServerRestMessageProcessorTest {
 
     private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
     private final AgreementTokenAccessCheck agreementTokenAccessCheck = mock(AgreementTokenAccessCheck.class);
-    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy = mock(LegacyCallRefusalPolicy.class);
 
     private final ServerRestMessageProcessor processor = new ServerRestMessageProcessor(
             mock(MessageSigningService.class),
@@ -75,8 +73,7 @@ class ServerRestMessageProcessorTest {
             mock(OcspVerifierFactory.class),
             mock(ServiceHandlerLoader.class),
             mock(IdentifierValidationService.class),
-            agreementTokenAccessCheck,
-            legacyCallRefusalPolicy);
+            agreementTokenAccessCheck);
 
     @Test
     void shouldSkipAclWhenAgreementTokenIsAccepted() {
@@ -138,43 +135,6 @@ class ServerRestMessageProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue());
         verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
-    }
-
-    @Test
-    void shouldRefuseTokenlessRequestAndSkipAclWhenRefusalIsInForce() {
-        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.decide(null, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
-                .thenReturn(new AgreementTokenAccessCheck.Decision.Absent());
-        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
-        var requestMessage = requestMessageFor(CLIENT);
-        assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, null))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
-                .hasMessageContaining("AGREEMENT_TOKEN_REQUIRED");
-        verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
-    }
-
-    @Test
-    void shouldRefuseUnverifiableTokenAndSkipAclWhenRefusalIsInForce() {
-        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
-                .thenReturn(new AgreementTokenAccessCheck.Decision.Unavailable());
-        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(true);
-        var requestMessage = requestMessageFor(CLIENT);
-        assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, AGREEMENT_TOKEN))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
-                .hasMessageContaining("KEY_MATERIAL_UNAVAILABLE");
-        verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
-    }
-
-    @Test
-    void shouldServeAcceptedTokenWithoutConsultingThePolicy() {
-        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
-        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
-                .thenReturn(new AgreementTokenAccessCheck.Decision.Accepted());
-        processor.verifyAccess(SERVICE, requestMessageFor(CLIENT), AGREEMENT_TOKEN);
-        verify(legacyCallRefusalPolicy, never()).refusedAsProvider();
     }
 
     private static ServerRestMessageProcessor.VerifyingProxyMessage requestMessageFor(ClientId.Conf client) {
