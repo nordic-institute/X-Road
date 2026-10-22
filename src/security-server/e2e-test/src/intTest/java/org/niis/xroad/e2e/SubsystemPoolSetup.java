@@ -28,16 +28,20 @@ package org.niis.xroad.e2e;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
+import org.niis.xroad.e2e.parity.acl.PoolVisibility;
 import org.niis.xroad.e2e.parity.acl.SubsystemPool;
 import org.niis.xroad.e2e.parity.acl.SubsystemPool.Entry;
+import org.niis.xroad.e2e.parity.acl.VerdictPoller;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.awaitClientsRegistered;
+import static org.niis.xroad.e2e.AdminApi.globalClientKnown;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.e2e.AdminApi.registerClient;
 
@@ -45,14 +49,17 @@ import static org.niis.xroad.e2e.AdminApi.registerClient;
  * Adds and registers the {@link SubsystemPool} on the Security Servers that host it. Every subsystem is
  * added and every registration submitted first, then the registrations are awaited, so registration
  * latency is paid once for the batch. A subsystem left by an earlier run is reused: the add and register
- * calls tolerate it, and a subsystem that is already REGISTERED passes the wait at once. Nothing is torn
- * down afterwards.
+ * calls tolerate it, and a subsystem that is already REGISTERED passes the wait at once. Last, the other
+ * Security Servers are awaited to know every registered subsystem from global configuration. Nothing is
+ * torn down afterwards.
  */
 @Slf4j
 @UtilityClass
 class SubsystemPoolSetup {
 
     private static final Duration REGISTRATION_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration VISIBILITY_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration VISIBILITY_INTERVAL = Duration.ofSeconds(2);
 
     static void ensure(E2eEnvironment env) {
         var start = Instant.now();
@@ -62,6 +69,7 @@ class SubsystemPoolSetup {
 
         entriesByHost.forEach((host, entries) -> addAndSubmit(env, host, entries));
         entriesByHost.forEach((host, entries) -> awaitRegistered(env, host, entries, csBaseUrl, cs));
+        awaitKnownToOtherServers(env);
 
         log.info("Subsystem pool ready in {} s", Duration.between(start, Instant.now()).toSeconds());
     }
@@ -82,5 +90,15 @@ class SubsystemPoolSetup {
         var baseUrl = adminBaseUrl(env, host);
         log.info("Waiting for {} pool subsystem registrations on {}", clientIds.size(), host);
         awaitClientsRegistered(baseUrl, login(baseUrl), csBaseUrl, cs, clientIds, REGISTRATION_TIMEOUT);
+    }
+
+    private static void awaitKnownToOtherServers(E2eEnvironment env) {
+        var targets = PoolVisibility.targets(SubsystemPool.entries(), SubsystemPool.SERVERS);
+        var sessions = new HashMap<String, AdminSession>();
+        SubsystemPool.SERVERS.forEach(server -> sessions.put(server, login(adminBaseUrl(env, server))));
+        log.info("Waiting for {} pool subsystem lookups on the other servers", targets.size());
+        PoolVisibility.await(targets, target -> globalClientKnown(adminBaseUrl(env, target.server()),
+                sessions.get(target.server()), target.clientId()), VISIBILITY_TIMEOUT, VISIBILITY_INTERVAL,
+                VerdictPoller.systemClock());
     }
 }

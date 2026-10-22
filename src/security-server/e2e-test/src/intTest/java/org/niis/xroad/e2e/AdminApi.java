@@ -618,6 +618,24 @@ class AdminApi {
                 });
     }
 
+    /**
+     * Whether the Security Server's global client search, which reads global configuration members, returns
+     * {@code clientId}. The search matches by substring, so the returned ids are compared exactly.
+     */
+    static boolean globalClientKnown(String baseUrl, AdminSession session, String clientId) {
+        var parts = clientId.split(":", -1);
+        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
+        var response = authed(session)
+                .queryParam("instance", parts[0])
+                .queryParam("member_class", parts[1])
+                .queryParam("member_code", parts[2])
+                .queryParam("subsystem_code", parts[parts.length - 1])
+                .queryParam("internal_search", false)
+                .queryParam("show_members", false)
+                .get(baseUrl + "/api/v1/clients");
+        return response.getStatusCode() == HTTP_OK && response.jsonPath().getList("id", String.class).contains(clientId);
+    }
+
     /** Reads the external RPC CA details. */
     static Response getExternalRpcCa(String baseUrl, AdminSession session) {
         return authed(session).get(baseUrl + "/api/v1/system/external-rpc-ca");

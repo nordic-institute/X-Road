@@ -40,6 +40,8 @@ public final class SubsystemPool {
 
     public static final String SS0 = "ss0";
     public static final String SS1 = "ss1";
+    /** Every Security Server of the parity environment. */
+    public static final List<String> SERVERS = List.of(SS0, SS1);
 
     /** Sibling subsystem of the consumer's member, local to and registered on ss1. */
     public static final String SIBLING_OF_CONSUMER = "DEV:COM:4321:PoolSibling";

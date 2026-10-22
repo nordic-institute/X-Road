@@ -84,6 +84,11 @@ public final class VerdictPoller {
         }
     };
 
+    /** The wall clock, sleeping the calling thread. */
+    public static Clock systemClock() {
+        return SYSTEM;
+    }
+
     private final Clock clock;
 
     public VerdictPoller() {
