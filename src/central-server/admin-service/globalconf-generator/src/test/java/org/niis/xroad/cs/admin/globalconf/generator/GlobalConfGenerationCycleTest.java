@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.api.service.DataspaceMemberDidService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
@@ -238,6 +239,7 @@ class GlobalConfGenerationCycleTest {
         var sharedParametersLoader = new SharedParametersLoader(systemParameterService,
                 mock(CertificationServicesService.class), mock(TimestampingServicesService.class),
                 mock(DsTlsCertificationAuthoritiesService.class), mock(DataspaceIssuerDidService.class),
+                mock(DataspaceMemberDidService.class),
                 mock(ClientService.class), mock(SecurityServerService.class), mock(GlobalGroupService.class),
                 mock(GlobalGroupMemberService.class), mock(MemberClassService.class), configurationService);
         var privateParametersLoader = new PrivateParametersLoader(systemParameterService,

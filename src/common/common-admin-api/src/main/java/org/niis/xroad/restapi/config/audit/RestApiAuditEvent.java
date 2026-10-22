@@ -199,6 +199,7 @@ public enum RestApiAuditEvent {
     GENERATE_DS_TLS_CSR("Generate data space TLS certificate signing request"),
     UPLOAD_DS_TLS_CERT("Upload data space TLS certificate"),
     ORDER_DS_TLS_CERT("Order data space TLS certificate via ACME"),
+    REJECT_CONNECTOR_PUBLISHED_VALUE("Reject connector published value"),
 
     ROTATE_AGREEMENT_TOKEN_KEY("Rotate agreement token signing key"),
 

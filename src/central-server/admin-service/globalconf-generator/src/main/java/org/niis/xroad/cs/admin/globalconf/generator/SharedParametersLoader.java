@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.StoredMemberDid;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
@@ -46,6 +48,7 @@ import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.api.service.DataspaceMemberDidService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
@@ -54,15 +57,20 @@ import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.globalconf.model.CertHash;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Component
@@ -74,6 +82,7 @@ class SharedParametersLoader {
     private final TimestampingServicesService timestampingServicesService;
     private final DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
     private final DataspaceIssuerDidService dataspaceIssuerDidService;
+    private final DataspaceMemberDidService dataspaceMemberDidService;
     private final ClientService clientService;
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
@@ -83,9 +92,19 @@ class SharedParametersLoader {
 
 
     SharedParameters load() {
+        return load(false);
+    }
+
+    SharedParameters loadWithMemberDids() {
+        return load(true);
+    }
+
+    private SharedParameters load(boolean withMemberDids) {
+        var servers = securityServerService.findAll();
+        var memberDids = withMemberDids ? getMemberDids(servers) : Map.<ClientId, Map<SecurityServerId, String>>of();
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), getApprovedConnectorTlsCAs(), getCredentialIssuerDids(), getMembers(),
-                getSecurityServers(), getGlobalGroups(), getGlobalSettings());
+                getApprovedTSAs(), getApprovedConnectorTlsCAs(), getCredentialIssuerDids(), getMembers(memberDids),
+                getSecurityServers(servers), getGlobalGroups(), getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -199,13 +218,38 @@ class SharedParametersLoader {
                 .toList();
     }
 
-    private List<SharedParameters.Member> getMembers() {
-        return new MemberMapper().map(clientService.findAll());
-
+    private List<SharedParameters.Member> getMembers(Map<ClientId, Map<SecurityServerId, String>> memberDids) {
+        var members = new MemberMapper().map(clientService.findAll());
+        members.forEach(member -> {
+            var dids = memberDids.get(member.getId());
+            if (dids != null) {
+                member.setDids(dids);
+            }
+        });
+        return members;
     }
 
-    private List<SharedParameters.SecurityServer> getSecurityServers() {
-        return securityServerService.findAll().stream()
+    private Map<ClientId, Map<SecurityServerId, String>> getMemberDids(List<SecurityServer> servers) {
+        Map<Integer, SecurityServerId> serverIds = servers.stream()
+                .collect(toMap(SecurityServer::getId, SecurityServer::getServerId));
+        Map<ClientId, Map<SecurityServerId, String>> result = new HashMap<>();
+        dataspaceMemberDidService.findAll().stream()
+                .collect(groupingBy(StoredMemberDid::securityServerId, TreeMap::new, toList()))
+                .forEach((serverRowId, rows) -> {
+                    var serverId = serverIds.get(serverRowId);
+                    if (serverId != null) {
+                        rows.forEach(row -> result.computeIfAbsent(row.memberId(), id -> new LinkedHashMap<>())
+                                .put(serverId, row.did()));
+                    } else {
+                        log.warn("Leaving out {} member DID(s) of security server row {}, which is not in the server list",
+                                rows.size(), serverRowId);
+                    }
+                });
+        return result;
+    }
+
+    private List<SharedParameters.SecurityServer> getSecurityServers(List<SecurityServer> servers) {
+        return servers.stream()
                 .map(this::toSecurityServer)
                 .toList();
     }
@@ -221,6 +265,11 @@ class SharedParametersLoader {
                 .map(AuthCert::getCert)
                 .map(CertHash::new)
                 .toList());
+        if (isNotBlank(ss.getSystemDid()) && isNotBlank(ss.getDspBaseUrl())) {
+            result.setSystemValues(new ServerSystemValues(ss.getSystemDid(), ss.getDspBaseUrl()));
+        } else if (isNotBlank(ss.getSystemDid()) || isNotBlank(ss.getDspBaseUrl())) {
+            log.warn("Leaving out the incomplete SYSTEM values of security server {}", ss.getServerId());
+        }
         return result;
     }
 

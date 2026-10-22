@@ -27,31 +27,32 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 
-import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
-import org.niis.xroad.cs.admin.core.dataspace.ServerClientRemovedEvent;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ClientRegistrationRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
+import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
-import org.springframework.context.ApplicationEventPublisher;
+import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -61,7 +62,6 @@ import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.REVOKED
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_REGISTRATION_NOT_FOUND;
 
-@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -74,8 +74,9 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     private final RequestRepository<ClientDeletionRequestEntity> deletionRequests;
     private final ClientRegistrationRequestRepository registrationRequests;
     private final ServerClientRepository serverClientRepository;
+    private final XRoadMemberRepository members;
+    private final MemberDidRepository memberDids;
     private final RequestMapper requestMapper;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public boolean canAutoApprove(ClientDeletionRequest request) {
@@ -87,7 +88,8 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOne(ClientIdEntityFactory.ensure(request.getClientId()));
 
-        final Optional<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
+        final Optional<SecurityServerEntity> securityServerOpt = servers.lockForUpdateBy(serverId)
+                .flatMap(lockedServerRowId -> servers.findBy(serverId, clientId));
 
         securityServerOpt
                 .ifPresentOrElse(
@@ -124,14 +126,26 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
                             securityServer.getServerClients().stream()
                                     .filter(serverClient -> Objects.equals(client.getId(), serverClient.getSecurityServerClient().getId()))
                                     .forEach(serverClientRepository::delete);
-                            var event = new ServerClientRemovedEvent(
-                                    securityServer.getServerId(), clientId.getMemberId(), TimeUtils.getEpochMillisecond());
-                            log.debug("Publishing server-client-removed event for member {} on security server {}",
-                                    event.memberId(), event.securityServerId());
-                            eventPublisher.publishEvent(event);
+                            removeMemberDidWhenLastClientRemoved(securityServer, clientId.getMemberId());
                         },
                         this::mrClientRegistrationNotFound
                 );
+    }
+
+    private void removeMemberDidWhenLastClientRemoved(final SecurityServerEntity securityServer, final ClientId memberId) {
+        if (ClientId.equals(securityServer.getOwner().getIdentifier(), memberId)) {
+            return;
+        }
+        members.findMember(memberId)
+                .filter(member -> countRemainingClientRows(securityServer, member) == 0)
+                .flatMap(member -> memberDids.findBySecurityServerIdAndMemberId(securityServer.getId(), member.getId()))
+                .ifPresent(memberDids::delete);
+    }
+
+    private long countRemainingClientRows(final SecurityServerEntity securityServer, final XRoadMemberEntity member) {
+        Set<SecurityServerClientEntity> memberAndSubsystems = new HashSet<>(member.getSubsystems());
+        memberAndSubsystems.add(member);
+        return serverClientRepository.countBySecurityServerAndSecurityServerClientIn(securityServer, memberAndSubsystems);
     }
 
     private void revokeRegistration(final ClientRegistrationRequestEntity requestEntity) {

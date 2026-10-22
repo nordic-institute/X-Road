@@ -54,6 +54,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
@@ -75,6 +77,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class AuditLoggingTest {
     private static final String URL = ControllerUtil.API_V1_PREFIX + "/test-audit/{var1}/{var2}";
+    private static final String REJECT_URL = ControllerUtil.API_V1_PREFIX + "/test-audit-reject/{var1}";
     private static final String URL_VAR1 = "var1";
     private static final String URL_VAR2 = "var2";
     private static final String BAD_VALUE = "bad-value";
@@ -155,12 +158,55 @@ class AuditLoggingTest {
         assertEquals("/api/v1/test-audit/bad-value/random-str", urlCaptor.getValue());
     }
 
+    @Test
+    @WithMockUser(username = "api-key-1", authorities = {"INIT_CONFIG"})
+    void failureWithDataLeavesRequestScopedEventAndDataUntouched() throws Exception {
+        mockMvc.perform(get(REJECT_URL, "123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> failureData = ArgumentCaptor.forClass(Map.class);
+        verify(auditEventLoggingFacade, times(1)).callAuditLoggerLogFailure(
+                eq(RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE),
+                any(),
+                any(),
+                eq("rejected for test"),
+                failureData.capture(),
+                eq("Session"),
+                eq("/api/v1/test-audit-reject/123"));
+        assertEquals(Map.of(RestApiAuditProperty.SERVER_CODE.getPropertyName(), "SS0"), failureData.getValue());
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> successData = ArgumentCaptor.forClass(Map.class);
+        verify(auditEventLoggingFacade, times(1)).callAuditLoggerLogSuccess(
+                eq(RestApiAuditEvent.INIT_CENTRAL_SERVER), any(), any(), successData.capture(),
+                eq("Session"), eq("/api/v1/test-audit-reject/123"));
+        assertEquals(Map.of(RestApiAuditProperty.ID.getPropertyName(), "123"), successData.getValue());
+        verify(auditEventLoggingFacade, times(0)).callAuditLoggerLogFailure(
+                eq(RestApiAuditEvent.INIT_CENTRAL_SERVER), any(), any(), any(), any(), any(), any());
+    }
+
     @Controller
     @RequestMapping(ControllerUtil.API_V1_PREFIX)
     @PreAuthorize("denyAll")
     @RequiredArgsConstructor
     static class TestAuditController {
         private final AuditDataHelper auditDataHelper;
+        private final AuditEventLoggingFacade auditEventLoggingFacade;
+
+        @GetMapping(value = "/test-audit-reject/{var1}",
+                produces = {MediaType.APPLICATION_JSON_VALUE},
+                consumes = {MediaType.APPLICATION_JSON_VALUE})
+        @PreAuthorize("hasAuthority('INIT_CONFIG')")
+        @AuditEventMethod(event = RestApiAuditEvent.INIT_CENTRAL_SERVER)
+        ResponseEntity<Void> initCentralServerWithRejection(@PathVariable(URL_VAR1) String var1) {
+            auditDataHelper.put(RestApiAuditProperty.ID, var1);
+            auditEventLoggingFacade.auditLogFailWithData(RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE,
+                    "rejected for test", Map.of(RestApiAuditProperty.SERVER_CODE, "SS0"));
+            return ResponseEntity.ok().build();
+        }
 
         @GetMapping(value = "/test-audit/{var1}/{var2}",
                 produces = {MediaType.APPLICATION_JSON_VALUE},

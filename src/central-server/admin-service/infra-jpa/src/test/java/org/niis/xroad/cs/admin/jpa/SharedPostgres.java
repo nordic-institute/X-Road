@@ -24,16 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.dataspace;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.cs.admin.jpa;
+
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Published after a security server's {@code server_clients} row for a member (or one of its
- * subsystems) is deleted and the deleting transaction commits. {@code memberId} is always
- * member-level (no subsystem code), and {@code removedAt} is the epoch-millisecond time of
- * publication, used as the issuer revocation's issued-before cut-off.
+ * The Postgres container every test class of a run shares.
+ *
+ * <p>It is started by hand, behind a Docker check, instead of through {@code @Testcontainers}: that extension
+ * starts the container before a {@code @BeforeAll} can skip, so a Docker-less run would fail instead of skip.
  */
-public record ServerClientRemovedEvent(SecurityServerId securityServerId, ClientId memberId, long removedAt) {
+final class SharedPostgres {
+
+    static final PostgreSQLContainer CONTAINER = new PostgreSQLContainer("postgres:16-alpine");
+
+    private SharedPostgres() {
+    }
+
+    static synchronized void start() {
+        assumeTrue(DockerClientFactory.instance().isDockerAvailable(),
+                "Docker is not available, skipping the Postgres-backed tests");
+        if (CONTAINER.isRunning()) {
+            return;
+        }
+        CONTAINER.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(CONTAINER::stop));
+    }
 }

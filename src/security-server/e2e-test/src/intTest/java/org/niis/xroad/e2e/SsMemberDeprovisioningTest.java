@@ -32,9 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
@@ -52,8 +55,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 /**
  * Proves the feature's end-to-end teardown guarantee against real dataspace services: deleting a
  * member's last client should make its dataspace presence disappear — the DID document stops resolving
- * at the identity hub, the participant context is gone from the control plane, and the Central Server
- * revokes the member's membership credential at the collocated issuer, without touching anyone else's.
+ * at the identity hub and the participant context is gone from the control plane. A second, disabled
+ * scenario covers the Central Server revoking the member's membership credential at the collocated
+ * issuer, without touching anyone else's, once it does so.
  *
  * <p>Registers a dedicated member ({@code DEV:COM:5678:DeprovisioningService}), new to this run,
  * entirely through ss0's own admin API — local client add, sign-key CSR generation, signing by the test
@@ -63,19 +67,16 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * later "gone" assertions prove an actual removal, not a state that was never reached), its only client
  * is unregistered and deleted. Deleting a member's last client is, once binding rows are written at
  * provisioning time, what flips the member's participant binding to decommissioned in the same
- * transaction as the delete — the trigger the background reconciler then converges on; the same delete
- * also removes the member's registration record on the Central Server, which independently fires the
- * credential-revocation listener there. The scenario polls the identity hub, the control-plane database
- * and the issuer's credential store directly, the way a counter-party or an operator would observe the
- * removal, rather than the internal {@code /dataspace/provisioning-status} admin endpoint — that endpoint
- * only reports live contexts and simply drops a member once teardown converges, so it cannot distinguish
- * "torn down" from "never provisioned".
+ * transaction as the delete — the trigger the background reconciler then converges on. The scenario
+ * polls the identity hub and the control-plane database directly, the way a counter-party or an operator
+ * would observe the removal, rather than the internal {@code /dataspace/provisioning-status} admin
+ * endpoint — that endpoint only reports live contexts and simply drops a member once teardown converges,
+ * so it cannot distinguish "torn down" from "never provisioned".
  *
- * <p>The credential-revocation assertions added alongside the teardown ones need no additional precondition of their own — the
- * Central Server's revocation trigger fires off its own registration-removal event, independent of the
- * dataspace binding row — but they need {@link CsIssuerDbOps} to reach the issuer's credential store,
- * which today only the LXD adapter implements; on any other environment this scenario runs the teardown
- * assertions and self-skips the revocation ones via a second {@link Assumptions} check.
+ * <p>The credential-revocation scenario is disabled because the Central Server revokes no credentials yet.
+ * Once enabled it runs after the teardown scenario, observes the issuer's credential store through
+ * {@link CsIssuerDbOps}, which today only the LXD adapter implements, and self-skips on any other
+ * environment via {@link Assumptions}.
  *
  * <p>Only k8s and LXD run the dataspace protocol stack; the Compose facade does not implement
  * {@link DsControlPlaneDbOps}, so this scenario self-skips there via {@link Assumptions}, exactly like
@@ -87,6 +88,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS dataspace - deleting a member's last client tears down its dataspace presence")
 @Order(375)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
 @SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
 class SsMemberDeprovisioningTest extends E2eTest {
@@ -112,9 +114,9 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
     /**
      * ss0's own owner member, provisioned once at environment bring-up and left untouched by this
-     * scenario's deletions. Its credential must survive the revocation this scenario triggers — both
-     * because it belongs to a different member entirely, and because it is ss0's current owner, which
-     * {@code MemberCredentialRevocationService} excludes from revocation by design.
+     * scenario's deletions. Its credential must survive the revocation this scenario expects — both
+     * because it belongs to a different member entirely, and because it is ss0's current owner, whose
+     * DID row the removal rule never deletes.
      */
     private static final String OWNER_MEMBER_CLASS = "COM";
     private static final String OWNER_MEMBER_CODE = "1234";
@@ -190,6 +192,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
     }
 
     @Test
+    @Order(1)
     @DisplayName("Deleting a member's last client removes its DID document and control-plane context")
     void deletingLastClientTearsDownTheMembersDataspacePresence(E2eEnvironment env) {
         Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
@@ -234,7 +237,13 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
         and("the control-plane participant context for the member is gone", () ->
                 awaitControlPlaneContextAbsent(dbOps));
+    }
 
+    @Test
+    @Order(2)
+    @Disabled("The Central Server revokes no credentials yet; enable once revocation is implemented")
+    @DisplayName("Deleting a member's last client revokes its membership credential at the issuer")
+    void deletingLastClientRevokesTheMembersCredential(E2eEnvironment env) {
         Assumptions.assumeTrue(env instanceof CsIssuerDbOps,
                 () -> ("%s does not expose the Central Server's issuer database; credential-revocation "
                         + "assertions only run where the environment implements CsIssuerDbOps")
@@ -610,10 +619,8 @@ class SsMemberDeprovisioningTest extends E2eTest {
     }
 
     /**
-     * The holder DID the issuer records for a member's credential on ss0, derived the same way
-     * {@code MemberCredentialRevocationService} derives it: the member identifier plus ss0's registered
-     * address extended with the identity hub's DID-serving port — the interim stopgap the Central Server
-     * applies until DID documents are served from the registered server address directly.
+     * The holder DID the issuer records for a member's credential on ss0: the member identifier plus ss0's
+     * registered address extended with the identity hub's DID-serving port.
      */
     private String expectedHolderDid(E2eEnvironment env, String memberClass, String memberCode) {
         var member = ClientId.Conf.create(X_ROAD_INSTANCE, memberClass, memberCode);
