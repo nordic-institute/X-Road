@@ -1,0 +1,27 @@
+text/xml; charset=utf-8
+
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="SUBSYSTEM">
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>00000001</id:memberCode>
+           <id:subsystemCode>System1</id:subsystemCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">  
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>  
+           <id:memberClass>GOV</id:memberClass>  
+           <id:memberCode>00000001</id:memberCode>  
+           <id:serviceCode>getSecurityServerHealthData</id:serviceCode>  
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:serverCode>00000001_1</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>DBOxxqv2csKysKHNwRCrU4QV0EWkqSUY</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body><om:getSecurityServerHealthDataResponse><om:monitoringStartupTimestamp>1700000000000</om:monitoringStartupTimestamp><om:statisticsPeriodSeconds>600</om:statisticsPeriodSeconds><om:servicesEvents><om:serviceEvents><om:service id:objectType="SERVICE"><id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance><id:memberClass>GOV</id:memberClass><id:memberCode>00000001</id:memberCode><id:subsystemCode>System1</id:subsystemCode><id:serviceCode>xroadGetRandom</id:serviceCode><id:serviceVersion>v1</id:serviceVersion></om:service><om:lastSuccessfulRequestTimestamp>14749689790000</om:lastSuccessfulRequestTimestamp><om:lastUnsuccessfulRequestTimestamp>14749689790000</om:lastUnsuccessfulRequestTimestamp><om:serviceType>WSDL</om:serviceType><om:lastPeriodStatistics><om:successfulRequestCount>1</om:successfulRequestCount><om:unsuccessfulRequestCount>1</om:unsuccessfulRequestCount><om:requestMinDuration>10000</om:requestMinDuration><om:requestAverageDuration>10000.0</om:requestAverageDuration><om:requestMaxDuration>10000</om:requestMaxDuration><om:requestDurationStdDev>0.0</om:requestDurationStdDev><om:requestMinSize>999</om:requestMinSize><om:requestAverageSize>999.0</om:requestAverageSize><om:requestMaxSize>999</om:requestMaxSize><om:requestSizeStdDev>0.0</om:requestSizeStdDev><om:responseMinSize>888</om:responseMinSize><om:responseAverageSize>888.0</om:responseAverageSize><om:responseMaxSize>888</om:responseMaxSize><om:responseSizeStdDev>0.0</om:responseSizeStdDev></om:lastPeriodStatistics></om:serviceEvents></om:servicesEvents></om:getSecurityServerHealthDataResponse></SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -11,4 +11,7 @@ dependencies {
 
   implementation(libs.smallrye.config.core)
   implementation(libs.jakarta.cdiApi)
+
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
 }

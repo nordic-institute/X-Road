@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -94,6 +95,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,8 +108,10 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.OPERATIONAL_DATA_INTERVALS_OUT_OF_RANGE;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"spring.main.lazy-initialization=true"})
@@ -145,6 +149,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         }
     }
 
+    private static final long INTERVALS_FROM_MILLIS = 1_700_000_040_000L;
     private static final OffsetDateTime PREVIOUS_UPDATE = TimeUtils.offsetDateTimeNow().with(LocalTime.of(10, 42));
     private static final OffsetDateTime NEXT_UPDATE = PREVIOUS_UPDATE.plusHours(1);
     private static final OffsetDateTime PREVIOUS_UPDATE_MIDNIGHT = PREVIOUS_UPDATE.with(LocalTime.of(0, 0));
@@ -546,6 +551,61 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .atOffset(ZoneOffset.UTC));
         assertThat(response.getBody().getFirst().getSuccessCount()).isEqualTo(operationalDataInterval.getSuccessCount());
         assertThat(response.getBody().getFirst().getFailureCount()).isEqualTo(operationalDataInterval.getFailureCount());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOperationalDataIntervalsAcceptsLimitValues() {
+        when(opMonitorClient.getOperationalDataIntervals(any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of());
+        OffsetDateTime from = OffsetDateTime.ofInstant(Instant.ofEpochMilli(INTERVALS_FROM_MILLIS), ZoneOffset.UTC);
+
+        for (int interval : new int[] {1, 35_791}) {
+            assertEquals(HttpStatus.OK, getIntervals(from, from.plus(interval, ChronoUnit.MINUTES), interval).getStatusCode());
+        }
+        assertEquals(HttpStatus.OK, getIntervals(from, from, 1).getStatusCode());
+        assertEquals(HttpStatus.OK, getIntervals(from, from.plus(99_998, ChronoUnit.MINUTES), 1).getStatusCode());
+        assertEquals(HttpStatus.OK, getIntervals(from.plusSeconds(30), from.plus(99_999, ChronoUnit.MINUTES).minusNanos(1_000_000), 1)
+                .getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOperationalDataIntervalsRejectsIntervalOutOfRange() {
+        OffsetDateTime from = OffsetDateTime.ofInstant(Instant.ofEpochMilli(INTERVALS_FROM_MILLIS), ZoneOffset.UTC);
+
+        assertIntervalsRejected(from, from, 0);
+        assertIntervalsRejected(from, from, 35_792);
+        verifyNoInteractions(opMonitorClient);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOperationalDataIntervalsRejectsEndBeforeStart() {
+        OffsetDateTime from = OffsetDateTime.ofInstant(Instant.ofEpochMilli(INTERVALS_FROM_MILLIS), ZoneOffset.UTC);
+
+        assertIntervalsRejected(from, from.minusNanos(1_000_000), 1);
+        verifyNoInteractions(opMonitorClient);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOperationalDataIntervalsRejectsTooManyBuckets() {
+        OffsetDateTime from = OffsetDateTime.ofInstant(Instant.ofEpochMilli(INTERVALS_FROM_MILLIS), ZoneOffset.UTC);
+
+        assertIntervalsRejected(from, from.plus(99_999, ChronoUnit.MINUTES), 1);
+        assertIntervalsRejected(from.plusSeconds(30), from.plus(99_999, ChronoUnit.MINUTES), 1);
+        verifyNoInteractions(opMonitorClient);
+    }
+
+    private ResponseEntity<List<OperationalDataIntervalDto>> getIntervals(OffsetDateTime from, OffsetDateTime to, int interval) {
+        return diagnosticsApiController.getOperationalDataIntervals(from, to, interval, null, null, null);
+    }
+
+    private void assertIntervalsRejected(OffsetDateTime from, OffsetDateTime to, int interval) {
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> getIntervals(from, to, interval));
+        assertEquals(OPERATIONAL_DATA_INTERVALS_OUT_OF_RANGE.code(), exception.getErrorDeviation().code());
+        assertEquals(Optional.of(ee.ria.xroad.common.HttpStatus.BAD_REQUEST), exception.getHttpStatus());
     }
 
     @Test

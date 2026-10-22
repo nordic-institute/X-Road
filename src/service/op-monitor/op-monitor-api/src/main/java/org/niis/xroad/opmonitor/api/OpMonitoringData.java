@@ -53,8 +53,8 @@ public class OpMonitoringData {
 
     public static final String ERROR_FAILED_TO_ASSIGN_FIELD = "Failed to assign operational monitoring data field {}";
 
-    // The following fields correspond to the schema defined in
-    // src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml .
+    // The following fields correspond to the record schema defined in
+    // src/service/op-monitor/op-monitor-core/src/main/resources/query_operational_data_response_payload_schema.yaml .
     // Refer to the schema for detailed documentation.
 
     public static final String SECURITY_SERVER_INTERNAL_IP =

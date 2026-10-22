@@ -126,4 +126,17 @@ class XRoadConfigBuilderTest {
                 .build();
         assertThat(overridden.get(hostKey).value()).isEqualTo("signer");
     }
+
+    @Test
+    void overridesOfUnregisteredKeysAreIgnoredAndRegisteredKeysKeepTheirValues() {
+        var config = XRoadConfigBuilder.create().register(provider)
+                .overrides(Map.of(
+                        "xroad.test.removed-key", "abc",
+                        "xroad.test.removed-scope.nested", "",
+                        "xroad.test.native-only", "set"))
+                .build();
+
+        assertThat(config.get(nativeOnly).value()).isEqualTo("set");
+        assertThat(config.get(withContainerDefault).value()).isEqualTo("native");
+    }
 }

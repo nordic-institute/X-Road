@@ -156,6 +156,9 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     GLOBAL_CONF_PART_FILE_HASH_FAILURE("global_conf_part_file_hash_failure"),
     GLOBAL_CONF_PART_FILE_SAVE_FAILURE("global_conf_part_file_save_failure"),
     GLOBAL_CONF_PART_FILE_EXPIRATION_DATE_UPDATE_FAILURE("global_conf_part_file_expiration_date_update_failure"),
+    GLOBAL_CONF_OWNER_REFERENCES_NON_MEMBER("global_conf_owner_references_non_member"),
+    GLOBAL_CONF_CLIENT_REFERENCES_SERVER("global_conf_client_references_server"),
+    GLOBAL_CONF_MEMBER_DID_REFERENCES_NON_SERVER("global_conf_member_did_references_non_server"),
 
     // ===== SIGNER ERRORS =====
     KEY_NOT_FOUND("key_not_found"),
@@ -227,6 +230,12 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_DISTINGUISHED_NAME("invalid_distinguished_name"),
     INVALID_CHARACTERS("invalid_characters"),
     INVALID_PEM_CSR("invalid_pem_csr"),
+
+    // ===== DIAGNOSTICS ERRORS =====
+    OPERATIONAL_DATA_INTERVALS_OUT_OF_RANGE("operational_data_intervals_out_of_range"),
+
+    // ===== OPERATIONAL MONITORING ERRORS =====
+    OPERATIONAL_DATA_RESPONSE_TOO_LARGE("operational_data_response_too_large"),
 
     // ===== BUSINESS LOGIC ERRORS =====
     DUPLICATE_ENTRY("duplicate_entry"),
@@ -353,6 +362,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
 
     // ===== AGREEMENT TOKEN ERRORS =====
     AGREEMENT_TOKEN_KEY_NOT_AVAILABLE("agreement_token_key_not_available"),
+    AGREEMENT_TOKEN_SIGNING_KEY_STALE("agreement_token_signing_key_stale"),
     AGREEMENT_TOKEN_SIGNING_FAILED("agreement_token_signing_failed"),
     AGREEMENT_TOKEN_KEY_STORE_FAILED("agreement_token_key_store_failed"),
     AGREEMENT_TOKEN_KEY_GENERATION_FAILED("agreement_token_key_generation_failed"),

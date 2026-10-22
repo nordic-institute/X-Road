@@ -59,6 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -87,6 +88,7 @@ import static org.mockito.Mockito.when;
 class XRoadControlPlanePolicyMonitorBindingTest {
 
     private static final String MEMBERSHIP_CREDENTIAL_TYPE = "XRoadMembershipCredential";
+    private static final ClientId GROUP_OWNER = ClientId.Conf.create("DEV", "COM", "111", "Owner");
 
     @Mock
     JsonLd jsonLd;
@@ -125,7 +127,8 @@ class XRoadControlPlanePolicyMonitorBindingTest {
 
     @Test
     void transferIsTerminatedWhenLocalGroupConstraintNoLongerHolds() {
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
+        when(serverConfProvider.isLocalGroupMember(any(ClientId.class), any(LocalGroupId.class), any(ClientId.class)))
+                .thenReturn(false);
 
         var result = policyEngine.evaluate(localGroupPolicy(), monitorContextWithMember("DEV", "COM", "222"));
         terminateIfFailed(result, "tp-1");
@@ -136,7 +139,8 @@ class XRoadControlPlanePolicyMonitorBindingTest {
 
     @Test
     void transferIsNotTerminatedWhenLocalGroupConstraintStillHolds() {
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
+        when(serverConfProvider.isLocalGroupMember(any(ClientId.class), any(LocalGroupId.class), any(ClientId.class)))
+                .thenReturn(true);
 
         var result = policyEngine.evaluate(localGroupPolicy(), monitorContextWithMember("DEV", "COM", "222"));
         terminateIfFailed(result, "tp-2");
@@ -155,7 +159,7 @@ class XRoadControlPlanePolicyMonitorBindingTest {
         var constraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_LOCAL_GROUP))
                 .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression("DEV:security-server-owners"))
+                .rightExpression(new LiteralExpression(new LocalGroupConstraintValue(GROUP_OWNER, "security-server-owners").encode()))
                 .build();
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance().constraint(constraint).build())

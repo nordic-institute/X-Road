@@ -39,6 +39,8 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
@@ -46,8 +48,13 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
@@ -136,6 +143,53 @@ class AgreementTokenIssuerTest {
         when(keyMaterial.provider()).thenReturn(Optional.of(throwingKeyProvider));
 
         assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+    }
+
+    @Test
+    void aStaleSigningKeyFallsBackToEndpointOnlyWithoutAWarningOrAStackTrace() {
+        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+        var staleKeyProvider = mock(AgreementTokenKeyProvider.class);
+        when(staleKeyProvider.activeKey()).thenThrow(XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_SIGNING_KEY_STALE)
+                .details("stale").build());
+        when(keyMaterial.provider()).thenReturn(Optional.of(staleKeyProvider));
+        var issuerLogger = Logger.getLogger(AgreementTokenIssuer.class.getName());
+        var records = new ArrayList<LogRecord>();
+        var handler = new Handler() {
+            @Override
+            public void publish(LogRecord logRecord) {
+                records.add(logRecord);
+            }
+
+            @Override
+            public void flush() {
+                // no-op, records are kept in memory
+            }
+
+            @Override
+            public void close() {
+                // no-op, nothing to release
+            }
+        };
+        var originalLevel = issuerLogger.getLevel();
+        issuerLogger.addHandler(handler);
+        issuerLogger.setLevel(Level.ALL);
+        try {
+            for (var attempt = 0; attempt < 3; attempt++) {
+                assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+            }
+        } finally {
+            issuerLogger.removeHandler(handler);
+            issuerLogger.setLevel(originalLevel);
+        }
+
+        assertThat(records).isNotEmpty();
+        assertThat(records).allSatisfy(logRecord -> {
+            assertThat(logRecord.getLevel().intValue()).isLessThan(Level.INFO.intValue());
+            assertThat(logRecord.getThrown()).isNull();
+        });
     }
 
     @Test

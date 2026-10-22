@@ -37,9 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.opmonitor.api.OperationalDataIntervalsRequestValidator;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
@@ -60,6 +62,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.Instant.ofEpochMilli;
+import static org.niis.xroad.common.core.exception.ErrorCode.OPERATIONAL_DATA_INTERVALS_OUT_OF_RANGE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
@@ -223,6 +226,11 @@ public class DiagnosticService {
                                                                      String securityServerType,
                                                                      ClientId memberId,
                                                                      ServiceId serviceId) {
+        try {
+            OperationalDataIntervalsRequestValidator.validate(recordsFromTimestamp, recordsToTimestamp, interval);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage(), OPERATIONAL_DATA_INTERVALS_OUT_OF_RANGE.build());
+        }
         return opMonitorClient.getOperationalDataIntervals(recordsFromTimestamp,
                 recordsToTimestamp,
                 interval,

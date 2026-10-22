@@ -32,6 +32,8 @@ import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -39,6 +41,8 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -49,6 +53,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -78,6 +84,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
     static final int INITIAL_DELAY_MS = 30000;
     private static final long SHUTDOWN_GRACE_SECONDS = 10;
+
+    private static final Logger CYCLE_LOG =
+            LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
@@ -171,10 +180,22 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      *
      * <p>Teardown runs first and is gated on nothing: a decommissioned binding must keep converging
      * toward absence even while the owner or the registered address is unknown.
+     *
+     * <p>Whether this call returns normally or throws, one cycle summary line is logged to the
+     * dedicated {@code .cycles} logger at DEBUG, with the cycle's start timestamp, its duration and
+     * the number of participant contexts {@link #ensure()} reached before the cycle ended ({@code -1}
+     * when it never returned).
      */
     public void provisionParticipant() {
-        teardown();
-        ensure();
+        var start = Instant.now();
+        int contexts = -1;
+        try {
+            teardown();
+            contexts = ensure();
+        } finally {
+            CYCLE_LOG.debug("Dataspace provisioning: cycle summary cycleStart={} durationMs={} contexts={}",
+                    start, Duration.between(start, Instant.now()).toMillis(), contexts);
+        }
     }
 
     /**
@@ -195,15 +216,16 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
      * configuration the DID is derived from.
      */
-    private void ensure() {
+    private int ensure() {
         var contexts = dataspaceProvisioningService.participantContexts();
+        int contextCount = contexts.size();
         if (ownerUnknown(contexts)) {
             log.debug("Dataspace provisioning: SS owner not yet known, skipping");
-            return;
+            return contextCount;
         }
         if (!dataspaceProvisioningService.registeredAddressKnown()) {
             log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
-            return;
+            return contextCount;
         }
 
         var statuses = statusesOf(contexts);
@@ -222,7 +244,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         if (nonConverged.isEmpty()) {
             log.debug("Dataspace provisioning: all {} participant context(s) converged, only Control Plane records re-applied",
                     contexts.size());
-            return;
+            return contextCount;
         }
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
@@ -234,10 +256,11 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
         if (!authCertRegistered) {
             log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
-            return;
+            return contextCount;
         }
 
         ensureCredentials(ensuredContexts, statuses);
+        return contextCount;
     }
 
     /**
@@ -345,11 +368,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     static class IsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return isActive();
-        }
-
-        static boolean isActive() {
-            return !NodeProperties.isSecondaryNode();
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
+            return DataspaceParticipantProvisioningTrigger.isActive(NodeProperties.isSecondaryNode(),
+                    config.value(AdminServiceConfigKeys.DATASPACE_PROVISIONING_ENABLED));
         }
     }
 }

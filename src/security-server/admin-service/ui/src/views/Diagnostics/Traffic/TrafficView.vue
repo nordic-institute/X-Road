@@ -202,6 +202,7 @@ const lastFetchedTrafficData: Ref<Array<OperationalDataInterval>> = ref([]);
 const series: Ref<Array<TrafficSeries>> = ref([]);
 const seriesLoading = ref(false);
 const seriesLoadingDebounced = ref(false);
+let trafficGeneration = 0;
 
 const services: Ref<Array<Service>> = ref([]);
 const servicesLoading = ref(false);
@@ -231,15 +232,28 @@ function endSeriesLoading() {
 }
 
 function onFiltersChange(filter: TrafficFilter) {
+  const queryParams = toQueryParams(filter);
+  if (dayjs(queryParams.records_to).isBefore(queryParams.records_from)) {
+    trafficGeneration++;
+    endSeriesLoading();
+    lastFetchedTrafficData.value = [];
+    series.value = toChartSeries(filter, []);
+    return;
+  }
+  const generation = trafficGeneration;
   startSeriesLoading();
-  fetchTrafficData(toQueryParams(filter))
+  fetchTrafficData(queryParams)
     .then((data) => {
-      lastFetchedTrafficData.value = data;
-      series.value = toChartSeries(filter, data);
+      if (generation === trafficGeneration) {
+        lastFetchedTrafficData.value = data;
+        series.value = toChartSeries(filter, data);
+      }
     })
-    .catch(addError)
+    .catch((error) => {
+      if (generation === trafficGeneration) addError(error);
+    })
     .finally(() => {
-      endSeriesLoading();
+      if (generation === trafficGeneration) endSeriesLoading();
     });
 }
 

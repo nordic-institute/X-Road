@@ -13,7 +13,6 @@ CERTIFICATE_FILES=(
   /etc/xroad/ssl/proxy-ui-api.crt
   /etc/xroad/ssl/center-admin-service.crt
   /etc/xroad/ssl/management-service.crt
-  /etc/xroad/ssl/opmonitor.crt
 )
 
 declare -A SECRET_PATH_MAPPING=(
@@ -21,7 +20,6 @@ declare -A SECRET_PATH_MAPPING=(
   ["proxy-ui-api"]="admin-service"
   ["center-admin-service"]="admin-service"
   ["management-service"]="management-service"
-  ["opmonitor"]="opmonitor"
 )
 
 load_secret_store_env() {

@@ -51,6 +51,7 @@ public class AgreementTokenKeyRefreshJob {
 
     @PostConstruct
     public void init() {
+        properties.validateKeyLifecycle();
         var interval = properties.keyRefreshInterval();
         log.info("Scheduling agreement-token signing key refresh every {}", interval);
         scheduler.newJob(getClass().getSimpleName())

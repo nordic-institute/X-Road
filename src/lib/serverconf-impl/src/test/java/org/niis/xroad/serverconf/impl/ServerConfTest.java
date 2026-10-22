@@ -30,6 +30,7 @@ import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -61,6 +62,9 @@ import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_SERVICE;
 import static org.niis.xroad.serverconf.impl.TestUtil.BASE64_CERT;
 import static org.niis.xroad.serverconf.impl.TestUtil.CLIENT_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.CROSS_SS_GROUP_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.CROSS_SS_MEMBER_CODE;
+import static org.niis.xroad.serverconf.impl.TestUtil.CROSS_SS_SUBSYSTEM_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.MEMBER_CLASS;
 import static org.niis.xroad.serverconf.impl.TestUtil.MEMBER_CODE;
 import static org.niis.xroad.serverconf.impl.TestUtil.NUM_CLIENTS;
@@ -311,6 +315,44 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/;x/../../admin"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test%252Fbar"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo bar"));
+    }
+
+    /**
+     * Tests the owner-scoped local-group membership check DSP uses: it matches a group member by its
+     * member-level identity regardless of whether that member is a client of this security server,
+     * and it never falls back to a group some other client happens to own under the same code.
+     */
+    @Test
+    public void isLocalGroupMember() {
+        ClientId owner = createTestClientId(client(1));
+        ClientId otherOwner = createTestClientId(client(2));
+        LocalGroupId groupId = LocalGroupId.Conf.create(CROSS_SS_GROUP_CODE);
+
+        ClientId crossSsMember = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE);
+        ClientId crossSsMemberOtherSubsystem = ClientId.Conf.create(
+                XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE, "otherSubsystem");
+        ClientId otherMemberSameSubsystemCode = ClientId.Conf.create(
+                XROAD_INSTANCE, MEMBER_CLASS, "notTheCrossSsMember", CROSS_SS_SUBSYSTEM_CODE);
+
+        // Owner's group contains the consumer subsystem; the consumer is not a client of this SS.
+        assertTrue(serverConfProvider.isLocalGroupMember(owner, groupId, crossSsMember));
+
+        // Matches by member part only: a different subsystem of the same member still matches.
+        assertTrue(serverConfProvider.isLocalGroupMember(owner, groupId, crossSsMemberOtherSubsystem));
+
+        // A different member with the same subsystem code does not match.
+        assertFalse(serverConfProvider.isLocalGroupMember(owner, groupId, otherMemberSameSubsystemCode));
+
+        // otherOwner owns a group with the same code, but otherOwner itself is not a member of
+        // owner's group: scoping to the owner must not fall back to the consumer's own groups.
+        assertFalse(serverConfProvider.isLocalGroupMember(owner, groupId, otherOwner));
+
+        // An owner id that is not a client of this security server fails closed.
+        ClientId unknownOwner = createTestClientId(CLIENT_CODE + "Unknown");
+        assertFalse(serverConfProvider.isLocalGroupMember(unknownOwner, groupId, crossSsMember));
+
+        // A group code the owner does not have fails closed.
+        assertFalse(serverConfProvider.isLocalGroupMember(owner, LocalGroupId.Conf.create("noSuchGroup"), crossSsMember));
     }
 
     /**

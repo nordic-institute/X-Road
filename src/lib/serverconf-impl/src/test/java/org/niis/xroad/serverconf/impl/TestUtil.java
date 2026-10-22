@@ -92,6 +92,10 @@ public final class TestUtil {
     static final int NUM_SERVICES = 4;
     static final int NUM_TSPS = 5;
 
+    static final String CROSS_SS_GROUP_CODE = "crossSsGroup";
+    static final String CROSS_SS_MEMBER_CODE = "crossSsMember";
+    static final String CROSS_SS_SUBSYSTEM_CODE = "crossSsSub";
+
     static final String BASE64_CERT =
             "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
                     + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
@@ -293,11 +297,42 @@ public final class TestUtil {
             localGroup.getGroupMembers().add(localGroupMember);
 
             client.getLocalGroups().add(localGroup);
+
+            addCrossSecurityServerGroups(session, client, i);
         }
 
         addTimestampingServices(conf);
 
         return conf;
+    }
+
+    private static void addCrossSecurityServerGroups(Session session, ClientEntity client, int clientIndex) {
+        if (clientIndex == 1) {
+            LocalGroupEntity crossSsGroup = new LocalGroupEntity();
+            crossSsGroup.setGroupCode(CROSS_SS_GROUP_CODE);
+            crossSsGroup.setDescription("local group with a member on another security server");
+            crossSsGroup.setUpdated(new Date());
+            crossSsGroup.setClient(client);
+
+            SubsystemIdEntity crossSubsystem = SubsystemIdEntity.create(
+                    XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE, CROSS_SS_SUBSYSTEM_CODE);
+            session.persist(crossSubsystem);
+
+            GroupMemberEntity crossGroupMember = new GroupMemberEntity();
+            crossGroupMember.setAdded(new Date());
+            crossGroupMember.setGroupMemberId(crossSubsystem);
+            crossSsGroup.getGroupMembers().add(crossGroupMember);
+
+            client.getLocalGroups().add(crossSsGroup);
+        } else if (clientIndex == 2) {
+            LocalGroupEntity sameCodeGroup = new LocalGroupEntity();
+            sameCodeGroup.setGroupCode(CROSS_SS_GROUP_CODE);
+            sameCodeGroup.setDescription("local group whose code collides with another client's group");
+            sameCodeGroup.setUpdated(new Date());
+            sameCodeGroup.setClient(client);
+
+            client.getLocalGroups().add(sameCodeGroup);
+        }
     }
 
     private static void addTimestampingServices(ServerConfEntity conf) {

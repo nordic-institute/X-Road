@@ -32,9 +32,11 @@ import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
@@ -59,7 +61,8 @@ public class ServiceHandlerLoader {
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties proxyProperties;
     private final CommonProperties commonProperties;
-    private final VaultClient vaultClient;
+    private final RpcChannelFactory rpcChannelFactory;
+    private final XRoadConfig xRoadConfig;
     private final MonitorRpcClient monitorRpcClient;
     private final HttpSenderProvider httpSenderProvider;
     @Named(SERVER_PROXY_HTTP_CLIENT)
@@ -90,7 +93,7 @@ public class ServiceHandlerLoader {
         }
         if (addons.opMonitor().enabled()) {
             handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider,
-                    vaultClient, proxyProperties));
+                    () -> OpMonitorClient.create(rpcChannelFactory, xRoadConfig)));
         }
         if (addons.proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));

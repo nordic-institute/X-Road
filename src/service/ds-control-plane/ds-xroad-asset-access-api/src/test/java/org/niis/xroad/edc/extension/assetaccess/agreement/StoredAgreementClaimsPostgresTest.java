@@ -58,6 +58,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadLocalGroupMemberConstraintFunction;
+import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -79,7 +80,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class StoredAgreementClaimsPostgresTest {
 
-    private static final String LOCAL_GROUP = "DEV:security-server-owners";
+    private static final ClientId LOCAL_GROUP_OWNER = ClientId.Conf.create("DEV", "COM", "111", "Owner");
+    private static final String LOCAL_GROUP = new LocalGroupConstraintValue(LOCAL_GROUP_OWNER, "security-server-owners").encode();
 
     private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
     private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
@@ -113,7 +115,8 @@ class StoredAgreementClaimsPostgresTest {
     @Test
     void localGroupConstraintPassesForMemberStillInGroup() {
         var serverConfProvider = mock(ServerConfProvider.class);
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
+        when(serverConfProvider.isLocalGroupMember(any(ClientId.class), any(LocalGroupId.class), any(ClientId.class)))
+                .thenReturn(true);
 
         var result = evaluateLocalGroup(serverConfProvider, monitorContextOf(saveAndReload("neg-1")));
 
@@ -123,7 +126,8 @@ class StoredAgreementClaimsPostgresTest {
     @Test
     void localGroupConstraintFailsForRemovedMember() {
         var serverConfProvider = mock(ServerConfProvider.class);
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
+        when(serverConfProvider.isLocalGroupMember(any(ClientId.class), any(LocalGroupId.class), any(ClientId.class)))
+                .thenReturn(false);
 
         var result = evaluateLocalGroup(serverConfProvider, monitorContextOf(saveAndReload("neg-1")));
 
