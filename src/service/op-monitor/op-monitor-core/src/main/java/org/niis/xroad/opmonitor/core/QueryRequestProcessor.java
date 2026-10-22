@@ -30,10 +30,11 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
 
 import com.codahale.metrics.MetricRegistry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -41,9 +42,12 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CONTENT_TYPE;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 
@@ -54,28 +58,13 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
  */
 @Slf4j
 class QueryRequestProcessor {
-    /**
-     * The servlet request.
-     */
-    private final RequestWrapper request;
-
-    /**
-     * The servlet response.
-     */
-    private final ResponseWrapper response;
-
     private final OperationalDataRequestHandler operationalDataHandler;
     private final HealthDataRequestHandler healthDataHandler;
 
     QueryRequestProcessor(GlobalConfProvider globalConfProvider,
-                          RequestWrapper request,
-                          ResponseWrapper response,
                           MetricRegistry healthMetricRegistry,
                           OperationalDataRecordManager operationalDataRecordManager,
                           OpMonitorProperties opMonitorProperties) {
-        this.request = request;
-        this.response = response;
-
         this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager,
                 opMonitorProperties);
         this.healthDataHandler = new HealthDataRequestHandler(
@@ -85,23 +74,43 @@ class QueryRequestProcessor {
     }
 
     /**
+     * Checks that the query content type is text/xml.
+     *
+     * @param contentType the content type of the query
+     */
+    static void checkContentType(String contentType) {
+        if (!MimeTypes.TEXT_XML.equalsIgnoreCase(MimeUtils.getBaseContentType(contentType))) {
+            throw XrdRuntimeException.systemException(INVALID_CONTENT_TYPE,
+                    "Invalid content type " + contentType + ", expecting " + MimeTypes.TEXT_XML);
+        }
+    }
+
+    /**
      * Processes the incoming message.
      *
+     * @param requestIn            the query message, closed when processing ends
+     * @param contentType          the content type of the query message
+     * @param responseOut          opens the stream the response is written to, called once the query is parsed;
+     *                             the stream is closed when the response is written
+     * @param contentTypeAssigner  receives the content type of the response before it is written
      * @throws Exception in case of any errors
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
-    void process() throws Exception {
-        try (var handler = new QueryRequestHandler(); var requestIn = request.getInputStream()) {
-            SoapMessageDecoder soapMessageDecoder =
-                    new SoapMessageDecoder(request.getContentType(),
-                            handler, new SoapParserImpl());
+    void process(InputStream requestIn, String contentType, Supplier<OutputStream> responseOut,
+                 Consumer<String> contentTypeAssigner) throws Exception {
+        try (var handler = new QueryRequestHandler(responseOut, contentTypeAssigner); requestIn) {
+            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(contentType, handler, new SoapParserImpl());
 
             soapMessageDecoder.parse(requestIn);
         }
     }
 
     @ArchUnitSuppressed("NoVanillaExceptions")
+    @RequiredArgsConstructor
     private final class QueryRequestHandler implements SoapMessageDecoder.Callback {
+        private final Supplier<OutputStream> responseOut;
+        private final Consumer<String> contentTypeAssigner;
+
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             if (log.isTraceEnabled()) {
@@ -110,19 +119,13 @@ class QueryRequestProcessor {
 
             SoapMessageImpl requestSoap = (SoapMessageImpl) message;
 
-            response.putHeader("Connection", "close");
-
-            try (var responseOut = response.getOutputStream()) {
+            try (var out = responseOut.get()) {
                 switch (requestSoap.getService().getServiceCode()) {
                     case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                        operationalDataHandler.handle(requestSoap,
-                                responseOut,
-                                responseContentTypeAssigner());
+                        operationalDataHandler.handle(requestSoap, out, contentTypeAssigner);
                         break;
                     case GET_SECURITY_SERVER_HEALTH_DATA:
-                        healthDataHandler.handle(requestSoap,
-                                responseOut,
-                                responseContentTypeAssigner());
+                        healthDataHandler.handle(requestSoap, out, contentTypeAssigner);
                         break;
                     default:
                         throw XrdRuntimeException.systemInternalError(
@@ -153,9 +156,5 @@ class QueryRequestProcessor {
 
             throw fault.toXrdRuntimeException();
         }
-    }
-
-    private Consumer<String> responseContentTypeAssigner() {
-        return response::setContentType;
     }
 }

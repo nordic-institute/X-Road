@@ -206,6 +206,16 @@ class SharedParametersLoaderTest {
     }
 
     @Test
+    void loadSharedParametersCarriesLegacyProtocolDisabled() {
+        stubDependencies();
+        when(systemParameterService.isLegacyProtocolDisabled()).thenReturn(true);
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getGlobalSettings().isLegacyProtocolDisabled()).isTrue();
+    }
+
+    @Test
     void loadMapsSystemValuesOfServerThatPublishedThem() {
         stubDependencies();
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
@@ -487,6 +497,7 @@ class SharedParametersLoaderTest {
                 new SharedParameters.MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION));
 
         assertThat(parameters.getGlobalSettings().getOcspFreshnessSeconds()).isEqualTo(OCSP_FRESHNESS_SECONDS);
+        assertThat(parameters.getGlobalSettings().isLegacyProtocolDisabled()).isFalse();
     }
 
     private void assertGlobalGroups(SharedParameters parameters) {

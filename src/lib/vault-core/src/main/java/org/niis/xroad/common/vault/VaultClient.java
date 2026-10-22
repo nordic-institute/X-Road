@@ -71,7 +71,6 @@ public interface VaultClient {
     String LAST_ERROR_KEY = "lastError";
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
-    String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
     String OPMONITOR_CA_PATH = "tls/opmonitor-ca";
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
@@ -92,15 +91,11 @@ public interface VaultClient {
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
-    InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
-
     InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getManagementServicesTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
-
-    void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
@@ -217,8 +212,7 @@ public interface VaultClient {
     /**
      * Stores an agreement-token signing key pair, serialised as a JWK including its private part, under its
      * key id. Key ids are versioned ("1", "2", ...) rather than reused, so rotation never overwrites a key
-     * a still-outstanding token might have been signed with; the OpenBao policy for this path grants no
-     * delete either.
+     * a still-outstanding token might have been signed with.
      *
      * @param keyId the key's id, as later carried in a minted token's header
      * @param keyPairJwk the key pair as JWK JSON, private part included
@@ -232,6 +226,14 @@ public interface VaultClient {
      * @return map of key id to key pair JWK JSON
      */
     Map<String, String> getAgreementTokenSigningKeys();
+
+    /**
+     * Deletes one agreement-token signing key. Only a key that has stopped signing, and is kept for the
+     * retention period after that so every token it signed has expired, may be deleted; the caller decides which.
+     *
+     * @param keyId the id of the key to delete
+     */
+    void deleteAgreementTokenSigningKey(String keyId);
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();

@@ -192,7 +192,7 @@ path "xrd-secret/acme/account-keys/*" {
   capabilities = ["read", "list", "create", "update"]
 }
 path "xrd-secret/agreement-token/signing-keys/*" {
-  capabilities = ["read", "list", "create", "update"]
+  capabilities = ["read", "list", "create", "update", "delete"]
 }
 
 path "xrd-secret" {

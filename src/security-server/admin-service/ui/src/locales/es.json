@@ -19,6 +19,20 @@
     "enable": "Permitir",
     "order": "Orden"
   },
+  "agreementTokenKey": {
+    "createdAt": "Creada",
+    "createdAtUnknown": "Desconocida",
+    "description": "La clave de firma de tokens de acuerdo firma los tokens que este Servidor de Seguridad emite para el intercambio de datos en un espacio de datos. Rotar la clave genera una nueva clave. Las claves anteriores se conservan para que los tokens firmados con ellas sigan siendo válidos hasta que caduquen.",
+    "keyId": "ID de la clave de firma",
+    "pending": "Una nueva clave ({keyId}) está esperando para empezar a firmar.",
+    "previousKeys": "Claves anteriores conservadas",
+    "rotate": "Rotar clave",
+    "rotateConfirmText": "Los tokens ya emitidos siguen funcionando hasta que caduquen. La nueva clave empieza a firmar en un plazo de dos intervalos de actualización de claves.",
+    "rotateConfirmTitle": "¿Rotar la clave de firma de tokens de acuerdo?",
+    "rotated": "La clave de firma de tokens de acuerdo se ha rotado",
+    "title": "Clave de firma de tokens de acuerdo",
+    "unavailable": "La clave de firma no está disponible. El proxy aún no ha cargado ninguna clave de firma, por lo que no se puede rotar la clave."
+  },
   "alert": {
     "warningCount": "Cantidad de advertencias similares"
   },
@@ -392,7 +406,12 @@
           },
           "UnknownService": "Servicio desconocido"
         }
-      }
+      },
+      "agreement_token_key_generation_failed": "Error al generar la clave de firma de tokens de acuerdo",
+      "agreement_token_key_not_available": "La clave de firma de tokens de acuerdo no está disponible. El proxy aún no ha cargado ninguna clave de firma",
+      "agreement_token_key_store_failed": "No se pudo guardar la clave de firma de tokens de acuerdo en el almacén de secretos. Inténtelo de nuevo más tarde",
+      "agreement_token_rejected": "El token de acuerdo fue rechazado",
+      "agreement_token_signing_failed": "Error al firmar el token de acuerdo"
     },
     "csr_not_found": "No se encontró el CSR",
     "diagnostic_request_failed": "Falló la solicitud de diagnóstico",
@@ -1074,17 +1093,7 @@
                 "buffer": {
                   "size": "Número máximo de registros almacenados en búfer antes de enviarlos al monitor operacional.",
                   "max-records-in-message": "Número máximo de registros de datos operacionales en un mensaje enviado por el búfer de monitoreo operacional al daemon de monitoreo operacional.",
-                  "sending-interval-seconds": "El intervalo en segundos en el que el búfer de monitoreo operacional intenta (re)enviar registros al daemon de monitoreo operacional. Normalmente, el búfer activa el mecanismo de envío inmediatamente cuando recibe un nuevo registro. En caso de alta carga o fallos de envío, los registros se acumulan en el búfer y necesitan atención periódica.",
-                  "socket-timeout-seconds": "El tiempo de espera del socket (SO_TIMEOUT) para el envío de registros de monitoreo operacional desde el búfer al daemon de monitoreo operacional, en segundos.",
-                  "connection-timeout-seconds": "Tiempo de espera de conexión del cliente HTTP en segundos."
-                },
-                "connection": {
-                  "host": "La dirección del host en la que escucha el daemon de monitoreo operacional.",
-                  "port": "Puerto TCP en el que escucha el daemon de monitoreo operacional.",
-                  "scheme": "El nombre del esquema URI del daemon de monitoreo operacional. Los valores posibles son http y https.",
-                  "socket-timeout-seconds": "Tiempo de espera de conexión del cliente HTTP en segundos.",
-                  "connection-timeout-seconds": "El tiempo de espera del socket (SO_TIMEOUT) para el envío de la solicitud de datos operacionales al daemon de monitoreo operacional, en segundos.",
-                  "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las solicitudes entre servidores de seguridad y entre el daemon de monitoreo operacional y el cliente. (desde la versión 6.20)"
+                  "sending-interval-seconds": "El intervalo en segundos en el que el búfer de monitoreo operacional intenta (re)enviar registros al daemon de monitoreo operacional. Normalmente, el búfer activa el mecanismo de envío inmediatamente cuando recibe un nuevo registro. En caso de alta carga o fallos de envío, los registros se acumulan en el búfer y necesitan atención periódica."
                 }
               }
             },
@@ -1295,30 +1304,14 @@
             }
           },
           "op-monitor": {
-            "listen-address": "Dirección IP en la que escucha el daemon de monitoreo operacional.",
-            "port": "Puerto TCP en el que escucha el daemon de monitoreo operacional.",
-            "scheme": "Esquema URI del daemon de monitoreo operacional. Los valores posibles son http y https.",
-            "xroad-tls-ciphers": "Cifrados TLS (lista separada por comas en orden de preferencia) aceptados en las conexiones al daemon de monitoreo operacional.",
             "keep-records-for-days": "Número de días que se retienen los registros de monitoreo operacional antes de ser eliminados.",
             "clean-interval": "Expresión cron que controla cuándo se limpian los registros de monitoreo operacional antiguos.",
             "max-records-in-payload": "Número máximo de registros de monitoreo operacional devueltos en una sola respuesta.",
             "records-available-timestamp-offset-seconds": "Desplazamiento en segundos que se resta del tiempo actual al determinar el límite superior de los registros disponibles.",
             "health-statistics-period-seconds": "Período en segundos durante el cual se agregan las estadísticas de salud.",
             "rpc": {
-              "enabled": "Habilitar el servidor gRPC del daemon de monitoreo operacional.",
               "listen-address": "Dirección IP en la que escucha el servidor gRPC del daemon de monitoreo operacional.",
               "port": "Puerto en el que escucha el servidor gRPC del daemon de monitoreo operacional."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Nombre del rol PKI de Vault utilizado al aprovisionar el certificado TLS del daemon de monitoreo operacional.",
-                "common-name": "Nombre común establecido en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
-                "alt-names": "Nombres alternativos de sujeto DNS incluidos en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
-                "ip-subject-alt-names": "Nombres alternativos de sujeto IP incluidos en el certificado TLS del daemon de monitoreo operacional aprovisionado.",
-                "ttl": "Tiempo de vida del certificado TLS del daemon de monitoreo operacional aprovisionado (p. ej. 3650D).",
-                "secret-store-pki-path": "Ruta de montaje del motor de secretos PKI de Vault para el aprovisionamiento del certificado TLS del daemon de monitoreo operacional."
-              },
-              "client-certificate-refresh-interval": "Intervalo con el que el daemon de monitoreo operacional renueva su certificado TLS de cliente (p. ej. 0S para deshabilitar)."
             }
           },
           "message-log-archiver": {
@@ -1370,7 +1363,8 @@
       "apiKey": "Clave de API",
       "opMonitorTrust": "Confianza del monitoreo operacional",
       "signAndAuthKeys": "Clave de firma y autenticación",
-      "ssTlsCertificate": "Clave TLS del servidor de seguridad"
+      "ssTlsCertificate": "Clave TLS del servidor de seguridad",
+      "agreementTokenKey": "Clave de tokens de acuerdo"
     },
     "main": {
       "clients": "Clientes",

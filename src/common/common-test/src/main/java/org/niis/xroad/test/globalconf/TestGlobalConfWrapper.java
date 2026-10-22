@@ -358,4 +358,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     public Collection<String> getCredentialIssuerDids(String instanceIdentifier) {
         return globalConfProvider.getCredentialIssuerDids(instanceIdentifier);
     }
+
+    @Override
+    public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
+        return globalConfProvider.isLegacyProtocolDisabled(instanceIdentifier);
+    }
 }

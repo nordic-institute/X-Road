@@ -68,9 +68,11 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 /**
  * Writes lock the server row before they read or write any published value, then validate the values
  * against the server as it is under the lock. {@code checkSystemPair} is a dry run that takes no lock and
- * writes nothing. Uniqueness is decided here, not by the database: the
- * hash-indexed member DID constraint cannot be an {@code ON CONFLICT} target, so equal resends are told
- * apart from conflicts by comparing the stored value.
+ * writes nothing. Uniqueness is decided here first: the hash-indexed member DID constraint cannot be an
+ * {@code ON CONFLICT} target, so equal resends are told apart from conflicts by comparing the stored value.
+ * A refusal the store sees under the lock concerns one entry and does not stop the others. When two
+ * servers race on the same DID and the database exclusion constraint fires first, the whole batch rolls
+ * back; the repeated call is then refused per entry.
  */
 @Service
 @Transactional

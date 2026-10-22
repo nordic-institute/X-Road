@@ -591,6 +591,20 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
+        try {
+            return findShared(instanceIdentifier)
+                    .map(SharedParameters::getGlobalSettings)
+                    .map(SharedParameters.GlobalSettings::isLegacyProtocolDisabled)
+                    .orElse(false);
+        } catch (XrdRuntimeException e) {
+            log.warn("Could not read the legacy protocol setting of instance {}, treating it as not disabled",
+                    instanceIdentifier, e);
+            return false;
+        }
+    }
+
+    @Override
     public Optional<ServerSystemValues> getServerSystemValues(SecurityServerId serverId) {
         return globalConfSource.findSharedParametersCache(serverId.getXRoadInstance())
                 .map(cache -> cache.getSecurityServersById().get(serverId))

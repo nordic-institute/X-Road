@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.agreementtoken.key;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -49,9 +50,19 @@ public interface AgreementTokenKeyProvider {
     Optional<AgreementTokenSigningKey> keyById(String keyId);
 
     /**
+     * Describes the retained keys from the local cache, oldest first; never reads the secret store. The default
+     * reports only the active key; providers that retain more keys override it.
+     *
+     * @return the retained keys, ordered by ascending key version
+     */
+    default List<AgreementTokenKeyInfo> listKeys() {
+        return List.of(AgreementTokenKeyInfo.of(activeKey(), true));
+    }
+
+    /**
      * Generates a new signing key, stores it, and makes it the active key for future minting. Previously
-     * issued keys are kept, never deleted, so tokens already minted with them keep verifying until they expire.
-     * Operator-driven: nothing in this library calls it on its own.
+     * issued keys are kept, so tokens already minted with them keep verifying until they expire; this library
+     * never deletes them. Nothing in this library calls it on its own.
      *
      * @return the newly created, now-active key
      */

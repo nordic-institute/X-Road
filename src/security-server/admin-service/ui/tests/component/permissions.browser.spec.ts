@@ -111,6 +111,8 @@ const sysAdminPermissions = [
   Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
   Permissions.VIEW_INTERNAL_TLS_CERT,
   Permissions.VIEW_ADMIN_USERS,
+  Permissions.VIEW_AGREEMENT_TOKEN_KEY,
+  Permissions.ROTATE_AGREEMENT_TOKEN_KEY,
 ];
 
 const regOfficerPermissions = [
@@ -132,6 +134,8 @@ const secOfficerPermissions = [
   Permissions.VIEW_INTERNAL_TLS_CERT,
   Permissions.EXPORT_INTERNAL_TLS_CERT,
   Permissions.VIEW_SYS_PARAMS,
+  Permissions.VIEW_AGREEMENT_TOKEN_KEY,
+  Permissions.ROTATE_AGREEMENT_TOKEN_KEY,
 ];
 
 const observerPermissions = [
@@ -142,6 +146,7 @@ const observerPermissions = [
   Permissions.VIEW_API_KEYS,
   Permissions.DIAGNOSTICS,
   Permissions.VIEW_SYS_PARAMS,
+  Permissions.VIEW_AGREEMENT_TOKEN_KEY,
 ];
 
 const serviceAdminPermissions = [
@@ -203,6 +208,9 @@ const clientsHandler = specHttp.get('/clients', ({ response }) => response(200).
 const tokensHandler = specHttp.get('/tokens', ({ response }) => response(200).json([loggedInTokenFixture]));
 const tlsCertHandler = specHttp.get('/system/certificate', ({ response }) => response(200).json(tlsCertFixture));
 const anchorHandler = specHttp.get('/system/anchor', ({ response }) => response(200).json(anchorFixture));
+const agreementTokenKeyHandler = specHttp.get('/dataspace/agreement-token-key', ({ response }) =>
+  response(200).json({ available: true, active_key_id: '1', retained_key_count: 1 }),
+);
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
@@ -343,6 +351,42 @@ describe('Permissions — Security officer (Browser Mode)', () => {
     });
 
     await expect.element(page.getByTestId('api-key-tab-button')).toBeVisible();
+  });
+
+  it('agreement token key tab absent without VIEW_AGREEMENT_TOKEN_KEY (two-sided: present for security officer)', async () => {
+    await renderRoute('/keys/sign-and-auth', {
+      permissions: regOfficerPermissions,
+      msw: [tokensHandler],
+    });
+
+    await expect.element(page.getByTestId('sign-and-auth-keys-tab-button')).toBeVisible();
+    expect(page.getByTestId('agreement-token-key-tab-button').query()).toBeNull();
+
+    // Contrast: security officer has VIEW_AGREEMENT_TOKEN_KEY → tab present
+    await renderRoute('/keys/sign-and-auth', {
+      permissions: secOfficerPermissions,
+      msw: [tokensHandler],
+    });
+
+    await expect.element(page.getByTestId('agreement-token-key-tab-button')).toBeVisible();
+  });
+
+  it('agreement token key: rotate button absent for observer (two-sided: present for security officer)', async () => {
+    await renderRoute('/keys/agreement-token-key', {
+      permissions: observerPermissions,
+      msw: [agreementTokenKeyHandler],
+    });
+
+    await expect.element(page.getByTestId('agreement-token-key-id')).toBeVisible();
+    expect(page.getByTestId('rotate-agreement-token-key-button').query()).toBeNull();
+
+    // Contrast: security officer has ROTATE_AGREEMENT_TOKEN_KEY → rotate button present
+    await renderRoute('/keys/agreement-token-key', {
+      permissions: secOfficerPermissions,
+      msw: [agreementTokenKeyHandler],
+    });
+
+    await expect.element(page.getByTestId('rotate-agreement-token-key-button')).toBeVisible();
   });
 
   it('settings: backup-and-restore tab absent (two-sided: present for role with BACKUP_CONFIGURATION)', async () => {

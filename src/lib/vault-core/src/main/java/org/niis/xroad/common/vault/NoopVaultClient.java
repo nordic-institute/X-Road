@@ -39,11 +39,6 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() {
-        return new InternalSSLKey(null, new X509Certificate[]{});
-    }
-
-    @Override
     public InternalSSLKey getAdminServiceTlsCredentials() {
         return new InternalSSLKey(null, new X509Certificate[]{});
     }
@@ -55,11 +50,6 @@ public class NoopVaultClient implements VaultClient {
 
     @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new UnsupportedOperationException("Not supported");
     }
 
@@ -181,5 +171,10 @@ public class NoopVaultClient implements VaultClient {
     @Override
     public Map<String, String> getAgreementTokenSigningKeys() {
         return Map.of();
+    }
+
+    @Override
+    public void deleteAgreementTokenSigningKey(String keyId) {
+        throw new UnsupportedOperationException("Not supported");
     }
 }

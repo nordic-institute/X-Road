@@ -44,6 +44,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
@@ -54,6 +55,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = SecurityServerEntity.TABLE_NAME)
+@DynamicUpdate
 @NoArgsConstructor
 public class SecurityServerEntity extends AuditableEntity {
 

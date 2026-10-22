@@ -25,6 +25,20 @@
       "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
     }
   },
+  "agreementTokenKey": {
+    "createdAt": "Created",
+    "createdAtUnknown": "Unknown",
+    "description": "The agreement token signing key signs the tokens that this Security Server issues for data exchange in a dataspace. Rotating the key generates a new key. Earlier keys are kept so that tokens signed with them stay valid until they expire.",
+    "keyId": "Signing key ID",
+    "pending": "A new key ({keyId}) is waiting to start signing.",
+    "previousKeys": "Previous keys retained",
+    "rotate": "Rotate key",
+    "rotateConfirmText": "Tokens already issued keep working until they expire. The new key starts signing within two key refresh intervals.",
+    "rotateConfirmTitle": "Rotate agreement token signing key?",
+    "rotated": "The agreement token signing key is rotated",
+    "title": "Agreement token signing key",
+    "unavailable": "The signing key is not available. The proxy has not loaded any signing key yet, so the key cannot be rotated."
+  },
   "alert": {
     "warningCount": "Amount of same warnings"
   },
@@ -469,7 +483,12 @@
           },
           "UnknownService": "Unknown service"
         }
-      }
+      },
+      "agreement_token_key_generation_failed": "Generating the agreement token signing key failed",
+      "agreement_token_key_not_available": "The agreement token signing key is not available. The proxy has not loaded any signing key yet",
+      "agreement_token_key_store_failed": "The agreement token signing key could not be saved to the secret store. Try again later",
+      "agreement_token_rejected": "The agreement token was rejected",
+      "agreement_token_signing_failed": "Signing the agreement token failed"
     },
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
@@ -584,6 +603,7 @@
     "ocsp_response_parsing_failure": "Unable to parse the OCSP response",
     "ocsp_response_verification_failure": "Unable to verify the OCSP response",
     "openapi_parsing_error": "Parsing OpenApi3 description failed",
+    "operational_data_intervals_out_of_range": "The selected time period is invalid. Set the end date and time to the start or later. If needed, shorten the selected period.",
     "orphans_not_found": "Orphan keys, certificates and/or CSRs that belong to the given client were not found",
     "pin_code_exists": "PIN code exists",
     "pin_code_not_provided": "PIN code is not provided",
@@ -1238,17 +1258,7 @@
                   "size": "Maximum number of records buffered before sending to the operational monitor.",
                   "max-records-in-message": "Maximum number of operational data records in a message sent by the operational monitoring buffer to the operational monitoring daemon.",
                   "max-message-size": "Maximum size in bytes of one store request sent by the operational monitoring buffer to the operational monitoring daemon. Larger batches are split into several requests. The minimum is 65536. Keep it below the daemon's xroad.op-monitor.rpc.max-inbound-message-size (gRPC default 4 MiB).",
-                  "sending-interval-seconds": "The interval in seconds at which the operational monitoring buffer (re)tries to send records to the operational monitoring daemon. Normally, the buffer triggers the sending mechanism immediately when it receives a new record. In case of heavy load or sending failures the records are accumulating in the buffer and need periodical attention.",
-                  "socket-timeout-seconds": "The socket timeout (SO_TIMEOUT) of sending operational monitoring records from the operational monitoring buffer to the operational monitoring daemon in seconds.",
-                  "connection-timeout-seconds": "HTTP client connection timeout in seconds."
-                },
-                "connection": {
-                  "host": "The host address on which the operational monitoring daemon listens.",
-                  "port": "TCP port on which the operational monitoring daemon listens.",
-                  "scheme": "The URI scheme name of the operational monitoring daemon. Possible values are http and https.",
-                  "socket-timeout-seconds": "HTTP client connection timeout in seconds.",
-                  "connection-timeout-seconds": "The socket timeout (SO_TIMEOUT) of sending the operational data request to the operational monitoring daemon in seconds.",
-                  "xroad-tls-ciphers": "TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers, and between operational monitoring daemon and client. (since version 6.20)"
+                  "sending-interval-seconds": "The interval in seconds at which the operational monitoring buffer (re)tries to send records to the operational monitoring daemon. Normally, the buffer triggers the sending mechanism immediately when it receives a new record. In case of heavy load or sending failures the records are accumulating in the buffer and need periodical attention."
                 }
               }
             },
@@ -1401,7 +1411,8 @@
               "op-monitor": {
                 "host": "Hostname used to connect to the operational monitoring daemon gRPC server.",
                 "port": "Port used to connect to the operational monitoring daemon gRPC server.",
-                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out."
+                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out.",
+                "max-inbound-message-size": "Maximum size in bytes of a response the operational monitoring daemon channel accepts, for example the response of a monitoring query. The minimum is 4194304 (4 MiB). A query response over the limit fails with an error; lower xroad.op-monitor.max-records-in-payload or raise this limit."
               }
             }
           },
@@ -1459,31 +1470,15 @@
             }
           },
           "op-monitor": {
-            "listen-address": "IP address on which the operational monitoring daemon listens.",
-            "port": "TCP port on which the operational monitoring daemon listens.",
-            "scheme": "URI scheme of the operational monitoring daemon. Possible values are http and https.",
-            "xroad-tls-ciphers": "TLS ciphers (comma-separated list in preferred order) accepted on connections to the operational monitoring daemon.",
             "keep-records-for-days": "Number of days to retain operational monitoring records before they are deleted.",
             "clean-interval": "Cron expression controlling when old operational monitoring records are cleaned up.",
             "max-records-in-payload": "Maximum number of operational monitoring records returned in a single response payload.",
             "records-available-timestamp-offset-seconds": "Offset in seconds subtracted from the current time when determining the upper bound for available records.",
             "health-statistics-period-seconds": "Period in seconds over which health statistics are aggregated.",
             "rpc": {
-              "enabled": "Enable the operational monitoring daemon gRPC server.",
               "listen-address": "IP address on which the operational monitoring daemon gRPC server listens.",
               "port": "Port on which the operational monitoring daemon gRPC server listens.",
               "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size."
-            },
-            "tls": {
-              "certificate-provisioning": {
-                "issuance-role-name": "Vault PKI role name used when provisioning the operational monitoring daemon TLS certificate.",
-                "common-name": "Common name set on the provisioned operational monitoring daemon TLS certificate.",
-                "alt-names": "DNS subject alternative names included in the provisioned operational monitoring daemon TLS certificate.",
-                "ip-subject-alt-names": "IP subject alternative names included in the provisioned operational monitoring daemon TLS certificate.",
-                "ttl": "Time-to-live of the provisioned operational monitoring daemon TLS certificate (e.g. 3650D).",
-                "secret-store-pki-path": "Vault PKI secrets engine mount path for operational monitoring daemon TLS certificate provisioning."
-              },
-              "client-certificate-refresh-interval": "Interval at which the operational monitoring daemon refreshes its client TLS certificate (e.g. 0S to disable)."
             }
           },
           "message-log-archiver": {
@@ -1536,7 +1531,8 @@
       "opMonitorTrust": "Operational Monitoring Trust",
       "signAndAuthKeys": "SIGN and AUTH Keys",
       "ssTlsCertificate": "Security Server TLS Key",
-      "dsTlsCertificate": "Dataspace TLS Certificate"
+      "dsTlsCertificate": "Dataspace TLS Certificate",
+      "agreementTokenKey": "Agreement Token Key"
     },
     "main": {
       "clients": "Clients",

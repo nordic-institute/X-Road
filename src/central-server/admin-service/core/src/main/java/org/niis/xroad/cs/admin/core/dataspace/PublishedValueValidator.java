@@ -62,7 +62,10 @@ import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_S
  *
  * <p>Hosts are compared after the canonical host rules of {@link DidAuthority}; ports are not compared.
  * Shape and scheme of a DID are checked before it is decoded, so a decoding failure never hides a more
- * specific reason.
+ * specific reason. A DSP base URL must have the scheme {@code https} in lowercase and a host in the canonical
+ * form of {@link DidAuthority#canonicalHost(String)}; its port is taken in plain decimal form, as written, so an explicit
+ * {@code :443}, another port and no port are all accepted. Its checks run in the order not HTTPS,
+ * non-ASCII host, malformed, not canonical, host differs.
  */
 public final class PublishedValueValidator {
 
@@ -204,10 +207,20 @@ public final class PublishedValueValidator {
             return Optional.of(NON_ASCII_HOST);
         }
         if (authority.indexOf('@') >= 0 || url.indexOf('?') >= 0 || url.indexOf('#') >= 0
-                || canonicalHostOf(authority).isEmpty() || !hasServerBasedHost(url)) {
+                || canonicalHostOf(authority).isEmpty() || !DidAuthority.isUriHost(authority)
+                || !isWellFormedUri(url)) {
             return Optional.of(MALFORMED_DSP_BASE_URL);
         }
+        if (!url.startsWith(DSP_BASE_URL_PREFIX) || !hasCanonicalHost(authority)) {
+            return Optional.of(NOT_CANONICAL);
+        }
         return hostMatches(authority) ? Optional.empty() : Optional.of(HOST_DIFFERS);
+    }
+
+    private static boolean hasCanonicalHost(String authority) {
+        var parsed = DidAuthority.parse(authority);
+        var port = parsed.port().isPresent() ? ":" + parsed.port().getAsInt() : "";
+        return authority.equals(DidAuthority.canonicalHost(parsed.host()) + port);
     }
 
     private boolean didHostMatches(String did) {
@@ -236,9 +249,10 @@ public final class PublishedValueValidator {
         return afterScheme.substring(0, end);
     }
 
-    private static boolean hasServerBasedHost(String url) {
+    private static boolean isWellFormedUri(String url) {
         try {
-            return new URI(url).getHost() != null;
+            new URI(url);
+            return true;
         } catch (URISyntaxException e) {
             return false;
         }

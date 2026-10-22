@@ -36,6 +36,7 @@ import java.time.Duration;
 import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /** Common-RPC keys ({@code xroad.common-rpc.*}): root props, cert-provisioning, and channel sub-trees. */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
@@ -55,6 +56,12 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     private static final String DEADLINE_AFTER = "deadline-after";
     private static final String LOCALHOST_IP = "127.0.0.1";
+
+    /**
+     * Smallest accepted message limit of the op-monitor channel in bytes. The largest Diagnostics response,
+     * 100 000 time buckets of at most 35 bytes each, fits in it.
+     */
+    public static final int MIN_OP_MONITOR_CHANNEL_MESSAGE_SIZE = 4 * 1024 * 1024;
 
     private static final CommonRpcConfigKeys INSTANCE = new CommonRpcConfigKeys();
 
@@ -209,6 +216,14 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_DEADLINE_AFTER = CHANNEL_OP_MONITOR
             .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.common-rpc.channel.op-monitor.max-inbound-message-size}. */
+    public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_MAX_INBOUND_MESSAGE_SIZE = CHANNEL_OP_MONITOR
+            .integer("max-inbound-message-size")
+            .withDefaultValue(16_777_216)
+            .withValidator(range(MIN_OP_MONITOR_CHANNEL_MESSAGE_SIZE, Integer.MAX_VALUE))
             .exposedInUi()
             .build();
 

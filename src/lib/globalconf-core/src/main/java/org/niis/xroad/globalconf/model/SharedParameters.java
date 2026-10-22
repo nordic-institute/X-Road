@@ -229,5 +229,6 @@ public class SharedParameters {
     public static class GlobalSettings {
         private List<MemberClass> memberClasses;
         private Integer ocspFreshnessSeconds;
+        private boolean legacyProtocolDisabled;
     }
 }

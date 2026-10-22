@@ -102,6 +102,23 @@
                 </extension>
             </complexContent>
         </complexType>
+
+        <complexType name="GlobalSettingsType">
+            <complexContent>
+                <extension base="tns:GlobalSettingsType">
+                    <sequence>
+                        <element name="legacyProtocolDisabled" type="boolean" minOccurs="0">
+                            <annotation>
+                                <documentation>
+                                    If present and true, every security server of this X-Road instance refuses legacy
+                                    calls, that is, calls that did not negotiate the protocol version.
+                                </documentation>
+                            </annotation>
+                        </element>
+                    </sequence>
+                </extension>
+            </complexContent>
+        </complexType>
     </redefine>
 
     <element name="conf" type="tns:SharedParametersTypeV7">

@@ -60,8 +60,8 @@ public class OperationalDataRecord {
     @Setter
     private Long monitoringDataTs;
 
-    // The following fields correspond to the schema defined in the file
-    // src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml.
+    // The following fields correspond to the record schema defined in the file
+    // src/service/op-monitor/op-monitor-core/src/main/resources/query_operational_data_response_payload_schema.yaml.
     // Refer to the schema for detailed documentation.
 
     @Getter

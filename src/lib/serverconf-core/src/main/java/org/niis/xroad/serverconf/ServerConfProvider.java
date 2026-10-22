@@ -161,11 +161,13 @@ public interface ServerConfProvider {
     boolean isSslAuthentication(ServiceId serviceId);
 
     /**
-     * @param clientId     the client identifier
+     * @param ownerId      the identifier of the client that owns the local group
      * @param localGroupId the local group identifier
-     * @return true if the given client is associated with the specified local group on this security server
+     * @param memberId     the member-level identifier to check for group membership
+     * @return true if a member of the owner's local group has the same member-level identity as
+     *         {@code memberId}, regardless of whether that member is a client of this security server
      */
-    default boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+    default boolean isLocalGroupMember(ClientId ownerId, LocalGroupId localGroupId, ClientId memberId) {
         return false;
     }
 

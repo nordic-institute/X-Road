@@ -312,7 +312,8 @@ class SharedParametersLoader {
                 .map(memberClass -> new SharedParameters.MemberClass(memberClass.getCode(), memberClass.getDescription()))
                 .toList();
 
-        return new SharedParameters.GlobalSettings(memberClasses, systemParameterService.getOcspFreshnessSeconds());
+        return new SharedParameters.GlobalSettings(memberClasses, systemParameterService.getOcspFreshnessSeconds(),
+                systemParameterService.isLegacyProtocolDisabled());
     }
 
     static class MemberMapper {

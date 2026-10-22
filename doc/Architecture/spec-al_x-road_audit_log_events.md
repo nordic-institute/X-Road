@@ -1,6 +1,6 @@
 # Audit log events
 
-Version: 1.16
+Version: 1.17
 
 Doc. ID: SPEC-AL
 
@@ -28,6 +28,7 @@ Doc. ID: SPEC-AL
 | 17.03.2025 | 1.14    | Syntax and styling                                                                                                                                        | Pauline Dimmek     |
 | 28.10.2025 | 1.15    | Added cost type to tsa and ocsp responders                                                                                                                | Mikk-Erik Bachmann |
 | 06.11.2025 | 1.16    | Added default CSR format to certification services                                                                                                        | Mikk-Erik Bachmann |
+| 19.10.2026 | 1.17    | Added the event Rotate agreement token signing key                                                                                                        | Andres Rosenthal   |
 
 ## Table of Contents
 
@@ -388,6 +389,7 @@ The audit log events related to the system parameters.
 | Add timestamping service                      | <ul><li>tspName - the name of the added timestamping service</li><li>tspUrl - the URL of the added timestamping service</li><li>tspCostType - the cost type (free or paid) of the added timestamping service</li></ul>                                 |  
 | Delete timestamping service                   | <ul><li>tspName - the name of the deleted timestamping service</li><li>tspUrl - the URL of the deleted timestamping service</li></ul>                                                                                                                  |
 | Generate new internal TLS key and certificate | <ul><li>certHash - the hash of the generated internal TLS certificate</li><li>certHashAlgorithm - the hash algorithm used to calculate value of the field certHash</li></ul>                                                                           |
+| Rotate agreement token signing key            | <ul><li>keyId - the identifier of the newly generated agreement token signing key</li></ul>                                                                                                                                                            |
 
 #### 2.2.5 Keys and Certificates Events
 

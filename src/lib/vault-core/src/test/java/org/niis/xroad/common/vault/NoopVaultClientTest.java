@@ -86,6 +86,12 @@ class NoopVaultClientTest {
     }
 
     @Test
+    void deleteAgreementTokenSigningKeyShouldThrow() {
+        assertThatThrownBy(() -> vaultClient.deleteAgreementTokenSigningKey("1"))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void acmeAccountKeyPathShouldBeSanitizedAndCollisionFreePerAlias() {
         var pathOne = vaultClient.getAcmeAccountKeyPath("auth_CS:ORG:MEMBER1");
         var pathTwo = vaultClient.getAcmeAccountKeyPath("sign_CS:ORG:MEMBER1");

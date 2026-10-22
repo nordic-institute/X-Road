@@ -310,6 +310,15 @@ public interface GlobalConfProvider {
     }
 
     /**
+     * @param instanceIdentifier the instance identifier
+     * @return true when the instance refuses legacy calls. False when the instance does not publish the setting, is
+     * unknown or its global configuration cannot be read.
+     */
+    default boolean isLegacyProtocolDisabled(String instanceIdentifier) {
+        return false;
+    }
+
+    /**
      * @param serverId the Security Server identifier
      * @return the SYSTEM DID and DSP base URL published for the server, or empty when the server is unknown or has
      * no published values

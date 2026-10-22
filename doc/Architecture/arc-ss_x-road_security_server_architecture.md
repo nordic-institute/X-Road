@@ -2,8 +2,8 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.20
-11.11.2025
+Version: 1.21
+19.10.2026
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -40,6 +40,7 @@ Doc. ID: ARC-SS
 | 23.09.2024 | 1.18    | Added mail server connection                                                                         | Mikk-Erik Bachmann |
 | 21.03.2025 | 1.19    | Syntax and styling                                                                                   | Pauline Dimmek     |
 | 11.11.2025 | 1.20    | Drop JMX interfaces                                                                                  | Justas Samuolis    |
+| 19.10.2026 | 1.21    | Operational monitoring store and query over gRPC                                                     | Eneli Reimets      |
 
 
 
@@ -259,7 +260,7 @@ The component is a proxy addon.
 ### 2.4 Operational Monitoring Services
 
 Provides methods that can be used by X-Road participants to get operational monitoring information of the security server.
-It requests the data from the local opmonitor service via an SOAP XML request and mediates the SOAP XML response to the caller.
+It requests the data from the local opmonitor service over gRPC and mediates the SOAP XML response to the caller.
 
 The component is a proxy addon.
 
@@ -267,7 +268,7 @@ The component is a proxy addon.
 ### 2.5 Opmonitor
 
 Opmonitor component collects operational monitoring information such as which services have been called, how many times, what was the size of the response, etc. 
-The monitoring data is published via SOAP XML.
+The monitoring data is stored and queried over gRPC. The Security Server publishes it to external monitoring systems via SOAP XML.
 
 The component is a separate daemon process.
 
@@ -572,11 +573,11 @@ Xroad-opmonitor stores the operational data in postgresql database. There is als
 
 #### 3.7.3 Messaging
 
-Xroad-opmonitor communicates with xroad-proxy through operational monitoring query and store interfaces Q and S respectively in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. The protocols are described in \[[PR-OPMON](#Ref_PR-OPMON)\].
+Xroad-opmonitor communicates with xroad-proxy through operational monitoring query and store interfaces Q and S respectively in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. Both interfaces are served by one gRPC service. The query interface carries the messages of the operational monitoring protocol described in \[[PR-OPMON](#Ref_PR-OPMON)\].
 
 #### 3.7.4 Input/output ports
 
-The input ports for query, store operational monitoring data are specified in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
+The gRPC input port of xroad-opmonitor for query and store operational monitoring data is 2081 by default. The listening address and the port are specified in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 
 #### 3.7.5 Persistent data
 
@@ -680,14 +681,14 @@ The protocol is described in more detail in \[[PR-OPMON](#Ref_PR-OPMON)\].
 
 ### 4.10 Store Operational Monitoring Data
 
-The security server uses this protocol to store operational monitoring data into the operational monitoring daemon. The protocol is synchronous RPC style protocol that is initiated by the external monitoring system.
+The security server uses this protocol to store operational monitoring data into the operational monitoring daemon. The protocol is synchronous RPC style protocol based on gRPC that is initiated by the security server.
 
 The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
 
 
 ### 4.11 Operational Monitoring Query
 
-The security server uses this protocol to mediate operational monitoring requests to the operational monitoring daemon. The protocol is synchronous RPC style protocol that is initiated by the external monitoring system.
+The security server uses this protocol to mediate operational monitoring requests to the operational monitoring daemon. The protocol is synchronous RPC style protocol based on gRPC that is initiated by the security server when it receives a request from the external monitoring system.
 
 The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
 

@@ -8,6 +8,7 @@ dependencies {
   api(project(":lib:serverconf-core"))
   api(libs.nimbus.jose.jwt)
 
+  testImplementation(project(":common:common-test"))
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
 }

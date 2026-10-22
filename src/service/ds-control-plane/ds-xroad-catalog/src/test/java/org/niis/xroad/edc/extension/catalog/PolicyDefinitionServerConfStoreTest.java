@@ -28,12 +28,15 @@ package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -46,6 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -438,6 +442,25 @@ class PolicyDefinitionServerConfStoreTest {
         var result = builtinStore.findById(participantContextId, "DEV:GOV:1234:nonExistentService");
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void findAllEmitsCompositeOwnerAndCodeValueForLocalGroupSubject() {
+        var localGroupSubject = LocalGroupId.Conf.create("admins");
+        var baseEp = new Endpoint("svc1", "*", "**", true);
+        var ar = createAccessRight(localGroupSubject, baseEp);
+
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
+
+        var result = store.findAll(QuerySpec.none()).toList();
+
+        assertThat(result).hasSize(1);
+        var constraint = (AtomicConstraint) result.getFirst().getPolicy().getPermissions().getFirst().getConstraints().getFirst();
+        var rightValue = ((LiteralExpression) constraint.getRightExpression()).getValue().toString();
+        assertThat(rightValue).isEqualTo(new LocalGroupConstraintValue(SERVICE_1.getClientId(), localGroupSubject.getGroupCode()).encode());
     }
 
     @Test

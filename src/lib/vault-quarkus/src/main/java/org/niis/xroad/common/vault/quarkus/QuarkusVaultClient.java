@@ -72,11 +72,6 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return getTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH);
-    }
-
-    @Override
     public InternalSSLKey getAdminServiceTlsCredentials() {
         throw new NotImplementedException();
     }
@@ -89,11 +84,6 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createInternalTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(INTERNAL_TLS_CREDENTIALS_PATH, internalSSLKey);
-    }
-
-    @Override
-    public void createOpmonitorTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
-        createTlsCredentials(OPMONITOR_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
     @Override
@@ -265,6 +255,11 @@ public class QuarkusVaultClient implements VaultClient {
                 this::listAgreementTokenSigningKeyIds,
                 this::readSecret
         );
+    }
+
+    @Override
+    public void deleteAgreementTokenSigningKey(String keyId) {
+        kvSecretEngine.deleteSecret(AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId));
     }
 
     /**
