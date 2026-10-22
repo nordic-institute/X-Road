@@ -35,14 +35,11 @@ import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
@@ -57,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
@@ -97,8 +93,8 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
         FAULT_MIME_ENCODED_QUERY,
         FAULT_INVALID_SOAP,
         FAULT_MISSING_CLIENT,
-        FAULT_UNKNOWN_SERVICE,
-        FAULT_INVALID_GLOBAL_CONF
+        FAULT_MISSING_CLIENT_OPERATIONAL_DATA,
+        FAULT_UNKNOWN_SERVICE
     }
 
     record Query(byte[] body, String contentType) {
@@ -107,7 +103,6 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
     record Answer(String contentType, byte[] body) {
     }
 
-    protected final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
     protected final HealthDataMetrics healthDataMetrics = new HealthDataMetrics(OP_MONITOR_PROPERTIES);
     protected final MetricRegistry healthMetricRegistry = new MetricRegistry();
     protected final HealthDataRegistry healthDataRegistry = mock(HealthDataRegistry.class);
@@ -121,8 +116,6 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
     @BeforeEach
     void startGrpcQueryMethod() throws Exception {
         DATABASE_CTX.doInTransaction(session -> session.createMutationQuery("delete OperationalDataRecordEntity").executeUpdate());
-        var globalConfExtensions = mock(GlobalConfExtensions.class);
-        when(globalConfProvider.getGlobalConfExtensions()).thenReturn(globalConfExtensions);
         when(healthDataRegistry.getRegistry()).thenReturn(healthMetricRegistry);
         healthDataMetrics.registerInitialMetrics(healthMetricRegistry, () -> HEALTH_STARTUP_TIMESTAMP);
         healthDataMetrics.processRecords(healthMetricRegistry, List.of(producerRecord(true), producerRecord(false)));
@@ -132,8 +125,7 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
 
     private void startGrpcQueryMethodOverRecordManager() throws Exception {
         operationalDataStore = new OperationalDataStore(operationalDataRecordManager, healthDataMetrics, healthDataRegistry);
-        var queryService = new OperationalDataQueryService(globalConfProvider, healthDataRegistry, operationalDataRecordManager,
-                OP_MONITOR_PROPERTIES);
+        var queryService = new OperationalDataQueryService(healthDataRegistry, operationalDataRecordManager, OP_MONITOR_PROPERTIES);
         var service = new OpMonitorRpcService(operationalDataRecordManager, operationalDataStore, queryService);
         grpcServer = NettyServerBuilder.forAddress(new InetSocketAddress(LOOPBACK, 0), credentials.createServerCredentials())
                 .addService(service)
@@ -184,18 +176,15 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
             case FAULT_BAD_CONTENT_TYPE -> new Query(read(HEALTH_DATA_REQUEST), "text/plain; charset=UTF-8");
             case FAULT_MIME_ENCODED_QUERY -> mimeEncodedHealthDataQuery();
             case FAULT_INVALID_SOAP -> new Query("not a SOAP message".getBytes(StandardCharsets.UTF_8), PROXY_SOAP_CONTENT_TYPE);
-            case FAULT_MISSING_CLIENT -> new Query(new String(read(HEALTH_DATA_REQUEST), StandardCharsets.UTF_8)
-                    .replaceAll("(?s)<xroad:client .*?</xroad:client>", "").getBytes(StandardCharsets.UTF_8),
-                    PROXY_SOAP_CONTENT_TYPE);
+            case FAULT_MISSING_CLIENT -> new Query(withoutClient(read(HEALTH_DATA_REQUEST)), PROXY_SOAP_CONTENT_TYPE);
+            case FAULT_MISSING_CLIENT_OPERATIONAL_DATA -> {
+                storeFullOperationalDataRecord(RECORDS_WINDOW_START + 1, QUERY_CLIENT, SERVICE_PROVIDER, operationalDataRecordManager);
+                yield new Query(withoutClient(operationalDataQuery(RECORDS_WINDOW_START)), PROXY_SOAP_CONTENT_TYPE);
+            }
             case FAULT_UNKNOWN_SERVICE -> new Query(new String(read(HEALTH_DATA_REQUEST), StandardCharsets.UTF_8)
                     .replace("<id:serviceCode>getSecurityServerHealthData<", "<id:serviceCode>getSecurityServerUnknownData<")
                     .getBytes(StandardCharsets.UTF_8),
                     PROXY_SOAP_CONTENT_TYPE);
-            case FAULT_INVALID_GLOBAL_CONF -> {
-                doThrow(XrdRuntimeException.systemInternalError("Global configuration is expired"))
-                        .when(globalConfProvider).verifyValidity();
-                yield new Query(read(HEALTH_DATA_REQUEST), PROXY_SOAP_CONTENT_TYPE);
-            }
         };
     }
 
@@ -219,6 +208,11 @@ abstract class AbstractQueryTest extends BaseTestUsingDB {
                 + new String(read(HEALTH_DATA_REQUEST), StandardCharsets.UTF_8) + "\r\n--" + MIME_BOUNDARY + "--\r\n";
         return new Query(message.getBytes(StandardCharsets.UTF_8),
                 "multipart/related; type=\"text/xml\"; charset=UTF-8; boundary=" + MIME_BOUNDARY);
+    }
+
+    private static byte[] withoutClient(byte[] request) {
+        return new String(request, StandardCharsets.UTF_8)
+                .replaceAll("(?s)<xroad:client .*?</xroad:client>", "").getBytes(StandardCharsets.UTF_8);
     }
 
     private static byte[] operationalDataQuery(long windowStart) throws IOException {

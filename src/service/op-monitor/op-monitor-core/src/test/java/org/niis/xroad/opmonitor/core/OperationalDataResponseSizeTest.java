@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
@@ -42,8 +40,7 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataReq;
 import org.niis.xroad.opmonitor.api.QueryOperationalDataResp;
@@ -65,7 +62,6 @@ import java.util.zip.GZIPInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 
 /**
@@ -85,12 +81,10 @@ class OperationalDataResponseSizeTest extends BaseTestUsingDB {
     private static final String QUERY_CONTENT_TYPE = "text/xml; charset=utf-8";
     private static final String FIXTURE_RECORDS_FROM = "<om:recordsFrom>1477468193</om:recordsFrom>";
     private static final String FIXTURE_RECORDS_TO = "<om:recordsTo>1477468205</om:recordsTo>";
-    private static final ClientId.Conf QUERY_CLIENT = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000001", "System1");
     private static final Pattern RECORDS_COUNT = Pattern.compile("<om:recordsCount>(\\d+)</om:recordsCount>");
     private static final String SIZE_REJECTION = "gRPC message exceeds maximum size";
 
     private final InsecureRpcCredentialsConfigurer credentials = new InsecureRpcCredentialsConfigurer();
-    private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
     private final List<ManagedChannel> channels = new ArrayList<>();
     private Server grpcServer;
 
@@ -106,12 +100,8 @@ class OperationalDataResponseSizeTest extends BaseTestUsingDB {
     @BeforeEach
     void startQueryService() throws Exception {
         DATABASE_CTX.doInTransaction(session -> session.createMutationQuery("delete OperationalDataRecordEntity").executeUpdate());
-        var extensions = mock(GlobalConfExtensions.class);
-        when(extensions.getMonitoringClient()).thenReturn(QUERY_CLIENT);
-        when(globalConfProvider.getGlobalConfExtensions()).thenReturn(extensions);
         var healthDataRegistry = new HealthDataRegistry(new HealthDataMetrics(OP_MONITOR_PROPERTIES));
-        var queryService = new OperationalDataQueryService(globalConfProvider, healthDataRegistry, operationalDataRecordManager,
-                OP_MONITOR_PROPERTIES);
+        var queryService = new OperationalDataQueryService(healthDataRegistry, operationalDataRecordManager, OP_MONITOR_PROPERTIES);
         var service = new OpMonitorRpcService(operationalDataRecordManager, mock(OperationalDataStore.class), queryService);
         grpcServer = NettyServerBuilder.forAddress(new InetSocketAddress(LOOPBACK, 0), credentials.createServerCredentials())
                 .addService(service)
@@ -205,6 +195,7 @@ class OperationalDataResponseSizeTest extends BaseTestUsingDB {
         return OpMonitorServiceGrpc.newBlockingStub(channel).queryOperationalData(QueryOperationalDataReq.newBuilder()
                 .setSoapQuery(ByteString.copyFrom(operationalDataQuery()))
                 .setContentType(QUERY_CONTENT_TYPE)
+                .setAccessScope(AccessScope.FULL_VIEW)
                 .build());
     }
 

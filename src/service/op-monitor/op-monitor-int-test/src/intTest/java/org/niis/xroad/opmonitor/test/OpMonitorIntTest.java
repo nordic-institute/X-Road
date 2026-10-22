@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
@@ -278,7 +279,10 @@ class OpMonitorIntTest {
 
     private QueryOperationalDataResp query(String serviceCode, String body, String contentType) {
         var query = QUERY_ENVELOPE.formatted(serviceCode, body).getBytes(StandardCharsets.UTF_8);
-        return opMonitorClient.queryOperationalData(query, contentType);
+        var accessScope = "getSecurityServerOperationalData".equals(serviceCode)
+                ? AccessScope.FULL_VIEW
+                : AccessScope.ACCESS_SCOPE_UNSPECIFIED;
+        return opMonitorClient.queryOperationalData(query, contentType, accessScope);
     }
 
     private static String operationalDataQueryBody() {

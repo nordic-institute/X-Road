@@ -76,7 +76,8 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
     public void queryOperationalData(QueryOperationalDataReq request,
                                      StreamObserver<QueryOperationalDataResp> responseObserver) {
         rpcResponseHandler.handleRequest(responseObserver, () -> {
-            var response = operationalDataQueryService.query(request.getSoapQuery().toByteArray(), request.getContentType());
+            var response = operationalDataQueryService.query(request.getSoapQuery().toByteArray(), request.getContentType(),
+                    request.getAccessScope());
             return QueryOperationalDataResp.newBuilder()
                     .setResponse(ByteString.copyFrom(response.body()))
                     .setContentType(response.contentType())

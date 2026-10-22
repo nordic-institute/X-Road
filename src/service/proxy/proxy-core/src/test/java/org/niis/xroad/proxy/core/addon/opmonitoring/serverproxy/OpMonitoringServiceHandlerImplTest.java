@@ -25,6 +25,9 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
@@ -47,6 +50,7 @@ import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -71,6 +75,8 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
+import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 
 class OpMonitoringServiceHandlerImplTest {
     private static final String QUERY = "<query/>";
@@ -79,6 +85,8 @@ class OpMonitoringServiceHandlerImplTest {
     private static final String RESPONSE_CONTENT_TYPE = "text/xml;charset=utf-8";
     private static final String TMP_DIR = "build/tmp";
     private static final int CHANNEL_LIMIT = 1000;
+    private static final ClientId.Conf CALLER = ClientId.Conf.create("DEV", "COM", "1234");
+    private static final SecurityServerId.Conf SERVER = SecurityServerId.Conf.create("DEV", "COM", "1234", "SS0");
 
     private final AtomicReference<QueryOperationalDataReq> received = new AtomicReference<>();
     private volatile Status failure;
@@ -89,6 +97,7 @@ class OpMonitoringServiceHandlerImplTest {
     private ManagedChannel channel;
     private OpMonitorClient opMonitorClient;
     private OpMonitoringServiceHandlerImpl handler;
+    private GlobalConfProvider globalConfProvider;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -124,8 +133,8 @@ class OpMonitoringServiceHandlerImplTest {
         when(channelFactory.createChannel(channelProperties)).thenReturn(channel);
         opMonitorClient = new OpMonitorClient(channelFactory, channelProperties);
         opMonitorClient.init();
-        handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), mock(GlobalConfProvider.class),
-                () -> opMonitorClient);
+        globalConfProvider = globalConfProvider();
+        handler = new OpMonitoringServiceHandlerImpl(mock(ServerConfProvider.class), globalConfProvider, () -> opMonitorClient);
     }
 
     @AfterEach
@@ -136,6 +145,34 @@ class OpMonitoringServiceHandlerImplTest {
     }
 
     @Test
+    void operationalDataQueryIsSentWithFullViewForTheMonitoringClient() throws IOException {
+        when(globalConfProvider.getGlobalConfExtensions().getMonitoringClient()).thenReturn(CALLER);
+
+        handler.startHandling(null, proxyMessage(), new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L));
+
+        assertThat(received.get().getAccessScope()).isEqualTo(AccessScope.FULL_VIEW);
+    }
+
+    @Test
+    void operationalDataQueryIsSentWithFullViewForTheOwnerOfTheServerInTheHeader() throws IOException {
+        when(globalConfProvider.getServerOwner(SERVER)).thenReturn(CALLER);
+
+        handler.startHandling(null, proxyMessage(), new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L));
+
+        assertThat(received.get().getAccessScope()).isEqualTo(AccessScope.FULL_VIEW);
+    }
+
+    @Test
+    void healthDataQueryIsSentWithoutScopeEvenForTheMonitoringClient() throws IOException {
+        when(globalConfProvider.getGlobalConfExtensions().getMonitoringClient()).thenReturn(CALLER);
+
+        handler.startHandling(null, proxyMessage(GET_SECURITY_SERVER_HEALTH_DATA),
+                new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L));
+
+        assertThat(received.get().getAccessScope()).isEqualTo(AccessScope.ACCESS_SCOPE_UNSPECIFIED);
+    }
+
+    @Test
     void queryIsSentToOpMonitorOverGrpcAndItsResponseIsReturned() throws IOException {
         var opMonitoringData = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, 1L);
 
@@ -143,7 +180,7 @@ class OpMonitoringServiceHandlerImplTest {
 
         assertThat(received.get().getSoapQuery().toStringUtf8()).isEqualTo(QUERY);
         assertThat(received.get().getContentType()).isEqualTo(QUERY_CONTENT_TYPE);
-        assertThat(received.get().getAccessScope()).isEqualTo(AccessScope.ACCESS_SCOPE_UNSPECIFIED);
+        assertThat(received.get().getAccessScope()).isEqualTo(AccessScope.CALLER_ONLY);
         assertThat(result.responseContentType()).isEqualTo(RESPONSE_CONTENT_TYPE);
         assertThat(new String(result.responseContent().readAllBytes(), StandardCharsets.UTF_8)).isEqualTo(RESPONSE);
         var proto = opMonitoringData.toProto();
@@ -156,6 +193,7 @@ class OpMonitoringServiceHandlerImplTest {
         var proxyMessage = new ProxyMessage("application/xml", TMP_DIR);
         var soap = mock(SoapMessageImpl.class);
         when(soap.getBytes()).thenReturn(QUERY.getBytes(StandardCharsets.UTF_8));
+        when(soap.getService()).thenReturn(ServiceId.Conf.create("DEV", "COM", "1234", null, GET_SECURITY_SERVER_OPERATIONAL_DATA));
         proxyMessage.soap(soap, Map.of());
         responseContentType = "text/xml; charset=utf-8";
 
@@ -274,8 +312,21 @@ class OpMonitoringServiceHandlerImplTest {
         return response;
     }
 
+    static GlobalConfProvider globalConfProvider() {
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        when(globalConfProvider.getGlobalConfExtensions()).thenReturn(mock(GlobalConfExtensions.class));
+        return globalConfProvider;
+    }
+
     static ProxyMessage proxyMessage() throws IOException {
+        return proxyMessage(GET_SECURITY_SERVER_OPERATIONAL_DATA);
+    }
+
+    static ProxyMessage proxyMessage(String serviceCode) throws IOException {
         var proxyMessage = mock(ProxyMessage.class, RETURNS_DEEP_STUBS);
+        when(proxyMessage.getSoap().getService().getServiceCode()).thenReturn(serviceCode);
+        when(proxyMessage.getSoap().getClient()).thenReturn(CALLER);
+        when(proxyMessage.getSoap().getSecurityServer()).thenReturn(SERVER);
         when(proxyMessage.getSoapContentType()).thenReturn(QUERY_CONTENT_TYPE);
         doAnswer(invocation -> {
             invocation.<OutputStream>getArgument(0).write(QUERY.getBytes(StandardCharsets.UTF_8));

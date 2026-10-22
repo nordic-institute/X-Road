@@ -32,7 +32,7 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResp
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.Collections;
@@ -40,6 +40,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -71,7 +72,7 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
         OpMonitorProperties opMonitorProperties = mock(OpMonitorProperties.class);
         when(opMonitorProperties.recordsAvailableTimestampOffsetSeconds()).thenReturn(60);
         OperationalDataRequestHandler handler =
-                new OperationalDataRequestHandler(mock(GlobalConfProvider.class), operationalDataRecordManager, opMonitorProperties);
+                new OperationalDataRequestHandler(operationalDataRecordManager, opMonitorProperties);
         long recordsAvailableBefore = TimeUtils.getEpochSecond();
 
         GetSecurityServerOperationalDataResponseType response = handler
@@ -104,5 +105,20 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
     public void checkRecordsNotAvailable() {
         var err = assertThrows(XrdRuntimeException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 10, 5));
         assertEquals("Records not available from " + 10 + " yet", err.getDetails());
+    }
+
+    @Test
+    public void getClientForFilterCalledDirectlySkipsTheCallerForFullViewOnly() {
+        var handler = new OperationalDataRequestHandler(operationalDataRecordManager, mock(OpMonitorProperties.class));
+        ClientId caller = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000001", "System1");
+
+        assertNull(handler.getClientForFilter(null, AccessScope.FULL_VIEW));
+        assertNull(handler.getClientForFilter(caller, AccessScope.FULL_VIEW));
+        for (var scope : AccessScope.values()) {
+            if (scope != AccessScope.FULL_VIEW) {
+                assertEquals(caller, handler.getClientForFilter(caller, scope));
+                assertThrows(XrdRuntimeException.class, () -> handler.getClientForFilter(null, scope));
+            }
+        }
     }
 }

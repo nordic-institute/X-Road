@@ -116,7 +116,7 @@ Description: X-Road security server with the Faroe Islands' settings
 Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon

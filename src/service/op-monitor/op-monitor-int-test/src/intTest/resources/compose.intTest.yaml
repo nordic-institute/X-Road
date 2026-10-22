@@ -64,7 +64,6 @@ services:
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
           "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
              ('xroad.common-rpc.use-tls', 'false', now(), now()),
-             ('xroad.common-global-conf.source', 'FILESYSTEM', now(), now()),
              ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now())
            ON CONFLICT DO NOTHING;"
     depends_on:
@@ -109,8 +108,6 @@ services:
           memory: 96M
         limits:
           memory: 512M
-    volumes:
-      - ./container-files/etc/xroad:/etc/xroad
   db-opmonitor:
     image: postgres:18
     environment:

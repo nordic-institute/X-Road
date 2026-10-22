@@ -1498,6 +1498,56 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 HTTP 201
 
 # =============================================================================
+# Central monitoring client: names DEV:COM:1234:TestService in the MONITORING
+# configuration part. TestService is hosted on SS0 and is neither SS0's owner
+# (member 1234) nor the regular client (1234:TestSaved) the monitoring e2e
+# scenarios use. Uploading replaces the part, so a re-run leaves exactly one.
+# The multipart body is one line with explicit CRLF: the Central Server's multipart
+# parser rejects the bare LF a multi-line hurl body would send.
+# =============================================================================
+POST https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/configuration-parts
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: multipart/form-data; boundary=monitoringboundary
+`--monitoringboundary\r\nContent-Disposition: form-data; name="content_identifier"\r\n\r\nMONITORING\r\n--monitoringboundary\r\nContent-Disposition: form-data; name="file"; filename="monitoring-params.xml"\r\nContent-Type: text/xml\r\n\r\n<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"><monitoringClient><monitoringClientId id:objectType="SUBSYSTEM"><id:xRoadInstance>DEV</id:xRoadInstance><id:memberClass>COM</id:memberClass><id:memberCode>1234</id:memberCode><id:subsystemCode>TestService</id:subsystemCode></monitoringClientId></monitoringClient></tns:conf>\r\n--monitoringboundary--\r\n`
+
+HTTP 204
+
+# Wait for the Central Server to publish the MONITORING part, then for each
+# Security Server to complete a global configuration update after that moment.
+GET http://{{cs_host}}/internalconf
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Captures]
+monitoring_published_at: header "Date" toDate "%a, %d %b %Y %H:%M:%S GMT"
+[Asserts]
+body contains "Content-identifier: MONITORING"
+
+GET https://{{ss0_host}}:4000/api/v1/diagnostics/globalconf
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.status_class" == "OK"
+jsonpath "$.prev_update_at" toDate "%Y-%m-%dT%H:%M:%S%.fZ" > {{monitoring_published_at}}
+
+GET https://{{ss1_host}}:4000/api/v1/diagnostics/globalconf
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.status_class" == "OK"
+jsonpath "$.prev_update_at" toDate "%Y-%m-%dT%H:%M:%S%.fZ" > {{monitoring_published_at}}
+
+# =============================================================================
 # DSP readiness gates (LAST): block until each SS's MEMBER participant
 # context membership credentials reach ISSUED. Placed at the end so all core
 # X-Road setup (both SSes, certs, clients, services) completes first — proxy
