@@ -75,7 +75,7 @@ message StoreOperationalDataResp {
 // CALLER_ONLY: only the records in which the caller of the query is the client or the service provider,
 // without the internal IP address.
 // ACCESS_SCOPE_UNSPECIFIED and any value this version does not know are treated as CALLER_ONLY.
-// A query without a caller is refused unless the scope is FULL_VIEW.
+// A query without a caller is refused for every scope, because the SOAP client header is required.
 enum AccessScope {
   ACCESS_SCOPE_UNSPECIFIED = 0;
   FULL_VIEW = 1;

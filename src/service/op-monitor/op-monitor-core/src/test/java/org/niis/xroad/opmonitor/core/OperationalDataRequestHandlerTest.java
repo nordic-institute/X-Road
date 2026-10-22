@@ -108,7 +108,7 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
     }
 
     @Test
-    public void fullViewNeedsNoCallerAndOtherScopesFilterOnTheCaller() {
+    public void getClientForFilterCalledDirectlySkipsTheCallerForFullViewOnly() {
         var handler = new OperationalDataRequestHandler(operationalDataRecordManager, mock(OpMonitorProperties.class));
         ClientId caller = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000001", "System1");
 

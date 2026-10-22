@@ -193,6 +193,21 @@ class OpMonitorQueryOverGrpcTest extends BaseTestUsingDB {
         });
     }
 
+    @Test
+    void fullViewWithoutTheClientHeaderIsAnsweredWithMissingHeaderFaultAndNoRecords() throws Exception {
+        storeFullOperationalDataRecord(WINDOW_START + 1, CALLER, PROVIDER, operationalDataRecordManager);
+        var query = new String(operationalDataQuery(), StandardCharsets.UTF_8)
+                .replaceAll("(?s)<xroad:client .*?</xroad:client>", "").getBytes(StandardCharsets.UTF_8);
+
+        var response = query(query, QUERY_CONTENT_TYPE, AccessScope.FULL_VIEW);
+
+        assertThat(MimeUtils.getBaseContentType(response.getContentType())).isEqualTo(MimeTypes.TEXT_XML);
+        assertThat(new String(response.getResponse().toByteArray(), StandardCharsets.UTF_8)).doesNotContain("recordsCount");
+        var fault = new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, response.getResponse().newInput());
+        assertThat(fault).isInstanceOfSatisfying(SoapFault.class,
+                f -> assertThat(f.getCode()).isEqualTo(SERVER_SERVER_PROXY_OPMONITOR_X + ".missing_header_field"));
+    }
+
     private QueryOperationalDataResp query(byte[] query, String contentType, AccessScope accessScope) {
         return stub.queryOperationalData(QueryOperationalDataReq.newBuilder()
                 .setSoapQuery(ByteString.copyFrom(query))
