@@ -38,7 +38,6 @@ public interface AdminGateway {
     /** Adds an OpenAPI 3 service description and returns its id. */
     String addOpenApiDescription(String providerClientId, String specUrl, String serviceCode);
 
-    /** Points the OpenAPI 3 service description at another description. */
     void updateOpenApiDescription(String descriptionId, String specUrl, String serviceCode);
 
     void enableDescription(String descriptionId);
@@ -46,7 +45,6 @@ public interface AdminGateway {
     /** Disables the description; a {@code null} notice sends none. */
     void disableDescription(String descriptionId, String notice);
 
-    /** Renames the service code of the REST description, keeping its backend URL. */
     void renameRestService(String descriptionId, String backendUrl, String serviceCode, String newServiceCode);
 
     /** Grants the consumer access to the service and returns whether the grant was created, not already there. */
@@ -58,18 +56,17 @@ public interface AdminGateway {
     /** Revokes the consumer's access to the service, with its endpoint grants of that service. */
     void revokeAccess(String providerClientId, String consumerClientId, String serviceCode);
 
-    /** Refreshes the service description from its backend. */
     void refreshDescription(String descriptionId);
 
     /** Requests the backend path that swaps the OpenAPI description it serves and returns the HTTP status. */
     int swapBackendSpec(String urlPath);
+
     /** Creates an endpoint on the REST service of the description and returns its id. */
     String addEndpoint(String descriptionId, String serviceCode, String method, String path);
 
     /** Finds the id of the endpoint of the description's service with the given method and path. */
     String findEndpointId(String descriptionId, String serviceCode, String method, String path);
 
-    /** Changes the method and path of the endpoint. */
     void updateEndpoint(String endpointId, String method, String path);
 
     void grantEndpointAccess(String endpointId, String consumerClientId);
@@ -83,22 +80,17 @@ public interface AdminGateway {
     /** Creates a local group of the owner client and returns its id. */
     String createLocalGroup(String ownerClientId, String code);
 
-    /** Adds a member or subsystem to the local group. */
     void addLocalGroupMember(String groupId, String memberId);
 
-    /** Removes a member or subsystem from the local group. */
     void removeLocalGroupMember(String groupId, String memberId);
 
     /** Deletes the local group and returns the HTTP status of the call. */
     int deleteLocalGroup(String groupId);
 
-    /** Creates a global group at the Central Server. */
     void createGlobalGroup(String code);
 
-    /** Adds a member or subsystem to the global group at the Central Server. */
     void addGlobalGroupMember(String code, String memberId);
 
-    /** Removes a member or subsystem from the global group at the Central Server. */
     void removeGlobalGroupMember(String code, String memberId);
 
     /** Deletes the global group at the Central Server and returns the HTTP status of the call. */

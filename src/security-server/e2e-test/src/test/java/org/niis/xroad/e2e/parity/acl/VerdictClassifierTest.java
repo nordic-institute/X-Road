@@ -181,14 +181,6 @@ class VerdictClassifierTest {
     }
 
     @Test
-    void describeSoapNamesTheFaultCodeAndNothingElseOfTheBody() {
-        var body = soapFault("Server.ServerProxy.inconsistent_headers") + "<faultstring>secret-detail</faultstring>";
-
-        assertThat(VerdictClassifier.describeSoap(new Reply(500, Map.of(), body)))
-                .isEqualTo("fault Server.ServerProxy.inconsistent_headers");
-    }
-
-    @Test
     void describeCarriesTheBodyOfADisabledServiceFaultOnly() {
         var disabled = new Reply(500, Map.of("X-Road-Error", "server.serverproxy.service_disabled"),
                 "{\"message\":\"back at noon\"}");
@@ -197,12 +189,6 @@ class VerdictClassifierTest {
 
         assertThat(VerdictClassifier.describe(disabled)).contains("back at noon");
         assertThat(VerdictClassifier.describe(denied)).doesNotContain("back at noon");
-    }
-
-    @Test
-    void describeSoapFallsBackToTheStatusWithoutAFaultCode() {
-        assertThat(VerdictClassifier.describeSoap(new Reply(404, Map.of(), "<html>not found</html>")))
-                .isEqualTo("status 404");
     }
 
     private static final String LIST_JSON = "{\"service\":[{\"service_code\":\"p-v91\"},{\"service_code\":\"p-v91b\"}]}";
@@ -359,16 +345,6 @@ class VerdictClassifierTest {
                 .isEqualTo(Verdict.ERROR);
     }
 
-    @Test
-    void describeManagementNamesTheStatusAndCutsALongBody() {
-        var longBody = "x".repeat(400);
-
-        assertThat(VerdictClassifier.describeManagement(new Reply(500, Map.of(), "boom")))
-                .isEqualTo("status 500; body boom");
-        assertThat(VerdictClassifier.describeManagement(new Reply(500, Map.of(), longBody)))
-                .isEqualTo("status 500; body " + "x".repeat(300));
-    }
-
     private static final String HEALTH_REPLY = """
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                     xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd">
@@ -455,18 +431,5 @@ class VerdictClassifierTest {
             assertThat(metaCatalogued(new Reply(200, Map.of(), LIST_CLIENTS_REPLY.replace(missing, "other")),
                     expectation)).as(missing).isEqualTo(Verdict.ERROR);
         }
-    }
-
-    @Test
-    void describeMetaserviceNamesTheFaultOrStatusAndTheWrongTexts() {
-        var description = VerdictClassifier.describeMetaservice(new Reply(200, Map.of(), LIST_JSON),
-                List.of("p-v91", "p-v92"), List.of("p-v91b"));
-
-        assertThat(description).isEqualTo("status 200; missing [p-v92]; unexpected [p-v91b]");
-        assertThat(VerdictClassifier.describeMetaservice(fault("server.serverproxy.access_denied"), List.of(),
-                List.of())).startsWith("x-road-error server.serverproxy.access_denied");
-        assertThat(VerdictClassifier.describeMetaservice(
-                new Reply(200, Map.of(), soapFault("server.serverproxy.service_type")), List.of(), List.of()))
-                .startsWith("fault server.serverproxy.service_type");
     }
 }

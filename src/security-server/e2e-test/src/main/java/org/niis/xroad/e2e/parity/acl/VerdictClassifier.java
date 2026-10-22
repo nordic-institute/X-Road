@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+
 /**
  * Turns a REST or SOAP response from the consumer Security Server's proxy into a {@link Verdict}.
  *
@@ -47,10 +50,6 @@ public final class VerdictClassifier {
 
     private static final String FAULT_PREFIX = "server.serverproxy.";
     private static final String CLIENT_FAULT_PREFIX = "server.clientproxy.";
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_LAST_SUCCESS = 299;
-    private static final int HTTP_BAD_REQUEST = 400;
-    private static final int HTTP_SERVER_ERROR = 500;
 
     private static final int DESCRIBED_BODY_LENGTH = 300;
     private static final Pattern ACCESS_DENIED_CODE = Pattern.compile("server\\.serverproxy\\.access_denied");
@@ -75,13 +74,13 @@ public final class VerdictClassifier {
         if (reply == null) {
             return Verdict.ERROR;
         }
-        if (reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS) {
+        if (reply.isSuccess()) {
             return "true".equalsIgnoreCase(reply.header(BACKEND_MARKER_HEADER)) ? Verdict.ALLOWED : Verdict.ERROR;
         }
         if (reply.status() == HTTP_BAD_REQUEST && reply.header(ERROR_HEADER) == null) {
             return Verdict.CONSUMER_REJECTED;
         }
-        if (reply.status() == HTTP_SERVER_ERROR) {
+        if (reply.status() == HTTP_INTERNAL_ERROR) {
             var fault = reply.header(ERROR_HEADER);
             return fault == null ? Verdict.ERROR : FAULTS.getOrDefault(fault.trim(), Verdict.ERROR);
         }
@@ -98,7 +97,7 @@ public final class VerdictClassifier {
         if (reply == null) {
             return Verdict.ERROR;
         }
-        if (reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS) {
+        if (reply.isSuccess()) {
             return Verdict.ALLOWED;
         }
         return ACCESS_DENIED_CODE.matcher(reply.body()).find() ? Verdict.ACCESS_DENIED : Verdict.ERROR;
@@ -123,7 +122,7 @@ public final class VerdictClassifier {
         if (fault.find()) {
             return FAULTS.getOrDefault(fault.group(1), Verdict.ERROR);
         }
-        var success = reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS;
+        var success = reply.isSuccess();
         return success && reply.body().contains(SOAP_BACKEND_MARKER) ? Verdict.ALLOWED : Verdict.ERROR;
     }
 
@@ -144,7 +143,7 @@ public final class VerdictClassifier {
         if (reply.header(ERROR_HEADER) != null) {
             return FAULTS.getOrDefault(reply.header(ERROR_HEADER).trim(), Verdict.ERROR);
         }
-        var success = reply.status() >= HTTP_OK && reply.status() <= HTTP_LAST_SUCCESS;
+        var success = reply.isSuccess();
         return success && missing(reply, required).isEmpty() && present(reply, forbidden).isEmpty()
                 ? Verdict.ALLOWED : Verdict.ERROR;
     }

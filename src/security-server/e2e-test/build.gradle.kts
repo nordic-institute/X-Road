@@ -72,7 +72,6 @@ val copyComposeFiles by tasks.registering(Copy::class) {
 val e2eEnvMode = providers.gradleProperty("e2e.env-mode").getOrElse("compose")
 val e2eSs0Stack = providers.gradleProperty("e2e.ss0-stack").getOrElse("default")
 val e2eAclMode = providers.gradleProperty("e2e.acl-mode").orNull
-val e2eTags = providers.gradleProperty("e2e.tags").orNull
 
 tasks.register<Test>("e2eTest") {
   // Only the harness-managed compose stack needs the generated env and copied compose files. Pre-provisioned
@@ -81,9 +80,7 @@ tasks.register<Test>("e2eTest") {
     dependsOn(provider { tasks.named("generateIntTestEnv") })
     dependsOn(provider { tasks.named("copyComposeFiles") })
   }
-  useJUnitPlatform {
-    e2eTags?.let { tags -> includeTags(*tags.split(',').map(String::trim).toTypedArray()) }
-  }
+  useJUnitPlatform()
 
   description = "Runs the e2e test suite in scenario order. The target environment is selected by " +
       "-Pe2e.env-mode (default 'compose': harness-boots the shared aux/ss0/ss1 stack via the " +
@@ -92,7 +89,6 @@ tasks.register<Test>("e2eTest") {
       "stack shape ('default': today's per-service stack; 'sidecar': one full-sidecar " +
       "container in its place), ignored otherwise. -Pe2e.acl-mode=legacy runs the ACL parity scenarios with " +
       "ss1's outgoing calls unnegotiated and no fail-fast; unset, the parity class is skipped. " +
-      "-Pe2e.tags=<tag>[,<tag>] runs the tagged classes directly, without the suite wrapper. " +
       "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 
@@ -106,7 +102,7 @@ tasks.register<Test>("e2eTest") {
   val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
     request.args.any { it == "--tests" || it.startsWith("--tests=") }
   }
-  include(if (singleTestFromCli || e2eTags != null) "**/*Test.class" else "**/$suiteClass.class")
+  include(if (singleTestFromCli) "**/*Test.class" else "**/$suiteClass.class")
   doFirst {
     val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
     val patterns = testFilter.commandLineIncludePatterns + testFilter.includePatterns

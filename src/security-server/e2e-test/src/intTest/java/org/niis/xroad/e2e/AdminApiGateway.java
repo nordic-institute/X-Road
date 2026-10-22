@@ -120,7 +120,6 @@ final class AdminApiGateway implements AdminGateway {
         return requestBackend(urlPath);
     }
 
-
     @Override
     public String addEndpoint(String descriptionId, String serviceCode, String method, String path) {
         return AdminApi.addEndpoint(baseUrl, session, descriptionId, serviceCode, method, path);

@@ -44,13 +44,8 @@ public final class SoapRequests {
     }
 
     /**
-     * @param consumerClientId   the calling client in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param providerClientId   the service owner in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param serviceCode        the called service code
-     * @param serviceVersion     the called service version, or {@code null} to name none
-     * @param securityServerHint the {@code INSTANCE:CLASS:MEMBER:SERVERCODE} security server to name in the header,
-     *                           or {@code null} for none
-     * @param messageId          the unique message id
+     * Client and provider ids are {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM}; the optional security server hint is
+     * {@code INSTANCE:CLASS:MEMBER:SERVERCODE}. A {@code null} version or hint leaves its header element out.
      */
     public static String envelope(String consumerClientId, String providerClientId, String serviceCode,
                                   String serviceVersion, String securityServerHint, String messageId) {
@@ -59,15 +54,8 @@ public final class SoapRequests {
     }
 
     /**
-     * Builds the envelope of a call to a metaservice. The envelope header names no service version; the
-     * target service version, when given, goes in the body.
-     *
-     * @param consumerClientId  the calling client in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param providerClientId  the service owner in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param metaserviceCode   the metaservice code, for example {@code listMethods}
-     * @param targetServiceCode the service code the metaservice is asked about, or {@code null} for none
-     * @param targetServiceVersion the version of that service, or {@code null} for none
-     * @param messageId         the unique message id
+     * The header names no service version; the target service version, when given, goes in the body beside the
+     * target service code.
      */
     public static String metaserviceEnvelope(String consumerClientId, String providerClientId,
                                              String metaserviceCode, String targetServiceCode,
@@ -82,17 +70,9 @@ public final class SoapRequests {
     }
 
     /**
-     * Builds the envelope of a call to a monitoring metaservice. The client and the service owner are named at
-     * member level when the identifier has no subsystem; the header names the Security Server that answers.
-     *
-     * @param consumerClientId the calling client in {@code INSTANCE:CLASS:MEMBER[:SUBSYSTEM]} form
-     * @param ownerMemberId    the member that owns the answering Security Server, in {@code INSTANCE:CLASS:MEMBER} form
-     * @param monitoringCode   the monitoring metaservice code, one of {@link #METRICS}, {@link #HEALTH_DATA} and
-     *                         {@link #OPERATIONAL_DATA}
-     * @param securityServerId the answering Security Server in {@code INSTANCE:CLASS:MEMBER:SERVERCODE} form
-     * @param filterClientId   the provider client a health data call filters on in
-     *                         {@code INSTANCE:CLASS:MEMBER[:SUBSYSTEM]} form, or {@code null} for none
-     * @param messageId        the unique message id
+     * Client and owner are named at member level when the id has no subsystem. {@code monitoringCode} is
+     * {@link #METRICS}, {@link #HEALTH_DATA} or {@link #OPERATIONAL_DATA}; {@code filterClientId} applies to
+     * health data only.
      */
     public static String monitoringEnvelope(String consumerClientId, String ownerMemberId, String monitoringCode,
                                             String securityServerId, String filterClientId, String messageId) {

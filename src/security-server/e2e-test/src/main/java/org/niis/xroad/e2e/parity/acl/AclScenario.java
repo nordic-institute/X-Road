@@ -34,62 +34,38 @@ import java.util.stream.Stream;
  * One row of the parity catalogue: the fixtures to create, the requests to send, and the verdict legacy
  * access rights are expected to give each request.
  *
- * @param id           the variation id, for example {@code V01}
- * @param description  a short human-readable summary of the row
- * @param fixture      what to create on the provider before the requests
- * @param checks       the requests to send from the consumer Security Server, each with its expected verdict
- * @param phases       the changes made after the checks, each followed by the checks it leads to; empty for a row
- *                     whose verdicts do not change over time
- * @param waitClass    which propagation delay the verdicts have to wait out
- * @param knownDefect  the id of the unfixed finding the row hits, or {@code null} for none; the row then asserts
- *                     the safe verdict and is an expected failure until the finding is fixed
- * @param adminGrant   the admin API grant the row issues once the fixture is in place and the status it expects;
- *                     a row with a grant has no checks and does not poll. {@code null} for a row that sends requests
+ * <p>Client ids are written {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM}. A service index is the position of a service
+ * code among all service codes the fixture creates, in creation order.
+ *
+ * @param id         the variation id, for example {@code V01}
+ * @param checks     the requests to send from the consumer Security Server, each with its expected verdict
+ * @param waitClass  which propagation delay the verdicts have to wait out
+ * @param phases     the changes made after the checks, each followed by the checks it leads to; empty for a row
+ *                   whose verdicts do not change over time
+ * @param adminGrant the admin API grant the row issues once the fixture is in place and the status it expects;
+ *                   a row with a grant has no checks and does not poll. {@code null} for a row that sends requests
  */
 public record AclScenario(String id, String description, FixtureSpec fixture, List<Check> checks,
-                       WaitClass waitClass, String knownDefect, List<Phase> phases,
-                       AdminGrantExpectation adminGrant) {
-
-    public AclScenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass,
-                    String knownDefect, List<Phase> phases) {
-        this(id, description, fixture, checks, waitClass, knownDefect, phases, null);
-    }
+                          WaitClass waitClass, List<Phase> phases, AdminGrantExpectation adminGrant) {
 
     /** A row whose outcome is the admin API status of one grant. */
     public AclScenario(String id, String description, FixtureSpec fixture, AdminGrantExpectation adminGrant,
-                    WaitClass waitClass) {
-        this(id, description, fixture, List.of(), waitClass, null, List.of(), adminGrant);
+                       WaitClass waitClass) {
+        this(id, description, fixture, List.of(), waitClass, List.of(), adminGrant);
     }
 
-    /** A row without a known defect. */
+    /** A row whose verdicts do not change over time. */
     public AclScenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass) {
-        this(id, description, fixture, checks, waitClass, null, List.of());
-    }
-
-    /** A row with a known defect. */
-    public AclScenario(String id, String description, FixtureSpec fixture, List<Check> checks, WaitClass waitClass,
-                    String knownDefect) {
-        this(id, description, fixture, checks, waitClass, knownDefect, List.of());
-    }
-
-    /** A row with a single request. */
-    public AclScenario(String id, String description, FixtureSpec fixture, RequestSpec request, Verdict expected,
-                    WaitClass waitClass) {
-        this(id, description, fixture, List.of(new Check(request, expected)), waitClass, null, List.of());
+        this(id, description, fixture, checks, waitClass, List.of(), null);
     }
 
     /** A row whose verdicts change over time. */
     public AclScenario(String id, String description, FixtureSpec fixture, List<Check> checks, List<Phase> phases,
-                    WaitClass waitClass) {
-        this(id, description, fixture, checks, waitClass, null, phases);
+                       WaitClass waitClass) {
+        this(id, description, fixture, checks, waitClass, phases, null);
     }
 
-    /**
-     * Changes made while the fixture is in place, and the checks that follow them.
-     *
-     * @param changes the changes, applied in order
-     * @param checks  the requests sent after the changes, each with its expected verdict
-     */
+    /** Changes made while the fixture is in place, applied in order, and the checks that follow them. */
     public record Phase(List<PhaseChange> changes, List<Check> checks) {
     }
 
@@ -98,75 +74,43 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
             AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
     }
 
-    /**
-     * A member or subsystem is added to a global group of the fixture at the Central Server.
-     *
-     * @param code the group code before namespacing
-     */
+    /** A member or subsystem joins a global group of the fixture at the Central Server. */
     public record AddGlobalGroupMember(String code, String memberId) implements PhaseChange {
     }
 
-    /**
-     * A member or subsystem is removed from a global group of the fixture at the Central Server.
-     *
-     * @param code the group code before namespacing
-     */
+    /** A member or subsystem is removed from a global group of the fixture at the Central Server. */
     public record RemoveGlobalGroupMember(String code, String memberId) implements PhaseChange {
     }
 
-    /**
-     * A global group of the fixture is deleted at the Central Server.
-     *
-     * @param code the group code before namespacing
-     */
+    /** A global group of the fixture is deleted at the Central Server. */
     public record DeleteGlobalGroup(String code) implements PhaseChange {
     }
 
-    /**
-     * The consumer is granted the base access to a service code.
-     *
-     * @param serviceIndex the position of the service code among all service codes the fixture creates
-     */
+    /** The consumer is granted the base access to a service code. */
     public record Grant(int serviceIndex, String consumerId) implements PhaseChange {
     }
 
-    /**
-     * The consumer's access to a service code is revoked, with its endpoint grants of that service.
-     *
-     * @param serviceIndex the position of the service code among all service codes the fixture creates
-     */
+    /** The consumer's access to a service code is revoked, with its endpoint grants of that service. */
     public record Revoke(int serviceIndex, String consumerId) implements PhaseChange {
     }
 
-    /**
-     * The provider's local group is granted the base access to a service code.
-     *
-     * @param serviceIndex the position of the service code among all service codes the fixture creates
-     * @param groupCode    the group code before namespacing
-     */
+    /** The provider's local group is granted the base access to a service code. */
     public record GrantGroup(int serviceIndex, String groupCode) implements PhaseChange {
     }
 
     /**
      * The backend starts serving the second spec of the {@link OpenApiSpec#PETS_THEN_STATUS_ONLY} description at
      * the URL the service description was added from.
-     *
-     * @param serviceIndex the position of the OpenAPI service among the fixture's services
      */
     public record SwapBackendSpec(int serviceIndex) implements PhaseChange {
     }
-    /**
-     * The service description is refreshed from the backend.
-     *
-     * @param serviceIndex the position of the service among the fixture's services
-     */
+
+    /** The service description is refreshed from the backend. */
     public record Refresh(int serviceIndex) implements PhaseChange {
     }
 
     /**
-     * @param request  the call that produces the verdict
-     * @param expected the verdict legacy access rights give
-     * @param notice   text the reply has to carry besides the verdict, or {@code null} for none
+     * @param notice text the reply has to carry besides the verdict, or {@code null} for none
      */
     public record Check(RequestSpec request, Verdict expected, String notice) {
 
@@ -178,9 +122,7 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     /**
      * A grant made through the provider's admin API, and the HTTP status the API is expected to answer with.
      *
-     * @param subjectId      the member or subsystem the access is granted to
-     * @param serviceIndex   the index of the fixture service the grant names
-     * @param expectedStatus the HTTP status of the grant call
+     * @param subjectId the member or subsystem the access is granted to
      */
     public record AdminGrantExpectation(String subjectId, int serviceIndex, int expectedStatus) {
     }
@@ -213,13 +155,11 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     }
 
     /**
-     * @param providerClientId the service owner, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param services         the service descriptions to create under the provider
-     * @param groups           the local groups to create, before the services whose grants name them
-     * @param changes          the changes applied to the created service descriptions before the requests are sent
-     * @param globalGroups     the global groups to create at the Central Server, before the services whose grants
-     *                         name them
-     * @param providerHost     the Security Server that hosts the provider and receives the admin API calls
+     * @param groups       the local groups to create, before the services whose grants name them
+     * @param changes      the changes applied to the created service descriptions before the requests are sent
+     * @param globalGroups the global groups to create at the Central Server, before the services whose grants
+     *                     name them
+     * @param providerHost the Security Server that hosts the provider and receives the admin API calls
      */
     public record FixtureSpec(String providerClientId, List<ServiceSpec> services, List<LocalGroupSpec> groups,
                               List<DescriptionChange> changes, List<GlobalGroupSpec> globalGroups,
@@ -277,8 +217,7 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     /**
      * The description is disabled.
      *
-     * @param serviceIndex the position of the description among the fixture's services
-     * @param notice       the text shown to callers, or {@code null} to disable without one
+     * @param notice the text shown to callers, or {@code null} to disable without one
      */
     public record Disable(int serviceIndex, String notice) implements DescriptionChange {
     }
@@ -302,7 +241,7 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      * A local group of a client on the provider Security Server. Its code is namespaced per run and scenario,
      * so the same code under two owners stays one code.
      *
-     * @param ownerClientId    the client that owns the group, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param ownerClientId    the client that owns the group
      * @param code             the group code before namespacing
      * @param memberIds        the members to add, each a member or subsystem id
      * @param removedMemberIds the members removed again after the grants are made
@@ -342,9 +281,10 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      * A REST service with the base endpoint granted to each listed consumer, and further endpoints created
      * on top of it.
      *
-     * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param endpoints          the endpoints created next to the base endpoint
-     * @param grantedGroupCodes  codes of the provider's local groups granted the base endpoint, before namespacing
+     * @param grantedConsumerIds      consumers granted the base endpoint
+     * @param endpoints               the endpoints created next to the base endpoint
+     * @param grantedGroupCodes       codes of the provider's local groups granted the base endpoint, before
+     *                                namespacing
      * @param grantedGlobalGroupCodes codes of the fixture's global groups granted the base endpoint, before
      *                                namespacing
      */
@@ -369,12 +309,12 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     /**
      * An endpoint created on a REST service.
      *
-     * @param method             the HTTP method, or {@code *} for any
-     * @param path               the path pattern, starting with {@code /}
-     * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param grantedGroupCodes  codes of the provider's local groups granted the endpoint, before namespacing
+     * @param method                  the HTTP method, or {@code *} for any
+     * @param path                    the path pattern, starting with {@code /}
+     * @param grantedConsumerIds      consumers granted the endpoint
+     * @param grantedGroupCodes       codes of the provider's local groups granted the endpoint, before namespacing
      * @param grantedGlobalGroupCodes codes of the fixture's global groups granted the endpoint, before namespacing
-     * @param followUp           what happens to the endpoint after it is created and granted
+     * @param followUp                what happens to the endpoint after it is created and granted
      */
     public record EndpointSpec(String method, String path, List<String> grantedConsumerIds,
                                List<String> grantedGroupCodes, List<String> grantedGlobalGroupCodes,
@@ -438,7 +378,7 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      *
      * @param method             the HTTP method
      * @param path               the stored path pattern, starting with {@code /}
-     * @param grantedConsumerIds consumers in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
+     * @param grantedConsumerIds consumers granted the endpoint
      */
     public record GeneratedEndpointGrant(String method, String path, List<String> grantedConsumerIds) {
     }
@@ -448,10 +388,10 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      * endpoints the description generates or to manual endpoints that a later description edit may turn into
      * generated ones. Generated endpoints are never deleted on their own.
      *
-     * @param spec              the description the service is added from
-     * @param manualEndpoints   endpoints created by hand on top of the generated ones
-     * @param generatedGrants   grants on endpoints the description generates
-     * @param editedToSpec      the description the service is edited to after the grants, or {@code null} for none
+     * @param spec            the description the service is added from
+     * @param manualEndpoints endpoints created by hand on top of the generated ones
+     * @param generatedGrants grants on endpoints the description generates
+     * @param editedToSpec    the description the service is edited to after the grants, or {@code null} for none
      */
     public record OpenApiService(OpenApiSpec spec, List<EndpointSpec> manualEndpoints,
                                  List<GeneratedEndpointGrant> generatedGrants, OpenApiSpec editedToSpec)
@@ -504,25 +444,15 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     public sealed interface RequestSpec permits RestRequest, SoapRequest, MetaserviceRequest, MonitoringRequest,
             ListClientsRequest, ManagementRequest {
 
-        /** The calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form, or {@code null} for a call with none. */
-        String consumerClientId();
-
-        /**
-         * The position of the called service code among all service codes the fixture creates, or
-         * {@link MetaserviceRequest#NO_SERVICE} for a metaservice call that names none.
-         */
-        int serviceIndex();
-
         /** A short text naming the call, for failure messages. */
         String describe();
     }
 
     /**
-     * @param consumerClientId the calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param serviceIndex     the position of the called service code among all service codes the fixture creates
-     * @param method           the HTTP method
-     * @param path             the path after the service code, starting with {@code /}, or empty for the bare
-     *                         service root
+     * A REST call to a service of the provider.
+     *
+     * @param method the HTTP method
+     * @param path   the path after the service code, starting with {@code /}, or empty for the bare service root
      */
     public record RestRequest(String consumerClientId, int serviceIndex, String method, String path)
             implements RequestSpec {
@@ -534,8 +464,8 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     }
 
     /**
-     * @param consumerClientId   the calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param serviceIndex       the position of the called service code among all service codes the fixture creates
+     * A SOAP call to a service of the provider.
+     *
      * @param serviceVersion     the version named in the request header, or {@code null} for none
      * @param securityServerHint the {@code INSTANCE:CLASS:MEMBER:SERVERCODE} security server named in the request
      *                           header, or {@code null} for none
@@ -595,13 +525,12 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      * A call to a metaservice of the provider. The provider's Security Server answers it itself, so the reply
      * never reaches the backend.
      *
-     * @param consumerClientId the calling client, in {@code INSTANCE:CLASS:MEMBER:SUBSYSTEM} form
-     * @param transport        whether the call is REST or SOAP
-     * @param code             the metaservice code, for example {@code listMethods}
-     * @param method           the HTTP method; SOAP calls always post
-     * @param serviceIndex     the position of the service code the call asks about, or {@link #NO_SERVICE}
-     * @param targetVersion    the version of that service a SOAP call names, or {@code null} for none
-     * @param expectation      what the reply has to say
+     * @param transport     whether the call is REST or SOAP
+     * @param code          the metaservice code, for example {@code listMethods}
+     * @param method        the HTTP method; SOAP calls always post
+     * @param serviceIndex  the service the call asks about, or {@link #NO_SERVICE}
+     * @param targetVersion the version of that service a SOAP call names, or {@code null} for none
+     * @param expectation   what the reply has to say
      */
     public record MetaserviceRequest(String consumerClientId, Transport transport, String code, String method,
                                      int serviceIndex, String targetVersion, Expectation expectation)
@@ -638,18 +567,13 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      * service are named at member level when the identifier has no subsystem, and the header names the Security
      * Server that answers.
      *
-     * @param consumerClientId the calling client, in {@code INSTANCE:CLASS:MEMBER[:SUBSYSTEM]} form
+     * @param consumerClientId the calling client, with or without a subsystem
      * @param code             the monitoring metaservice code, for example {@code getSecurityServerHealthData}
      * @param filterClientId   the provider client a health data call filters on, or {@code null} for none
      * @param expectation      what the reply has to say
      */
     public record MonitoringRequest(String consumerClientId, String code, String filterClientId,
                                     Expectation expectation) implements RequestSpec {
-
-        @Override
-        public int serviceIndex() {
-            return MetaserviceRequest.NO_SERVICE;
-        }
 
         @Override
         public String describe() {
@@ -665,16 +589,6 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     public record ListClientsRequest(Expectation expectation) implements RequestSpec {
 
         @Override
-        public String consumerClientId() {
-            return null;
-        }
-
-        @Override
-        public int serviceIndex() {
-            return MetaserviceRequest.NO_SERVICE;
-        }
-
-        @Override
         public String describe() {
             return "GET listClients";
         }
@@ -685,10 +599,8 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
      * service. The sender is always the owner of the consumer Security Server.
      *
      * @param consumerClientId the owner of the consumer Security Server, under which the subsystem is added
-     * @param serviceIndex     the position of the management service code among all service codes the fixture
-     *                         creates
      */
-    public record ManagementRequest(String consumerClientId, int serviceIndex) implements RequestSpec {
+    public record ManagementRequest(String consumerClientId) implements RequestSpec {
         @Override
         public String describe() {
             return "client registration sent by " + consumerClientId;

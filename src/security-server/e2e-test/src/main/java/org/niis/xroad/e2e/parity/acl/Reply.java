@@ -29,6 +29,9 @@ package org.niis.xroad.e2e.parity.acl;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static java.net.HttpURLConnection.HTTP_MULT_CHOICE;
+import static java.net.HttpURLConnection.HTTP_OK;
+
 /**
  * An HTTP response reduced to what the classifier needs. Header names are matched case-insensitively.
  */
@@ -48,6 +51,14 @@ public final class Reply {
 
     public int status() {
         return status;
+    }
+
+    public boolean isSuccess() {
+        return isSuccess(status);
+    }
+
+    public static boolean isSuccess(int status) {
+        return status >= HTTP_OK && status < HTTP_MULT_CHOICE;
     }
 
     /** The first value of the named header, or {@code null} when it is absent. */

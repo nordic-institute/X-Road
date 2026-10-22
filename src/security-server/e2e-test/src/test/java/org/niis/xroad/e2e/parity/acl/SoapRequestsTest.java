@@ -62,20 +62,13 @@ class SoapRequestsTest {
     }
 
     @Test
-    void envelopeKeepsADottedServiceCodeVerbatim() {
-        assertThat(SoapRequests.envelope(CONSUMER, PROVIDER, "pab-v129.x", "v1", null, "ID-1"))
-                .contains("<iden:serviceCode>pab-v129.x</iden:serviceCode>");
-    }
+    void bodyElementIsNamedAfterAServiceCodeWithADot() throws Exception {
+        var xml = SoapRequests.envelope(CONSUMER, PROVIDER, "pab-v129.x", "v1", null, "ID-1");
 
-    @Test
-    void bodyElementIsNamedAfterTheServiceCode() throws Exception {
-        for (var code : new String[]{"pab-v03", "pab-v129.x"}) {
-            var doc = parse(SoapRequests.envelope(CONSUMER, PROVIDER, code, "v1", null, "ID-1"));
+        var bodyChild = parse(xml).getElementsByTagNameNS("http://acl-parity.test/producer", "*").item(0);
 
-            var bodyChild = doc.getElementsByTagNameNS("http://acl-parity.test/producer", "*").item(0);
-
-            assertThat(bodyChild.getLocalName()).isEqualTo(code);
-        }
+        assertThat(bodyChild.getLocalName()).isEqualTo("pab-v129.x");
+        assertThat(xml).contains("<iden:serviceCode>pab-v129.x</iden:serviceCode>");
     }
 
     @Test
@@ -88,35 +81,19 @@ class SoapRequestsTest {
     }
 
     @Test
-    void envelopeWithoutAVersionIsWellFormedXml() throws Exception {
-        var doc = parse(SoapRequests.envelope(CONSUMER, PROVIDER, "pab-v132b", null, null, "ID-1"));
-
-        assertThat(doc.getDocumentElement().getLocalName()).isEqualTo("Envelope");
-    }
-
-    @Test
     void envelopeWithoutAHintHasNoSecurityServerElement() {
         assertThat(SoapRequests.envelope(CONSUMER, PROVIDER, "pab-v03", "v1", null, "ID-1"))
                 .doesNotContain("securityServer");
     }
 
     @Test
-    void envelopeWithAHintNamesThatSecurityServer() {
+    void envelopeWithAHintNamesThatSecurityServer() throws Exception {
         var xml = SoapRequests.envelope(CONSUMER, PROVIDER, "pab-v131", "v1", "DEV:COM:1234:ss-unknown", "ID-1");
 
-        assertThat(xml)
-                .contains("<xro:securityServer iden:objectType=\"SERVER\">")
-                .contains("<iden:serverCode>ss-unknown</iden:serverCode>")
-                .contains("</xro:securityServer>");
-    }
+        var server = header(parse(xml), "securityServer");
 
-    @Test
-    void envelopeIsWellFormedXmlWithAndWithoutAHint() throws Exception {
-        for (var hint : new String[]{null, "DEV:COM:1234:ss-unknown"}) {
-            var doc = parse(SoapRequests.envelope(CONSUMER, PROVIDER, "pab-v03", "v1", hint, "ID-1"));
-
-            assertThat(doc.getDocumentElement().getLocalName()).isEqualTo("Envelope");
-        }
+        assertThat(server.getAttributeNS(IDEN, "objectType")).isEqualTo("SERVER");
+        assertThat(identifier(server, "serverCode")).isEqualTo("ss-unknown");
     }
 
     @Test
@@ -129,16 +106,8 @@ class SoapRequestsTest {
 
     @Test
     void metaserviceEnvelopeWithoutATargetCallsTheMetaserviceWithAnEmptyBody() throws Exception {
-        var xml = SoapRequests.metaserviceEnvelope(CONSUMER, PROVIDER, "listMethods", null, null, "ID-9");
+        var doc = parse(SoapRequests.metaserviceEnvelope(CONSUMER, PROVIDER, "listMethods", null, null, "ID-9"));
 
-        var doc = parse(xml);
-
-        assertThat(xml)
-                .contains("<iden:serviceCode>listMethods</iden:serviceCode>")
-                .contains("<xro:id>ID-9</xro:id>")
-                .doesNotContain("serviceVersion")
-                .doesNotContain("securityServer")
-                .doesNotContain("null");
         assertThat(doc.getElementsByTagNameNS("http://x-road.eu/xsd/xroad.xsd", "listMethods").getLength())
                 .isEqualTo(1);
         assertThat(doc.getElementsByTagNameNS("http://x-road.eu/xsd/xroad.xsd", "serviceCode").getLength()).isZero();

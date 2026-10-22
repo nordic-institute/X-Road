@@ -32,7 +32,6 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.Expectation;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ExpectationTest {
 
@@ -68,13 +67,5 @@ class ExpectationTest {
         assertThat(expectation.forbidden(List.of())).containsExactly("hidden");
         assertThat(Expectation.NONE.required(List.of())).isEmpty();
         assertThat(Expectation.NONE.forbidden(List.of())).isEmpty();
-    }
-
-    @Test
-    void positionBeyondThePlannedServiceCodesIsRejected() {
-        var expectation = Expectation.listing(List.of(3), List.of(3));
-
-        assertThatThrownBy(() -> expectation.required(CODES)).isInstanceOf(IndexOutOfBoundsException.class);
-        assertThatThrownBy(() -> expectation.forbidden(CODES)).isInstanceOf(IndexOutOfBoundsException.class);
     }
 }

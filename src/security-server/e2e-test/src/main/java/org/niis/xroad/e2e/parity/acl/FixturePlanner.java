@@ -90,18 +90,13 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Turns a scenario's fixture spec into admin calls. Every service code carries the run token and the
- * scenario id, so fixtures of different scenarios and of earlier runs never collide, and no shared
- * service description is ever touched. Deleting a service description also removes its access rights,
- * so the cleanup is one delete per created description, preceded by the delete of each REST endpoint the scenario
- * created and left in place. The cleanup also covers a description the scenario deletes itself, so it is still
- * removed when the setup fails before that delete; the executor treats the repeat delete as harmless. The base endpoint
- * and generated endpoints are never deleted on their own, and the endpoints of an OpenAPI description are removed
- * only with the description. Local groups carry the run token and the scenario id in their code too; each group
- * the scenario did not delete itself is deleted in cleanup, after the descriptions. Global groups carry the same
- * namespace and are deleted last; the {@code security-server-owners} group is used under its own code and is never
- * created or deleted. A management service is one the provider already has: it is used under its own code, gets
- * no description and no cleanup entry, and its grants are changed back by the executor.
+ * Turns a scenario's fixture spec into admin calls. Service and group codes carry the run token and the scenario
+ * id, so scenarios and runs never collide. Cleanup deletes each created description (which removes its access
+ * rights) after the REST endpoints the scenario left in place, then the local groups, then the global groups;
+ * a description the scenario deletes itself stays in the cleanup, and the executor treats the repeat delete as
+ * harmless. Base and generated endpoints are never deleted on their own. The {@code security-server-owners}
+ * group and management services belong to the provider: used under their own code, never created or deleted, and
+ * the executor changes management grants back.
  */
 public final class FixturePlanner {
 

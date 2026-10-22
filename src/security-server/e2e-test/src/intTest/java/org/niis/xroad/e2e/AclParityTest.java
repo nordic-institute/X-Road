@@ -28,12 +28,10 @@ package org.niis.xroad.e2e;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.Isolated;
@@ -54,12 +52,9 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.RestRequest;
 import org.niis.xroad.e2e.parity.acl.AclScenario.SoapRequest;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Transport;
 import org.niis.xroad.e2e.parity.acl.AclScenarioVerdicts;
-import org.niis.xroad.e2e.parity.acl.AclScenarioVerdicts.Outcome;
 import org.niis.xroad.e2e.parity.acl.FixtureExecutor;
 import org.niis.xroad.e2e.parity.acl.FixturePlan;
 import org.niis.xroad.e2e.parity.acl.FixturePlanner;
-import org.niis.xroad.e2e.parity.acl.KnownDefectMarker;
-import org.niis.xroad.e2e.parity.acl.KnownDefectMarker.Judgement;
 import org.niis.xroad.e2e.parity.acl.Reply;
 import org.niis.xroad.e2e.parity.acl.RestRequests;
 import org.niis.xroad.e2e.parity.acl.RestSender;
@@ -69,11 +64,10 @@ import org.niis.xroad.e2e.parity.acl.VerdictPoller;
 import org.niis.xroad.e2e.parity.acl.VerdictPoller.Observation;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -89,10 +83,6 @@ import static org.niis.xroad.e2e.AdminApi.login;
  * polls until the expected verdict or the cache deadline, and removes its fixtures. A scenario that expects an
  * admin API status instead issues one grant and checks the status, without polling.
  *
- * <p>A scenario with a known-defect marker asserts the safe verdict and is probed once. While it misses that
- * verdict it is aborted with the reason "expected failure", which Gradle reports as skipped; once it meets the
- * verdict it fails with "defect fixed, remove marker".
- *
  * <p>Before the first scenario the shared {@link SubsystemPoolSetup subsystem pool} is registered once, and the
  * service clients holding the management client registration service are listed; after the last scenario the list
  * must be the same.
@@ -102,7 +92,6 @@ import static org.niis.xroad.e2e.AdminApi.login;
  * the next one: the Gradle task sets the fail-fast threshold to {@code 0} in that mode.
  */
 @Slf4j
-@Tag("acl-parity")
 @Order(500)
 @Isolated
 @Execution(ExecutionMode.SAME_THREAD)
@@ -141,14 +130,12 @@ class AclParityTest extends E2eTest {
 
     static Stream<Named<AclScenario>> scenarios() {
         return AclScenarioCatalogue.all().stream()
-                .map(scenario -> Named.of(displayName(scenario), scenario));
+                .map(scenario -> Named.of(scenario.id() + " " + scenario.description(), scenario));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("scenarios")
     void scenarioGetsItsExpectedVerdict(AclScenario scenario, E2eEnvironment env) {
-        assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
-
         var providerBaseUrl = adminBaseUrl(env, providerEnv(scenario));
         var csBaseUrl = CentralServerApi.baseUrl(env);
         var gateway = new AdminApiGateway(providerBaseUrl, login(providerBaseUrl), backendUrl(env), csBaseUrl,
@@ -163,15 +150,12 @@ class AclParityTest extends E2eTest {
             }
             var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, plan, fixture::apply,
                     request -> call(env, management, scenario, plan, request),
-                    scenario.knownDefect() == null ? scenario.waitClass().timeout() : Duration.ZERO,
-                    DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
-            if (scenario.knownDefect() == null) {
-                outcomes.forEach(outcome -> log.info("{}: {} -> verdict {} ({}) after {} attempts in {} s",
-                        scenario.id(), outcome.check().request().describe(), outcome.result().last(),
-                        outcome.result().detail(), outcome.result().attempts(),
-                        outcome.result().elapsed().toSeconds()));
-            }
-            report(scenario, outcomes, KnownDefectMarker.judge(scenario, outcomes));
+                    scenario.waitClass().timeout(), DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
+            outcomes.forEach(outcome -> log.info("{}: {} -> verdict {} ({}) after {} attempts in {} s",
+                    scenario.id(), outcome.check().request().describe(), outcome.result().last(),
+                    outcome.result().detail(), outcome.result().attempts(),
+                    outcome.result().elapsed().toSeconds()));
+            AclScenarioVerdicts.failureMessage(scenario.id(), outcomes).ifPresent(Assertions::fail);
         }
     }
 
@@ -194,28 +178,6 @@ class AclParityTest extends E2eTest {
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
     }
 
-    private static String displayName(AclScenario scenario) {
-        var name = scenario.id() + " " + scenario.description();
-        return scenario.knownDefect() == null ? name : name + " [known defect " + scenario.knownDefect() + "]";
-    }
-
-    private static void report(AclScenario scenario, List<Outcome> outcomes, Judgement judgement) {
-        if (scenario.knownDefect() != null) {
-            log.info("{}: known defect {}: {}, observed {}", scenario.id(), scenario.knownDefect(), judgement.status(),
-                    observedVerdicts(outcomes));
-        }
-        if (judgement.status() == KnownDefectMarker.Status.FAILED) {
-            Assertions.fail(judgement.message());
-        }
-        if (judgement.status() == KnownDefectMarker.Status.EXPECTED_FAILURE) {
-            Assumptions.abort(judgement.message());
-        }
-    }
-
-    private static String observedVerdicts(List<Outcome> outcomes) {
-        return outcomes.stream().map(outcome -> outcome.result().last().name()).collect(Collectors.joining(", "));
-    }
-
     private static Observation call(E2eEnvironment env, ManagementProbe management, AclScenario scenario,
                                     FixturePlan plan, RequestSpec request) {
         var proxy = env.getContainerMapping(SS1_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
@@ -231,21 +193,15 @@ class AclParityTest extends E2eTest {
             }
             case SoapRequest soap -> {
                 var serviceCode = plan.serviceCodes().get(soap.serviceIndex());
-                var reply = Replies.toReply(RestAssuredFactory.given()
-                        .header("Content-Type", "text/xml")
-                        .body(SoapRequests.envelope(soap.consumerClientId(), providerClientId, serviceCode,
-                                soap.serviceVersion(), soap.securityServerHint(), "acl-parity-" + UUID.randomUUID()))
-                        .post(proxyOrigin));
+                var reply = postSoap(proxyOrigin, messageId -> SoapRequests.envelope(soap.consumerClientId(),
+                        providerClientId, serviceCode, soap.serviceVersion(), soap.securityServerHint(), messageId));
                 yield new Observation(VerdictClassifier.classifySoap(reply), VerdictClassifier.describeSoap(reply));
             }
             case MetaserviceRequest meta -> callMetaservice(proxyOrigin, providerClientId, plan, meta);
             case MonitoringRequest monitoring -> {
-                var reply = Replies.toReply(RestAssuredFactory.given()
-                        .header("Content-Type", "text/xml")
-                        .body(SoapRequests.monitoringEnvelope(monitoring.consumerClientId(), providerClientId,
-                                monitoring.code(), AclParticipants.OWNER_SECURITY_SERVER,
-                                monitoring.filterClientId(), "acl-parity-" + UUID.randomUUID()))
-                        .post(proxyOrigin));
+                var reply = postSoap(proxyOrigin, messageId -> SoapRequests.monitoringEnvelope(
+                        monitoring.consumerClientId(), providerClientId, monitoring.code(),
+                        AclParticipants.OWNER_SECURITY_SERVER, monitoring.filterClientId(), messageId));
                 yield observe(reply, plan, monitoring.expectation());
             }
             case ListClientsRequest listClients -> observe(
@@ -267,12 +223,16 @@ class AclParityTest extends E2eTest {
                 ? RestSender.send(meta.method(),
                         RestRequests.metaserviceUrl(proxyOrigin, providerClientId, meta.code(), target),
                         RestRequests.clientHeader(meta.consumerClientId()), "application/json")
-                : Replies.toReply(RestAssuredFactory.given()
-                        .header("Content-Type", "text/xml")
-                        .body(SoapRequests.metaserviceEnvelope(meta.consumerClientId(), providerClientId, meta.code(),
-                                target, meta.targetVersion(), "acl-parity-" + UUID.randomUUID()))
-                        .post(proxyOrigin));
+                : postSoap(proxyOrigin, messageId -> SoapRequests.metaserviceEnvelope(meta.consumerClientId(),
+                        providerClientId, meta.code(), target, meta.targetVersion(), messageId));
         return observe(reply, plan, meta.expectation());
+    }
+
+    private static Reply postSoap(String proxyOrigin, Function<String, String> envelopeOf) {
+        return Replies.toReply(RestAssuredFactory.given()
+                .header("Content-Type", "text/xml")
+                .body(envelopeOf.apply("acl-parity-" + UUID.randomUUID()))
+                .post(proxyOrigin));
     }
 
     private static Observation observe(Reply reply, FixturePlan plan, Expectation expectation) {

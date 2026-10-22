@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.e2e.parity.acl.EndpointIds;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
@@ -40,6 +40,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_MULT_CHOICE;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -53,12 +59,6 @@ class AdminApi {
 
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_CREATED = 201;
-    private static final int HTTP_NO_CONTENT = 204;
-    private static final int HTTP_NOT_FOUND = 404;
-    private static final int HTTP_CONFLICT = 409;
-    private static final int HTTP_LAST_SUCCESS = 299;
     private static final int CLIENT_ID_PARTS = 4;
     private static final String REGISTERED_STATUS = "REGISTERED";
     private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
@@ -85,6 +85,20 @@ class AdminApi {
         return RestAssuredFactory.given()
                 .cookies(session.cookies())
                 .header("X-XSRF-TOKEN", session.xsrfToken());
+    }
+
+    /** Sends a JSON body with the session's credentials; the status is left to the caller. */
+    static Response sendJson(AdminSession session, Method method, String url, String body) {
+        return authed(session).header("Content-Type", "application/json").body(body).request(method, url);
+    }
+
+    /** Sends a JSON body and asserts the status, naming the call and the reply body on a mismatch. */
+    static Response sendJson(AdminSession session, Method method, String url, String body, int expectedStatus,
+                             String call) {
+        var response = sendJson(session, method, url, body);
+        assertThat(response.getStatusCode()).as("%s: %s", call, response.getBody().asString())
+                .isEqualTo(expectedStatus);
+        return response;
     }
 
     /** Finds the id of the service description backing {@code clientId}'s {@code serviceCode} service. */
@@ -114,17 +128,15 @@ class AdminApi {
 
     /** Disables the service description, attaching the operator's notice unless it is {@code null}. */
     static void disableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId, String notice) {
-        var request = authed(ss0);
-        if (notice != null) {
-            request = request.header("Content-Type", "application/json")
-                    .body("""
-                            {"disabled_notice": "%s"}
-                            """.formatted(notice));
-        }
-        var response = request.put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable");
+        var url = ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable";
+        var response = notice == null
+                ? authed(ss0).put(url)
+                : sendJson(ss0, Method.PUT, url, """
+                        {"disabled_notice": "%s"}
+                        """.formatted(notice));
         assertThat(response.getStatusCode())
                 .as("disable service description %s", serviceDescriptionId)
-                .isBetween(HTTP_OK, HTTP_LAST_SUCCESS);
+                .isBetween(HTTP_OK, HTTP_MULT_CHOICE - 1);
     }
 
     /**
@@ -141,14 +153,9 @@ class AdminApi {
                   "new_rest_service_code": "%s"
                 }
                 """.formatted(backendUrl, restServiceCode, newRestServiceCode);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .patch(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId);
-        assertThat(response.getStatusCode())
-                .as("rename service %s of service description %s to %s: %s", restServiceCode, serviceDescriptionId,
-                        newRestServiceCode, response.getBody().asString())
-                .isEqualTo(HTTP_OK);
+        sendJson(ss0, Method.PATCH, ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId, body,
+                HTTP_OK, "rename service %s of service description %s to %s".formatted(restServiceCode,
+                        serviceDescriptionId, newRestServiceCode));
     }
 
     /**
@@ -192,10 +199,8 @@ class AdminApi {
                   "rest_service_code": "%s"
                 }
                 """.formatted(backendUrl, restServiceCode);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
+        var response = sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions",
+                body);
         if (response.getStatusCode() == HTTP_CONFLICT) {
             log.info("REST service description '{}' already exists for {}; looking up its id instead of adding it again",
                     restServiceCode, clientId);
@@ -214,13 +219,8 @@ class AdminApi {
                   "ignore_warnings": true
                 }
                 """.formatted(wsdlUrl);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
-        assertThat(response.getStatusCode())
-                .as("add WSDL service description %s for %s: %s", wsdlUrl, clientId, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        var response = sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions",
+                body, HTTP_CREATED, "add WSDL service description %s for %s".formatted(wsdlUrl, clientId));
         return response.jsonPath().getString("id");
     }
 
@@ -230,14 +230,9 @@ class AdminApi {
      */
     static String addOpenApiServiceDescription(String ss0BaseUrl, AdminSession ss0, String clientId, String specUrl,
                                                String restServiceCode) {
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(openApiDescriptionBody(specUrl, restServiceCode))
-                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
-        assertThat(response.getStatusCode())
-                .as("add OPENAPI3 service description %s for %s: %s", specUrl, clientId,
-                        response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        var response = sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions",
+                openApiDescriptionBody(specUrl, restServiceCode), HTTP_CREATED,
+                "add OPENAPI3 service description %s for %s".formatted(specUrl, clientId));
         return response.jsonPath().getString("id");
     }
 
@@ -248,25 +243,15 @@ class AdminApi {
      */
     static void updateOpenApiServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId,
                                                 String specUrl, String restServiceCode) {
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(openApiDescriptionBody(specUrl, restServiceCode))
-                .patch(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId);
-        assertThat(response.getStatusCode())
-                .as("update OPENAPI3 service description %s to %s: %s", serviceDescriptionId, specUrl,
-                        response.getBody().asString())
-                .isEqualTo(HTTP_OK);
+        sendJson(ss0, Method.PATCH, ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId,
+                openApiDescriptionBody(specUrl, restServiceCode), HTTP_OK,
+                "update OPENAPI3 service description %s to %s".formatted(serviceDescriptionId, specUrl));
     }
 
     /** Re-reads the service description from its URL, ignoring parser warnings. */
     static void refreshServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body("{\"ignore_warnings\": true}")
-                .put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/refresh");
-        assertThat(response.getStatusCode())
-                .as("refresh service description %s: %s", serviceDescriptionId, response.getBody().asString())
-                .isEqualTo(HTTP_OK);
+        sendJson(ss0, Method.PUT, ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/refresh",
+                "{\"ignore_warnings\": true}", HTTP_OK, "refresh service description " + serviceDescriptionId);
     }
 
     private static String openApiDescriptionBody(String specUrl, String restServiceCode) {
@@ -326,11 +311,8 @@ class AdminApi {
                   ]
                 }
                 """.formatted(serviceCode);
-        return authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + subjectId + "/access-rights")
-                .getStatusCode();
+        return sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
+                + subjectId + "/access-rights", body).getStatusCode();
     }
 
     /** Lists the ids of the service clients that hold an access right to the provider client's service, sorted. */
@@ -364,15 +346,9 @@ class AdminApi {
                   ]
                 }
                 """.formatted(serviceCode);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId
-                        + "/access-rights/delete");
-        assertThat(response.getStatusCode())
-                .as("revoke %s access to %s's %s service: %s", consumerClientId, providerClientId, serviceCode,
-                        response.getBody().asString())
-                .isEqualTo(HTTP_NO_CONTENT);
+        sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
+                + consumerClientId + "/access-rights/delete", body, HTTP_NO_CONTENT,
+                "revoke %s access to %s's %s service".formatted(consumerClientId, providerClientId, serviceCode));
     }
 
     /**
@@ -390,13 +366,8 @@ class AdminApi {
                   "path": "%s"
                 }
                 """.formatted(serviceCode, method, path);
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(baseUrl + "/api/v1/services/" + serviceId + "/endpoints");
-        assertThat(response.getStatusCode())
-                .as("add endpoint %s %s to %s: %s", method, path, serviceId, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/services/" + serviceId + "/endpoints", body, HTTP_CREATED,
+                "add endpoint %s %s to %s".formatted(method, path, serviceId));
         return findEndpointId(baseUrl, session, serviceDescriptionId, serviceCode, method, path);
     }
 
@@ -406,7 +377,11 @@ class AdminApi {
         var serviceId = findServiceId(baseUrl, session, serviceDescriptionId, serviceCode);
         var service = authed(session).get(baseUrl + "/api/v1/services/" + serviceId);
         assertThat(service.getStatusCode()).as("get service %s", serviceId).isEqualTo(HTTP_OK);
-        var id = EndpointIds.find(service.jsonPath().getList("endpoints"), method, path);
+        List<Map<String, Object>> endpoints = service.jsonPath().getList("endpoints");
+        var id = endpoints.stream()
+                .filter(endpoint -> method.equals(endpoint.get("method")) && path.equals(endpoint.get("path")))
+                .map(endpoint -> String.valueOf(endpoint.get("id")))
+                .findFirst();
         assertThat(id).as("endpoint %s %s in the endpoints of service %s", method, path, serviceId).isPresent();
         return id.orElseThrow();
     }
@@ -432,13 +407,8 @@ class AdminApi {
                   "path": "%s"
                 }
                 """.formatted(method, path);
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .patch(baseUrl + "/api/v1/endpoints/" + endpointId);
-        assertThat(response.getStatusCode())
-                .as("update endpoint %s to %s %s: %s", endpointId, method, path, response.getBody().asString())
-                .isEqualTo(HTTP_OK);
+        sendJson(session, Method.PATCH, baseUrl + "/api/v1/endpoints/" + endpointId, body, HTTP_OK,
+                "update endpoint %s to %s %s".formatted(endpointId, method, path));
     }
 
     /** Grants the consumer access to the endpoint. */
@@ -450,13 +420,8 @@ class AdminApi {
                   ]
                 }
                 """.formatted(consumerClientId);
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(baseUrl + "/api/v1/endpoints/" + endpointId + "/service-clients");
-        assertThat(response.getStatusCode())
-                .as("grant %s access to endpoint %s: %s", consumerClientId, endpointId, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/endpoints/" + endpointId + "/service-clients", body,
+                HTTP_CREATED, "grant %s access to endpoint %s".formatted(consumerClientId, endpointId));
     }
 
     /** Deletes the endpoint and returns the HTTP status of the call without asserting it. */
@@ -472,36 +437,23 @@ class AdminApi {
                   "description": "acl parity"
                 }
                 """.formatted(code);
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(baseUrl + "/api/v1/clients/" + ownerClientId + "/local-groups");
-        assertThat(response.getStatusCode())
-                .as("create local group %s of %s: %s", code, ownerClientId, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients/" + ownerClientId + "/local-groups",
+                body, HTTP_CREATED, "create local group %s of %s".formatted(code, ownerClientId));
         return response.jsonPath().getString("id");
     }
 
     /** Adds the member or subsystem to the local group. */
     static void addLocalGroupMember(String baseUrl, AdminSession session, String groupId, String memberId) {
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(localGroupMemberBody(memberId))
-                .post(baseUrl + "/api/v1/local-groups/" + groupId + "/members");
-        assertThat(response.getStatusCode())
-                .as("add %s to local group %s: %s", memberId, groupId, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/local-groups/" + groupId + "/members",
+                localGroupMemberBody(memberId), HTTP_CREATED,
+                "add %s to local group %s".formatted(memberId, groupId));
     }
 
     /** Removes the member or subsystem from the local group. */
     static void removeLocalGroupMember(String baseUrl, AdminSession session, String groupId, String memberId) {
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(localGroupMemberBody(memberId))
-                .post(baseUrl + "/api/v1/local-groups/" + groupId + "/members/delete");
-        assertThat(response.getStatusCode())
-                .as("remove %s from local group %s: %s", memberId, groupId, response.getBody().asString())
-                .isEqualTo(HTTP_NO_CONTENT);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/local-groups/" + groupId + "/members/delete",
+                localGroupMemberBody(memberId), HTTP_NO_CONTENT,
+                "remove %s from local group %s".formatted(memberId, groupId));
     }
 
     /** Deletes the local group and returns the HTTP status of the call without asserting it. */
@@ -537,10 +489,7 @@ class AdminApi {
                   }
                 }
                 """.formatted(parts[1], parts[2], parts[parts.length - 1]);
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(baseUrl + "/api/v1/clients");
+        var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients", body);
         assertThat(response.getStatusCode())
                 .as("add local client %s (201 first run, 409 if it already exists on a warm rerun)", clientId)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
@@ -549,12 +498,11 @@ class AdminApi {
 
     /** Sets the client's internal connection type ({@code HTTP}, {@code HTTPS} or {@code HTTPS_NO_AUTH}). */
     static void setConnectionType(String baseUrl, AdminSession session, String clientId, String connectionType) {
-        var response = authed(session)
-                .header("Content-Type", "application/json")
-                .body("{\"connection_type\": \"%s\"}".formatted(connectionType))
-                .patch(baseUrl + "/api/v1/clients/" + clientId);
-        assertThat(response.getStatusCode()).as("set connection type of %s to %s", clientId, connectionType).isEqualTo(HTTP_OK);
+        sendJson(session, Method.PATCH, baseUrl + "/api/v1/clients/" + clientId,
+                "{\"connection_type\": \"%s\"}".formatted(connectionType), HTTP_OK,
+                "set connection type of %s to %s".formatted(clientId, connectionType));
     }
+
     /**
      * Submits the client registration request, tolerating a warm rerun where the client is already past
      * {@code SAVED} status: {@code ClientService.registerClient} rejects that with

@@ -67,6 +67,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.ToIntFunction;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+
 /**
  * Runs a {@link FixturePlan} against the provider's admin API. A setup that fails part way removes what it
  * created before the failure is rethrown. A grant on a generated endpoint looks the endpoint up by method and
@@ -75,10 +77,6 @@ import java.util.function.ToIntFunction;
  * back first, newest change first, so the provider ends with the grants it started with.
  */
 public final class FixtureExecutor {
-
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_LAST_SUCCESS = 299;
-    private static final int HTTP_NOT_FOUND = 404;
 
     private final AdminGateway gateway;
 
@@ -118,6 +116,15 @@ public final class FixtureExecutor {
             this.plan = plan;
         }
 
+        private String endpointIdOf(String serviceCode, String method, String path) {
+            return endpointIds.computeIfAbsent(endpointKey(serviceCode, method, path),
+                    key -> gateway.findEndpointId(descriptionIds.get(serviceCode), serviceCode, method, path));
+        }
+        private static void requireSuccess(int status, String what) {
+            if (!Reply.isSuccess(status)) {
+                throw new IllegalStateException("%s answered %d".formatted(what, status));
+            }
+        }
         private static String endpointKey(String serviceCode, String method, String path) {
             return "%s %s %s".formatted(serviceCode, method, path);
         }
@@ -169,18 +176,13 @@ public final class FixtureExecutor {
                         gateway.refreshDescription(descriptionIds.get(refresh.serviceCode()));
                 case SwapBackendSpec swap -> {
                     var status = gateway.swapBackendSpec(swap.urlPath());
-                    if (!isSuccess(status)) {
-                        throw new IllegalStateException(
-                                "backend swap request %s answered %d".formatted(swap.urlPath(), status));
-                    }
+                    requireSuccess(status, "backend swap request %s".formatted(swap.urlPath()));
                 }
                 case AddEndpoint add -> endpointIds.put(endpointKey(add.serviceCode(), add.method(), add.path()),
                         gateway.addEndpoint(descriptionIds.get(add.serviceCode()), add.serviceCode(), add.method(),
                                 add.path()));
                 case GrantEndpointAccess grant -> gateway.grantEndpointAccess(
-                        endpointIds.computeIfAbsent(endpointKey(grant.serviceCode(), grant.method(), grant.path()),
-                                key -> gateway.findEndpointId(descriptionIds.get(grant.serviceCode()),
-                                        grant.serviceCode(), grant.method(), grant.path())),
+                        endpointIdOf(grant.serviceCode(), grant.method(), grant.path()),
                         grant.consumerClientId());
                 case UpdateEndpoint update -> {
                     var id = endpointIds.remove(endpointKey(update.serviceCode(), update.method(), update.path()));
@@ -190,10 +192,8 @@ public final class FixtureExecutor {
                 case DeleteEndpoint delete -> {
                     var id = endpointIds.remove(endpointKey(delete.serviceCode(), delete.method(), delete.path()));
                     var status = gateway.deleteEndpoint(id);
-                    if (!isSuccess(status)) {
-                        throw new IllegalStateException("delete of endpoint %s %s of %s answered %d"
-                                .formatted(delete.method(), delete.path(), delete.serviceCode(), status));
-                    }
+                    requireSuccess(status, "delete of endpoint %s %s of %s"
+                            .formatted(delete.method(), delete.path(), delete.serviceCode()));
                 }
                 case CreateLocalGroup create -> groupIds.put(groupKey(create.ownerClientId(), create.code()),
                         gateway.createLocalGroup(create.ownerClientId(), create.code()));
@@ -204,9 +204,7 @@ public final class FixtureExecutor {
                 case GrantGroupAccess grant -> gateway.grantAccess(grant.providerClientId(),
                         groupIds.get(groupKey(grant.providerClientId(), grant.groupCode())), grant.serviceCode());
                 case GrantGroupEndpointAccess grant -> gateway.grantEndpointAccess(
-                        endpointIds.computeIfAbsent(endpointKey(grant.serviceCode(), grant.method(), grant.path()),
-                                key -> gateway.findEndpointId(descriptionIds.get(grant.serviceCode()),
-                                        grant.serviceCode(), grant.method(), grant.path())),
+                        endpointIdOf(grant.serviceCode(), grant.method(), grant.path()),
                         groupIds.get(groupKey(grant.providerClientId(), grant.groupCode())));
                 case CreateGlobalGroup create -> {
                     gateway.createGlobalGroup(create.code());
@@ -218,33 +216,23 @@ public final class FixtureExecutor {
                 case GrantGlobalGroupAccess grant -> gateway.grantGlobalGroupAccess(grant.providerClientId(),
                         globalGroupId(grant.providerClientId(), grant.groupCode()), grant.serviceCode());
                 case GrantGlobalGroupEndpointAccess grant -> gateway.grantGlobalGroupEndpointAccess(
-                        endpointIds.computeIfAbsent(endpointKey(grant.serviceCode(), grant.method(), grant.path()),
-                                key -> gateway.findEndpointId(descriptionIds.get(grant.serviceCode()),
-                                        grant.serviceCode(), grant.method(), grant.path())),
+                        endpointIdOf(grant.serviceCode(), grant.method(), grant.path()),
                         globalGroupId(grant.providerClientId(), grant.groupCode()));
                 case DeleteGlobalGroup delete -> {
                     var status = gateway.deleteGlobalGroup(delete.code());
-                    if (!isSuccess(status)) {
-                        throw new IllegalStateException(
-                                "delete of global group %s answered %d".formatted(delete.code(), status));
-                    }
+                    requireSuccess(status, "delete of global group %s".formatted(delete.code()));
                     globalGroupCodes.remove(delete.code());
                 }
                 case DeleteLocalGroup delete -> {
                     var key = groupKey(delete.ownerClientId(), delete.code());
                     var status = gateway.deleteLocalGroup(groupIds.get(key));
-                    if (!isSuccess(status)) {
-                        throw new IllegalStateException("delete of local group %s of %s answered %d"
-                                .formatted(delete.code(), delete.ownerClientId(), status));
-                    }
+                    requireSuccess(status, "delete of local group %s of %s"
+                            .formatted(delete.code(), delete.ownerClientId()));
                     groupIds.remove(key);
                 }
                 case DeleteDescription delete -> {
                     var status = gateway.deleteDescription(descriptionIds.get(delete.serviceCode()));
-                    if (!isSuccess(status)) {
-                        throw new IllegalStateException("delete of service description %s answered %d"
-                                .formatted(delete.serviceCode(), status));
-                    }
+                    requireSuccess(status, "delete of service description %s".formatted(delete.serviceCode()));
                     descriptionIds.remove(delete.serviceCode());
                 }
             }
@@ -294,17 +282,13 @@ public final class FixtureExecutor {
             }
         }
 
-        private static boolean isSuccess(int status) {
-            return status >= HTTP_OK && status <= HTTP_LAST_SUCCESS;
-        }
-
         private static void remove(String id, String name, ToIntFunction<String> delete, List<String> failures) {
             if (id == null) {
                 return;
             }
             try {
                 var status = delete.applyAsInt(id);
-                if (!isSuccess(status) && status != HTTP_NOT_FOUND) {
+                if (!Reply.isSuccess(status) && status != HTTP_NOT_FOUND) {
                     failures.add("delete of %s answered %d".formatted(name, status));
                 }
             } catch (RuntimeException e) {

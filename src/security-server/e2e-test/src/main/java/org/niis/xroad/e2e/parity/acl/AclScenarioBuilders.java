@@ -169,7 +169,7 @@ public final class AclScenarioBuilders {
 
     /** The owner of the consumer Security Server registering a client, with the verdict it is expected to get. */
     public static Check registration(Verdict expected) {
-        return check(new ManagementRequest(MEMBER_OF_CONSUMER, 0), expected);
+        return check(new ManagementRequest(MEMBER_OF_CONSUMER), expected);
     }
 
     /** A REST call from the consumer to the first service. */

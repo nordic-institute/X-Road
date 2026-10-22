@@ -37,9 +37,4 @@ import java.util.List;
  */
 public record FixturePlan(List<String> serviceCodes, List<AdminCall> setup, List<List<AdminCall>> phases,
                           List<AdminCall> cleanup) {
-
-    /** A plan without phases. */
-    public FixturePlan(List<String> serviceCodes, List<AdminCall> setup, List<AdminCall> cleanup) {
-        this(serviceCodes, setup, List.of(), cleanup);
-    }
 }

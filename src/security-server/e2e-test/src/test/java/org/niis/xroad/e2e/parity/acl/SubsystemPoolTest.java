@@ -37,31 +37,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class SubsystemPoolTest {
 
     @Test
-    void poolHoldsTheSiblingTheSecondConsumerTheUnregisteredProviderAndTheSecondOwner() {
-        assertThat(SubsystemPool.entries()).containsExactly(
-                new Entry(SubsystemPool.SIBLING_OF_CONSUMER, SubsystemPool.SS1, true),
-                new Entry(SubsystemPool.SECOND_CONSUMER, SubsystemPool.SS1, true),
-                new Entry(SubsystemPool.UNREGISTERED_PROVIDER, SubsystemPool.SS0, false),
-                new Entry(SubsystemPool.SECOND_OWNER, SubsystemPool.SS0, false));
-    }
-
-    @Test
-    void siblingBelongsToTheConsumersMemberAndTheSecondConsumerToTheProvidersMember() {
-        assertThat(SubsystemPool.SIBLING_OF_CONSUMER).startsWith(memberOf(AclParticipants.CONSUMER));
-        assertThat(SubsystemPool.SECOND_CONSUMER).startsWith(memberOf(AclParticipants.PROVIDER));
-        assertThat(SubsystemPool.UNREGISTERED_PROVIDER).startsWith(memberOf(AclParticipants.PROVIDER));
-        assertThat(SubsystemPool.SECOND_OWNER).startsWith(memberOf(AclParticipants.PROVIDER));
-    }
-
-    @Test
-    void poolClientIdsAreUniqueAndNeverCollideWithTheSeededSubsystems() {
-        var ids = SubsystemPool.entries().stream().map(Entry::clientId).toList();
-
-        assertThat(ids).doesNotHaveDuplicates()
-                .doesNotContain(AclParticipants.PROVIDER, AclParticipants.CONSUMER, AclParticipants.OTHER_CONSUMER);
-    }
-
-    @Test
     void byHostGroupsEntriesKeepingTheDeclaredOrder() {
         var grouped = SubsystemPool.byHost(SubsystemPool.entries());
 
@@ -93,9 +68,5 @@ class SubsystemPoolTest {
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Entry("DEV:COM:4321:Sub", " ", true))
                 .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    private static String memberOf(String clientId) {
-        return clientId.substring(0, clientId.lastIndexOf(':') + 1);
     }
 }

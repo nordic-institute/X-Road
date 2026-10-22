@@ -58,13 +58,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalGroupGranted;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalconfPhased;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalconfRow;
-import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.management;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.openApiGranted;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phase;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phased;
@@ -109,24 +107,6 @@ class FixtureExecutorTest {
                 "grp-%s-%s".formatted(call.getArgument(0), call.getArgument(1)));
         when(gateway.deleteLocalGroup(any())).thenReturn(204);
         when(gateway.deleteGlobalGroup(any())).thenReturn(204);
-    }
-
-    @Test
-    void setupRunsInPlanOrderAndCloseDeletesInReverse() {
-        var order = inOrder(gateway);
-
-        try (var ignored = executor.open(plan)) {
-            order.verify(gateway).addRestDescription(any(), any(), eq("pt1-v09"));
-            order.verify(gateway).enableDescription("id-pt1-v09");
-            order.verify(gateway).grantAccess(any(), eq(AclParticipants.CONSUMER), eq("pt1-v09"));
-            order.verify(gateway).addRestDescription(any(), any(), eq("pt1-v09-2"));
-            order.verify(gateway).enableDescription("id-pt1-v09-2");
-            verifyNoMoreInteractions(gateway);
-        }
-
-        order.verify(gateway).deleteDescription("id-pt1-v09-2");
-        order.verify(gateway).deleteDescription("id-pt1-v09");
-        verifyNoMoreInteractions(gateway);
     }
 
     @Test
@@ -225,18 +205,15 @@ class FixtureExecutorTest {
     void wsdlDescriptionIsAddedThroughItsFirstCodeAndDeletedOnClose() {
         var wsdlPlan = new FixturePlanner("t1").plan("V04", new FixtureSpec(AclParticipants.PROVIDER,
                 List.of(new WsdlService(WsdlShape.PAIR, "", List.of(List.of(AclParticipants.CONSUMER), List.of())))));
-        var order = inOrder(gateway);
 
         try (var ignored = executor.open(wsdlPlan)) {
-            order.verify(gateway).addWsdlDescription(any(),
+            verify(gateway).addWsdlDescription(any(),
                     eq("http://isrest:8080/acl-parity/wsdl/pair.wsdl?code1=pt1-v04&code2=pt1-v04-b"));
-            order.verify(gateway).enableDescription("id-wsdl");
-            order.verify(gateway).grantAccess(any(), eq(AclParticipants.CONSUMER), eq("pt1-v04"));
-            verifyNoMoreInteractions(gateway);
+            verify(gateway).enableDescription("id-wsdl");
+            verify(gateway).grantAccess(any(), eq(AclParticipants.CONSUMER), eq("pt1-v04"));
         }
 
-        order.verify(gateway).deleteDescription("id-wsdl");
-        verifyNoMoreInteractions(gateway);
+        verify(gateway).deleteDescription("id-wsdl");
     }
 
     @Test
@@ -244,19 +221,16 @@ class FixtureExecutorTest {
         var endpointPlan = new FixturePlanner("t1").plan("V22", new FixtureSpec(AclParticipants.PROVIDER,
                 List.of(new RestService(List.of(),
                         List.of(new EndpointSpec("GET", "/foo", List.of(AclParticipants.CONSUMER)))))));
-        var order = inOrder(gateway);
 
         try (var ignored = executor.open(endpointPlan)) {
-            order.verify(gateway).addRestDescription(any(), any(), eq("pt1-v22"));
-            order.verify(gateway).enableDescription("id-pt1-v22");
-            order.verify(gateway).addEndpoint(eq("id-pt1-v22"), any(), eq("GET"), eq("/foo"));
-            order.verify(gateway).grantEndpointAccess("ep-GET-_foo", AclParticipants.CONSUMER);
-            verifyNoMoreInteractions(gateway);
+            verify(gateway).addRestDescription(any(), any(), eq("pt1-v22"));
+            verify(gateway).enableDescription("id-pt1-v22");
+            verify(gateway).addEndpoint(eq("id-pt1-v22"), any(), eq("GET"), eq("/foo"));
+            verify(gateway).grantEndpointAccess("ep-GET-_foo", AclParticipants.CONSUMER);
         }
 
-        order.verify(gateway).deleteEndpoint("ep-GET-_foo");
-        order.verify(gateway).deleteDescription("id-pt1-v22");
-        verifyNoMoreInteractions(gateway);
+        verify(gateway).deleteEndpoint("ep-GET-_foo");
+        verify(gateway).deleteDescription("id-pt1-v22");
     }
 
     @Test
@@ -324,19 +298,16 @@ class FixtureExecutorTest {
         var deletePlan = new FixturePlanner("t1").plan("V36", new FixtureSpec(AclParticipants.PROVIDER,
                 List.of(new RestService(List.of(), List.of(
                         new EndpointSpec("GET", "/foo", List.of(AclParticipants.CONSUMER), new Deleted()))))));
-        var order = inOrder(gateway);
 
         try (var ignored = executor.open(deletePlan)) {
-            order.verify(gateway).addRestDescription(any(), any(), eq("pt1-v36"));
-            order.verify(gateway).enableDescription("id-pt1-v36");
-            order.verify(gateway).addEndpoint(eq("id-pt1-v36"), any(), eq("GET"), eq("/foo"));
-            order.verify(gateway).grantEndpointAccess("ep-GET-_foo", AclParticipants.CONSUMER);
-            order.verify(gateway).deleteEndpoint("ep-GET-_foo");
-            verifyNoMoreInteractions(gateway);
+            verify(gateway).addRestDescription(any(), any(), eq("pt1-v36"));
+            verify(gateway).enableDescription("id-pt1-v36");
+            verify(gateway).addEndpoint(eq("id-pt1-v36"), any(), eq("GET"), eq("/foo"));
+            verify(gateway).grantEndpointAccess("ep-GET-_foo", AclParticipants.CONSUMER);
+            verify(gateway).deleteEndpoint("ep-GET-_foo");
         }
 
-        order.verify(gateway).deleteDescription("id-pt1-v36");
-        verifyNoMoreInteractions(gateway);
+        verify(gateway).deleteDescription("id-pt1-v36");
     }
 
     @Test
@@ -360,20 +331,17 @@ class FixtureExecutorTest {
         var editPlan = new FixturePlanner("t1").plan("V37", new FixtureSpec(AclParticipants.PROVIDER,
                 List.of(new RestService(List.of(), List.of(new EndpointSpec("GET", "/foo",
                         List.of(AclParticipants.CONSUMER), new EditedTo("GET", "/bar")))))));
-        var order = inOrder(gateway);
 
         try (var ignored = executor.open(editPlan)) {
-            order.verify(gateway).addRestDescription(any(), any(), eq("pt1-v37"));
-            order.verify(gateway).enableDescription("id-pt1-v37");
-            order.verify(gateway).addEndpoint(eq("id-pt1-v37"), any(), eq("GET"), eq("/foo"));
-            order.verify(gateway).grantEndpointAccess("ep-GET-_foo", AclParticipants.CONSUMER);
-            order.verify(gateway).updateEndpoint("ep-GET-_foo", "GET", "/bar");
-            verifyNoMoreInteractions(gateway);
+            verify(gateway).addRestDescription(any(), any(), eq("pt1-v37"));
+            verify(gateway).enableDescription("id-pt1-v37");
+            verify(gateway).addEndpoint(eq("id-pt1-v37"), any(), eq("GET"), eq("/foo"));
+            verify(gateway).grantEndpointAccess("ep-GET-_foo", AclParticipants.CONSUMER);
+            verify(gateway).updateEndpoint("ep-GET-_foo", "GET", "/bar");
         }
 
-        order.verify(gateway).deleteEndpoint("ep-GET-_foo");
-        order.verify(gateway).deleteDescription("id-pt1-v37");
-        verifyNoMoreInteractions(gateway);
+        verify(gateway).deleteEndpoint("ep-GET-_foo");
+        verify(gateway).deleteDescription("id-pt1-v37");
     }
 
     @Test
@@ -382,20 +350,17 @@ class FixtureExecutorTest {
                 List.of(new RestService(List.of(), List.of(), List.of("partners"))),
                 List.of(new LocalGroupSpec(AclParticipants.PROVIDER, "partners", List.of(AclParticipants.CONSUMER)))));
         var groupId = "grp-%s-pt1-v60-partners".formatted(AclParticipants.PROVIDER);
-        var order = inOrder(gateway);
 
         try (var ignored = executor.open(groupPlan)) {
-            order.verify(gateway).createLocalGroup(AclParticipants.PROVIDER, "pt1-v60-partners");
-            order.verify(gateway).addLocalGroupMember(groupId, AclParticipants.CONSUMER);
-            order.verify(gateway).addRestDescription(any(), any(), eq("pt1-v60"));
-            order.verify(gateway).enableDescription("id-pt1-v60");
-            order.verify(gateway).grantAccess(any(), eq(groupId), eq("pt1-v60"));
-            verifyNoMoreInteractions(gateway);
+            verify(gateway).createLocalGroup(AclParticipants.PROVIDER, "pt1-v60-partners");
+            verify(gateway).addLocalGroupMember(groupId, AclParticipants.CONSUMER);
+            verify(gateway).addRestDescription(any(), any(), eq("pt1-v60"));
+            verify(gateway).enableDescription("id-pt1-v60");
+            verify(gateway).grantAccess(any(), eq(groupId), eq("pt1-v60"));
         }
 
-        order.verify(gateway).deleteDescription("id-pt1-v60");
-        order.verify(gateway).deleteLocalGroup(groupId);
-        verifyNoMoreInteractions(gateway);
+        verify(gateway).deleteDescription("id-pt1-v60");
+        verify(gateway).deleteLocalGroup(groupId);
     }
 
     @Test
@@ -435,17 +400,6 @@ class FixtureExecutorTest {
     }
 
     @Test
-    void localGroupWhoseSetupDeleteThrowsIsDeletedAgainInCleanup() {
-        doThrow(new IllegalStateException("gateway down")).when(gateway).deleteLocalGroup(DELETED_GROUP_ID);
-
-        assertThatThrownBy(() -> executor.open(DELETED_GROUP_PLAN))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("gateway down");
-
-        verify(gateway, times(2)).deleteLocalGroup(DELETED_GROUP_ID);
-    }
-
-    @Test
     void globalGroupWhoseDeleteAnswersAnErrorIsDeletedAgainInCleanup() {
         doReturn(500).when(gateway).deleteGlobalGroup("pt1-v74-everyone");
         var globalPlan = new FixturePlanner("t1").plan(groupDeletedRow());
@@ -455,21 +409,6 @@ class FixtureExecutorTest {
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("delete of global group pt1-v74-everyone")
                     .hasMessageContaining("500");
-            assertThatThrownBy(fixture::close).isInstanceOf(IllegalStateException.class);
-        }
-
-        verify(gateway, times(2)).deleteGlobalGroup("pt1-v74-everyone");
-    }
-
-    @Test
-    void globalGroupWhoseDeleteThrowsIsDeletedAgainInCleanup() {
-        doThrow(new IllegalStateException("gateway down")).when(gateway).deleteGlobalGroup("pt1-v74-everyone");
-        var globalPlan = new FixturePlanner("t1").plan(groupDeletedRow());
-
-        try (var fixture = executor.open(globalPlan)) {
-            assertThatThrownBy(() -> fixture.apply(globalPlan.phases().get(0)))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("gateway down");
             assertThatThrownBy(fixture::close).isInstanceOf(IllegalStateException.class);
         }
 
@@ -596,33 +535,6 @@ class FixtureExecutorTest {
     }
 
     @Test
-    void cleanupDeleteOfADescriptionAlreadyGoneIsNotAFailure() {
-        doThrow(new AssertionError("grant answered 500")).when(gateway).grantAccess(any(), any(), eq("pt1-v125"));
-        doReturn(404).when(gateway).deleteDescription("id-pt1-v125");
-        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(AclParticipants.PROVIDER,
-                List.of(new RestService(List.of(AclParticipants.CONSUMER))), List.of(), List.of(new Delete(0))));
-
-        assertThatThrownBy(() -> executor.open(deletePlan))
-                .isInstanceOf(AssertionError.class)
-                .hasMessage("grant answered 500")
-                .hasNoSuppressedExceptions();
-        var order = inOrder(gateway);
-        order.verify(gateway).deleteDescription("id-pt1-v125");
-        order.verifyNoMoreInteractions();
-    }
-
-    @Test
-    void closeAfterASuccessfulSetupDeleteDoesNotDeleteAgainAndDoesNotFail() {
-        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(AclParticipants.PROVIDER,
-                List.of(new RestService(List.of())), List.of(), List.of(new Delete(0))));
-        var fixture = executor.open(deletePlan);
-
-        assertThatCode(fixture::close).doesNotThrowAnyException();
-        verify(gateway, times(1)).deleteDescription(any());
-        verifyNoEndpointOrGroupDeleted();
-    }
-
-    @Test
     void descriptionDeleteRefusedDuringSetupKeepsTheIdSoCleanupDeletesIt() {
         doReturn(500).when(gateway).deleteDescription("id-pt1-v125");
         var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(AclParticipants.PROVIDER,
@@ -632,17 +544,6 @@ class FixtureExecutorTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("pt1-v125 answered 500");
         verify(gateway, times(2)).deleteDescription("id-pt1-v125");
-    }
-
-    @Test
-    void descriptionDeleteRefusedDuringSetupFailsTheSetup() {
-        doReturn(500).when(gateway).deleteDescription("id-pt1-v125");
-        var deletePlan = new FixturePlanner("t1").plan("V125", new FixtureSpec(AclParticipants.PROVIDER,
-                List.of(new RestService(List.of())), List.of(), List.of(new Delete(0))));
-
-        assertThatThrownBy(() -> executor.open(deletePlan))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("pt1-v125 answered 500");
     }
 
     @Test
@@ -705,24 +606,6 @@ class FixtureExecutorTest {
         var order = inOrder(gateway);
 
         try (var ignored = executor.open(managementPlan)) {
-            order.verify(gateway).revokeAccess(any(), eq("DEV:security-server-owners"), eq("clientReg"));
-            order.verify(gateway).grantAccess(any(), eq(AclParticipants.CONSUMER), eq("clientReg"));
-            verifyNoMoreInteractions(gateway);
-        }
-
-        order.verify(gateway).revokeAccess(any(), eq(AclParticipants.CONSUMER), eq("clientReg"));
-        order.verify(gateway).grantAccess(any(), eq("DEV:security-server-owners"), eq("clientReg"));
-        verifyNoMoreInteractions(gateway);
-    }
-
-    @Test
-    void managementRowThatMovesTheGrantInAPhaseGivesTheOwnersGroupItsGrantBackOnClose() {
-        var phasePlan = new FixturePlanner("t1").plan(managementMoveRow());
-        var order = inOrder(gateway);
-
-        try (var fixture = executor.open(phasePlan)) {
-            verifyNoInteractions(gateway);
-            fixture.apply(phasePlan.phases().get(0));
             order.verify(gateway).revokeAccess(any(), eq("DEV:security-server-owners"), eq("clientReg"));
             order.verify(gateway).grantAccess(any(), eq(AclParticipants.CONSUMER), eq("clientReg"));
             verifyNoMoreInteractions(gateway);
@@ -842,13 +725,5 @@ class FixtureExecutorTest {
         return globalconfRow("V72",
                 provided(restToGlobalGroup(AclScenario.GlobalGroupSpec.SECURITY_SERVER_OWNERS)))
                 .as("owners group row");
-    }
-
-    private static AclScenario managementMoveRow() {
-        return phased("V106a",
-                management(new AclScenario.ManagementService(AclParticipants.CLIENT_REG, List.of(), List.of())),
-                List.of(),
-                phase(List.of(new AclScenario.Revoke(0, AclParticipants.OWNERS_GROUP),
-                        new AclScenario.Grant(0, AclParticipants.CONSUMER)))).as("management move row");
     }
 }

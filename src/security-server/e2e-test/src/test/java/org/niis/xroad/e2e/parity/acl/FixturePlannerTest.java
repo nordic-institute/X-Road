@@ -65,7 +65,6 @@ import org.niis.xroad.e2e.parity.acl.AdminCall.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RenameRestService;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeAccess;
 import org.niis.xroad.e2e.parity.acl.AdminCall.RevokeManagementAccess;
-import org.niis.xroad.e2e.parity.acl.AdminCall.ServiceCall;
 import org.niis.xroad.e2e.parity.acl.AdminCall.SwapBackendSpec;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateEndpoint;
 import org.niis.xroad.e2e.parity.acl.AdminCall.UpdateOpenApiDescription;
@@ -86,7 +85,6 @@ import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restService;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restToGlobalGroup;
 
 class FixturePlannerTest {
-
 
     private static final FixtureSpec TWO_SERVICES = new FixtureSpec(AclParticipants.PROVIDER, List.of(
             new RestService(List.of(AclParticipants.CONSUMER, AclParticipants.OTHER_CONSUMER)),
@@ -129,8 +127,8 @@ class FixturePlannerTest {
         var plan = new FixturePlanner("ab12").plan("V01", TWO_SERVICES);
 
         assertThat(plan.serviceCodes()).noneMatch(code -> code.equals("mock1") || code.equals("restapi"));
-        assertThat(serviceCodesOf(plan.setup())).doesNotContain("mock1", "restapi");
-        assertThat(serviceCodesOf(plan.cleanup())).doesNotContain("mock1", "restapi");
+        assertThat(plan.setup()).noneMatch(call -> concerns(call, "mock1") || concerns(call, "restapi"));
+        assertThat(plan.cleanup()).noneMatch(call -> concerns(call, "mock1") || concerns(call, "restapi"));
     }
 
     @Test
@@ -427,7 +425,7 @@ class FixturePlannerTest {
         var plan = new FixturePlanner("ab12").plan("V133", spec);
 
         assertThat(plan.serviceCodes()).containsExactly("pab12-v133", "pab12-v133-2");
-        assertThat(serviceCodesOf(plan.setup())).containsOnly("pab12-v133-2");
+        assertThat(plan.setup()).isNotEmpty().allMatch(call -> concerns(call, "pab12-v133-2"));
         assertThat(plan.cleanup()).containsExactly(new DeleteDescription("pab12-v133-2"));
     }
 
@@ -454,9 +452,9 @@ class FixturePlannerTest {
                 .hasMessageContaining("not a REST service");
     }
 
-    private static List<String> serviceCodesOf(List<AdminCall> calls) {
-        return calls.stream().filter(ServiceCall.class::isInstance)
-                .map(call -> ((ServiceCall) call).serviceCode()).toList();
+    private static boolean concerns(AdminCall call, String serviceCode) {
+        return call.toString().contains("serviceCode=" + serviceCode + "]")
+                || call.toString().contains("serviceCode=" + serviceCode + ",");
     }
 
     @Test

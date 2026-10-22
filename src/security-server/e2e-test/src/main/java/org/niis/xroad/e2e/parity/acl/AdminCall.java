@@ -32,96 +32,87 @@ package org.niis.xroad.e2e.parity.acl;
  */
 public sealed interface AdminCall {
 
-    /** A call that concerns one service. */
-    sealed interface ServiceCall extends AdminCall {
-
-        /** The service code the call concerns. */
-        String serviceCode();
-    }
-
-    record AddRestDescription(String providerClientId, String backendUrl, String serviceCode) implements ServiceCall {
+    record AddRestDescription(String providerClientId, String backendUrl, String serviceCode) implements AdminCall {
     }
 
     /** Adds a WSDL description; {@code serviceCode} is the first service code the description offers. */
-    record AddWsdlDescription(String providerClientId, String wsdlUrl, String serviceCode) implements ServiceCall {
+    record AddWsdlDescription(String providerClientId, String wsdlUrl, String serviceCode) implements AdminCall {
     }
 
     /** Adds an OpenAPI 3 description; {@code serviceCode} is the REST service code the description gets. */
-    record AddOpenApiDescription(String providerClientId, String specUrl, String serviceCode) implements ServiceCall {
+    record AddOpenApiDescription(String providerClientId, String specUrl, String serviceCode) implements AdminCall {
     }
 
     /** Points the OpenAPI 3 description of the service at another description and re-parses it. */
-    record UpdateOpenApiDescription(String serviceCode, String specUrl) implements ServiceCall {
+    record UpdateOpenApiDescription(String serviceCode, String specUrl) implements AdminCall {
     }
 
-    record EnableDescription(String serviceCode) implements ServiceCall {
+    record EnableDescription(String serviceCode) implements AdminCall {
     }
 
     /** Disables the description; a {@code null} notice disables it without one. */
-    record DisableDescription(String serviceCode, String notice) implements ServiceCall {
+    record DisableDescription(String serviceCode, String notice) implements AdminCall {
     }
 
     /** Renames the service code of a REST description, keeping its backend URL. */
-    record RenameRestService(String serviceCode, String backendUrl, String newServiceCode) implements ServiceCall {
+    record RenameRestService(String serviceCode, String backendUrl, String newServiceCode) implements AdminCall {
     }
 
-    record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
+    record GrantAccess(String providerClientId, String consumerClientId, String serviceCode) implements AdminCall {
     }
 
     /** Revokes the consumer's access to the service, with its endpoint grants of that service. */
-    record RevokeAccess(String providerClientId, String consumerClientId, String serviceCode) implements ServiceCall {
+    record RevokeAccess(String providerClientId, String consumerClientId, String serviceCode) implements AdminCall {
     }
 
     /** Grants the consumer access to a service the provider has from the start, such as a management service. */
     record GrantManagementAccess(String providerClientId, String consumerClientId, String serviceCode)
-            implements ServiceCall {
+            implements AdminCall {
     }
 
     /** Revokes the consumer's access to a service the provider has from the start. */
     record RevokeManagementAccess(String providerClientId, String consumerClientId, String serviceCode)
-            implements ServiceCall {
+            implements AdminCall {
     }
 
     /** Refreshes the service description from its backend, ignoring warnings. */
-    record RefreshDescription(String serviceCode) implements ServiceCall {
+    record RefreshDescription(String serviceCode) implements AdminCall {
     }
 
     /** Requests the backend path that makes the swappable OpenAPI description serve its second spec. */
     record SwapBackendSpec(String urlPath) implements AdminCall {
     }
-    record AddEndpoint(String serviceCode, String method, String path) implements ServiceCall {
+
+    record AddEndpoint(String serviceCode, String method, String path) implements AdminCall {
     }
 
     /** Grants the consumer access to the endpoint of the service with the given method and path. */
     record GrantEndpointAccess(String serviceCode, String method, String path, String consumerClientId)
-            implements ServiceCall {
+            implements AdminCall {
     }
 
     /** Changes the method and path of an endpoint created by {@link AddEndpoint}. */
     record UpdateEndpoint(String serviceCode, String method, String path, String newMethod, String newPath)
-            implements ServiceCall {
+            implements AdminCall {
     }
 
     /**
      * Deletes an endpoint created by {@link AddEndpoint}, in setup or in cleanup; the base and generated
      * endpoints are never deleted.
      */
-    record DeleteEndpoint(String serviceCode, String method, String path) implements ServiceCall {
+    record DeleteEndpoint(String serviceCode, String method, String path) implements AdminCall {
     }
 
     /** Deletes the description and its access rights, in setup or in cleanup. */
-    record DeleteDescription(String serviceCode) implements ServiceCall {
+    record DeleteDescription(String serviceCode) implements AdminCall {
     }
 
-    /** Creates a local group of the owner client. */
     record CreateLocalGroup(String ownerClientId, String code) implements AdminCall {
     }
 
-    /** Adds a member or subsystem to the owner's local group. */
     record AddLocalGroupMember(String ownerClientId, String code, String memberId) implements AdminCall {
     }
 
-    /** Removes a member or subsystem from the owner's local group. */
     record RemoveLocalGroupMember(String ownerClientId, String code, String memberId) implements AdminCall {
     }
 
@@ -129,19 +120,15 @@ public sealed interface AdminCall {
     record DeleteLocalGroup(String ownerClientId, String code) implements AdminCall {
     }
 
-    /** Creates a global group at the Central Server. */
     record CreateGlobalGroup(String code) implements AdminCall {
     }
 
-    /** Adds a member or subsystem to the global group at the Central Server. */
     record AddGlobalGroupMember(String code, String memberId) implements AdminCall {
     }
 
-    /** Removes a member or subsystem from the global group at the Central Server. */
     record RemoveGlobalGroupMember(String code, String memberId) implements AdminCall {
     }
 
-    /** Deletes the global group at the Central Server, in setup or in cleanup. */
     record DeleteGlobalGroup(String code) implements AdminCall {
     }
 
@@ -150,20 +137,20 @@ public sealed interface AdminCall {
      * knows the group only once global configuration has carried it there, so the grant waits for that.
      */
     record GrantGlobalGroupAccess(String providerClientId, String groupCode, String serviceCode)
-            implements ServiceCall {
+            implements AdminCall {
     }
 
     /** Grants the global group access to the endpoint of the service with the given method and path. */
     record GrantGlobalGroupEndpointAccess(String providerClientId, String groupCode, String serviceCode,
-                                          String method, String path) implements ServiceCall {
+                                          String method, String path) implements AdminCall {
     }
 
     /** Grants the provider's local group access to the service. */
-    record GrantGroupAccess(String providerClientId, String groupCode, String serviceCode) implements ServiceCall {
+    record GrantGroupAccess(String providerClientId, String groupCode, String serviceCode) implements AdminCall {
     }
 
     /** Grants the provider's local group access to the endpoint of the service with the given method and path. */
     record GrantGroupEndpointAccess(String providerClientId, String groupCode, String serviceCode, String method,
-                                    String path) implements ServiceCall {
+                                    String path) implements AdminCall {
     }
 }

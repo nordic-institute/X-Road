@@ -27,17 +27,18 @@ package org.niis.xroad.e2e;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
-import org.niis.xroad.e2e.parity.acl.PoolVisibility;
 import org.niis.xroad.e2e.parity.acl.SubsystemPool;
 import org.niis.xroad.e2e.parity.acl.SubsystemPool.Entry;
-import org.niis.xroad.e2e.parity.acl.VerdictPoller;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.addLocalClient;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.awaitClientsRegistered;
@@ -93,12 +94,21 @@ class SubsystemPoolSetup {
     }
 
     private static void awaitKnownToOtherServers(E2eEnvironment env) {
-        var targets = PoolVisibility.targets(SubsystemPool.entries(), SubsystemPool.SERVERS);
         var sessions = new HashMap<String, AdminSession>();
         SubsystemPool.SERVERS.forEach(server -> sessions.put(server, login(adminBaseUrl(env, server))));
-        log.info("Waiting for {} pool subsystem lookups on the other servers", targets.size());
-        PoolVisibility.await(targets, target -> globalClientKnown(adminBaseUrl(env, target.server()),
-                sessions.get(target.server()), target.clientId()), VISIBILITY_TIMEOUT, VISIBILITY_INTERVAL,
-                VerdictPoller.systemClock());
+        var lookups = SubsystemPool.entries().stream()
+                .filter(Entry::register)
+                .flatMap(entry -> SubsystemPool.SERVERS.stream()
+                        .filter(server -> !server.equals(entry.host()))
+                        .map(server -> Map.entry(server, entry.clientId())))
+                .toList();
+        log.info("Waiting for {} pool subsystem lookups on the other servers", lookups.size());
+        Awaitility.await()
+                .pollInterval(VISIBILITY_INTERVAL)
+                .timeout(VISIBILITY_TIMEOUT)
+                .untilAsserted(() -> lookups.forEach(lookup -> assertThat(globalClientKnown(
+                        adminBaseUrl(env, lookup.getKey()), sessions.get(lookup.getKey()), lookup.getValue()))
+                        .as("%s known to %s", lookup.getValue(), lookup.getKey())
+                        .isTrue()));
     }
 }

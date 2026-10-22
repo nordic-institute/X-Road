@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.http.Method;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 
@@ -32,8 +33,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.sendJson;
 
 /**
  * Central Server admin REST API access: approval of pending client registration requests and global groups.
@@ -43,10 +49,6 @@ class CentralServerApi {
 
     static final String CS_ENV = "aux";
 
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_CREATED = 201;
-    private static final int HTTP_NO_CONTENT = 204;
-    private static final int HTTP_CONFLICT = 409;
     private static final String CLIENT_REGISTRATION_REQUEST = "CLIENT_REGISTRATION_REQUEST";
 
     /** The mapped {@code https://host:port} of the Central Server admin UI. */
@@ -95,13 +97,8 @@ class CentralServerApi {
                   "description": "acl parity"
                 }
                 """.formatted(code);
-        var response = authed(cs)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(csBaseUrl + "/api/v1/global-groups");
-        assertThat(response.getStatusCode())
-                .as("create global group %s: %s", code, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        sendJson(cs, Method.POST, csBaseUrl + "/api/v1/global-groups", body, HTTP_CREATED,
+                "create global group " + code);
     }
 
     /** Adds the member or subsystem to the global group. */
@@ -111,13 +108,8 @@ class CentralServerApi {
                   "items": [ "%s" ]
                 }
                 """.formatted(memberId);
-        var response = authed(cs)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(csBaseUrl + "/api/v1/global-groups/" + code + "/members/add");
-        assertThat(response.getStatusCode())
-                .as("add %s to global group %s: %s", memberId, code, response.getBody().asString())
-                .isEqualTo(HTTP_CREATED);
+        sendJson(cs, Method.POST, csBaseUrl + "/api/v1/global-groups/" + code + "/members/add", body, HTTP_CREATED,
+                "add %s to global group %s".formatted(memberId, code));
     }
 
     /** Removes the member or subsystem from the global group. */
