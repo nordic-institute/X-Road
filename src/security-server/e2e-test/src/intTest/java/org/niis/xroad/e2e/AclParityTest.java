@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.path.json.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -37,8 +38,11 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.e2e.container.AuxStackSetup;
+import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
+import org.niis.xroad.e2e.parity.acl.AclModeProbe;
 import org.niis.xroad.e2e.parity.acl.AclParticipants;
 import org.niis.xroad.e2e.parity.acl.AclScenario;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Expectation;
@@ -85,8 +89,10 @@ import static org.niis.xroad.e2e.AdminApi.login;
  * service clients holding the management client registration service are listed; after the last scenario the list
  * must be the same.
  *
- * <p>Runs only when {@code -Pe2e.acl-mode} is set; otherwise the pool is not registered and every scenario
- * is skipped. Single-threaded and ordered after every other class, and a failing scenario does not stop
+ * <p>Runs only when {@code -Pe2e.acl-mode} is set and the environment is the Compose stack, the only one that
+ * applies the mode; otherwise the pool is not registered and every scenario is skipped. Before the pool is
+ * registered, the stored {@code xroad.proxy.dsp-enabled} of ss1 must name the configured mode, else the run
+ * fails. Single-threaded and ordered after every other class, and a failing scenario does not stop
  * the next one: the Gradle task sets the fail-fast threshold to {@code 0} in that mode.
  */
 @Slf4j
@@ -104,7 +110,11 @@ class AclParityTest extends E2eTest {
 
     @BeforeAll
     static void registerSubsystemPool(E2eEnvironment env) {
-        assumeTrue(AclParityProperties.configuredMode().isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
+        var mode = AclParityProperties.configuredMode();
+        assumeTrue(mode.isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
+        assumeTrue(env instanceof E2eEnvSetup,
+                "ACL parity runs only with -Pe2e.env-mode=compose: only the Compose stack applies -Pe2e.acl-mode");
+        log.info(AclModeProbe.verify(mode.get(), storedDspEnabled((E2eEnvSetup) env)));
         var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
         AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), AclParticipants.MEMBER_OF_CONSUMER, "HTTP");
         SubsystemPoolSetup.ensure(env);
@@ -118,6 +128,18 @@ class AclParityTest extends E2eTest {
                     "service clients holding %s of %s on ss0".formatted(
                             AclParticipants.CLIENT_REG, AclParticipants.MANAGEMENT));
         }
+    }
+
+    private static String storedDspEnabled(E2eEnvSetup env) {
+        var query = "SELECT property_value FROM configuration_properties WHERE property_key = '%s'"
+                .formatted(ProxyConfigKeys.DSP_ENABLED.key());
+        var result = env.execInEnvContainer(SS1_ENV, SsStackSetup.DB_SERVERCONF,
+                "psql", "-U", "postgres", "-d", "serverconf", "-tAX", "-c", query);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("reading dsp-enabled from the serverconf of %s failed: %s"
+                    .formatted(SS1_ENV, result.getStderr()));
+        }
+        return result.getStdout().trim();
     }
 
     private static List<String> managementGrants(E2eEnvironment env) {
@@ -159,11 +181,15 @@ class AclParityTest extends E2eTest {
 
     private static void assertAdminGrantStatus(AclScenario scenario, List<String> serviceCodes, AdminApiGateway gateway) {
         var grant = scenario.adminGrant();
-        var status = gateway.requestAccessGrant(scenario.fixture().providerClientId(), grant.subjectId(),
+        var reply = gateway.requestAccessGrant(scenario.fixture().providerClientId(), grant.subjectId(),
                 serviceCodes.get(grant.serviceIndex()));
-        log.info("{}: grant to {} -> admin API status {}", scenario.id(), grant.subjectId(), status);
-        Assertions.assertEquals(grant.expectedStatus(), status,
+        var errorCode = JsonPath.from(reply.body().isBlank() ? "{}" : reply.body()).getString("error.code");
+        log.info("{}: grant to {} -> admin API status {}, error code {}", scenario.id(), grant.subjectId(),
+                reply.status(), errorCode);
+        Assertions.assertEquals(grant.expectedStatus(), reply.status(),
                 "admin API status of the grant to " + grant.subjectId());
+        Assertions.assertEquals(grant.expectedErrorCode(), errorCode,
+                "admin API error code of the grant to " + grant.subjectId());
     }
 
     private static String providerEnv(AclScenario scenario) {

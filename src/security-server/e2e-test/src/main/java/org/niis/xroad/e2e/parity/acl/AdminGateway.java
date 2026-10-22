@@ -50,8 +50,8 @@ public interface AdminGateway {
     /** Grants the consumer access to the service and returns whether the grant was created, not already there. */
     boolean grantAccess(String providerClientId, String consumerClientId, String serviceCode);
 
-    /** Asks for the subject, a member or subsystem, to be granted access to the service and returns the HTTP status. */
-    int requestAccessGrant(String providerClientId, String subjectId, String serviceCode);
+    /** Asks for the subject, a member or subsystem, to be granted access to the service and returns the answer. */
+    Reply requestAccessGrant(String providerClientId, String subjectId, String serviceCode);
 
     /** Revokes the consumer's access to the service, with its endpoint grants of that service. */
     void revokeAccess(String providerClientId, String consumerClientId, String serviceCode);

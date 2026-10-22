@@ -30,7 +30,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.parity.acl.AclScenario.AddGlobalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Delete;
+import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteDescription;
 import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteGlobalGroup;
+import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Deleted;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Disable;
 import org.niis.xroad.e2e.parity.acl.AclScenario.EditedTo;
@@ -49,6 +51,7 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.Phase;
 import org.niis.xroad.e2e.parity.acl.AclScenario.PhaseChange;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Refresh;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveGlobalGroupMember;
+import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RenameService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RestService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Revoke;
@@ -86,6 +89,7 @@ import static org.niis.xroad.e2e.parity.acl.AclParticipants.OWNERS_GROUP;
 import static org.niis.xroad.e2e.parity.acl.AclParticipants.PROVIDER;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.CONSUMER_ONLY;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalGroupGranted;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.groupGranted;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.management;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.openApiGranted;
 import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.provided;
@@ -1115,6 +1119,81 @@ class ScenarioFixtureTest {
                 .hasMessage("add refused")
                 .hasSuppressedException(new IllegalStateException(
                         "fixture cleanup incomplete: delete of service description pt1-v09 answered 500"));
+    }
+
+    @Test
+    void descriptionDeletedInAPhaseIsDeletedWhenThePhaseIsAppliedAndNotAgainOnClose() {
+        var spec = new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY)));
+        try (var fixture = open("V125", spec, phase(new DeleteDescription(0)))) {
+            verify(gateway, never()).deleteDescription(any());
+            fixture.applyPhase(0);
+            verify(gateway).deleteDescription("id-pt1-v125");
+        }
+        verify(gateway, times(1)).deleteDescription("id-pt1-v125");
+    }
+
+    @Test
+    void descriptionWhoseDeleteInAPhaseAnswersAnErrorIsDeletedAgainInCleanup() {
+        doReturn(500).doReturn(204).when(gateway).deleteDescription("id-pt1-v125");
+        var spec = new FixtureSpec(PROVIDER, List.of(new RestService(CONSUMER_ONLY)));
+        try (var fixture = open("V125", spec, phase(new DeleteDescription(0)))) {
+            assertThatThrownBy(() -> fixture.applyPhase(0))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("pt1-v125 answered 500");
+        }
+        verify(gateway, times(2)).deleteDescription("id-pt1-v125");
+    }
+
+    @Test
+    void deleteOfADescriptionThatDoesNotExistIsRejected() {
+        var spec = new FixtureSpec(PROVIDER, List.of(new UndefinedService()));
+        assertThatThrownBy(() -> open("V125", spec, phase(new DeleteDescription(0))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("service 0 has no description");
+    }
+
+    @Test
+    void memberRemovedFromTheProvidersLocalGroupInAPhaseIsRemovedWhenThePhaseIsApplied() {
+        var spec = groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY));
+        try (var fixture = open("V62", spec, phase(new RemoveLocalGroupMember(GROUP, CONSUMER)))) {
+            verify(gateway, never()).removeLocalGroupMember(any(), any());
+            fixture.applyPhase(0);
+            verify(gateway).removeLocalGroupMember(groupId(PROVIDER, "pt1-v62-partners"), CONSUMER);
+        }
+    }
+
+    @Test
+    void localGroupDeletedInAPhaseIsDeletedWhenThePhaseIsAppliedAndNotAgainOnClose() {
+        var spec = groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY));
+        var groupId = groupId(PROVIDER, "pt1-v63-partners");
+        try (var fixture = open("V63", spec, phase(new DeleteLocalGroup(GROUP)))) {
+            verify(gateway, never()).deleteLocalGroup(any());
+            fixture.applyPhase(0);
+            verify(gateway).deleteLocalGroup(groupId);
+        }
+        verify(gateway, times(1)).deleteLocalGroup(groupId);
+    }
+
+    @Test
+    void localGroupWhoseDeleteInAPhaseAnswersAnErrorIsDeletedAgainInCleanup() {
+        var groupId = groupId(PROVIDER, "pt1-v63-partners");
+        doReturn(500).doReturn(204).when(gateway).deleteLocalGroup(groupId);
+        var spec = groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY));
+        try (var fixture = open("V63", spec, phase(new DeleteLocalGroup(GROUP)))) {
+            assertThatThrownBy(() -> fixture.applyPhase(0)).isInstanceOf(IllegalStateException.class);
+        }
+        verify(gateway, times(2)).deleteLocalGroup(groupId);
+    }
+
+    @Test
+    void phaseChangeOfALocalGroupTheProviderDoesNotHaveIsRejected() {
+        var spec = new FixtureSpec(PROVIDER, List.of(new RestService(List.of())));
+        assertThatThrownBy(() -> open("V63", spec, phase(new DeleteLocalGroup(GROUP))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("is not created under");
+        assertThatThrownBy(() -> open("V62", spec, phase(new RemoveLocalGroupMember(GROUP, CONSUMER))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("is granted but not created");
     }
 
     private ScenarioFixture open(String id, FixtureSpec spec, Phase... phases) {

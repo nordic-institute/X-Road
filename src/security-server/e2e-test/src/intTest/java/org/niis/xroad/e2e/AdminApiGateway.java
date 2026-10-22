@@ -29,6 +29,7 @@ import io.restassured.http.Method;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.parity.acl.AclScenario.WaitClass;
 import org.niis.xroad.e2e.parity.acl.AdminGateway;
+import org.niis.xroad.e2e.parity.acl.Reply;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
@@ -136,8 +137,9 @@ final class AdminApiGateway implements AdminGateway {
     }
 
     @Override
-    public int requestAccessGrant(String providerClientId, String subjectId, String serviceCode) {
-        return AdminApi.requestConsumerAccessGrant(baseUrl, session, providerClientId, subjectId, serviceCode);
+    public Reply requestAccessGrant(String providerClientId, String subjectId, String serviceCode) {
+        return Replies.toReply(
+                AdminApi.requestConsumerAccessGrant(baseUrl, session, providerClientId, subjectId, serviceCode));
     }
 
     @Override

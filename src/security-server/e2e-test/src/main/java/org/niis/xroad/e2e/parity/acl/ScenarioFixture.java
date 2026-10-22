@@ -28,7 +28,9 @@ package org.niis.xroad.e2e.parity.acl;
 
 import org.niis.xroad.e2e.parity.acl.AclScenario.AddGlobalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Delete;
+import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteDescription;
 import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteGlobalGroup;
+import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Deleted;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Disable;
 import org.niis.xroad.e2e.parity.acl.AclScenario.EditedTo;
@@ -46,6 +48,7 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.OpenApiSpec;
 import org.niis.xroad.e2e.parity.acl.AclScenario.PhaseChange;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Refresh;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveGlobalGroupMember;
+import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RenameService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RestService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Revoke;
@@ -360,6 +363,18 @@ public final class ScenarioFixture implements AutoCloseable {
                 }
                 yield () -> deleteNow(step);
             }
+            case RemoveLocalGroupMember remove -> {
+                var groupId = providerGroupId(remove.groupCode());
+                yield () -> gateway.removeLocalGroupMember(groupId, remove.memberId());
+            }
+            case DeleteLocalGroup delete -> {
+                var step = providerGroupStep(delete.groupCode());
+                yield () -> deleteNow(step);
+            }
+            case DeleteDescription delete -> {
+                var step = described(delete.serviceIndex()).undo();
+                yield () -> deleteNow(step);
+            }
         };
     }
 
@@ -432,6 +447,16 @@ public final class ScenarioFixture implements AutoCloseable {
                     "group %s is granted but not created under %s".formatted(code, providerClientId));
         }
         return id;
+    }
+
+    private UndoStep providerGroupStep(String code) {
+        return localGroups.stream()
+                .filter(group -> group.spec().ownerClientId().equals(providerClientId)
+                        && group.spec().code().equals(code))
+                .map(LocalGroup::step)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "group %s is not created under %s".formatted(code, providerClientId)));
     }
 
     private String globalGroupCode(String code) {

@@ -25,8 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
-import ee.ria.xroad.common.util.MimeUtils;
-
+import io.restassured.path.json.exception.JsonPathException;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.experimental.UtilityClass;
@@ -38,7 +37,6 @@ import org.niis.xroad.e2e.parity.acl.VerdictPoller;
 import org.niis.xroad.e2e.parity.acl.VerdictPoller.Observation;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
@@ -90,21 +88,25 @@ class DisabledServiceFault {
     /** Polls {@code call} until it returns the {@code SERVICE_DISABLED} fault carrying the operator's notice. */
     static void awaitCallFailsWithDisabledNotice(Supplier<ValidatableResponse> call, Duration timeout,
                                                  Duration pollInterval) {
-        var lastResponse = new AtomicReference<Response>();
-        var result = new VerdictPoller().await(() -> {
-            var response = call.get().extract().response();
-            lastResponse.set(response);
-            return observe(response);
-        }, Verdict.SERVICE_DISABLED, timeout, pollInterval);
-        assertThat(result.matched())
-                .as(() -> result.failureMessage("service call", Verdict.SERVICE_DISABLED))
+        var result = new VerdictPoller().await(() -> observeDisabledNotice(call.get().extract().response()),
+                Verdict.SERVICE_DISABLED, timeout, pollInterval);
+        assertThat(result.matched()).as(() -> result.failureMessage("service call", Verdict.SERVICE_DISABLED))
                 .isTrue();
-        var response = lastResponse.get();
-        assertThat(response.getStatusCode()).as("status of the reply to the disabled service").isEqualTo(500);
-        assertThat(response.getHeader(MimeUtils.HEADER_ERROR)).as(MimeUtils.HEADER_ERROR)
-                .isEqualTo(EXPECTED_FAULT_CODE);
-        assertThat(response.jsonPath().getString("type")).as("fault type").isEqualTo(EXPECTED_FAULT_CODE);
-        assertThat(response.jsonPath().getString("message")).as("fault message").contains(DISABLED_NOTICE);
+    }
+
+    private static Observation observeDisabledNotice(Response response) {
+        var reply = Replies.toReply(response);
+        var verdict = VerdictClassifier.classifyDisabledService(reply, jsonString(response, "type"),
+                jsonString(response, "message"), EXPECTED_FAULT_CODE, DISABLED_NOTICE);
+        return new Observation(verdict, VerdictClassifier.describeWithBody(reply));
+    }
+
+    private static String jsonString(Response response, String field) {
+        try {
+            return response.jsonPath().getString(field);
+        } catch (JsonPathException e) {
+            return null;
+        }
     }
 
     private static Observation observe(Response response) {

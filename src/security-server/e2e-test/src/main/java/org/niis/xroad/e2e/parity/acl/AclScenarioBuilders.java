@@ -110,11 +110,12 @@ public final class AclScenarioBuilders {
                 WaitClass.GLOBALCONF);
     }
 
-    /** A row whose outcome is the admin API status of granting a subject access to a service. */
+    /** A row whose outcome is the admin API status and error code of granting a subject access to a service. */
     public static Row adminGrant(String id, FixtureSpec fixture, String subjectId, int serviceIndex,
-                                 int expectedStatus) {
+                                 int expectedStatus, String expectedErrorCode) {
         return description -> new AclScenario(id, description, fixture,
-                new AdminGrantExpectation(subjectId, serviceIndex, expectedStatus), WaitClass.ACL_CACHE);
+                new AdminGrantExpectation(subjectId, serviceIndex, expectedStatus, expectedErrorCode),
+                WaitClass.ACL_CACHE);
     }
 
     /** The changes made after a row's checks, and the checks that follow them. */

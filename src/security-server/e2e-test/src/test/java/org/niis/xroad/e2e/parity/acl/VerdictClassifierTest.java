@@ -114,6 +114,14 @@ class VerdictClassifierTest {
         assertThat(VerdictClassifier.classify(new Reply(500, MARKED, ""))).isEqualTo(Verdict.ERROR);
     }
 
+    @Test
+    void faultHeaderOnAStatusOtherThan500IsError() {
+        var denied = Map.of("X-Road-Error", "server.serverproxy.access_denied");
+
+        assertThat(VerdictClassifier.classify(new Reply(501, denied, ""))).isEqualTo(Verdict.ERROR);
+        assertThat(VerdictClassifier.classify(new Reply(503, denied, ""))).isEqualTo(Verdict.ERROR);
+    }
+
     private static final String SOAP_OK = "<Body xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\">acl-parity-backend</Body>";
 
     private static String soapFault(String code) {
@@ -308,6 +316,14 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void metaserviceUnmappedFaultCodeInTheBodyIsError() {
+        var body = soapFault("server.serverproxy.something_new");
+
+        assertThat(meta(new Reply(500, Map.of(), body), List.of(), List.of())).isEqualTo(Verdict.ERROR);
+        assertThat(meta(new Reply(200, Map.of(), body), List.of(), List.of())).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
     void metaserviceNullAndNon2xxWithoutAFaultAreError() {
         assertThat(meta(null, List.of(), List.of())).isEqualTo(Verdict.ERROR);
         assertThat(meta(new Reply(404, Map.of(), "{}"), List.of(), List.of())).isEqualTo(Verdict.ERROR);
@@ -431,5 +447,45 @@ class VerdictClassifierTest {
             assertThat(metaCatalogued(new Reply(200, Map.of(), LIST_CLIENTS_REPLY.replace(missing, "other")),
                     expectation)).as(missing).isEqualTo(Verdict.ERROR);
         }
+    }
+
+    @Test
+    void badRequestTheBackendAnsweredIsNotAConsumerRejection() {
+        assertThat(VerdictClassifier.classify(new Reply(400, MARKED, "{}"))).isEqualTo(Verdict.ERROR);
+    }
+
+    private static final String DISABLED = "server.serverproxy.service_disabled";
+    private static final String NOTICE = "Scheduled maintenance";
+    private static Verdict disabledService(Reply reply, String type, String message) {
+        return VerdictClassifier.classifyDisabledService(reply, type, message, DISABLED, NOTICE);
+    }
+
+    @Test
+    void disabledServiceFaultWithTypeAndNoticeIsServiceDisabled() {
+        assertThat(disabledService(fault(DISABLED), DISABLED, "Service is disabled: " + NOTICE))
+                .isEqualTo(Verdict.SERVICE_DISABLED);
+    }
+
+    @Test
+    void disabledServiceFaultMissingTypeOrNoticeIsError() {
+        assertThat(disabledService(fault(DISABLED), "server.serverproxy.access_denied", NOTICE))
+                .isEqualTo(Verdict.ERROR);
+        assertThat(disabledService(fault(DISABLED), null, NOTICE)).isEqualTo(Verdict.ERROR);
+        assertThat(disabledService(fault(DISABLED), DISABLED, "Service is disabled")).isEqualTo(Verdict.ERROR);
+        assertThat(disabledService(fault(DISABLED), DISABLED, null)).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void otherReplyToADisabledServiceCallIsError() {
+        assertThat(disabledService(fault("server.serverproxy.access_denied"), DISABLED, NOTICE))
+                .isEqualTo(Verdict.ERROR);
+        assertThat(disabledService(new Reply(200, MARKED, "{}"), DISABLED, NOTICE)).isEqualTo(Verdict.ERROR);
+        assertThat(disabledService(null, DISABLED, NOTICE)).isEqualTo(Verdict.ERROR);
+    }
+
+    @Test
+    void describeWithBodyIncludesTheBody() {
+        assertThat(VerdictClassifier.describeWithBody(new Reply(500, Map.of("X-Road-Error", "code"), "the body")))
+                .contains("status 500").contains("code").contains("the body");
     }
 }

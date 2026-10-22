@@ -38,9 +38,10 @@ import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
  *
  * <p>For REST, {@link Verdict#ALLOWED} needs a 2xx status and the {@code mock-response: true} header the backend stub
  * adds, so a 2xx that did not reach the backend is an error. A provider refusal arrives as HTTP 500 with an
- * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code. HTTP 400 without an
- * {@code X-Road-Error} header is the consumer proxy's HTTP server refusing the request URI before any X-Road
- * handler ran, which is {@link Verdict#CONSUMER_REJECTED}. Every other shape is {@link Verdict#ERROR}.
+ * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code. HTTP 400 with neither
+ * an {@code X-Road-Error} header nor the backend stub's {@code mock-response} header is the consumer proxy's HTTP
+ * server refusing the request URI before any X-Road handler ran, which is {@link Verdict#CONSUMER_REJECTED}; a 400
+ * the backend stub answered is not. Every other shape is {@link Verdict#ERROR}.
  */
 public final class VerdictClassifier {
 
@@ -77,7 +78,8 @@ public final class VerdictClassifier {
         if (reply.isSuccess()) {
             return "true".equalsIgnoreCase(reply.header(BACKEND_MARKER_HEADER)) ? Verdict.ALLOWED : Verdict.ERROR;
         }
-        if (reply.status() == HTTP_BAD_REQUEST && reply.header(ERROR_HEADER) == null) {
+        if (reply.status() == HTTP_BAD_REQUEST && reply.header(ERROR_HEADER) == null
+                && reply.header(BACKEND_MARKER_HEADER) == null) {
             return Verdict.CONSUMER_REJECTED;
         }
         if (reply.status() == HTTP_INTERNAL_ERROR) {
@@ -181,6 +183,28 @@ public final class VerdictClassifier {
      */
     public static String describe(Reply reply) {
         return classify(reply) == Verdict.SERVICE_DISABLED ? reply + "; body " + reply.body() : reply.toString();
+    }
+
+    /**
+     * Classifies a REST answer to a call to a disabled service. {@link Verdict#SERVICE_DISABLED} needs the
+     * disabled-service fault in the {@code X-Road-Error} header, the expected code as the JSON body's {@code type},
+     * and the operator's notice in the body's {@code message}; a disabled-service fault that lacks one of them, and
+     * every other shape, is {@link Verdict#ERROR}, so a poll keeps waiting for the complete fault.
+     */
+    public static Verdict classifyDisabledService(Reply reply, String faultType, String faultMessage,
+                                                  String expectedCode, String notice) {
+        if (reply == null || classify(reply) != Verdict.SERVICE_DISABLED) {
+            return Verdict.ERROR;
+        }
+        var complete = expectedCode.equals(faultType) && faultMessage != null && faultMessage.contains(notice);
+        return complete ? Verdict.SERVICE_DISABLED : Verdict.ERROR;
+    }
+
+    /** The status, the fault header and the start of the body of a REST answer, for failure messages. */
+    public static String describeWithBody(Reply reply) {
+        var body = reply.body();
+        return "%s; body %s".formatted(reply,
+                body.length() > DESCRIBED_BODY_LENGTH ? body.substring(0, DESCRIBED_BODY_LENGTH) : body);
     }
 
     /** The fault code of a SOAP answer, or its HTTP status when the body holds no fault code. */

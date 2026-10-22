@@ -90,9 +90,12 @@ public final class AclScenarioVerdicts {
 
     /**
      * One line per request that missed its verdict or its notice, naming the request; empty when every request
-     * matched.
+     * matched. A scenario with no outcomes fails, since nothing was checked.
      */
     public static Optional<String> failureMessage(String scenarioId, List<Outcome> outcomes) {
+        if (outcomes.isEmpty()) {
+            return Optional.of("%s: no request was checked".formatted(scenarioId));
+        }
         var lines = new ArrayList<String>();
         for (var index = 0; index < outcomes.size(); index++) {
             var outcome = outcomes.get(index);

@@ -215,15 +215,16 @@ class AdminApi {
      */
     static boolean grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
                                              String consumerClientId, String serviceCode) {
-        var status = requestConsumerAccessGrant(ss0BaseUrl, ss0, providerClientId, consumerClientId, serviceCode);
+        var status = requestConsumerAccessGrant(ss0BaseUrl, ss0, providerClientId, consumerClientId, serviceCode)
+                .getStatusCode();
         assertThat(status)
                 .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
         return status == HTTP_CREATED;
     }
 
-    /** Asks for the subject to be granted access to a provider client's service and returns the HTTP status. */
-    static int requestConsumerAccessGrant(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+    /** Asks for the subject to be granted access to a provider client's service and returns the answer. */
+    static Response requestConsumerAccessGrant(String ss0BaseUrl, AdminSession ss0, String providerClientId,
                                           String subjectId, String serviceCode) {
         var body = """
                 {
@@ -233,7 +234,7 @@ class AdminApi {
                 }
                 """.formatted(serviceCode);
         return sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
-                + subjectId + "/access-rights", body).getStatusCode();
+                + subjectId + "/access-rights", body);
     }
 
     /** Lists the ids of the service clients that hold an access right to the provider client's service, sorted. */

@@ -28,8 +28,9 @@ package org.niis.xroad.e2e;
 
 import org.niis.xroad.e2e.parity.acl.AclScenario;
 import org.niis.xroad.e2e.parity.acl.AclScenario.AddGlobalGroupMember;
-import org.niis.xroad.e2e.parity.acl.AclScenario.Delete;
+import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteDescription;
 import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteGlobalGroup;
+import org.niis.xroad.e2e.parity.acl.AclScenario.DeleteLocalGroup;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Deleted;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Disable;
 import org.niis.xroad.e2e.parity.acl.AclScenario.EditedTo;
@@ -45,6 +46,7 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.MetaserviceRequest;
 import org.niis.xroad.e2e.parity.acl.AclScenario.OpenApiService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Refresh;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveGlobalGroupMember;
+import org.niis.xroad.e2e.parity.acl.AclScenario.RemoveLocalGroupMember;
 import org.niis.xroad.e2e.parity.acl.AclScenario.RenameService;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Revoke;
 import org.niis.xroad.e2e.parity.acl.AclScenario.SwapBackendSpec;
@@ -144,8 +146,8 @@ public final class AclScenarioCatalogue {
             row("V09", restService(List.of(SECOND_CONSUMER)), restRequest(SECOND_CONSUMER, "GET", "/a"), ALLOWED).as("Subsystem of the provider's member on ss1, granted"),
             phased("V10", restService(List.of()), List.of(denied("GET", "/a")), phase(new Grant(0, CONSUMER), allowed("GET", "/a"))).as("Grant added after an earlier denial"),
             phased("V11", restService(CONSUMER_ONLY, endpoint("GET", "/foo")), List.of(allowed("GET", "/a"), allowed("GET", "/foo")), phase(new Revoke(0, CONSUMER), denied("GET", "/a"), denied("GET", "/foo"))).as("Grant revoked after an earlier allow, an endpoint grant revoked with it"),
-            adminGrant("V12", restService(CONSUMER_ONLY), CONSUMER, 0, HTTP_CONFLICT).as("Same subsystem granted twice through the admin API"),
-            adminGrant("V13", restService(List.of()), MEMBER_OF_CONSUMER, 0, HTTP_BAD_REQUEST).as("Member granted through the admin API"),
+            adminGrant("V12", restService(CONSUMER_ONLY), CONSUMER, 0, HTTP_CONFLICT, "duplicate_accessright").as("Same subsystem granted twice through the admin API"),
+            adminGrant("V13", restService(List.of()), MEMBER_OF_CONSUMER, 0, HTTP_BAD_REQUEST, "invalid_service_client_id").as("Member granted through the admin API"),
             row("V20", restService(CONSUMER_ONLY), allowed("GET", "/a/b/c"), allowed("POST", "/a/b/c")).as("Base endpoint granted, any method and any path"),
             row("V21", restService(CONSUMER_ONLY), allowed("GET", "")).as("Base endpoint granted, bare service root"),
             row("V22", endpointOnly("GET", "/foo"), allowed("GET", "/foo")).as("GET /foo endpoint granted, exact method and path"),
@@ -184,8 +186,8 @@ public final class AclScenarioCatalogue {
             row("V55", restService(List.of(), endpoint("GET", "/files/*.json"), endpoint("GET", "/files/ok")), allowed("GET", "/files/ok"), denied("GET", "/files/a.json")).as("GET /files/*.json endpoint granted, text after the wildcard in one segment"),
             row("V60", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)), allowed("GET", "/a")).as("Local group granted the base endpoint, consumer is a member"),
             row("V61", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, List.of(OTHER_CONSUMER))), denied("GET", "/a")).as("Local group granted the base endpoint, consumer is not a member"),
-            row("V62", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY, CONSUMER_ONLY, false)), denied("GET", "/a")).as("Local group granted the base endpoint, consumer removed from the group"),
-            row("V63", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY, List.of(), true)), denied("GET", "/a")).as("Local group granted the base endpoint, group deleted"),
+            phased("V62", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)), List.of(allowed("GET", "/a")), phase(new RemoveLocalGroupMember(GROUP, CONSUMER), denied("GET", "/a"))).as("Local group granted the base endpoint, consumer removed from the group"),
+            phased("V63", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)), List.of(allowed("GET", "/a")), phase(new DeleteLocalGroup(GROUP), denied("GET", "/a"))).as("Local group granted the base endpoint, group deleted"),
             row("V64", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, List.of(MEMBER_OF_CONSUMER))), allowed(MEMBER_OF_CONSUMER, "GET", "/a")).as("Local group with a member id, request sent as that member"),
             row("V65", groupGranted(new LocalGroupSpec(PROVIDER, GROUP, List.of(OTHER_CONSUMER)), new LocalGroupSpec(SECOND_OWNER, GROUP, CONSUMER_ONLY)), denied("GET", "/a")).as("Two owners each have group partners, consumer only in the other owner's"),
             row("V66", grouped(List.of(new LocalGroupSpec(PROVIDER, GROUP, CONSUMER_ONLY)), List.of(), rest(List.of(), endpoint("GET", "/a"), groupEndpoint("GET", "/b", GROUP))), allowed("GET", "/a"), allowed("GET", "/b")).as("Direct grant on GET /a plus local group grant on GET /b"),
@@ -216,7 +218,7 @@ public final class AclScenarioCatalogue {
             row("V122", providedWith(List.of(new Disable(0, DISABLED_NOTICE)), wsdlService(PAIR, List.of(CONSUMER_ONLY, CONSUMER_ONLY))), check(soapRequest(0, "v1"), SERVICE_DISABLED), check(soapRequest(1, "v1"), SERVICE_DISABLED)).as("WSDL with two services, both granted, the description disabled"),
             row("V123", changed(new Disable(0, null)), check(restRequest("GET", "/a"), SERVICE_DISABLED)).as("Granted service disabled, notice not supplied"),
             row("V124", changed(new Disable(0, DISABLED_NOTICE), new Enable(0)), allowed("GET", "/a")).as("Service disabled and enabled again"),
-            row("V125", changed(new Delete(0)), check(restRequest("GET", "/a"), UNKNOWN_SERVICE)).as("Service description deleted, its grants removed with it"),
+            phased("V125", restService(CONSUMER_ONLY), List.of(allowed("GET", "/a")), phase(new DeleteDescription(0), check(restRequest("GET", "/a"), UNKNOWN_SERVICE))).as("Service description deleted, its grants removed with it"),
             row("V127", changed(new RenameService(0)), check(restRequest("GET", "/a"), UNKNOWN_SERVICE), allowed(1, "GET", "/a")).as("REST service code renamed, the old code and the new code called"),
             row("V128", wsdl(VERSIONS, List.of(CONSUMER_ONLY)), soapRequest(0, "v2"), ALLOWED).as("SOAP service in two versions, the second version called"),
             row("V129", wsdl(SINGLE, ".x", List.of(CONSUMER_ONLY)), soapRequest(0, "v1"), ALLOWED).as("SOAP service code containing a dot"),

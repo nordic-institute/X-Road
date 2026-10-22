@@ -71,7 +71,20 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
 
     /** A change made between two phases. */
     public sealed interface PhaseChange permits Grant, Revoke, GrantGroup, SwapBackendSpec, Refresh,
-            AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup {
+            AddGlobalGroupMember, RemoveGlobalGroupMember, DeleteGlobalGroup, RemoveLocalGroupMember,
+            DeleteLocalGroup, DeleteDescription {
+    }
+
+    /** A member or subsystem is removed from a local group of the provider. */
+    public record RemoveLocalGroupMember(String groupCode, String memberId) implements PhaseChange {
+    }
+
+    /** A local group of the provider is deleted. */
+    public record DeleteLocalGroup(String groupCode) implements PhaseChange {
+    }
+
+    /** A service description is deleted, and its access rights with it. */
+    public record DeleteDescription(int serviceIndex) implements PhaseChange {
     }
 
     /** A member or subsystem joins a global group of the fixture at the Central Server. */
@@ -110,21 +123,47 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     }
 
     /**
+     * A request and the verdict it has to reach. {@link Verdict#ERROR} and {@link Verdict#INTERNAL_ERROR} are not
+     * accepted as expectations, since a failed probe or an unmapped fault would satisfy them. A request whose
+     * reply carries its own expectation cannot expect {@link Verdict#ALLOWED} without a text the reply has to carry.
+     *
      * @param notice text the reply has to carry besides the verdict, or {@code null} for none
      */
     public record Check(RequestSpec request, Verdict expected, String notice) {
 
+        public Check {
+            if (expected == Verdict.ERROR || expected == Verdict.INTERNAL_ERROR) {
+                throw new IllegalArgumentException("a check cannot expect " + expected);
+            }
+            if (expected == Verdict.ALLOWED && requiresNoText(request)) {
+                throw new IllegalArgumentException(
+                        "a check that expects ALLOWED needs a text the reply carries: " + request.describe());
+            }
+        }
+
         public Check(RequestSpec request, Verdict expected) {
             this(request, expected, null);
+        }
+
+        private static boolean requiresNoText(RequestSpec request) {
+            return switch (request) {
+                case MetaserviceRequest meta -> !meta.expectation().requiresText();
+                case MonitoringRequest monitoring -> !monitoring.expectation().requiresText();
+                case ListClientsRequest listClients -> !listClients.expectation().requiresText();
+                default -> false;
+            };
         }
     }
 
     /**
-     * A grant made through the provider's admin API, and the HTTP status the API is expected to answer with.
+     * A grant made through the provider's admin API, and the HTTP status and error code the API is expected to
+     * answer with.
      *
-     * @param subjectId the member or subsystem the access is granted to
+     * @param subjectId         the member or subsystem the access is granted to
+     * @param expectedErrorCode the {@code error.code} of the answer, or {@code null} for an answer without an error
      */
-    public record AdminGrantExpectation(String subjectId, int serviceIndex, int expectedStatus) {
+    public record AdminGrantExpectation(String subjectId, int serviceIndex, int expectedStatus,
+                                        String expectedErrorCode) {
     }
 
     /** The Security Server that hosts the provider client. */
@@ -508,6 +547,11 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
 
         public static Expectation masked(String shown, String hidden) {
             return new Expectation(List.of(shown), List.of(hidden), List.of(), List.of());
+        }
+
+        /** Whether the reply has to carry any text, as opposed to only lacking some. */
+        public boolean requiresText() {
+            return !contains.isEmpty() || !listed.isEmpty();
         }
 
         /** The texts the reply has to carry, with the listed positions resolved to service codes. */

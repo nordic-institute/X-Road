@@ -172,6 +172,34 @@ class AclScenarioVerdictsTest {
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, false);
     }
 
+    @Test
+    void eachPhaseIsAppliedByItsOwnIndexBeforeItsOwnChecksArePolled() {
+        var row = phased("V11", restService(List.of()), List.of(denied("GET", "/a")),
+                phase(new AclScenario.Grant(0, AclParticipants.CONSUMER), allowed("GET", "/b")),
+                phase(new AclScenario.Revoke(0, AclParticipants.CONSUMER), denied("GET", "/c"))).as("two phases");
+        var events = new ArrayList<String>();
+        var appliedPhase = new int[] {-1};
+
+        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), row, index -> {
+            events.add("apply " + index);
+            appliedPhase[0] = index;
+        }, request -> {
+            events.add("probe " + request.describe());
+            return observe(appliedPhase[0] == 0 ? Verdict.ALLOWED : Verdict.ACCESS_DENIED);
+        }, TIMEOUT, INTERVAL);
+
+        assertThat(events).containsExactly("probe GET /a", "apply 0", "probe GET /b", "apply 1", "probe GET /c");
+        assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, true, true);
+        assertThat(outcomes).extracting(outcome -> outcome.check().request().describe())
+                .containsExactly("GET /a", "GET /b", "GET /c");
+    }
+
+    @Test
+    void aScenarioWithNoOutcomesFails() {
+        assertThat(AclScenarioVerdicts.failureMessage("V00", List.of()))
+                .hasValueSatisfying(text -> assertThat(text).contains("V00").contains("no request was checked"));
+    }
+
     private static AclScenario grantRow() {
         return phased("V10", restService(List.of()), List.of(denied("GET", "/a")),
                 phase(new AclScenario.Grant(0, AclParticipants.CONSUMER), allowed("GET", "/a"))).as("grant row");
