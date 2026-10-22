@@ -48,6 +48,8 @@ import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class GlobalConfVer7Test {
     private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v7";
@@ -180,5 +182,38 @@ public class GlobalConfVer7Test {
         assertEquals(Optional.empty(), stripped.getServerSystemValues(PRODUCER_SERVER));
         assertEquals(Optional.empty(), stripped.getMemberDid(PRODUCER, PRODUCER_SERVER));
         assertEquals(Optional.empty(), stripped.getMemberDid(FOO_SUBSYSTEM, FOO_BAR_SERVER));
+    }
+
+    @Test
+    public void legacyProtocolDisabledOfFederatedInstanceWithElement() {
+        assertTrue(globalConfProvider.isLegacyProtocolDisabled("fed_v7"));
+    }
+
+    @Test
+    public void legacyProtocolDisabledOfOwnInstanceWithoutElementIsFalse() {
+        assertFalse(globalConfProvider.isLegacyProtocolDisabled("EE"));
+    }
+
+    @Test
+    public void legacyProtocolDisabledOfOwnInstanceWithElement() throws IOException {
+        File confDir = TEMP_FOLDER.newFolder("own-legacy-protocol-disabled");
+        FileUtils.copyDirectory(new File(GOOD_CONF_DIR), confDir);
+        File sharedParams = new File(confDir, "EE/shared-params.xml");
+        String withElement = FileUtils.readFileToString(sharedParams, UTF_8)
+                .replace("</globalSettings>", "<legacyProtocolDisabled>true</legacyProtocolDisabled></globalSettings>");
+        FileUtils.writeStringToFile(sharedParams, withElement, UTF_8);
+
+        assertTrue(load(confDir.getPath()).isLegacyProtocolDisabled("EE"));
+    }
+
+    @Test
+    public void legacyProtocolDisabledOfInstanceWithOlderVersionIsFalse() {
+        assertFalse(globalConfProvider.isLegacyProtocolDisabled("corge_v6"));
+        assertFalse(globalConfProvider.isLegacyProtocolDisabled("foo_v2"));
+    }
+
+    @Test
+    public void legacyProtocolDisabledOfUnknownInstanceIsFalse() {
+        assertFalse(globalConfProvider.isLegacyProtocolDisabled("XX"));
     }
 }

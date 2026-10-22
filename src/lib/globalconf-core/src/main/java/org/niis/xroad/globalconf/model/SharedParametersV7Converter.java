@@ -410,6 +410,7 @@ public class SharedParametersV7Converter {
     private SharedParameters.GlobalSettings toGlobalSettings(GlobalSettingsType source) {
         var target = new SharedParameters.GlobalSettings();
         target.setOcspFreshnessSeconds(source.getOcspFreshnessSeconds().intValue());
+        target.setLegacyProtocolDisabled(Boolean.TRUE.equals(source.isLegacyProtocolDisabled()));
         if (source.getMemberClass() != null) {
             target.setMemberClasses(source.getMemberClass().stream().map(this::toMemberClass).toList());
         }
