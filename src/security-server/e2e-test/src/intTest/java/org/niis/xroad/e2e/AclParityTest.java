@@ -170,7 +170,8 @@ class AclParityTest extends E2eTest {
             }
             var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), scenario, fixture::applyPhase,
                     request -> call(env, management, scenario, serviceCodes, request),
-                    scenario.waitClass().timeout(), DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
+                    scenario.waitClass().firstCheckTimeout(), scenario.waitClass().timeout(),
+                    DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
             outcomes.forEach(outcome -> log.info("{}: {} -> verdict {} ({}) after {} attempts in {} s",
                     scenario.id(), outcome.check().request().describe(), outcome.result().last(),
                     outcome.result().detail(), outcome.result().attempts(),

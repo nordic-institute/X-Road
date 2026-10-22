@@ -138,7 +138,7 @@ class AclScenarioVerdictsTest {
         }, request -> {
             events.add("probe");
             return observe(granted[0] ? Verdict.ALLOWED : Verdict.ACCESS_DENIED);
-        }, TIMEOUT, INTERVAL);
+        }, TIMEOUT, TIMEOUT, INTERVAL);
 
         assertThat(events).containsExactly("probe", "apply 0", "probe");
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, true);
@@ -152,7 +152,7 @@ class AclScenarioVerdictsTest {
         var applied = new ArrayList<Integer>();
 
         var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), row, applied::add,
-                request -> observe(Verdict.ALLOWED), TIMEOUT, INTERVAL);
+                request -> observe(Verdict.ALLOWED), TIMEOUT, TIMEOUT, INTERVAL);
 
         assertThat(applied).isEmpty();
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(false);
@@ -166,7 +166,7 @@ class AclScenarioVerdictsTest {
         var applied = new ArrayList<Integer>();
 
         var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), twoPhases, applied::add,
-                request -> observe(Verdict.ACCESS_DENIED), TIMEOUT, INTERVAL);
+                request -> observe(Verdict.ACCESS_DENIED), TIMEOUT, TIMEOUT, INTERVAL);
 
         assertThat(applied).containsExactly(0);
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, false);
@@ -186,7 +186,7 @@ class AclScenarioVerdictsTest {
         }, request -> {
             events.add("probe " + request.describe());
             return observe(appliedPhase[0] == 0 ? Verdict.ALLOWED : Verdict.ACCESS_DENIED);
-        }, TIMEOUT, INTERVAL);
+        }, TIMEOUT, TIMEOUT, INTERVAL);
 
         assertThat(events).containsExactly("probe GET /a", "apply 0", "probe GET /b", "apply 1", "probe GET /c");
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, true, true);

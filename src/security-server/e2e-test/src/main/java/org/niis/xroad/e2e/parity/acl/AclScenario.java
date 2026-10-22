@@ -173,18 +173,28 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
 
     /** The provider-side delay between a configuration change and the verdict it causes. */
     public enum WaitClass {
-        /** The provider caches access decisions per client and service: 60 s of cache plus slack. */
-        ACL_CACHE(Duration.ofSeconds(90)),
+        /**
+         * The provider caches access decisions per client and service for the e2e seeded cache period of 2 s; the
+         * slack after a change also covers the DSP agreement token cache on the consumer.
+         */
+        ACL_CACHE(Duration.ofSeconds(20), Duration.ofSeconds(60)),
         /**
          * A Central Server change reaches the provider through global configuration: generation 10 s, configuration
-         * client 10 s and proxy refresh 10 s, then the access decision cache of 60 s, plus slack.
+         * client 10 s and proxy refresh 10 s, then the access decision cache, plus slack.
          */
-        GLOBALCONF(Duration.ofSeconds(120));
+        GLOBALCONF(Duration.ofSeconds(90), Duration.ofSeconds(90));
 
+        private final Duration firstCheckTimeout;
         private final Duration timeout;
 
-        WaitClass(Duration timeout) {
+        WaitClass(Duration firstCheckTimeout, Duration timeout) {
+            this.firstCheckTimeout = firstCheckTimeout;
             this.timeout = timeout;
+        }
+
+        /** How long a verdict of the scenario's own checks may take, with no change cached at the provider. */
+        public Duration firstCheckTimeout() {
+            return firstCheckTimeout;
         }
 
         /** How long a verdict may take to settle after the change that causes it. */

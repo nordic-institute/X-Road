@@ -17,6 +17,7 @@ set_property() {
 set_property xroad.proxy.message-log.timestamper.timestamp-immediately true
 set_property xroad.common-global-conf.refresh-rate 10S
 set_property xroad.configuration-client.update-interval 10
+set_property xroad.common-server-conf.cache-period 2
 set_property xroad.dsp.catalog.cache.ttl-seconds 5
 set_property xroad.proxy.dsp.serverproxy-endpoint "https://${XROAD_DSP_SERVERPROXY_HOSTNAME:-xrd-ss0}:5500"
 

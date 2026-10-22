@@ -69,14 +69,14 @@ public final class AclScenarioVerdicts {
     }
 
     /**
-     * Polls the scenario's checks, then for each phase applies the phase by its index and polls the phase's
-     * checks, each with the full timeout so the changes can outlast the provider's caches. Stops at the first
-     * check that misses its verdict, so the later phase changes are not applied.
+     * Polls the scenario's checks with the first-check timeout, then for each phase applies the phase by its index
+     * and polls the phase's checks, each with the full timeout so the changes can outlast the provider's caches.
+     * Stops at the first check that misses its verdict, so the later phase changes are not applied.
      */
     public static List<Outcome> pollPhased(VerdictPoller poller, AclScenario scenario,
                                            IntConsumer applyPhase, Function<RequestSpec, Observation> probe,
-                                           Duration timeout, Duration interval) {
-        var outcomes = new ArrayList<>(poll(poller, scenario, probe, timeout, interval));
+                                           Duration firstCheckTimeout, Duration timeout, Duration interval) {
+        var outcomes = new ArrayList<>(poll(poller, scenario, probe, firstCheckTimeout, interval));
         for (var index = 0; index < scenario.phases().size() && allMatched(outcomes); index++) {
             applyPhase.accept(index);
             outcomes.addAll(poll(poller, scenario.phases().get(index).checks(), probe, timeout, interval));
