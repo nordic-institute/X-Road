@@ -41,35 +41,23 @@ import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJ
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class LegacyCallGate {
 
-    static final String TOKEN_REQUIRED = "TOKEN_REQUIRED";
+    static final String AGREEMENT_TOKEN_REQUIRED = "AGREEMENT_TOKEN_REQUIRED";
     static final String KEY_MATERIAL_UNAVAILABLE = "KEY_MATERIAL_UNAVAILABLE";
 
     /**
-     * Refuses a tokenless or unverifiable call when refusal is in force. Any other decision passes.
+     * Throws for a tokenless or unverifiable call when the policy refuses legacy calls. Any other decision passes.
      */
-    static void refuseLegacyCall(Decision decision, LegacyCallRefusalPolicy policy) {
+    static void requireLegacyCallAllowed(Decision decision, LegacyCallRefusalPolicy policy) {
         var reason = legacyReason(decision);
         if (reason != null && policy.refusedAsProvider()) {
             throw rejected(reason);
         }
     }
 
-    /**
-     * For handlers that do not run the access check, when refusal is in force: only an accepted token passes.
-     */
-    static void requireAcceptedToken(Decision decision) {
-        if (decision instanceof Decision.Accepted) {
-            return;
-        }
-        if (decision instanceof Decision.Rejected(var reasonClass)) {
-            throw rejected(reasonClass);
-        }
-        throw rejected(legacyReason(decision));
-    }
 
     private static String legacyReason(Decision decision) {
         return switch (decision) {
-            case Decision.Absent ignored -> TOKEN_REQUIRED;
+            case Decision.Absent ignored -> AGREEMENT_TOKEN_REQUIRED;
             case Decision.Unavailable ignored -> KEY_MATERIAL_UNAVAILABLE;
             case Decision.Accepted ignored -> null;
             case Decision.Rejected ignored -> null;

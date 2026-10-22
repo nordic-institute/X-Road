@@ -228,8 +228,6 @@ public class ServerSoapMessageProcessor {
 
         if (handler.shouldVerifyAccess(requestMessage)) {
             verifyAccess(requestMessage, requestServiceId, jRequest.getHeaders().get(HEADER_AGREEMENT_TOKEN));
-        } else {
-            verifyAgreementToken(requestMessage, requestServiceId, jRequest.getHeaders().get(HEADER_AGREEMENT_TOKEN));
         }
 
         if (handler.shouldVerifySignature()) {
@@ -262,7 +260,7 @@ public class ServerSoapMessageProcessor {
             throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
                     "Agreement token rejected: %s".formatted(reasonClass));
         }
-        LegacyCallGate.refuseLegacyCall(decision, legacyCallRefusalPolicy);
+        LegacyCallGate.requireLegacyCallAllowed(decision, legacyCallRefusalPolicy);
         var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(client, requestServiceId)) {
             throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
@@ -274,14 +272,6 @@ public class ServerSoapMessageProcessor {
             throw XrdRuntimeException.systemException(SERVICE_DISABLED, "Service %s is disabled: %s".formatted(requestServiceId,
                     disabledNotice));
         }
-    }
-
-    void verifyAgreementToken(ProxyMessage requestMessage, ServiceId requestServiceId, String agreementToken) {
-        if (!legacyCallRefusalPolicy.refusedAsProvider()) {
-            return;
-        }
-        var decision = agreementTokenAccessCheck.decide(agreementToken, requestMessage.getSoap().getClient(), requestServiceId);
-        LegacyCallGate.requireAcceptedToken(decision);
     }
 
     private void verifySignature(ProxyMessage requestMessage) {

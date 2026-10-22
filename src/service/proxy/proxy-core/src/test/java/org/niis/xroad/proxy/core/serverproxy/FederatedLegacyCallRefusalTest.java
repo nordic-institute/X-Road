@@ -128,7 +128,7 @@ class FederatedLegacyCallRefusalTest {
             assertThatThrownBy(() -> restProcessor.verifyAccess(SERVICE, requestMessage, null))
                     .isInstanceOf(XrdRuntimeException.class)
                     .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
-                    .hasMessageContaining("TOKEN_REQUIRED");
+                    .hasMessageContaining("AGREEMENT_TOKEN_REQUIRED");
             verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
         } else {
             restProcessor.verifyAccess(SERVICE, requestMessage, null);
@@ -151,7 +151,7 @@ class FederatedLegacyCallRefusalTest {
             assertThatThrownBy(() -> soapProcessor.verifyAccess(requestMessage, SERVICE, null))
                     .isInstanceOf(XrdRuntimeException.class)
                     .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue())
-                    .hasMessageContaining("TOKEN_REQUIRED");
+                    .hasMessageContaining("AGREEMENT_TOKEN_REQUIRED");
             verify(serverConfProvider, never()).isQueryAllowed(any(), any());
         } else {
             soapProcessor.verifyAccess(requestMessage, SERVICE, null);

@@ -74,7 +74,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJ
 
 /**
  * Proves, through a real client proxy and server proxy, that a provider which refuses legacy calls rejects every
- * request without an agreement token and still serves requests that carry a valid one. A request is tokenless
+ * access-checked request without an agreement token and still serves requests that carry a valid one. Handlers
+ * that skip the access check, such as metaservices and monitoring, are served without a token. A request is tokenless
  * because the consumer-side DSP dependency of the client proxy is left unstubbed and so hands out no token. The
  * instance value is published through {@link ProxyTestSuiteHelper#legacyProtocolDisabledByInstance}. Kept out of
  * {@code testsuite.testcases} so that {@link org.niis.xroad.proxy.core.test.TestcaseLoader} does not scan it.
@@ -82,7 +83,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJ
 class LegacyCallRefusalTest {
 
     private static final String OWN_INSTANCE = "EE";
-    private static final String TOKEN_REJECTED_FAULT = SERVER_SERVERPROXY_X + "." + AGREEMENT_TOKEN_REJECTED.code();
+    private static final String AGREEMENT_TOKEN_REJECTED_FAULT = SERVER_SERVERPROXY_X + "." + AGREEMENT_TOKEN_REJECTED.code();
 
     private static final Map<String, String> PROPS = new HashMap<>();
     private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
@@ -90,10 +91,6 @@ class LegacyCallRefusalTest {
     private static final ClientId PRODUCER = ClientId.Conf.create("EE", "BUSINESS", "producer");
     private static final ClientId CONSUMER = ClientId.Conf.create("EE", "BUSINESS", "consumer");
     private static final ServiceId GET_STATE = ServiceId.Conf.create(PRODUCER, "getState");
-    private static final ServiceId LIST_METHODS = ServiceId.Conf.create(
-            ClientId.Conf.create("EE", "BUSINESS", "producer", "SUB"), "listMethods", "v1");
-    private static final ServiceId GET_METRICS = ServiceId.Conf.create(PRODUCER, "getSecurityServerMetrics");
-    private static final ServiceId GET_OPERATIONAL_DATA = ServiceId.Conf.create(PRODUCER, "getSecurityServerOperationalData");
 
     private TestContext ctx;
 
@@ -105,7 +102,6 @@ class LegacyCallRefusalTest {
         PROPS.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
         PROPS.put("xroad.proxy.ssl-enabled", "false");
         PROPS.put("xroad.proxy.dsp-enabled", "true");
-        PROPS.put("xroad.proxy.addon.op-monitor.enabled", "true");
 
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(PROPS);
         PROPS.put("xroad.proxy.server-port", valueOf(PROXY_TEST_SUITE_HELPER.proxyPort));
@@ -144,7 +140,7 @@ class LegacyCallRefusalTest {
         var request = new Probe("getstate.query", "getstate.answer");
         request.execute(ctx);
 
-        assertThat(request.faultCode).isEqualTo(TOKEN_REJECTED_FAULT);
+        assertThat(request.faultCode).isEqualTo(AGREEMENT_TOKEN_REJECTED_FAULT);
         assertThat(request.aclChecks).hasValue(0);
     }
 
@@ -156,7 +152,7 @@ class LegacyCallRefusalTest {
         var request = new Probe("getstate.query", "getstate.answer");
         request.execute(ctx);
 
-        assertThat(request.faultCode).isEqualTo(TOKEN_REJECTED_FAULT);
+        assertThat(request.faultCode).isEqualTo(AGREEMENT_TOKEN_REJECTED_FAULT);
         assertThat(request.aclChecks).hasValue(0);
     }
 
@@ -184,7 +180,7 @@ class LegacyCallRefusalTest {
         var served = new Probe("getstate.query", "getstate.answer");
         served.execute(ctx);
 
-        assertThat(refused.faultCode).isEqualTo(TOKEN_REJECTED_FAULT);
+        assertThat(refused.faultCode).isEqualTo(AGREEMENT_TOKEN_REJECTED_FAULT);
         assertThat(refused.aclChecks).hasValue(0);
         assertThat(served.faultCode).isNull();
         assertTrue(served.served);
@@ -206,76 +202,23 @@ class LegacyCallRefusalTest {
     }
 
     @Test
-    void shouldRefuseTokenlessMetaserviceRequestWhenTheInstanceRefuses() throws Exception {
+    void shouldServeTokenlessMetaserviceRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-
         var request = new Probe("listMethods.query", null);
         request.execute(ctx);
-
-        assertThat(request.faultCode).isEqualTo(TOKEN_REJECTED_FAULT);
-    }
-
-    @Test
-    void shouldServeMetaserviceRequestWithAValidTokenWhenTheInstanceRefuses() throws Exception {
-        startContext();
-        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubAssetAccess(CONSUMER, LIST_METHODS);
-
-        var request = new Probe("listMethods.query", null);
-        request.execute(ctx);
-
         assertThat(request.faultCode).isNull();
         assertTrue(request.served);
     }
-
     @Test
-    void shouldRefuseTokenlessProxyMonitoringRequestWhenTheInstanceRefuses() throws Exception {
+    void shouldServeTokenlessProxyMonitoringRequestWhenTheInstanceRefuses() throws Exception {
         startContext(monitorReturningMetrics());
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-
         var request = new Probe("getMetrics.query", null).ownedBy(PRODUCER);
         request.execute(ctx);
-
-        assertThat(request.faultCode).isEqualTo(TOKEN_REJECTED_FAULT);
-    }
-
-    @Test
-    void shouldServeProxyMonitoringRequestWithAValidTokenWhenTheInstanceRefuses() throws Exception {
-        startContext(monitorReturningMetrics());
-        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubAssetAccess(PRODUCER, GET_METRICS);
-
-        var request = new Probe("getMetrics.query", null).ownedBy(PRODUCER);
-        request.execute(ctx);
-
         assertThat(request.faultCode).isNull();
         assertTrue(request.served);
     }
-
-    @Test
-    void shouldRefuseTokenlessOperationalMonitoringRequestWhenTheInstanceRefuses() throws Exception {
-        startContext();
-        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-
-        var request = new Probe("getSecurityServerOperationalData.query", null).ownedBy(PRODUCER);
-        request.execute(ctx);
-
-        assertThat(request.faultCode).isEqualTo(TOKEN_REJECTED_FAULT);
-    }
-
-    @Test
-    void shouldNotRefuseOperationalMonitoringRequestWithAValidTokenWhenTheInstanceRefuses() throws Exception {
-        startContext();
-        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
-        stubAssetAccess(PRODUCER, GET_OPERATIONAL_DATA);
-
-        var request = new Probe("getSecurityServerOperationalData.query", null).ownedBy(PRODUCER);
-        request.execute(ctx);
-
-        assertThat(request.faultCode).isNotEqualTo(TOKEN_REJECTED_FAULT);
-    }
-
     private void startContext() {
         startContext(mock(MonitorRpcClient.class));
     }
