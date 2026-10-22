@@ -107,6 +107,13 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(true)
             .build();
 
+    /** {@code xroad.proxy.legacy-protocol-disabled}. */
+    public static final ConfigKey<Boolean> LEGACY_PROTOCOL_DISABLED = PROXY
+            .bool("legacy-protocol-disabled")
+            .withDefaultValue(false)
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.proxy.health-check-enabled}. */
     public static final ConfigKey<Boolean> HEALTH_CHECK_ENABLED = PROXY
             .bool("health-check-enabled")

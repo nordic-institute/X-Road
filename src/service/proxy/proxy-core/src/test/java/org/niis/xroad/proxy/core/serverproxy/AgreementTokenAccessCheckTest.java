@@ -40,6 +40,7 @@ import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.test.InMemoryAgreementTokenKeyProvider;
 
 import java.time.Clock;
@@ -56,6 +57,7 @@ import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AgreementTokenAccessCheckTest {
@@ -74,6 +76,7 @@ class AgreementTokenAccessCheckTest {
 
     private InMemoryAgreementTokenKeyProvider keyProvider;
     private ProxyAgreementTokenProperties properties;
+    private LegacyCallRefusalPolicy refusalPolicy;
     private AgreementTokenAccessCheck accessCheck;
 
     private Logger logger;
@@ -93,7 +96,9 @@ class AgreementTokenAccessCheckTest {
         var keyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(keyMaterial.provider()).thenReturn(Optional.of(keyProvider));
 
-        accessCheck = new AgreementTokenAccessCheck(keyMaterial, properties);
+        refusalPolicy = mock(LegacyCallRefusalPolicy.class);
+
+        accessCheck = new AgreementTokenAccessCheck(keyMaterial, properties, refusalPolicy);
 
         logger = Logger.getLogger(AgreementTokenAccessCheck.class.getName());
         originalLogLevel = logger.getLevel();
@@ -246,7 +251,7 @@ class AgreementTokenAccessCheckTest {
     void shouldReturnUnavailableWhenKeyMaterialIsAbsent() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
-        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties);
+        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy);
         var token = mint(new AgreementTokenScope("*", "**"));
 
         assertThat(withoutKeyMaterial.decide(token, CONSUMER, SERVICE))
@@ -258,7 +263,7 @@ class AgreementTokenAccessCheckTest {
         var token = mint(new AgreementTokenScope("*", "**"));
         var throwingKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(throwingKeyMaterial.provider()).thenReturn(Optional.of(new ThrowingAgreementTokenKeyProvider()));
-        var withThrowingProvider = new AgreementTokenAccessCheck(throwingKeyMaterial, properties);
+        var withThrowingProvider = new AgreementTokenAccessCheck(throwingKeyMaterial, properties, refusalPolicy);
 
         assertRejected(withThrowingProvider.decide(token, CONSUMER, SERVICE), VERIFIER_ERROR_REASON);
     }
@@ -299,7 +304,7 @@ class AgreementTokenAccessCheckTest {
     void unavailableIsLoggedAtWarnWithoutTheTokenValue() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
-        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties);
+        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy);
         var token = mint(new AgreementTokenScope("*", "**"));
 
         withoutKeyMaterial.decide(token, CONSUMER, SERVICE);
@@ -308,6 +313,84 @@ class AgreementTokenAccessCheckTest {
             assertThat(logRecord.getLevel()).isEqualTo(Level.WARNING);
             assertThat(logRecord.getMessage()).doesNotContain(token);
         });
+    }
+
+    @Test
+    void shouldRejectAbsentTokenWhenLegacyCallsAreRefused() {
+        when(refusalPolicy.refusedAsProvider()).thenReturn(true);
+
+        assertRejected(accessCheck.decide(null, CONSUMER, SERVICE), AgreementTokenAccessCheck.AGREEMENT_TOKEN_REQUIRED);
+        assertRejected(accessCheck.decide("   ", CONSUMER, SERVICE, "GET", "/foo/bar"),
+                AgreementTokenAccessCheck.AGREEMENT_TOKEN_REQUIRED);
+    }
+
+    @Test
+    void shouldReturnAbsentWhenLegacyCallsAreNotRefused() {
+        when(refusalPolicy.refusedAsProvider()).thenReturn(false);
+
+        assertThat(accessCheck.decide(null, CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Absent.class);
+    }
+
+    @Test
+    void shouldRejectUnavailableKeyMaterialWhenLegacyCallsAreRefused() {
+        when(refusalPolicy.refusedAsProvider()).thenReturn(true);
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        assertRejected(withoutKeyMaterial().decide(token, CONSUMER, SERVICE), AgreementTokenAccessCheck.KEY_MATERIAL_UNAVAILABLE);
+    }
+
+    @Test
+    void shouldReturnUnavailableWhenLegacyCallsAreNotRefused() {
+        when(refusalPolicy.refusedAsProvider()).thenReturn(false);
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        assertThat(withoutKeyMaterial().decide(token, CONSUMER, SERVICE))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Unavailable.class);
+    }
+
+    @Test
+    void acceptedTokenDoesNotConsultTheRefusalPolicy() {
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        assertThat(accessCheck.decide(token, CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
+        verifyNoInteractions(refusalPolicy);
+    }
+
+    @Test
+    void rejectedTokenDoesNotConsultTheRefusalPolicy() {
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        assertRejected(accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE), AgreementTokenRejectionReason.CLIENT_MISMATCH);
+        assertRejected(accessCheck.decide(token, null, SERVICE), CONTEXT_REASON);
+        verifyNoInteractions(refusalPolicy);
+    }
+
+    @Test
+    void shouldRejectAndNotThrowWhenTheRefusalPolicyCannotBeRead() {
+        when(refusalPolicy.refusedAsProvider()).thenThrow(new IllegalStateException("global configuration unavailable"));
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        assertRejected(accessCheck.decide(null, CONSUMER, SERVICE), AgreementTokenAccessCheck.REFUSAL_POLICY_ERROR);
+        assertRejected(withoutKeyMaterial().decide(token, CONSUMER, SERVICE), AgreementTokenAccessCheck.REFUSAL_POLICY_ERROR);
+    }
+
+    @Test
+    void refusalOfUnavailableKeyMaterialIsLoggedAtWarnWithoutTheTokenValue() {
+        when(refusalPolicy.refusedAsProvider()).thenReturn(true);
+        var token = mint(new AgreementTokenScope("*", "**"));
+
+        withoutKeyMaterial().decide(token, CONSUMER, SERVICE);
+
+        assertThat(logHandler.records).singleElement().satisfies(logRecord -> {
+            assertThat(logRecord.getLevel()).isEqualTo(Level.WARNING);
+            assertThat(logRecord.getMessage()).contains("refusing the request").doesNotContain("falling back to the ACL", token);
+        });
+    }
+
+    private AgreementTokenAccessCheck withoutKeyMaterial() {
+        var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
+        when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
+        return new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy);
     }
 
     private void assertRejected(AgreementTokenAccessCheck.Decision decision, AgreementTokenRejectionReason reason) {

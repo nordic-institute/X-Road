@@ -83,6 +83,7 @@ import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
@@ -115,6 +116,7 @@ import java.util.Set;
 
 import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
 /**
  * Base class for proxy integration tests.
@@ -153,6 +155,12 @@ public abstract class AbstractProxyIntegrationTest {
     protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServiceServerConf());
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
     protected static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
+    /** The consumer-side DSP dependency of the client proxy; reset after each test. */
+    protected static final DspRequestProcessor CONSUMER_SIDE_DSP_PROCESSOR = mock(DspRequestProcessor.class);
+    /** The key material of the server-side agreement token check; reset after each test. */
+    protected static final AgreementTokenKeyMaterial AGREEMENT_TOKEN_KEY_MATERIAL = mock(AgreementTokenKeyMaterial.class);
+    /** The agreement token properties of the server-side agreement token check; reset after each test. */
+    protected static final ProxyAgreementTokenProperties AGREEMENT_TOKEN_PROPERTIES = mock(ProxyAgreementTokenProperties.class);
     protected static TestKeyConf clientKeyConf;
     protected static TestKeyConf serverKeyConf;
     protected static LoggingAuthTrustVerifier clientAuthTrustVerifier;
@@ -250,7 +258,7 @@ public abstract class AbstractProxyIntegrationTest {
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
-                mock(DspRequestProcessor.class), identifierValidationService);
+                CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),
@@ -284,8 +292,10 @@ public abstract class AbstractProxyIntegrationTest {
 
         var identifierValidationService = new IdentifierValidationService(proxyProperties);
 
-        var agreementTokenAccessCheck = new AgreementTokenAccessCheck(
-                mock(AgreementTokenKeyMaterial.class), mock(ProxyAgreementTokenProperties.class));
+        var legacyCallRefusalPolicy = new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF);
+
+        var agreementTokenAccessCheck = new AgreementTokenAccessCheck(AGREEMENT_TOKEN_KEY_MATERIAL, AGREEMENT_TOKEN_PROPERTIES,
+                legacyCallRefusalPolicy);
 
         var serverRestMessageProcessor = new ServerRestMessageProcessor(
                 messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
@@ -320,6 +330,7 @@ public abstract class AbstractProxyIntegrationTest {
     public void after() {
         TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf());
         TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf());
+        reset(CONSUMER_SIDE_DSP_PROCESSOR, AGREEMENT_TOKEN_KEY_MATERIAL, AGREEMENT_TOKEN_PROPERTIES);
         clientAuthTrustVerifier.clearVerifiedCertificates();
     }
 

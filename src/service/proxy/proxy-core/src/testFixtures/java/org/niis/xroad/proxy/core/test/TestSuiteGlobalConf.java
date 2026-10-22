@@ -68,6 +68,11 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
+    public boolean isLegacyProtocolDisabled(String instanceIdentifier) {
+        return proxyTestSuiteHelper.legacyProtocolDisabledByInstance.getOrDefault(instanceIdentifier, false);
+    }
+
+    @Override
     public Collection<String> getProviderAddress(ClientId provider) {
         if (currentTestCase() == null || provider == null) {
             return singleton("http://127.0.0.1:"
