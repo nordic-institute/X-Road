@@ -117,6 +117,18 @@ COPY --from=secret-store-scripts --chown=root:root _openbao.sh /usr/share/xroad/
 COPY --chown=root:root files/secret-store-init.sh files/xroad-secret-store-gate.sh files/dsp-config-seed.sh files/signer-autologin-config-seed.sh /usr/share/xroad/scripts/sidecar/
 RUN chmod 0755 /usr/share/xroad/scripts/sidecar/*.sh
 
+# Migration mode: the orchestrator and its steps (own tree), plus the native
+# upgrade wizard's db.properties rewrite task, copied from the installer
+# tooling.
+COPY --chown=root:root files/migration/ /usr/share/xroad/scripts/sidecar/migration/
+COPY --from=migration-tasks --chown=root:root lib/common.sh \
+  /usr/share/xroad/scripts/sidecar/migration-tasks/lib/common.sh
+COPY --from=migration-tasks --chown=root:root tasks/migration/migrate_db_properties.sh \
+  /usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/migrate_db_properties.sh
+RUN chmod 0755 /usr/share/xroad/scripts/sidecar/migration/orchestrator.sh \
+  /usr/share/xroad/scripts/sidecar/migration/steps/*.sh \
+  /usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/migrate_db_properties.sh
+
 # Cleanup mirror configuration (restore public mirrors for published image)
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
     --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-openbao-deb.sh,target=/tmp/cleanup-mirror-openbao-deb.sh \
