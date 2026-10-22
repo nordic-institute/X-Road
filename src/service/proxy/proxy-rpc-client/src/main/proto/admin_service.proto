@@ -40,6 +40,7 @@ service AdminService {
   rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
   rpc GetTimestampingPrioritizationStrategy(Empty) returns (TimestampingPrioritizationStrategyResp) {}
   rpc RotateAgreementTokenSigningKey(Empty) returns (RotateAgreementTokenSigningKeyResp) {}
+  rpc GetAgreementTokenKeyStatus(Empty) returns (AgreementTokenKeyStatusResp) {}
 }
 
 message AddOnStatusResp {
@@ -79,4 +80,12 @@ message TimestampingPrioritizationStrategyResp {
 
 message RotateAgreementTokenSigningKeyResp {
   string key_id = 1;
+}
+
+message AgreementTokenKeyStatusResp {
+  bool available = 1;
+  optional string active_key_id = 2;
+  optional int64 active_key_created_at = 3;
+  int32 retained_key_count = 4;
+  optional string pending_key_id = 5;
 }

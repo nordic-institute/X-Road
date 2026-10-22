@@ -34,15 +34,6 @@
 - include_tasks: rhel.yml
   when: ansible_facts['os_family'] == "RedHat"
 
-- name: Render installer config
-  become: true
-  template:
-    src: xroad-installer.conf.j2
-    dest: /tmp/xroad-installer.conf
-    owner: root
-    group: root
-    mode: '0600'
-
 - name: Stage installer on controller (local mode)
   delegate_to: localhost
   run_once: true
@@ -76,9 +67,39 @@
 
 - name: Run installer
   block:
-    - name: Pipe get-xroad.sh into bash via curl (remote mode)
-      shell: |
-        sudo bash -c "$(curl -sSfL {{ bootstrapper_url }})" -- --config-file /tmp/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
+    - name: Create a private working directory
+      become: true
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: xroad-installer.
+      register: installer_work_dir
+
+    - name: Render installer config
+      become: true
+      ansible.builtin.template:
+        src: xroad-installer.conf.j2
+        dest: "{{ installer_work_dir.path }}/xroad-installer.conf"
+        owner: root
+        group: root
+        mode: '0600'
+      no_log: true
+
+    - name: Download bootstrapper (remote mode)
+      become: true
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -fsSL
+          - -o
+          - "{{ installer_work_dir.path }}/get-xroad.sh"
+          - "{{ bootstrapper_url }}"
+      changed_when: true
+      when: not (xroad_installer_local_mode | bool)
+
+    - name: Run get-xroad.sh bootstrapper (remote mode)
+      ansible.builtin.shell: |
+        sudo bash {{ installer_work_dir.path }}/get-xroad.sh \
+          --config-file {{ installer_work_dir.path }}/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
       args:
         chdir: "{{ ansible_env.HOME }}"
         executable: /bin/bash
@@ -90,7 +111,8 @@
     - name: Run in-tree xroad-installer.sh (local mode)
       become: true
       shell: |
-        bash /tmp/xroad-installer/xroad-installer.sh --config-file /tmp/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
+        bash /tmp/xroad-installer/xroad-installer.sh \
+          --config-file {{ installer_work_dir.path }}/xroad-installer.conf{{ ' --skip-requirements-check' if skip_requirements_check | bool else '' }}
       args:
         chdir: /tmp/xroad-installer
         executable: /bin/bash
@@ -111,13 +133,21 @@
     - name: Surface installer failure
       fail:
         msg: |-
-          Installer failed (mode={{ 'local' if (xroad_installer_local_mode | bool) else 'remote' }},
-          rc={{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).rc | default('unknown') }}).
+          Installer failed at '{{ ansible_failed_task.name }}'
+          (mode={{ 'local' if (xroad_installer_local_mode | bool) else 'remote' }},
+          rc={{ ansible_failed_result.rc | default('unknown') }}).
           --- stdout ---
-          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stdout | default('') }}
+          {{ ansible_failed_result.stdout | default('') }}
           --- stderr ---
-          {{ (local_installer_result if (xroad_installer_local_mode | bool) else bootstrapper_result).stderr | default('') }}
+          {{ ansible_failed_result.stderr | default(ansible_failed_result.msg | default('')) }}
   always:
+    - name: Remove the working directory with the rendered config and bootstrapper
+      become: true
+      ansible.builtin.file:
+        path: "{{ installer_work_dir.path }}"
+        state: absent
+      when: installer_work_dir.path is defined
+
     - name: Locate installer log on host
       find:
         paths: "{{ ansible_env.HOME }}"

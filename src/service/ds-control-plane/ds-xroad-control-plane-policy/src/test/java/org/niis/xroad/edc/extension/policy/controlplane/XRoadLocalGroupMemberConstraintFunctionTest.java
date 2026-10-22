@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Map;
@@ -51,11 +52,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class XRoadLocalGroupMemberConstraintFunctionTest {
+
+    private static final ClientId OWNER = ClientId.Conf.create("DEV", "ORG", "9999", "Prov");
+    private static final String GROUP_CODE = "myLocalGroup";
+    private static final String CONSTRAINT_VALUE = new LocalGroupConstraintValue(OWNER, GROUP_CODE).encode();
 
     @Mock
     ServerConfProvider serverConfProvider;
@@ -73,40 +80,40 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateEqOperatorWhenMemberReturnsTrue() {
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
+        when(serverConfProvider.isLocalGroupMember(eq(OWNER), any(LocalGroupId.class), any(ClientId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(Operator.EQ, "myLocalGroup", permission, context);
+        boolean result = function.evaluate(Operator.EQ, CONSTRAINT_VALUE, permission, context);
 
         assertThat(result).isTrue();
     }
 
     @Test
     void evaluateIsPartOfWireOperatorWhenMemberReturnsTrue() {
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(true);
+        when(serverConfProvider.isLocalGroupMember(eq(OWNER), any(LocalGroupId.class), any(ClientId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(operatorFromWire("isPartOf"), "myLocalGroup", permission, context);
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), CONSTRAINT_VALUE, permission, context);
 
         assertThat(result).isTrue();
     }
 
     @Test
     void evaluateIsPartOfWireOperatorWhenNotMemberReturnsFalse() {
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
+        when(serverConfProvider.isLocalGroupMember(eq(OWNER), any(LocalGroupId.class), any(ClientId.class))).thenReturn(false);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(operatorFromWire("isPartOf"), "myLocalGroup", permission, context);
+        boolean result = function.evaluate(operatorFromWire("isPartOf"), CONSTRAINT_VALUE, permission, context);
 
         assertThat(result).isFalse();
     }
 
     @Test
     void evaluateEqOperatorWhenNotMemberReturnsFalse() {
-        when(serverConfProvider.isSubjectInLocalGroup(any(ClientId.class), any(LocalGroupId.class))).thenReturn(false);
+        when(serverConfProvider.isLocalGroupMember(eq(OWNER), any(LocalGroupId.class), any(ClientId.class))).thenReturn(false);
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(Operator.EQ, "myLocalGroup", permission, context);
+        boolean result = function.evaluate(Operator.EQ, CONSTRAINT_VALUE, permission, context);
 
         assertThat(result).isFalse();
     }
@@ -115,7 +122,7 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
     void evaluateUnsupportedOperatorReturnsFalse() {
         var context = contextWithMember("CS", "ORG", "1234");
 
-        boolean result = function.evaluate(Operator.NEQ, "myLocalGroup", permission, context);
+        boolean result = function.evaluate(Operator.NEQ, CONSTRAINT_VALUE, permission, context);
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
@@ -129,6 +136,36 @@ class XRoadLocalGroupMemberConstraintFunctionTest {
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
+    }
+
+    @Test
+    void evaluateOldFormatValueWithNoSeparatorReturnsFalseWithoutCallingServerConf() {
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, GROUP_CODE, permission, context);
+
+        assertThat(result).isFalse();
+        verifyNoInteractions(serverConfProvider);
+    }
+
+    @Test
+    void evaluateMalformedOwnerReturnsFalseWithoutCallingServerConf() {
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, "not-an-encoded-client-id;" + GROUP_CODE, permission, context);
+
+        assertThat(result).isFalse();
+        verifyNoInteractions(serverConfProvider);
+    }
+
+    @Test
+    void evaluateBlankGroupCodeReturnsFalseWithoutCallingServerConf() {
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, OWNER.asEncodedId() + ";", permission, context);
+
+        assertThat(result).isFalse();
+        verifyNoInteractions(serverConfProvider);
     }
 
     private static Operator operatorFromWire(String wireValue) {

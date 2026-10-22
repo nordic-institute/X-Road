@@ -28,6 +28,10 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.apicatalog.did.Did;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +51,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
@@ -98,11 +103,18 @@ class DataspaceParticipantProvisioningWorkerTest {
     @InjectMocks
     private DataspaceParticipantProvisioningWorker worker;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger cycleLogger =
+            (Logger) LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
+
     @BeforeEach
     void setUp() {
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(NOT_CONVERGED);
+        appender.start();
+        cycleLogger.addAppender(appender);
+        cycleLogger.setLevel(Level.DEBUG);
     }
 
     @AfterEach
@@ -110,6 +122,9 @@ class DataspaceParticipantProvisioningWorkerTest {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.clearSynchronization();
         }
+        cycleLogger.detachAppender(appender);
+        appender.stop();
+        cycleLogger.setLevel(null);
     }
 
     private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
@@ -437,6 +452,54 @@ class DataspaceParticipantProvisioningWorkerTest {
         TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCommit());
 
         verify(dataspaceProvisioningService, timeout(1000)).participantContexts();
+    }
+
+    // --- cycle summary ---
+
+    @Test
+    void provisionParticipantLogsExactlyOneCycleSummaryWithTheContextCount() {
+        var failingContext = new ParticipantContext("TEST:COM:9999", ParticipantKind.MEMBER,
+                ClientId.Conf.create("TEST", "COM", "9999"));
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT, failingContext));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+        doThrow(new RuntimeException("DID drift"))
+                .when(dataspaceProvisioningService).ensureParticipantContext(failingContext);
+        when(dataspaceProvisioningService.ensureMembershipCredential(SYSTEM_CONTEXT)).thenReturn(CredentialStatus.PENDING);
+
+        worker.provisionParticipant();
+
+        var summaries = cycleSummaries();
+        assertThat(summaries).hasSize(1);
+        assertThat(summaries.getFirst())
+                .containsPattern("cycleStart=\\S+")
+                .containsPattern("durationMs=\\d+")
+                .contains("contexts=3")
+                .doesNotContain("contextsCreated")
+                .doesNotContain("credentialsIssued");
+    }
+
+    @Test
+    void provisionParticipantLogsOneCycleSummaryEvenWhenParticipantContextsFails() {
+        when(dataspaceProvisioningService.participantContexts()).thenThrow(new RuntimeException("boom"));
+
+        assertThatCode(() -> worker.provisionParticipant()).isInstanceOf(RuntimeException.class);
+
+        var summaries = cycleSummaries();
+        assertThat(summaries).hasSize(1);
+        assertThat(summaries.getFirst()).contains("contexts=-1");
+    }
+
+    private List<String> cycleSummaries() {
+        var testThread = Thread.currentThread().getName();
+        return appender.list.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> testThread.equals(event.getThreadName()))
+                .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains("cycle summary"))
+                .toList();
     }
 
     // --- teardown ---

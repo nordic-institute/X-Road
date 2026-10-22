@@ -61,12 +61,30 @@ class AgreementTokenVaultDataUtilsTest {
     }
 
     @Test
-    void shouldFailWhenAListedKeyCannotBeRead() {
+    void shouldSkipAListedKeyThatIsGone() {
         var stored = Map.of(AgreementTokenVaultDataUtils.buildSigningKeyPath("1"), Map.of(VaultClient.PAYLOAD_KEY, "jwk"));
 
-        assertThatThrownBy(() -> AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, readsFrom(stored)))
+        var keys = AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, readsFrom(stored));
+
+        assertThat(keys).containsExactlyEntriesOf(Map.of("1", "jwk"));
+    }
+
+    @Test
+    void shouldReturnEmptyWhenEveryListedKeyIsGone() {
+        var keys = AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, readsFrom(Map.of()));
+
+        assertThat(keys).isEmpty();
+    }
+
+    @Test
+    void shouldFailWhenAListedKeyCannotBeReadBecauseOfAnError() {
+        Function<String, Optional<? extends Map<String, ?>>> reads = path -> {
+            throw new IllegalStateException("vault sealed");
+        };
+
+        assertThatThrownBy(() -> AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, reads))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("'2'");
+                .hasMessageContaining("vault sealed");
     }
 
     @Test

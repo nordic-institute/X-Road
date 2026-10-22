@@ -47,6 +47,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
+import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.util.ArrayList;
@@ -68,14 +69,14 @@ class PolicyMapper {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    PolicyDefinition toPolicyDefinition(String policyId, XRoadId subjectId,
+    PolicyDefinition toPolicyDefinition(String policyId, ClientId serviceOwner, XRoadId subjectId,
                                         List<Endpoint> endpoints, String participantContextId) {
         if (log.isTraceEnabled()) {
             log.trace("toPolicyDefinition policyId={} subjectId={} endpointCount={}",
                     policyId, subjectId.asEncodedId(), endpoints.size());
         }
         var constraints = new ArrayList<Constraint>();
-        constraints.add(createClientConstraint(subjectId));
+        constraints.add(createClientConstraint(serviceOwner, subjectId));
 
         var specificEndpoints = endpoints.stream()
                 .filter(ep -> !ep.isBaseEndpoint())
@@ -156,23 +157,21 @@ class PolicyMapper {
                 .build();
     }
 
-    private AtomicConstraint createClientConstraint(XRoadId subjectId) {
-        String constraintKey;
-        if (subjectId instanceof GlobalGroupId) {
-            constraintKey = XROAD_GLOBALGROUP_CONSTRAINT;
-        } else if (subjectId instanceof LocalGroupId) {
-            constraintKey = XROAD_LOCALGROUP_CONSTRAINT;
-        } else {
-            constraintKey = XROAD_CLIENT_ID_CONSTRAINT;
-        }
+    private AtomicConstraint createClientConstraint(ClientId serviceOwner, XRoadId subjectId) {
+        var constraint = switch (subjectId) {
+            case GlobalGroupId globalGroupId -> Map.entry(XROAD_GLOBALGROUP_CONSTRAINT, globalGroupId.asEncodedId());
+            case LocalGroupId localGroupId -> Map.entry(XROAD_LOCALGROUP_CONSTRAINT,
+                    new LocalGroupConstraintValue(serviceOwner, localGroupId.getGroupCode()).encode());
+            default -> Map.entry(XROAD_CLIENT_ID_CONSTRAINT, subjectId.asEncodedId());
+        };
         if (log.isTraceEnabled()) {
-            log.trace("createClientConstraint subjectId={} constraintKey={}", subjectId.asEncodedId(), constraintKey);
+            log.trace("createClientConstraint subjectId={} constraintKey={}", subjectId.asEncodedId(), constraint.getKey());
         }
 
         return AtomicConstraint.Builder.newInstance()
-                .leftExpression(new LiteralExpression(constraintKey))
+                .leftExpression(new LiteralExpression(constraint.getKey()))
                 .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
+                .rightExpression(new LiteralExpression(constraint.getValue()))
                 .build();
     }
 
