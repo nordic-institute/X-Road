@@ -179,6 +179,19 @@ class DidAuthorityTest {
         assertThat(DidAuthority.isAscii("b\u00fccher.example")).isFalse();
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "ss0.example.org,         true",
+            "ss0.example.org:8183,    true",
+            "127.0.0.1:7183,          true",
+            "[2001:db8::1]:7183,      true",
+            "2001:db8::1,             false",
+            "'',                      false"
+    })
+    void shouldTellWhetherAnHttpsUrlCanCarryAuthorityAsHost(String authority, boolean expected) {
+        assertThat(DidAuthority.isUriHost(authority)).isEqualTo(expected);
+    }
+
     @Test
     void shouldRefuseNullAuthorityAsEmptyHost() {
         assertThatThrownBy(() -> DidAuthority.parse(null))

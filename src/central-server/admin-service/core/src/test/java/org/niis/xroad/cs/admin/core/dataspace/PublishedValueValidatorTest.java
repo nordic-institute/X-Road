@@ -149,6 +149,15 @@ class PublishedValueValidatorTest {
             SYSTEM_DID + "|https:///api/dsp|MALFORMED_DSP_BASE_URL",
             SYSTEM_DID + "|https://2001:db8::1/api/dsp|MALFORMED_DSP_BASE_URL",
             SYSTEM_DID + "|https://bücher.example:8183/api/dsp|NON_ASCII_HOST",
+            SYSTEM_DID + "|HTTPS://ss0.example.org:8183/api/dsp|NOT_CANONICAL",
+            SYSTEM_DID + "|Https://ss0.example.org:8183/api/dsp|NOT_CANONICAL",
+            SYSTEM_DID + "|https://SS0.Example.ORG:8183/api/dsp|NOT_CANONICAL",
+            SYSTEM_DID + "|https://ss0.example.org:443/api/dsp|",
+            SYSTEM_DID + "|https://other.example.org:443/api/dsp|HOST_DIFFERS",
+            SYSTEM_DID + "|https://ss0.example.org:0443/api/dsp|NOT_CANONICAL",
+            SYSTEM_DID + "|https://ss0.example.org:8183/api/ dsp|MALFORMED_DSP_BASE_URL",
+            SYSTEM_DID + "|https://ss0.example.org:8183/api/%zz|MALFORMED_DSP_BASE_URL",
+            SYSTEM_DID + "|https://ss0.example.org/api/dsp|",
             "did:web:bücher.example%3A7183:v1:system|" + DSP_URL + "|NON_ASCII_HOST"
     })
     void shouldValidateSystemPair(String did, String dspBaseUrl, PublishedValueRejection expected) {
@@ -170,19 +179,14 @@ class PublishedValueValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"https://SS0.Example.ORG:8183/api/dsp", "https://ss0.example.org:443/api/dsp",
-            "https://ss0.example.org/api/dsp", "HTTPS://ss0.example.org:8183/api/dsp"})
-    void shouldAcceptDspBaseUrlHostInAnyNormalisation(String url) {
-        assertThat(validator.validate(new SystemPair(SYSTEM_DID, url))).isEmpty();
-    }
-
-    @ParameterizedTest
     @ValueSource(strings = {"2001:db8::1", "[2001:db8::1]", "2001:DB8::1", "[2001:db8::1]:443"})
     void shouldAcceptIpv6RegisteredAddressInAnyNormalisation(String registered) {
         var ipv6 = validatorFor(registered);
 
         assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, IPV6_DSP_URL))).isEmpty();
-        assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:DB8::1]/api/dsp"))).isEmpty();
+        assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:DB8::1]/api/dsp")))
+                .contains(NOT_CANONICAL);
+        assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:db8::1]:443/api/dsp"))).isEmpty();
         assertThat(ipv6.validate(new SystemPair(SYSTEM_DID, DSP_URL))).contains(HOST_DIFFERS);
     }
 

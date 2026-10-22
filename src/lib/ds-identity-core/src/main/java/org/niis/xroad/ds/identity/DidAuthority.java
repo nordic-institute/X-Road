@@ -222,9 +222,17 @@ public class DidAuthority {
         }
     }
 
-    private static boolean isUriHost(String ascii) {
+    /**
+     * Whether {@link URI#getHost()} reads a host from an HTTPS URL that carries the given ASCII text as its
+     * authority. This is the single rule for what an HTTPS URL can carry as a host: it rejects, for example,
+     * an IPv6 literal without brackets.
+     *
+     * @param authority an ASCII host, or host and port
+     * @return {@code true} if the authority has a server-based host
+     */
+    public static boolean isUriHost(String authority) {
         try {
-            return new URI("https://" + ascii).getHost() != null;
+            return new URI("https://" + authority).getHost() != null;
         } catch (URISyntaxException e) {
             return false;
         }
