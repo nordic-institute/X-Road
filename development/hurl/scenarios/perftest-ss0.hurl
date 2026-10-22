@@ -2,8 +2,8 @@
 POST https://{{ss0_host}}:4000/api/v1/initialization/admin-user
 Content-Type: application/json
 {
-  "username": "xrd",
-  "password": "secret123!"
+  "username": "{{ui_username}}",
+  "password": "{{ui_password}}"
 }
 HTTP *
 [Asserts]
@@ -12,8 +12,8 @@ status toString matches "^(201|409)$"
 # Log in to the Security Server
 POST https://{{ss0_host}}:4000/login
 [FormParams]
-username: xrd
-password: secret123!
+username: {{ui_username}}
+password: {{ui_password}}
 
 HTTP 200
 [Captures]
@@ -21,7 +21,7 @@ ss0_xsrf_token: cookie "XSRF-TOKEN"
 
 
 #Register payloadgen REST service
-POST https://{{ss0_host}}:4000/api/v1/clients/DEV:COM:1234:TestService/service-descriptions
+POST https://{{ss0_host}}:4000/api/v1/clients/{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}:TestService/service-descriptions
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "url": "{{is_rest_payloadgen_url}}",
@@ -39,7 +39,7 @@ PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_rest_servic
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 # Grant access to rest service
-POST https://{{ss0_host}}:4000/api/v1/clients/DEV:COM:1234:TestService/service-clients/DEV:COM:4321:TestClient/access-rights
+POST https://{{ss0_host}}:4000/api/v1/clients/{{xroad_instance}}:{{member_class}}:{{ss0_member_code}}:TestService/service-clients/{{xroad_instance}}:{{member_class}}:{{ss1_member_code}}:TestClient/access-rights
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
