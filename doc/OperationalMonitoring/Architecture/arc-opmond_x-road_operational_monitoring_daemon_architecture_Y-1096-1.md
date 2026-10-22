@@ -21,7 +21,7 @@ Document ID: ARC-OPMOND
 | 11.11.2025 | 1.8     | Drop JMX interface                                                    | Justas Samuolis    |
 | 15.01.2026 | 1.9     | Update schema file locations                                          | Mohamed Elbeltagy  |
 | 19.10.2026 | 1.10    | Store and query over gRPC                                             | Eneli Reimets      |
-| 21.10.2026 | 1.11    | Operational monitoring daemon needs no global configuration           | Eneli Reimets      |
+| 22.10.2026 | 1.11    | Operational monitoring daemon needs no global configuration           | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -106,7 +106,7 @@ The operational monitoring service receives and processes operational monitoring
 
 In case the sender of the *get operational monitoring data* request is a regular client, only operational monitoring data records associated with that client are returned. In case the request sender is the central monitoring client or owner of the current security server, it has access to all the records. The internal IP address of the security server is included in the response only when the sender has access to all the records.
 
-The security server decides which of the two applies and sends its decision to the monitoring daemon in the access scope field of the request (see [Section 3.2](#32-operational-monitoring-query)). The monitoring daemon does not decide it: it only filters the records by the access scope. When the access scope is *full view*, all records are returned. For any other value, including a missing or unknown value, only the records associated with the sender of the request are returned. A request without a sender is rejected with a SOAP fault unless the access scope is *full view*.
+The security server decides which of the two applies and sends its decision to the monitoring daemon in the access scope field of the request (see [Section 3.2](#32-operational-monitoring-query)). The monitoring daemon does not decide it: it only filters the records by the access scope. When the access scope is *full view*, all records are returned. For any other value, including a missing or unknown value, only the records associated with the sender of the request are returned. A request without a sender is rejected with a SOAP fault whatever the access scope, because the client header is required.
 
 For performance purposes, the operational monitoring service limits the number of records in the *get operational monitoring data* response message. The maximum number of records is configurable (however, all the records having the same timestamp second as the last queried record are still included into the response, so the response size is not strictly limited). In case some queried records still do not fit into the response, the timestamp of the first excluded record is returned in the response to indicate overflow. The response must also fit into the message size limit of the security server's gRPC channel to the daemon (see [Section 3.2](#32-operational-monitoring-query)).
 

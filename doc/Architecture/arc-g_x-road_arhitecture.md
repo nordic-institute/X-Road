@@ -36,7 +36,7 @@ Doc. ID: ARC-G
 | 17.03.2025 | 1.14    | Syntax and styling                                                                                            | Pauline Dimmek     |
 | 11.11.2025 | 1.15    | Drop JMX interfaces                                                                                           | Justas Samuolis    |
 | 19.10.2026 | 1.16    | Operational monitoring store and query over gRPC                                                              | Eneli Reimets      |
-| 21.10.2026 | 1.17    | Operational monitoring daemon needs no global configuration                                                   | Eneli Reimets      |
+| 22.10.2026 | 1.17    | Operational monitoring daemon needs no global configuration                                                   | Eneli Reimets      |
 
 ## Table of Contents
 

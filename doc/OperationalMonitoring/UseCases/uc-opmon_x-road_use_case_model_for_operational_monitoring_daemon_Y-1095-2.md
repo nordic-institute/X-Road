@@ -12,7 +12,7 @@ Doc. ID: UC-OPMON
 | 12.12.2019 | 0.9     | Update the document with refactored fields                            | Ilkka Seppälä    |
 | 01.06.2023 | 0.10    | Update references                                                     | Petteri Kivimäki |
 | 11.11.2025 | 0.11    | Drop JMX interfaces                                                   | Justas Samuolis  |
-| 21.10.2026 | 0.12    | Operational monitoring daemon needs no global configuration           | Eneli Reimets    |
+| 22.10.2026 | 0.12    | Operational monitoring daemon needs no global configuration           | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
     
