@@ -35,13 +35,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.allowed;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.denied;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.endpointOnly;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phase;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phased;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restService;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.row;
 
 class AclScenarioVerdictsTest {
 
     private static final Duration TIMEOUT = Duration.ZERO;
     private static final Duration INTERVAL = Duration.ofSeconds(1);
 
-    private static final AclScenario ROW = AclTestScenarios.scenario("V26");
+    private static final AclScenario ROW = row("V26", endpointOnly("GET", "/foo/*"),
+            allowed("GET", "/foo/x"), allowed("GET", "/foo/"), denied("GET", "/foo/x/y"), denied("GET", "/foo"))
+            .as("endpoint row");
 
     private static Observation observe(Verdict verdict) {
         return new Observation(verdict, "reply for " + verdict);
@@ -119,7 +128,7 @@ class AclScenarioVerdictsTest {
 
     @Test
     void phasedRowPollsItsChecksThenAppliesTheChangeThenPollsTheChecksOfThePhase() {
-        var row = AclTestScenarios.scenario("V10");
+        var row = grantRow();
         var plan = new FixturePlanner("t1").plan(row);
         var events = new ArrayList<String>();
         var granted = new boolean[1];
@@ -140,7 +149,7 @@ class AclScenarioVerdictsTest {
 
     @Test
     void phasedRowThatMissesItsVerdictBeforeTheChangeAppliesNoChange() {
-        var row = scenarioById("V10");
+        var row = grantRow();
         var plan = new FixturePlanner("t1").plan(row);
         var applied = new ArrayList<Integer>();
 
@@ -153,7 +162,7 @@ class AclScenarioVerdictsTest {
 
     @Test
     void phasedRowThatMissesItsVerdictInAPhaseAppliesNoLaterPhase() {
-        var base = scenarioById("V10");
+        var base = grantRow();
         var twoPhases = new AclScenario("VX", "test row", base.fixture(), base.checks(),
                 List.of(base.phases().get(0), base.phases().get(0)), base.waitClass());
         var plan = new FixturePlanner("t1").plan(twoPhases);
@@ -166,8 +175,9 @@ class AclScenarioVerdictsTest {
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, false);
     }
 
-    private static AclScenario scenarioById(String id) {
-        return AclTestScenarios.scenario(id);
+    private static AclScenario grantRow() {
+        return phased("V10", restService(List.of()), List.of(denied("GET", "/a")),
+                phase(new AclScenario.Grant(0, AclParticipants.CONSUMER), allowed("GET", "/a"))).as("grant row");
     }
 
     private static Observation expectedObservation(AclScenario.RequestSpec request) {

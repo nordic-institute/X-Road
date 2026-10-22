@@ -50,6 +50,16 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalGroupGranted;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalconfPhased;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalconfRow;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.management;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.openApiGranted;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phase;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phased;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.provided;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restService;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restToGlobalGroup;
 
 class FixtureExecutorTest {
 
@@ -284,7 +294,7 @@ class FixtureExecutorTest {
     @Test
     void phaseCallsRunOnDemandAndBackendOverridesAreRemovedBeforeTheDescriptionDeletes() {
         var gateway = new RecordingGateway();
-        var swapPlan = new FixturePlanner("t1").plan(scenario("V39"));
+        var swapPlan = new FixturePlanner("t1").plan(openApiSwapRow());
 
         try (var fixture = new FixtureExecutor(gateway).open(swapPlan)) {
             gateway.calls.clear();
@@ -301,7 +311,7 @@ class FixtureExecutorTest {
     @Test
     void revokeIsSentToTheGateway() {
         var gateway = new RecordingGateway();
-        var revokePlan = new FixturePlanner("t1").plan(scenario("V11"));
+        var revokePlan = new FixturePlanner("t1").plan(revokeRow());
 
         try (var fixture = new FixtureExecutor(gateway).open(revokePlan)) {
             fixture.apply(revokePlan.phases().get(0));
@@ -312,7 +322,7 @@ class FixtureExecutorTest {
     @Test
     void missingBackendOverrideIsToleratedAndARefusedRemovalIsReported() {
         var gateway = new RecordingGateway();
-        var swapPlan = new FixturePlanner("t1").plan(scenario("V39"));
+        var swapPlan = new FixturePlanner("t1").plan(openApiSwapRow());
         gateway.deleteStatus = Map.of("stub-acl_parity_openapi_status_only", 404);
         var fixture = new FixtureExecutor(gateway).open(swapPlan);
         fixture.apply(swapPlan.phases().get(0));
@@ -551,7 +561,7 @@ class FixtureExecutorTest {
     void globalGroupWhoseDeleteAnswersAnErrorIsDeletedAgainInCleanup() {
         var gateway = new RecordingGateway();
         gateway.deleteStatus = Map.of("global-pt1-v74-everyone", 500);
-        var globalPlan = new FixturePlanner("t1").plan(scenario("V74"));
+        var globalPlan = new FixturePlanner("t1").plan(groupDeletedRow());
 
         try (var fixture = new FixtureExecutor(gateway).open(globalPlan)) {
             assertThatThrownBy(() -> fixture.apply(globalPlan.phases().get(0)))
@@ -568,7 +578,7 @@ class FixtureExecutorTest {
     void globalGroupWhoseDeleteThrowsIsDeletedAgainInCleanup() {
         var gateway = new RecordingGateway();
         gateway.throwOnDeleteOf = Set.of("global-pt1-v74-everyone");
-        var globalPlan = new FixturePlanner("t1").plan(scenario("V74"));
+        var globalPlan = new FixturePlanner("t1").plan(groupDeletedRow());
 
         try (var fixture = new FixtureExecutor(gateway).open(globalPlan)) {
             assertThatThrownBy(() -> fixture.apply(globalPlan.phases().get(0)))
@@ -740,7 +750,7 @@ class FixtureExecutorTest {
     @Test
     void globalGroupIsCreatedBeforeItsGrantAndDeletedInCleanup() {
         var gateway = new RecordingGateway();
-        var globalPlan = new FixturePlanner("t1").plan(scenario("V68"));
+        var globalPlan = new FixturePlanner("t1").plan(globalGroupRow());
 
         try (var ignored = new FixtureExecutor(gateway).open(globalPlan)) {
             assertThat(gateway.calls).containsSubsequence(
@@ -755,7 +765,7 @@ class FixtureExecutorTest {
     @Test
     void groupDeletedByAPhaseIsNotDeletedAgainInCleanup() {
         var gateway = new RecordingGateway();
-        var globalPlan = new FixturePlanner("t1").plan(scenario("V74"));
+        var globalPlan = new FixturePlanner("t1").plan(groupDeletedRow());
 
         try (var fixture = new FixtureExecutor(gateway).open(globalPlan)) {
             fixture.apply(globalPlan.phases().get(0));
@@ -767,7 +777,7 @@ class FixtureExecutorTest {
     @Test
     void ownersGroupIsGrantedButNeverCreatedOrDeleted() {
         var gateway = new RecordingGateway();
-        var ownersPlan = new FixturePlanner("t1").plan(scenario("V72"));
+        var ownersPlan = new FixturePlanner("t1").plan(ownersGroupRow());
 
         try (var ignored = new FixtureExecutor(gateway).open(ownersPlan)) {
             assertThat(gateway.calls).contains("grant pt1-v72 to global group DEV:security-server-owners");
@@ -781,7 +791,7 @@ class FixtureExecutorTest {
     void missingGlobalGroupIsToleratedInCleanupAndOtherFailuresAreReported() {
         var gateway = new RecordingGateway();
         gateway.deleteStatus = Map.of("global-pt1-v68-everyone", 404);
-        var globalPlan = new FixturePlanner("t1").plan(scenario("V68"));
+        var globalPlan = new FixturePlanner("t1").plan(globalGroupRow());
         assertThatCode(() -> new FixtureExecutor(gateway).open(globalPlan).close()).doesNotThrowAnyException();
 
         gateway.deleteStatus = Map.of("global-pt1-v68-everyone", 500);
@@ -814,7 +824,7 @@ class FixtureExecutorTest {
     @Test
     void managementRowThatMovesTheGrantInAPhaseGivesTheOwnersGroupItsGrantBackOnClose() {
         var gateway = new RecordingGateway();
-        var phasePlan = new FixturePlanner("t1").plan(scenario("V106a"));
+        var phasePlan = new FixturePlanner("t1").plan(managementMoveRow());
 
         try (var fixture = new FixtureExecutor(gateway).open(phasePlan)) {
             assertThat(gateway.calls).isEmpty();
@@ -903,7 +913,41 @@ class FixtureExecutorTest {
         assertThat(gateway.calls).endsWith("delete id-pt1-vx-2");
     }
 
-    private static AclScenario scenario(String id) {
-        return AclTestScenarios.scenario(id);
+    private static AclScenario openApiSwapRow() {
+        return phased("V39", openApiGranted(AclScenario.OpenApiSpec.PETS, "GET", "/pets/*"), List.of(),
+                phase(List.of(new AclScenario.SwapOpenApiSpec(0, AclScenario.OpenApiSpec.STATUS_ONLY),
+                        new AclScenario.Refresh(0)))).as("swap row");
+    }
+
+    private static AclScenario revokeRow() {
+        return phased("V11", restService(AclScenarioBuilders.CONSUMER_ONLY), List.of(),
+                phase(new AclScenario.Revoke(0, AclParticipants.CONSUMER))).as("revoke row");
+    }
+
+    private static AclScenario globalGroupRow() {
+        return globalconfRow("V68", globalGroupGranted(
+                new AclScenario.GlobalGroupSpec(AclParticipants.GLOBAL_GROUP, AclScenarioBuilders.CONSUMER_ONLY)))
+                .as("global group row");
+    }
+
+    private static AclScenario groupDeletedRow() {
+        return globalconfPhased("V74", globalGroupGranted(
+                new AclScenario.GlobalGroupSpec(AclParticipants.GLOBAL_GROUP, AclScenarioBuilders.CONSUMER_ONLY)),
+                List.of(), phase(new AclScenario.DeleteGlobalGroup(AclParticipants.GLOBAL_GROUP)))
+                .as("group deleted row");
+    }
+
+    private static AclScenario ownersGroupRow() {
+        return globalconfRow("V72",
+                provided(restToGlobalGroup(AclScenario.GlobalGroupSpec.SECURITY_SERVER_OWNERS)))
+                .as("owners group row");
+    }
+
+    private static AclScenario managementMoveRow() {
+        return phased("V106a",
+                management(new AclScenario.ManagementService(AclParticipants.CLIENT_REG, List.of(), List.of())),
+                List.of(),
+                phase(List.of(new AclScenario.Revoke(0, AclParticipants.OWNERS_GROUP),
+                        new AclScenario.Grant(0, AclParticipants.CONSUMER)))).as("management move row");
     }
 }

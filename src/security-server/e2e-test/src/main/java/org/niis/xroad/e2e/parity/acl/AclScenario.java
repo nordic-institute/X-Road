@@ -587,10 +587,6 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
             return new Expectation(List.of(shown), List.of(hidden), List.of(), List.of());
         }
 
-        public boolean isEmpty() {
-            return contains.isEmpty() && without.isEmpty() && listed.isEmpty() && unlisted.isEmpty();
-        }
-
         /** The texts the reply has to carry, with the listed positions resolved to service codes. */
         public List<String> required(List<String> serviceCodes) {
             return Stream.concat(contains.stream(), listed.stream().map(serviceCodes::get)).toList();

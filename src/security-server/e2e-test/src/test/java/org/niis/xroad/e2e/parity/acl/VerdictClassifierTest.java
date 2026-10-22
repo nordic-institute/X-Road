@@ -390,14 +390,15 @@ class VerdictClassifierTest {
                "name":"Test client"}]}
             """;
 
-    private static AclScenario.Expectation expectationOf(String scenarioId, int check) {
-        var row = AclTestScenarios.scenario(scenarioId);
-        return switch (row.checks().get(check).request()) {
-            case AclScenario.MonitoringRequest request -> request.expectation();
-            case AclScenario.ListClientsRequest request -> request.expectation();
-            default -> throw new IllegalStateException(scenarioId);
-        };
-    }
+    private static final AclScenario.Expectation HEALTH_DATA = new AclScenario.Expectation(
+            List.of("getSecurityServerHealthDataResponse", "statisticsPeriodSeconds"), List.of("serviceEvents"),
+            List.of(), List.of());
+
+    private static final AclScenario.Expectation OPERATIONAL_DATA =
+            AclScenario.Expectation.carrying("getSecurityServerOperationalDataResponse");
+
+    private static final AclScenario.Expectation LIST_CLIENTS =
+            AclScenario.Expectation.carrying("1234", "4321", "Test member", "Test client");
 
     private static Verdict metaCatalogued(Reply reply, AclScenario.Expectation expectation) {
         return meta(reply, expectation.required(List.of()), expectation.forbidden(List.of()));
@@ -405,7 +406,7 @@ class VerdictClassifierTest {
 
     @Test
     void healthDataReplyIsAllowedOnlyWithTheResponseElementAndNoServiceEvents() {
-        var expectation = expectationOf("V97", 0);
+        var expectation = HEALTH_DATA;
 
         assertThat(metaCatalogued(new Reply(200, Map.of(), HEALTH_REPLY.formatted("")), expectation))
                 .isEqualTo(Verdict.ALLOWED);
@@ -420,7 +421,7 @@ class VerdictClassifierTest {
 
     @Test
     void operationalDataReplyNeedsTheResponseElementInTheSoapPart() {
-        var expectation = expectationOf("V97", 1);
+        var expectation = OPERATIONAL_DATA;
         var multipart = """
                 --jetty123
                 Content-Type: text/xml
@@ -440,13 +441,13 @@ class VerdictClassifierTest {
     void monitoringAccessDeniedFaultIsAccessDeniedWhateverTheExpectation() {
         var reply = new Reply(500, Map.of(), soapFault("server.serverproxy.access_denied"));
 
-        assertThat(metaCatalogued(reply, expectationOf("V96", 0))).isEqualTo(Verdict.ACCESS_DENIED);
-        assertThat(metaCatalogued(reply, expectationOf("V97", 0))).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(metaCatalogued(reply, AclScenario.Expectation.NONE)).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(metaCatalogued(reply, HEALTH_DATA)).isEqualTo(Verdict.ACCESS_DENIED);
     }
 
     @Test
     void listClientsReplyIsAllowedOnlyWhenItListsTheSeededMembers() {
-        var expectation = expectationOf("V98", 0);
+        var expectation = LIST_CLIENTS;
 
         assertThat(metaCatalogued(new Reply(200, Map.of(), LIST_CLIENTS_REPLY), expectation))
                 .isEqualTo(Verdict.ALLOWED);

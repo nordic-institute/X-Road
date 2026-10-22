@@ -76,6 +76,16 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalGroupGranted;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalconfPhased;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.globalconfRow;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.management;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.openApiGranted;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phase;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.phased;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.provided;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restService;
+import static org.niis.xroad.e2e.parity.acl.AclScenarioBuilders.restToGlobalGroup;
 
 class FixturePlannerTest {
 
@@ -452,8 +462,12 @@ class FixturePlannerTest {
 
     @Test
     void grantAndRevokeRowsPlanOneCallPerPhaseAndNeedNoBackendCleanup() {
-        var grant = new FixturePlanner("ab12").plan(scenario("V10"));
-        var revoke = new FixturePlanner("ab12").plan(scenario("V11"));
+        var grantRow = phased("V10", restService(List.of()), List.of(),
+                phase(new AclScenario.Grant(0, AclParticipants.CONSUMER))).as("grant row");
+        var revokeRow = phased("V11", restService(AclScenarioBuilders.CONSUMER_ONLY), List.of(),
+                phase(new AclScenario.Revoke(0, AclParticipants.CONSUMER))).as("revoke row");
+        var grant = new FixturePlanner("ab12").plan(grantRow);
+        var revoke = new FixturePlanner("ab12").plan(revokeRow);
 
         assertThat(grant.phases()).containsExactly(
                 List.of(new GrantAccess(AclParticipants.PROVIDER, AclParticipants.CONSUMER, "pab12-v10")));
@@ -470,7 +484,11 @@ class FixturePlannerTest {
 
     @Test
     void openApiSwapServesTheReplacementSpecAtTheOriginalPathAndRefreshesTheDescription() {
-        var plan = new FixturePlanner("ab12").plan(scenario("V39"));
+        var row = phased("V39", openApiGranted(OpenApiSpec.PETS, "GET", "/pets/*"), List.of(),
+                phase(List.of(new AclScenario.SwapOpenApiSpec(0, OpenApiSpec.STATUS_ONLY),
+                        new AclScenario.Refresh(0)))).as("swap row");
+
+        var plan = new FixturePlanner("ab12").plan(row);
 
         assertThat(plan.phases()).containsExactly(List.of(
                 new OverrideBackendStub("acl_parity_openapi_status_only", "/acl-parity/openapi/pets.yaml",
@@ -515,7 +533,11 @@ class FixturePlannerTest {
 
     @Test
     void globalGroupIsNamespacedCreatedInSetupAndDeletedLastInCleanup() {
-        var plan = new FixturePlanner("ab12").plan(scenario("V68"));
+        var row = globalconfRow("V68", globalGroupGranted(
+                new AclScenario.GlobalGroupSpec(AclParticipants.GLOBAL_GROUP, AclScenarioBuilders.CONSUMER_ONLY)))
+                .as("global group row");
+
+        var plan = new FixturePlanner("ab12").plan(row);
 
         assertThat(plan.setup()).contains(new AdminCall.CreateGlobalGroup("pab12-v68-everyone"),
                 new AdminCall.AddGlobalGroupMember("pab12-v68-everyone", AclParticipants.CONSUMER),
@@ -525,7 +547,11 @@ class FixturePlannerTest {
 
     @Test
     void ownersGroupKeepsItsCodeAndIsNeverCreatedOrDeleted() {
-        var plan = new FixturePlanner("ab12").plan(scenario("V72"));
+        var row = globalconfRow("V72",
+                provided(restToGlobalGroup(AclScenario.GlobalGroupSpec.SECURITY_SERVER_OWNERS)))
+                .as("owners group row");
+
+        var plan = new FixturePlanner("ab12").plan(row);
 
         assertThat(plan.setup()).contains(new AdminCall.GrantGlobalGroupAccess(AclParticipants.PROVIDER,
                 "security-server-owners", "pab12-v72"));
@@ -548,7 +574,13 @@ class FixturePlannerTest {
 
     @Test
     void globalGroupPhaseChangesUseTheNamespacedCode() {
-        var plan = new FixturePlanner("ab12").plan(scenario("V75"));
+        var row = globalconfPhased("V75",
+                globalGroupGranted(new AclScenario.GlobalGroupSpec(AclParticipants.GLOBAL_GROUP)), List.of(),
+                phase(new AclScenario.AddGlobalGroupMember(AclParticipants.GLOBAL_GROUP, AclParticipants.CONSUMER)),
+                phase(new AclScenario.RemoveGlobalGroupMember(AclParticipants.GLOBAL_GROUP,
+                        AclParticipants.CONSUMER))).as("member change row");
+
+        var plan = new FixturePlanner("ab12").plan(row);
 
         assertThat(plan.phases().get(0)).containsExactly(
                 new AdminCall.AddGlobalGroupMember("pab12-v75-everyone", AclParticipants.CONSUMER));
@@ -572,7 +604,12 @@ class FixturePlannerTest {
 
     @Test
     void managementRowMovesTheGrantFromTheOwnersGroupToTheSubsystemInItsPhaseAndChangesNothingInSetup() {
-        var plan = new FixturePlanner("ab12").plan(scenario("V106a"));
+        var row = phased("V106a",
+                management(new ManagementService(AclParticipants.CLIENT_REG, List.of(), List.of())), List.of(),
+                phase(List.of(new AclScenario.Revoke(0, AclParticipants.OWNERS_GROUP),
+                        new AclScenario.Grant(0, AclParticipants.CONSUMER)))).as("management move row");
+
+        var plan = new FixturePlanner("ab12").plan(row);
 
         assertThat(plan.setup()).isEmpty();
         assertThat(plan.phases()).containsExactly(List.of(
@@ -583,7 +620,15 @@ class FixturePlannerTest {
 
     @Test
     void managementRowGrantsItsLocalGroupByTheNamespacedCodeInThePhase() {
-        var plan = new FixturePlanner("ab12").plan(scenario("V106b"));
+        var row = phased("V106b",
+                management(new ManagementService(AclParticipants.CLIENT_REG, List.of(AclParticipants.OWNERS_GROUP),
+                        List.of()),
+                        new LocalGroupSpec(AclParticipants.MANAGEMENT, AclParticipants.GROUP,
+                                List.of(AclParticipants.MEMBER_OF_CONSUMER))),
+                List.of(),
+                phase(new AclScenario.GrantGroup(0, AclParticipants.GROUP))).as("management group row");
+
+        var plan = new FixturePlanner("ab12").plan(row);
 
         assertThat(plan.setup()).contains(
                 new CreateLocalGroup("DEV:COM:1234:MANAGEMENT", "pab12-v106b-partners"));
@@ -612,10 +657,6 @@ class FixturePlannerTest {
     private static AclScenario withPhase(FixtureSpec fixture, AclScenario.PhaseChange change) {
         return new AclScenario("VX", "test row", fixture, List.of(), List.of(new AclScenario.Phase(List.of(change),
                 List.of())), AclScenario.WaitClass.ACL_CACHE);
-    }
-
-    private static AclScenario scenario(String id) {
-        return AclTestScenarios.scenario(id);
     }
 
     private static FixtureSpec wsdlSpec(WsdlShape shape, String codeTail, List<String> granted) {
