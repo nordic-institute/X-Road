@@ -47,7 +47,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.70.1",
     "vite": "^8.3.0",
-    "@vitest/browser": "5.0.1",
+    "@vitest/browser": "5.0.5",
     "@vitest/browser-playwright": "5.0.1",
     "msw": "^2.15.0",
     "openapi-msw": "^2.0.0",
