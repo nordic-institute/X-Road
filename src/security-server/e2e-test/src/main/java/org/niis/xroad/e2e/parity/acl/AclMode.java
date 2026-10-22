@@ -30,6 +30,6 @@ package org.niis.xroad.e2e.parity.acl;
 public enum AclMode {
     /** Outgoing calls skip data space negotiation, so the provider decides by its access rights alone. */
     LEGACY,
-    /** Reserved for the negotiated path; no run supports it yet. */
+    /** Outgoing calls negotiate through the data space protocol; the scenarios keep their legacy verdicts. */
     DSP
 }

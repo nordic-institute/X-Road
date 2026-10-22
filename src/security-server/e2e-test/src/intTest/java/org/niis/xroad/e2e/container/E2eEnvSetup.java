@@ -40,7 +40,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.EnumSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -215,16 +214,15 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         throw new IllegalStateException("Could not find processed files count in decrypt-archives.sh output: " + output);
     }
 
-    /** ss1's optional stack features. Only ss1 sends unnegotiated calls in an ACL parity run; ss0 never does. */
+    /**
+     * ss1's optional stack features. In a legacy ACL parity run ss1 sends unnegotiated calls; in a DSP run it keeps
+     * its default and negotiates. ss0 is the same in both.
+     */
     private static Set<SsStackSetup.Feature> ss1Features() {
         var features = EnumSet.of(SsStackSetup.Feature.HSM, SsStackSetup.Feature.MESSAGE_LOG_ENCRYPTION);
-        AclParityProperties.configuredMode().ifPresent(mode -> {
-            if (mode != AclMode.LEGACY) {
-                throw new IllegalArgumentException("e2e.acl-mode=%s is reserved and not implemented"
-                        .formatted(mode.name().toLowerCase(Locale.ROOT)));
-            }
+        if (AclParityProperties.configuredMode().orElse(null) == AclMode.LEGACY) {
             features.add(SsStackSetup.Feature.LEGACY_PROTOCOL);
-        });
+        }
         return features;
     }
 
