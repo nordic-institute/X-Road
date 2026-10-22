@@ -35,8 +35,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 
 /** Polls every request of a scenario and reports each request that missed its expected verdict. */
 public final class AclScenarioVerdicts {
@@ -69,16 +69,16 @@ public final class AclScenarioVerdicts {
     }
 
     /**
-     * Polls the scenario's checks, then for each phase applies the phase's planned calls and polls the phase's
+     * Polls the scenario's checks, then for each phase applies the phase by its index and polls the phase's
      * checks, each with the full timeout so the changes can outlast the provider's caches. Stops at the first
      * check that misses its verdict, so the later phase changes are not applied.
      */
-    public static List<Outcome> pollPhased(VerdictPoller poller, AclScenario scenario, FixturePlan plan,
-                                           Consumer<List<AdminCall>> apply, Function<RequestSpec, Observation> probe,
+    public static List<Outcome> pollPhased(VerdictPoller poller, AclScenario scenario,
+                                           IntConsumer applyPhase, Function<RequestSpec, Observation> probe,
                                            Duration timeout, Duration interval) {
         var outcomes = new ArrayList<>(poll(poller, scenario, probe, timeout, interval));
         for (var index = 0; index < scenario.phases().size() && allMatched(outcomes); index++) {
-            apply.accept(plan.phases().get(index));
+            applyPhase.accept(index);
             outcomes.addAll(poll(poller, scenario.phases().get(index).checks(), probe, timeout, interval));
         }
         return outcomes;

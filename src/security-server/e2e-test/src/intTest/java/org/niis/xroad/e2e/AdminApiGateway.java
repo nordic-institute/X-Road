@@ -25,16 +25,25 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.http.Method;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.parity.acl.AclScenario.WaitClass;
 import org.niis.xroad.e2e.parity.acl.AdminGateway;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.sendJson;
 
-/** The provider Security Server's admin API, reached through {@link AdminApi}. */
+/** The provider Security Server's admin API and the Central Server's global groups. */
 final class AdminApiGateway implements AdminGateway {
 
     private static final Duration GLOBALCONF_POLL_INTERVAL = Duration.ofSeconds(3);
@@ -66,17 +75,33 @@ final class AdminApiGateway implements AdminGateway {
 
     @Override
     public String addWsdlDescription(String providerClientId, String wsdlUrl) {
-        return AdminApi.addWsdlServiceDescription(baseUrl, session, providerClientId, wsdlUrl);
+        var body = """
+                {
+                  "url": "%s",
+                  "type": "WSDL",
+                  "ignore_warnings": true
+                }
+                """.formatted(wsdlUrl);
+        var response = sendJson(session, Method.POST,
+                baseUrl + "/api/v1/clients/" + providerClientId + "/service-descriptions", body, HTTP_CREATED,
+                "add WSDL service description %s for %s".formatted(wsdlUrl, providerClientId));
+        return response.jsonPath().getString("id");
     }
 
     @Override
     public String addOpenApiDescription(String providerClientId, String specUrl, String serviceCode) {
-        return AdminApi.addOpenApiServiceDescription(baseUrl, session, providerClientId, specUrl, serviceCode);
+        var response = sendJson(session, Method.POST,
+                baseUrl + "/api/v1/clients/" + providerClientId + "/service-descriptions",
+                openApiDescriptionBody(specUrl, serviceCode), HTTP_CREATED,
+                "add OPENAPI3 service description %s for %s".formatted(specUrl, providerClientId));
+        return response.jsonPath().getString("id");
     }
 
     @Override
     public void updateOpenApiDescription(String descriptionId, String specUrl, String serviceCode) {
-        AdminApi.updateOpenApiServiceDescription(baseUrl, session, descriptionId, specUrl, serviceCode);
+        sendJson(session, Method.PATCH, baseUrl + "/api/v1/service-descriptions/" + descriptionId,
+                openApiDescriptionBody(specUrl, serviceCode), HTTP_OK,
+                "update OPENAPI3 service description %s to %s".formatted(descriptionId, specUrl));
     }
 
     @Override
@@ -92,7 +117,17 @@ final class AdminApiGateway implements AdminGateway {
     @Override
     public void renameRestService(String descriptionId, String backendUrl, String serviceCode,
                                   String newServiceCode) {
-        AdminApi.renameRestServiceCode(baseUrl, session, descriptionId, backendUrl, serviceCode, newServiceCode);
+        var body = """
+                {
+                  "url": "%s",
+                  "type": "REST",
+                  "rest_service_code": "%s",
+                  "new_rest_service_code": "%s"
+                }
+                """.formatted(backendUrl, serviceCode, newServiceCode);
+        sendJson(session, Method.PATCH, baseUrl + "/api/v1/service-descriptions/" + descriptionId, body, HTTP_OK,
+                "rename service %s of service description %s to %s".formatted(serviceCode, descriptionId,
+                        newServiceCode));
     }
 
     @Override
@@ -107,12 +142,22 @@ final class AdminApiGateway implements AdminGateway {
 
     @Override
     public void revokeAccess(String providerClientId, String consumerClientId, String serviceCode) {
-        AdminApi.revokeConsumerAccessRights(baseUrl, session, providerClientId, consumerClientId, serviceCode);
+        var body = """
+                {
+                  "items": [
+                    { "service_code": "%s" }
+                  ]
+                }
+                """.formatted(serviceCode);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
+                + consumerClientId + "/access-rights/delete", body, HTTP_NO_CONTENT,
+                "revoke %s access to %s's %s service".formatted(consumerClientId, providerClientId, serviceCode));
     }
 
     @Override
     public void refreshDescription(String descriptionId) {
-        AdminApi.refreshServiceDescription(baseUrl, session, descriptionId);
+        sendJson(session, Method.PUT, baseUrl + "/api/v1/service-descriptions/" + descriptionId + "/refresh",
+                "{\"ignore_warnings\": true}", HTTP_OK, "refresh service description " + descriptionId);
     }
 
     @Override
@@ -122,52 +167,98 @@ final class AdminApiGateway implements AdminGateway {
 
     @Override
     public String addEndpoint(String descriptionId, String serviceCode, String method, String path) {
-        return AdminApi.addEndpoint(baseUrl, session, descriptionId, serviceCode, method, path);
+        var serviceId = findServiceId(descriptionId, serviceCode);
+        var body = """
+                {
+                  "service_code": "%s",
+                  "method": "%s",
+                  "path": "%s"
+                }
+                """.formatted(serviceCode, method, path);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/services/" + serviceId + "/endpoints", body, HTTP_CREATED,
+                "add endpoint %s %s to %s".formatted(method, path, serviceId));
+        return findEndpointId(descriptionId, serviceCode, method, path);
     }
 
     @Override
     public String findEndpointId(String descriptionId, String serviceCode, String method, String path) {
-        return AdminApi.findEndpointId(baseUrl, session, descriptionId, serviceCode, method, path);
+        var serviceId = findServiceId(descriptionId, serviceCode);
+        var service = authed(session).get(baseUrl + "/api/v1/services/" + serviceId);
+        assertThat(service.getStatusCode()).as("get service %s", serviceId).isEqualTo(HTTP_OK);
+        List<Map<String, Object>> endpoints = service.jsonPath().getList("endpoints");
+        var id = endpoints.stream()
+                .filter(endpoint -> method.equals(endpoint.get("method")) && path.equals(endpoint.get("path")))
+                .map(endpoint -> String.valueOf(endpoint.get("id")))
+                .findFirst();
+        assertThat(id).as("endpoint %s %s in the endpoints of service %s", method, path, serviceId).isPresent();
+        return id.orElseThrow();
     }
 
     @Override
     public void updateEndpoint(String endpointId, String method, String path) {
-        AdminApi.updateEndpoint(baseUrl, session, endpointId, method, path);
+        var body = """
+                {
+                  "method": "%s",
+                  "path": "%s"
+                }
+                """.formatted(method, path);
+        sendJson(session, Method.PATCH, baseUrl + "/api/v1/endpoints/" + endpointId, body, HTTP_OK,
+                "update endpoint %s to %s %s".formatted(endpointId, method, path));
     }
 
     @Override
     public void grantEndpointAccess(String endpointId, String consumerClientId) {
-        AdminApi.grantEndpointAccess(baseUrl, session, endpointId, consumerClientId);
+        var body = """
+                {
+                  "items": [
+                    { "id": "%s" }
+                  ]
+                }
+                """.formatted(consumerClientId);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/endpoints/" + endpointId + "/service-clients", body,
+                HTTP_CREATED, "grant %s access to endpoint %s".formatted(consumerClientId, endpointId));
     }
 
     @Override
     public int deleteEndpoint(String endpointId) {
-        return AdminApi.requestEndpointDeletion(baseUrl, session, endpointId);
+        return authed(session).delete(baseUrl + "/api/v1/endpoints/" + endpointId).getStatusCode();
     }
 
     @Override
     public int deleteDescription(String descriptionId) {
-        return AdminApi.requestServiceDescriptionDeletion(baseUrl, session, descriptionId);
+        return authed(session).delete(baseUrl + "/api/v1/service-descriptions/" + descriptionId).getStatusCode();
     }
 
     @Override
     public String createLocalGroup(String ownerClientId, String code) {
-        return AdminApi.createLocalGroup(baseUrl, session, ownerClientId, code);
+        var body = """
+                {
+                  "code": "%s",
+                  "description": "acl parity"
+                }
+                """.formatted(code);
+        var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients/" + ownerClientId + "/local-groups",
+                body, HTTP_CREATED, "create local group %s of %s".formatted(code, ownerClientId));
+        return response.jsonPath().getString("id");
     }
 
     @Override
     public void addLocalGroupMember(String groupId, String memberId) {
-        AdminApi.addLocalGroupMember(baseUrl, session, groupId, memberId);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/local-groups/" + groupId + "/members",
+                localGroupMemberBody(memberId), HTTP_CREATED,
+                "add %s to local group %s".formatted(memberId, groupId));
     }
 
     @Override
     public void removeLocalGroupMember(String groupId, String memberId) {
-        AdminApi.removeLocalGroupMember(baseUrl, session, groupId, memberId);
+        sendJson(session, Method.POST, baseUrl + "/api/v1/local-groups/" + groupId + "/members/delete",
+                localGroupMemberBody(memberId), HTTP_NO_CONTENT,
+                "remove %s from local group %s".formatted(memberId, groupId));
     }
 
     @Override
     public int deleteLocalGroup(String groupId) {
-        return AdminApi.requestLocalGroupDeletion(baseUrl, session, groupId);
+        return authed(session).delete(baseUrl + "/api/v1/local-groups/" + groupId).getStatusCode();
     }
 
     @Override
@@ -198,7 +289,7 @@ final class AdminApiGateway implements AdminGateway {
 
     @Override
     public void grantGlobalGroupEndpointAccess(String endpointId, String groupId) {
-        awaitGroupKnown(() -> AdminApi.grantEndpointAccess(baseUrl, session, endpointId, groupId));
+        awaitGroupKnown(() -> grantEndpointAccess(endpointId, groupId));
     }
 
     private static void awaitGroupKnown(Runnable grant) {
@@ -206,6 +297,37 @@ final class AdminApiGateway implements AdminGateway {
                 .atMost(WaitClass.GLOBALCONF.timeout())
                 .pollInterval(GLOBALCONF_POLL_INTERVAL)
                 .untilAsserted(grant::run);
+    }
+
+    private String findServiceId(String descriptionId, String serviceCode) {
+        var services = authed(session).get(baseUrl + "/api/v1/service-descriptions/" + descriptionId + "/services");
+        assertThat(services.getStatusCode())
+                .as("list services of service description %s", descriptionId)
+                .isEqualTo(HTTP_OK);
+        var serviceId = services.jsonPath().getString("find { it.service_code == '" + serviceCode + "' }.id");
+        assertThat(serviceId)
+                .as("a service with code %s in service description %s", serviceCode, descriptionId)
+                .isNotBlank();
+        return serviceId;
+    }
+
+    private static String openApiDescriptionBody(String specUrl, String serviceCode) {
+        return """
+                {
+                  "url": "%s",
+                  "type": "OPENAPI3",
+                  "rest_service_code": "%s",
+                  "ignore_warnings": true
+                }
+                """.formatted(specUrl, serviceCode);
+    }
+
+    private static String localGroupMemberBody(String memberId) {
+        return """
+                {
+                  "items": [ "%s" ]
+                }
+                """.formatted(memberId);
     }
 
     private int requestBackend(String urlPath) {

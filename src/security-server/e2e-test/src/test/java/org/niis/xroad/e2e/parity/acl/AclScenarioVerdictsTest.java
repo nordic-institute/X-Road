@@ -129,19 +129,18 @@ class AclScenarioVerdictsTest {
     @Test
     void phasedRowPollsItsChecksThenAppliesTheChangeThenPollsTheChecksOfThePhase() {
         var row = grantRow();
-        var plan = new FixturePlanner("t1").plan(row);
         var events = new ArrayList<String>();
         var granted = new boolean[1];
 
-        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), row, plan, calls -> {
-            events.add("apply " + calls.size());
+        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), row, index -> {
+            events.add("apply " + index);
             granted[0] = true;
         }, request -> {
             events.add("probe");
             return observe(granted[0] ? Verdict.ALLOWED : Verdict.ACCESS_DENIED);
         }, TIMEOUT, INTERVAL);
 
-        assertThat(events).containsExactly("probe", "apply 1", "probe");
+        assertThat(events).containsExactly("probe", "apply 0", "probe");
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, true);
         assertThat(outcomes).extracting(outcome -> outcome.check().expected())
                 .containsExactly(Verdict.ACCESS_DENIED, Verdict.ALLOWED);
@@ -150,10 +149,9 @@ class AclScenarioVerdictsTest {
     @Test
     void phasedRowThatMissesItsVerdictBeforeTheChangeAppliesNoChange() {
         var row = grantRow();
-        var plan = new FixturePlanner("t1").plan(row);
         var applied = new ArrayList<Integer>();
 
-        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), row, plan, calls -> applied.add(calls.size()),
+        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), row, applied::add,
                 request -> observe(Verdict.ALLOWED), TIMEOUT, INTERVAL);
 
         assertThat(applied).isEmpty();
@@ -165,13 +163,12 @@ class AclScenarioVerdictsTest {
         var base = grantRow();
         var twoPhases = new AclScenario("VX", "test row", base.fixture(), base.checks(),
                 List.of(base.phases().get(0), base.phases().get(0)), base.waitClass());
-        var plan = new FixturePlanner("t1").plan(twoPhases);
         var applied = new ArrayList<Integer>();
 
-        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), twoPhases, plan,
-                calls -> applied.add(calls.size()), request -> observe(Verdict.ACCESS_DENIED), TIMEOUT, INTERVAL);
+        var outcomes = AclScenarioVerdicts.pollPhased(new VerdictPoller(), twoPhases, applied::add,
+                request -> observe(Verdict.ACCESS_DENIED), TIMEOUT, INTERVAL);
 
-        assertThat(applied).hasSize(1);
+        assertThat(applied).containsExactly(0);
         assertThat(outcomes).extracting(outcome -> outcome.result().matched()).containsExactly(true, false);
     }
 

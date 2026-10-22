@@ -140,25 +140,6 @@ class AdminApi {
     }
 
     /**
-     * Renames the service code of a REST service description. The description keeps its backend URL and the
-     * access rights of the service follow the new code.
-     */
-    static void renameRestServiceCode(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId,
-                                      String backendUrl, String restServiceCode, String newRestServiceCode) {
-        var body = """
-                {
-                  "url": "%s",
-                  "type": "REST",
-                  "rest_service_code": "%s",
-                  "new_rest_service_code": "%s"
-                }
-                """.formatted(backendUrl, restServiceCode, newRestServiceCode);
-        sendJson(ss0, Method.PATCH, ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId, body,
-                HTTP_OK, "rename service %s of service description %s to %s".formatted(restServiceCode,
-                        serviceDescriptionId, newRestServiceCode));
-    }
-
-    /**
      * Deletes the service description outright, tolerating a rerun where a prior, interrupted attempt
      * already removed it.
      */
@@ -168,11 +149,6 @@ class AdminApi {
                 .as("delete service description %s (204 first attempt, 404 if a prior attempt already removed it)",
                         serviceDescriptionId)
                 .isIn(HTTP_NO_CONTENT, HTTP_NOT_FOUND);
-    }
-
-    /** Deletes the service description and returns the HTTP status of the call without asserting it. */
-    static int requestServiceDescriptionDeletion(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        return authed(ss0).delete(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId).getStatusCode();
     }
 
     /** Looks up the backend URL a service is currently configured with. */
@@ -208,61 +184,6 @@ class AdminApi {
         }
         assertThat(response.getStatusCode()).as("add REST service description for %s", clientId).isEqualTo(HTTP_CREATED);
         return response.jsonPath().getString("id");
-    }
-
-    /** Adds a WSDL service description from {@code wsdlUrl}, ignoring parser warnings, and returns its id. */
-    static String addWsdlServiceDescription(String ss0BaseUrl, AdminSession ss0, String clientId, String wsdlUrl) {
-        var body = """
-                {
-                  "url": "%s",
-                  "type": "WSDL",
-                  "ignore_warnings": true
-                }
-                """.formatted(wsdlUrl);
-        var response = sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions",
-                body, HTTP_CREATED, "add WSDL service description %s for %s".formatted(wsdlUrl, clientId));
-        return response.jsonPath().getString("id");
-    }
-
-    /**
-     * Adds an OpenAPI 3 service description from {@code specUrl} as REST service {@code restServiceCode},
-     * ignoring parser warnings, and returns its id.
-     */
-    static String addOpenApiServiceDescription(String ss0BaseUrl, AdminSession ss0, String clientId, String specUrl,
-                                               String restServiceCode) {
-        var response = sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions",
-                openApiDescriptionBody(specUrl, restServiceCode), HTTP_CREATED,
-                "add OPENAPI3 service description %s for %s".formatted(specUrl, clientId));
-        return response.jsonPath().getString("id");
-    }
-
-    /**
-     * Points the OpenAPI 3 service description at {@code specUrl}, ignoring parser warnings. The parser then
-     * re-reads the description: generated endpoints are added or removed and manual endpoints that equal a
-     * generated one become generated, keeping their access rights.
-     */
-    static void updateOpenApiServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId,
-                                                String specUrl, String restServiceCode) {
-        sendJson(ss0, Method.PATCH, ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId,
-                openApiDescriptionBody(specUrl, restServiceCode), HTTP_OK,
-                "update OPENAPI3 service description %s to %s".formatted(serviceDescriptionId, specUrl));
-    }
-
-    /** Re-reads the service description from its URL, ignoring parser warnings. */
-    static void refreshServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        sendJson(ss0, Method.PUT, ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/refresh",
-                "{\"ignore_warnings\": true}", HTTP_OK, "refresh service description " + serviceDescriptionId);
-    }
-
-    private static String openApiDescriptionBody(String specUrl, String restServiceCode) {
-        return """
-                {
-                  "url": "%s",
-                  "type": "OPENAPI3",
-                  "rest_service_code": "%s",
-                  "ignore_warnings": true
-                }
-                """.formatted(specUrl, restServiceCode);
     }
 
     /**
@@ -334,139 +255,6 @@ class AdminApi {
                 .as("list access rights of %s to %s", consumerId, providerClientId)
                 .isEqualTo(HTTP_OK);
         return rights.jsonPath().getList("service_code", String.class).contains(serviceCode);
-    }
-
-    /** Revokes a consumer's access to a provider client's service, with its endpoint grants of that service. */
-    static void revokeConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
-                                           String consumerClientId, String serviceCode) {
-        var body = """
-                {
-                  "items": [
-                    { "service_code": "%s" }
-                  ]
-                }
-                """.formatted(serviceCode);
-        sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
-                + consumerClientId + "/access-rights/delete", body, HTTP_NO_CONTENT,
-                "revoke %s access to %s's %s service".formatted(consumerClientId, providerClientId, serviceCode));
-    }
-
-    /**
-     * Creates an endpoint on the REST service {@code serviceCode} of the service description and returns its id.
-     * The service id is resolved from the description, because it is the path key of the endpoint call. The
-     * creation response carries no endpoint id, so the id is read from the service's endpoint list afterwards.
-     */
-    static String addEndpoint(String baseUrl, AdminSession session, String serviceDescriptionId, String serviceCode,
-                              String method, String path) {
-        var serviceId = findServiceId(baseUrl, session, serviceDescriptionId, serviceCode);
-        var body = """
-                {
-                  "service_code": "%s",
-                  "method": "%s",
-                  "path": "%s"
-                }
-                """.formatted(serviceCode, method, path);
-        sendJson(session, Method.POST, baseUrl + "/api/v1/services/" + serviceId + "/endpoints", body, HTTP_CREATED,
-                "add endpoint %s %s to %s".formatted(method, path, serviceId));
-        return findEndpointId(baseUrl, session, serviceDescriptionId, serviceCode, method, path);
-    }
-
-    /** Finds the id of the endpoint of the description's service {@code serviceCode} with the method and path. */
-    static String findEndpointId(String baseUrl, AdminSession session, String serviceDescriptionId,
-                                 String serviceCode, String method, String path) {
-        var serviceId = findServiceId(baseUrl, session, serviceDescriptionId, serviceCode);
-        var service = authed(session).get(baseUrl + "/api/v1/services/" + serviceId);
-        assertThat(service.getStatusCode()).as("get service %s", serviceId).isEqualTo(HTTP_OK);
-        List<Map<String, Object>> endpoints = service.jsonPath().getList("endpoints");
-        var id = endpoints.stream()
-                .filter(endpoint -> method.equals(endpoint.get("method")) && path.equals(endpoint.get("path")))
-                .map(endpoint -> String.valueOf(endpoint.get("id")))
-                .findFirst();
-        assertThat(id).as("endpoint %s %s in the endpoints of service %s", method, path, serviceId).isPresent();
-        return id.orElseThrow();
-    }
-
-    private static String findServiceId(String baseUrl, AdminSession session, String serviceDescriptionId,
-                                        String serviceCode) {
-        var services = authed(session).get(baseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/services");
-        assertThat(services.getStatusCode())
-                .as("list services of service description %s", serviceDescriptionId)
-                .isEqualTo(HTTP_OK);
-        var serviceId = services.jsonPath().getString("find { it.service_code == '" + serviceCode + "' }.id");
-        assertThat(serviceId)
-                .as("a service with code %s in service description %s", serviceCode, serviceDescriptionId)
-                .isNotBlank();
-        return serviceId;
-    }
-
-    /** Changes the method and path of the endpoint. */
-    static void updateEndpoint(String baseUrl, AdminSession session, String endpointId, String method, String path) {
-        var body = """
-                {
-                  "method": "%s",
-                  "path": "%s"
-                }
-                """.formatted(method, path);
-        sendJson(session, Method.PATCH, baseUrl + "/api/v1/endpoints/" + endpointId, body, HTTP_OK,
-                "update endpoint %s to %s %s".formatted(endpointId, method, path));
-    }
-
-    /** Grants the consumer access to the endpoint. */
-    static void grantEndpointAccess(String baseUrl, AdminSession session, String endpointId, String consumerClientId) {
-        var body = """
-                {
-                  "items": [
-                    { "id": "%s" }
-                  ]
-                }
-                """.formatted(consumerClientId);
-        sendJson(session, Method.POST, baseUrl + "/api/v1/endpoints/" + endpointId + "/service-clients", body,
-                HTTP_CREATED, "grant %s access to endpoint %s".formatted(consumerClientId, endpointId));
-    }
-
-    /** Deletes the endpoint and returns the HTTP status of the call without asserting it. */
-    static int requestEndpointDeletion(String baseUrl, AdminSession session, String endpointId) {
-        return authed(session).delete(baseUrl + "/api/v1/endpoints/" + endpointId).getStatusCode();
-    }
-
-    /** Creates a local group of the owner client and returns its id. */
-    static String createLocalGroup(String baseUrl, AdminSession session, String ownerClientId, String code) {
-        var body = """
-                {
-                  "code": "%s",
-                  "description": "acl parity"
-                }
-                """.formatted(code);
-        var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients/" + ownerClientId + "/local-groups",
-                body, HTTP_CREATED, "create local group %s of %s".formatted(code, ownerClientId));
-        return response.jsonPath().getString("id");
-    }
-
-    /** Adds the member or subsystem to the local group. */
-    static void addLocalGroupMember(String baseUrl, AdminSession session, String groupId, String memberId) {
-        sendJson(session, Method.POST, baseUrl + "/api/v1/local-groups/" + groupId + "/members",
-                localGroupMemberBody(memberId), HTTP_CREATED,
-                "add %s to local group %s".formatted(memberId, groupId));
-    }
-
-    /** Removes the member or subsystem from the local group. */
-    static void removeLocalGroupMember(String baseUrl, AdminSession session, String groupId, String memberId) {
-        sendJson(session, Method.POST, baseUrl + "/api/v1/local-groups/" + groupId + "/members/delete",
-                localGroupMemberBody(memberId), HTTP_NO_CONTENT,
-                "remove %s from local group %s".formatted(memberId, groupId));
-    }
-
-    /** Deletes the local group and returns the HTTP status of the call without asserting it. */
-    static int requestLocalGroupDeletion(String baseUrl, AdminSession session, String groupId) {
-        return authed(session).delete(baseUrl + "/api/v1/local-groups/" + groupId).getStatusCode();
-    }
-
-    private static String localGroupMemberBody(String memberId) {
-        return """
-                {
-                  "items": [ "%s" ]
-                }
-                """.formatted(memberId);
     }
 
     /**

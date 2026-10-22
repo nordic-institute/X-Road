@@ -26,7 +26,7 @@
 
 package org.niis.xroad.e2e.parity.acl;
 
-/** The provider Security Server's admin API as the fixture executor uses it. */
+/** The provider Security Server's admin API as the scenario fixture uses it. */
 public interface AdminGateway {
 
     /** Adds a REST service description and returns its id. */
