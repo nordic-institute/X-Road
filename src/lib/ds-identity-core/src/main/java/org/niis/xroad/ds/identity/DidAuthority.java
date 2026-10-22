@@ -148,28 +148,10 @@ public class DidAuthority {
         if (authority == null || authority.isEmpty()) {
             throw emptyHost(authority);
         }
-        String host;
-        String portText = null;
-        if (authority.startsWith("[")) {
-            int close = authority.indexOf(']');
-            if (close < 0) {
-                throw malformedBrackets(authority, "has no closing bracket");
-            }
-            host = authority.substring(1, close);
-            var rest = authority.substring(close + 1);
-            if (!rest.isEmpty()) {
-                if (rest.charAt(0) != ':') {
-                    throw malformedBrackets(authority, "has text after the closing bracket that is not a port");
-                }
-                portText = rest.substring(1);
-            }
-        } else if (authority.indexOf(':') != authority.lastIndexOf(':')) {
-            host = authority;
-        } else {
-            int colon = authority.indexOf(':');
-            host = colon < 0 ? authority : authority.substring(0, colon);
-            portText = colon < 0 ? null : authority.substring(colon + 1);
-        }
+        var bracketed = authority.startsWith("[");
+        var parts = bracketed ? splitBracketed(authority) : splitUnbracketed(authority);
+        var host = parts.host();
+        var portText = parts.portText();
         if (hasBracket(host) || (portText != null && hasBracket(portText))) {
             throw malformedBrackets(authority, "has a bracket that does not enclose the whole host");
         }
@@ -177,7 +159,7 @@ public class DidAuthority {
             throw emptyHost(authority);
         }
         requireAscii(host);
-        if (authority.startsWith("[") && !isIpv6Literal(host)) {
+        if (bracketed && !isIpv6Literal(host)) {
             throw malformedBrackets(authority, "does not enclose an IPv6 literal");
         }
         canonicalHost(host);
@@ -196,7 +178,7 @@ public class DidAuthority {
         try {
             var parsed = parse(authority);
             return authority.equals(canonical(parsed.host(), parsed.port().orElse(DEFAULT_HTTPS_PORT)));
-        } catch (XrdRuntimeException e) {
+        } catch (XrdRuntimeException _) {
             return false;
         }
     }
@@ -217,7 +199,7 @@ public class DidAuthority {
         try {
             Inet6Address.ofLiteral(literal);
             return true;
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             return false;
         }
     }
@@ -233,9 +215,38 @@ public class DidAuthority {
     public static boolean isUriHost(String authority) {
         try {
             return new URI("https://" + authority).getHost() != null;
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException _) {
             return false;
         }
+    }
+
+    private record HostAndPortText(String host, String portText) {
+    }
+
+    private static HostAndPortText splitBracketed(String authority) {
+        int close = authority.indexOf(']');
+        if (close < 0) {
+            throw malformedBrackets(authority, "has no closing bracket");
+        }
+        var host = authority.substring(1, close);
+        var rest = authority.substring(close + 1);
+        if (rest.isEmpty()) {
+            return new HostAndPortText(host, null);
+        }
+        if (rest.charAt(0) != ':') {
+            throw malformedBrackets(authority, "has text after the closing bracket that is not a port");
+        }
+        return new HostAndPortText(host, rest.substring(1));
+    }
+
+    private static HostAndPortText splitUnbracketed(String authority) {
+        int colon = authority.indexOf(':');
+        if (colon != authority.lastIndexOf(':')) {
+            return new HostAndPortText(authority, null);
+        }
+        return colon < 0
+                ? new HostAndPortText(authority, null)
+                : new HostAndPortText(authority.substring(0, colon), authority.substring(colon + 1));
     }
 
     private static boolean isHostChar(int c) {

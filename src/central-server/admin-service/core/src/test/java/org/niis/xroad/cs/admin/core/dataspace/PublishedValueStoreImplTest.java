@@ -484,8 +484,9 @@ class PublishedValueStoreImplTest {
     @Test
     void shouldTouchNoValueWhenServerRowIsGone() {
         when(securityServerRepository.lockForUpdateById(SERVER_ID)).thenReturn(Optional.empty());
+        var memberDids = Map.of(CLIENT, CLIENT_DID);
 
-        assertThatThrownBy(() -> store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID)))
+        assertThatThrownBy(() -> store.writeMemberDidsOnce(SERVER_ID, memberDids))
                 .isInstanceOf(NotFoundException.class);
         assertThatThrownBy(() -> store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL))
                 .isInstanceOf(NotFoundException.class);

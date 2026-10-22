@@ -15,5 +15,6 @@ dependencies {
   testImplementation(libs.liquibase.core)
   testImplementation(project(":common:common-db"))
   testImplementation(libs.postgresql)
+  testImplementation(libs.awaitility)
   testImplementation(libs.testcontainers.postgresql)
 }

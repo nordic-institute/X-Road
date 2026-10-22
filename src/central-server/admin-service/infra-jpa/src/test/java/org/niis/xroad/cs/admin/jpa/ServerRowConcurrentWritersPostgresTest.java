@@ -125,9 +125,9 @@ class ServerRowConcurrentWritersPostgresTest extends AbstractCentralServerPostgr
                 "select in_maintenance_mode, maintenance_mode_message, system_did, dsp_base_url "
                         + "from security_servers where id = ?", server.id());
 
-        assertThat(row.get("in_maintenance_mode")).isEqualTo(true);
-        assertThat(row.get("maintenance_mode_message")).isEqualTo(MAINTENANCE_MESSAGE);
-        assertThat(row.get("system_did")).isEqualTo(did);
-        assertThat(row.get("dsp_base_url")).isEqualTo(url);
+        assertThat(row).containsEntry("in_maintenance_mode", true)
+                .containsEntry("maintenance_mode_message", MAINTENANCE_MESSAGE)
+                .containsEntry("system_did", did)
+                .containsEntry("dsp_base_url", url);
     }
 }

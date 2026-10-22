@@ -253,7 +253,7 @@ public final class PublishedValueValidator {
         try {
             new URI(url);
             return true;
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException _) {
             return false;
         }
     }
@@ -266,7 +266,7 @@ public final class PublishedValueValidator {
     private static Optional<DecodedParticipant> decode(String did) {
         try {
             return Optional.of(ParticipantIdentifierScheme.decodeDid(did));
-        } catch (XrdRuntimeException e) {
+        } catch (XrdRuntimeException _) {
             return Optional.empty();
         }
     }
@@ -274,7 +274,7 @@ public final class PublishedValueValidator {
     private static Optional<String> canonicalHostOf(String authority) {
         try {
             return Optional.of(DidAuthority.canonicalHost(DidAuthority.parse(authority).host()));
-        } catch (XrdRuntimeException e) {
+        } catch (XrdRuntimeException _) {
             return Optional.empty();
         }
     }

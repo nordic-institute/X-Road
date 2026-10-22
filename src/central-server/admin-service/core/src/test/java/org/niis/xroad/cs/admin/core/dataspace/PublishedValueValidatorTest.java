@@ -65,7 +65,6 @@ class PublishedValueValidatorTest {
 
     private static final ClientId OWNER = member("222");
     private static final ClientId CLIENT = member("333");
-    private static final ClientId UNRELATED = member("999");
 
     private final PublishedValueValidator validator = validatorFor(ADDRESS);
 

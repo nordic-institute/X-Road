@@ -31,6 +31,7 @@ import jakarta.persistence.EntityManager;
 import liquibase.Scope;
 import liquibase.command.CommandScope;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
@@ -44,6 +45,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.DriverManager;
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -51,8 +53,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Runs the real {@code centerui-changelog.xml} against a Postgres testcontainer and wires the Central Server
@@ -138,22 +138,22 @@ abstract class AbstractCentralServerPostgresTest {
         });
     }
 
-    protected final void awaitLockedSession(AtomicInteger waiterBackendPid) throws InterruptedException {
-        var deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(LOCK_WAIT_BUDGET_MILLIS);
-        while (System.nanoTime() < deadline) {
-            var pid = waiterBackendPid.get();
-            if (pid != 0) {
-                var waiting = jdbc.queryForObject(
-                        "select count(*) from pg_stat_activity where pid = ? and wait_event_type = 'Lock' "
-                                + "and datname = current_database()",
-                        Integer.class, pid);
-                if (waiting != null && waiting > 0) {
-                    return;
-                }
-            }
-            Thread.sleep(LOCK_WAIT_POLL_MILLIS);
+    protected final void awaitLockedSession(AtomicInteger waiterBackendPid) {
+        Awaitility.await("the waiter's backend to wait for a lock")
+                .atMost(Duration.ofMillis(LOCK_WAIT_BUDGET_MILLIS))
+                .pollInterval(Duration.ofMillis(LOCK_WAIT_POLL_MILLIS))
+                .until(() -> isWaitingForLock(waiterBackendPid.get()));
+    }
+
+    private boolean isWaitingForLock(int backendPid) {
+        if (backendPid == 0) {
+            return false;
         }
-        fail("the waiter's backend did not wait for a lock within the budget");
+        var waiting = jdbc.queryForObject(
+                "select count(*) from pg_stat_activity where pid = ? and wait_event_type = 'Lock' "
+                        + "and datname = current_database()",
+                Integer.class, backendPid);
+        return waiting != null && waiting > 0;
     }
 
     /**
