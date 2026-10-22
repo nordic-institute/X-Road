@@ -19,6 +19,20 @@
     "enable": "Aktiveeri",
     "order": "Telli"
   },
+  "agreementTokenKey": {
+    "createdAt": "Loodud",
+    "createdAtUnknown": "Teadmata",
+    "description": "Kokkuleppe tõendi allkirjastamisvõti allkirjastab tõendid, mida see turvaserver väljastab andmevahetuseks andmeruumis. Võtme vahetamine genereerib uue võtme. Varasemad võtmed säilitatakse, et nendega allkirjastatud tõendid kehtiksid kuni aegumiseni.",
+    "keyId": "Allkirjastamisvõtme ID",
+    "pending": "Uus võti ({keyId}) ootab allkirjastamise alustamist.",
+    "previousKeys": "Säilitatud varasemad võtmed",
+    "rotate": "Vaheta võti",
+    "rotateConfirmText": "Juba väljastatud tõendid kehtivad kuni aegumiseni. Uus võti hakkab allkirjastama kahe võtme värskendusintervalli jooksul.",
+    "rotateConfirmTitle": "Kas vahetada kokkuleppe tõendi allkirjastamisvõti?",
+    "rotated": "Kokkuleppe tõendi allkirjastamisvõti on vahetatud",
+    "title": "Kokkuleppe tõendi allkirjastamisvõti",
+    "unavailable": "Allkirjastamisvõti pole saadaval. Puhverserver pole veel ühtegi allkirjastamisvõtit laadinud, seega ei saa võtit vahetada."
+  },
   "alert": {
     "warningCount": "Samade hoiatuste hulk"
   },
@@ -449,7 +463,12 @@
           },
           "UnknownService": "Tundmatu teenus"
         }
-      }
+      },
+      "agreement_token_key_generation_failed": "Kokkuleppe tõendi allkirjastamisvõtme genereerimine ebaõnnestus",
+      "agreement_token_key_not_available": "Kokkuleppe tõendi allkirjastamisvõti pole saadaval. Puhverserver pole veel ühtegi allkirjastamisvõtit laadinud",
+      "agreement_token_key_store_failed": "Kokkuleppe tõendi allkirjastamisvõtit ei õnnestunud saladuste hoidlasse salvestada. Proovige hiljem uuesti",
+      "agreement_token_rejected": "Kokkuleppe tõend lükati tagasi",
+      "agreement_token_signing_failed": "Kokkuleppe tõendi allkirjastamine ebaõnnestus"
     },
     "csr_not_found": "CSR-i ei leitud",
     "database_error": "Andmebaasi viga",
@@ -1459,7 +1478,8 @@
       "apiKey": "API võtmed",
       "opMonitorTrust": "Operatsioonide monitooringu usaldus",
       "signAndAuthKeys": "SIGN- ja AUTH-võtmed",
-      "ssTlsCertificate": "Turvaserveri TLS-võti"
+      "ssTlsCertificate": "Turvaserveri TLS-võti",
+      "agreementTokenKey": "Kokkuleppe tõendi võti"
     },
     "main": {
       "clients": "Kliendid",
