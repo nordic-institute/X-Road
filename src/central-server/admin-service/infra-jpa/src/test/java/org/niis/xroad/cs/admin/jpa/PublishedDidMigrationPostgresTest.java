@@ -70,7 +70,7 @@ class PublishedDidMigrationPostgresTest {
         jdbc.execute("CREATE EXTENSION IF NOT EXISTS hstore");
 
         update(url, changeSetsBefore(FEATURE_CHANGESET));
-        assertThat(appliedChangeSets()).doesNotContain(FEATURE_CHANGESET).isNotEmpty();
+        assertThat(appliedChangeSets()).isNotEmpty().doesNotContain(FEATURE_CHANGESET);
         assertThat(columnNames("security_servers")).doesNotContain("system_did", "dsp_base_url");
         assertThat(tableExists("member_dids")).isFalse();
         seedServersMembersAndClients();
@@ -215,7 +215,7 @@ class PublishedDidMigrationPostgresTest {
         var classId = jdbc.queryForObject("select id from member_classes where code = 'COM'", Integer.class);
         var owner = insertMember("owner", classId);
         var client = insertMember("client", classId);
-        var subsystem = insertSubsystem(client, "sub", classId);
+        var subsystem = insertSubsystem(client, "sub");
         var first = insertServer(owner, "ss-one");
         var second = insertServer(owner, "ss-two");
         for (var server : List.of(first, second)) {
@@ -235,7 +235,7 @@ class PublishedDidMigrationPostgresTest {
                 Integer.class, code, "name-" + code, classId, identifier);
     }
 
-    private static int insertSubsystem(int memberId, String subsystemCode, int classId) {
+    private static int insertSubsystem(int memberId, String subsystemCode) {
         var memberCode = jdbc.queryForObject("select member_code from security_server_clients where id = ?", String.class, memberId);
         var identifier = insertIdentifier("SUBSYSTEM", memberCode, subsystemCode, null);
         return jdbc.queryForObject("insert into security_server_clients (subsystem_code, name, xroad_member_id, server_client_id, "

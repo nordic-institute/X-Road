@@ -37,6 +37,9 @@ import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.PrivateParametersProvider;
 import org.niis.xroad.globalconf.model.SharedParametersProvider;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -115,9 +118,10 @@ public class RemoteGlobalConfDataLoader {
                 var paramFactory = ParametersProviderFactory
                         .forGlobalConfVersion(globalConfInstance.getVersion());
 
+                var file = foundFile.get();
                 var result = switch (fileName) {
-                    case FILE_NAME_PRIVATE_PARAMETERS -> paramFactory.privateParametersProvider(paramsXmlBytes);
-                    case FILE_NAME_SHARED_PARAMETERS -> paramFactory.sharedParametersProvider(paramsXmlBytes);
+                    case FILE_NAME_PRIVATE_PARAMETERS -> withExpiry(paramFactory.privateParametersProvider(paramsXmlBytes), file);
+                    case FILE_NAME_SHARED_PARAMETERS -> withExpiry(paramFactory.sharedParametersProvider(paramsXmlBytes), file);
                     default -> throw new IllegalArgumentException("Unknown parameter file: " + fileName);
                 };
 
@@ -129,5 +133,17 @@ public class RemoteGlobalConfDataLoader {
             log.trace("Not loading parameters from [{}], file does not exist", fileName);
         }
         return Optional.empty();
+    }
+
+    private static PrivateParametersProvider withExpiry(PrivateParametersProvider provider, GlobalConfFile file) {
+        return file.hasExpiresOn() ? provider.refresh(toOffsetDateTime(file.getExpiresOn())) : provider;
+    }
+
+    private static SharedParametersProvider withExpiry(SharedParametersProvider provider, GlobalConfFile file) {
+        return file.hasExpiresOn() ? provider.refresh(toOffsetDateTime(file.getExpiresOn())) : provider;
+    }
+
+    private static OffsetDateTime toOffsetDateTime(long epochMillis) {
+        return OffsetDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
     }
 }

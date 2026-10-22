@@ -51,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static java.util.function.Predicate.not;
 import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -374,6 +375,10 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     public Integer getVersion() {
         return getVersion(Path.of(getPath().toString(), instanceIdentifier, ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS));
+    }
+
+    public static Optional<OffsetDateTime> findFileExpiresOn(Path filePath) {
+        return Optional.of(getFileExpiresOn(filePath)).filter(not(OffsetDateTime.MAX::equals));
     }
 
     protected static OffsetDateTime getFileExpiresOn(Path filePath) {

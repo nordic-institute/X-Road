@@ -54,6 +54,7 @@ import static ee.ria.xroad.common.crypto.Digests.hexDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_GLOBALCONF;
 import static org.niis.xroad.globalconf.model.ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE;
+import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.findFileExpiresOn;
 import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 @Slf4j
@@ -103,12 +104,14 @@ public class GetGlobalConfRespFactory {
         var paramPath = Paths.get(instanceDir.toString(), fileName);
         if (Files.exists(paramPath)) {
             readFileSafely(paramPath)
-                    .ifPresent(content ->
-                            builder.addFiles(GlobalConfFile.newBuilder()
-                                    .setName(fileName)
-                                    .setContent(content.content())
-                                    .setChecksum(content.checksum())
-                                    .build()));
+                    .ifPresent(content -> {
+                        var file = GlobalConfFile.newBuilder()
+                                .setName(fileName)
+                                .setContent(content.content())
+                                .setChecksum(content.checksum());
+                        findFileExpiresOn(paramPath).ifPresent(expiresOn -> file.setExpiresOn(expiresOn.toInstant().toEpochMilli()));
+                        builder.addFiles(file.build());
+                    });
         } else {
             log.trace("File {} does not exist.", paramPath);
         }

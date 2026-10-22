@@ -112,7 +112,9 @@ class PublishedDidSchemaPostgresTest extends AbstractCentralServerPostgresTest {
 
         assertThat(jdbc.queryForObject("select length(did) from member_dids where security_server_id = ?", Integer.class,
                 first.id())).isEqualTo(MAX_LENGTH);
-        assertThatThrownBy(() -> insertMemberDid(second.id(), secondOwner.id(), did))
+        var secondId = second.id();
+        var secondOwnerId = secondOwner.id();
+        assertThatThrownBy(() -> insertMemberDid(secondId, secondOwnerId, did))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause().hasMessageContaining("member_dids_did_excl");
         assertThat(countMemberDids(second.id())).isZero();
@@ -125,8 +127,9 @@ class PublishedDidSchemaPostgresTest extends AbstractCentralServerPostgresTest {
         var did = systemDid(newHost(), 7183);
         jdbc.update("update security_servers set system_did = ?, dsp_base_url = ? where id = ?", did, "https://a.test/dsp", first.id());
 
+        var secondId = second.id();
         assertThatThrownBy(() -> jdbc.update("update security_servers set system_did = ?, dsp_base_url = ? where id = ?",
-                did, "https://b.test/dsp", second.id()))
+                did, "https://b.test/dsp", secondId))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause().hasMessageContaining("security_servers_system_did_excl");
     }
@@ -140,20 +143,20 @@ class PublishedDidSchemaPostgresTest extends AbstractCentralServerPostgresTest {
                 systemDid(server.address(), 7183), url, server.id());
 
         Map<String, Object> stored = jdbc.queryForMap("select dsp_base_url from security_servers where id = ?", server.id());
-        assertThat(stored.get("dsp_base_url")).isEqualTo(url);
+        assertThat(stored).containsEntry("dsp_base_url", url);
         assertThat(url.length()).isGreaterThan(MAX_LENGTH);
     }
 
     @Test
     void systemDidAndDspBaseUrlAreStoredBothOrNeither() {
         var server = seed.server(seed.member());
-
-        assertThatThrownBy(() -> jdbc.update("update security_servers set system_did = ? where id = ?",
-                systemDid(server.address(), 7183), server.id()))
+        var serverId = server.id();
+        var did = systemDid(server.address(), 7183);
+        var url = dspBaseUrl(server.address());
+        assertThatThrownBy(() -> jdbc.update("update security_servers set system_did = ? where id = ?", did, serverId))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause().hasMessageContaining("security_servers_system_values_check");
-        assertThatThrownBy(() -> jdbc.update("update security_servers set dsp_base_url = ? where id = ?",
-                dspBaseUrl(server.address()), server.id()))
+        assertThatThrownBy(() -> jdbc.update("update security_servers set dsp_base_url = ? where id = ?", url, serverId))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause().hasMessageContaining("security_servers_system_values_check");
     }
