@@ -40,6 +40,7 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADMIN_PORT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.BATCH_SIGNING_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_CONNECTOR_INITIAL_IDLE_TIME;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_CONNECTOR_MAX_IDLE_TIME;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPCLIENT_SO_LINGER;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPCLIENT_TIMEOUT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.CLIENT_PROXY_CLIENT_HTTPS_PORT;
@@ -195,6 +196,10 @@ public class ProxyProperties {
 
         public int clientConnectorInitialIdleTime() {
             return xRoadConfig.value(CLIENT_PROXY_CLIENT_CONNECTOR_INITIAL_IDLE_TIME);
+        }
+
+        public int clientConnectorMaxIdleTime() {
+            return xRoadConfig.value(CLIENT_PROXY_CLIENT_CONNECTOR_MAX_IDLE_TIME);
         }
 
         public int clientProxyTimeout() {
