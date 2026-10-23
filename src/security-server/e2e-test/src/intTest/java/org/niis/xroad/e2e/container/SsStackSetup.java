@@ -61,6 +61,7 @@ public class SsStackSetup extends AbstractSsStack {
     public static final String MONITOR = "monitor";
     public static final String OP_MONITOR_SERVICE = "op-monitor";
     public static final String DB_MESSAGELOG = "db-messagelog";
+    public static final String DB_SERVERCONF = "db-serverconf";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
     /** Not a compose service of this stack: a service-key token for {@code E2eEnvironment}'s test CA env. */
@@ -216,6 +217,7 @@ public class SsStackSetup extends AbstractSsStack {
         SOFTTOKEN_SIGNER("compose.ss-softtoken-signer-enabled.e2e.yaml"),
         MESSAGE_LOG_ENCRYPTION("compose.ss-msglog-encryption.e2e.yaml"),
         OP_MONITOR("compose.ss-opmonitor.e2e.yaml"),
+        LEGACY_PROTOCOL("compose.ss-acl-legacy.e2e.yaml"),
         AGREEMENT_TOKEN_KEY_PRUNING("compose.ss-agreement-token-key-pruning.e2e.yaml");
 
         private final String composeFile;

@@ -26,21 +26,32 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.net.HttpURLConnection.HTTP_CONFLICT;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_MULT_CHOICE;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Security Server admin REST API access: session login, service-description CRUD, access rights, and
- * service lookup, plus the external RPC CA, op-monitor CA and agreement-token key endpoints.
+ * Security Server admin REST API access: session login, service-description CRUD, access rights, the
+ * client lifecycle, and service lookup, plus the external RPC CA, op-monitor CA and agreement-token key
+ * endpoints.
  */
 @Slf4j
 @UtilityClass
@@ -48,12 +59,10 @@ class AdminApi {
 
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_CREATED = 201;
-    private static final int HTTP_NO_CONTENT = 204;
-    private static final int HTTP_NOT_FOUND = 404;
-    private static final int HTTP_CONFLICT = 409;
-    private static final int HTTP_LAST_SUCCESS = 299;
+    private static final int CLIENT_ID_PARTS = 4;
+    private static final String REGISTERED_STATUS = "REGISTERED";
+    private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
+    private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
 
     /** The mapped {@code https://host:port} of one environment's admin UI container. */
     static String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -76,6 +85,20 @@ class AdminApi {
         return RestAssuredFactory.given()
                 .cookies(session.cookies())
                 .header("X-XSRF-TOKEN", session.xsrfToken());
+    }
+
+    /** Sends a JSON body with the session's credentials; the status is left to the caller. */
+    static Response sendJson(AdminSession session, Method method, String url, String body) {
+        return authed(session).header("Content-Type", "application/json").body(body).request(method, url);
+    }
+
+    /** Sends a JSON body and asserts the status, naming the call and the reply body on a mismatch. */
+    static Response sendJson(AdminSession session, Method method, String url, String body, int expectedStatus,
+                             String call) {
+        var response = sendJson(session, method, url, body);
+        assertThat(response.getStatusCode()).as("%s: %s", call, response.getBody().asString())
+                .isEqualTo(expectedStatus);
+        return response;
     }
 
     /** Finds the id of the service description backing {@code clientId}'s {@code serviceCode} service. */
@@ -103,18 +126,17 @@ class AdminApi {
                 .isEqualTo(HTTP_OK);
     }
 
-    /** Disables the service description, attaching the operator's notice. */
+    /** Disables the service description, attaching the operator's notice unless it is {@code null}. */
     static void disableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId, String notice) {
-        var body = """
-                {"disabled_notice": "%s"}
-                """.formatted(notice);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable");
+        var url = ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable";
+        var response = notice == null
+                ? authed(ss0).put(url)
+                : sendJson(ss0, Method.PUT, url, """
+                        {"disabled_notice": "%s"}
+                        """.formatted(notice));
         assertThat(response.getStatusCode())
                 .as("disable service description %s", serviceDescriptionId)
-                .isBetween(HTTP_OK, HTTP_LAST_SUCCESS);
+                .isBetween(HTTP_OK, HTTP_MULT_CHOICE - 1);
     }
 
     /**
@@ -153,10 +175,8 @@ class AdminApi {
                   "rest_service_code": "%s"
                 }
                 """.formatted(backendUrl, restServiceCode);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
+        var response = sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions",
+                body);
         if (response.getStatusCode() == HTTP_CONFLICT) {
             log.info("REST service description '{}' already exists for {}; looking up its id instead of adding it again",
                     restServiceCode, clientId);
@@ -191,10 +211,21 @@ class AdminApi {
 
     /**
      * Grants a consumer access to a provider client's service. Tolerates 409 so this stays safe to run
-     * against a substrate where the grant already exists.
+     * against a substrate where the grant already exists. Returns whether the grant was created.
      */
-    static void grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
-                                          String consumerClientId, String serviceCode) {
+    static boolean grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                             String consumerClientId, String serviceCode) {
+        var status = requestConsumerAccessGrant(ss0BaseUrl, ss0, providerClientId, consumerClientId, serviceCode)
+                .getStatusCode();
+        assertThat(status)
+                .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
+                .isIn(HTTP_CREATED, HTTP_CONFLICT);
+        return status == HTTP_CREATED;
+    }
+
+    /** Asks for the subject to be granted access to a provider client's service and returns the answer. */
+    static Response requestConsumerAccessGrant(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                          String subjectId, String serviceCode) {
         var body = """
                 {
                   "items": [
@@ -202,13 +233,144 @@ class AdminApi {
                   ]
                 }
                 """.formatted(serviceCode);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId + "/access-rights");
+        return sendJson(ss0, Method.POST, ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
+                + subjectId + "/access-rights", body);
+    }
+
+    /** Lists the ids of the service clients that hold an access right to the provider client's service, sorted. */
+    static List<String> serviceClientsWithAccess(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                                 String serviceCode) {
+        var clients = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients");
+        assertThat(clients.getStatusCode()).as("list service clients of %s", providerClientId).isEqualTo(HTTP_OK);
+        return clients.jsonPath().getList("id", String.class).stream()
+                .filter(consumerId -> holdsAccessRight(ss0BaseUrl, ss0, providerClientId, consumerId, serviceCode))
+                .sorted()
+                .toList();
+    }
+
+    private static boolean holdsAccessRight(String ss0BaseUrl, AdminSession ss0, String providerClientId,
+                                            String consumerId, String serviceCode) {
+        var rights = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/"
+                + consumerId + "/access-rights");
+        assertThat(rights.getStatusCode())
+                .as("list access rights of %s to %s", consumerId, providerClientId)
+                .isEqualTo(HTTP_OK);
+        return rights.jsonPath().getList("service_code", String.class).contains(serviceCode);
+    }
+
+    /**
+     * Adds the subsystem {@code clientId} ({@code INSTANCE:CLASS:CODE:SUBSYSTEM}) as a local client,
+     * tolerating a warm rerun where it already exists: {@code ClientService} rejects a duplicate with
+     * {@code ClientAlreadyExistsException}, a {@code ConflictException} mapped to 409. The client id is
+     * deterministic, so it is returned on either status.
+     */
+    static String addLocalClient(String baseUrl, AdminSession session, String clientId) {
+        var parts = clientId.split(":", -1);
+        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
+        var body = """
+                {
+                  "ignore_warnings": true,
+                  "client": {
+                    "member_class": "%s",
+                    "member_code": "%s",
+                    "subsystem_code": "%s",
+                    "connection_type": "HTTP"
+                  }
+                }
+                """.formatted(parts[1], parts[2], parts[parts.length - 1]);
+        var response = sendJson(session, Method.POST, baseUrl + "/api/v1/clients", body);
         assertThat(response.getStatusCode())
-                .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
+                .as("add local client %s (201 first run, 409 if it already exists on a warm rerun)", clientId)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
+        return clientId;
+    }
+
+    /** Sets the client's internal connection type ({@code HTTP}, {@code HTTPS} or {@code HTTPS_NO_AUTH}). */
+    static void setConnectionType(String baseUrl, AdminSession session, String clientId, String connectionType) {
+        sendJson(session, Method.PATCH, baseUrl + "/api/v1/clients/" + clientId,
+                "{\"connection_type\": \"%s\"}".formatted(connectionType), HTTP_OK,
+                "set connection type of %s to %s".formatted(clientId, connectionType));
+    }
+
+    /**
+     * Submits the client registration request, tolerating a warm rerun where the client is already past
+     * {@code SAVED} status: {@code ClientService.registerClient} rejects that with
+     * {@code ActionNotPossibleException}, a {@code ConflictException} mapped to 409. Either status leaves
+     * {@link #awaitClientRegistered} to confirm the actual outcome.
+     */
+    static void registerClient(String baseUrl, AdminSession session, String clientId) {
+        var response = authed(session).put(baseUrl + "/api/v1/clients/" + clientId + "/register");
+        assertThat(response.getStatusCode())
+                .as("submit client registration for %s (204 first run, 409 if it is no longer SAVED on a warm rerun)", clientId)
+                .isIn(HTTP_NO_CONTENT, HTTP_CONFLICT);
+    }
+
+    /**
+     * Unregisters the client. {@code ClientService.unregisterClient} flips the client straight to
+     * {@code DELINPROG} in the same call (no Central Server approval to wait for, unlike registration), so
+     * {@link #deleteClient} can follow immediately.
+     */
+    static void unregisterClient(String baseUrl, AdminSession session, String clientId) {
+        var response = authed(session).put(baseUrl + "/api/v1/clients/" + clientId + "/unregister");
+        assertThat(response.getStatusCode())
+                .as("unregister %s (204 first run, 409 if a prior run already unregistered it)", clientId)
+                .isIn(HTTP_NO_CONTENT, HTTP_CONFLICT);
+    }
+
+    /** Deletes the unregistered client, tolerating a rerun where a prior attempt already removed it. */
+    static void deleteClient(String baseUrl, AdminSession session, String clientId) {
+        var response = authed(session).delete(baseUrl + "/api/v1/clients/" + clientId);
+        assertThat(response.getStatusCode())
+                .as("delete %s (204 first run, 404 if a prior run already deleted it)", clientId)
+                .isIn(HTTP_NO_CONTENT, HTTP_NOT_FOUND);
+    }
+
+    /** Waits until the Security Server reports {@code clientId} as REGISTERED, see {@link #awaitClientsRegistered}. */
+    static void awaitClientRegistered(String baseUrl, AdminSession session, String csBaseUrl, AdminSession cs,
+                                      String clientId) {
+        awaitClientsRegistered(baseUrl, session, csBaseUrl, cs, List.of(clientId), REGISTRATION_POLL_TIMEOUT);
+    }
+
+    /**
+     * Waits until the Security Server reports every client in {@code clientIds} as REGISTERED, approving the
+     * Central Server's pending registration requests within the same loop. Environments differ: k8s
+     * auto-approves, so a request never surfaces as WAITING; LXD and compose require an explicit approval,
+     * and the request may take a moment to appear as WAITING, then several globalconf-distribution cycles to
+     * propagate back as REGISTERED. Approving on each tick, rather than once up front, covers all of them.
+     */
+    static void awaitClientsRegistered(String baseUrl, AdminSession session, String csBaseUrl, AdminSession cs,
+                                       List<String> clientIds, Duration timeout) {
+        Awaitility.await()
+                .pollInterval(REGISTRATION_POLL_INTERVAL)
+                .timeout(timeout)
+                .untilAsserted(() -> {
+                    CentralServerApi.approvePendingClientRegistrations(csBaseUrl, cs, clientIds);
+                    for (var clientId : clientIds) {
+                        var response = authed(session).get(baseUrl + "/api/v1/clients/" + clientId);
+                        assertThat(response.getStatusCode()).as("GET /clients/%s", clientId).isEqualTo(HTTP_OK);
+                        assertThat(response.jsonPath().getString("status"))
+                                .as("status of client %s", clientId)
+                                .isEqualTo(REGISTERED_STATUS);
+                    }
+                });
+    }
+
+    /**
+     * Whether the Security Server's global client search, which reads global configuration members, returns
+     * {@code clientId}. The search matches by substring, so the returned ids are compared exactly.
+     */
+    static boolean globalClientKnown(String baseUrl, AdminSession session, String clientId) {
+        var parts = clientId.split(":", -1);
+        assertThat(parts).as("subsystem client id %s", clientId).hasSize(CLIENT_ID_PARTS);
+        var response = authed(session)
+                .queryParam("instance", parts[0])
+                .queryParam("member_class", parts[1])
+                .queryParam("member_code", parts[2])
+                .queryParam("subsystem_code", parts[parts.length - 1])
+                .queryParam("internal_search", false)
+                .queryParam("show_members", false)
+                .get(baseUrl + "/api/v1/clients");
+        return response.getStatusCode() == HTTP_OK && response.jsonPath().getList("id", String.class).contains(clientId);
     }
 
     /** Reads the external RPC CA details. */

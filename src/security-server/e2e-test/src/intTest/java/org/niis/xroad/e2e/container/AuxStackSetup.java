@@ -26,6 +26,7 @@
 package org.niis.xroad.e2e.container;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.AclParityProperties;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
@@ -46,8 +47,9 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 public class AuxStackSetup extends BaseComposeSetup {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
-    private static final String CS = "cs";
+    public static final String CS = "cs";
     public static final String HURL = "hurl";
+    public static final String ISREST = "isrest";
 
     public AuxStackSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
@@ -60,7 +62,7 @@ public class AuxStackSetup extends BaseComposeSetup {
 
     @Override
     protected ComposeContainer initEnv() {
-        return new ComposeContainer(composeProjectName(), new File(coreProperties.resourceDir() + COMPOSE_AUX_FILE))
+        var compose = new ComposeContainer(composeProjectName(), new File(coreProperties.resourceDir() + COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
                 .withEnv("PROXY_UI_0", "ss0-ui")
                 .withEnv("PROXY_0", "xrd-ss0")
@@ -69,6 +71,10 @@ public class AuxStackSetup extends BaseComposeSetup {
                 .withLogConsumer(HURL, createLogConsumer(HURL))
                 .withLogConsumer(CS, createLogConsumer(CS))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
+        if (AclParityProperties.configuredMode().isPresent()) {
+            compose.withExposedService(ISREST, Port.ISREST, forListeningPort());
+        }
+        return compose;
     }
 
     /**
@@ -113,6 +119,7 @@ public class AuxStackSetup extends BaseComposeSetup {
      */
     public static final class Port {
         public static final int UI = 4000;
+        public static final int ISREST = 8080;
 
         private Port() {
         }

@@ -1,0 +1,17 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPath": "/acl-parity/openapi/status_only.yaml"
+  },
+  "response": {
+    "status": 200,
+    "body": "openapi: 3.0.3\ninfo:\n  title: ACL parity status_only\n  version: \"1.0\"\nservers:\n  - url: http://isrest:8080/acl-parity/{{request.query.code}}\npaths:\n  /status:\n    get:\n      operationId: getStatus\n      responses:\n        \"200\":\n          description: ok\n",
+    "headers": {
+      "Content-Type": "application/yaml"
+    },
+    "transformers": [
+      "response-template"
+    ]
+  }
+}

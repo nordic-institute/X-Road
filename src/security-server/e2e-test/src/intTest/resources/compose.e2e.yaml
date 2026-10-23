@@ -12,6 +12,7 @@ services:
         ('xroad.proxy.dsp.serverproxy-endpoint', 'https://${DSP_PARTICIPANT_ID:-xrd-ss}:5500', now(), now()),
         ('xroad.common-global-conf.refresh-rate', '10S', now(), now()),
         ('xroad.configuration-client.update-interval', '10', now(), now()),
+        ('xroad.common-server-conf.cache-period', '2', now(), now()),
         ('xroad.proxy-ui-api.dataspace.enabled', 'true', now(), now()),
         ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://${ENV_PREFIX:-}ds-identity-hub', now(), now()),
         ('xroad.dsp.catalog.cache.ttl-seconds', '5', now(), now())
