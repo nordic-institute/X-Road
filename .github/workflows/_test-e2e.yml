@@ -366,7 +366,7 @@ jobs:
           name: e2e-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: 'temurin'
           java-version: '25'
@@ -427,7 +427,7 @@ jobs:
           reporter: java-junit
 
       - name: Upload e2e-test report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: e2e-test-${{ inputs.variant }}-report-${{ github.run_number }}
@@ -464,7 +464,7 @@ jobs:
 
       - name: Upload k8s logs
         if: always() && inputs.variant == 'k8s'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: e2e-k8s-cluster-logs-${{ github.run_number }}
           path: k8s-logs/
@@ -521,7 +521,7 @@ jobs:
 
       - name: Upload container logs
         if: always() && inputs.variant == 'lxd'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-provision-logs-${{ github.run_number }}
           path: lxd-logs/
