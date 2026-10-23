@@ -93,7 +93,7 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
       msw: [adminUserCreationRequiredHandler, adminUserWeakPasswordHandler],
     });
 
-    await expect.element(page.getByTestId('admin-username-input')).toBeVisible();
+    await expect.element(page.getByTestId('admin-username-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('admin-username-input').getByRole('textbox').fill('xrd');
     await page.getByTestId('admin-password-input').getByRole('textbox').fill('secret');
@@ -111,7 +111,7 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
       msw: [adminUserCreationRequiredHandler],
     });
 
-    await expect.element(page.getByTestId('admin-username-input')).toBeVisible();
+    await expect.element(page.getByTestId('admin-username-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('admin-username-input').getByRole('textbox').fill('xrd');
     await page.getByTestId('admin-password-input').getByRole('textbox').fill('secret123!');
@@ -127,7 +127,7 @@ describe('0090 — Initial admin user (bootstrap) (Browser Mode)', () => {
       msw: [adminUserCreationRequiredHandler, adminUserCreatedHandler],
     });
 
-    await expect.element(page.getByTestId('admin-username-input')).toBeVisible();
+    await expect.element(page.getByTestId('admin-username-input').getByRole('textbox')).toHaveFocus();
 
     await page.getByTestId('admin-username-input').getByRole('textbox').fill('xrd');
     await page.getByTestId('admin-password-input').getByRole('textbox').fill('secret123!');
