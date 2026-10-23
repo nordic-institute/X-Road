@@ -129,7 +129,7 @@ class MemberDidRegistrationServiceImplTest {
         assertThat(result.getSettledResults().values())
                 .allSatisfy(settled -> {
                     assertThat(settled.status()).isEqualTo(Status.NOT_RESOLVED);
-                    assertThat(settled.reason()).isEqualTo(MemberDidRegistrationServiceImpl.RESOLVER_UNAVAILABLE);
+                    assertThat(settled.reason()).isEqualTo(SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE);
                 });
         assertThat(calls).endsWith("add");
     }

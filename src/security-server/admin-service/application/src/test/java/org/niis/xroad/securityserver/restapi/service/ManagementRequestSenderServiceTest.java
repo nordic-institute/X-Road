@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,9 +39,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,6 +60,9 @@ class ManagementRequestSenderServiceTest {
     private static final String SYSTEM_DID = "did:web:ss1.example.org";
     private static final String DSP_BASE_URL = "https://ss1.example.org/dsp";
     private static final byte[] AUTH_CERT = {1, 2, 3};
+    private static final ClientId.Conf MEMBER_A = ClientId.Conf.create("DEV", "COM", "111");
+    private static final ClientId.Conf MEMBER_B = ClientId.Conf.create("DEV", "COM", "222");
+    private static final Map<ClientId.Conf, String> MEMBER_DIDS = memberDids();
 
     @Mock
     private ManagementRequestSender sender;
@@ -170,5 +178,71 @@ class ManagementRequestSenderServiceTest {
 
         assertThat(outcome.status()).isEqualTo(SystemDidRegistrationSendOutcome.Status.SEND_FAILURE);
         assertThat(outcome.cause()).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void memberDidRegisterReturnsOneRecordPerEntryInResponseOrder() throws Exception {
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenReturn(new MemberDidRegResponse(77, List.of(
+                new MemberDidRegResponse.Result(MEMBER_A, "STORED", null),
+                new MemberDidRegResponse.Result(MEMBER_B, "NOT_RESOLVED", "RESOLVER_UNAVAILABLE"))));
+
+        var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
+
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.ANSWERED);
+        assertThat(outcome.requestId()).isEqualTo(77);
+        assertThat(outcome.cause()).isNull();
+        assertThat(outcome.entries()).containsExactly(
+                new MemberDidRegistrationSendOutcome.Entry(MEMBER_A, "STORED", null),
+                new MemberDidRegistrationSendOutcome.Entry(MEMBER_B, "NOT_RESOLVED", "RESOLVER_UNAVAILABLE"));
+    }
+
+    @Test
+    void memberDidRegisterIsSendFailureWithCauseWhenSendingFails() throws Exception {
+        var failure = new IOException("connection refused");
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenThrow(failure);
+
+        var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
+
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
+        assertThat(outcome.requestId()).isNull();
+        assertThat(outcome.entries()).isEmpty();
+        assertThat(outcome.cause()).isSameAs(failure);
+    }
+
+    @Test
+    void memberDidRegisterIsSendFailureWithCauseWhenCentralServerAnswersWithFault() throws Exception {
+        var failure = XrdRuntimeException.systemInternalError("central server fault");
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenThrow(failure);
+
+        var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
+
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
+        assertThat(outcome.cause()).isSameAs(failure);
+    }
+
+    @Test
+    void memberDidRegisterIsSendFailureWhenResponseHasNoRequestId() throws Exception {
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS))
+                .thenReturn(new MemberDidRegResponse(null, List.of()));
+
+        var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
+
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
+        assertThat(outcome.cause()).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void memberDidRegisterPropagatesProgrammingErrors() throws Exception {
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenThrow(new IllegalArgumentException("bug"));
+
+        assertThatThrownBy(() -> service.sendMemberDidRegisterRequest(MEMBER_DIDS))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static Map<ClientId.Conf, String> memberDids() {
+        var dids = new LinkedHashMap<ClientId.Conf, String>();
+        dids.put(MEMBER_A, "did:web:a.example.org");
+        dids.put(MEMBER_B, "did:web:b.example.org");
+        return dids;
     }
 }

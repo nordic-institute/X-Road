@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -41,6 +42,8 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * management request service
@@ -116,6 +119,38 @@ public class ManagementRequestSenderService {
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             return SystemDidRegistrationSendOutcome.sendFailure(e);
+        }
+    }
+
+    /**
+     * Sends the member DID registration request for this security server through the proxy
+     * to the management service, as an owner-signed X-Road message.
+     *
+     * @param memberDids the DID of each served member, in the order the results are expected
+     * @return {@code ANSWERED} with the central server request id and one record per entry,
+     * or {@code SEND_FAILURE} with the cause
+     */
+    public MemberDidRegistrationSendOutcome sendMemberDidRegisterRequest(Map<ClientId.Conf, String> memberDids)
+            throws GlobalConfOutdatedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            MemberDidRegResponse response = sender.sendMemberDidRegRequest(currentSecurityServerId.getServerId(), memberDids);
+            if (response.requestId() == null) {
+                return MemberDidRegistrationSendOutcome.sendFailure(
+                        new IllegalStateException("Response carries no request id"));
+            }
+            var entries = response.results().stream()
+                    .map(r -> new MemberDidRegistrationSendOutcome.Entry(r.member(), r.status(), r.reason()))
+                    .toList();
+            return MemberDidRegistrationSendOutcome.answered(response.requestId(), entries);
+        } catch (XrdRuntimeException e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            return MemberDidRegistrationSendOutcome.sendFailure(e);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            return MemberDidRegistrationSendOutcome.sendFailure(e);
         }
     }
 

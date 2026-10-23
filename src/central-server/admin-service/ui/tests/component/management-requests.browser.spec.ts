@@ -450,7 +450,7 @@ describe('0900 — CS Management Requests — detail page renders client registr
   });
 });
 
-describe('0900 — CS Management Requests — system DID registration row shows its own label (Browser Mode)', () => {
+describe('0900 — CS Management Requests — DID registration rows show their own labels (Browser Mode)', () => {
   it('a SYSTEM_DID_REGISTRATION_REQUEST row is labelled Register system DID', async () => {
     const systemDidRequest: ManagementRequestListView = {
       ...waitingRequest,
@@ -470,5 +470,26 @@ describe('0900 — CS Management Requests — system DID registration row shows 
     const table = page.getByTestId('management-requests-table');
     await expect.element(table).toBeVisible();
     await expect.element(table.getByText('Register system DID').first()).toBeVisible();
+  });
+
+  it('a MEMBER_DID_REGISTRATION_REQUEST row is labelled Register member DIDs', async () => {
+    const memberDidRequest: ManagementRequestListView = {
+      ...waitingRequest,
+      id: 304,
+      type: 'MEMBER_DID_REGISTRATION_REQUEST',
+    };
+
+    await renderRoute(MR_LIST_PATH, {
+      permissions: basePermissions,
+      msw: [
+        specHttp.get('/management-requests', ({ response }) =>
+          response(200).json(singleItemPage(memberDidRequest) as never),
+        ),
+      ],
+    });
+
+    const table = page.getByTestId('management-requests-table');
+    await expect.element(table).toBeVisible();
+    await expect.element(table.getByText('Register member DIDs').first()).toBeVisible();
   });
 });

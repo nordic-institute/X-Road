@@ -56,8 +56,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_DUPLICAT
 @RequiredArgsConstructor
 public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationService {
 
-    static final String RESOLVER_UNAVAILABLE = "RESOLVER_UNAVAILABLE";
-
     private final DidResolutionService didResolutionService;
     private final ManagementRequestService managementRequestService;
 
@@ -92,9 +90,9 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
             var entry = entries.get(i);
             var resolution = i < resolutions.size() ? resolutions.get(i) : null;
             if (resolution == null || !entry.did().equals(resolution.did())) {
-                settled.put(i, notResolved(entry, RESOLVER_UNAVAILABLE));
+                settled.put(i, notResolved(entry, SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE));
             } else if (resolution.outcome() != DidResolutionOutcome.RESOLVED) {
-                var reason = resolution.reason() == null ? RESOLVER_UNAVAILABLE : resolution.reason().name();
+                var reason = resolution.reason() == null ? SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE : resolution.reason().name();
                 settled.put(i, notResolved(entry, reason));
             }
         }
@@ -104,7 +102,7 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
     private static Map<Integer, Result> allNotResolved(List<Entry> entries) {
         var settled = new LinkedHashMap<Integer, Result>();
         for (int i = 0; i < entries.size(); i++) {
-            settled.put(i, notResolved(entries.get(i), RESOLVER_UNAVAILABLE));
+            settled.put(i, notResolved(entries.get(i), SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE));
         }
         return settled;
     }

@@ -55,8 +55,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MemberDidRegistrationRequestHandler implements RequestHandler<MemberDidRegistrationRequest> {
 
-    static final String OWNER_CHANGED = "OWNER_CHANGED";
-
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final RequestRepository<MemberDidRegistrationRequestEntity> memberDidRegistrationRequests;
     private final SecurityServerRepository servers;
@@ -72,7 +70,8 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
     public MemberDidRegistrationRequest add(MemberDidRegistrationRequest request) {
         return servers.lockForUpdateBy(request.getSecurityServerId())
                 .map(serverRowId -> writeOnceAndRecord(serverRowId, request))
-                .orElseGet(() -> request.setResults(answerAll(request.getEntries(), Status.FIXABLE_CONFLICT, OWNER_CHANGED)));
+                .orElseGet(() -> request.setResults(
+                        answerAll(request.getEntries(), Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED)));
     }
 
     @Override

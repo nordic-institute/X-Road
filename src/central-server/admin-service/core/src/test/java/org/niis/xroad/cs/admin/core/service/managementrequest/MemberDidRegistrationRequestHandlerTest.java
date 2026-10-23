@@ -191,9 +191,9 @@ class MemberDidRegistrationRequestHandlerTest {
         var result = handler.add(request);
 
         assertThat(result.getResults()).containsExactly(
-                new Result(MEMBER_1, Status.FIXABLE_CONFLICT, MemberDidRegistrationRequestHandler.OWNER_CHANGED),
-                new Result(MEMBER_2, Status.FIXABLE_CONFLICT, MemberDidRegistrationRequestHandler.OWNER_CHANGED),
-                new Result(MEMBER_3, Status.FIXABLE_CONFLICT, MemberDidRegistrationRequestHandler.OWNER_CHANGED));
+                new Result(MEMBER_1, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
+                new Result(MEMBER_2, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
+                new Result(MEMBER_3, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED));
         verify(participantValueStore, never()).writeMemberDidsOnce(anyInt(), anyMap());
         verify(memberDidRegistrationRequests, never()).save(any());
         verify(serverIds, never()).findOne(any());

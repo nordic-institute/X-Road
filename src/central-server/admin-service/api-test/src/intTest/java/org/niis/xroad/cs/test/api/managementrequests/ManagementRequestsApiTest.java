@@ -41,6 +41,8 @@ import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationEntryDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
@@ -69,6 +71,7 @@ class ManagementRequestsApiTest extends CsApiTest {
 
     private static final String MEMBER_CLASS = CsBaselineSeeder.BASELINE_MEMBER_CLASS;
     private static final String SSMR32_ADDRESS = "security-server-address-ssmr32";
+    private static final String SSMR35_ADDRESS = "security-server-address-ssmr35";
     private static final String OWNERS_GROUP = "security-server-owners";
 
     @Test
@@ -1522,6 +1525,71 @@ class ManagementRequestsApiTest extends CsApiTest {
                         .statusCode(400)
                         .body("error.code", equalTo("management_request_did_not_resolved"))
                         .body("error.metadata", hasItem("RESOLVER_UNAVAILABLE")));
+    }
+
+    @Test
+    void memberDidRegistrationFromCenterOriginIsForbidden(CsBaselineSeeder seeder) throws Exception {
+        var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
+        var client = new ManagementRequestsAdminClient(msSession);
+        var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr33:ssmr33";
+
+        Step.then("CENTER origin is refused", () ->
+                client.addManagementRequest(memberDidRegistration(serverId,
+                        ManagementRequestOriginDto.CENTER)).statusCode(403));
+    }
+
+    @Test
+    void memberDidRegistrationByOtherRoleIsForbidden(CsBaselineSeeder seeder) throws Exception {
+        var roSession = Step.given("registration officer session opened", seeder::newRegistrationOfficerSession);
+        var client = new ManagementRequestsAdminClient(roSession);
+        var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr34:ssmr34";
+
+        Step.then("non management service role is refused", () ->
+                client.addManagementRequest(memberDidRegistration(serverId,
+                        ManagementRequestOriginDto.CENTER)).statusCode(403));
+    }
+
+    @Test
+    void memberDidRegistrationFromSecurityServerIsAnsweredNotResolved(CsBaselineSeeder seeder) throws Exception {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr35", MEMBER_CLASS));
+        var serverId = memberId + ":ssmr35";
+        var cert = seeder.generateCertForServer(serverId);
+
+        var regId = Step.given("auth cert registration posted", () ->
+                postAuthCertReg(new ManagementRequestsAdminClient(session), cert, serverId,
+                        SSMR35_ADDRESS, ManagementRequestOriginDto.SECURITY_SERVER));
+        Step.given("auth cert registration approved", () ->
+                new ManagementRequestsAdminClient(session).approveRequest(regId).statusCode(200));
+
+        Step.then("guard passes and the unreachable resolver leaves the entry not resolved", () ->
+                new ManagementRequestsAdminClient(msSession)
+                        .addManagementRequest(memberDidRegistration(serverId,
+                                ManagementRequestOriginDto.SECURITY_SERVER, memberId))
+                        .statusCode(202)
+                        .body("results", hasSize(1))
+                        .body("results[0].member_id", equalTo(memberId))
+                        .body("results[0].status", equalTo("NOT_RESOLVED"))
+                        .body("results[0].reason", equalTo("RESOLVER_UNAVAILABLE")));
+    }
+
+    private MemberDidRegistrationRequestDto memberDidRegistration(String serverId,
+                                                                  ManagementRequestOriginDto origin) {
+        return memberDidRegistration(serverId, origin, INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr33");
+    }
+
+    private MemberDidRegistrationRequestDto memberDidRegistration(String serverId,
+                                                                  ManagementRequestOriginDto origin,
+                                                                  String memberId) {
+        var req = new MemberDidRegistrationRequestDto()
+                .addEntriesItem(new MemberDidRegistrationEntryDto()
+                        .memberId(memberId)
+                        .did("did:web:member.example.org:v1:member"));
+        req.setType(ManagementRequestTypeDto.MEMBER_DID_REGISTRATION_REQUEST);
+        req.setOrigin(origin);
+        req.setSecurityServerId(serverId);
+        return req;
     }
 
     private SystemDidRegistrationRequestDto systemDidRegistration(String serverId, byte[] cert,
