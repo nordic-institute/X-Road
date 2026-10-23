@@ -172,12 +172,13 @@ class LegacyCallRefusalPolicyTest {
     }
 
     @Test
-    void consumerCallCheckRefusesWhenGlobalConfCannotBeRead() {
+    void consumerCallCheckPropagatesUnexpectedSettingReadError() {
+        var unexpected = new IllegalStateException("unreadable");
         when(proxyProperties.legacyProtocolDisabled()).thenReturn(false);
-        when(globalConfProvider.isLegacyProtocolDisabled(FEDERATED_INSTANCE))
-                .thenThrow(new IllegalStateException("unreadable"));
+        when(globalConfProvider.isLegacyProtocolDisabled(FEDERATED_INSTANCE)).thenThrow(unexpected);
 
         assertThatThrownBy(() -> policy.checkConsumerCallAllowed(FEDERATED_SERVICE))
-                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(LEGACY_CALL_REFUSED)).isTrue());
+                .isSameAs(unexpected)
+                .isNotInstanceOf(XrdRuntimeException.class);
     }
 }
