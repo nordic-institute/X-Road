@@ -48,14 +48,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockingDetails;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TaskPollExecutorTest {
@@ -69,11 +75,16 @@ class TaskPollExecutorTest {
     private final Monitor monitor = mock();
     private final ExecutorInstrumentation instrumentation = mock();
     private final Clock clock = Clock.systemUTC();
+    private final ProcessLock processLock = mock();
     private TaskPollExecutor pollExecutor;
 
     @BeforeEach
     void setUp() {
         when(instrumentation.instrument(any(), anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(processLock.tryLockContractNegotiation(any())).thenReturn(true);
+        lenient().when(processLock.tryLockTransferProcess(any())).thenReturn(true);
+        lenient().when(processLock.contractNegotiationExists(any())).thenReturn(true);
+        lenient().when(processLock.transferProcessExists(any())).thenReturn(true);
 
         pollExecutor = newPollExecutor(SINGLE_WORKER);
     }
@@ -87,7 +98,8 @@ class TaskPollExecutorTest {
                 taskStore,
                 transactionContext,
                 monitor,
-                clock
+                clock,
+                processLock
         );
     }
 
@@ -106,6 +118,159 @@ class TaskPollExecutorTest {
     @AfterEach
     void tearDown() {
         pollExecutor.stop();
+    }
+
+    @Test
+    void negotiationTaskLocksTheNegotiationProcessBeforeHandling() {
+        var task = negotiationTask("negotiation-lock-check");
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(processLock).tryLockContractNegotiation(eq("negotiation-lock-check"))
+        );
+    }
+
+    @Test
+    void transferTaskLocksTheTransferProcessBeforeHandling() {
+        var payload = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-lock-check")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(transferProcessTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(processLock).tryLockTransferProcess(eq("transfer-lock-check"))
+        );
+    }
+
+    @Test
+    void lockIsAcquiredBeforeTheHandlerRuns() {
+        var task = negotiationTask("negotiation-lock-order");
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.success());
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(contractNegotiationTaskExecutor).handle(any())
+        );
+        var inOrder = inOrder(processLock, contractNegotiationTaskExecutor);
+        inOrder.verify(processLock).tryLockContractNegotiation(eq("negotiation-lock-order"));
+        inOrder.verify(contractNegotiationTaskExecutor).handle(any());
+    }
+
+    @Test
+    void missingNegotiationProcessIsDroppedAsStaleWithoutInvokingTheHandler() {
+        var task = negotiationTask("negotiation-missing");
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.contractNegotiationExists("negotiation-missing")).thenReturn(false);
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).delete(task.getId())
+        );
+        verifyNoInteractions(contractNegotiationTaskExecutor);
+        verify(taskStore, never()).update(any());
+    }
+
+    @Test
+    void missingTransferProcessIsDroppedAsStaleWithoutInvokingTheHandler() {
+        var payload = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-missing")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.transferProcessExists("transfer-missing")).thenReturn(false);
+
+        pollExecutor.start();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).delete(task.getId())
+        );
+        verifyNoInteractions(transferProcessTaskExecutor);
+        verify(taskStore, never()).update(any());
+    }
+
+    @Test
+    void busyNegotiationProcessIsRequeuedAtThePollDelayWithRetryCountUnchangedWithoutInvokingTheHandler() {
+        var task = negotiationTask("negotiation-busy").toBuilder().retryCount(2).build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.tryLockContractNegotiation("negotiation-busy")).thenReturn(false);
+        var beforeStart = clock.millis();
+
+        pollExecutor.start();
+
+        var captor = forClass(Task.class);
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).update(captor.capture())
+        );
+        var requeued = captor.getValue();
+        assertThat(requeued.getId()).isEqualTo(task.getId());
+        assertThat(requeued.getRetryCount()).isEqualTo(2);
+        assertThat(requeued.getAt()).isGreaterThanOrEqualTo(beforeStart + 90);
+        verifyNoInteractions(contractNegotiationTaskExecutor);
+        verify(taskStore, never()).delete(any());
+    }
+
+    @Test
+    void busyTransferProcessIsRequeuedAtThePollDelayWithRetryCountUnchangedWithoutInvokingTheHandler() {
+        var payload = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-busy")
+                .processState(100)
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .retryCount(2)
+                .build();
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of());
+        when(processLock.tryLockTransferProcess("transfer-busy")).thenReturn(false);
+        var beforeStart = clock.millis();
+
+        pollExecutor.start();
+
+        var captor = forClass(Task.class);
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
+                verify(taskStore).update(captor.capture())
+        );
+        var requeued = captor.getValue();
+        assertThat(requeued.getId()).isEqualTo(task.getId());
+        assertThat(requeued.getRetryCount()).isEqualTo(2);
+        assertThat(requeued.getAt()).isGreaterThanOrEqualTo(beforeStart + 90);
+        verifyNoInteractions(transferProcessTaskExecutor);
+        verify(taskStore, never()).delete(any());
     }
 
     @Test

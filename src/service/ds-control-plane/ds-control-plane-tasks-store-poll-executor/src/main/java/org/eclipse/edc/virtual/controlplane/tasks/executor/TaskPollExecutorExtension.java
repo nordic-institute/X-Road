@@ -19,10 +19,12 @@ import org.eclipse.edc.controlplane.tasks.store.TaskStore;
 import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 
@@ -40,6 +42,13 @@ public class TaskPollExecutorExtension implements ServiceExtension {
     private TransferProcessTaskExecutor transferProcessTaskExecutor;
     @Inject
     private ContractNegotiationTaskExecutor contractNegotiationTaskExecutor;
+    @Inject
+    private DataSourceRegistry dataSourceRegistry;
+
+    @Setting(description = "The datasource the task store uses; the process lock must run on this connection so it is "
+            + "released with the task transaction",
+            defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.tasks.datasource")
+    private String taskDataSourceName;
 
     @Configuration
     private TaskPollConfig taskPollConfig;
@@ -54,9 +63,10 @@ public class TaskPollExecutorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var processLock = new ProcessLock(dataSourceRegistry, taskDataSourceName);
         executor = new TaskPollExecutor(taskPollConfig, resolveWorkerCount(context, monitor), executorInstrumentation,
                 contractNegotiationTaskExecutor, transferProcessTaskExecutor,
-                taskStore, transactionContext, monitor, clock);
+                taskStore, transactionContext, monitor, clock, processLock);
     }
 
     @Override
