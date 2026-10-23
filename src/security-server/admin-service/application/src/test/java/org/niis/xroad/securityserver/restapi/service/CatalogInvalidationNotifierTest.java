@@ -32,8 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.concurrent.CountDownLatch;
@@ -44,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,17 +52,14 @@ class CatalogInvalidationNotifierTest {
     @Mock
     private ControlPlaneProvisioningClient controlPlaneProvisioningClient;
     @Mock
-    private AdminServiceProperties adminServiceProperties;
-    @Mock
-    private Dataspace dataspace;
+    private DataspaceReadinessPredicates readinessPredicates;
 
     private CatalogInvalidationNotifier notifier;
 
     @BeforeEach
     void setUp() {
-        lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         notifier = new CatalogInvalidationNotifier(
-                controlPlaneProvisioningClient, adminServiceProperties, MoreExecutors.newDirectExecutorService());
+                controlPlaneProvisioningClient, readinessPredicates, MoreExecutors.newDirectExecutorService());
     }
 
     @AfterEach
@@ -76,8 +70,8 @@ class CatalogInvalidationNotifierTest {
     }
 
     @Test
-    void invalidateCatalogCachesCallsControlPlaneWhenDataspaceEnabledAndNoTransactionActive() {
-        when(dataspace.isEnabled()).thenReturn(true);
+    void invalidateCatalogCachesCallsControlPlaneWhenReadyAndNoTransactionActive() {
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
 
         notifier.invalidateCatalogCaches();
 
@@ -85,8 +79,8 @@ class CatalogInvalidationNotifierTest {
     }
 
     @Test
-    void invalidateCatalogCachesIsNoOpWhenDataspaceDisabled() {
-        when(dataspace.isEnabled()).thenReturn(false);
+    void invalidateCatalogCachesIsNoOpWhenNotReady() {
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
 
         notifier.invalidateCatalogCaches();
 
@@ -94,8 +88,19 @@ class CatalogInvalidationNotifierTest {
     }
 
     @Test
+    void invalidateCatalogCachesIsNoOpWhenNotReadyInsideTransaction() {
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+        TransactionSynchronizationManager.initSynchronization();
+
+        notifier.invalidateCatalogCaches();
+
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
+        verify(controlPlaneProvisioningClient, never()).invalidateCatalogCaches();
+    }
+
+    @Test
     void invalidateCatalogCachesSwallowsAndLogsFailure() {
-        when(dataspace.isEnabled()).thenReturn(true);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         doThrow(new RuntimeException("control plane unreachable"))
                 .when(controlPlaneProvisioningClient).invalidateCatalogCaches();
 
@@ -104,7 +109,7 @@ class CatalogInvalidationNotifierTest {
 
     @Test
     void invalidateCatalogCachesDefersCallUntilTransactionCommitsWhenTransactionActive() {
-        when(dataspace.isEnabled()).thenReturn(true);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         TransactionSynchronizationManager.initSynchronization();
 
         notifier.invalidateCatalogCaches();
@@ -117,7 +122,7 @@ class CatalogInvalidationNotifierTest {
 
     @Test
     void invalidateCatalogCachesNeverCallsControlPlaneWhenTransactionRollsBack() {
-        when(dataspace.isEnabled()).thenReturn(true);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         TransactionSynchronizationManager.initSynchronization();
 
         notifier.invalidateCatalogCaches();
@@ -130,7 +135,7 @@ class CatalogInvalidationNotifierTest {
 
     @Test
     void invalidateCatalogCachesRunsOffTheCallerThreadWithTheRealExecutor() throws Exception {
-        when(dataspace.isEnabled()).thenReturn(true);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         var callingThread = new AtomicReference<Thread>();
         var called = new CountDownLatch(1);
         doAnswer(invocation -> {
@@ -138,7 +143,7 @@ class CatalogInvalidationNotifierTest {
             called.countDown();
             return null;
         }).when(controlPlaneProvisioningClient).invalidateCatalogCaches();
-        var realNotifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, adminServiceProperties);
+        var realNotifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, readinessPredicates);
         try {
             realNotifier.invalidateCatalogCaches();
 
@@ -158,8 +163,8 @@ class CatalogInvalidationNotifierTest {
 
     @Test
     void invalidateCatalogCachesIsBestEffortAfterShutdown() {
-        when(dataspace.isEnabled()).thenReturn(true);
-        var realNotifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, adminServiceProperties);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+        var realNotifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, readinessPredicates);
         realNotifier.destroy();
 
         assertThatCode(realNotifier::invalidateCatalogCaches)
