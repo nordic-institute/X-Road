@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.0.4    
+Version: 1.0.5    
 Doc. ID: PR-REST
 
 ---
@@ -22,6 +22,7 @@ Doc. ID: PR-REST
 | 27.05.2022 | 1.0.2   | <ul><li>Added `X-Road-Represented-Party` extension header to 4.3</li><li>Updated `X-Road-Client` header description in 4.3</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Petteri Kivimäki                                                                                       |
 | 15.06.2023 | 1.0.3   | Stricter identifier character restrictions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa                                                                                          |
 | 17.03.2025 | 1.0.4   | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Pauline Dimmek                                                                                         | 
+| 23.10.2026 | 1.0.5   | Added the `client.legacy_call_refused` error to 4.6 Error handling                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Ričardas Bučiūnas                                                                                      |
 
 ## License
 
@@ -568,6 +569,15 @@ When the error occurs on the Security Server, the Security Server implementation
 specified by the consumer information system and return the X-Road error response using the suggested content type,
 defaulting to `application/json`. Additionally, the Security Server MUST include `Content-Type` header in the response
 to indicate the media type of the response.
+
+The following error is returned by the consumer Security Server when it refuses to make a call.
+
+| HTTP status | `X-Road-Error` header and `type` field | Meaning |
+|:------------|:---------------------------------------|:--------|
+| 400         | `client.legacy_call_refused`           | The call would be made without negotiation (unnegotiated call), but legacy calls are refused, either by the setting of the consumer Security Server or by the setting published for the provider's X-Road instance. Nothing is sent to the provider Security Server. |
+
+This error differs from `server.serverproxy.agreement_token_rejected`, which the provider Security Server returns when
+it rejects a request without a valid agreement token.
 
 #### Example 1 (Category 1)
 

@@ -70,8 +70,8 @@ public class LegacyCallRefusalPolicy {
     }
 
     /**
-     * Fails an unnegotiated call this server, acting as service consumer, must not make. When the setting cannot
-     * be read the call is refused as well.
+     * Fails an unnegotiated call this server, acting as service consumer, must not make. An unexpected error while
+     * checking the settings refuses the call as well.
      *
      * @param service the service being called
      * @throws XrdRuntimeException with code {@code LEGACY_CALL_REFUSED} when the call is refused

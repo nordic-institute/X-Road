@@ -61,7 +61,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED
 
 /**
  * Proves, through a real client proxy and server proxy, that a consumer whose local setting refuses legacy calls
- * fails an unnegotiated SOAP call itself with a {@code Client.*} fault and sends nothing to the provider, while the
+ * fails an unnegotiated SOAP call itself with a {@code client.legacy_call_refused} fault and sends nothing to the provider, while the
  * same call is served when no setting refuses. Also proves that, without a local refusal, the call follows the
  * {@code legacyProtocolDisabled} value of the provider's instance and not that of the consumer's own instance, and
  * that a change of the global configuration applies to the next call. Kept out of {@code testsuite.testcases} so that

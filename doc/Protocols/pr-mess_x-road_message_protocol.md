@@ -1,8 +1,8 @@
 # X-Road: Message Protocol v4.0
 **Technical Specification**
 
-Version: 4.0.25  
-15.06.2023  
+Version: 4.0.26  
+23.10.2026  
 Doc. ID: PR-MESS
 
 ---
@@ -36,6 +36,7 @@ Doc. ID: PR-MESS
 | 17.04.2023 | 4.0.23  | Remove central services support                                                                 | Justas Samuolis           |
 | 10.05.2023 | 4.0.24  | Security Categories removed.                                                                    | Justas Samuolis           |
 | 15.06.2023 | 4.0.25  | Stricter identifier character restrictions                                                      | Madis Loitmaa             |
+| 23.10.2026 | 4.0.26  | Added the `client.legacy_call_refused` fault to [2.5 Fault Messages](#25-fault-messages)        | Ričardas Bučiūnas         |
 
 ## License
 
@@ -302,6 +303,14 @@ Additionally, MTOM-encoded \[[MTOM](#Ref_MTOM)\] messages are supported in the s
 ### 2.5 Fault Messages
 
 For technical errors the security server must return a SOAP Fault message \[[SOAP](#Ref_SOAP)\]. The SOAP Fault message contains the information about the error, such as error code, error message etc. The SOAP Fault MAY contain X-Road Headers and it MAY be described in the service WSDL.
+
+The following fault is returned by the consumer Security Server when it refuses to make a call.
+
+| Fault code                  | Meaning                                                                                                                                                                                                                                                                                   |
+|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `client.legacy_call_refused` | The call would be made without negotiation (unnegotiated call), but legacy calls are refused, either by the setting of the consumer Security Server or by the setting published for the provider's X-Road instance. Nothing is sent to the provider Security Server. |
+
+This fault differs from `server.serverproxy.agreement_token_rejected`, which the provider Security Server returns when it rejects a request without a valid agreement token.
 
 
 ### 2.6 Character Encoding
