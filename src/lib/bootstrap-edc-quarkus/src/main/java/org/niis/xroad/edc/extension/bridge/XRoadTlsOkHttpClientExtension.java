@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.bridge;
 
 import dev.failsafe.RetryPolicy;
+import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -35,6 +36,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.edc.trust.ConnectorTlsCaTrustManagerLoader;
 import org.niis.xroad.edc.trust.ConnectorTlsCompositeTrustManager;
@@ -58,6 +60,10 @@ import java.time.Duration;
  * connection — DID resolution, STS/OAuth2, DSP dispatch, credential and status-list fetches, and EDC's own
  * OpenBao vault client — shares, so it is also the only place trust needs replacing. The JVM default trust store
  * is never merged in, and the member {@code approvedCA} list is never consulted.
+ *
+ * <p>It is also the only place that sets the client's concurrent-request limits: the {@link Dispatcher}'s
+ * {@code maxRequestsPerHost} comes from {@link DspConfigKeys#OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST}, and
+ * {@code maxRequests} is raised to match it when the configured per-host limit exceeds the dispatcher default.
  *
  * <p>The {@code @Inject RetryPolicy} field forces EDC's dependency resolver to run this extension after
  * {@code RuntimeDefaultCoreServicesExtension}, whose {@code @Provider OkHttpClient} would otherwise be the last
@@ -123,7 +129,7 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
                         RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor,
                         initial.failure());
 
-        return buildClient(trustManager);
+        return buildClient(trustManager, resolveMaxRequestsPerHost(context, monitor));
     }
 
     @Override
@@ -156,16 +162,32 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
         }
     }
 
-    private static OkHttpClient buildClient(X509ExtendedTrustManager trustManager) {
+    private static OkHttpClient buildClient(X509ExtendedTrustManager trustManager, int maxRequestsPerHost) {
         try {
             var sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[] {trustManager}, null);
+            var dispatcher = new Dispatcher();
+            dispatcher.setMaxRequestsPerHost(maxRequestsPerHost);
+            dispatcher.setMaxRequests(Math.max(dispatcher.getMaxRequests(), maxRequestsPerHost));
             return new OkHttpClient.Builder()
                     .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
+                    .dispatcher(dispatcher)
                     .build();
         } catch (GeneralSecurityException e) {
             throw new EdcException("Failed to initialize the DataSpace outbound TLS trust context", e);
         }
+    }
+
+    private static int resolveMaxRequestsPerHost(ServiceExtensionContext context, Monitor monitor) {
+        var key = DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST;
+        int defaultValue = key.convertedDefaultValue();
+        int configuredValue = context.getSetting(key.key(), defaultValue);
+        if (configuredValue < 1) {
+            monitor.warning("%s: %s must be at least 1, got %d; using %d"
+                    .formatted(NAME, key.key(), configuredValue, defaultValue));
+            return defaultValue;
+        }
+        return configuredValue;
     }
 
     private record InitialLoad(PeriodicMaterialReloader.Loaded<X509ExtendedTrustManager> loaded, String failure) {

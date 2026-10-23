@@ -97,6 +97,14 @@ class DspConfigKeysTest {
     }
 
     @Test
+    void outboundHttpMaxRequestsPerHostRejectsLessThanOneAndAcceptsDefault() {
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.validate(0).valid()).isFalse();
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.validate(-1).valid()).isFalse();
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.validate(1).valid()).isTrue();
+        assertThat(DspConfigKeys.OUTBOUND_HTTP_MAX_REQUESTS_PER_HOST.convertedDefaultValue()).isEqualTo(8);
+    }
+
+    @Test
     void serverProxyUrlRejectsBlank() {
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate("").valid()).isFalse();
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate(null).valid()).isFalse();
@@ -128,7 +136,8 @@ class DspConfigKeysTest {
                         "xroad.dsp.builtin-services.server-proxy-url",
                         "xroad.dsp.issuer-trust.refresh-interval-seconds",
                         "xroad.dsp.did-resolution.fetch-timeout-ms",
-                        "xroad.dsp.task-poll.workers");
+                        "xroad.dsp.task-poll.workers",
+                        "xroad.dsp.outbound-http.max-requests-per-host");
     }
 
     @Test

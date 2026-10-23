@@ -198,6 +198,31 @@ class XRoadTlsOkHttpClientExtensionTest {
     }
 
     @Test
+    void withNoConfiguredValueTheDispatcherUsesTheDefaultPerHostLimitAndMaxRequestsIsAtLeastThat() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.dispatcher().getMaxRequestsPerHost()).isEqualTo(8);
+        assertThat(client.dispatcher().getMaxRequests()).isGreaterThanOrEqualTo(8);
+    }
+
+    @Test
+    void aConfiguredValueReachesTheDispatcherAndMaxRequestsIsNeverBelowIt() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        lenient().when(context.getSetting("xroad.dsp.outbound-http.max-requests-per-host", 8)).thenReturn(200);
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.dispatcher().getMaxRequestsPerHost()).isEqualTo(200);
+        assertThat(client.dispatcher().getMaxRequests()).isGreaterThanOrEqualTo(200);
+    }
+
+    @Test
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));
@@ -222,6 +247,9 @@ class XRoadTlsOkHttpClientExtensionTest {
         // caller's own default) rather than Mockito's zero-value default, which would otherwise hand
         // PeriodicMaterialReloader.schedule a zero-second interval and blow up scheduleWithFixedDelay.
         lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyLong()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
+        // Same reasoning as the anyLong() stub above, for the int-typed per-host limit setting.
+        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
                 .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
