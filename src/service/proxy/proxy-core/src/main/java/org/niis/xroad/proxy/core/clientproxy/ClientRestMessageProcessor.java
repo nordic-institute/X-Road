@@ -69,6 +69,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.CachingStream;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
@@ -122,6 +123,7 @@ public class ClientRestMessageProcessor {
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     /**
      * Processes a REST message exchange described by the given request context.
@@ -280,6 +282,10 @@ public class ClientRestMessageProcessor {
                 && entity != null && entity.isReplayable();
     }
 
+    void checkUnnegotiatedCallAllowed(ServiceId requestServiceId) {
+        legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
+    }
+
     void sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
                              RestRequest restRequest, ServiceId requestServiceId, String xRequestId,
                              ProxyRequestContext ctx) throws Exception {
@@ -295,6 +301,7 @@ public class ClientRestMessageProcessor {
         } else {
             addresses = clientRequestPreparationService.prepareRequest(
                     httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
+            checkUnnegotiatedCallAllowed(requestServiceId);
         }
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);

@@ -366,7 +366,10 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     AGREEMENT_TOKEN_SIGNING_FAILED("agreement_token_signing_failed"),
     AGREEMENT_TOKEN_KEY_STORE_FAILED("agreement_token_key_store_failed"),
     AGREEMENT_TOKEN_KEY_GENERATION_FAILED("agreement_token_key_generation_failed"),
-    AGREEMENT_TOKEN_REJECTED("agreement_token_rejected");
+    AGREEMENT_TOKEN_REJECTED("agreement_token_rejected"),
+
+    // ===== LEGACY CALL REFUSAL ERRORS =====
+    LEGACY_CALL_REFUSED("legacy_call_refused");
 
     private final String code;
 

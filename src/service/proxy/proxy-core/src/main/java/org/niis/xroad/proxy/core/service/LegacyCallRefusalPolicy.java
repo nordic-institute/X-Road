@@ -26,10 +26,17 @@
  */
 package org.niis.xroad.proxy.core.service;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 
 /**
  * Answers whether this Security Server refuses calls that carry no agreement token. Refusal is in force when the
@@ -37,6 +44,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
  * wins. The instance value is read from the global configuration on every call, so a refresh takes effect
  * without a restart.
  */
+@Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class LegacyCallRefusalPolicy {
@@ -59,5 +67,29 @@ public class LegacyCallRefusalPolicy {
     public boolean refusedAsConsumer(String providerInstance) {
         return proxyProperties.legacyProtocolDisabled()
                 || globalConfProvider.isLegacyProtocolDisabled(providerInstance);
+    }
+
+    /**
+     * Fails an unnegotiated call this server, acting as service consumer, must not make. When the setting cannot
+     * be read the call is refused as well.
+     *
+     * @param service the service being called
+     * @throws XrdRuntimeException with code {@code LEGACY_CALL_REFUSED} when the call is refused
+     */
+    public void checkConsumerCallAllowed(ServiceId service) {
+        boolean refused;
+        try {
+            refused = refusedAsConsumer(service.getXRoadInstance());
+        } catch (RuntimeException e) {
+            log.warn("could not read whether legacy calls are refused; refusing the call: service={}", service, e);
+            refused = true;
+        }
+        if (refused) {
+            throw XrdRuntimeException.systemException(LEGACY_CALL_REFUSED)
+                    .details(("Call to %s is refused because it is not negotiated and legacy calls are refused by "
+                            + "the Security Server setting or by the provider instance setting").formatted(service))
+                    .origin(ErrorOrigin.CLIENT)
+                    .build();
+        }
     }
 }

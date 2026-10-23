@@ -258,7 +258,8 @@ public abstract class AbstractProxyIntegrationTest {
                 clientVerificationServiceClient, opMonitoringDataHelperClient,
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
-                CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService);
+                CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService,
+                new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),
