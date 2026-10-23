@@ -35,6 +35,7 @@ import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionReque
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
@@ -43,6 +44,7 @@ import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequ
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
@@ -176,4 +178,17 @@ class RequestMapperTest {
         assertThat(((SystemDidRegistrationRequest) result).getCertificate()).isNull();
     }
 
+    @Test
+    void shouldMapMemberDidRegistrationRequestEntityWithServerTypeAndOriginOnly() {
+        var source = new MemberDidRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY);
+
+        var result = mapper.toTarget(source);
+
+        assertThat(result).isExactlyInstanceOf(MemberDidRegistrationRequest.class);
+        assertThat(result.getOrigin()).isEqualTo(Origin.SECURITY_SERVER);
+        assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.MEMBER_DID_REGISTRATION_REQUEST);
+        assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
+        assertThat(((MemberDidRegistrationRequest) result).getEntries()).isEmpty();
+        assertThat(((MemberDidRegistrationRequest) result).getResults()).isEmpty();
+    }
 }

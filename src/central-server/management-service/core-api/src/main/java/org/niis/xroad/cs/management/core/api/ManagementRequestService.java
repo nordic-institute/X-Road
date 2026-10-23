@@ -26,9 +26,15 @@
  */
 package org.niis.xroad.cs.management.core.api;
 
+import org.niis.xroad.common.managementrequest.ResponsePayload;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 public interface ManagementRequestService {
-    Integer addManagementRequest(Object request, ManagementRequestType requestType);
+
+    /**
+     * Adds the request and returns what the SOAP response carries: the request id and, for types
+     * that answer with a payload, the elements appended after it.
+     */
+    ResponsePayload addManagementRequestWithPayload(Object request, ManagementRequestType requestType);
 
 }

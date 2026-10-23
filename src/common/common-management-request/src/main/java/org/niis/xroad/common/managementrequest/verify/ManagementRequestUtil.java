@@ -27,7 +27,9 @@ package org.niis.xroad.common.managementrequest.verify;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.request.MemberDidRegResultType;
 
+import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPElement;
 import jakarta.xml.soap.SOAPException;
@@ -40,6 +42,7 @@ import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import javax.xml.namespace.QName;
 
 import java.io.IOException;
+import java.util.List;
 
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
@@ -52,6 +55,7 @@ import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
 public final class ManagementRequestUtil {
 
     public static final QName REQUEST_ID = new QName(NS_XROAD, "requestId", PREFIX_XROAD);
+    private static final QName MEMBER_DID_REG_RESULT = new QName(NS_XROAD, "result", PREFIX_XROAD);
 
     /**
      * Converts the given management request to a response, adding the specified
@@ -64,6 +68,54 @@ public final class ManagementRequestUtil {
     @ArchUnitSuppressed("NoVanillaExceptions")
     public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId) throws SOAPException, JAXBException, IOException {
         return SoapUtils.toResponse(request, soap -> addRequestId(requestId, soap));
+    }
+
+    /**
+     * Converts the given management request to a response, adding the specified request ID
+     * and appending the given elements after it.
+     *
+     * @param request   the request SOAP message
+     * @param requestId the request ID
+     * @param elements  elements appended to the response content after the request ID
+     * @return the response SOAP message
+     */
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId, List<JAXBElement<?>> elements)
+            throws SOAPException, JAXBException, IOException {
+        return SoapUtils.toResponse(request, soap -> {
+            addRequestId(requestId, soap);
+            appendElements(elements, soap);
+        });
+    }
+
+    /**
+     * Wraps a member DID registration result for appending to the response.
+     *
+     * @param result the result
+     * @return the result element
+     */
+    public static JAXBElement<MemberDidRegResultType> memberDidRegResult(MemberDidRegResultType result) {
+        return new JAXBElement<>(MEMBER_DID_REG_RESULT, MemberDidRegResultType.class, result);
+    }
+
+    private static void appendElements(List<JAXBElement<?>> elements, SOAPMessage soap) throws SOAPException {
+        if (elements.isEmpty()) {
+            return;
+        }
+        SOAPElement firstChild = SoapUtils.getFirstChild(soap.getSOAPBody());
+
+        if (firstChild == null) {
+            return;
+        }
+
+        try {
+            var marshaller = ManagementRequestParser.jaxbContext().createMarshaller();
+            for (JAXBElement<?> element : elements) {
+                marshaller.marshal(element, firstChild);
+            }
+        } catch (JAXBException e) {
+            throw new SOAPException("Failed to marshal response elements", e);
+        }
     }
 
     private static void addRequestId(int requestId, SOAPMessage soap) throws SOAPException {

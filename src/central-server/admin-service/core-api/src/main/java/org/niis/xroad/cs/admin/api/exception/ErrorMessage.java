@@ -74,6 +74,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     MR_DID_FINAL_CONFLICT("management_request_did_final_conflict"),
     MR_DID_FIXABLE_CONFLICT("management_request_did_fixable_conflict"),
     MR_DID_NOT_RESOLVED("management_request_did_not_resolved"),
+    MR_DID_DUPLICATE_MEMBER("management_request_did_duplicate_member"),
 
     INVALID_SERVICE_PROVIDER_ID("invalid_service_provider_id"),
     INVALID_MEMBER_ID("invalid_member_id"),

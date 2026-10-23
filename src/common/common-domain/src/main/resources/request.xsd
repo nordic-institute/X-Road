@@ -15,6 +15,8 @@
     <element name="ownerChange" type="tns:ClientRequestType"/>
     <element name="addressChange" type="tns:AddressChangeRequestType"/>
     <element name="systemDidReg" type="tns:SystemDidRegRequestType"/>
+    <element name="memberDidReg" type="tns:MemberDidRegRequestType"/>
+    <element name="memberDidRegResponse" type="tns:MemberDidRegResponseType"/>
     <element name="maintenanceModeEnable" type="tns:MaintenanceModeEnableRequestType"/>
     <element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
 
@@ -191,6 +193,55 @@
                 </annotation>
             </element>
             <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="MemberDidRegRequestType">
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security server the member DIDs belong to.</documentation>
+                </annotation>
+            </element>
+            <element name="entry" type="tns:MemberDidRegEntryType" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>A member served by the security server and the DID minted for it.</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="MemberDidRegEntryType">
+        <sequence>
+            <element name="member" type="id:XRoadClientIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the member.</documentation>
+                </annotation>
+            </element>
+            <element name="did" type="string">
+                <annotation>
+                    <documentation>Dataspace identifier (DID) of the member.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="MemberDidRegResponseType">
+        <complexContent>
+            <extension base="tns:MemberDidRegRequestType">
+                <sequence>
+                    <element name="result" type="tns:MemberDidRegResultType" minOccurs="0" maxOccurs="unbounded">
+                        <annotation>
+                            <documentation>Outcome of one entry, in request order.</documentation>
+                        </annotation>
+                    </element>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+    <complexType name="MemberDidRegResultType">
+        <sequence>
+            <element name="member" type="id:XRoadClientIdentifierType"/>
+            <element name="status" type="string"/>
+            <element name="reason" type="string" minOccurs="0"/>
         </sequence>
     </complexType>
     <complexType name="MaintenanceModeEnableRequestType">
