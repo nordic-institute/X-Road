@@ -1482,9 +1482,10 @@ class ManagementRequestsApiTest extends CsApiTest {
         var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
         var client = new ManagementRequestsAdminClient(msSession);
         var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr30:ssmr30";
+        var cert = seeder.generateCertForServer(serverId);
 
         Step.then("CENTER origin is refused", () ->
-                client.addManagementRequest(systemDidRegistration(serverId, new byte[] {1},
+                client.addManagementRequest(systemDidRegistration(serverId, cert,
                         ManagementRequestOriginDto.CENTER)).statusCode(403));
     }
 
@@ -1493,9 +1494,10 @@ class ManagementRequestsApiTest extends CsApiTest {
         var roSession = Step.given("registration officer session opened", seeder::newRegistrationOfficerSession);
         var client = new ManagementRequestsAdminClient(roSession);
         var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr31:ssmr31";
+        var cert = seeder.generateCertForServer(serverId);
 
         Step.then("non management service role is refused", () ->
-                client.addManagementRequest(systemDidRegistration(serverId, new byte[] {1},
+                client.addManagementRequest(systemDidRegistration(serverId, cert,
                         ManagementRequestOriginDto.SECURITY_SERVER)).statusCode(403));
     }
 
