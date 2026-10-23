@@ -1198,6 +1198,7 @@
           "proxy": {
             "admin-port": "Port on which the proxy exposes its admin interface.",
             "ssl-enabled": "If true, TLS is used for connections between the service client's and service provider's security servers.",
+            "legacy-protocol-disabled": "If true, this Security Server refuses X-Road 7 legacy calls: as a service provider it refuses access-checked requests without a valid agreement token. The instance setting published in the global configuration can also turn refusal on; this setting never lifts it.",
             "health-check-port": "The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.",
             "health-check-interface": "The network interface where the health check service listens to requests. Default is all available interfaces.",
             "hsm-health-check-enabled": "When enabled, the health-check endpoint also verifies HSM availability.",

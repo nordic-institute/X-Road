@@ -41,8 +41,9 @@ jobs:
   # github-actions[bot]; that sync event has sender.login ==
   # 'github-actions[bot]' and runs Build on the fixed commit.
   # See gradle-dependency-verification.md.
-  # Draft PRs run only compile-check below; the full pipeline runs on non-draft
-  # events (ready_for_review re-triggers this workflow when a draft is marked ready).
+  # Draft PRs run only compile-check below (compile + Sonar analysis, no tests); the
+  # full pipeline runs on non-draft events (ready_for_review re-triggers this workflow
+  # when a draft is marked ready).
   build-and-package:
     name: build & package
     if: >
@@ -55,8 +56,8 @@ jobs:
       ref: ${{ github.ref }}
       sha: ${{ github.sha }}
 
-  # Same invocation as the "Build source" step of _build-and-package.yml, minus
-  # tests, packaging and images - a fast signal for drafts off the 8c runner.
+  # Compiles and runs SonarCloud analysis for drafts, without tests, coverage,
+  # packaging or images - a fast signal off the 8c runner.
   compile-check:
     name: compile check (draft)
     if: >
@@ -70,15 +71,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.ref }}
+          fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Setup build environment
         uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: true
 
-      - name: Compile source
+      - name: Cache SonarCloud packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Compile source and Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel -PsonarqubeHost=https://sonarcloud.io \
+          -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute sonar
 
   test-central-server:
     name: cs-tests

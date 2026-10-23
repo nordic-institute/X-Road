@@ -29,7 +29,11 @@ import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.net.IDN;
+import java.net.Inet6Address;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.OptionalInt;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -45,6 +49,17 @@ public class DidAuthority {
     public static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final int NON_ASCII_START = 0x80;
+    private static final int MIN_PORT = 1;
+    private static final int MAX_PORT = 65535;
+    private static final int MAX_PORT_DIGITS = 5;
+
+    /**
+     * @param text the text to check
+     * @return whether the text contains only ASCII characters
+     */
+    public static boolean isAscii(String text) {
+        return text.chars().allMatch(c -> c < NON_ASCII_START);
+    }
 
     /**
      * Checks that a registered address, as stored and before any conversion, contains only ASCII characters.
@@ -53,7 +68,7 @@ public class DidAuthority {
      * @throws XrdRuntimeException if the address contains a non-ASCII character
      */
     public static void requireAscii(String address) {
-        if (!address.chars().allMatch(c -> c < NON_ASCII_START)) {
+        if (!isAscii(address)) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR,
                     "address '%s' must contain only ASCII characters", address);
         }
@@ -65,8 +80,9 @@ public class DidAuthority {
      *
      * @param host a hostname, an IPv4 literal, or an IPv6 literal with or without brackets; never {@code host:port}
      * @return the canonical host
-     * @throws XrdRuntimeException if the host is blank, or is a name that cannot be converted to ASCII; an IPv6
-     *         literal is not validated
+     * @throws XrdRuntimeException if the host is blank, is a name that cannot be converted to ASCII, has a
+     *         character other than a letter, digit, {@code -} or {@code .} after conversion, is not a host that
+     *         {@link URI#getHost()} reads from an HTTPS URL, or contains a colon but is not a valid IPv6 literal
      */
     public static String canonicalHost(String host) {
         if (host == null || host.isBlank()) {
@@ -74,14 +90,24 @@ public class DidAuthority {
         }
         var lowerCase = host.toLowerCase(Locale.ROOT);
         if (lowerCase.indexOf(':') >= 0) {
-            return lowerCase.startsWith("[") ? lowerCase : "[" + lowerCase + "]";
+            return canonicalIpv6(host, lowerCase);
         }
+        String ascii;
         try {
-            return IDN.toASCII(lowerCase);
+            ascii = IDN.toASCII(lowerCase);
         } catch (IllegalArgumentException e) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR, "host '%s' is not a valid name: %s",
                     host, e.getMessage());
         }
+        if (!ascii.chars().allMatch(DidAuthority::isHostChar)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "host '%s' is not a valid name: it has a character that a host name cannot contain", host);
+        }
+        if (!isUriHost(ascii)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "host '%s' is not a valid name: it is not a host that an HTTPS URL can carry", host);
+        }
+        return ascii;
     }
 
     /**
@@ -96,5 +122,158 @@ public class DidAuthority {
     public static String canonical(String host, int port) {
         var canonicalHost = canonicalHost(host);
         return port == DEFAULT_HTTPS_PORT ? canonicalHost : canonicalHost + ":" + port;
+    }
+
+    /**
+     * An authority split into its host and optional port.
+     *
+     * @param host the host as written, case kept, without the brackets of an IPv6 literal
+     * @param port the explicit port, empty when the authority has none
+     */
+    public record Parsed(String host, OptionalInt port) {
+    }
+
+    /**
+     * Splits an authority, as the DID decoder returns it, into a host and an optional port. The forms are
+     * {@code host}, {@code host:port}, {@code [v6]} and {@code [v6]:port}; an IPv6 literal without brackets
+     * is taken as a host with no port. The host keeps its case and is not converted.
+     *
+     * @param authority the authority to split
+     * @return the host and the explicit port, if any
+     * @throws XrdRuntimeException if the host is empty, not ASCII or not valid as in
+     *         {@link #canonicalHost(String)}, the brackets are malformed, or the port is not a number from
+     *         {@value #MIN_PORT} to {@value #MAX_PORT}
+     */
+    public static Parsed parse(String authority) {
+        if (authority == null || authority.isEmpty()) {
+            throw emptyHost(authority);
+        }
+        var bracketed = authority.startsWith("[");
+        var parts = bracketed ? splitBracketed(authority) : splitUnbracketed(authority);
+        var host = parts.host();
+        var portText = parts.portText();
+        if (hasBracket(host) || (portText != null && hasBracket(portText))) {
+            throw malformedBrackets(authority, "has a bracket that does not enclose the whole host");
+        }
+        if (host.isEmpty()) {
+            throw emptyHost(authority);
+        }
+        requireAscii(host);
+        if (bracketed && !isIpv6Literal(host)) {
+            throw malformedBrackets(authority, "does not enclose an IPv6 literal");
+        }
+        canonicalHost(host);
+        return new Parsed(host, portText == null ? OptionalInt.empty() : OptionalInt.of(parsePort(authority, portText)));
+    }
+
+    /**
+     * Whether an authority is already in canonical form: it equals {@link #canonical(String, int)} of its own
+     * parsed host and port, with a missing port read as {@value #DEFAULT_HTTPS_PORT}. An authority that cannot
+     * be parsed is not canonical.
+     *
+     * @param authority the authority to check, e.g. as decoded from a DID
+     * @return {@code true} if the authority needs no conversion
+     */
+    public static boolean isCanonical(String authority) {
+        try {
+            var parsed = parse(authority);
+            return authority.equals(canonical(parsed.host(), parsed.port().orElse(DEFAULT_HTTPS_PORT)));
+        } catch (XrdRuntimeException _) {
+            return false;
+        }
+    }
+
+    private static String canonicalIpv6(String host, String lowerCase) {
+        var bracketed = lowerCase.startsWith("[") && lowerCase.endsWith("]");
+        var literal = bracketed ? lowerCase.substring(1, lowerCase.length() - 1) : lowerCase;
+        if (!isIpv6Literal(literal)) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR, "host '%s' is not a valid IPv6 literal", host);
+        }
+        return "[" + literal + "]";
+    }
+
+    private static boolean isIpv6Literal(String literal) {
+        if (literal.indexOf('%') >= 0 || hasBracket(literal)) {
+            return false;
+        }
+        try {
+            Inet6Address.ofLiteral(literal);
+            return true;
+        } catch (IllegalArgumentException _) {
+            return false;
+        }
+    }
+
+    /**
+     * Whether {@link URI#getHost()} reads a host from an HTTPS URL that carries the given ASCII text as its
+     * authority. This is the single rule for what an HTTPS URL can carry as a host: it rejects, for example,
+     * an IPv6 literal without brackets.
+     *
+     * @param authority an ASCII host, or host and port
+     * @return {@code true} if the authority has a server-based host
+     */
+    public static boolean isUriHost(String authority) {
+        try {
+            return new URI("https://" + authority).getHost() != null;
+        } catch (URISyntaxException _) {
+            return false;
+        }
+    }
+
+    private record HostAndPortText(String host, String portText) {
+    }
+
+    private static HostAndPortText splitBracketed(String authority) {
+        int close = authority.indexOf(']');
+        if (close < 0) {
+            throw malformedBrackets(authority, "has no closing bracket");
+        }
+        var host = authority.substring(1, close);
+        var rest = authority.substring(close + 1);
+        if (rest.isEmpty()) {
+            return new HostAndPortText(host, null);
+        }
+        if (rest.charAt(0) != ':') {
+            throw malformedBrackets(authority, "has text after the closing bracket that is not a port");
+        }
+        return new HostAndPortText(host, rest.substring(1));
+    }
+
+    private static HostAndPortText splitUnbracketed(String authority) {
+        int colon = authority.indexOf(':');
+        if (colon != authority.lastIndexOf(':')) {
+            return new HostAndPortText(authority, null);
+        }
+        return colon < 0
+                ? new HostAndPortText(authority, null)
+                : new HostAndPortText(authority.substring(0, colon), authority.substring(colon + 1));
+    }
+
+    private static boolean isHostChar(int c) {
+        return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.';
+    }
+
+    private static boolean hasBracket(String text) {
+        return text.indexOf('[') >= 0 || text.indexOf(']') >= 0;
+    }
+
+    private static int parsePort(String authority, String portText) {
+        boolean digits = !portText.isEmpty() && portText.length() <= MAX_PORT_DIGITS
+                && portText.chars().allMatch(c -> c >= '0' && c <= '9');
+        int port = digits ? Integer.parseInt(portText) : -1;
+        if (port < MIN_PORT || port > MAX_PORT) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "authority '%s' has port '%s' outside %d to %d", authority, portText, MIN_PORT, MAX_PORT);
+        }
+        return port;
+    }
+
+    private static XrdRuntimeException emptyHost(String authority) {
+        return XrdRuntimeException.systemException(VALIDATION_ERROR, "authority '%s' has an empty host", authority);
+    }
+
+    private static XrdRuntimeException malformedBrackets(String authority, String problem) {
+        return XrdRuntimeException.systemException(VALIDATION_ERROR, "authority '%s' has malformed brackets: it %s",
+                authority, problem);
     }
 }

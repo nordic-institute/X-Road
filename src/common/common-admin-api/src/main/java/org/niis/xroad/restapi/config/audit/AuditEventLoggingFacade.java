@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.config.audit;
 
+import java.util.Map;
+
 public interface AuditEventLoggingFacade {
     /**
      * Audit log an current request bound event success, if there is any event.
@@ -77,6 +79,16 @@ public interface AuditEventLoggingFacade {
      * @param ex           exception to log
      */
     void auditLogFail(RestApiAuditEvent defaultEvent, Exception ex);
+
+    /**
+     * Audit log a failure of a specific event with a given reason and given data.
+     * Neither reads nor changes the request bound event or the request bound event data.
+     *
+     * @param event  event to log
+     * @param reason failure reason to log
+     * @param data   event data to log
+     */
+    void auditLogFailWithData(RestApiAuditEvent event, String reason, Map<RestApiAuditProperty, Object> data);
 
     /**
      * Whether any of given events have been logged for this request. False if not in request scope.

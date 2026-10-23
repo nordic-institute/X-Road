@@ -238,6 +238,24 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     @Test
+    void shouldRoundTripLegacyProtocolDisabled() {
+        var xml = marshallWithLegacyProtocolDisabled(true);
+
+        assertThat(xml).contains("<legacyProtocolDisabled>true</legacyProtocolDisabled>");
+        var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
+        assertThat(afterMarshalling.getGlobalSettings().isLegacyProtocolDisabled()).isTrue();
+    }
+
+    @Test
+    void shouldOmitLegacyProtocolDisabledWhenNotDisabled() {
+        var xml = marshallWithLegacyProtocolDisabled(false);
+
+        assertThat(xml).doesNotContain("legacyProtocolDisabled");
+        var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
+        assertThat(afterMarshalling.getGlobalSettings().isLegacyProtocolDisabled()).isFalse();
+    }
+
+    @Test
     void shouldWriteAndReadBackXrdAdr44Example() {
         var sharedParameters = xrdAdr44Example();
         var xmlType = SharedParametersV7ToXmlConverter.INSTANCE.convert(sharedParameters);
@@ -261,6 +279,22 @@ class SharedParametersV7ToXmlConverterTest {
                 .usingRecursiveComparison()
                 .isEqualTo(sharedParameters);
         assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void shouldRoundTripFourThousandCharacterMemberDid() {
+        var sharedParameters = xrdAdr44Example();
+        var member = sharedParameters.getMembers().getFirst();
+        var serverId = SecurityServerId.Conf.create(member.getId(), "ss0");
+        var longDid = ("did:web:ss0.example.org%3A7183:v1:DEV:COM:222:" + "a".repeat(4000)).substring(0, 4000);
+        assertThat(longDid).hasSize(4000);
+        member.setDids(Map.of(serverId, longDid));
+
+        var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
+        var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
+
+        assertThat(afterMarshalling.getMembers().getFirst().getDids()).containsExactly(entry(serverId, longDid));
+        assertThat(afterMarshalling).usingRecursiveComparison().isEqualTo(sharedParameters);
     }
 
     @Test
@@ -332,7 +366,7 @@ class SharedParametersV7ToXmlConverterTest {
                 "https://ss0.example.org:8183/api/dsp"));
 
         return new SharedParameters("DEV", getConfigurationSources(), List.of(), List.of(), List.of(), List.of(),
-                List.of(member), List.of(server), List.of(), new SharedParameters.GlobalSettings(List.of(), 60));
+                List.of(member), List.of(server), List.of(), new SharedParameters.GlobalSettings(List.of(), 60, false));
     }
 
     private static int idIndex(String id) {
@@ -351,11 +385,19 @@ class SharedParametersV7ToXmlConverterTest {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(getConfigurationSources());
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
         sharedParamsBuilder.credentialIssuerDids(credentialIssuerDids);
         var xml = new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
         return afterMarshalling.getCredentialIssuerDids();
+    }
+
+    private static String marshallWithLegacyProtocolDisabled(boolean legacyProtocolDisabled) {
+        var sharedParamsBuilder = SharedParameters.builder();
+        sharedParamsBuilder.instanceIdentifier("CS");
+        sharedParamsBuilder.sources(getConfigurationSources());
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, legacyProtocolDisabled));
+        return new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
     }
 
     private static SharedParameters minimalSharedParameters(
@@ -363,7 +405,7 @@ class SharedParametersV7ToXmlConverterTest {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
         sharedParamsBuilder.sources(getConfigurationSources());
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60, false));
         sharedParamsBuilder.approvedConnectorTlsCAs(approvedConnectorTlsCAs);
         return sharedParamsBuilder.build();
     }
@@ -410,7 +452,7 @@ class SharedParametersV7ToXmlConverterTest {
                 List.of(getApprovedConnectorTlsCA()), getCredentialIssuerDids(), getMembers(), List.of(getSecurityServer()),
                 List.of(new SharedParameters.GlobalGroup("group-code",
                 "group-description", List.of(subsystemId(memberId(), "SUB1")))),
-                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
+                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333, true));
     }
 
     private static List<String> getCredentialIssuerDids() {

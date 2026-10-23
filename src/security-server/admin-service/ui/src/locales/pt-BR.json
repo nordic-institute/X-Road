@@ -19,6 +19,20 @@
     "enable": "Ativar",
     "order": "Ordenar"
   },
+  "agreementTokenKey": {
+    "createdAt": "Criada",
+    "createdAtUnknown": "Desconhecida",
+    "description": "A chave de assinatura de tokens de acordo assina os tokens que este Servidor de Segurança emite para a troca de dados em um espaço de dados. Rotacionar a chave gera uma nova chave. As chaves anteriores são mantidas para que os tokens assinados com elas continuem válidos até expirarem.",
+    "keyId": "ID da chave de assinatura",
+    "pending": "Uma nova chave ({keyId}) está aguardando para começar a assinar.",
+    "previousKeys": "Chaves anteriores mantidas",
+    "rotate": "Rotacionar chave",
+    "rotateConfirmText": "Os tokens já emitidos continuam funcionando até expirarem. A nova chave começa a assinar em até dois intervalos de atualização de chaves.",
+    "rotateConfirmTitle": "Rotacionar a chave de assinatura de tokens de acordo?",
+    "rotated": "A chave de assinatura de tokens de acordo foi rotacionada",
+    "title": "Chave de assinatura de tokens de acordo",
+    "unavailable": "A chave de assinatura não está disponível. O proxy ainda não carregou nenhuma chave de assinatura, portanto a chave não pode ser rotacionada."
+  },
   "alert": {
     "warningCount": "Quantidade de alertas iguais"
   },
@@ -441,7 +455,12 @@
           },
           "UnknownService": "Serviço desconhecido"
         }
-      }
+      },
+      "agreement_token_key_generation_failed": "Falha ao gerar a chave de assinatura de tokens de acordo",
+      "agreement_token_key_not_available": "A chave de assinatura de tokens de acordo não está disponível. O proxy ainda não carregou nenhuma chave de assinatura",
+      "agreement_token_key_store_failed": "Não foi possível salvar a chave de assinatura de tokens de acordo no armazenamento de segredos. Tente novamente mais tarde",
+      "agreement_token_rejected": "O token de acordo foi rejeitado",
+      "agreement_token_signing_failed": "Falha ao assinar o token de acordo"
     },
     "csr_not_found": "CSR não encontrado",
     "diagnostic_request_failed": "Falha na solicitação de diagnóstico",
@@ -1401,7 +1420,8 @@
       "apiKey": "Chaves de API",
       "opMonitorTrust": "Confiança do Monitoramento Operacional",
       "signAndAuthKeys": "Chaves SIGN e AUTH",
-      "ssTlsCertificate": "Chave TLS do Servidor Seguro"
+      "ssTlsCertificate": "Chave TLS do Servidor Seguro",
+      "agreementTokenKey": "Chave de Tokens de Acordo"
     },
     "main": {
       "clients": "Clientes",

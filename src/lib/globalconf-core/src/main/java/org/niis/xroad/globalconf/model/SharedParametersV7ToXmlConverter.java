@@ -82,6 +82,7 @@ abstract class SharedParametersV7ToXmlConverter {
     abstract SharedParametersTypeV7 convert(SharedParameters sharedParameters, @Context ReferenceTargets targets);
 
     @Mapping(source = "memberClasses", target = "memberClass")
+    @Mapping(source = "legacyProtocolDisabled", target = "legacyProtocolDisabled", qualifiedByName = "trueOrNull")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
 
     @Mapping(source = "internalVerificationCerts", target = "internalVerificationCert")
@@ -139,6 +140,11 @@ abstract class SharedParametersV7ToXmlConverter {
             return maintenanceMode;
         }
         return null;
+    }
+
+    @Named("trueOrNull")
+    Boolean trueOrNull(boolean value) {
+        return value ? Boolean.TRUE : null;
     }
 
     @Named("clientById")

@@ -226,6 +226,32 @@ public class ParticipantIdentifierScheme {
                 did, SCHEME_VERSION, MEMBER_SEGMENT_COUNT, payload.length);
     }
 
+    /**
+     * Rewrites the percent-escapes of a DID to the canonical encoding: hex digits in uppercase, and an
+     * escape of a character that canonical encoding leaves unescaped replaced by that character. Text that is
+     * not a well-formed escape is left as it is, so the result still fails to decode when the DID is
+     * malformed in another way. Use it to tell a DID whose only defect is its escaping from one that cannot
+     * be decoded at all.
+     *
+     * @param did a DID in wire form
+     * @return the DID with canonical percent-escapes; equal to the argument when it already has them
+     */
+    public static String canonicalPercentEncoding(String did) {
+        var canonical = new StringBuilder(did.length());
+        int i = 0;
+        while (i < did.length()) {
+            int value = did.charAt(i) == '%' ? escapedValue(did, i) : -1;
+            if (value < 0) {
+                canonical.append(did.charAt(i));
+                i++;
+            } else {
+                canonical.append(isUnreserved(value) ? String.valueOf((char) value) : "%%%02X".formatted(value));
+                i += 1 + PERCENT_ESCAPE_HEX_LENGTH;
+            }
+        }
+        return canonical.toString();
+    }
+
     private static Did didOf(String ssHost, String payload) {
         return Did.of(DID_METHOD,
                 hostDid(ssHost).methodSpecificId() + SEGMENT_SEPARATOR + SCHEME_VERSION + SEGMENT_SEPARATOR + payload);
@@ -339,6 +365,19 @@ public class ParticipantIdentifierScheme {
                 || (c >= 'a' && c <= 'z')
                 || (c >= '0' && c <= '9')
                 || c == '.' || c == '-' || c == '_';
+    }
+
+    private static int escapedValue(String text, int percentIndex) {
+        if (percentIndex + PERCENT_ESCAPE_HEX_LENGTH >= text.length()) {
+            return -1;
+        }
+        int hi = hexDigit(text.charAt(percentIndex + 1));
+        int lo = hexDigit(text.charAt(percentIndex + 2));
+        return hi < 0 || lo < 0 ? -1 : hi * HEX_RADIX + lo;
+    }
+
+    private static int hexDigit(char c) {
+        return upperHexDigit(Character.toUpperCase(c));
     }
 
     private static int upperHexDigit(char c) {

@@ -65,6 +65,8 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     public static final String DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC = "Security server owners";
     public static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
     public static final Integer DEFAULT_OCSP_FRESHNESS_SECONDS = 3600;
+    public static final String LEGACY_PROTOCOL_DISABLED = "legacyProtocolDisabled";
+    public static final boolean DEFAULT_LEGACY_PROTOCOL_DISABLED = false;
     public static final String TIME_STAMPING_INTERVAL_SECONDS = "timeStampingIntervalSeconds";
     public static final Integer DEFAULT_TIME_STAMPING_INTERVAL_SECONDS = 60;
 
@@ -103,6 +105,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     @Override
     public String getInstanceIdentifier() {
         return getParameterValue(INSTANCE_IDENTIFIER, "");
+    }
+
+    @Override
+    public String getIssuerServiceHost() {
+        return getParameterValue(ISSUER_SERVICE_HOST);
     }
 
     @Override
@@ -157,6 +164,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     }
 
     @Override
+    public boolean isLegacyProtocolDisabled() {
+        return getParameterValue(LEGACY_PROTOCOL_DISABLED, DEFAULT_LEGACY_PROTOCOL_DISABLED, Boolean::parseBoolean);
+    }
+
+    @Override
     public ClientId getManagementServiceProviderId() {
         var providerClass = getParameterValue(MANAGEMENT_SERVICE_PROVIDER_CLASS);
         var providerCode = getParameterValue(MANAGEMENT_SERVICE_PROVIDER_CODE);
@@ -173,6 +185,10 @@ public class SystemParameterServiceImpl implements SystemParameterService {
 
     @Override
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
+        if (!isNodeLocalParameter(lookupKey)) {
+            systemParameterRepository.lockKeyForWrite(lookupKey);
+        }
+
         Optional<SystemParameterEntity> systemParameter =
                 getSystemParameterOptional(lookupKey);
 

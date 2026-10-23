@@ -74,6 +74,8 @@ public class DataspaceDidAuthority {
     /**
      * @return the authority as {@code host:port}, as embedded in derived DIDs
      * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not a valid host
+     *                             name or IPv6 literal
      */
     public String current() {
         return find().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
@@ -84,8 +86,9 @@ public class DataspaceDidAuthority {
     /**
      * @param member the X-Road member identifier
      * @return the member's freshly derived DID for the current authority
+     * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
      * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded, or
-     *                             the registered address is not ASCII
+     *                             the registered address is not ASCII or not a valid host name or IPv6 literal
      */
     public Did memberDid(ClientId member) {
         return ParticipantIdentifierScheme.memberDid(member, mintAuthority());
@@ -94,7 +97,8 @@ public class DataspaceDidAuthority {
     /**
      * @return the per-server SYSTEM DID freshly derived for the current authority
      * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII or not a
+     *                             valid host name or IPv6 literal
      */
     public Did systemDid() {
         return ParticipantIdentifierScheme.systemDid(mintAuthority());
@@ -118,7 +122,8 @@ public class DataspaceDidAuthority {
     /**
      * @return the DSP base URL of this server's control plane, built from the registered address and the
      *         stored DSP port ({@code xroad.dsp.dsp-port}); empty while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII or not a
+     *         valid host name or IPv6 literal
      */
     public Optional<String> dspBaseUrl() {
         var dspPort = adminServiceProperties.getDataspace().getDspPort();

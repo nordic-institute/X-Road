@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -39,7 +40,21 @@ import java.util.Optional;
 public interface JpaSystemParameterRepository extends CrudRepository<SystemParameterEntity, String>,
         SystemParameterRepository {
 
+    /**
+     * First integer of the two-integer {@code pg_advisory_xact_lock} key used for system-parameter write
+     * locks. Two-integer advisory keys never collide with single-bigint advisory keys.
+     */
+    int SYSTEM_PARAMETER_LOCK_NAMESPACE = 0x53505241;
+
     Optional<SystemParameterEntity> findByKeyAndHaNodeName(String key, String haNodeName);
 
     List<SystemParameterEntity> findByKey(String key);
+
+    @Override
+    default void lockKeyForWrite(String key) {
+        lockKeyForWrite(SYSTEM_PARAMETER_LOCK_NAMESPACE, key.hashCode());
+    }
+
+    @Query(value = "SELECT pg_advisory_xact_lock(:namespace, :keyHash)", nativeQuery = true)
+    void lockKeyForWrite(int namespace, int keyHash);
 }

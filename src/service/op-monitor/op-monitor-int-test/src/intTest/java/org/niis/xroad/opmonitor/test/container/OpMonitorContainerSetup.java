@@ -39,6 +39,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Browserless op-monitor test stack: the op-monitor service and its own PostgreSQL database, seeded via
@@ -60,6 +61,7 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
     private static final String DB_OP_MONITOR = "db-opmonitor";
     private static final String DB_OP_MONITOR_INIT = "db-opmonitor-init";
     private static final int DB_OP_MONITOR_PORT = 5432;
+    private static final int QUARKUS_HEALTH_PORT = 4099;
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
     private OpMonitorClient opMonitorClient;
@@ -138,6 +140,21 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
     public int probeFromInside(int port) {
         return execInContainer(OP_MONITOR, "curl", "-s", "-o", "/dev/null", "--max-time", "2",
                 "http://127.0.0.1:" + port + "/q/health/live").getExitCode();
+    }
+
+    /**
+     * Returns the readiness endpoint response body of op-monitor, read from inside its container.
+     */
+    public String readinessResponse() {
+        return execInContainer(OP_MONITOR, "curl", "-s", "--max-time", "2",
+                "http://127.0.0.1:" + QUARKUS_HEALTH_PORT + "/q/health/ready").getStdout();
+    }
+
+    /**
+     * Returns the regular files under a directory inside the op-monitor container; empty when the directory is absent.
+     */
+    public List<String> filesInOpMonitor(String directory) {
+        return execInContainer(OP_MONITOR, "find", directory, "-type", "f").getStdout().lines().toList();
     }
 
     /**

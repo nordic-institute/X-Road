@@ -51,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jaxb.runtime.api.AccessorException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.xml.sax.SAXException;
 import tools.jackson.databind.ObjectWriter;
 
@@ -93,10 +94,11 @@ abstract class QueryRequestHandler {
      * @param out                 the output stream for writing the response
      * @param contentTypeCallback function to call when response content type
      *                            is available (before writing to output stream)
+     * @param accessScope         the access scope the proxy decided for the query
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
     abstract void handle(SoapMessageImpl requestSoap, OutputStream out,
-                         Consumer<String> contentTypeCallback) throws Exception;
+                         Consumer<String> contentTypeCallback, AccessScope accessScope) throws Exception;
 
     private static JAXBContext initJaxbCtx() {
         try {

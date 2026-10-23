@@ -1,6 +1,6 @@
 # X-Road: Use Case Model for Operational Monitoring Daemon <!-- omit in toc -->
 
-Version: 0.11  
+Version: 0.12  
 Doc. ID: UC-OPMON
 
 | Date       | Version | Description                                                           | Author           |
@@ -12,6 +12,7 @@ Doc. ID: UC-OPMON
 | 12.12.2019 | 0.9     | Update the document with refactored fields                            | Ilkka Seppälä    |
 | 01.06.2023 | 0.10    | Update references                                                     | Petteri Kivimäki |
 | 11.11.2025 | 0.11    | Drop JMX interfaces                                                   | Justas Samuolis  |
+| 22.10.2026 | 0.12    | Operational monitoring daemon needs no global configuration           | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
     
@@ -182,7 +183,7 @@ The relationships between the actors and use cases are described in Figure 1.
     * the identifier of a client the operational data is requested about (optional);
     * the set of the requested operational data parameters (optional; parameters are described in UC MON_01 step 1; if not filled the response contains all listed parameters).
 2. System parses the request and verifies that the beginning of time interval of requested operational data is smaller than the end of the time interval.
-3. System verifies the request is coming from central monitoring client (defined in the global configuration). System queries requested operational data records of either one client that is specified in the search criteria of the request or all clients (if the client is not specified in the search criteria) according to the time interval given in the request.
+3. System verifies that the access scope sent by the security server is full view, which the security server sets when the request is coming from the central monitoring client. System queries requested operational data records of either one client that is specified in the search criteria of the request or all clients (if the client is not specified in the search criteria) according to the time interval given in the request.
 4. System composes the response including all operational data records from the given time interval.
 5. System replies with a response message.
 
@@ -222,7 +223,7 @@ The relationships between the actors and use cases are described in Figure 1.
 
   * 2f.2. Use case continues from step 5.
 
-3a. System verifies that the request is coming from the owner of the security server (the *clientId* included in the request corresponds to the security server owner identifier defined in the global configuration). System queries requested operational data records of either one client that is specified in the search criteria of the request or all clients (if the client is not specified in the search criteria) according to the time interval given in the request.
+3a. System verifies that the access scope sent by the security server is full view, which the security server sets when the request is coming from the owner of the security server. System queries requested operational data records of either one client that is specified in the search criteria of the request or all clients (if the client is not specified in the search criteria) according to the time interval given in the request.
 
   * 3a.1. Use case continues from step 4.
 
@@ -230,7 +231,7 @@ The relationships between the actors and use cases are described in Figure 1.
 
     * 3a.1b. Use case continues from step 5.
 
-3b. System verifies that the request is coming from a regular client and queries requested operational data associated with that client of either one client that is specified in the search criteria of the request or all clients (if the client is not specified in the search criteria) according to the time interval given in the request.
+3b. System verifies that the access scope sent by the security server is not full view, which the security server sets when the request is coming from a regular client, and queries requested operational data associated with that client of either one client that is specified in the search criteria of the request or all clients (if the client is not specified in the search criteria) according to the time interval given in the request.
 
   * 3b.1. System composes the response including only the operational data records associated with that client from the given time interval.
 

@@ -116,6 +116,12 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
     }
 
     @Override
+    public void auditLogFailWithData(RestApiAuditEvent event, String reason, Map<RestApiAuditProperty, Object> data) {
+        auditLogFailure(event, usernameHelper.getUsername(), requestHelper.getRequestSenderIPAddress(), reason,
+                convertPropertyMap(data));
+    }
+
+    @Override
     public boolean hasAlreadyLoggedForThisRequestAny(RestApiAuditEvent... events) {
         if (requestHelper.requestScopeIsAvailable()) {
             Set<RestApiAuditEvent> searchedEvents = Arrays.stream(events).collect(Collectors.toSet());

@@ -41,6 +41,7 @@ import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
@@ -117,13 +118,15 @@ public class OpMonitorClient extends AbstractRpcClient {
      * Sends a monitoring query to op-monitor as is. A SOAP fault built by op-monitor is part of the response.
      * @param soapQuery the SOAP query message
      * @param contentType the content type of the query message
+     * @param accessScope the access scope of the query, {@code ACCESS_SCOPE_UNSPECIFIED} to send none
      * @return the response message and its content type
      */
-    public QueryOperationalDataResp queryOperationalData(byte[] soapQuery, String contentType) {
+    public QueryOperationalDataResp queryOperationalData(byte[] soapQuery, String contentType, AccessScope accessScope) {
         return exec(() -> opMonitoringServiceBlockingStub.queryOperationalData(
                 QueryOperationalDataReq.newBuilder()
                         .setSoapQuery(ByteString.copyFrom(soapQuery))
                         .setContentType(contentType)
+                        .setAccessScope(accessScope)
                         .build()));
     }
 

@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import org.niis.xroad.opmonitor.api.AccessScope;
 
 import java.io.OutputStream;
 import java.util.Map.Entry;
@@ -86,7 +87,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
     @Override
     @ArchUnitSuppressed("NoVanillaExceptions")
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-                       Consumer<String> contentTypeCallback) throws Exception {
+                       Consumer<String> contentTypeCallback, AccessScope accessScope) throws Exception {
         log.trace("handle()");
 
         ClientId.Conf clientId = requestSoap.getClient();

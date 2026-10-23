@@ -26,7 +26,6 @@
 package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.SoapFault;
@@ -44,7 +43,7 @@ import com.codahale.metrics.MetricRegistry;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.w3c.dom.Element;
@@ -101,8 +100,7 @@ public class QueryRequestHandlerTest {
                 MimeTypes.TEXT_XML_UTF8, is);
         OpMonitorProperties opMonitorProperties = mock(OpMonitorProperties.class);
 
-        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(GlobalConfProvider.class),
-                mock(OperationalDataRecordManager.class), opMonitorProperties) {
+        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(OperationalDataRecordManager.class), opMonitorProperties) {
             @Override
             protected OperationalDataRecords getOperationalDataRecords(
                     ClientId filterByClient, long recordsFrom, long recordsTo,
@@ -112,14 +110,14 @@ public class QueryRequestHandlerTest {
             }
 
             @Override
-            protected ClientId getClientForFilter(ClientId clientId, SecurityServerId serverId) {
+            protected ClientId getClientForFilter(ClientId clientId, AccessScope accessScope) {
                 return null;
             }
         };
 
         OutputStream out = new ByteArrayOutputStream();
 
-        handler.handle(request, out, ct -> testContentType = ct);
+        handler.handle(request, out, ct -> testContentType = ct, AccessScope.ACCESS_SCOPE_UNSPECIFIED);
 
         String baseContentType = MimeUtils.getBaseContentType(testContentType);
         assertEquals(MimeTypes.MULTIPART_RELATED, baseContentType);
@@ -187,7 +185,7 @@ public class QueryRequestHandlerTest {
 
         OutputStream out = new ByteArrayOutputStream();
 
-        handler.handle(request, out, ct -> testContentType = ct);
+        handler.handle(request, out, ct -> testContentType = ct, AccessScope.ACCESS_SCOPE_UNSPECIFIED);
 
         String baseContentType = MimeUtils.getBaseContentType(testContentType);
         assertEquals(MimeTypes.TEXT_XML, baseContentType);
