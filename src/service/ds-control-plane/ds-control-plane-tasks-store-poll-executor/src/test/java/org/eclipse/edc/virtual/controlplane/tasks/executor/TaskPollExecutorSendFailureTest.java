@@ -100,6 +100,7 @@ class TaskPollExecutorSendFailureTest {
     private static final int CONFIGURED_SEND_RETRY_LIMIT = 1;
     private static final int MAX_SEND_RETRY_LIMIT_UNDER_POLLER_CAP = 3;
     private static final int POLLER_MAX_RETRY = 3;
+    private static final int SINGLE_WORKER = 1;
 
     private final Clock clock = Clock.systemUTC();
     private final List<Integer> savedNegotiationStates = new CopyOnWriteArrayList<>();
@@ -224,7 +225,7 @@ class TaskPollExecutorSendFailureTest {
 
     private void startPoller(ContractNegotiationTaskExecutor negotiationExecutor,
                              TransferProcessTaskExecutor transferExecutor, Monitor monitor) {
-        poller = new TaskPollExecutor(new TaskPollConfig(10, POLLER_MAX_RETRY), noopInstrumentation(),
+        poller = new TaskPollExecutor(new TaskPollConfig(10, POLLER_MAX_RETRY), SINGLE_WORKER, noopInstrumentation(),
                 negotiationExecutor, transferExecutor, taskStore, transactionContext, monitor, clock);
         poller.start();
     }

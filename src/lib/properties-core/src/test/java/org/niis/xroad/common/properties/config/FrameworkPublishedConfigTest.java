@@ -64,6 +64,7 @@ class FrameworkPublishedConfigTest {
             // the Issuer Service's application.yaml interpolates this into the did/issuance/statuslist
             // contexts' bind host
             "xroad.dataspace.issuer.listen-address",
+            "xroad.dsp.task-poll.workers",
             // Quarkus @LookupIfProperty bean gates (proxy messagelog beans + readiness check) and the
             // auxiliary-service @ConfigProperty reader resolve this from framework config
             "xroad.proxy.message-log.enabled",

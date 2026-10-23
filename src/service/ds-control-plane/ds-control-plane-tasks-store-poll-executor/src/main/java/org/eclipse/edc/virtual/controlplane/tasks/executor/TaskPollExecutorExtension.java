@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 
 import java.time.Clock;
 
@@ -53,7 +54,7 @@ public class TaskPollExecutorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        executor = new TaskPollExecutor(taskPollConfig, executorInstrumentation,
+        executor = new TaskPollExecutor(taskPollConfig, resolveWorkerCount(context, monitor), executorInstrumentation,
                 contractNegotiationTaskExecutor, transferProcessTaskExecutor,
                 taskStore, transactionContext, monitor, clock);
     }
@@ -68,5 +69,16 @@ public class TaskPollExecutorExtension implements ServiceExtension {
         executor.stop();
     }
 
+    static int resolveWorkerCount(ServiceExtensionContext context, Monitor monitor) {
+        var key = DspConfigKeys.TASK_POLL_WORKERS;
+        int defaultWorkers = key.convertedDefaultValue();
+        int configuredWorkers = context.getSetting(key.key(), defaultWorkers);
+        if (configuredWorkers < 1) {
+            monitor.warning("TaskPollExecutorExtension: %s must be at least 1, got %d; using %d"
+                    .formatted(key.key(), configuredWorkers, defaultWorkers));
+            return defaultWorkers;
+        }
+        return configuredWorkers;
+    }
 
 }

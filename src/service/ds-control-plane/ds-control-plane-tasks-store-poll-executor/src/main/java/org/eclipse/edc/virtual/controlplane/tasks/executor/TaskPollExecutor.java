@@ -29,11 +29,12 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.util.concurrent.ExecutorService;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.IntStream;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -47,9 +48,9 @@ public class TaskPollExecutor {
     private final TaskStore taskStore;
     private final TransactionContext transactionContext;
     private final Monitor monitor;
-    private final ScheduledExecutorService executor;
     private final Clock clock;
     private final AtomicBoolean active = new AtomicBoolean();
+    private final List<Worker> workers;
 
     private final QuerySpec query = QuerySpec.Builder.newInstance()
             .sortField("at")
@@ -58,7 +59,7 @@ public class TaskPollExecutor {
             .build();
 
 
-    public TaskPollExecutor(TaskPollConfig taskPollConfig, ExecutorInstrumentation instrumentation,
+    public TaskPollExecutor(TaskPollConfig taskPollConfig, int workerCount, ExecutorInstrumentation instrumentation,
                             ContractNegotiationTaskExecutor contractNegotiationTaskExecutor,
                             TransferProcessTaskExecutor transferProcessTaskExecutor, TaskStore taskStore,
                             TransactionContext transactionContext,
@@ -69,89 +70,121 @@ public class TaskPollExecutor {
         this.taskStore = taskStore;
         this.transactionContext = transactionContext;
         this.monitor = monitor;
+        this.clock = clock;
 
-        executor = instrumentation.instrument(
+        this.workers = IntStream.rangeClosed(1, workerCount)
+                .mapToObj(workerNumber -> newWorker(instrumentation, workerNumber))
+                .toList();
+    }
+
+    private static Worker newWorker(ExecutorInstrumentation instrumentation, int workerNumber) {
+        var name = "TaskPollExecutor-" + workerNumber;
+        var executor = instrumentation.instrument(
                 Executors.newSingleThreadScheduledExecutor(r -> {
                     var thread = Executors.defaultThreadFactory().newThread(r);
-                    thread.setName("TaskPollExecutor");
+                    thread.setName(name);
                     return thread;
-                }), "TaskPollExecutor");
-        this.clock = clock;
+                }), name);
+        return new Worker(name, executor);
     }
 
     /**
-     * Start the loop that will run processors until it's stopped
+     * Start every worker's loop; each will run processors until it's stopped
      *
-     * @return a future that will complete when the loop starts
+     * @return a future that will complete when the first worker's loop starts
      */
     public Future<?> start() {
         active.set(true);
-        return scheduleNextIterationIn(0L);
+        Future<?> firstFuture = null;
+        for (var worker : workers) {
+            var future = scheduleNextIterationIn(worker, 0L);
+            if (firstFuture == null) {
+                firstFuture = future;
+            }
+        }
+        return firstFuture;
     }
 
     @NotNull
-    private Future<?> scheduleNextIterationIn(long delayMillis) {
-        return executor.schedule(this::run, delayMillis, MILLISECONDS);
+    private Future<?> scheduleNextIterationIn(Worker worker, long delayMillis) {
+        return worker.executor().schedule(() -> run(worker), delayMillis, MILLISECONDS);
     }
 
     /**
-     * Stop the loop gracefully as suggested in the {@link ExecutorService} documentation
+     * Stop every worker's loop gracefully as suggested in the {@link java.util.concurrent.ExecutorService} documentation
      */
     public void stop() {
         active.set(false);
-        executor.shutdown();
+        workers.forEach(worker -> worker.executor().shutdown());
+        workers.forEach(this::awaitTermination);
+    }
 
+    private void awaitTermination(Worker worker) {
+        var executor = worker.executor();
         try {
             if (!executor.awaitTermination(taskPollConfig.shutdownTimeout(), SECONDS)) {
                 executor.shutdownNow();
                 if (!executor.awaitTermination(taskPollConfig.shutdownTimeout(), SECONDS)) {
-                    monitor.severe("StateMachineManager [%s] await termination timeout");
+                    monitor.severe("%s await termination timeout".formatted(worker.name()));
                 }
             }
         } catch (InterruptedException e) {
-            monitor.severe("TaskPollExecutor  await termination failed", e);
+            monitor.severe("%s await termination failed".formatted(worker.name()), e);
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-
     }
 
-    private void run() {
+    private void run(Worker worker) {
         if (active.get()) {
             transactionContext.execute(() -> {
+                var immediateRepoll = false;
                 try {
                     var tasks = taskStore.fetchForUpdate(query);
-                    for (var task : tasks) {
-                        executeTask(task);
+                    if (!tasks.isEmpty()) {
+                        immediateRepoll = true;
+                        for (var task : tasks) {
+                            if (!executeTask(task)) {
+                                immediateRepoll = false;
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     monitor.severe("TaskPollExecutor failed to process tasks", e);
+                    immediateRepoll = false;
                 } finally {
-                    scheduleNextIterationIn(100L);
+                    scheduleNextIterationIn(worker, immediateRepoll ? 0L : 100L);
                 }
             });
 
         }
     }
 
-    private void executeTask(Task task) {
+    /**
+     * @return {@code true} when the task reached a final state (succeeded, fatal error or retry cap),
+     *         {@code false} when it was re-queued for a transient-failure retry
+     */
+    private boolean executeTask(Task task) {
         var result = handleTask(task);
         if (result.succeeded()) {
             taskStore.delete(task.getId());
+            return true;
         } else {
             if (result.fatalError()) {
                 monitor.severe("Fatal error processing task " + task.getId() + ": " + result.getFailureDetail());
                 taskStore.delete(task.getId());
+                return true;
             } else {
                 if (task.getRetryCount() >= taskPollConfig.maxRetries()) {
                     monitor.severe("Task " + task.getId() + " reached max retry count of " + taskPollConfig.maxRetries()
                             + ". Dropping task. Last error: " + result.getFailureDetail());
                     taskStore.delete(task.getId());
-                    return;
+                    return true;
                 }
                 monitor.warning("Transient error processing task " + task.getId() + ": "
                         + result.getFailureDetail() + ". Will retry later.");
                 taskStore.update(task.toBuilder().at(clock.millis()).retryCount(task.getRetryCount() + 1).build());
+                return false;
             }
         }
     }
@@ -164,5 +197,8 @@ public class TaskPollExecutor {
         } else {
             return StatusResult.success();
         }
+    }
+
+    private record Worker(String name, ScheduledExecutorService executor) {
     }
 }
