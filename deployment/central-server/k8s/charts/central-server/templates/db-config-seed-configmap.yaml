@@ -4,8 +4,9 @@ ignored — cs-entrypoint.sh instead upserts /etc/xroad/db-config-seed/*.propert
 into the configuration_properties table at startup (later files win).
 - alt-names: without the namespace-qualified names, Jetty's SNI check rejects
   cross-namespace callers with an empty 400
-- issuer.host: the "localhost" default breaks credential issuance for any
-  out-of-pod caller
+The Issuer Service host is not seeded here: it is read from the shared
+Central Server database and set through PUT /issuer-service/host on the admin
+API, not from configuration.
 */}}
 {{- $cs := index .Values.services "central-server" }}
 {{- $replicas := 1 }}
@@ -22,5 +23,4 @@ metadata:
 data:
   90-k8s.properties: |
     xroad.management-service.tls.certificate-provisioning.alt-names={{ $svcFqdn }},{{ $svcFqdn }}.svc.cluster.local
-    xroad.dataspace.issuer.host={{ $svcFqdn }}
 {{- end }}

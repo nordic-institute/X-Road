@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.52  
+Version: 2.53  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -78,6 +78,7 @@ Doc. ID: UG-CS
 | 09.09.2025 | 2.50    | Add information about trust services                                                                                                                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki     |
 | 20.10.2025 | 2.51    | Add information about paid and free tsp and ocsp responders                                                                                                                                                                                                                                                                                                                                                                             | Mikk-Erik Bachmann   |
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
+| 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -108,6 +109,7 @@ Doc. ID: UG-CS
   - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
       - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+  - [4.5 Configuring the Issuer Service Host](#45-configuring-the-issuer-service-host)
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -501,6 +503,34 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 **ATTENTION!**
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
 - The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
+
+### 4.5 Configuring the Issuer Service Host
+
+Access rights: Security Officer
+
+Every membership credential names the Issuer Service by this host, so the host becomes part of the Issuer Service's permanent identity once that identity is bound. Set it after installation through the Central Server's management REST API. The user interface has no view for it. The calls need an API key with the Security Officer role; see [Managing API Keys](#24-managing-api-keys).
+
+To read the current host and whether it is bound, call:
+
+```bash
+curl --header "Authorization: X-Road-ApiKey token=<api key>" "https://localhost:4000/api/v1/issuer-service" -k
+{
+    "host": "issuer.example.org",
+    "bound": false
+}
+```
+
+To set the host, call:
+
+```bash
+curl -X PUT --header "Authorization: X-Road-ApiKey token=<api key>" --header "Content-Type: application/json" --data '{"host": "issuer.example.org"}' "https://localhost:4000/api/v1/issuer-service/host" -k
+```
+
+Only a valid DNS name is accepted: not an IP address, not `localhost` or a name ending in `.localhost`, and not a name ending in a dot. The host is stored in lower case. An invalid value is refused and nothing is stored.
+
+**Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
+
+**ATTENTION!** On an initialized Central Server, the Issuer Service identity is bound automatically soon after the host is set. Check the value before you send it. Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
 
 ## 5. Configuration Management
 

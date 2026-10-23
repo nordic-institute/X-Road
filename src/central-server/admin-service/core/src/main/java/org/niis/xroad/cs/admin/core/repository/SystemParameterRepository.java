@@ -35,4 +35,11 @@ public interface SystemParameterRepository extends GenericRepository<SystemParam
     Optional<SystemParameterEntity> findByKeyAndHaNodeName(String key, String haNodeName);
 
     List<SystemParameterEntity> findByKey(String key);
+
+    /**
+     * Takes a PostgreSQL transaction-level advisory lock keyed by the parameter key, so that two
+     * transactions saving the same shared key for the first time serialise instead of each inserting
+     * their own row. Released automatically when the transaction ends.
+     */
+    void lockKeyForWrite(String key);
 }

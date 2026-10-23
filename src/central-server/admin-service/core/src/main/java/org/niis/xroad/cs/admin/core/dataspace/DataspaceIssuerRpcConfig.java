@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,8 +39,8 @@ import org.springframework.context.annotation.Configuration;
 public class DataspaceIssuerRpcConfig {
 
     @Bean
-    DataspaceIssuerProperties dataspaceIssuerProperties(XRoadConfig xRoadConfig) {
-        return new DataspaceIssuerProperties(xRoadConfig);
+    DataspaceIssuerProperties dataspaceIssuerProperties(XRoadConfig xRoadConfig, IssuerHostService issuerHostService) {
+        return new DataspaceIssuerProperties(xRoadConfig, issuerHostService);
     }
 
     @Bean
