@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import java.util.stream.IntStream;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -42,6 +43,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class TaskPollExecutor {
 
+    private static final long POLL_DELAY_MILLIS = 100L;
+
     private final TaskPollConfig taskPollConfig;
     private final ContractNegotiationTaskExecutor contractNegotiationTaskExecutor;
     private final TransferProcessTaskExecutor transferProcessTaskExecutor;
@@ -49,6 +52,7 @@ public class TaskPollExecutor {
     private final TransactionContext transactionContext;
     private final Monitor monitor;
     private final Clock clock;
+    private final ProcessLock processLock;
     private final AtomicBoolean active = new AtomicBoolean();
     private final List<Worker> workers;
 
@@ -63,7 +67,7 @@ public class TaskPollExecutor {
                             ContractNegotiationTaskExecutor contractNegotiationTaskExecutor,
                             TransferProcessTaskExecutor transferProcessTaskExecutor, TaskStore taskStore,
                             TransactionContext transactionContext,
-                            Monitor monitor, Clock clock) {
+                            Monitor monitor, Clock clock, ProcessLock processLock) {
         this.taskPollConfig = taskPollConfig;
         this.contractNegotiationTaskExecutor = contractNegotiationTaskExecutor;
         this.transferProcessTaskExecutor = transferProcessTaskExecutor;
@@ -71,6 +75,7 @@ public class TaskPollExecutor {
         this.transactionContext = transactionContext;
         this.monitor = monitor;
         this.clock = clock;
+        this.processLock = processLock;
 
         this.workers = IntStream.rangeClosed(1, workerCount)
                 .mapToObj(workerNumber -> newWorker(instrumentation, workerNumber))
@@ -153,7 +158,7 @@ public class TaskPollExecutor {
                     monitor.severe("TaskPollExecutor failed to process tasks", e);
                     immediateRepoll = false;
                 } finally {
-                    scheduleNextIterationIn(worker, immediateRepoll ? 0L : 100L);
+                    scheduleNextIterationIn(worker, immediateRepoll ? 0L : POLL_DELAY_MILLIS);
                 }
             });
 
@@ -161,10 +166,22 @@ public class TaskPollExecutor {
     }
 
     /**
-     * @return {@code true} when the task reached a final state (succeeded, fatal error or retry cap),
-     *         {@code false} when it was re-queued for a transient-failure retry
+     * @return {@code true} when the task reached a final state (succeeded, fatal error, retry cap or stale process
+     *         dropped), {@code false} when it was re-queued, either for a transient-failure retry or because the
+     *         process lock was busy
      */
     private boolean executeTask(Task task) {
+        var lockOutcome = acquireLock(task);
+        if (lockOutcome == LockOutcome.BUSY) {
+            requeueBusy(task);
+            return false;
+        }
+        if (lockOutcome == LockOutcome.MISSING) {
+            monitor.debug("Dropping task " + task.getId() + ": its process no longer exists");
+            taskStore.delete(task.getId());
+            return true;
+        }
+
         var result = handleTask(task);
         if (result.succeeded()) {
             taskStore.delete(task.getId());
@@ -187,6 +204,42 @@ public class TaskPollExecutor {
                 return false;
             }
         }
+    }
+
+    /**
+     * @return {@link LockOutcome#PROCEED} when the task is not process-bound, or its process is locked for this
+     *         transaction and still exists; {@link LockOutcome#BUSY} when another transaction already holds the
+     *         process lock; {@link LockOutcome#MISSING} when the task's negotiation or transfer process no longer
+     *         exists
+     */
+    private LockOutcome acquireLock(Task task) {
+        if (task.getPayload() instanceof ContractNegotiationTaskPayload cnPayload) {
+            var processId = cnPayload.getProcessId();
+            return classify(processLock.tryLockContractNegotiation(processId), () -> processLock.contractNegotiationExists(processId));
+        } else if (task.getPayload() instanceof TransferProcessTaskPayload tpPayload) {
+            var processId = tpPayload.getProcessId();
+            return classify(processLock.tryLockTransferProcess(processId), () -> processLock.transferProcessExists(processId));
+        } else {
+            return LockOutcome.PROCEED;
+        }
+    }
+
+    private static LockOutcome classify(boolean locked, BooleanSupplier existsCheck) {
+        if (!locked) {
+            return LockOutcome.BUSY;
+        }
+        return existsCheck.getAsBoolean() ? LockOutcome.PROCEED : LockOutcome.MISSING;
+    }
+
+    private void requeueBusy(Task task) {
+        taskStore.update(task.toBuilder()
+                .at(clock.millis() + POLL_DELAY_MILLIS)
+                .retryCount(task.getRetryCount())
+                .build());
+    }
+
+    private enum LockOutcome {
+        PROCEED, BUSY, MISSING
     }
 
     private StatusResult<Void> handleTask(Task task) {
