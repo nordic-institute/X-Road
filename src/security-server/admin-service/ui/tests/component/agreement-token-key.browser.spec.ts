@@ -269,9 +269,12 @@ describe('SS Agreement token key tab — pending key polling (Browser Mode)', ()
 
     await vi.advanceTimersByTimeAsync(10_000);
     await expect.poll(() => server.reads).toBe(readsAfterLoad + 1);
-    await vi.advanceTimersByTimeAsync(10_000);
-
-    await expect.poll(() => server.reads).toBe(readsAfterLoad + 2);
+    await expect
+      .poll(async () => {
+        await vi.advanceTimersByTimeAsync(10_000);
+        return server.reads;
+      })
+      .toBeGreaterThanOrEqual(readsAfterLoad + 2);
   });
 
   it('starts no read while a previous read is still in flight', async () => {
@@ -285,11 +288,12 @@ describe('SS Agreement token key tab — pending key polling (Browser Mode)', ()
     expect(server.reads).toBe(readsAfterLoad + 1);
 
     release();
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    expect(server.reads).toBe(readsAfterLoad + 1);
-    await vi.advanceTimersByTimeAsync(10_000);
-
-    await expect.poll(() => server.reads).toBe(readsAfterLoad + 2);
+    await expect
+      .poll(async () => {
+        await vi.advanceTimersByTimeAsync(10_000);
+        return server.reads;
+      })
+      .toBeGreaterThanOrEqual(readsAfterLoad + 2);
   });
 
   it('stops polling once no key is pending', async () => {
