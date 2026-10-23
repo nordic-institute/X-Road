@@ -49,12 +49,6 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
 
     private static final DataspaceConfigKeys INSTANCE = new DataspaceConfigKeys();
 
-    /** {@code xroad.dataspace.issuer.host}. */
-    public static final ConfigKey<String> ISSUER_HOST = ISSUER
-            .string("host")
-            .withDefaultValue("localhost")
-            .build();
-
     /** {@code xroad.dataspace.issuer.did-port}. */
     public static final ConfigKey<Integer> ISSUER_DID_PORT = ISSUER
             .integer("did-port")

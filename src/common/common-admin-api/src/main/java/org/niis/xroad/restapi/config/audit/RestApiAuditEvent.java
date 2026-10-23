@@ -97,6 +97,7 @@ public enum RestApiAuditEvent {
     EDIT_TIMESTAMP_SERVICE("Edit timestamping service"),
     GENERATE_INTERNAL_TLS_KEY_CERT("Generate new internal TLS key and certificate"),
     EDIT_CENTRAL_SERVER_ADDRESS("Edit central server address"),
+    EDIT_ISSUER_SERVICE_HOST("Edit Issuer Service host"),
     ENABLE_MAINTENANCE_MODE("Enable maintenance mode of the security server"),
     DISABLE_MAINTENANCE_MODE("Disable maintenance mode of the security server"),
     UPDATE_CONFIGURATION_PROPERTY("Update configuration property"),

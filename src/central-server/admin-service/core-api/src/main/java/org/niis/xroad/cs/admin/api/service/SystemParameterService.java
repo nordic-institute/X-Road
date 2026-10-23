@@ -37,12 +37,18 @@ import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 public interface SystemParameterService {
     String CENTRAL_SERVER_ADDRESS = "centralServerAddress";
     String INSTANCE_IDENTIFIER = "instanceIdentifier";
+    String ISSUER_SERVICE_HOST = "issuerServiceHost";
 
     String getCentralServerAddress();
 
     String getCentralServerAddress(String haNodeName);
 
     String getInstanceIdentifier();
+
+    /**
+     * @return the shared Issuer Service host, or {@code null} when not yet set
+     */
+    String getIssuerServiceHost();
 
     String getSecurityServerOwnersGroup();
 

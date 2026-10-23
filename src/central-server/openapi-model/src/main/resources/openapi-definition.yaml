@@ -44,6 +44,8 @@ tags:
     description: resources related to Central Server initialization
   - name: intermediate-cas
     description: resources related to Intermediate Certificate Authorities
+  - name: issuer-service
+    description: resources related to the Issuer Service's shared host
   - name: management-requests
     description: resources related to management requests
   - name: management-services
@@ -3365,6 +3367,55 @@ paths:
           description: request not found
         '409':
           description: request can not be approved in this state
+  /issuer-service:
+    get:
+      operationId: getIssuerServiceState
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuerServiceState'
+          description: current Issuer Service host and binding state
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the Issuer Service host and binding state
+      tags:
+        - issuer-service
+  /issuer-service/host:
+    put:
+      operationId: setIssuerServiceHost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssuerServiceHost'
+        description: new Issuer Service host
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuerServiceState'
+          description: Issuer Service host and binding state after the update
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: set the Issuer Service host
+      tags:
+        - issuer-service
   /openapi.yaml:
     get:
       tags:
@@ -4308,6 +4359,30 @@ components:
           pattern: ^[a-zA-Z0-9'()+,-.=?]*
       required:
         - instance_identifier
+      type: object
+    IssuerServiceState:
+      description: Issuer Service host and whether the issuer identity is bound
+      properties:
+        host:
+          description: the Issuer Service's shared host, or null when not yet set
+          format: text
+          nullable: true
+          type: string
+        bound:
+          description: whether the issuer identity is bound, so the host can no longer change
+          type: boolean
+      required:
+        - bound
+      type: object
+    IssuerServiceHost:
+      description: Issuer Service host to set
+      properties:
+        host:
+          description: the Issuer Service's shared host
+          format: text
+          type: string
+      required:
+        - host
       type: object
     ConfigurationSigningKey:
       description: Signing context (key identifier used by the signer and signing certificate) for signing the global configuration. Also includes the possible actions that can be done to this object, e.g DELETE (only for key related operations and does not consider user authorization).

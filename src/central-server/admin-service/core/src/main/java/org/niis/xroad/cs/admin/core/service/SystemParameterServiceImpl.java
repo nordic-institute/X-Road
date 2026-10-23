@@ -108,6 +108,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     }
 
     @Override
+    public String getIssuerServiceHost() {
+        return getParameterValue(ISSUER_SERVICE_HOST);
+    }
+
+    @Override
     public String getSecurityServerOwnersGroup() {
         return getParameterValue(SECURITY_SERVER_OWNERS_GROUP, "");
     }
@@ -180,6 +185,10 @@ public class SystemParameterServiceImpl implements SystemParameterService {
 
     @Override
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
+        if (!isNodeLocalParameter(lookupKey)) {
+            systemParameterRepository.lockKeyForWrite(lookupKey);
+        }
+
         Optional<SystemParameterEntity> systemParameter =
                 getSystemParameterOptional(lookupKey);
 

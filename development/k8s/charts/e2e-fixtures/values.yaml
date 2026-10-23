@@ -222,9 +222,10 @@ hurl:
     # namespace, because this is not only a name to dial: the gate at
     # setup.hurl:832 asserts the served document's id equals
     # did:web:{{is_host}}%3A6183:issuer, and that DID is stored once, from the
-    # Central Server's XROAD_DATASPACE_ISSUER_HOST. The Security Servers'
-    # identity hubs resolve it from ss0/ss1, so it is the qualified form; the
-    # bare name is a different DID and the endpoint answers 204 for it.
+    # host setup.hurl itself sets through PUT /issuer-service/host on the
+    # Central Server's admin API. The Security Servers' identity hubs resolve
+    # it from ss0/ss1, so it is the qualified form; the bare name is a
+    # different DID and the endpoint answers 204 for it.
     is_host: central-server.cs
     # Service backends the provider SS (ss0) routes to during the message-flow
     # scenarios. vars.env defaults them to bare `issoap`/`isrest`/`isopenapi`
