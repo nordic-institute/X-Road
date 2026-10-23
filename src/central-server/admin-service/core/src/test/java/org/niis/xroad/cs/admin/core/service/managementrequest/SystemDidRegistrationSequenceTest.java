@@ -97,6 +97,7 @@ class SystemDidRegistrationSequenceTest {
     private final List<SystemDidRegistrationRequestEntity> savedRows = new ArrayList<>();
     private int pairWrites;
     private String databaseAddress;
+    private boolean ownerChanged;
     private Runnable beforeLockedWrite = () -> { };
 
     private SecurityServerEntity server;
@@ -130,7 +131,12 @@ class SystemDidRegistrationSequenceTest {
 
         var authCertServerCheck = mock(AuthCertServerCheck.class);
         when(authCertServerCheck.requireServer(any(), any()))
-                .thenAnswer(inv -> new CheckedServer(SERVER_ROW_ID, server.getAddress()));
+                .thenAnswer(inv -> {
+                    if (ownerChanged) {
+                        throw SystemDidRegistrationOutcome.ownerChanged().toException();
+                    }
+                    return new CheckedServer(SERVER_ROW_ID, server.getAddress());
+                });
 
         IdentifierRepository<SecurityServerIdEntity> serverIds = mock(IdentifierRepository.class);
         when(serverIds.findOne(any())).thenReturn(mock(SecurityServerIdEntity.class));
@@ -139,7 +145,7 @@ class SystemDidRegistrationSequenceTest {
             savedRows.add(inv.getArgument(0));
             return inv.getArgument(0);
         });
-        var handler = new SystemDidRegistrationRequestHandler(serverIds, requests, authCertServerCheck, store,
+        var handler = new SystemDidRegistrationRequestHandler(serverIds, requests, serverRepository, authCertServerCheck, store,
                 mock(RequestMapper.class));
         var managementRequestService = mock(ManagementRequestService.class);
         when(managementRequestService.add(any(SystemDidRegistrationRequest.class)))
@@ -244,6 +250,18 @@ class SystemDidRegistrationSequenceTest {
 
         assertThat(answer).contains(MR_DID_FIXABLE_CONFLICT.build("HOST_DIFFERS"));
         assertThat(server.getAddress()).isEqualTo(ADDRESS_B);
+        assertStoredPair(DID_A, URL_A);
+        assertCounts(1, 1, 1);
+    }
+
+    @Test
+    void ownerChangeCommittedBetweenThePreCheckAndTheLockedWriteIsFixableAndWritesNothing() {
+        register(DID_A, URL_A, SystemPairCheck.ABSENT);
+        beforeLockedWrite = () -> ownerChanged = true;
+
+        var answer = register(DID_A, URL_A, SystemPairCheck.EQUAL);
+
+        assertThat(answer).contains(MR_DID_FIXABLE_CONFLICT.build(SystemDidRegistrationOutcome.OWNER_CHANGED));
         assertStoredPair(DID_A, URL_A);
         assertCounts(1, 1, 1);
     }

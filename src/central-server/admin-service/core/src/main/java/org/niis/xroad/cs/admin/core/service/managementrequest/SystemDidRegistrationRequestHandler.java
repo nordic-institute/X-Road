@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -46,6 +47,7 @@ public class SystemDidRegistrationRequestHandler implements RequestHandler<Syste
 
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final RequestRepository<SystemDidRegistrationRequestEntity> systemDidRegistrationRequests;
+    private final SecurityServerRepository servers;
     private final AuthCertServerCheck authCertServerCheck;
     private final ParticipantValueStore participantValueStore;
     private final RequestMapper requestMapper;
@@ -57,6 +59,7 @@ public class SystemDidRegistrationRequestHandler implements RequestHandler<Syste
 
     @Override
     public SystemDidRegistrationRequest add(SystemDidRegistrationRequest request) {
+        servers.lockForUpdateBy(request.getSecurityServerId());
         var server = authCertServerCheck.requireServer(request.getSecurityServerId(), request.getCertificate());
 
         var result = participantValueStore.writeSystemPairOnce(server.id(), request.getSystemDid(), request.getDspBaseUrl());

@@ -47,6 +47,7 @@ import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequ
 import org.niis.xroad.cs.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +61,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -105,6 +111,9 @@ class RegistrationRequestApiTest {
     @Autowired
     private MockMvc mvc;
 
+    private SecurityServerId requestedServerId;
+    private byte[] requestedAuthCert;
+
     @Test
     void shouldRegisterAuthCert() throws Exception {
 
@@ -124,6 +133,41 @@ class RegistrationRequestApiTest {
                         .xpath("//xroad:requestId",
                                 Collections.singletonMap("xroad", "http://x-road.eu/xsd/xroad.xsd"))
                         .string("42"));
+
+        wireMockRule.verify(1, postRequestedFor(urlEqualTo("/api/v1/management-requests"))
+                .withRequestBody(matchingJsonPath("$.type", equalTo("AUTH_CERT_REGISTRATION_REQUEST")))
+                .withRequestBody(matchingJsonPath("$.origin", equalTo("SECURITY_SERVER")))
+                .withRequestBody(matchingJsonPath("$.security_server_id", equalTo(requestedServerId.asEncodedId())))
+                .withRequestBody(matchingJsonPath("$.server_address", equalTo("ss1.example.org")))
+                .withRequestBody(matchingJsonPath("$.authentication_certificate", equalTo(base64(requestedAuthCert)))));
+    }
+
+    @Test
+    void shouldRegisterSystemDid() throws Exception {
+        var response = new SystemDidRegistrationRequestDto();
+        response.setId(43);
+        response.setType(ManagementRequestTypeDto.SYSTEM_DID_REGISTRATION_REQUEST);
+
+        wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
+                .willReturn(WireMock.jsonResponse(response, 202)));
+
+        var payload = generateSystemDidRequest().createPayload();
+        mvc.perform(post(ENDPOINT)
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andExpect(MockMvcResultMatchers
+                        .xpath("//xroad:requestId",
+                                Collections.singletonMap("xroad", "http://x-road.eu/xsd/xroad.xsd"))
+                        .string("43"));
+
+        wireMockRule.verify(1, postRequestedFor(urlEqualTo("/api/v1/management-requests"))
+                .withRequestBody(matchingJsonPath("$.type", equalTo("SYSTEM_DID_REGISTRATION_REQUEST")))
+                .withRequestBody(matchingJsonPath("$.origin", equalTo("SECURITY_SERVER")))
+                .withRequestBody(matchingJsonPath("$.security_server_id", equalTo(requestedServerId.asEncodedId())))
+                .withRequestBody(matchingJsonPath("$.system_did", equalTo(SYSTEM_DID)))
+                .withRequestBody(matchingJsonPath("$.dsp_base_url", equalTo(DSP_BASE_URL)))
+                .withRequestBody(matchingJsonPath("$.certificate", equalTo(base64(requestedAuthCert)))));
     }
 
     @Test
@@ -206,6 +250,10 @@ class RegistrationRequestApiTest {
                 .willReturn(WireMock.jsonResponse(response, status)));
     }
 
+    private static String base64(byte[] value) {
+        return Base64.getEncoder().encodeToString(value);
+    }
+
     private TestBaseManagementRequest generateSystemDidRequest() throws Exception {
         return generateRequest((builder, serverId, authCert) ->
                 builder.buildSystemDidRegRequest(serverId, SYSTEM_DID, DSP_BASE_URL));
@@ -237,6 +285,8 @@ class RegistrationRequestApiTest {
 
         var builder = new TestManagementRequestBuilder(serverId.getOwner(), receiver);
         var req = requestFactory.create(builder, serverId, authCert);
+        requestedServerId = serverId;
+        requestedAuthCert = authCert;
 
         return new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),

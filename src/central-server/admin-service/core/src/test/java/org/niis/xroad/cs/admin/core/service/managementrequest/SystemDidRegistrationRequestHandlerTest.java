@@ -33,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,11 +51,15 @@ import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.service.managementrequest.AuthCertServerCheck.CheckedServer;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -78,6 +83,8 @@ class SystemDidRegistrationRequestHandlerTest {
     private IdentifierRepository<SecurityServerIdEntity> serverIds;
     @Mock
     private RequestRepository<SystemDidRegistrationRequestEntity> systemDidRegistrationRequests;
+    @Mock
+    private SecurityServerRepository servers;
     @Mock
     private AuthCertServerCheck authCertServerCheck;
     @Mock
@@ -112,6 +119,36 @@ class SystemDidRegistrationRequestHandlerTest {
         assertThat(entityCaptor.getValue().getManagementRequestType()).isEqualTo(ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST);
         assertThat(entityCaptor.getValue().getOrigin()).isEqualTo(SECURITY_SERVER);
         assertThat(result).isSameAs(mapped);
+    }
+
+    @Test
+    void addLocksTheServerRowBeforeTheCertificateCheckAndWritesAfterBoth() {
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
+        when(participantValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL)).thenReturn(ParticipantValueResult.STORED);
+        when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mock(SecurityServerIdEntity.class));
+        when(systemDidRegistrationRequests.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        handler.add(request);
+
+        InOrder order = inOrder(servers, authCertServerCheck, participantValueStore);
+        order.verify(servers).lockForUpdateBy(securityServerId);
+        order.verify(authCertServerCheck).requireServer(securityServerId, CERTIFICATE);
+        order.verify(participantValueStore).writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL);
+    }
+
+    @Test
+    void addLeavesTheOwnerChangedClassificationToTheCertificateCheckWhenThereIsNoRowToLock() {
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.empty());
+        when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE))
+                .thenThrow(SystemDidRegistrationOutcome.ownerChanged().toException());
+
+        assertThatThrownBy(() -> handler.add(request))
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((DeviationAware) e).getErrorDeviation())
+                        .isEqualTo(MR_DID_FIXABLE_CONFLICT.build(SystemDidRegistrationOutcome.OWNER_CHANGED)));
+
+        verify(participantValueStore, never()).writeSystemPairOnce(any(Integer.class), any(), any());
+        verify(systemDidRegistrationRequests, never()).save(any());
     }
 
     @Test
