@@ -207,7 +207,8 @@ public class TestContext {
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
-                    ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService);
+                    ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
+                    new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);

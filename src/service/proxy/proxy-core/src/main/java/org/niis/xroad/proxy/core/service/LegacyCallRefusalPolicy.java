@@ -26,10 +26,16 @@
  */
 package org.niis.xroad.proxy.core.service;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 
 /**
  * Answers whether this Security Server refuses calls that carry no agreement token. Refusal is in force when the
@@ -59,5 +65,21 @@ public class LegacyCallRefusalPolicy {
     public boolean refusedAsConsumer(String providerInstance) {
         return proxyProperties.legacyProtocolDisabled()
                 || globalConfProvider.isLegacyProtocolDisabled(providerInstance);
+    }
+
+    /**
+     * Fails an unnegotiated call this server, acting as service consumer, must not make.
+     *
+     * @param service the service being called
+     * @throws XrdRuntimeException with code {@code LEGACY_CALL_REFUSED} when the call is refused
+     */
+    public void checkConsumerCallAllowed(ServiceId service) {
+        if (refusedAsConsumer(service.getXRoadInstance())) {
+            throw XrdRuntimeException.systemException(LEGACY_CALL_REFUSED)
+                    .details(("Call to %s is refused because it is not negotiated and legacy calls are refused by "
+                            + "the Security Server setting or by the provider instance setting").formatted(service))
+                    .origin(ErrorOrigin.CLIENT)
+                    .build();
+        }
     }
 }
