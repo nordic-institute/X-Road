@@ -61,6 +61,7 @@ class FrameworkPublishedConfigTest {
             "xroad.dsp.builtin-services.server-proxy-url",
             "xroad.dsp.issuer-trust.refresh-interval-seconds",
             "xroad.dsp.did-resolution.fetch-timeout-ms",
+            "xroad.dsp.task-poll.workers",
             // Quarkus @LookupIfProperty bean gates (proxy messagelog beans + readiness check) and the
             // auxiliary-service @ConfigProperty reader resolve this from framework config
             "xroad.proxy.message-log.enabled",

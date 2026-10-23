@@ -17,12 +17,15 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":lib:properties-core"))
+
     api(libs.edc.spi.core)
     api(libs.edc.spi.controlplane)
 
     testImplementation(libs.awaitility)
     testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.lib.core)
     testImplementation(libs.edc.lib.controlplane)
