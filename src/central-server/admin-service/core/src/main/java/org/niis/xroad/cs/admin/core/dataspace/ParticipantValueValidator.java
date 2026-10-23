@@ -29,9 +29,9 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
 import org.niis.xroad.ds.identity.DecodedParticipant;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.MemberParticipant;
@@ -43,21 +43,21 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.FOREIGN_SYSTEM_DID;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.MALFORMED_DSP_BASE_URL;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
 /**
  * Checks the values a Security Server publishes (its SYSTEM DID with DSP base URL, and its member DIDs)
  * against the server as registered in the Central Server, and tells when a stored value no longer matches
- * the registered address. It reads nothing but its context; whether a value is already held is the
+ * the registered address. It reads nothing but the registered server; whether a value is already held is the
  * caller's concern.
  *
  * <p>Hosts are compared after the canonical host rules of {@link DidAuthority}; ports are not compared.
@@ -67,7 +67,7 @@ import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_S
  * {@code :443}, another port and no port are all accepted. Its checks run in the order not HTTPS,
  * non-ASCII host, malformed, not canonical, host differs.
  */
-public final class PublishedValueValidator {
+public final class ParticipantValueValidator {
 
     /** The most characters a published DID may have. */
     public static final int MAX_DID_LENGTH = 4000;
@@ -78,13 +78,13 @@ public final class PublishedValueValidator {
     private static final int VERSION_SEGMENT_INDEX = 1;
     private static final int MIN_DID_SEGMENT_COUNT = 3;
 
-    private final PublishedValueContext context;
+    private final RegisteredServer server;
     private final String registeredHost;
-    private final PublishedValueRejection registeredAddressRejection;
+    private final ParticipantValueRejection registeredAddressRejection;
 
-    public PublishedValueValidator(PublishedValueContext context) {
-        this.context = context;
-        var address = context.registeredAddress();
+    public ParticipantValueValidator(RegisteredServer server) {
+        this.server = server;
+        var address = server.registeredAddress();
         if (address == null) {
             registeredHost = null;
             registeredAddressRejection = UNPARSEABLE_REGISTERED_ADDRESS;
@@ -102,7 +102,7 @@ public final class PublishedValueValidator {
      * @param candidate the value to publish
      * @return the reason it is refused, or empty when it is accepted
      */
-    public Optional<PublishedValueRejection> validate(PublishedValueCandidate candidate) {
+    public Optional<ParticipantValueRejection> validate(ParticipantValue candidate) {
         if (registeredAddressRejection != null) {
             return Optional.of(registeredAddressRejection);
         }
@@ -129,7 +129,7 @@ public final class PublishedValueValidator {
         return !didHostMatches(storedDid) || !dspBaseUrlHostMatches(storedDspBaseUrl);
     }
 
-    private Optional<PublishedValueRejection> validateSystemPair(SystemPair pair) {
+    private Optional<ParticipantValueRejection> validateSystemPair(SystemPair pair) {
         var shape = checkShape(pair.did());
         if (shape.isPresent()) {
             return shape;
@@ -148,7 +148,7 @@ public final class PublishedValueValidator {
         return checkDspBaseUrl(pair.dspBaseUrl());
     }
 
-    private Optional<PublishedValueRejection> validateMemberDid(MemberDid memberDid) {
+    private Optional<ParticipantValueRejection> validateMemberDid(MemberDid memberDid) {
         var shape = checkShape(memberDid.did());
         if (shape.isPresent()) {
             return shape;
@@ -170,10 +170,10 @@ public final class PublishedValueValidator {
     }
 
     private boolean isOwnerOrClient(ClientId member) {
-        return member.equals(context.owner()) || context.clientMembers().contains(member);
+        return member.equals(server.owner()) || server.clientMembers().contains(member);
     }
 
-    private static Optional<PublishedValueRejection> checkShape(String did) {
+    private static Optional<ParticipantValueRejection> checkShape(String did) {
         if (did == null || !did.startsWith(DID_PREFIX)) {
             return Optional.of(WRONG_SCHEME);
         }
@@ -191,14 +191,14 @@ public final class PublishedValueValidator {
         return Optional.empty();
     }
 
-    private Optional<PublishedValueRejection> checkAuthority(String authority) {
+    private Optional<ParticipantValueRejection> checkAuthority(String authority) {
         if (!DidAuthority.isCanonical(authority)) {
             return Optional.of(NOT_CANONICAL);
         }
         return hostMatches(authority) ? Optional.empty() : Optional.of(HOST_DIFFERS);
     }
 
-    private Optional<PublishedValueRejection> checkDspBaseUrl(String url) {
+    private Optional<ParticipantValueRejection> checkDspBaseUrl(String url) {
         if (url == null || !startsWithHttps(url)) {
             return Optional.of(DSP_BASE_URL_NOT_HTTPS);
         }

@@ -24,30 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.dataspace;
-
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.cs.admin.api.domain;
 
 /**
- * A value a Security Server wants to publish.
+ * What happened to one published value.
+ *
+ * @param outcome   whether the value was written, left as it was, or refused
+ * @param rejection the reason when the value was refused, otherwise {@code null}
  */
-public sealed interface PublishedValueCandidate {
+public record ParticipantValueResult(Outcome outcome, ParticipantValueRejection rejection) {
 
-    /**
-     * The server's SYSTEM DID together with its DSP base URL; the two are published as one pair.
-     *
-     * @param did        the SYSTEM DID
-     * @param dspBaseUrl the DSP base URL
-     */
-    record SystemPair(String did, String dspBaseUrl) implements PublishedValueCandidate {
+    public static final ParticipantValueResult STORED = new ParticipantValueResult(Outcome.STORED, null);
+    public static final ParticipantValueResult UNCHANGED = new ParticipantValueResult(Outcome.UNCHANGED, null);
+
+    public static ParticipantValueResult rejected(ParticipantValueRejection rejection) {
+        return new ParticipantValueResult(Outcome.REJECTED, rejection);
     }
 
-    /**
-     * A member's DID on the server.
-     *
-     * @param member the member the DID is claimed for, without a subsystem code
-     * @param did    the member DID
-     */
-    record MemberDid(ClientId member, String did) implements PublishedValueCandidate {
+    public enum Outcome {
+        /** The value was written, as a new value or as a replacement. */
+        STORED,
+        /** Nothing was written: the stored value is already the published one, or there was nothing to replace. */
+        UNCHANGED,
+        /** The value was refused; the reason is in {@link #rejection()}. */
+        REJECTED
     }
 }

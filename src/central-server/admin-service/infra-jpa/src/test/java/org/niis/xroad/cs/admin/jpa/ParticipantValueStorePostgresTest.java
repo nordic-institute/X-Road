@@ -31,8 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
@@ -57,8 +57,8 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.VALUE_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.dspBaseUrl;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.memberDid;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.newHost;
@@ -68,10 +68,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNE
 /**
  * The published value store, the server-row lock and the member DID read model against Postgres.
  */
-class PublishedValueStorePostgresTest extends AbstractCentralServerPostgresTest {
+class ParticipantValueStorePostgresTest extends AbstractCentralServerPostgresTest {
 
     @Autowired
-    private PublishedValueStore store;
+    private ParticipantValueStore store;
     @Autowired
     private SecurityServerRepository servers;
     @Autowired
@@ -169,7 +169,7 @@ class PublishedValueStorePostgresTest extends AbstractCentralServerPostgresTest 
             }));
             awaitHolding(locked, holder);
             var waiterPid = new AtomicInteger();
-            Future<PublishedValueResult> waiter = executor.submit(inTransaction(waiterPid, () -> {
+            Future<ParticipantValueResult> waiter = executor.submit(inTransaction(waiterPid, () -> {
                 entityManager.find(SecurityServerEntity.class, server.id());
                 return store.writeSystemPairOnce(server.id(), second, url);
             }));
@@ -178,8 +178,8 @@ class PublishedValueStorePostgresTest extends AbstractCentralServerPostgresTest 
 
             release.countDown();
 
-            assertThat(holder.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo(PublishedValueResult.STORED);
-            assertThat(waiter.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo(PublishedValueResult.rejected(VALUE_DIFFERS));
+            assertThat(holder.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo(ParticipantValueResult.STORED);
+            assertThat(waiter.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo(ParticipantValueResult.rejected(VALUE_DIFFERS));
             assertThat(jdbc.queryForObject("select system_did from security_servers where id = ?", String.class, server.id()))
                     .isEqualTo(first);
         } finally {
@@ -237,8 +237,8 @@ class PublishedValueStorePostgresTest extends AbstractCentralServerPostgresTest 
         var repeated = store.writeMemberDidsOnce(serverB.id(), batch);
 
         assertThat(repeated).containsExactly(
-                Map.entry(secondOwner.identifier(), PublishedValueResult.STORED),
-                Map.entry(firstOwner.identifier(), PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)));
+                Map.entry(secondOwner.identifier(), ParticipantValueResult.STORED),
+                Map.entry(firstOwner.identifier(), ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)));
         assertThat(countMemberDids(serverB.id())).isEqualTo(1);
         verify(auditLogging).auditLogFailWithData(eq(REJECT_CONNECTOR_PUBLISHED_VALUE), anyString(), anyMap());
     }

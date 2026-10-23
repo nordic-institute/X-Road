@@ -28,14 +28,26 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import java.util.Set;
-
 /**
- * What a published value is checked against: one Security Server as registered in the Central Server.
- *
- * @param registeredAddress the registered address, as stored: a host, optionally with a port that is ignored
- * @param owner             the owner member of the server
- * @param clientMembers     the members that have a registered client on the server, without subsystem codes
+ * A value a Security Server publishes for one of its participants.
  */
-public record PublishedValueContext(String registeredAddress, ClientId owner, Set<ClientId> clientMembers) {
+public sealed interface ParticipantValue {
+
+    /**
+     * The server's SYSTEM DID together with its DSP base URL; the two are published as one pair.
+     *
+     * @param did        the SYSTEM DID
+     * @param dspBaseUrl the DSP base URL
+     */
+    record SystemPair(String did, String dspBaseUrl) implements ParticipantValue {
+    }
+
+    /**
+     * A member's DID on the server.
+     *
+     * @param member the member the DID is claimed for, without a subsystem code
+     * @param did    the member DID
+     */
+    record MemberDid(ClientId member, String did) implements ParticipantValue {
+    }
 }

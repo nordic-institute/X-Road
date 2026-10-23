@@ -108,7 +108,8 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
 
         dto.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
         dto.setType(switch (requestType) {
-            case AUTH_CERT_REGISTRATION_REQUEST -> ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+            case AUTH_CERT_REGISTRATION_REQUEST, SYSTEM_DID_REGISTRATION_REQUEST ->
+                    throw XrdRuntimeException.systemException(INVALID_REQUEST, "Unsupported request type %s", requestType);
             case CLIENT_REGISTRATION_REQUEST -> ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
             case OWNER_CHANGE_REQUEST -> ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
             case CLIENT_DELETION_REQUEST -> ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;

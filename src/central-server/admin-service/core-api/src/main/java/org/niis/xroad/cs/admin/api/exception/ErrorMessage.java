@@ -71,6 +71,9 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     MR_UNKNOWN_TYPE("management_request_unknown_type"),
     MR_SECURITY_SERVER_ALREADY_IN_MAINTENANCE_MODE("management_request_server_already_in_maintenance_mode"),
     MR_SECURITY_SERVER_NOT_IN_MAINTENANCE_MODE("management_request_server_not_in_maintenance_mode"),
+    MR_DID_FINAL_CONFLICT("management_request_did_final_conflict"),
+    MR_DID_FIXABLE_CONFLICT("management_request_did_fixable_conflict"),
+    MR_DID_NOT_RESOLVED("management_request_did_not_resolved"),
 
     INVALID_SERVICE_PROVIDER_ID("invalid_service_provider_id"),
     INVALID_MEMBER_ID("invalid_member_id"),

@@ -52,6 +52,7 @@ import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
+import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverterImpl;
@@ -68,6 +69,7 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -86,9 +88,12 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DE
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_DISABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.SYSTEM_DID_REGISTRATION_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
+    private static final String SYSTEM_DID = "did:web:ss.example.org:v1:system";
+    private static final String DSP_BASE_URL = "https://ss.example.org:7183/dsp";
     private final byte[] authCertBytes = "authCertBytes".getBytes();
     private final Origin origin = Origin.SECURITY_SERVER;
     private final ManagementRequestOriginDto originDto = ManagementRequestOriginDto.SECURITY_SERVER;
@@ -228,6 +233,25 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
                 inOrder.verify(request).getServerAddress();
                 verifyCommon(inOrder, request);
             });
+        }
+
+        @Test
+        @DisplayName("should successfully perform SystemDidRegistration conversion")
+        void testSystemDidRegistrationRequestConversion() {
+            SystemDidRegistrationRequest request = mock(SystemDidRegistrationRequest.class);
+            doReturn(SYSTEM_DID).when(request).getSystemDid();
+            doReturn(DSP_BASE_URL).when(request).getDspBaseUrl();
+            doReturn(authCertBytes).when(request).getCertificate();
+            prepareCommonStubs(request, ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST);
+
+            ManagementRequestDto converted = converter.toDto(request);
+
+            assertCommon(converted, SYSTEM_DID_REGISTRATION_REQUEST);
+            SystemDidRegistrationRequestDto casted =
+                    assertInstanceOf(SystemDidRegistrationRequestDto.class, converted);
+            assertEquals(SYSTEM_DID, casted.getSystemDid());
+            assertEquals(DSP_BASE_URL, casted.getDspBaseUrl());
+            assertArrayEquals(authCertBytes, casted.getCertificate());
         }
 
         @Test
@@ -417,6 +441,25 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
                 verifyCommon(inOrder, requestDto);
                 inOrder.verify(requestDto).getServerAddress();
             });
+        }
+
+        @Test
+        @DisplayName("should successfully perform SystemDidRegistrationRequestDto conversion")
+        void shouldSuccessfullyPerformSystemDidRegistrationRequestDtoConversion() {
+            SystemDidRegistrationRequestDto requestDto = mock(SystemDidRegistrationRequestDto.class);
+            prepareCommonStubs(requestDto);
+            doReturn(SYSTEM_DID).when(requestDto).getSystemDid();
+            doReturn(DSP_BASE_URL).when(requestDto).getDspBaseUrl();
+            doReturn(authCertBytes).when(requestDto).getCertificate();
+
+            Request converted = converter.fromDto(requestDto);
+
+            assertCommon(converted);
+            SystemDidRegistrationRequest request =
+                    assertInstanceOf(SystemDidRegistrationRequest.class, converted);
+            assertEquals(SYSTEM_DID, request.getSystemDid());
+            assertEquals(DSP_BASE_URL, request.getDspBaseUrl());
+            assertArrayEquals(authCertBytes, request.getCertificate());
         }
 
         @Test

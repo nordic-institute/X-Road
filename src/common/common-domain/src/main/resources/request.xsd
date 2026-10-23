@@ -14,6 +14,7 @@
     <element name="clientRename" type="tns:ClientRenameRequestType"/>
     <element name="ownerChange" type="tns:ClientRequestType"/>
     <element name="addressChange" type="tns:AddressChangeRequestType"/>
+    <element name="systemDidReg" type="tns:SystemDidRegRequestType"/>
     <element name="maintenanceModeEnable" type="tns:MaintenanceModeEnableRequestType"/>
     <element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
 
@@ -167,6 +168,26 @@
             <element name="address" type="string">
                 <annotation>
                     <documentation>New address of the security server</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="SystemDidRegRequestType">
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security server the SYSTEM DID and the DSP base URL belong to.</documentation>
+                </annotation>
+            </element>
+            <element name="systemDid" type="string">
+                <annotation>
+                    <documentation>Dataspace identifier (SYSTEM DID) of the security server.</documentation>
+                </annotation>
+            </element>
+            <element name="dspBaseUrl" type="string">
+                <annotation>
+                    <documentation>DSP base URL of the security server.</documentation>
                 </annotation>
             </element>
             <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>

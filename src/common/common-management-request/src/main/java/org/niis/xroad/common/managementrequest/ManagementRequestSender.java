@@ -150,6 +150,27 @@ public final class ManagementRequestSender {
     }
 
     /**
+     * Sends the SYSTEM DID registration request directly to the central server.
+     * The request is sent as a signed mime multipart message.
+     *
+     * @param securityServer the security server id
+     * @param systemDid      the SYSTEM DID of the security server
+     * @param dspBaseUrl     the DSP base URL of the security server
+     * @param authCert       the authentication certificate bytes
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendSystemDidRegRequest(SecurityServerId.Conf securityServer, String systemDid, String dspBaseUrl,
+                                           byte[] authCert) throws Exception {
+        try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
+            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, signerSignClient,
+                    authCert, securityServer.getOwner(),
+                    builder.buildSystemDidRegRequest(securityServer, systemDid, dspBaseUrl),
+                    signatureDigestAlgorithm));
+        }
+    }
+
+    /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
      *

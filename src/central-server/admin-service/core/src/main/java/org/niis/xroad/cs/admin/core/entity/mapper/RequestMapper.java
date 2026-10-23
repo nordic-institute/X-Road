@@ -45,6 +45,7 @@ import org.niis.xroad.cs.admin.api.domain.MaintenanceModeEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
+import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
@@ -58,6 +59,7 @@ import org.niis.xroad.cs.admin.core.entity.MaintenanceModeEnableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
+import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {ClientIdMapper.class, SecurityServerIdMapper.class})
@@ -70,6 +72,7 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
             case AuthenticationCertificateDeletionRequestEntity entity -> toDto(entity);
             case ClientDeletionRequestEntity entity -> toDto(entity);
             case AddressChangeRequestEntity entity -> toDto(entity);
+            case SystemDidRegistrationRequestEntity entity -> toDto(entity);
             case RequestWithProcessingEntity entity -> toTarget(entity);
             default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
         };
@@ -100,6 +103,11 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
 
     @Mapping(target = "serverAddress", source = "address")
     AddressChangeRequest toDto(AddressChangeRequestEntity source);
+
+    @Mapping(target = "systemDid", ignore = true)
+    @Mapping(target = "dspBaseUrl", ignore = true)
+    @Mapping(target = "certificate", ignore = true)
+    SystemDidRegistrationRequest toDto(SystemDidRegistrationRequestEntity source);
 
     ClientDisableRequest toDto(ClientDisableRequestEntity source);
 

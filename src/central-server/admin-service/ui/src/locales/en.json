@@ -418,6 +418,7 @@
     "securityServerOwnerName": "Server Owner Name",
     "showOnlyPending": "Show only pending requests",
     "submitted": "Submitted for approval",
+    "systemDidRegistration": "Register system DID",
     "unknown": "Unknown"
   },
   "members": {

@@ -38,6 +38,7 @@ import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
+import ee.ria.xroad.common.request.SystemDidRegRequestType;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,7 @@ import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeDisa
 import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.SystemDidRegRequestDecoderCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
@@ -81,6 +83,7 @@ public final class ManagementRequestVerifier {
             AuthCertDeletionRequestType.class,
             ClientRequestType.class,
             AddressChangeRequestType.class,
+            SystemDidRegRequestType.class,
             ClientRenameRequestType.class,
             ClientRegRequestType.class,
             MaintenanceModeEnableRequestType.class,
@@ -89,7 +92,8 @@ public final class ManagementRequestVerifier {
     private final GlobalConfProvider globalConfProvider;
     private final OcspVerifierFactory ocspVerifierFactory;
 
-    public record Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, Object request) {
+    public record Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, Object request,
+                         ManagementRequestDecoderCallback callback) {
 
         public <T> Optional<T> getRequest(Class<T> clazz) {
             return Optional.ofNullable(request)
@@ -135,7 +139,7 @@ public final class ManagementRequestVerifier {
             throw XrdRuntimeException.systemException(INVALID_REQUEST, "Failed to parse SOAP request");
         }
         if (MANAGEMENT_REQUEST_CLASSES.contains(request.getClass())) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), request);
+            return new Result(cb.getSoapMessage(), cb.getRequestType(), request, cb.getManagementRequestDecoderCallback());
         }
 
         throw XrdRuntimeException.systemException(INVALID_REQUEST, "Unrecognized soap request of type '%s'",
@@ -165,6 +169,8 @@ public final class ManagementRequestVerifier {
                 case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestCallback(this);
                 case AUTH_CERT_DELETION_REQUEST -> new AuthCertDeletionRequestDecoderCallback(this);
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, ocspVerifierFactory, this);
+                case SYSTEM_DID_REGISTRATION_REQUEST ->
+                        new SystemDidRegRequestDecoderCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, ocspVerifierFactory, this);

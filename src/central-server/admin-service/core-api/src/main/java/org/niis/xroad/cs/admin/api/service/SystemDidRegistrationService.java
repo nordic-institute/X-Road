@@ -24,29 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+
+package org.niis.xroad.cs.admin.api.service;
+
+import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 
 /**
- * What happened to one published value.
- *
- * @param outcome   whether the value was written, left as it was, or refused
- * @param rejection the reason when the value was refused, otherwise {@code null}
+ * Adds a SYSTEM DID registration request. Runs outside a transaction: the DID is resolved over the network
+ * before the request is added.
  */
-public record PublishedValueResult(Outcome outcome, PublishedValueRejection rejection) {
+public interface SystemDidRegistrationService {
 
-    public static final PublishedValueResult STORED = new PublishedValueResult(Outcome.STORED, null);
-    public static final PublishedValueResult UNCHANGED = new PublishedValueResult(Outcome.UNCHANGED, null);
-
-    public static PublishedValueResult rejected(PublishedValueRejection rejection) {
-        return new PublishedValueResult(Outcome.REJECTED, rejection);
-    }
-
-    public enum Outcome {
-        /** The value was written, as a new value or as a replacement. */
-        STORED,
-        /** Nothing was written: the stored value is already the published one, or there was nothing to replace. */
-        UNCHANGED,
-        /** The value was refused; the reason is in {@link #rejection()}. */
-        REJECTED
-    }
+    /**
+     * Checks the certificate and the pair, resolves the DID unless the pair is already stored, then adds the request.
+     *
+     * @param request the request to add
+     * @return the added request
+     */
+    SystemDidRegistrationRequest add(SystemDidRegistrationRequest request);
 }

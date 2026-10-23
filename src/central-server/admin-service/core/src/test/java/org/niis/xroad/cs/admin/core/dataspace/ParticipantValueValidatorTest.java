@@ -34,26 +34,26 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.MALFORMED_DSP_BASE_URL;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
-class PublishedValueValidatorTest {
+class ParticipantValueValidatorTest {
 
     private static final String ADDRESS = "ss0.example.org";
     private static final String SYSTEM_DID = "did:web:ss0.example.org%3A7183:v1:system";
@@ -66,7 +66,7 @@ class PublishedValueValidatorTest {
     private static final ClientId OWNER = member("222");
     private static final ClientId CLIENT = member("333");
 
-    private final PublishedValueValidator validator = validatorFor(ADDRESS);
+    private final ParticipantValueValidator validator = validatorFor(ADDRESS);
 
     @ParameterizedTest
     @CsvSource({
@@ -86,7 +86,7 @@ class PublishedValueValidatorTest {
             "did:web:ss0.example.org%3A7183:v1:system,         222, UNRELATED_MEMBER",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    222,"
     })
-    void shouldValidateMemberDid(String did, String claimedCode, PublishedValueRejection expected) {
+    void shouldValidateMemberDid(String did, String claimedCode, ParticipantValueRejection expected) {
         assertThat(validator.validate(new MemberDid(member(claimedCode), did))).isEqualTo(Optional.ofNullable(expected));
     }
 
@@ -116,8 +116,8 @@ class PublishedValueValidatorTest {
 
     @Test
     void shouldCheckDidLengthCap() {
-        var code = "a".repeat(PublishedValueValidator.MAX_DID_LENGTH - MEMBER_DID_PREFIX.length());
-        var atCap = new PublishedValueValidator(new PublishedValueContext(ADDRESS, OWNER, Set.of(member(code))));
+        var code = "a".repeat(ParticipantValueValidator.MAX_DID_LENGTH - MEMBER_DID_PREFIX.length());
+        var atCap = new ParticipantValueValidator(new RegisteredServer(ADDRESS, OWNER, Set.of(member(code))));
         var didAtCap = MEMBER_DID_PREFIX + code;
         var didOverCap = didAtCap + "a";
 
@@ -159,7 +159,7 @@ class PublishedValueValidatorTest {
             SYSTEM_DID + "|https://ss0.example.org/api/dsp|",
             "did:web:bücher.example%3A7183:v1:system|" + DSP_URL + "|NON_ASCII_HOST"
     })
-    void shouldValidateSystemPair(String did, String dspBaseUrl, PublishedValueRejection expected) {
+    void shouldValidateSystemPair(String did, String dspBaseUrl, ParticipantValueRejection expected) {
         assertThat(validator.validate(new SystemPair(did, dspBaseUrl))).isEqualTo(Optional.ofNullable(expected));
     }
 
@@ -268,8 +268,8 @@ class PublishedValueValidatorTest {
         assertThat(validatorFor(null).isMemberDidStale(OWNER_DID)).isTrue();
     }
 
-    private static PublishedValueValidator validatorFor(String registeredAddress) {
-        return new PublishedValueValidator(new PublishedValueContext(registeredAddress, OWNER, Set.of(CLIENT)));
+    private static ParticipantValueValidator validatorFor(String registeredAddress) {
+        return new ParticipantValueValidator(new RegisteredServer(registeredAddress, OWNER, Set.of(CLIENT)));
     }
 
     private static ClientId member(String code) {
