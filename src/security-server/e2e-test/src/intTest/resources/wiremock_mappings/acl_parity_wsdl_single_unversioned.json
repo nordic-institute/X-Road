@@ -1,0 +1,17 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPath": "/acl-parity/wsdl/single_unversioned.wsdl"
+  },
+  "response": {
+    "status": 200,
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wsdl:definitions xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:xrd=\"http://x-road.eu/xsd/x-road.xsd\" xmlns:tns=\"http://acl-parity.test/producer\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" name=\"aclParity\" targetNamespace=\"http://acl-parity.test/producer\">\n  <wsdl:message name=\"request\"/>\n  <wsdl:message name=\"response\"/>\n  <wsdl:portType name=\"aclParityPort\">\n    <wsdl:operation name=\"{{request.query.code}}\">\n      <wsdl:input message=\"tns:request\"/>\n      <wsdl:output message=\"tns:response\"/>\n    </wsdl:operation>\n  </wsdl:portType>\n  <wsdl:binding name=\"aclParityBinding\" type=\"tns:aclParityPort\">\n    <soap:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n    <wsdl:operation name=\"{{request.query.code}}\">\n      <soap:operation soapAction=\"\" style=\"document\"/>\n      <wsdl:input><soap:body use=\"literal\"/></wsdl:input>\n      <wsdl:output><soap:body use=\"literal\"/></wsdl:output>\n    </wsdl:operation>\n  </wsdl:binding>\n  <wsdl:service name=\"aclParityService\">\n    <wsdl:port binding=\"tns:aclParityBinding\" name=\"aclParityPort\">\n      <soap:address location=\"http://isrest:8080/acl-parity/soap/{{request.query.code}}\"/>\n    </wsdl:port>\n  </wsdl:service>\n</wsdl:definitions>\n",
+    "headers": {
+      "Content-Type": "text/xml"
+    },
+    "transformers": [
+      "response-template"
+    ]
+  }
+}

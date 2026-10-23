@@ -6,6 +6,9 @@ plugins {
 }
 
 dependencies {
+  testImplementation(libs.assertj.core)
+
+  intTestImplementation(libs.junit.jupiter.params)
   intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":lib:asic-core"))
   intTestImplementation(project(":common:common-test"))
@@ -68,6 +71,7 @@ val copyComposeFiles by tasks.registering(Copy::class) {
 
 val e2eEnvMode = providers.gradleProperty("e2e.env-mode").getOrElse("compose")
 val e2eSs0Stack = providers.gradleProperty("e2e.ss0-stack").getOrElse("default")
+val e2eAclMode = providers.gradleProperty("e2e.acl-mode").orNull
 
 tasks.register<Test>("e2eTest") {
   // Only the harness-managed compose stack needs the generated env and copied compose files. Pre-provisioned
@@ -83,7 +87,8 @@ tasks.register<Test>("e2eTest") {
       "LauncherSessionListener SPI; 'lxd': attaches to a pre-provisioned LXD environment; 'k8s': " +
       "attaches to a pre-provisioned kind cluster). In 'compose' mode, -Pe2e.ss0-stack selects ss0's " +
       "stack shape ('default': today's per-service stack; 'sidecar': one full-sidecar " +
-      "container in its place), ignored otherwise. " +
+      "container in its place), ignored otherwise. -Pe2e.acl-mode=legacy runs the ACL parity scenarios with " +
+      "ss1's outgoing calls unnegotiated and no fail-fast; unset, the parity class is skipped. " +
       "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 
@@ -117,6 +122,10 @@ tasks.register<Test>("e2eTest") {
 
   systemProperty("test-framework.env-mode", e2eEnvMode)
   systemProperty("test-framework.ss0-stack", e2eSs0Stack)
+  e2eAclMode?.let {
+    systemProperty("test-framework.acl-mode", it)
+    systemProperty("test-framework.fail-fast.threshold", "0")
+  }
 
   jvmArgs("-XX:MaxMetaspaceSize=200m")
 

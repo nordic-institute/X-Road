@@ -1,0 +1,13 @@
+{
+  "priority": 1,
+  "scenarioName": "acl-parity-openapi-pets-then-status-only",
+  "newScenarioState": "Swapped",
+  "request": {
+    "method": "GET",
+    "urlPath": "/acl-parity/openapi/pets_then_status_only/swap"
+  },
+  "response": {
+    "status": 200,
+    "body": "ok"
+  }
+}
