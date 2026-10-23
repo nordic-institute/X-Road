@@ -48,24 +48,33 @@ import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Map;
 
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 class ClientSoapMessageProcessorTest {
@@ -176,7 +185,7 @@ class ClientSoapMessageProcessorTest {
         var decoder = newSoapRequestDecoder(ctx);
         var soapMessage = mock(SoapMessageImpl.class);
         when(soapMessage.getSecurityServer()).thenReturn(SecurityServerId.Conf.create("DEV", "COM", "222", "SS1"));
-        setRequestSoap(decoder, soapMessage);
+        setField(decoder, "requestSoap", soapMessage);
         var httpSender = mock(HttpSender.class);
 
         harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null);
@@ -240,6 +249,83 @@ class ClientSoapMessageProcessorTest {
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }
 
+    @Test
+    void sendRequestRefusesUnnegotiatedCallWhenLocalSettingRefuses() throws Exception {
+        var harness = createRefusalHarness(false, true);
+        var ctx = newSoapRequestContext();
+        var decoder = newUnnegotiatedDecoder(ctx);
+        var httpSender = mock(HttpSender.class);
+        assertThatThrownBy(() -> harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.getErrorCode())
+                        .isEqualTo("client." + LEGACY_CALL_REFUSED.code()));
+        verifyNoInteractions(httpSender);
+    }
+
+    @Test
+    void sendRequestRefusesUnnegotiatedCallWhenProviderInstanceRefuses() throws Exception {
+        var harness = createRefusalHarness(false, false);
+        when(harness.globalConfProvider().isLegacyProtocolDisabled(OTHER_CLIENT.getXRoadInstance())).thenReturn(true);
+        var ctx = newSoapRequestContext();
+        var decoder = newUnnegotiatedDecoder(ctx);
+        var httpSender = mock(HttpSender.class);
+        assertThatThrownBy(() -> harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(LEGACY_CALL_REFUSED)).isTrue());
+        verifyNoInteractions(httpSender);
+    }
+
+    @Test
+    void sendRequestSendsUnnegotiatedCallWhenNothingRefuses() throws Exception {
+        var harness = createRefusalHarness(false, false);
+        var ctx = newSoapRequestContext();
+        var decoder = newUnnegotiatedDecoder(ctx);
+        var httpSender = mock(HttpSender.class);
+        harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null);
+        verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), any(InputStream.class), eq((long) CHUNKED_LENGTH),
+                nullable(String.class));
+    }
+
+    @Test
+    void sendRequestNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
+        var harness = createRefusalHarness(true, true);
+        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var ctx = newSoapRequestContext();
+        var decoder = newUnnegotiatedDecoder(ctx);
+        var httpSender = mock(HttpSender.class);
+        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN);
+        harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, assetAccess, null);
+        verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), any(InputStream.class), eq((long) CHUNKED_LENGTH),
+                nullable(String.class));
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    @Test
+    void sendRequestDoesNotTreatMissingDspResponseAsUnnegotiatedWhenDspEnabled() throws Exception {
+        var harness = createRefusalHarness(true, true);
+        var ctx = newSoapRequestContext();
+        var decoder = newUnnegotiatedDecoder(ctx);
+        var httpSender = mock(HttpSender.class);
+        harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null);
+        verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), any(InputStream.class), eq((long) CHUNKED_LENGTH),
+                nullable(String.class));
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    @Test
+    void sendRequestSurfacesTargetResolutionErrorInsteadOfTheRefusal() throws Exception {
+        var harness = createRefusalHarness(false, true);
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
+        var ctx = newSoapRequestContext();
+        var decoder = newUnnegotiatedDecoder(ctx);
+        var httpSender = mock(HttpSender.class);
+        assertThatThrownBy(() -> harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, null, null))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(UNKNOWN_MEMBER)).isTrue());
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+        verify(httpSender, never()).doPost(any(URI.class), any(InputStream.class), anyLong(), any());
+    }
+
     private static ClientSoapRequestContext newSoapRequestContext() throws Exception {
         return new ClientSoapRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class), null);
     }
@@ -249,13 +335,55 @@ class ClientSoapMessageProcessorTest {
                 mock(ProxyProperties.class), mock(OpMonitoringDataHelper.class));
     }
 
-    private static void setRequestSoap(SoapRequestDecoder decoder, SoapMessageImpl soapMessage) throws Exception {
-        Field field = SoapRequestDecoder.class.getDeclaredField("requestSoap");
+    private static SoapRequestDecoder newUnnegotiatedDecoder(ClientSoapRequestContext ctx) throws Exception {
+        var decoder = newSoapRequestDecoder(ctx);
+        var soapMessage = mock(SoapMessageImpl.class);
+        when(soapMessage.getSecurityServer()).thenReturn(SecurityServerId.Conf.create("DEV", "COM", "222", "SS1"));
+        setField(decoder, "requestSoap", soapMessage);
+        setField(decoder, "requestServiceId", ServiceId.Conf.create(OTHER_CLIENT, "testService"));
+        return decoder;
+    }
+
+    private static void setField(SoapRequestDecoder decoder, String name, Object value) throws Exception {
+        Field field = SoapRequestDecoder.class.getDeclaredField(name);
         field.setAccessible(true);
-        field.set(decoder, soapMessage);
+        field.set(decoder, value);
     }
 
     private record Harness(ClientSoapMessageProcessor processor, ClientRequestPreparationService clientRequestPreparationService) {
+    }
+
+    private record RefusalHarness(ClientSoapMessageProcessor processor,
+                                  ClientRequestPreparationService clientRequestPreparationService,
+                                  GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy) {
+    }
+
+    private RefusalHarness createRefusalHarness(boolean dspEnabled, boolean legacyProtocolDisabled) {
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(Map.of(
+                        "xroad.proxy.dsp-enabled", String.valueOf(dspEnabled),
+                        "xroad.proxy.legacy-protocol-disabled", String.valueOf(legacyProtocolDisabled)))
+                .build());
+        var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
+        when(clientRequestPreparationService.prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
+        var processor = new ClientSoapMessageProcessor(
+                mock(MessageSigningService.class),
+                mock(HttpSenderProvider.class),
+                mock(ClientVerificationService.class),
+                mock(OpMonitoringDataHelper.class),
+                globalConfProvider,
+                proxyProperties,
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
+                mock(OcspVerifierFactory.class),
+                clientRequestPreparationService,
+                mock(DspRequestProcessor.class),
+                mock(IdentifierValidationService.class),
+                legacyCallRefusalPolicy);
+        return new RefusalHarness(processor, clientRequestPreparationService, globalConfProvider, legacyCallRefusalPolicy);
     }
 
     private Harness createHarness() {
@@ -284,7 +412,8 @@ class ClientSoapMessageProcessorTest {
                 mock(OcspVerifierFactory.class),
                 mock(ClientRequestPreparationService.class),
                 consumerSideDspProcessor,
-                mock(IdentifierValidationService.class));
+                mock(IdentifierValidationService.class),
+                mock(LegacyCallRefusalPolicy.class));
     }
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider,
@@ -300,6 +429,7 @@ class ClientSoapMessageProcessorTest {
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
                 mock(DspRequestProcessor.class),
-                mock(IdentifierValidationService.class));
+                mock(IdentifierValidationService.class),
+                mock(LegacyCallRefusalPolicy.class));
     }
 }
