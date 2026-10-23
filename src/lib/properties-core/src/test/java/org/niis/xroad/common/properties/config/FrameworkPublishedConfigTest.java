@@ -65,6 +65,7 @@ class FrameworkPublishedConfigTest {
             // contexts' bind host
             "xroad.dataspace.issuer.listen-address",
             "xroad.dsp.task-poll.workers",
+            "xroad.dsp.outbound-http.max-requests-per-host",
             // Quarkus @LookupIfProperty bean gates (proxy messagelog beans + readiness check) and the
             // auxiliary-service @ConfigProperty reader resolve this from framework config
             "xroad.proxy.message-log.enabled",
