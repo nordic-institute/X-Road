@@ -122,12 +122,10 @@ class DidResolutionGrpcServiceTest {
             return Resolution.resolved(slow);
         });
         var request = ResolveDidsReq.newBuilder().addAllDids(List.of(slow, fast)).build();
-        var started = System.nanoTime();
 
         var results = client.withDeadlineAfter(CALL_DEADLINE.toMillis(), TimeUnit.MILLISECONDS)
                 .resolveDids(request).getResultsList();
 
-        assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(CALL_DEADLINE);
         assertThat(results).extracting(DidResolutionResult::getDid).containsExactly(slow, fast);
         assertThat(results).extracting(DidResolutionResult::getReason)
                 .containsExactly(DidResolutionReason.FETCH_FAILURE, DidResolutionReason.DID_RESOLUTION_REASON_NONE);

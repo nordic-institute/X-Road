@@ -176,6 +176,19 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     @Test
+    void catalogueOffersLegacyProtocolDisabledInProxyScopeDefaultingToFalse() {
+        var properties = service.getConfigurationProperties();
+
+        assertThat(properties)
+                .filteredOn(dto -> "xroad.proxy.legacy-protocol-disabled".equals(dto.getPropertyName()))
+                .singleElement()
+                .satisfies(dto -> {
+                    assertThat(dto.getScope()).isEqualTo("proxy");
+                    assertThat(dto.getDefaultValue()).isEqualTo("false");
+                });
+    }
+
+    @Test
     void catalogueOmitsDocumentValuedKeys() {
         var keys = service.getConfigurationProperties().stream()
                 .map(ConfigurablePropertyDto::getPropertyName)

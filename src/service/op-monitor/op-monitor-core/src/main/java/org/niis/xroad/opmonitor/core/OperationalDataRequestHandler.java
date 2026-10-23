@@ -26,7 +26,6 @@
 package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -43,7 +42,7 @@ import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.AccessScope;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.IOException;
@@ -63,7 +62,6 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTP
 @Slf4j
 @RequiredArgsConstructor
 class OperationalDataRequestHandler extends QueryRequestHandler {
-    private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final OpMonitorProperties opMonitorProperties;
 
@@ -71,11 +69,11 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
     @Override
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-                       Consumer<String> contentTypeCallback) throws JAXBException, SOAPException, IOException {
+                       Consumer<String> contentTypeCallback, AccessScope accessScope)
+            throws JAXBException, SOAPException, IOException {
         log.trace("handle()");
 
         ClientId clientId = requestSoap.getClient();
-        SecurityServerId serverId = requestSoap.getSecurityServer();
 
         GetSecurityServerOperationalDataType requestData = getRequestData(
                 requestSoap, GetSecurityServerOperationalDataType.class);
@@ -102,7 +100,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
         GetSecurityServerOperationalDataResponseType opDataResponse =
                 buildOperationalDataResponse(
-                        getClientForFilter(clientId, serverId), recordsFrom,
+                        getClientForFilter(clientId, accessScope), recordsFrom,
                         recordsTo, serviceProviderId, outputFields,
                         recordsAvailableBefore);
 
@@ -221,19 +219,16 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         }
     }
 
-    protected ClientId getClientForFilter(ClientId clientId,
-                                          SecurityServerId serverId) {
-        return !isMonitoringClient(clientId)
-                && !isServerOwner(clientId, serverId) ? clientId : null;
-    }
-
-    private boolean isMonitoringClient(ClientId clientId) {
-        return clientId != null && clientId.equals(globalConfProvider.getGlobalConfExtensions().getMonitoringClient());
-    }
-
-    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId) {
-        return serverId != null
-                && clientId.equals(globalConfProvider.getServerOwner(serverId));
+    protected ClientId getClientForFilter(ClientId clientId, AccessScope accessScope) {
+        if (accessScope == AccessScope.FULL_VIEW) {
+            return null;
+        }
+        if (clientId == null) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Query has no client and its access scope is not full view")
+                    .withPrefix(CLIENT_X);
+        }
+        return clientId;
     }
 
     private  long getRecordsAvailableBeforeTimestamp() {

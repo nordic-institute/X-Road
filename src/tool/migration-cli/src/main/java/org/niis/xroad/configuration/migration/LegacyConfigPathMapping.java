@@ -70,6 +70,7 @@ public class LegacyConfigPathMapping {
         addMapping("proxy.client-https-port", "proxy.client-proxy.client-https-port");
         addMapping("proxy.jetty-clientproxy-configuration-file", "proxy.client-proxy.jetty-configuration-file");
         addMapping("proxy.client-connector-initial-idle-time", "proxy.client-proxy.client-connector-initial-idle-time");
+        addMapping("proxy.client-connector-max-idle-time", "proxy.client-proxy.client-connector-max-idle-time");
         addMapping("proxy.client-tls-protocols", "proxy.client-proxy.client-tls-protocols");
         addMapping("proxy.client-tls-ciphers", "proxy.client-proxy.client-tls-ciphers");
         addMapping("proxy.client-httpclient-so-linger", "proxy.client-proxy.client-httpclient-so-linger");

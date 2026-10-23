@@ -39,7 +39,6 @@ public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
                 "compose.intTest.yaml",
                 "db-init.dockerfile",
                 ".env",
-                "container-files/",
                 "test-data/"
         };
     }

@@ -33,6 +33,6 @@ import org.junit.platform.suite.api.Suite;
  * discovers the feature classes directly and does not use this suite.
  */
 @Suite
-@SelectClasses({OpMonitorIntTest.class, OpMonitorCaOpenBaoIntTest.class})
+@SelectClasses({OpMonitorIntTest.class, OpMonitorCaOpenBaoIntTest.class, OpMonitorWithoutGlobalConfigurationIntTest.class})
 public class OpMonitorIntTestSuite {
 }

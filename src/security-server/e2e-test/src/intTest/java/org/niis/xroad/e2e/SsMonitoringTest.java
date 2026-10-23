@@ -41,6 +41,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.opmonitor.core.OperationalDataRecord;
 import org.niis.xroad.opmonitor.core.OperationalDataRecords;
@@ -65,8 +66,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -105,9 +108,12 @@ class SsMonitoringTest extends E2eTest {
     private static final String SSL_AUTH_FAILED_FAULT_CODE = "server.clientproxy.ssl_authentication_failed";
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
+    private static final Duration OP_DATA_VISIBILITY_TIMEOUT = Duration.ofSeconds(90);
+    private static final Duration OP_DATA_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final OpDataClient TEST_SAVED = new OpDataClient("1234", "TestSaved");
+    private static final OpDataClient TEST_SERVICE = new OpDataClient("1234", "TestService");
 
     private Response lastOpMonitorResponse;
-    private OperationalDataRecords lastOperationalDataRecords;
 
     @Test
     @Order(1)
@@ -247,6 +253,80 @@ class SsMonitoringTest extends E2eTest {
                 assertHealthDataResponse(600, 1));
     }
 
+    @Test
+    @Order(8)
+    @DisplayName("Regular client retrieves only its own operational data")
+    void regularClientRetrievesOnlyOwnOperationalData(E2eEnvironment env) {
+        given("traffic from TestSaved and from TestService has passed through ss0", () ->
+                generateTrafficOnSs0(env));
+
+        var records = when("the regular client 1234/TestSaved queries operational data of ss0", () ->
+                awaitOperationalRecords(env, TEST_SAVED, found -> found.stream().anyMatch(TEST_SAVED::isParty)));
+
+        then("every returned record involves the regular client", () ->
+                assertThat(records).allMatch(TEST_SAVED::isParty));
+        and("the records carry no internal security server IP", () ->
+                assertThat(records).extracting(OperationalDataRecord::getSecurityServerInternalIp).containsOnlyNulls());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Central monitoring client retrieves operational data of all clients")
+    void centralMonitoringClientRetrievesAllOperationalData(E2eEnvironment env) {
+        given("traffic from TestSaved and from TestService has passed through ss0", () ->
+                generateTrafficOnSs0(env));
+
+        var records = when("the central monitoring client 1234/TestService queries operational data of ss0", () ->
+                awaitOperationalRecords(env, TEST_SERVICE, found ->
+                        found.stream().anyMatch(TEST_SERVICE::isClientOf) && found.stream().anyMatch(TEST_SAVED::isParty)));
+
+        then("the records include other clients' records and its own", () -> {
+            assertThat(records).anyMatch(TEST_SERVICE::isClientOf);
+            assertThat(records).anyMatch(TEST_SAVED::isParty);
+        });
+        and("at least one record carries the internal security server IP", () ->
+                assertThat(records).extracting(OperationalDataRecord::getSecurityServerInternalIp).anyMatch(Objects::nonNull));
+    }
+
+    private void generateTrafficOnSs0(E2eEnvironment env) {
+        Mock1Fixture.callService(env, "ss0", "DEV/COM/1234/TestSaved", "/r1/DEV/COM/4321/TestClient/mock1")
+                .statusCode(200);
+        Mock1Fixture.callMock1(env, "ss0").statusCode(200);
+    }
+
+    private List<OperationalDataRecord> awaitOperationalRecords(E2eEnvironment env, OpDataClient caller,
+                                                                Predicate<List<OperationalDataRecord>> ready) {
+        var latest = new AtomicReference<List<OperationalDataRecord>>(List.of());
+        var lastFailure = new AtomicReference<>("none");
+        try {
+            Awaitility.await()
+                    .pollInterval(OP_DATA_VISIBILITY_POLL_INTERVAL)
+                    .timeout(OP_DATA_VISIBILITY_TIMEOUT)
+                    .until(() -> {
+                        var response = sendOperationalDataRequest(env, "ss0",
+                                buildOperationalDataRequestBody(caller.memberCode(), caller.subsystemCode(), "1234", "SS0"));
+                        if (response.getStatusCode() != 200) {
+                            lastFailure.set("HTTP %d: %s".formatted(response.getStatusCode(), response.asString()));
+                            return false;
+                        }
+                        try {
+                            var decoded = decodeOperationalDataRecords(response);
+                            latest.set(decoded == null ? List.of() : decoded.getRecords());
+                        } catch (XrdRuntimeException e) {
+                            lastFailure.set("SOAP fault: " + e.getMessage());
+                            return false;
+                        }
+                        lastFailure.set("none");
+                        return ready.test(latest.get());
+                    });
+        } catch (ConditionTimeoutException e) {
+            throw new ConditionTimeoutException(
+                    "Timed out waiting for operational data visible to %s/%s (last response had %d records, last failure: %s)"
+                            .formatted(caller.memberCode(), caller.subsystemCode(), latest.get().size(), lastFailure.get()), e);
+        }
+        return latest.get();
+    }
+
     private ValidatableResponse sendMockRestRequest(E2eEnvironment env, String envName) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         return RestAssuredFactory.given()
@@ -384,10 +464,14 @@ class SsMonitoringTest extends E2eTest {
 
     private void sendGetSecurityServerOperationalData(E2eEnvironment env, String envName) {
         Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
+        lastOpMonitorResponse = sendOperationalDataRequest(env, envName, buildOperationalDataRequestBody());
+    }
+
+    private Response sendOperationalDataRequest(E2eEnvironment env, String envName, String body) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        lastOpMonitorResponse = RestAssuredFactory.given()
+        return RestAssuredFactory.given()
                 .header("Content-Type", "text/xml")
-                .body(buildOperationalDataRequestBody())
+                .body(body)
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
     }
 
@@ -400,12 +484,29 @@ class SsMonitoringTest extends E2eTest {
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
     }
 
-    @SneakyThrows
     private void assertOperationalDataRecordsAddress(String expectedAddress) {
         assertThat(lastOpMonitorResponse.getStatusCode()).isEqualTo(200);
 
-        var contentType = lastOpMonitorResponse.getContentType();
-        var responseBytes = lastOpMonitorResponse.asByteArray();
+        var lastOperationalDataRecords = decodeOperationalDataRecords(lastOpMonitorResponse);
+
+        assertThat(lastOperationalDataRecords).isNotNull();
+        assertThat(lastOperationalDataRecords.getRecords()).isNotEmpty();
+
+        List<String> addresses = lastOperationalDataRecords.getRecords().stream()
+                .map(OperationalDataRecord::getServiceSecurityServerAddress)
+                .distinct()
+                .toList();
+        log.info("serviceSecurityServerAddress values in op-data: {}", addresses);
+        assertThat(lastOperationalDataRecords.getRecords())
+                .extracting(OperationalDataRecord::getServiceSecurityServerAddress)
+                .contains(expectedAddress);
+    }
+
+    @SneakyThrows
+    private OperationalDataRecords decodeOperationalDataRecords(Response response) {
+        var contentType = response.getContentType();
+        var responseBytes = response.asByteArray();
+        var recordsRef = new AtomicReference<OperationalDataRecords>();
 
         var decoder = new SoapMessageDecoder(contentType, new SoapMessageDecoder.Callback() {
             @Override
@@ -421,8 +522,8 @@ class SsMonitoringTest extends E2eTest {
                 String expectedCid = "<" + OPERATIONAL_DATA_JSON + ">";
                 assertThat(additionalHeaders.get("content-id")).isEqualTo(expectedCid);
 
-                lastOperationalDataRecords = JsonMapper.builder().build()
-                        .readValue(readGzipContent(content), OperationalDataRecords.class);
+                recordsRef.set(JsonMapper.builder().build()
+                        .readValue(readGzipContent(content), OperationalDataRecords.class));
             }
 
             @Override
@@ -440,18 +541,7 @@ class SsMonitoringTest extends E2eTest {
             }
         });
         decoder.parse(new ByteArrayInputStream(responseBytes));
-
-        assertThat(lastOperationalDataRecords).isNotNull();
-        assertThat(lastOperationalDataRecords.getRecords()).isNotEmpty();
-
-        List<String> addresses = lastOperationalDataRecords.getRecords().stream()
-                .map(OperationalDataRecord::getServiceSecurityServerAddress)
-                .distinct()
-                .toList();
-        log.info("serviceSecurityServerAddress values in op-data: {}", addresses);
-        assertThat(lastOperationalDataRecords.getRecords())
-                .extracting(OperationalDataRecord::getServiceSecurityServerAddress)
-                .contains(expectedAddress);
+        return recordsRef.get();
     }
 
     private void assertHealthDataResponse(int expectedPeriodSeconds, int minSuccessfulRequests) {
@@ -552,7 +642,15 @@ class SsMonitoringTest extends E2eTest {
     }
 
     private String buildOperationalDataRequestBody() {
+        return buildOperationalDataRequestBody("1234", null, "1234", "SS0");
+    }
+
+    private String buildOperationalDataRequestBody(String clientMemberCode, String clientSubsystemCode,
+                                                   String ownerMemberCode, String serverCode) {
         long now = System.currentTimeMillis() / 1000;
+        var clientObjectType = clientSubsystemCode == null ? "MEMBER" : "SUBSYSTEM";
+        var clientSubsystemElement = clientSubsystemCode == null
+                ? "" : "<iden:subsystemCode>%s</iden:subsystemCode>".formatted(clientSubsystemCode);
         return """
                 <soapenv:Envelope
                         xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -560,22 +658,23 @@ class SsMonitoringTest extends E2eTest {
                         xmlns:iden="http://x-road.eu/xsd/identifiers"
                         xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd">
                     <soapenv:Header>
-                        <xro:client iden:objectType="MEMBER">
+                        <xro:client iden:objectType="%s">
                             <iden:xRoadInstance>DEV</iden:xRoadInstance>
                             <iden:memberClass>COM</iden:memberClass>
-                            <iden:memberCode>1234</iden:memberCode>
+                            <iden:memberCode>%s</iden:memberCode>
+                            %s
                         </xro:client>
                         <xro:service iden:objectType="SERVICE">
                             <iden:xRoadInstance>DEV</iden:xRoadInstance>
                             <iden:memberClass>COM</iden:memberClass>
-                            <iden:memberCode>1234</iden:memberCode>
+                            <iden:memberCode>%s</iden:memberCode>
                             <iden:serviceCode>getSecurityServerOperationalData</iden:serviceCode>
                         </xro:service>
                         <xro:securityServer iden:objectType="SERVER">
                             <iden:xRoadInstance>DEV</iden:xRoadInstance>
                             <iden:memberClass>COM</iden:memberClass>
-                            <iden:memberCode>1234</iden:memberCode>
-                            <iden:serverCode>SS0</iden:serverCode>
+                            <iden:memberCode>%s</iden:memberCode>
+                            <iden:serverCode>%s</iden:serverCode>
                         </xro:securityServer>
                         <xro:id>E2E-OPDATA-%d</xro:id>
                         <xro:protocolVersion>4.0</xro:protocolVersion>
@@ -589,7 +688,8 @@ class SsMonitoringTest extends E2eTest {
                         </om:getSecurityServerOperationalData>
                     </soapenv:Body>
                 </soapenv:Envelope>
-                """.formatted(now, now);
+                """.formatted(clientObjectType, clientMemberCode, clientSubsystemElement, ownerMemberCode,
+                        ownerMemberCode, serverCode, now, now);
     }
 
     private String buildHealthDataRequestBody() {
@@ -633,6 +733,22 @@ class SsMonitoringTest extends E2eTest {
                     </soapenv:Body>
                 </soapenv:Envelope>
                 """;
+    }
+
+    private record OpDataClient(String memberCode, String subsystemCode) {
+        boolean isParty(OperationalDataRecord record) {
+            return isClientOf(record) || isServiceOf(record);
+        }
+
+        private boolean isClientOf(OperationalDataRecord record) {
+            return memberCode.equals(record.getClientMemberCode())
+                    && subsystemCode.equals(record.getClientSubsystemCode());
+        }
+
+        private boolean isServiceOf(OperationalDataRecord record) {
+            return memberCode.equals(record.getServiceMemberCode())
+                    && subsystemCode.equals(record.getServiceSubsystemCode());
+        }
     }
 
     private static final class MapNamespaceContext implements NamespaceContext {

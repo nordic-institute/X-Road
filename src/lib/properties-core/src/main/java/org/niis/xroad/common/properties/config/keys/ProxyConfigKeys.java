@@ -107,6 +107,13 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(true)
             .build();
 
+    /** {@code xroad.proxy.legacy-protocol-disabled}. */
+    public static final ConfigKey<Boolean> LEGACY_PROTOCOL_DISABLED = PROXY
+            .bool("legacy-protocol-disabled")
+            .withDefaultValue(false)
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.proxy.health-check-enabled}. */
     public static final ConfigKey<Boolean> HEALTH_CHECK_ENABLED = PROXY
             .bool("health-check-enabled")
@@ -229,6 +236,18 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CLIENT_PROXY_CLIENT_CONNECTOR_INITIAL_IDLE_TIME = CLIENT_PROXY
             .integer("client-connector-initial-idle-time")
             .withDefaultValue(30000)
+            .exposedInUi()
+            .build();
+
+    /**
+     * {@code xroad.proxy.client-proxy.client-connector-max-idle-time}: once the client proxy starts processing a
+     * request, how long (in milliseconds) that request may stay continuously idle before it fails. 0 means no
+     * limit. A positive bound is enforced at the next {@link #CLIENT_PROXY_CLIENT_CONNECTOR_INITIAL_IDLE_TIME}
+     * idle-timeout firing on or after it has passed.
+     */
+    public static final ConfigKey<Integer> CLIENT_PROXY_CLIENT_CONNECTOR_MAX_IDLE_TIME = CLIENT_PROXY
+            .integer("client-connector-max-idle-time")
+            .withDefaultValue(0)
             .exposedInUi()
             .build();
 

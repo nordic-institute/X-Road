@@ -39,10 +39,14 @@ import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
+import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.util.NanoTime;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -175,7 +179,10 @@ public class ClientProxy {
             handlers.addHandler(handler);
         });
 
-        server.setHandler(handlers);
+        var processingIdleTimeout = new ProcessingIdleTimeoutHandler(clientProxyProperties);
+        processingIdleTimeout.setHandler(handlers);
+
+        server.setHandler(processingIdleTimeout);
     }
 
     @PostConstruct
@@ -210,6 +217,74 @@ public class ClientProxy {
                 .findFirst()
                 .map(c -> ((ServerConnector) c).getLocalPort())
                 .orElseThrow(() -> new IllegalStateException("Client HTTP connector not found"));
+    }
+
+    /**
+     * Declines the connector idle timeout for every request the client proxy processes (REST, SOAP, metadata,
+     * ASiC): once a request reaches this handler, each idle-timeout firing is declined while the request's
+     * continuous idle streak has not yet reached {@code client-connector-max-idle-time}, so a request blocked
+     * in processing (DSP asset-access acquisition, a slow backend) is not failed by
+     * {@code client-connector-initial-idle-time}. A read or write on the request resets the streak, because
+     * that activity also resets the connector's own idle-timeout clock; see {@link IdleStreak} for the window
+     * in which activity is not detected. A positive {@code client-connector-max-idle-time} still bounds
+     * the request: once the idle streak reaches it, the next idle-timeout firing is let through, and the
+     * pending read or write fails with the connector's idle-timeout exception.
+     */
+    private static final class ProcessingIdleTimeoutHandler extends Handler.Wrapper {
+        private final ProxyProperties.ClientProxyProperties clientProxyProperties;
+
+        ProcessingIdleTimeoutHandler(ProxyProperties.ClientProxyProperties clientProxyProperties) {
+            this.clientProxyProperties = clientProxyProperties;
+        }
+
+        @Override
+        @ArchUnitSuppressed("NoVanillaExceptions")
+        public boolean handle(Request request, Response response, Callback callback) throws Exception {
+            var idleStreak = new IdleStreak(clientProxyProperties.clientConnectorInitialIdleTime());
+            int maxIdleTimeMillis = clientProxyProperties.clientConnectorMaxIdleTime();
+            request.addIdleTimeoutListener(timeout -> idleStreak.reachesBound(maxIdleTimeMillis));
+            return super.handle(request, response, callback);
+        }
+    }
+
+    /**
+     * Accumulates a request's continuous idle time across idle-timeout firings that this handler declines.
+     * The connector fires an idle-timeout exactly {@code initialIdleTimeMillis} after the last activity (a
+     * read, a write, or a previous firing this handler declined): a gap between two firings at most
+     * {@code initialIdleTimeMillis} plus a small scheduling-jitter margin means no activity happened in
+     * between, so the idle streak keeps accumulating; a larger gap means activity reset the connector's
+     * clock partway through, so the streak restarts at one idle interval. Activity within the margin after a
+     * declined firing looks like scheduling jitter, so it does not restart the streak, and the request can
+     * fail as if it had stayed idle throughout.
+     */
+    private static final class IdleStreak {
+        private static final long ACTIVITY_GAP_JITTER_MARGIN_MILLIS = 500;
+
+        private final long initialIdleTimeMillis;
+        private boolean fired;
+        private long lastFiringNanoTime;
+        private long continuousIdleMillis;
+
+        IdleStreak(long initialIdleTimeMillis) {
+            this.initialIdleTimeMillis = initialIdleTimeMillis;
+        }
+
+        synchronized boolean reachesBound(int maxIdleTimeMillis) {
+            if (maxIdleTimeMillis <= 0) {
+                return false;
+            }
+
+            long now = NanoTime.now();
+            long sinceLastFiringMillis = fired ? NanoTime.millisElapsed(lastFiringNanoTime, now)
+                    : initialIdleTimeMillis;
+            fired = true;
+            continuousIdleMillis = sinceLastFiringMillis > initialIdleTimeMillis + ACTIVITY_GAP_JITTER_MARGIN_MILLIS
+                    ? initialIdleTimeMillis
+                    : continuousIdleMillis + sinceLastFiringMillis;
+            lastFiringNanoTime = now;
+
+            return continuousIdleMillis >= maxIdleTimeMillis;
+        }
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {
