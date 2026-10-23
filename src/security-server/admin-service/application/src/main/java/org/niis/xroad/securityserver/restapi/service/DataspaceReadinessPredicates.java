@@ -81,7 +81,7 @@ public class DataspaceReadinessPredicates {
         try {
             return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty();
         } catch (Exception e) {
-            log.debug("Dataspace readiness check failed, treating the instance as not ready", e);
+            log.debug("Data space: readiness check failed, treating the instance as not ready", e);
             return false;
         }
     }
