@@ -27,7 +27,11 @@ package org.niis.xroad.serverconf.impl.ownserver;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import java.util.Optional;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
  * Who this Security Server is, or the reason that is not known. A database failure is not a state:
@@ -40,6 +44,14 @@ public sealed interface OwnIdentity permits OwnIdentity.Known, OwnerNotInitialis
      */
     default Optional<SecurityServerId.Conf> serverId() {
         return this instanceof Known(var id) ? Optional.of(id) : Optional.empty();
+    }
+    /**
+     * @return the server identifier
+     * @throws XrdRuntimeException with {@code MALFORMED_SERVERCONF} when the owner is not set
+     */
+    default SecurityServerId.Conf requireServerId() {
+        return serverId().orElseThrow(() -> XrdRuntimeException.systemException(MALFORMED_SERVERCONF,
+                OwnerNotInitialised.SECURITY_SERVER_OWNER_NOT_SET));
     }
 
     /**

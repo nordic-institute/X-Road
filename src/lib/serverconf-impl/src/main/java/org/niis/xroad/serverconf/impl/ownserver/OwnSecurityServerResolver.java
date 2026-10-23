@@ -62,7 +62,7 @@ public class OwnSecurityServerResolver {
         }
         return switch (identity) {
             case OwnIdentity.Known(var id) -> address(id);
-            case OwnerNotInitialised _ -> new OwnerNotInitialised();
+            case OwnerNotInitialised notInitialised -> notInitialised;
         };
     }
 

@@ -37,9 +37,7 @@ import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
-import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 /**
@@ -191,17 +189,12 @@ public class XRoadDataPlaneManager {
     private String resolveServerproxyEndpoint(String protocol) {
         try {
             var ownAddress = ownSecurityServerResolver.address();
-            return switch (ownAddress) {
-                case OwnAddress.Registered(_, var address) -> registeredEndpoint(protocol, address);
-                case OwnAddress.GlobalConfUnavailable(var cause) -> {
-                    log.warn(FALLBACK_WARNING, stateName(ownAddress), cause);
-                    yield dspProperties.serverproxyEndpoint();
-                }
-                case OwnAddress.NotRegistered _, OwnerNotInitialised _ -> {
-                    log.warn(FALLBACK_WARNING, stateName(ownAddress));
-                    yield dspProperties.serverproxyEndpoint();
-                }
-            };
+            return ownAddress.registeredAddress()
+                    .map(address -> registeredEndpoint(protocol, address))
+                    .orElseGet(() -> {
+                        log.warn(FALLBACK_WARNING, ownAddress);
+                        return dspProperties.serverproxyEndpoint();
+                    });
         } catch (Exception e) {
             log.warn("Could not resolve own security-server address; falling back to configured serverproxy endpoint", e);
             return dspProperties.serverproxyEndpoint();
@@ -212,10 +205,6 @@ public class XRoadDataPlaneManager {
         var endpoint = "%s://%s:%d".formatted(protocol, address, proxyProperties.serverProxyPort());
         log.debug("Advertising dataplane serverproxy endpoint {}", endpoint);
         return endpoint;
-    }
-
-    private static String stateName(OwnAddress ownAddress) {
-        return ownAddress.getClass().getSimpleName();
     }
 
     /**

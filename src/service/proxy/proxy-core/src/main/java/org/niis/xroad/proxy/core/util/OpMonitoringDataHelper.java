@@ -173,7 +173,6 @@ public class OpMonitoringDataHelper {
     private void setOwnAddress(Consumer<String> setter) {
         var ownAddress = ownSecurityServerResolver.address();
         ownAddress.registeredAddress().ifPresentOrElse(setter, () ->
-                log.debug("Own security server address is not available for operational monitoring: {}",
-                        ownAddress.getClass().getSimpleName()));
+                log.debug("Own security server address is not available for operational monitoring: {}", ownAddress));
     }
 }

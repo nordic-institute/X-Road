@@ -94,9 +94,7 @@ public class ServerConfService {
      * @throws XrdRuntimeException with {@code MALFORMED_SERVERCONF} when the owner is not set
      */
     public SecurityServerId.Conf getSecurityServerId() {
-        return ownSecurityServerResolver.identity().serverId()
-                .orElseThrow(() -> XrdRuntimeException.systemException(MALFORMED_SERVERCONF,
-                        "Security Server owner is not set"));
+        return ownSecurityServerResolver.identity().requireServerId();
     }
 
     /**

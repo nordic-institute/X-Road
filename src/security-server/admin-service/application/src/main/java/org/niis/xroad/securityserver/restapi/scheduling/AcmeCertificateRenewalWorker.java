@@ -49,6 +49,7 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -73,7 +74,6 @@ import static ee.ria.xroad.common.util.CertUtils.isSigningCert;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.SECURITY_SERVER_NOT_FOUND;
 
 /**
@@ -86,8 +86,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SECURITY_SERVER_NOT
 @Component
 @RequiredArgsConstructor
 public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
-
-    private static final String OWNER_NOT_SET_MESSAGE = "Security Server owner is not set";
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
@@ -248,7 +246,8 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                     var recipient = memberId != null ? memberId : id.getOwner();
                     mailNotificationHelper.sendFailureNotification(recipient.asEncodedId(), cert, id, errorDescription);
                 },
-                () -> log.warn("Renewal failure notification for certificate '{}' not sent: {}", cert.getId(), OWNER_NOT_SET_MESSAGE));
+                () -> log.warn("Renewal failure notification for certificate '{}' not sent: {}",
+                        cert.getId(), OwnerNotInitialised.SECURITY_SERVER_OWNER_NOT_SET));
     }
 
     private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate) {
@@ -313,8 +312,7 @@ public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                                              X509Certificate oldX509Certificate, KeyUsageInfo keyUsage,
                                              OwnIdentity ownIdentity) {
         log.info("Starting to renew certificate '{}'", oldX509Certificate.getSerialNumber());
-        SecurityServerId.Conf ownServerId = ownIdentity.serverId().orElseThrow(
-                () -> XrdRuntimeException.systemException(MALFORMED_SERVERCONF, OWNER_NOT_SET_MESSAGE));
+        SecurityServerId.Conf ownServerId = ownIdentity.requireServerId();
         String subjectAltName = getSubjectAltName(oldX509Certificate, keyUsage, ownServerId);
         TokenInfoAndKeyId tokenAndOldKeyId = signerRpcClient.getTokenAndKeyIdForCertHash(calculateCertHexHashOrThrow(oldX509Certificate));
         String tokenId = tokenAndOldKeyId.getTokenInfo().getId();

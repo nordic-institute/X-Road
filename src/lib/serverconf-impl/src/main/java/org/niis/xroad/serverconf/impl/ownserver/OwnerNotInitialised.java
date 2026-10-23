@@ -29,4 +29,6 @@ package org.niis.xroad.serverconf.impl.ownserver;
  * Server configuration has no row or no owner yet.
  */
 public record OwnerNotInitialised() implements OwnIdentity, OwnAddress {
+
+    public static final String SECURITY_SERVER_OWNER_NOT_SET = "Security Server owner is not set";
 }
