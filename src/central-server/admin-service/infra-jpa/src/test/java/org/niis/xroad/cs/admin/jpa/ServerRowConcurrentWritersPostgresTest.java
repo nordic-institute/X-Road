@@ -27,8 +27,8 @@
 package org.niis.xroad.cs.admin.jpa;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.jpa.CentralServerSeed.Server;
@@ -50,7 +50,7 @@ class ServerRowConcurrentWritersPostgresTest extends AbstractCentralServerPostgr
     private static final String MAINTENANCE_MESSAGE = "planned upgrade";
 
     @Autowired
-    private PublishedValueStore store;
+    private ParticipantValueStore store;
     @Autowired
     private SecurityServerRepository servers;
 
@@ -77,7 +77,7 @@ class ServerRowConcurrentWritersPostgresTest extends AbstractCentralServerPostgr
             publicationCommitted.countDown();
             edit.get(WAIT_SECONDS, TimeUnit.SECONDS);
 
-            assertThat(result).isEqualTo(PublishedValueResult.STORED);
+            assertThat(result).isEqualTo(ParticipantValueResult.STORED);
             assertRowHoldsEditAndPair(server, did, url);
         } finally {
             publicationCommitted.countDown();
@@ -111,7 +111,7 @@ class ServerRowConcurrentWritersPostgresTest extends AbstractCentralServerPostgr
             });
             editCommitted.countDown();
 
-            assertThat(publication.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo(PublishedValueResult.STORED);
+            assertThat(publication.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo(ParticipantValueResult.STORED);
             assertRowHoldsEditAndPair(server, did, url);
         } finally {
             editCommitted.countDown();

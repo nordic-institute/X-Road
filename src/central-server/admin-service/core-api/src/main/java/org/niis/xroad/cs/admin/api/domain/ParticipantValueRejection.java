@@ -27,26 +27,32 @@
 package org.niis.xroad.cs.admin.api.domain;
 
 /**
- * What happened to one published value.
- *
- * @param outcome   whether the value was written, left as it was, or refused
- * @param rejection the reason when the value was refused, otherwise {@code null}
+ * Why a Security Server's published value is refused. Each validation rule and each storage rule has its
+ * own reason.
  */
-public record PublishedValueResult(Outcome outcome, PublishedValueRejection rejection) {
-
-    public static final PublishedValueResult STORED = new PublishedValueResult(Outcome.STORED, null);
-    public static final PublishedValueResult UNCHANGED = new PublishedValueResult(Outcome.UNCHANGED, null);
-
-    public static PublishedValueResult rejected(PublishedValueRejection rejection) {
-        return new PublishedValueResult(Outcome.REJECTED, rejection);
-    }
-
-    public enum Outcome {
-        /** The value was written, as a new value or as a replacement. */
-        STORED,
-        /** Nothing was written: the stored value is already the published one, or there was nothing to replace. */
-        UNCHANGED,
-        /** The value was refused; the reason is in {@link #rejection()}. */
-        REJECTED
-    }
+public enum ParticipantValueRejection {
+    /** The DID is not a {@code did:web} DID of scheme version {@code v1}. */
+    WRONG_SCHEME,
+    /** The DID is longer than 4000 characters. */
+    DID_TOO_LONG,
+    /** The authority in the DID is not in its canonical form. */
+    NOT_CANONICAL,
+    /** The host in the DID or the DSP base URL is not the registered address. */
+    HOST_DIFFERS,
+    /** The registered address cannot be read as a host. */
+    UNPARSEABLE_REGISTERED_ADDRESS,
+    /** The host in the DID or the DSP base URL, or the registered address, is not ASCII. */
+    NON_ASCII_HOST,
+    /** The DSP base URL does not use {@code https}. */
+    DSP_BASE_URL_NOT_HTTPS,
+    /** The DSP base URL is not a URL, or has an invalid port, user info, a query or a fragment. */
+    MALFORMED_DSP_BASE_URL,
+    /** The member DID does not decode to the claimed member, or the member is neither the owner nor a client. */
+    UNRELATED_MEMBER,
+    /** The SYSTEM DID is not the server's own {@code v1:system} DID. */
+    FOREIGN_SYSTEM_DID,
+    /** The stored value is current for the registered address and differs from the published one. */
+    VALUE_DIFFERS,
+    /** The DID is stored for another Security Server. */
+    DID_HELD_BY_ANOTHER_SERVER
 }

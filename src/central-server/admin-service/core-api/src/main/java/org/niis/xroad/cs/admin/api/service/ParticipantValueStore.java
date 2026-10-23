@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 
 import java.util.Map;
@@ -43,7 +43,7 @@ import java.util.Map;
  * earlier address is replaced. Admin replace operations serve the Central Server edit: they replace
  * existing values and never add a value to a server or member that has none.
  */
-public interface PublishedValueStore {
+public interface ParticipantValueStore {
 
     /**
      * Writes the SYSTEM DID and DSP base URL of a server as one pair, under the write-once rule.
@@ -53,7 +53,7 @@ public interface PublishedValueStore {
      * @param dspBaseUrl       the DSP base URL
      * @return the outcome for the pair
      */
-    PublishedValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl);
+    ParticipantValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl);
 
     /**
      * Checks a SYSTEM pair against a server without writing anything and without locking the server row. The
@@ -74,7 +74,7 @@ public interface PublishedValueStore {
      * @param dspBaseUrl       the new DSP base URL
      * @return the outcome for the pair
      */
-    PublishedValueResult replaceSystemPair(int securityServerId, String systemDid, String dspBaseUrl);
+    ParticipantValueResult replaceSystemPair(int securityServerId, String systemDid, String dspBaseUrl);
 
     /**
      * Writes the member DIDs of a server under the write-once rule, each entry on its own: a refused entry
@@ -84,7 +84,7 @@ public interface PublishedValueStore {
      * @param memberDids       the DID to write for each member
      * @return the outcome for each member, in the order of the given entries
      */
-    Map<ClientId, PublishedValueResult> writeMemberDidsOnce(int securityServerId, Map<ClientId, String> memberDids);
+    Map<ClientId, ParticipantValueResult> writeMemberDidsOnce(int securityServerId, Map<ClientId, String> memberDids);
 
     /**
      * Replaces the stored member DIDs of a server, each entry on its own. A member without a stored DID on
@@ -94,5 +94,5 @@ public interface PublishedValueStore {
      * @param memberDids       the new DID for each member
      * @return the outcome for each member, in the order of the given entries
      */
-    Map<ClientId, PublishedValueResult> replaceMemberDids(int securityServerId, Map<ClientId, String> memberDids);
+    Map<ClientId, ParticipantValueResult> replaceMemberDids(int securityServerId, Map<ClientId, String> memberDids);
 }

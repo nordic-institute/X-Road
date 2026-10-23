@@ -39,13 +39,13 @@ import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionReason;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.service.managementrequest.AuthCertServerCheck.CheckedServer;
 
 import java.util.ArrayList;
@@ -61,18 +61,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DSP_BASE_URL_NOT_HTTPS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.FOREIGN_SYSTEM_DID;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.MALFORMED_DSP_BASE_URL;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.VALUE_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FINAL_CONFLICT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FIXABLE_CONFLICT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_NOT_RESOLVED;
@@ -97,7 +97,7 @@ class SystemDidRegistrationServiceImplTest {
     private RuntimeException certificateFailure;
 
     private final AuthCertServerCheck authCertServerCheck = mock(AuthCertServerCheck.class);
-    private final PublishedValueStore store = mock(PublishedValueStore.class);
+    private final ParticipantValueStore store = mock(ParticipantValueStore.class);
     private final ManagementRequestService managementRequestService = mock(ManagementRequestService.class);
     private final DidResolutionService resolver = dids -> {
         calls.add("resolve" + dids);
@@ -166,7 +166,7 @@ class SystemDidRegistrationServiceImplTest {
 
     @ParameterizedTest
     @MethodSource("rejectionRows")
-    void storeRejectionIsClassifiedAndNeverResolvedOrAdded(PublishedValueRejection rejection, String address, String code) {
+    void storeRejectionIsClassifiedAndNeverResolvedOrAdded(ParticipantValueRejection rejection, String address, String code) {
         registeredAddress = address;
         storeVerdict = SystemPairCheck.rejected(rejection);
 
@@ -182,7 +182,7 @@ class SystemDidRegistrationServiceImplTest {
     void everyStoreRejectionHasARow() {
         var covered = rejectionRows().map(row -> row.get()[0]).toList();
 
-        assertThat(covered).containsAll(List.of(PublishedValueRejection.values()));
+        assertThat(covered).containsAll(List.of(ParticipantValueRejection.values()));
     }
 
     @Test
@@ -294,7 +294,7 @@ class SystemDidRegistrationServiceImplTest {
                 row(NON_ASCII_HOST, NON_ASCII_ADDRESS, fixableCode));
     }
 
-    private static Arguments row(PublishedValueRejection rejection, String address, String code) {
+    private static Arguments row(ParticipantValueRejection rejection, String address, String code) {
         return Arguments.of(rejection, address, code);
     }
 }

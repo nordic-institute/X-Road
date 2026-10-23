@@ -30,9 +30,9 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
@@ -47,7 +47,7 @@ public class SystemDidRegistrationRequestHandler implements RequestHandler<Syste
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final RequestRepository<SystemDidRegistrationRequestEntity> systemDidRegistrationRequests;
     private final AuthCertServerCheck authCertServerCheck;
-    private final PublishedValueStore publishedValueStore;
+    private final ParticipantValueStore participantValueStore;
     private final RequestMapper requestMapper;
 
     @Override
@@ -59,8 +59,8 @@ public class SystemDidRegistrationRequestHandler implements RequestHandler<Syste
     public SystemDidRegistrationRequest add(SystemDidRegistrationRequest request) {
         var server = authCertServerCheck.requireServer(request.getSecurityServerId(), request.getCertificate());
 
-        var result = publishedValueStore.writeSystemPairOnce(server.id(), request.getSystemDid(), request.getDspBaseUrl());
-        if (result.outcome() == PublishedValueResult.Outcome.REJECTED) {
+        var result = participantValueStore.writeSystemPairOnce(server.id(), request.getSystemDid(), request.getDspBaseUrl());
+        if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
             throw SystemDidRegistrationOutcome.of(result.rejection(), server.address()).toException();
         }
 

@@ -32,12 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.api.service.SystemDidRegistrationService;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +49,7 @@ import java.util.List;
 public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationService {
 
     private final AuthCertServerCheck authCertServerCheck;
-    private final PublishedValueStore publishedValueStore;
+    private final ParticipantValueStore participantValueStore;
     private final DidResolutionService didResolutionService;
     private final ManagementRequestService managementRequestService;
 
@@ -57,12 +57,12 @@ public class SystemDidRegistrationServiceImpl implements SystemDidRegistrationSe
     public SystemDidRegistrationRequest add(SystemDidRegistrationRequest request) {
         var server = authCertServerCheck.requireServer(request.getSecurityServerId(), request.getCertificate());
 
-        var check = publishedValueStore.checkSystemPair(server.id(), request.getSystemDid(), request.getDspBaseUrl());
+        var check = participantValueStore.checkSystemPair(server.id(), request.getSystemDid(), request.getDspBaseUrl());
         if (check.verdict() == Verdict.REJECTED) {
             throw SystemDidRegistrationOutcome.of(check.rejection(), server.address()).toException();
         }
         if (check.verdict() == Verdict.VALUE_DIFFERS) {
-            throw SystemDidRegistrationOutcome.of(PublishedValueRejection.VALUE_DIFFERS, server.address()).toException();
+            throw SystemDidRegistrationOutcome.of(ParticipantValueRejection.VALUE_DIFFERS, server.address()).toException();
         }
         if (check.verdict() != Verdict.EQUAL) {
             requireResolves(request.getSystemDid());

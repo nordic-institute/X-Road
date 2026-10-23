@@ -29,9 +29,9 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import ee.ria.xroad.common.identifier.ClientId;
 
 /**
- * A value a Security Server wants to publish.
+ * A value a Security Server publishes for one of its participants.
  */
-public sealed interface PublishedValueCandidate {
+public sealed interface ParticipantValue {
 
     /**
      * The server's SYSTEM DID together with its DSP base URL; the two are published as one pair.
@@ -39,7 +39,7 @@ public sealed interface PublishedValueCandidate {
      * @param did        the SYSTEM DID
      * @param dspBaseUrl the DSP base URL
      */
-    record SystemPair(String did, String dspBaseUrl) implements PublishedValueCandidate {
+    record SystemPair(String did, String dspBaseUrl) implements ParticipantValue {
     }
 
     /**
@@ -48,6 +48,6 @@ public sealed interface PublishedValueCandidate {
      * @param member the member the DID is claimed for, without a subsystem code
      * @param did    the member DID
      */
-    record MemberDid(ClientId member, String did) implements PublishedValueCandidate {
+    record MemberDid(ClientId member, String did) implements ParticipantValue {
     }
 }

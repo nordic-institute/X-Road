@@ -30,7 +30,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.ds.identity.DidAuthority;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FINAL_CONFLICT;
@@ -62,7 +62,7 @@ record SystemDidRegistrationOutcome(OutcomeClass outcomeClass, String reason) {
      * @param registeredAddress the registered address of the server, as stored
      * @return the outcome; a non-ASCII host is fixable when the registered address is the non-ASCII one
      */
-    static SystemDidRegistrationOutcome of(PublishedValueRejection rejection, String registeredAddress) {
+    static SystemDidRegistrationOutcome of(ParticipantValueRejection rejection, String registeredAddress) {
         var outcomeClass = switch (rejection) {
             case NOT_CANONICAL, DID_TOO_LONG, WRONG_SCHEME, DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL,
                     FOREIGN_SYSTEM_DID, UNRELATED_MEMBER -> OutcomeClass.FINAL_CONFLICT;

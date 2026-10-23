@@ -38,7 +38,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
@@ -78,11 +78,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.VALUE_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.WRONG_SCHEME;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
@@ -91,7 +91,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_COD
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @ExtendWith(MockitoExtension.class)
-class PublishedValueStoreImplTest {
+class ParticipantValueStoreImplTest {
 
     private static final int SERVER_ID = 7;
     private static final String ADDRESS = "ss0.example.org";
@@ -131,7 +131,7 @@ class PublishedValueStoreImplTest {
     private SecurityServerEntity server;
     private XRoadMemberEntity ownerEntity;
     private XRoadMemberEntity clientEntity;
-    private PublishedValueStoreImpl store;
+    private ParticipantValueStoreImpl store;
 
     @BeforeEach
     void setUp() {
@@ -164,7 +164,7 @@ class PublishedValueStoreImplTest {
             return row;
         });
 
-        store = new PublishedValueStoreImpl(securityServerRepository, memberDidRepository, memberRepository,
+        store = new ParticipantValueStoreImpl(securityServerRepository, memberDidRepository, memberRepository,
                 auditLogging, entityManager);
     }
 
@@ -172,7 +172,7 @@ class PublishedValueStoreImplTest {
     void shouldWriteSystemPairWhenServerHasNone() {
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.STORED);
+        assertThat(result).isEqualTo(ParticipantValueResult.STORED);
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
         verify(securityServerRepository).saveAndFlush(server);
@@ -240,30 +240,30 @@ class PublishedValueStoreImplTest {
     private static Stream<SystemPairCase> systemPairCases() {
         return Stream.of(
                 new SystemPairCase("absent", SYSTEM_DID, DSP_URL, null, null, false,
-                        SystemPairCheck.ABSENT, PublishedValueResult.STORED),
+                        SystemPairCheck.ABSENT, ParticipantValueResult.STORED),
                 new SystemPairCase("equal", SYSTEM_DID, DSP_URL, SYSTEM_DID, DSP_URL, false,
-                        SystemPairCheck.EQUAL, PublishedValueResult.UNCHANGED),
+                        SystemPairCheck.EQUAL, ParticipantValueResult.UNCHANGED),
                 new SystemPairCase("stale", SYSTEM_DID, DSP_URL, OLD_SYSTEM_DID, OLD_DSP_URL, false,
-                        SystemPairCheck.STALE_REPLACEABLE, PublishedValueResult.STORED),
+                        SystemPairCheck.STALE_REPLACEABLE, ParticipantValueResult.STORED),
                 new SystemPairCase("value differs", OTHER_SYSTEM_DID, OTHER_DSP_URL, SYSTEM_DID, DSP_URL, false,
-                        SystemPairCheck.VALUE_DIFFERS, PublishedValueResult.rejected(VALUE_DIFFERS)),
+                        SystemPairCheck.VALUE_DIFFERS, ParticipantValueResult.rejected(VALUE_DIFFERS)),
                 new SystemPairCase("validator rejection", null, null, null, null, false,
-                        SystemPairCheck.rejected(WRONG_SCHEME), PublishedValueResult.rejected(WRONG_SCHEME)),
+                        SystemPairCheck.rejected(WRONG_SCHEME), ParticipantValueResult.rejected(WRONG_SCHEME)),
                 new SystemPairCase("held, absent", SYSTEM_DID, DSP_URL, null, null, true,
                         SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER),
-                        PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
+                        ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
                 new SystemPairCase("held, stale", SYSTEM_DID, DSP_URL, OLD_SYSTEM_DID, OLD_DSP_URL, true,
                         SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER),
-                        PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
+                        ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)),
                 new SystemPairCase("held, equal", SYSTEM_DID, DSP_URL, SYSTEM_DID, DSP_URL, true,
-                        SystemPairCheck.EQUAL, PublishedValueResult.UNCHANGED),
+                        SystemPairCheck.EQUAL, ParticipantValueResult.UNCHANGED),
                 new SystemPairCase("held, value differs", OTHER_SYSTEM_DID, OTHER_DSP_URL, SYSTEM_DID, DSP_URL, true,
-                        SystemPairCheck.VALUE_DIFFERS, PublishedValueResult.rejected(VALUE_DIFFERS)));
+                        SystemPairCheck.VALUE_DIFFERS, ParticipantValueResult.rejected(VALUE_DIFFERS)));
     }
 
     private record SystemPairCase(String name, String did, String dspBaseUrl, String storedDidOrNull,
                                   String storedDspBaseUrlOrNull, boolean heldByAnother,
-                                  SystemPairCheck expectedCheck, PublishedValueResult expectedWrite) {
+                                  SystemPairCheck expectedCheck, ParticipantValueResult expectedWrite) {
 
         Optional<String> storedDid() {
             return Optional.ofNullable(storedDidOrNull);
@@ -299,7 +299,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.UNCHANGED);
+        assertThat(result).isEqualTo(ParticipantValueResult.UNCHANGED);
         verify(securityServerRepository, times(1)).saveAndFlush(any());
     }
 
@@ -309,7 +309,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, OTHER_SYSTEM_DID, OTHER_DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(VALUE_DIFFERS));
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
         verify(securityServerRepository, times(1)).saveAndFlush(any());
@@ -321,7 +321,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, OTHER_DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(VALUE_DIFFERS));
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
     }
 
@@ -332,7 +332,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.STORED);
+        assertThat(result).isEqualTo(ParticipantValueResult.STORED);
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
     }
@@ -344,7 +344,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, OTHER_SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.STORED);
+        assertThat(result).isEqualTo(ParticipantValueResult.STORED);
         assertThat(server.getSystemDid()).isEqualTo(OTHER_SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
     }
@@ -356,7 +356,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, OTHER_DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.STORED);
+        assertThat(result).isEqualTo(ParticipantValueResult.STORED);
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(OTHER_DSP_URL);
     }
@@ -369,7 +369,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.UNCHANGED);
+        assertThat(result).isEqualTo(ParticipantValueResult.UNCHANGED);
         verify(securityServerRepository, times(1)).saveAndFlush(any());
     }
 
@@ -380,8 +380,8 @@ class PublishedValueStoreImplTest {
 
         var resend = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(replaced).isEqualTo(PublishedValueResult.STORED);
-        assertThat(resend).isEqualTo(PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(replaced).isEqualTo(ParticipantValueResult.STORED);
+        assertThat(resend).isEqualTo(ParticipantValueResult.rejected(VALUE_DIFFERS));
         assertThat(server.getSystemDid()).isEqualTo(OTHER_SYSTEM_DID);
     }
 
@@ -392,7 +392,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.replaceSystemPair(SERVER_ID, OTHER_SYSTEM_DID, OTHER_DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.STORED);
+        assertThat(result).isEqualTo(ParticipantValueResult.STORED);
         assertThat(server.getSystemDid()).isEqualTo(OTHER_SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(OTHER_DSP_URL);
     }
@@ -401,7 +401,7 @@ class PublishedValueStoreImplTest {
     void shouldNotAddSystemPairOnAdminReplace() {
         var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.UNCHANGED);
+        assertThat(result).isEqualTo(ParticipantValueResult.UNCHANGED);
         assertThat(server.getSystemDid()).isNull();
         assertThat(server.getDspBaseUrl()).isNull();
         verify(securityServerRepository, never()).saveAndFlush(any());
@@ -414,7 +414,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.replaceSystemPair(SERVER_ID, null, null);
 
-        assertThat(result).isEqualTo(PublishedValueResult.rejected(WRONG_SCHEME));
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(WRONG_SCHEME));
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
         verify(securityServerRepository, never()).saveAndFlush(any());
@@ -426,7 +426,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
         assertThat(server.getSystemDid()).isNull();
         verify(securityServerRepository, never()).saveAndFlush(any());
         verify(auditLogging).auditLogFailWithData(REJECT_CONNECTOR_PUBLISHED_VALUE, HELD_REASON, Map.of(
@@ -448,8 +448,8 @@ class PublishedValueStoreImplTest {
     void shouldWriteMemberDidsWhenNoneStored() {
         var results = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
-        assertThat(results).containsEntry(OWNER, PublishedValueResult.STORED)
-                .containsEntry(CLIENT, PublishedValueResult.STORED);
+        assertThat(results).containsEntry(OWNER, ParticipantValueResult.STORED)
+                .containsEntry(CLIENT, ParticipantValueResult.STORED);
         assertThat(storedRows.get(1L).getDid()).isEqualTo(OWNER_DID);
         assertThat(storedRows.get(2L).getDid()).isEqualTo(CLIENT_DID);
     }
@@ -460,7 +460,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
-        assertThat(results.values()).containsOnly(PublishedValueResult.UNCHANGED);
+        assertThat(results.values()).containsOnly(ParticipantValueResult.UNCHANGED);
         verify(memberDidRepository, times(2)).saveAndFlush(any());
     }
 
@@ -470,7 +470,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, OTHER_CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(VALUE_DIFFERS));
         assertThat(storedRows.get(2L).getDid()).isEqualTo(CLIENT_DID);
         verify(memberDidRepository, times(2)).saveAndFlush(any());
     }
@@ -482,7 +482,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, PublishedValueResult.STORED);
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.STORED);
         assertThat(storedRows).hasSize(1);
         assertThat(storedRows.get(2L)).isSameAs(staleRow);
         assertThat(staleRow.getDid()).isEqualTo(CLIENT_DID);
@@ -496,7 +496,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, PublishedValueResult.UNCHANGED);
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.UNCHANGED);
         verify(memberDidRepository, times(1)).saveAndFlush(any());
     }
 
@@ -507,7 +507,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, OTHER_CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, PublishedValueResult.STORED);
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.STORED);
         assertThat(storedRows).hasSize(1);
         assertThat(storedRows.get(2L)).isSameAs(row);
         assertThat(row.getDid()).isEqualTo(OTHER_CLIENT_DID);
@@ -520,7 +520,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, PublishedValueResult.UNCHANGED);
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.UNCHANGED);
         assertThat(storedRows).containsOnlyKeys(1L);
         verify(memberDidRepository, never()).saveAndFlush(any());
     }
@@ -532,8 +532,8 @@ class PublishedValueStoreImplTest {
 
         var resend = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(replaced).containsEntry(CLIENT, PublishedValueResult.STORED);
-        assertThat(resend).containsEntry(CLIENT, PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(replaced).containsEntry(CLIENT, ParticipantValueResult.STORED);
+        assertThat(resend).containsEntry(CLIENT, ParticipantValueResult.rejected(VALUE_DIFFERS));
         assertThat(storedRows.get(2L).getDid()).isEqualTo(OTHER_CLIENT_DID);
     }
 
@@ -543,8 +543,8 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
-        assertThat(results).containsEntry(OWNER, PublishedValueResult.STORED)
-                .containsEntry(CLIENT, PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(results).containsEntry(OWNER, ParticipantValueResult.STORED)
+                .containsEntry(CLIENT, ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
         assertThat(storedRows).containsOnlyKeys(1L);
         verify(auditLogging, times(1)).auditLogFailWithData(REJECT_CONNECTOR_PUBLISHED_VALUE, HELD_REASON, Map.of(
                 SERVER_CODE, "SS0",
@@ -622,7 +622,7 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, PublishedValueResult.rejected(UNRELATED_MEMBER));
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(UNRELATED_MEMBER));
         verify(memberDidRepository, never()).saveAndFlush(any());
     }
 
@@ -636,7 +636,7 @@ class PublishedValueStoreImplTest {
 
         var result = store.writeSystemPairOnce(SERVER_ID, OTHER_SYSTEM_DID, OTHER_DSP_URL);
 
-        assertThat(result).isEqualTo(PublishedValueResult.rejected(VALUE_DIFFERS));
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(VALUE_DIFFERS));
         assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
         verify(securityServerRepository, never()).saveAndFlush(any());
     }
@@ -647,8 +647,8 @@ class PublishedValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
-        assertThat(results).containsEntry(OWNER, PublishedValueResult.STORED)
-                .containsEntry(CLIENT, PublishedValueResult.rejected(UNRELATED_MEMBER));
+        assertThat(results).containsEntry(OWNER, ParticipantValueResult.STORED)
+                .containsEntry(CLIENT, ParticipantValueResult.rejected(UNRELATED_MEMBER));
         assertThat(storedRows).containsOnlyKeys(1L);
     }
 
@@ -657,7 +657,7 @@ class PublishedValueStoreImplTest {
         var results = store.writeMemberDidsOnce(SERVER_ID,
                 Map.of(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999"));
 
-        assertThat(results).containsEntry(UNRELATED, PublishedValueResult.rejected(UNRELATED_MEMBER));
+        assertThat(results).containsEntry(UNRELATED, ParticipantValueResult.rejected(UNRELATED_MEMBER));
         assertThat(storedRows).isEmpty();
     }
 
@@ -668,8 +668,8 @@ class PublishedValueStoreImplTest {
         var pair = store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
         var members = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(pair).isEqualTo(PublishedValueResult.rejected(HOST_DIFFERS));
-        assertThat(members).containsEntry(CLIENT, PublishedValueResult.rejected(HOST_DIFFERS));
+        assertThat(pair).isEqualTo(ParticipantValueResult.rejected(HOST_DIFFERS));
+        assertThat(members).containsEntry(CLIENT, ParticipantValueResult.rejected(HOST_DIFFERS));
         assertThat(server.getSystemDid()).isNull();
         verify(securityServerRepository, never()).saveAndFlush(any());
         verify(memberDidRepository, never()).saveAndFlush(any());

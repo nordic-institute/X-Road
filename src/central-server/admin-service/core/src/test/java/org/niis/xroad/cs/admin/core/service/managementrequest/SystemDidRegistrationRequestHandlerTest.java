@@ -41,11 +41,11 @@ import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueRejection;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
@@ -81,7 +81,7 @@ class SystemDidRegistrationRequestHandlerTest {
     @Mock
     private AuthCertServerCheck authCertServerCheck;
     @Mock
-    private PublishedValueStore publishedValueStore;
+    private ParticipantValueStore participantValueStore;
     @Mock
     private RequestMapper requestMapper;
 
@@ -101,14 +101,14 @@ class SystemDidRegistrationRequestHandlerTest {
         var serverIdEntity = mock(SecurityServerIdEntity.class);
         var mapped = mock(SystemDidRegistrationRequest.class);
         when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
-        when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL)).thenReturn(PublishedValueResult.STORED);
+        when(participantValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL)).thenReturn(ParticipantValueResult.STORED);
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(serverIdEntity);
         when(systemDidRegistrationRequests.save(entityCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(requestMapper.toDto(any(SystemDidRegistrationRequestEntity.class))).thenReturn(mapped);
 
         var result = handler.add(request);
 
-        verify(publishedValueStore).writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL);
+        verify(participantValueStore).writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL);
         assertThat(entityCaptor.getValue().getManagementRequestType()).isEqualTo(ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST);
         assertThat(entityCaptor.getValue().getOrigin()).isEqualTo(SECURITY_SERVER);
         assertThat(result).isSameAs(mapped);
@@ -117,7 +117,8 @@ class SystemDidRegistrationRequestHandlerTest {
     @Test
     void addAcceptsAnUnchangedPair() {
         when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
-        when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL)).thenReturn(PublishedValueResult.UNCHANGED);
+        when(participantValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
+                .thenReturn(ParticipantValueResult.UNCHANGED);
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mock(SecurityServerIdEntity.class));
         when(systemDidRegistrationRequests.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -132,16 +133,16 @@ class SystemDidRegistrationRequestHandlerTest {
 
         assertThatThrownBy(() -> handler.add(request)).isInstanceOf(ConflictException.class);
 
-        verify(publishedValueStore, never()).writeSystemPairOnce(any(Integer.class), any(), any());
+        verify(participantValueStore, never()).writeSystemPairOnce(any(Integer.class), any(), any());
         verify(systemDidRegistrationRequests, never()).save(any());
     }
 
     @ParameterizedTest
-    @EnumSource(PublishedValueRejection.class)
-    void addMapsEveryStoreRejectionThroughTheOutcomeTableAndSavesNoRow(PublishedValueRejection rejection) {
+    @EnumSource(ParticipantValueRejection.class)
+    void addMapsEveryStoreRejectionThroughTheOutcomeTableAndSavesNoRow(ParticipantValueRejection rejection) {
         when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
-        when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
-                .thenReturn(PublishedValueResult.rejected(rejection));
+        when(participantValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
+                .thenReturn(ParticipantValueResult.rejected(rejection));
 
         assertThatThrownBy(() -> handler.add(request))
                 .isInstanceOf(ConflictException.class)
@@ -154,8 +155,8 @@ class SystemDidRegistrationRequestHandlerTest {
     void addTreatsANonAsciiHostAsFixableWhenTheRegisteredAddressIsNonAscii() {
         when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE))
                 .thenReturn(new CheckedServer(SERVER_ROW_ID, "ss.exämple.org"));
-        when(publishedValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
-                .thenReturn(PublishedValueResult.rejected(PublishedValueRejection.NON_ASCII_HOST));
+        when(participantValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
+                .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.NON_ASCII_HOST));
 
         assertThatThrownBy(() -> handler.add(request))
                 .isInstanceOf(ConflictException.class)
@@ -174,7 +175,7 @@ class SystemDidRegistrationRequestHandlerTest {
         return new CheckedServer(SERVER_ROW_ID, "ss.example.org");
     }
 
-    private static ErrorDeviation expectedDeviation(PublishedValueRejection rejection) {
+    private static ErrorDeviation expectedDeviation(ParticipantValueRejection rejection) {
         return switch (rejection) {
             case NOT_CANONICAL, DID_TOO_LONG, WRONG_SCHEME, DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL,
                  FOREIGN_SYSTEM_DID, UNRELATED_MEMBER, NON_ASCII_HOST -> MR_DID_FINAL_CONFLICT.build(rejection.name());

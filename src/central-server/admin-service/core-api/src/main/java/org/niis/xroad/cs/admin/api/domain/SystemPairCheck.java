@@ -33,14 +33,14 @@ package org.niis.xroad.cs.admin.api.domain;
  * @param verdict   whether the pair is valid for the server and how it compares with the stored pair
  * @param rejection the reason when the pair is refused, otherwise {@code null}
  */
-public record SystemPairCheck(Verdict verdict, PublishedValueRejection rejection) {
+public record SystemPairCheck(Verdict verdict, ParticipantValueRejection rejection) {
 
     public static final SystemPairCheck ABSENT = new SystemPairCheck(Verdict.ABSENT, null);
     public static final SystemPairCheck EQUAL = new SystemPairCheck(Verdict.EQUAL, null);
     public static final SystemPairCheck STALE_REPLACEABLE = new SystemPairCheck(Verdict.STALE_REPLACEABLE, null);
     public static final SystemPairCheck VALUE_DIFFERS = new SystemPairCheck(Verdict.VALUE_DIFFERS, null);
 
-    public static SystemPairCheck rejected(PublishedValueRejection rejection) {
+    public static SystemPairCheck rejected(ParticipantValueRejection rejection) {
         return new SystemPairCheck(Verdict.REJECTED, rejection);
     }
 

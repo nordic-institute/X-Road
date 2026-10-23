@@ -32,12 +32,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.MemberDid;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueCandidate.SystemPair;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -54,9 +54,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toSet;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.VALUE_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
@@ -77,7 +77,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class PublishedValueStoreImpl implements PublishedValueStore {
+public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
     private enum Mode {
         WRITE_ONCE,
@@ -91,7 +91,7 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
     private final EntityManager entityManager;
 
     @Override
-    public PublishedValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl) {
+    public ParticipantValueResult writeSystemPairOnce(int securityServerId, String systemDid, String dspBaseUrl) {
         return storeSystemPair(securityServerId, new SystemPair(systemDid, dspBaseUrl), Mode.WRITE_ONCE);
     }
 
@@ -101,7 +101,7 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
                 .orElseThrow(() -> serverNotFound(securityServerId));
         var pair = new SystemPair(systemDid, dspBaseUrl);
 
-        var check = verdictOf(server, new PublishedValueValidator(contextOf(server)), pair);
+        var check = verdictOf(server, new ParticipantValueValidator(registeredServerOf(server)), pair);
         boolean wouldWrite = check.verdict() == Verdict.ABSENT || check.verdict() == Verdict.STALE_REPLACEABLE;
         if (wouldWrite && isHeldByAnotherServer(server, pair)) {
             return SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER);
@@ -110,33 +110,33 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
     }
 
     @Override
-    public PublishedValueResult replaceSystemPair(int securityServerId, String systemDid, String dspBaseUrl) {
+    public ParticipantValueResult replaceSystemPair(int securityServerId, String systemDid, String dspBaseUrl) {
         return storeSystemPair(securityServerId, new SystemPair(systemDid, dspBaseUrl), Mode.ADMIN_REPLACE);
     }
 
     @Override
-    public Map<ClientId, PublishedValueResult> writeMemberDidsOnce(int securityServerId, Map<ClientId, String> memberDids) {
+    public Map<ClientId, ParticipantValueResult> writeMemberDidsOnce(int securityServerId, Map<ClientId, String> memberDids) {
         return storeMemberDids(securityServerId, memberDids, Mode.WRITE_ONCE);
     }
 
     @Override
-    public Map<ClientId, PublishedValueResult> replaceMemberDids(int securityServerId, Map<ClientId, String> memberDids) {
+    public Map<ClientId, ParticipantValueResult> replaceMemberDids(int securityServerId, Map<ClientId, String> memberDids) {
         return storeMemberDids(securityServerId, memberDids, Mode.ADMIN_REPLACE);
     }
 
-    private PublishedValueResult storeSystemPair(int securityServerId, SystemPair pair, Mode mode) {
+    private ParticipantValueResult storeSystemPair(int securityServerId, SystemPair pair, Mode mode) {
         var server = lockAndLoad(securityServerId);
-        var check = verdictOf(server, new PublishedValueValidator(contextOf(server)), pair);
+        var check = verdictOf(server, new ParticipantValueValidator(registeredServerOf(server)), pair);
 
         var verdict = check.verdict();
         if (verdict == Verdict.REJECTED) {
-            return PublishedValueResult.rejected(check.rejection());
+            return ParticipantValueResult.rejected(check.rejection());
         }
         if (verdict == Verdict.EQUAL || (verdict == Verdict.ABSENT && mode == Mode.ADMIN_REPLACE)) {
-            return PublishedValueResult.UNCHANGED;
+            return ParticipantValueResult.UNCHANGED;
         }
         if (verdict == Verdict.VALUE_DIFFERS && mode == Mode.WRITE_ONCE) {
-            return PublishedValueResult.rejected(VALUE_DIFFERS);
+            return ParticipantValueResult.rejected(VALUE_DIFFERS);
         }
         if (isHeldByAnotherServer(server, pair)) {
             return heldByAnotherServer(server, null);
@@ -145,10 +145,10 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         server.setSystemDid(pair.did());
         server.setDspBaseUrl(pair.dspBaseUrl());
         securityServerRepository.saveAndFlush(server);
-        return PublishedValueResult.STORED;
+        return ParticipantValueResult.STORED;
     }
 
-    private SystemPairCheck verdictOf(SecurityServerEntity server, PublishedValueValidator validator, SystemPair pair) {
+    private SystemPairCheck verdictOf(SecurityServerEntity server, ParticipantValueValidator validator, SystemPair pair) {
         var rejection = validator.validate(pair);
         if (rejection.isPresent()) {
             return SystemPairCheck.rejected(rejection.get());
@@ -173,37 +173,37 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         return Objects.equals(server.getSystemDid(), pair.did()) && Objects.equals(server.getDspBaseUrl(), pair.dspBaseUrl());
     }
 
-    private Map<ClientId, PublishedValueResult> storeMemberDids(int securityServerId, Map<ClientId, String> memberDids, Mode mode) {
+    private Map<ClientId, ParticipantValueResult> storeMemberDids(int securityServerId, Map<ClientId, String> memberDids, Mode mode) {
         var server = lockAndLoad(securityServerId);
-        var validator = new PublishedValueValidator(contextOf(server));
+        var validator = new ParticipantValueValidator(registeredServerOf(server));
 
-        var results = new LinkedHashMap<ClientId, PublishedValueResult>();
+        var results = new LinkedHashMap<ClientId, ParticipantValueResult>();
         memberDids.forEach((member, did) -> results.put(member, storeMemberDid(server, validator, member, did, mode)));
         return results;
     }
 
-    private PublishedValueResult storeMemberDid(SecurityServerEntity server, PublishedValueValidator validator,
+    private ParticipantValueResult storeMemberDid(SecurityServerEntity server, ParticipantValueValidator validator,
                                                 ClientId member, String did, Mode mode) {
         var rejection = validator.validate(new MemberDid(member, did));
         if (rejection.isPresent()) {
-            return PublishedValueResult.rejected(rejection.get());
+            return ParticipantValueResult.rejected(rejection.get());
         }
         var memberEntity = memberRepository.findMember(member);
         if (memberEntity.isEmpty()) {
-            return PublishedValueResult.rejected(UNRELATED_MEMBER);
+            return ParticipantValueResult.rejected(UNRELATED_MEMBER);
         }
 
         var stored = memberDidRepository.findBySecurityServerIdAndMemberId(server.getId(), memberEntity.get().getId());
         if (stored.isEmpty() && mode == Mode.ADMIN_REPLACE) {
-            return PublishedValueResult.UNCHANGED;
+            return ParticipantValueResult.UNCHANGED;
         }
         if (stored.isPresent()) {
             var storedDid = stored.get().getDid();
             if (storedDid.equals(did)) {
-                return PublishedValueResult.UNCHANGED;
+                return ParticipantValueResult.UNCHANGED;
             }
             if (mode == Mode.WRITE_ONCE && !validator.isMemberDidStale(storedDid)) {
-                return PublishedValueResult.rejected(VALUE_DIFFERS);
+                return ParticipantValueResult.rejected(VALUE_DIFFERS);
             }
         }
         if (memberDidRepository.existsByDidAndSecurityServerIdNot(did, server.getId())) {
@@ -212,12 +212,12 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         return writeMemberDid(server, memberEntity.get(), stored, did);
     }
 
-    private PublishedValueResult writeMemberDid(SecurityServerEntity server, XRoadMemberEntity memberEntity,
+    private ParticipantValueResult writeMemberDid(SecurityServerEntity server, XRoadMemberEntity memberEntity,
                                                 Optional<MemberDidEntity> stored, String did) {
         var row = stored.orElseGet(() -> new MemberDidEntity(server, memberEntity, did));
         row.setDid(did);
         memberDidRepository.saveAndFlush(row);
-        return PublishedValueResult.STORED;
+        return ParticipantValueResult.STORED;
     }
 
     private SecurityServerEntity lockAndLoad(int securityServerId) {
@@ -234,14 +234,14 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         return new NotFoundException(SECURITY_SERVER_NOT_FOUND.build(String.valueOf(securityServerId)));
     }
 
-    private static PublishedValueContext contextOf(SecurityServerEntity server) {
+    private static RegisteredServer registeredServerOf(SecurityServerEntity server) {
         var clientMembers = server.getServerClients().stream()
                 .map(serverClient -> serverClient.getSecurityServerClient().getIdentifier().getMemberId())
                 .collect(toSet());
-        return new PublishedValueContext(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers);
+        return new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers);
     }
 
-    private PublishedValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member) {
+    private ParticipantValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member) {
         var data = new LinkedHashMap<RestApiAuditProperty, Object>();
         data.put(SERVER_CODE, server.getServerCode());
         data.put(OWNER_CLASS, server.getOwner().getIdentifier().getMemberClass());
@@ -252,6 +252,6 @@ public class PublishedValueStoreImpl implements PublishedValueStore {
         }
         auditLogging.auditLogFailWithData(REJECT_CONNECTOR_PUBLISHED_VALUE,
                 "Published value rejected: " + DID_HELD_BY_ANOTHER_SERVER, data);
-        return PublishedValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
+        return ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
     }
 }

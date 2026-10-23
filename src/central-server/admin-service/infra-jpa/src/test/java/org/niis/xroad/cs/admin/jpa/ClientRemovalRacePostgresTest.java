@@ -32,8 +32,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-import org.niis.xroad.cs.admin.api.domain.PublishedValueResult;
-import org.niis.xroad.cs.admin.api.service.PublishedValueStore;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ClientDeletionRequestHandler;
 import org.niis.xroad.cs.admin.jpa.CentralServerSeed.ClientRef;
 import org.niis.xroad.cs.admin.jpa.CentralServerSeed.Server;
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.memberDid;
 
 /**
@@ -63,7 +63,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
     @Autowired
     private ClientDeletionRequestHandler handler;
     @Autowired
-    private PublishedValueStore store;
+    private ParticipantValueStore store;
 
     private record Fixture(Server server, ClientRef member, ClientRef firstClient, ClientRef secondClient) {
     }
@@ -105,7 +105,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
                 removal.get(WAIT_SECONDS, TimeUnit.SECONDS);
                 assertThat(write.get(WAIT_SECONDS, TimeUnit.SECONDS).values()).as("round %d write", round)
                         .singleElement()
-                        .isIn(PublishedValueResult.STORED, PublishedValueResult.rejected(UNRELATED_MEMBER));
+                        .isIn(ParticipantValueResult.STORED, ParticipantValueResult.rejected(UNRELATED_MEMBER));
 
                 assertThat(countMemberDids(fixture.server().id())).as("round %d member DID rows", round).isZero();
             }
@@ -130,7 +130,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
             }));
             awaitHolding(locked, holder);
             var writePid = new AtomicInteger();
-            Future<Map<ClientId, PublishedValueResult>> write = executor.submit(inTransaction(writePid,
+            Future<Map<ClientId, ParticipantValueResult>> write = executor.submit(inTransaction(writePid,
                     () -> store.writeMemberDidsOnce(fixture.server().id(), Map.of(fixture.member().identifier(),
                             memberDid(fixture.server().address(), fixture.member().identifier())))));
             awaitLockedSession(writePid);
@@ -140,7 +140,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
 
             holder.get(WAIT_SECONDS, TimeUnit.SECONDS);
             assertThat(write.get(WAIT_SECONDS, TimeUnit.SECONDS).values())
-                    .containsExactly(PublishedValueResult.rejected(UNRELATED_MEMBER));
+                    .containsExactly(ParticipantValueResult.rejected(UNRELATED_MEMBER));
             assertThat(countMemberDids(fixture.server().id())).isZero();
         } finally {
             release.countDown();
@@ -156,7 +156,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
         var release = new CountDownLatch(1);
         var executor = Executors.newFixedThreadPool(2);
         try {
-            Future<Map<ClientId, PublishedValueResult>> holder = executor.submit(() -> transactions.execute(status -> {
+            Future<Map<ClientId, ParticipantValueResult>> holder = executor.submit(() -> transactions.execute(status -> {
                 var result = store.writeMemberDidsOnce(fixture.server().id(),
                         Map.of(fixture.member().identifier(), memberDid(fixture.server().address(), fixture.member().identifier())));
                 locked.countDown();
@@ -173,7 +173,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
             release.countDown();
 
             assertThat(holder.get(WAIT_SECONDS, TimeUnit.SECONDS))
-                    .containsEntry(fixture.member().identifier(), PublishedValueResult.STORED);
+                    .containsEntry(fixture.member().identifier(), ParticipantValueResult.STORED);
             removal.get(WAIT_SECONDS, TimeUnit.SECONDS);
             assertThat(countMemberDids(fixture.server().id())).isZero();
         } finally {

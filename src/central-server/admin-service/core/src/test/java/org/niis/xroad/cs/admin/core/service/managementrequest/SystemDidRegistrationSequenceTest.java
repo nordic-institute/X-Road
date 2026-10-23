@@ -43,7 +43,7 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueStoreImpl;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueStoreImpl;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemDidRegistrationRequestEntity;
@@ -71,7 +71,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.PublishedValueRejection.HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FIXABLE_CONFLICT;
 
 /**
@@ -100,7 +100,7 @@ class SystemDidRegistrationSequenceTest {
     private Runnable beforeLockedWrite = () -> { };
 
     private SecurityServerEntity server;
-    private PublishedValueStoreImpl store;
+    private ParticipantValueStoreImpl store;
     private SystemDidRegistrationServiceImpl service;
 
     @BeforeEach
@@ -125,7 +125,7 @@ class SystemDidRegistrationSequenceTest {
             server.setAddress(databaseAddress);
             return null;
         }).when(entityManager).refresh(server);
-        store = new PublishedValueStoreImpl(serverRepository, mock(MemberDidRepository.class), mock(XRoadMemberRepository.class),
+        store = new ParticipantValueStoreImpl(serverRepository, mock(MemberDidRepository.class), mock(XRoadMemberRepository.class),
                 mock(AuditEventLoggingFacade.class), entityManager);
 
         var authCertServerCheck = mock(AuthCertServerCheck.class);
