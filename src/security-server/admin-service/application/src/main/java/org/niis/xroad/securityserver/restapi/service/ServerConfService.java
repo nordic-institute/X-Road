@@ -37,6 +37,7 @@ import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ServerConf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,10 +58,13 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCON
 @PreAuthorize("isAuthenticated()")
 public class ServerConfService {
     private final ServerConfRepository serverConfRepository;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     @Autowired
-    public ServerConfService(ServerConfRepository serverConfRepository) {
+    public ServerConfService(ServerConfRepository serverConfRepository,
+                             OwnSecurityServerResolver ownSecurityServerResolver) {
         this.serverConfRepository = serverConfRepository;
+        this.ownSecurityServerResolver = ownSecurityServerResolver;
     }
 
     /**
@@ -87,12 +91,10 @@ public class ServerConfService {
     /**
      * Get the Security Server's {@link SecurityServerId}
      * @return SecurityServerId
+     * @throws XrdRuntimeException with {@code MALFORMED_SERVERCONF} when the owner is not set
      */
     public SecurityServerId.Conf getSecurityServerId() {
-        ServerConfEntity serverConf = getServerConfEntity();
-        ClientId ownerId = serverConf.getOwner().getIdentifier();
-        String serverCode = serverConf.getServerCode();
-        return SecurityServerId.Conf.create(ownerId, serverCode);
+        return ownSecurityServerResolver.identity().requireServerId();
     }
 
     /**

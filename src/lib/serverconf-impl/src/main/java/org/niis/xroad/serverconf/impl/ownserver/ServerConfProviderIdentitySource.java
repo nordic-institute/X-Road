@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,48 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.scheduling;
+package org.niis.xroad.serverconf.impl.ownserver;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.CachingServerConfImpl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
- * Helper class for Scheduled jobs.
- * This class does not require authentication, because its
- * methods are accessed from a scheduled job that's run
- * unauthenticated.
+ * Reads the own identity through {@link ServerConfProvider}, in the provider's own cached session.
+ * {@link CachingServerConfImpl} cross-checks a cached owner against global configuration and throws
+ * {@link GlobalConfInitException} when that cannot be read; that exception propagates to the caller.
+ *
+ * <p>Not a Spring bean: only the proxy uses it, and the admin service supplies its own source.
  */
-@Slf4j
-@Service
-@Transactional
-class ScheduledJobHelper {
-    private final ServerConfRepository serverConfRepository;
+@RequiredArgsConstructor
+public class ServerConfProviderIdentitySource implements OwnServerIdentitySource {
 
-    @Autowired
-    ScheduledJobHelper(ServerConfRepository serverConfRepository) {
-        this.serverConfRepository = serverConfRepository;
-    }
+    private final ServerConfProvider serverConfProvider;
 
-    /**
-     * Get the Security Server's ServerConf
-     * @return ServerConfEntity
-     */
-    ServerConfEntity getServerConf() {
-        return serverConfRepository.getServerConf();
-    }
-
-    /**
-     * Get the Security Server's id
-     * @return SecurityServerId.Conf
-     */
-    SecurityServerId.Conf getSecurityServerId() {
-        ServerConfEntity serverConf = getServerConf();
-        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
+    @Override
+    public OwnIdentity read() {
+        try {
+            return new OwnIdentity.Known(serverConfProvider.getIdentifier());
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(MALFORMED_SERVERCONF)) {
+                return new OwnerNotInitialised();
+            }
+            throw e;
+        }
     }
 }
