@@ -52,6 +52,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFO
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
@@ -156,7 +157,7 @@ public final class ParticipantValueValidator {
         }
         var participant = decode(memberDid.did());
         if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : DID_OF_OTHER_MEMBER);
+            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : UNDECODABLE_DID);
         }
         var authority = checkAuthority(participant.get().ssHost());
         if (authority.isPresent()) {

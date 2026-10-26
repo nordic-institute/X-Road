@@ -71,6 +71,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFO
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
@@ -286,6 +287,7 @@ class SystemDidRegistrationServiceImplTest {
                 row(DSP_BASE_URL_NOT_HTTPS, ADDRESS, finalCode),
                 row(MALFORMED_DSP_BASE_URL, ADDRESS, finalCode),
                 row(FOREIGN_SYSTEM_DID, ADDRESS, finalCode),
+                row(UNDECODABLE_DID, ADDRESS, finalCode),
                 row(DID_OF_OTHER_MEMBER, ADDRESS, finalCode),
                 row(MEMBER_NOT_SERVED, ADDRESS, fixableCode),
                 row(NON_ASCII_HOST, ADDRESS, finalCode),

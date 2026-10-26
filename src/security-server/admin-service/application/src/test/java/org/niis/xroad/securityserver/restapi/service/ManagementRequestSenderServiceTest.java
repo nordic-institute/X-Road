@@ -197,6 +197,19 @@ class ManagementRequestSenderServiceTest {
     }
 
     @Test
+    void memberDidRegisterIsSendFailureWhenResultsDoNotCoverTheSentMembers() throws Exception {
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenReturn(new MemberDidRegResponse(77, List.of(
+                new MemberDidRegResponse.Result(MEMBER_A, "STORED", null))));
+
+        var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
+
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
+        assertThat(outcome.requestId()).isNull();
+        assertThat(outcome.entries()).isEmpty();
+        assertThat(outcome.cause()).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void memberDidRegisterIsSendFailureWithCauseWhenSendingFails() throws Exception {
         var failure = new IOException("connection refused");
         when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenThrow(failure);

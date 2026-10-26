@@ -32,82 +32,138 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Entry;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Result;
-import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Status;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.MemberDidRegistrationService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedSet;
+import java.util.function.Function;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_DUPLICATE_MEMBER;
-
+/**
+ * Decides, before the request is stored, every entry that does not need the write lock: duplicate entries,
+ * entries refused while the server has no SYSTEM values, entries the store refuses or already holds, and entries
+ * whose DID does not resolve. Holds no transaction, so the resolver call never runs inside one.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationService {
 
     private final DidResolutionService didResolutionService;
+    private final ParticipantValueStore participantValueStore;
+    private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
 
     @Override
     public MemberDidRegistrationRequest add(MemberDidRegistrationRequest request) {
-        requireDistinctMembers(request.getEntries());
-        request.setSettledResults(unresolvedResults(request.getEntries()));
+        request.setSettledResults(settle(request));
         return managementRequestService.add(request);
     }
 
-    private static void requireDistinctMembers(List<Entry> entries) {
-        var members = new HashSet<ClientId>();
-        for (var entry : entries) {
-            if (!members.add(entry.memberId())) {
-                throw new BadRequestException(MR_DID_DUPLICATE_MEMBER.build(entry.memberId().toString()));
+    private Map<Integer, Result> settle(MemberDidRegistrationRequest request) {
+        var entries = request.getEntries();
+        var settledByMember = new LinkedHashMap<ClientId, Result>();
+
+        var candidates = singleDidPerMember(entries, settledByMember);
+        if (!candidates.isEmpty()) {
+            var server = securityServerRepository.findBy(request.getSecurityServerId());
+            if (server.isEmpty()) {
+                candidates.keySet().forEach(member -> settledByMember.put(member, MemberDidRegistrationOutcome.ownerChanged(member)));
+            } else if (server.get().getSystemDid() == null) {
+                candidates.keySet().forEach(member ->
+                        settledByMember.put(member, MemberDidRegistrationOutcome.systemValuesNotStored(member)));
+            } else {
+                settledByMember.putAll(settleCandidates(server.get(), candidates));
             }
         }
+
+        var settled = new LinkedHashMap<Integer, Result>();
+        for (int i = 0; i < entries.size(); i++) {
+            var result = settledByMember.get(entries.get(i).memberId());
+            if (result != null) {
+                settled.put(i, result);
+            }
+        }
+        return settled;
     }
 
-    private Map<Integer, Result> unresolvedResults(List<Entry> entries) {
-        var dids = entries.stream().map(Entry::did).toList();
+    /**
+     * Settles the members named with more than one distinct DID and returns the DID of every other member.
+     */
+    private static Map<ClientId, String> singleDidPerMember(List<Entry> entries, Map<ClientId, Result> settledByMember) {
+        var didsByMember = new LinkedHashMap<ClientId, SequencedSet<String>>();
+        for (var entry : entries) {
+            didsByMember.computeIfAbsent(entry.memberId(), member -> new LinkedHashSet<>()).add(entry.did());
+        }
+        var candidates = new LinkedHashMap<ClientId, String>();
+        didsByMember.forEach((member, dids) -> {
+            if (dids.size() > 1) {
+                settledByMember.put(member, MemberDidRegistrationOutcome.conflictingDuplicate(member));
+            } else {
+                candidates.put(member, dids.getFirst());
+            }
+        });
+        return candidates;
+    }
+
+    private Map<ClientId, Result> settleCandidates(SecurityServerEntity server, Map<ClientId, String> candidates) {
+        var settled = new LinkedHashMap<ClientId, Result>();
+        var eligible = new LinkedHashMap<ClientId, String>();
+        participantValueStore.checkMemberDids(server.getId(), candidates).forEach((member, check) -> {
+            if (check.outcome() == ParticipantValueResult.Outcome.REJECTED) {
+                settled.put(member, MemberDidRegistrationOutcome.rejected(member, check.rejection(), server.getAddress()));
+            } else if (check.outcome() == ParticipantValueResult.Outcome.STORED) {
+                eligible.put(member, candidates.get(member));
+            }
+        });
+        if (!eligible.isEmpty()) {
+            settled.putAll(unresolved(eligible));
+        }
+        return settled;
+    }
+
+    private Map<ClientId, Result> unresolved(Map<ClientId, String> eligible) {
+        var members = new ArrayList<>(eligible.keySet());
+        var dids = members.stream().map(eligible::get).toList();
         List<DidResolution> resolutions;
         try {
             resolutions = didResolutionService.resolve(dids);
         } catch (XrdRuntimeException e) {
             log.warn("DID resolution of {} member DIDs failed", dids.size(), e);
-            return allNotResolved(entries);
+            return byMember(members, MemberDidRegistrationOutcome::resolverUnavailable);
         }
 
-        var settled = new LinkedHashMap<Integer, Result>();
-        for (int i = 0; i < entries.size(); i++) {
-            var entry = entries.get(i);
+        var unresolved = new LinkedHashMap<ClientId, Result>();
+        for (int i = 0; i < members.size(); i++) {
+            var member = members.get(i);
             var resolution = i < resolutions.size() ? resolutions.get(i) : null;
-            if (resolution == null || !entry.did().equals(resolution.did())) {
-                settled.put(i, notResolved(entry, SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE));
+            if (resolution == null || !dids.get(i).equals(resolution.did())) {
+                unresolved.put(member, MemberDidRegistrationOutcome.resolverUnavailable(member));
             } else if (resolution.outcome() != DidResolutionOutcome.RESOLVED) {
-                var reason = resolution.reason() == null ? SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE : resolution.reason().name();
-                settled.put(i, notResolved(entry, reason));
+                unresolved.put(member, MemberDidRegistrationOutcome.notResolved(member, resolution));
             }
         }
-        return settled;
+        return unresolved;
     }
 
-    private static Map<Integer, Result> allNotResolved(List<Entry> entries) {
-        var settled = new LinkedHashMap<Integer, Result>();
-        for (int i = 0; i < entries.size(); i++) {
-            settled.put(i, notResolved(entries.get(i), SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE));
-        }
-        return settled;
-    }
-
-    private static Result notResolved(Entry entry, String reason) {
-        return new Result(entry.memberId(), Status.NOT_RESOLVED, reason);
+    private static Map<ClientId, Result> byMember(List<ClientId> members, Function<ClientId, Result> answer) {
+        var results = new LinkedHashMap<ClientId, Result>();
+        members.forEach(member -> results.put(member, answer.apply(member)));
+        return results;
     }
 }

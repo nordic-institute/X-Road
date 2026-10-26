@@ -35,20 +35,35 @@ import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Entry;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Result;
-import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Status;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult.Outcome;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRIES;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_COUNT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_REASON;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_STATUS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -60,6 +75,7 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
     private final SecurityServerRepository servers;
     private final ParticipantValueStore participantValueStore;
     private final RequestMapper requestMapper;
+    private final AuditDataHelper auditData;
 
     @Override
     public boolean canAutoApprove(MemberDidRegistrationRequest request) {
@@ -68,10 +84,11 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
 
     @Override
     public MemberDidRegistrationRequest add(MemberDidRegistrationRequest request) {
-        return servers.lockForUpdateBy(request.getSecurityServerId())
+        var added = servers.lockForUpdateBy(request.getSecurityServerId())
                 .map(serverRowId -> writeOnceAndRecord(serverRowId, request))
-                .orElseGet(() -> request.setResults(
-                        answerAll(request.getEntries(), Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED)));
+                .orElseGet(() -> request.setResults(ownerChanged(request.getEntries())));
+        audit(request, added.getResults());
+        return added;
     }
 
     @Override
@@ -105,23 +122,49 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
         Map<ClientId, ParticipantValueResult> written = unsettled.isEmpty()
                 ? Map.of()
                 : participantValueStore.writeMemberDidsOnce(serverRowId, unsettled);
+        var registeredAddress = hasRejection(written) ? registeredAddressOf(serverRowId) : null;
 
         var results = new ArrayList<Result>(request.getEntries().size());
         for (int i = 0; i < request.getEntries().size(); i++) {
             var entry = request.getEntries().get(i);
-            results.add(settled.containsKey(i) ? settled.get(i) : toResult(entry, written.get(entry.memberId())));
+            results.add(settled.containsKey(i) ? settled.get(i) : toResult(entry, written.get(entry.memberId()), registeredAddress));
         }
         return results;
     }
 
-    private static Result toResult(Entry entry, ParticipantValueResult written) {
-        if (written.outcome() == ParticipantValueResult.Outcome.REJECTED) {
-            return new Result(entry.memberId(), Status.FIXABLE_CONFLICT, written.rejection().name());
-        }
-        return new Result(entry.memberId(), Status.STORED, null);
+    private static boolean hasRejection(Map<ClientId, ParticipantValueResult> written) {
+        return written.values().stream().anyMatch(result -> result.outcome() == Outcome.REJECTED);
     }
 
-    private static List<Result> answerAll(List<Entry> entries, Status status, String reason) {
-        return entries.stream().map(entry -> new Result(entry.memberId(), status, reason)).toList();
+    private String registeredAddressOf(int serverRowId) {
+        return servers.findById(serverRowId).map(SecurityServerEntity::getAddress).orElse(null);
+    }
+
+    private static Result toResult(Entry entry, ParticipantValueResult written, String registeredAddress) {
+        if (written.outcome() == Outcome.REJECTED) {
+            return MemberDidRegistrationOutcome.rejected(entry.memberId(), written.rejection(), registeredAddress);
+        }
+        return MemberDidRegistrationOutcome.stored(entry.memberId());
+    }
+
+    private static List<Result> ownerChanged(List<Entry> entries) {
+        return entries.stream().map(entry -> MemberDidRegistrationOutcome.ownerChanged(entry.memberId())).toList();
+    }
+
+    private void audit(MemberDidRegistrationRequest request, List<Result> results) {
+        var server = request.getSecurityServerId();
+        auditData.put(INSTANCE_IDENTIFIER, server.getXRoadInstance());
+        auditData.put(OWNER_CLASS, server.getMemberClass());
+        auditData.put(OWNER_CODE, server.getMemberCode());
+        auditData.put(SERVER_CODE, server.getServerCode());
+        auditData.put(DID_ENTRY_COUNT, results.size());
+        for (var result : results) {
+            var item = new LinkedHashMap<RestApiAuditProperty, Object>();
+            item.put(MEMBER_CLASS, result.memberId().getMemberClass());
+            item.put(MEMBER_CODE, result.memberId().getMemberCode());
+            item.put(DID_ENTRY_STATUS, result.status());
+            Optional.ofNullable(result.reason()).ifPresent(reason -> item.put(DID_ENTRY_REASON, reason));
+            auditData.addListPropertyItem(DID_ENTRIES, item);
+        }
     }
 }

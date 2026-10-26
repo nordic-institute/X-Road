@@ -139,6 +139,12 @@ public class ManagementRequestSenderService {
                 return MemberDidRegistrationSendOutcome.sendFailure(
                         new IllegalStateException("Response carries no request id"));
             }
+            var answered = response.results().stream().map(r -> r.member().asEncodedId()).toList();
+            var sent = memberDids.keySet().stream().map(ClientId::asEncodedId).toList();
+            if (!answered.equals(sent)) {
+                return MemberDidRegistrationSendOutcome.sendFailure(
+                        new IllegalStateException("Response results do not cover the sent members in order"));
+            }
             var entries = response.results().stream()
                     .map(r -> new MemberDidRegistrationSendOutcome.Entry(r.member(), r.status(), r.reason()))
                     .toList();

@@ -48,10 +48,13 @@ import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,9 +69,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRIES;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_COUNT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_REASON;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_STATUS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @ExtendWith(MockitoExtension.class)
 class MemberDidRegistrationRequestHandlerTest {
@@ -94,6 +108,8 @@ class MemberDidRegistrationRequestHandlerTest {
     private ParticipantValueStore participantValueStore;
     @Mock
     private RequestMapper requestMapper;
+    @Mock
+    private AuditDataHelper auditData;
 
     @InjectMocks
     private MemberDidRegistrationRequestHandler handler;
@@ -102,6 +118,8 @@ class MemberDidRegistrationRequestHandlerTest {
     private ArgumentCaptor<MemberDidRegistrationRequestEntity> entityCaptor;
     @Captor
     private ArgumentCaptor<Map<ClientId, String>> writtenCaptor;
+    @Captor
+    private ArgumentCaptor<Object> itemCaptor;
 
     @Test
     void canAutoApproveIsFalse() {
@@ -212,6 +230,101 @@ class MemberDidRegistrationRequestHandlerTest {
 
         assertThat(result.getResults()).extracting(Result::status).containsOnly(Status.NOT_RESOLVED);
         verify(participantValueStore, never()).writeMemberDidsOnce(anyInt(), anyMap());
+    }
+
+    @Test
+    void addAnswersAStoreRejectionUnderTheLockWithTheStoreClassAndReasonAndNeverReWritesAPreTransactionRejection() {
+        stubRowSaved();
+        request.setSettledResults(Map.of(0, new Result(MEMBER_1, Status.FINAL_CONFLICT, "NOT_CANONICAL")));
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
+        var written = new LinkedHashMap<ClientId, ParticipantValueResult>();
+        written.put(MEMBER_2, ParticipantValueResult.rejected(ParticipantValueRejection.DID_OF_OTHER_MEMBER));
+        written.put(MEMBER_3, ParticipantValueResult.STORED);
+        when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(written);
+
+        var result = handler.add(request);
+
+        verify(participantValueStore).writeMemberDidsOnce(eq(SERVER_ROW_ID), writtenCaptor.capture());
+        assertThat(writtenCaptor.getValue()).containsOnlyKeys(MEMBER_2, MEMBER_3);
+        assertThat(result.getResults()).containsExactly(
+                new Result(MEMBER_1, Status.FINAL_CONFLICT, "NOT_CANONICAL"),
+                new Result(MEMBER_2, Status.FINAL_CONFLICT, "DID_OF_OTHER_MEMBER"),
+                new Result(MEMBER_3, Status.STORED, null));
+    }
+
+    @Test
+    void addTakesTheRegisteredAddressUnderTheLockForAnAddressDependentRejection() {
+        stubRowSaved();
+        var server = mock(SecurityServerEntity.class);
+        when(server.getAddress()).thenReturn("ss.exämple.org");
+        when(servers.findById(SERVER_ROW_ID)).thenReturn(Optional.of(server));
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
+        when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(Map.of(
+                MEMBER_1, ParticipantValueResult.rejected(ParticipantValueRejection.NON_ASCII_HOST)));
+        request.setEntries(List.of(new Entry(MEMBER_1, DID_1)));
+
+        var result = handler.add(request);
+
+        assertThat(result.getResults()).containsExactly(new Result(MEMBER_1, Status.FIXABLE_CONFLICT, "NON_ASCII_HOST"));
+    }
+
+    @Test
+    void addWritesIdenticalDuplicateEntriesOnceAndAnswersEachEntry() {
+        stubRowSaved();
+        request.setEntries(List.of(new Entry(MEMBER_1, DID_1), new Entry(MEMBER_1, DID_1)));
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
+        when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(storedFor(MEMBER_1));
+
+        var result = handler.add(request);
+
+        verify(participantValueStore).writeMemberDidsOnce(eq(SERVER_ROW_ID), writtenCaptor.capture());
+        assertThat(writtenCaptor.getValue()).containsExactly(Map.entry(MEMBER_1, DID_1));
+        assertThat(result.getResults()).containsExactly(
+                new Result(MEMBER_1, Status.STORED, null), new Result(MEMBER_1, Status.STORED, null));
+    }
+
+    @Test
+    void addAuditsTheServerTheEntryCountAndEachEntryWithStatusAndReason() {
+        stubRowSaved();
+        request.setSettledResults(Map.of(1, new Result(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE")));
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
+        when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(storedFor(MEMBER_1, MEMBER_3));
+
+        handler.add(request);
+
+        verify(auditData).put(INSTANCE_IDENTIFIER, "DEV");
+        verify(auditData).put(OWNER_CLASS, "COM");
+        verify(auditData).put(OWNER_CODE, "222");
+        verify(auditData).put(SERVER_CODE, "SS0");
+        verify(auditData).put(DID_ENTRY_COUNT, 3);
+        verify(auditData, times(3)).addListPropertyItem(eq(DID_ENTRIES), itemCaptor.capture());
+        assertThat(itemCaptor.getAllValues()).containsExactly(
+                auditItem(MEMBER_1, Status.STORED, null),
+                auditItem(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE"),
+                auditItem(MEMBER_3, Status.STORED, null));
+    }
+
+    @Test
+    void addAuditsTheOwnerChangedAnswerWhenTheServerRowIsGone() {
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.empty());
+
+        handler.add(request);
+
+        verify(auditData).put(DID_ENTRY_COUNT, 3);
+        verify(auditData, times(3)).addListPropertyItem(eq(DID_ENTRIES), itemCaptor.capture());
+        assertThat(itemCaptor.getAllValues()).first()
+                .isEqualTo(auditItem(MEMBER_1, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED));
+    }
+
+    private static Map<RestApiAuditProperty, Object> auditItem(ClientId member, Status status, String reason) {
+        var item = new LinkedHashMap<RestApiAuditProperty, Object>();
+        item.put(MEMBER_CLASS, member.getMemberClass());
+        item.put(MEMBER_CODE, member.getMemberCode());
+        item.put(DID_ENTRY_STATUS, status);
+        if (reason != null) {
+            item.put(DID_ENTRY_REASON, reason);
+        }
+        return item;
     }
 
     @Test

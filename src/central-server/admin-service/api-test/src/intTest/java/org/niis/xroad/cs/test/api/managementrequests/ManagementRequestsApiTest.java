@@ -1550,7 +1550,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
-    void memberDidRegistrationFromSecurityServerIsAnsweredNotResolved(CsBaselineSeeder seeder) throws Exception {
+    void memberDidRegistrationFromSecurityServerIsAnsweredSystemValuesNotStored(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
         var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr35", MEMBER_CLASS));
@@ -1563,15 +1563,15 @@ class ManagementRequestsApiTest extends CsApiTest {
         Step.given("auth cert registration approved", () ->
                 new ManagementRequestsAdminClient(session).approveRequest(regId).statusCode(200));
 
-        Step.then("guard passes and the unreachable resolver leaves the entry not resolved", () ->
+        Step.then("guard passes and the missing SYSTEM values settle the entry before any resolver call", () ->
                 new ManagementRequestsAdminClient(msSession)
                         .addManagementRequest(memberDidRegistration(serverId,
                                 ManagementRequestOriginDto.SECURITY_SERVER, memberId))
                         .statusCode(202)
                         .body("results", hasSize(1))
                         .body("results[0].member_id", equalTo(memberId))
-                        .body("results[0].status", equalTo("NOT_RESOLVED"))
-                        .body("results[0].reason", equalTo("RESOLVER_UNAVAILABLE")));
+                        .body("results[0].status", equalTo("FIXABLE_CONFLICT"))
+                        .body("results[0].reason", equalTo("SYSTEM_VALUES_NOT_STORED")));
     }
 
     private MemberDidRegistrationRequestDto memberDidRegistration(String serverId,

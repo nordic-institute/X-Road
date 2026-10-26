@@ -105,7 +105,7 @@ public final class ManagementRequestUtil {
         SOAPElement firstChild = SoapUtils.getFirstChild(soap.getSOAPBody());
 
         if (firstChild == null) {
-            return;
+            throw new SOAPException("Response body has no element to append the results to");
         }
 
         try {

@@ -79,7 +79,7 @@ class ParticipantValueValidatorTest {
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:999,    999, MEMBER_NOT_SERVED",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    333, DID_OF_OTHER_MEMBER",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    999, DID_OF_OTHER_MEMBER",
-            "did:web:ss0.example.org%3A7183:v1:DEV:COM:22%2,   222, DID_OF_OTHER_MEMBER",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:22%2,   222, UNDECODABLE_DID",
             "did:web:ss0.example.org%3a7183:v1:DEV:COM:222,    222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:%32%322, 222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:2%3a2,  222, NOT_CANONICAL",
