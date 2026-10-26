@@ -27,8 +27,8 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;

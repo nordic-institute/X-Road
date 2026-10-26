@@ -188,7 +188,7 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
                 .participantContextId(participantContextId)
                 .url(entry.url())
                 .allowedSourceTypes(entry.allowedSourceTypes())
-                .allowedTransferType(entry.allowedTransferTypes())
+                .allowedTransferTypes(entry.allowedTransferTypes())
                 .build();
         instance.transitionToRegistered();
         return instance;

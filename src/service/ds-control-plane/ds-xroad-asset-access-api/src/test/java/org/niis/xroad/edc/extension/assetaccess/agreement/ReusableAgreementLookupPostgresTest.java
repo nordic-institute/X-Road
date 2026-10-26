@@ -44,9 +44,6 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,8 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class ReusableAgreementLookupPostgresTest {
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(Clock.systemUTC());
 
     private PostgresqlStoreSetupExtension extension;
     private QueryExecutor queryExecutor;
@@ -92,7 +88,6 @@ class ReusableAgreementLookupPostgresTest {
     void tearDown() {
         extension.runQuery("DROP TABLE " + statements.getContractNegotiationTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getContractAgreementTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Test
@@ -310,11 +305,8 @@ class ReusableAgreementLookupPostgresTest {
         var manager = new JacksonTypeManager();
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), "test-connector",
-                statements.getContractNegotiationTable(), leaseStatements, Clock.systemUTC(), queryExecutor);
-
         return new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager.getMapper(), statements, leaseContextBuilder, queryExecutor);
+                extension.getTransactionContext(), manager::getMapper, statements, queryExecutor, "test-connector", Clock.systemUTC());
     }
 
     private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,

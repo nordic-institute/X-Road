@@ -188,7 +188,7 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
                 .toList();
 
         for (var credentialId : credentialIds) {
-            var revokeResult = credentialStatusService.revokeCredential(credentialId);
+            var revokeResult = credentialStatusService.revokeCredential(request.getParticipantContextId(), credentialId);
             requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
             monitor.debug("Issuer: revoked credential %s".formatted(credentialId));
         }

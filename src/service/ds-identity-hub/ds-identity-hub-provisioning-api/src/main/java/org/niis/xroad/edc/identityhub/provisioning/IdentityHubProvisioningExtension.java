@@ -90,7 +90,7 @@ public class IdentityHubProvisioningExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var recordsPurger = new ParticipantCredentialRecordsPurger(credentialStore, dataSourceRegistry,
-                DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext, typeManager.getMapper(), queryExecutor);
+                DataSourceRegistry.DEFAULT_DATASOURCE, transactionContext, typeManager::getMapper, queryExecutor);
         grpcService = new IdentityHubProvisioningGrpcService(
                 participantContextService, credentialRequestManager, recordsPurger, didResolverRegistry,
                 new RpcResponseHandler(), monitor);

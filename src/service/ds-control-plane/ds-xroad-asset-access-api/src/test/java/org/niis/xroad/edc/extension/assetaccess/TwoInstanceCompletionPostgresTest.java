@@ -27,12 +27,12 @@
 
 package org.niis.xroad.edc.extension.assetaccess;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.SqlContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.connector.controlplane.transfer.dataaddress.VaultDataAddressStore;
@@ -40,6 +40,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.Action;
@@ -53,11 +54,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.transaction.local.LocalDataSourceRegistry;
 import org.eclipse.edc.transaction.local.LocalTransactionContext;
@@ -68,8 +65,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
-import org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContractNegotiationStore;
-import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -98,7 +94,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * instance drives the negotiation or transfer to its terminal state.
  *
  * <p>Instance A and instance B are each an independently constructed {@link AssetAccessCompletionPoller}
- * with its own clock, an {@link XRoadContractNegotiationStore} over its own {@link SqlContractNegotiationStore},
+ * with its own clock, its own {@link SqlContractNegotiationStore},
  * its own {@link SqlTransferProcessStore}, its own {@link VaultDataAddressStore} and its own
  * {@link ReusableAgreementLookup}. The two instances never share a Java object other than the one {@link Vault};
  * every other collaborator is a fresh instance per side, so the only channel between them is the PostgreSQL
@@ -111,10 +107,10 @@ class TwoInstanceCompletionPostgresTest {
 
     private static final Duration LONG_TIMEOUT = Duration.ofSeconds(30);
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final XRoadPostgresContractNegotiationStatements negotiationStatements =
-            new XRoadPostgresContractNegotiationStatements(leaseStatements, Clock.systemUTC());
-    private final PostgresDialectStatements transferStatements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
+    private final ContractNegotiationStatements negotiationStatements =
+            new org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres
+                    .PostgresDialectStatements(Clock.systemUTC());
+    private final PostgresDialectStatements transferStatements = new PostgresDialectStatements(Clock.systemUTC());
     private final List<AssetAccessCompletionPoller> pollers = new ArrayList<>();
 
     private PostgresqlStoreSetupExtension extension;
@@ -137,7 +133,6 @@ class TwoInstanceCompletionPostgresTest {
         extension.runQuery("DROP TABLE " + transferStatements.getTransferProcessTableName() + " CASCADE");
         extension.runQuery("DROP TABLE " + negotiationStatements.getContractNegotiationTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + negotiationStatements.getContractAgreementTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Test
@@ -154,8 +149,8 @@ class TwoInstanceCompletionPostgresTest {
         var future = a.poller().awaitNegotiation(negotiationId, LONG_TIMEOUT);
 
         var agreement = agreement("agreement-" + negotiationId, participantContextId, "asset-1", "provider-1");
-        assertThat(b.negotiationStore().save(negotiation(negotiationId, participantContextId,
-                ContractNegotiationStates.FINALIZED, agreement, null)).succeeded()).isTrue();
+        assertThat(b.negotiationStore().save(atStoredVersion(b.negotiationStore(), negotiation(negotiationId,
+                participantContextId, ContractNegotiationStates.FINALIZED, agreement, null))).succeeded()).isTrue();
 
         a.poller().poll();
 
@@ -184,7 +179,8 @@ class TwoInstanceCompletionPostgresTest {
                 .build();
         var startedTransferProcess = transferProcess(transferProcessId, participantContextId, TransferProcessStates.STARTED, null);
         assertThat(b.dataAddressStore().store(address, startedTransferProcess).succeeded()).isTrue();
-        assertThat(b.transferProcessStore().save(startedTransferProcess).succeeded()).isTrue();
+        assertThat(b.transferProcessStore().save(atStoredVersion(b.transferProcessStore(), startedTransferProcess))
+                .succeeded()).isTrue();
 
         a.poller().poll();
 
@@ -206,8 +202,9 @@ class TwoInstanceCompletionPostgresTest {
 
         var future = a.poller().awaitNegotiation(negotiationId, LONG_TIMEOUT);
 
-        assertThat(b.negotiationStore().save(negotiation(negotiationId, participantContextId,
-                ContractNegotiationStates.TERMINATED, null, "provider refused the offer")).succeeded()).isTrue();
+        assertThat(b.negotiationStore().save(atStoredVersion(b.negotiationStore(), negotiation(negotiationId,
+                participantContextId, ContractNegotiationStates.TERMINATED, null, "provider refused the offer")))
+                .succeeded()).isTrue();
 
         a.poller().poll();
 
@@ -230,8 +227,9 @@ class TwoInstanceCompletionPostgresTest {
 
         var future = a.poller().awaitTransfer(transferProcessId, LONG_TIMEOUT);
 
-        assertThat(b.transferProcessStore().save(transferProcess(transferProcessId, participantContextId,
-                TransferProcessStates.TERMINATED, "provider terminated the transfer")).succeeded()).isTrue();
+        assertThat(b.transferProcessStore().save(atStoredVersion(b.transferProcessStore(), transferProcess(transferProcessId,
+                participantContextId, TransferProcessStates.TERMINATED, "provider terminated the transfer")))
+                .succeeded()).isTrue();
 
         a.poller().poll();
 
@@ -337,15 +335,11 @@ class TwoInstanceCompletionPostgresTest {
         var manager = new JacksonTypeManager();
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        var negotiationLeaseContext = SqlLeaseContextBuilderImpl.with(realTransactionContext, "test-connector",
-                negotiationStatements.getContractNegotiationTable(), leaseStatements, Clock.systemUTC(), queryExecutor);
         var realNegotiationStore = new SqlContractNegotiationStore(realDataSourceRegistry, extension.getDatasourceName(),
-                realTransactionContext, manager.getMapper(), negotiationStatements, negotiationLeaseContext, queryExecutor);
+                realTransactionContext, manager::getMapper, negotiationStatements, queryExecutor, "test-connector", Clock.systemUTC());
 
-        var transferLeaseContext = SqlLeaseContextBuilderImpl.with(realTransactionContext, "test-connector",
-                transferStatements.getTransferProcessTableName(), leaseStatements, Clock.systemUTC(), queryExecutor);
         var realTransferProcessStore = new SqlTransferProcessStore(realDataSourceRegistry, extension.getDatasourceName(),
-                realTransactionContext, manager.getMapper(), transferStatements, transferLeaseContext, queryExecutor);
+                realTransactionContext, manager::getMapper, transferStatements, queryExecutor, "test-connector", Clock.systemUTC());
 
         var participantContextId = "participant-" + UUID.randomUUID();
         var goodTransferProcessId = "tp-good-" + UUID.randomUUID();
@@ -400,18 +394,13 @@ class TwoInstanceCompletionPostgresTest {
         var manager = new JacksonTypeManager();
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        var negotiationLeaseContext = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), "test-connector",
-                negotiationStatements.getContractNegotiationTable(), leaseStatements, Clock.systemUTC(), queryExecutor);
-        var stockNegotiationStore = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager.getMapper(), negotiationStatements, negotiationLeaseContext, queryExecutor);
-        var negotiationStore = new XRoadContractNegotiationStore(stockNegotiationStore, extension.getDataSourceRegistry(),
-                extension.getDatasourceName(), extension.getTransactionContext(), manager.getMapper(), negotiationStatements,
-                negotiationLeaseContext, queryExecutor);
+        var negotiationStore = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
+                extension.getTransactionContext(), manager::getMapper, negotiationStatements, queryExecutor, "test-connector",
+                Clock.systemUTC());
 
-        var transferLeaseContext = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), "test-connector",
-                transferStatements.getTransferProcessTableName(), leaseStatements, Clock.systemUTC(), queryExecutor);
         var transferProcessStore = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager.getMapper(), transferStatements, transferLeaseContext, queryExecutor);
+                extension.getTransactionContext(), manager::getMapper, transferStatements, queryExecutor, "test-connector",
+                Clock.systemUTC());
 
         var dataAddressStore = new VaultDataAddressStore(sharedVault, ObjectMapper::new);
 
@@ -424,6 +413,14 @@ class TwoInstanceCompletionPostgresTest {
         return new Instance(negotiationStore, transferProcessStore, dataAddressStore, lookup, poller);
     }
 
+    private ContractNegotiation atStoredVersion(ContractNegotiationStore store, ContractNegotiation negotiation) {
+        negotiation.setVersion(store.findById(negotiation.getId()).getVersion());
+        return negotiation;
+    }
+    private TransferProcess atStoredVersion(TransferProcessStore store, TransferProcess transferProcess) {
+        transferProcess.setVersion(store.findById(transferProcess.getId()).getVersion());
+        return transferProcess;
+    }
     private ContractNegotiation negotiation(String id, String participantContextId, ContractNegotiationStates state,
                                              ContractAgreement agreement, String errorDetail) {
         return ContractNegotiation.Builder.newInstance()

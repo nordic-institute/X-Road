@@ -15,7 +15,6 @@ dependencies {
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.edc.junit)
   testImplementation(libs.edc.spi.controlplane)
-  testImplementation(libs.edc.lib.jsonld)
   testImplementation(libs.postgresql)
   testImplementation(libs.testcontainers.junit)
   testImplementation(libs.testcontainers.postgresql)

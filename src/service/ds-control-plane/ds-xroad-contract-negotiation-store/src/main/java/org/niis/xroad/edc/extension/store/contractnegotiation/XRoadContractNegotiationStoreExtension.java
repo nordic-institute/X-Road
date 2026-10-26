@@ -38,8 +38,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
@@ -90,12 +88,6 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
     @Inject
     private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
-    @Inject
-    private SqlLeaseContextBuilderProvider leaseContextBuilderProvider;
-
-    @Inject
-    private LeaseStatements leaseStatements;
-
     @Override
     public String name() {
         return EXTENSION_NAME;
@@ -103,13 +95,12 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var statements = new XRoadPostgresContractNegotiationStatements(leaseStatements, clock);
-        var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(statements.getContractNegotiationTable());
+        var statements = new XRoadPostgresContractNegotiationStatements(clock);
         var delegate = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), statements, leaseContextBuilder, queryExecutor);
+                typeManager::getMapper, statements, queryExecutor, context.getRuntimeId(), clock);
 
         var store = new XRoadContractNegotiationStore(delegate, dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), statements, leaseContextBuilder, queryExecutor);
+                typeManager::getMapper, statements, queryExecutor);
 
         context.registerService(ContractNegotiationStore.class, store);
 

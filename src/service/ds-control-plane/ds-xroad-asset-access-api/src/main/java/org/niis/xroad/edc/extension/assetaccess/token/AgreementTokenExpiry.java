@@ -29,7 +29,7 @@ package org.niis.xroad.edc.extension.assetaccess.token;
 
 import jakarta.json.Json;
 import jakarta.json.JsonNumber;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.controlplane.DataAddress;
 
 import java.io.ByteArrayInputStream;
 import java.time.Instant;

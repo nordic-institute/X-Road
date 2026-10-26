@@ -31,8 +31,6 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -49,6 +47,9 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.serverconf.model.Endpoint;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ class PolicyMapper {
     static final String XROAD_DATAPATH_CONSTRAINT = XRoadPolicyNamespace.XROAD_DATAPATH;
     private static final String ODRL_USE_ACTION = "http://www.w3.org/ns/odrl/2/use";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     PolicyDefinition toPolicyDefinition(String policyId, ClientId serviceOwner, XRoadId subjectId,
                                         List<Endpoint> endpoints, String participantContextId) {
