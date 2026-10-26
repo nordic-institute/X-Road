@@ -43,15 +43,16 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
 /**
@@ -155,18 +156,16 @@ public final class ParticipantValueValidator {
         }
         var participant = decode(memberDid.did());
         if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : UNRELATED_MEMBER);
+            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : DID_OF_OTHER_MEMBER);
         }
         var authority = checkAuthority(participant.get().ssHost());
         if (authority.isPresent()) {
             return authority;
         }
-        if (!(participant.get() instanceof MemberParticipant decoded)
-                || !decoded.member().equals(memberDid.member())
-                || !isOwnerOrClient(memberDid.member())) {
-            return Optional.of(UNRELATED_MEMBER);
+        if (!(participant.get() instanceof MemberParticipant decoded) || !decoded.member().equals(memberDid.member())) {
+            return Optional.of(DID_OF_OTHER_MEMBER);
         }
-        return Optional.empty();
+        return isOwnerOrClient(memberDid.member()) ? Optional.empty() : Optional.of(MEMBER_NOT_SERVED);
     }
 
     private boolean isOwnerOrClient(ClientId member) {

@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
@@ -50,7 +51,6 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFO
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
 class ParticipantValueValidatorTest {
@@ -76,14 +76,15 @@ class ParticipantValueValidatorTest {
             "did:web:SS0.example.org%3A7183:v1:DEV:COM:222,    222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A443:v1:DEV:COM:222,     222, NOT_CANONICAL",
             "did:web:ss1.example.org%3A7183:v1:DEV:COM:222,    222, HOST_DIFFERS",
-            "did:web:ss0.example.org%3A7183:v1:DEV:COM:999,    999, UNRELATED_MEMBER",
-            "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    333, UNRELATED_MEMBER",
-            "did:web:ss0.example.org%3A7183:v1:DEV:COM:22%2,   222, UNRELATED_MEMBER",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:999,    999, MEMBER_NOT_SERVED",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    333, DID_OF_OTHER_MEMBER",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    999, DID_OF_OTHER_MEMBER",
+            "did:web:ss0.example.org%3A7183:v1:DEV:COM:22%2,   222, DID_OF_OTHER_MEMBER",
             "did:web:ss0.example.org%3a7183:v1:DEV:COM:222,    222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:%32%322, 222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:2%3a2,  222, NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:%41,    222, NOT_CANONICAL",
-            "did:web:ss0.example.org%3A7183:v1:system,         222, UNRELATED_MEMBER",
+            "did:web:ss0.example.org%3A7183:v1:system,         222, DID_OF_OTHER_MEMBER",
             "did:web:ss0.example.org%3A7183:v1:DEV:COM:222,    222,"
     })
     void shouldValidateMemberDid(String did, String claimedCode, ParticipantValueRejection expected) {
@@ -104,7 +105,7 @@ class ParticipantValueValidatorTest {
     void shouldRejectMemberDidForMemberWithSubsystemClaim() {
         var withSubsystem = ClientId.Conf.create("DEV", "COM", "222", "sub");
 
-        assertThat(validator.validate(new MemberDid(withSubsystem, OWNER_DID))).contains(UNRELATED_MEMBER);
+        assertThat(validator.validate(new MemberDid(withSubsystem, OWNER_DID))).contains(DID_OF_OTHER_MEMBER);
     }
 
     @Test

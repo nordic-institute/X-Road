@@ -79,8 +79,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -622,7 +623,7 @@ class ParticipantValueStoreImplTest {
 
         var results = store.writeMemberDidsOnce(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(UNRELATED_MEMBER));
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         verify(memberDidRepository, never()).saveAndFlush(any());
     }
 
@@ -648,7 +649,7 @@ class ParticipantValueStoreImplTest {
         var results = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
         assertThat(results).containsEntry(OWNER, ParticipantValueResult.STORED)
-                .containsEntry(CLIENT, ParticipantValueResult.rejected(UNRELATED_MEMBER));
+                .containsEntry(CLIENT, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         assertThat(storedRows).containsOnlyKeys(1L);
     }
 
@@ -657,8 +658,105 @@ class ParticipantValueStoreImplTest {
         var results = store.writeMemberDidsOnce(SERVER_ID,
                 Map.of(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999"));
 
-        assertThat(results).containsEntry(UNRELATED, ParticipantValueResult.rejected(UNRELATED_MEMBER));
+        assertThat(results).containsEntry(UNRELATED, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         assertThat(storedRows).isEmpty();
+    }
+
+    @Test
+    void shouldRejectMemberDidOfAnotherMemberAndKeepInputOrder() {
+        var results = store.writeMemberDidsOnce(SERVER_ID, batch(CLIENT_DID, CLIENT_DID));
+
+        assertThat(results).containsExactly(
+                Map.entry(OWNER, ParticipantValueResult.rejected(DID_OF_OTHER_MEMBER)),
+                Map.entry(CLIENT, ParticipantValueResult.STORED));
+        assertThat(storedRows).containsOnlyKeys(2L);
+    }
+
+    @ParameterizedTest
+    @MethodSource("memberDidCases")
+    void shouldAnswerTheMemberDidCheckTheWayTheWriteOnceOperationDecides(MemberDidCase memberCase) {
+        memberCase.storedDid().ifPresent(did -> storedRows.put(2L, new MemberDidEntity(server, clientEntity, did)));
+        if (memberCase.heldByAnother()) {
+            didsOfOtherServers.add(memberCase.did());
+        }
+        var entry = new LinkedHashMap<ClientId, String>();
+        entry.put(memberCase.member(), memberCase.did());
+
+        var check = store.checkMemberDids(SERVER_ID, entry);
+        var written = store.writeMemberDidsOnce(SERVER_ID, entry);
+
+        assertThat(check).containsExactly(Map.entry(memberCase.member(), memberCase.expected()));
+        assertThat(written).isEqualTo(check);
+    }
+
+    private static Stream<MemberDidCase> memberDidCases() {
+        var held = ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
+        var differs = ParticipantValueResult.rejected(VALUE_DIFFERS);
+        return Stream.of(
+                new MemberDidCase("absent", CLIENT, CLIENT_DID, null, false, ParticipantValueResult.STORED),
+                new MemberDidCase("equal", CLIENT, CLIENT_DID, CLIENT_DID, false, ParticipantValueResult.UNCHANGED),
+                new MemberDidCase("stale", CLIENT, CLIENT_DID, OLD_CLIENT_DID, false, ParticipantValueResult.STORED),
+                new MemberDidCase("value differs", CLIENT, OTHER_CLIENT_DID, CLIENT_DID, false, differs),
+                new MemberDidCase("did of other member", CLIENT, OWNER_DID, null, false,
+                        ParticipantValueResult.rejected(DID_OF_OTHER_MEMBER)),
+                new MemberDidCase("member not served", UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999", null,
+                        false, ParticipantValueResult.rejected(MEMBER_NOT_SERVED)),
+                new MemberDidCase("validator rejection", CLIENT, null, null, false,
+                        ParticipantValueResult.rejected(WRONG_SCHEME)),
+                new MemberDidCase("held, absent", CLIENT, CLIENT_DID, null, true, held),
+                new MemberDidCase("held, stale", CLIENT, CLIENT_DID, OLD_CLIENT_DID, true, held),
+                new MemberDidCase("held, equal", CLIENT, CLIENT_DID, CLIENT_DID, true, ParticipantValueResult.UNCHANGED),
+                new MemberDidCase("held, value differs", CLIENT, OTHER_CLIENT_DID, CLIENT_DID, true, differs));
+    }
+
+    private record MemberDidCase(String name, ClientId member, String did, String storedDidOrNull, boolean heldByAnother,
+                                 ParticipantValueResult expected) {
+
+        Optional<String> storedDid() {
+            return Optional.ofNullable(storedDidOrNull);
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    @Test
+    void shouldCheckMemberDidsWithoutWritingLockingOrAuditing() {
+        didsOfOtherServers.add(CLIENT_DID);
+
+        var results = store.checkMemberDids(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
+
+        assertThat(results).containsExactly(
+                Map.entry(OWNER, ParticipantValueResult.STORED),
+                Map.entry(CLIENT, ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)));
+        assertThat(storedRows).isEmpty();
+        verify(memberDidRepository, never()).saveAndFlush(any());
+        verify(securityServerRepository, never()).lockForUpdateById(anyInt());
+        verify(securityServerRepository, never()).lockForUpdateBy(any());
+        verifyNoInteractions(auditLogging, entityManager);
+    }
+
+    @Test
+    void shouldAnswerTheSameOnARepeatedMemberDidCheck() {
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, OLD_CLIENT_DID));
+        var input = batch(OWNER_DID, CLIENT_DID);
+
+        var first = store.checkMemberDids(SERVER_ID, input);
+        var second = store.checkMemberDids(SERVER_ID, input);
+
+        assertThat(first).containsExactly(
+                Map.entry(OWNER, ParticipantValueResult.STORED),
+                Map.entry(CLIENT, ParticipantValueResult.STORED));
+        assertThat(second).isEqualTo(first);
+    }
+
+    @Test
+    void shouldFailTheMemberDidCheckForUnknownServer() {
+        when(securityServerRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> store.checkMemberDids(99, batch(OWNER_DID, CLIENT_DID))).isInstanceOf(NotFoundException.class);
     }
 
     @Test

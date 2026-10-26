@@ -47,8 +47,10 @@ public enum ParticipantValueRejection {
     DSP_BASE_URL_NOT_HTTPS,
     /** The DSP base URL is not a URL, or has an invalid port, user info, a query or a fragment. */
     MALFORMED_DSP_BASE_URL,
-    /** The member DID does not decode to the claimed member, or the member is neither the owner nor a client. */
-    UNRELATED_MEMBER,
+    /** The member DID does not decode to the claimed member. */
+    DID_OF_OTHER_MEMBER,
+    /** The claimed member is neither the owner nor a registered client of the server. */
+    MEMBER_NOT_SERVED,
     /** The SYSTEM DID is not the server's own {@code v1:system} DID. */
     FOREIGN_SYSTEM_DID,
     /** The stored value is current for the registered address and differs from the published one. */

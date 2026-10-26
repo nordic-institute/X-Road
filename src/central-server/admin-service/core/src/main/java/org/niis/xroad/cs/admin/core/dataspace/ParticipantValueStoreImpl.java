@@ -55,7 +55,7 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -68,7 +68,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 /**
  * Writes lock the server row before they read or write any published value, then validate the values
  * against the server as it is under the lock. {@code checkSystemPair} is a dry run that takes no lock and
- * writes nothing. Uniqueness is decided here first: the hash-indexed member DID constraint cannot be an
+ * writes nothing; so does {@code checkMemberDids}, which decides each entry exactly as the write does
+ * and only leaves out the audit event. Uniqueness is decided here first: the hash-indexed member DID constraint cannot be an
  * {@code ON CONFLICT} target, so equal resends are told apart from conflicts by comparing the stored value.
  * A refusal the store sees under the lock concerns one entry and does not stop the others. When two
  * servers race on the same DID and the database exclusion constraint fires first, the whole batch rolls
@@ -82,6 +83,18 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private enum Mode {
         WRITE_ONCE,
         ADMIN_REPLACE
+    }
+
+    private record MemberDidPlan(ParticipantValueResult settled, XRoadMemberEntity memberEntity,
+                                 Optional<MemberDidEntity> stored) {
+
+        static MemberDidPlan settled(ParticipantValueResult result) {
+            return new MemberDidPlan(result, null, Optional.empty());
+        }
+
+        boolean isSettled() {
+            return settled != null;
+        }
     }
 
     private final SecurityServerRepository securityServerRepository;
@@ -117,6 +130,28 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     @Override
     public Map<ClientId, ParticipantValueResult> writeMemberDidsOnce(int securityServerId, Map<ClientId, String> memberDids) {
         return storeMemberDids(securityServerId, memberDids, Mode.WRITE_ONCE);
+    }
+
+    @Override
+    public Map<ClientId, ParticipantValueResult> checkMemberDids(int securityServerId, Map<ClientId, String> memberDids) {
+        var server = securityServerRepository.findById(securityServerId)
+                .orElseThrow(() -> serverNotFound(securityServerId));
+        var validator = new ParticipantValueValidator(registeredServerOf(server));
+
+        var results = new LinkedHashMap<ClientId, ParticipantValueResult>();
+        memberDids.forEach((member, did) -> results.put(member, checkMemberDid(server, validator, member, did)));
+        return results;
+    }
+
+    private ParticipantValueResult checkMemberDid(SecurityServerEntity server, ParticipantValueValidator validator,
+                                                  ClientId member, String did) {
+        var plan = planMemberDid(server, validator, member, did, Mode.WRITE_ONCE);
+        if (plan.isSettled()) {
+            return plan.settled();
+        }
+        return isDidHeldByAnotherServer(server, did)
+                ? ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER)
+                : ParticipantValueResult.STORED;
     }
 
     @Override
@@ -184,32 +219,45 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
     private ParticipantValueResult storeMemberDid(SecurityServerEntity server, ParticipantValueValidator validator,
                                                 ClientId member, String did, Mode mode) {
+        var plan = planMemberDid(server, validator, member, did, mode);
+        if (plan.isSettled()) {
+            return plan.settled();
+        }
+        if (isDidHeldByAnotherServer(server, did)) {
+            return heldByAnotherServer(server, member);
+        }
+        return writeMemberDid(server, plan.memberEntity(), plan.stored(), did);
+    }
+
+    private MemberDidPlan planMemberDid(SecurityServerEntity server, ParticipantValueValidator validator,
+                                        ClientId member, String did, Mode mode) {
         var rejection = validator.validate(new MemberDid(member, did));
         if (rejection.isPresent()) {
-            return ParticipantValueResult.rejected(rejection.get());
+            return MemberDidPlan.settled(ParticipantValueResult.rejected(rejection.get()));
         }
         var memberEntity = memberRepository.findMember(member);
         if (memberEntity.isEmpty()) {
-            return ParticipantValueResult.rejected(UNRELATED_MEMBER);
+            return MemberDidPlan.settled(ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         }
 
         var stored = memberDidRepository.findBySecurityServerIdAndMemberId(server.getId(), memberEntity.get().getId());
         if (stored.isEmpty() && mode == Mode.ADMIN_REPLACE) {
-            return ParticipantValueResult.UNCHANGED;
+            return MemberDidPlan.settled(ParticipantValueResult.UNCHANGED);
         }
         if (stored.isPresent()) {
             var storedDid = stored.get().getDid();
             if (storedDid.equals(did)) {
-                return ParticipantValueResult.UNCHANGED;
+                return MemberDidPlan.settled(ParticipantValueResult.UNCHANGED);
             }
             if (mode == Mode.WRITE_ONCE && !validator.isMemberDidStale(storedDid)) {
-                return ParticipantValueResult.rejected(VALUE_DIFFERS);
+                return MemberDidPlan.settled(ParticipantValueResult.rejected(VALUE_DIFFERS));
             }
         }
-        if (memberDidRepository.existsByDidAndSecurityServerIdNot(did, server.getId())) {
-            return heldByAnotherServer(server, member);
-        }
-        return writeMemberDid(server, memberEntity.get(), stored, did);
+        return new MemberDidPlan(null, memberEntity.get(), stored);
+    }
+
+    private boolean isDidHeldByAnotherServer(SecurityServerEntity server, String did) {
+        return memberDidRepository.existsByDidAndSecurityServerIdNot(did, server.getId());
     }
 
     private ParticipantValueResult writeMemberDid(SecurityServerEntity server, XRoadMemberEntity memberEntity,

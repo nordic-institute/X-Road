@@ -87,6 +87,19 @@ public interface ParticipantValueStore {
     Map<ClientId, ParticipantValueResult> writeMemberDidsOnce(int securityServerId, Map<ClientId, String> memberDids);
 
     /**
+     * Checks member DIDs against a server without writing anything and without locking the server row. Each
+     * entry gets the result {@link #writeMemberDidsOnce} would give it for the same input: refused with the
+     * reason, unchanged when equal to the stored DID, or stored when the write would store it. The server and
+     * its clients are read as the calling transaction sees them, with no lock and no refresh, so a change
+     * committed between this check and the write can make the write answer differently.
+     *
+     * @param securityServerId the id of the server row
+     * @param memberDids       the DID to check for each member
+     * @return the result for each member, in the order of the given entries
+     */
+    Map<ClientId, ParticipantValueResult> checkMemberDids(int securityServerId, Map<ClientId, String> memberDids);
+
+    /**
      * Replaces the stored member DIDs of a server, each entry on its own. A member without a stored DID on
      * the server is left without one.
      *
