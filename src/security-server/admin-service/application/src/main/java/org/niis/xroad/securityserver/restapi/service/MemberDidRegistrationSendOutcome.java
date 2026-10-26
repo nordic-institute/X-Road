@@ -28,17 +28,23 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import java.util.List;
 
 /**
  * Outcome of sending a member DID registration request to the Central Server.
  *
- * @param status    {@link Status#ANSWERED} when the Central Server answered, {@link Status#SEND_FAILURE} otherwise
+ * @param status    {@link Status#ANSWERED} when the Central Server answered, {@link Status#REQUEST_TOO_LARGE} when it
+ *                  refused the whole batch as too large, {@link Status#SEND_FAILURE} otherwise
  * @param requestId request id in the Central Server database, set only when answered
- * @param entries   one record per request entry in request order, empty when sending failed
+ * @param entries   one record per request entry in request order, empty unless answered
  * @param cause     send failure cause, set only when sending failed
+ * @param faultCode code of the fault the Central Server answered with, derived from the cause: the code of an
+ *                  {@link XrdRuntimeException} cause, null otherwise
  */
-public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries, Exception cause) {
+public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries, Exception cause,
+                                               String faultCode) {
 
     public MemberDidRegistrationSendOutcome {
         entries = List.copyOf(entries);
@@ -46,6 +52,7 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
 
     public enum Status {
         ANSWERED,
+        REQUEST_TOO_LARGE,
         SEND_FAILURE
     }
 
@@ -60,10 +67,15 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
     }
 
     public static MemberDidRegistrationSendOutcome answered(int requestId, List<Entry> entries) {
-        return new MemberDidRegistrationSendOutcome(Status.ANSWERED, requestId, entries, null);
+        return new MemberDidRegistrationSendOutcome(Status.ANSWERED, requestId, entries, null, null);
+    }
+
+    public static MemberDidRegistrationSendOutcome requestTooLarge() {
+        return new MemberDidRegistrationSendOutcome(Status.REQUEST_TOO_LARGE, null, List.of(), null, null);
     }
 
     public static MemberDidRegistrationSendOutcome sendFailure(Exception cause) {
-        return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause);
+        var faultCode = cause instanceof XrdRuntimeException fault ? fault.getCode() : null;
+        return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause, faultCode);
     }
 }

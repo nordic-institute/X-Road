@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionReason;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
@@ -45,6 +46,7 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 
@@ -56,6 +58,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -65,6 +68,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_REQUEST_TOO_LARGE;
 
 class MemberDidRegistrationServiceImplTest {
     private static final int SERVER_ROW_ID = 7;
@@ -90,7 +94,10 @@ class MemberDidRegistrationServiceImplTest {
     };
     private Function<List<String>, List<DidResolution>> resolverAnswer = dids -> dids.stream().map(DidResolution::resolved).toList();
 
+    private int maxEntries = 100;
+
     private final ManagementRequestService managementRequestService = mock(ManagementRequestService.class);
+    private final ManagementServiceConfigProperties configProperties = mock(ManagementServiceConfigProperties.class);
     private final SecurityServerRepository servers = mock(SecurityServerRepository.class);
     private final ParticipantValueStore store = mock(ParticipantValueStore.class);
     private final DidResolutionService resolver = dids -> {
@@ -120,11 +127,47 @@ class MemberDidRegistrationServiceImplTest {
             calls.add("add");
             return request;
         });
-        return new MemberDidRegistrationServiceImpl(resolver, store, servers, managementRequestService).add(request);
+        when(configProperties.getMemberDidRegMaxEntries()).thenReturn(maxEntries);
+        return new MemberDidRegistrationServiceImpl(resolver, store, servers, managementRequestService, configProperties).add(request);
     }
 
     private Entry[] threeEntries() {
         return new Entry[] {new Entry(MEMBER_1, DID_1), new Entry(MEMBER_2, DID_2), new Entry(MEMBER_3, DID_3)};
+    }
+
+    @Test
+    void aBatchAboveTheCapIsRefusedAsAWholeBeforeAnyLookupCheckResolutionOrWrite() {
+        maxEntries = 2;
+
+        assertThatThrownBy(() -> add(threeEntries()))
+                .isInstanceOfSatisfying(BadRequestException.class, e ->
+                        assertThat(e.getErrorDeviation()).isEqualTo(MR_REQUEST_TOO_LARGE.build("2")));
+        assertThat(calls).isEmpty();
+        verify(servers, never()).findBy(any(SecurityServerId.class));
+        verify(managementRequestService, never()).add(any());
+    }
+
+    @Test
+    void theSameOversizedBatchAnswersTheSameRefusalOnARerunAndWritesNothing() {
+        maxEntries = 2;
+        var entries = threeEntries();
+
+        assertThatThrownBy(() -> add(entries)).isInstanceOfSatisfying(BadRequestException.class, e ->
+                assertThat(e.getErrorDeviation().code()).isEqualTo(MR_REQUEST_TOO_LARGE.code()));
+        assertThatThrownBy(() -> add(entries)).isInstanceOfSatisfying(BadRequestException.class, e ->
+                assertThat(e.getErrorDeviation().code()).isEqualTo(MR_REQUEST_TOO_LARGE.code()));
+
+        assertThat(resolved).isEmpty();
+        verify(managementRequestService, never()).add(any());
+    }
+
+    @Test
+    void aBatchAtTheCapIsNotRefused() {
+        maxEntries = 3;
+
+        add(threeEntries());
+
+        assertThat(calls).containsExactly("check", "resolve", "add");
     }
 
     @Test

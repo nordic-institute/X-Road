@@ -26,9 +26,7 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CertUtils;
@@ -63,6 +61,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.CERT_VALIDATION;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifyCertificateSubjectIsOwner;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
 
 @Getter
@@ -200,34 +199,11 @@ public abstract class DirectRequestDecoderCallback<T> implements ManagementReque
 
         verifyAttachedAuthCert(request, this.authCertBytes);
 
-        // verify that the subject id from the certificate matches the one
-        // in the request (server id)
-        ClientId idFromReq = serverId.getOwner();
-        ClientId idFromCert = getClientIdFromCert(ownerCert, idFromReq);
-
-        if (!idFromReq.equals(idFromCert)) {
-            throw XrdRuntimeException.systemException(INVALID_REQUEST,
-                    "Subject identifier (%s) in certificate does not match security server owner identifier (%s) in request",
-                    idFromCert, idFromReq);
-        }
+        verifyCertificateSubjectIsOwner(globalConfProvider, ownerCert, serverId.getOwner());
 
         verifyRequestFields(request);
     }
 
-
-    private ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) {
-        return globalConfProvider.getSubjectName(
-                new SignCertificateProfileInfoParameters(
-                        ClientId.Conf.create(
-                                globalConfProvider.getInstanceIdentifier(),
-                                clientId.getMemberClass(),
-                                clientId.getMemberCode()
-                        ),
-                        ""
-                ),
-                cert
-        );
-    }
 
     public boolean verifyAuthCert(X509Certificate authCert)
             throws CertificateException, IOException, NoSuchAlgorithmException, SignatureException,

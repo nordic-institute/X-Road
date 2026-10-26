@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
@@ -42,6 +43,7 @@ import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.MemberDidRegistrationService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
@@ -54,10 +56,13 @@ import java.util.Map;
 import java.util.SequencedSet;
 import java.util.function.Function;
 
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_REQUEST_TOO_LARGE;
+
 /**
- * Decides, before the request is stored, every entry that does not need the write lock: duplicate entries,
- * entries refused while the server has no SYSTEM values, entries the store refuses or already holds, and entries
- * whose DID does not resolve. Holds no transaction, so the resolver call never runs inside one.
+ * Refuses a batch above the configured entry cap as a whole. Otherwise decides, before the request is stored,
+ * every entry that does not need the write lock: duplicate entries, entries refused while the server has no SYSTEM
+ * values, entries the store refuses or already holds, and entries whose DID does not resolve. Holds no
+ * transaction, so the resolver call never runs inside one.
  */
 @Slf4j
 @Service
@@ -68,9 +73,14 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
     private final ParticipantValueStore participantValueStore;
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
+    private final ManagementServiceConfigProperties configProperties;
 
     @Override
     public MemberDidRegistrationRequest add(MemberDidRegistrationRequest request) {
+        int maxEntries = configProperties.getMemberDidRegMaxEntries();
+        if (request.getEntries().size() > maxEntries) {
+            throw new BadRequestException(MR_REQUEST_TOO_LARGE.build(String.valueOf(maxEntries)));
+        }
         request.setSettledResults(settle(request));
         return managementRequestService.add(request);
     }

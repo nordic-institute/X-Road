@@ -404,7 +404,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue("/etc/xroad/acme-challenge")
             .build();
 
-    // --- management-requests (auto-approval toggles) ---
+    // --- management-requests ---
     /** {@code xroad.admin-service.management-requests.auto-approve-auth-cert-reg-requests}. */
     public static final ConfigKey<Boolean> MANAGEMENT_REQUESTS_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = MANAGEMENT_REQUESTS
             .bool("auto-approve-auth-cert-reg-requests")
@@ -422,6 +422,12 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .bool("auto-approve-owner-change-requests")
             .withDefaultValue(false)
             .exposedInUi()
+            .build();
+    /** {@code xroad.admin-service.management-requests.member-did-reg-max-entries} — maximum entries per member DID request. */
+    public static final ConfigKey<Integer> MANAGEMENT_REQUESTS_MEMBER_DID_REG_MAX_ENTRIES = MANAGEMENT_REQUESTS
+            .integer("member-did-reg-max-entries")
+            .withDefaultValue(100)
+            .withValidator(range(1, 1000))
             .build();
 
     /**

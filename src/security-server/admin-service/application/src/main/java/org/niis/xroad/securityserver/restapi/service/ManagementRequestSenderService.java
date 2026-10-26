@@ -128,7 +128,8 @@ public class ManagementRequestSenderService {
      *
      * @param memberDids the DID of each served member, in the order the results are expected
      * @return {@code ANSWERED} with the central server request id and one record per entry,
-     * or {@code SEND_FAILURE} with the cause
+     * {@code REQUEST_TOO_LARGE} when the central server refused the whole batch as too large,
+     * or {@code SEND_FAILURE} with the cause and, for a fault, its code
      */
     public MemberDidRegistrationSendOutcome sendMemberDidRegisterRequest(Map<ClientId.Conf, String> memberDids)
             throws GlobalConfOutdatedException {
@@ -150,6 +151,11 @@ public class ManagementRequestSenderService {
                     .toList();
             return MemberDidRegistrationSendOutcome.answered(response.requestId(), entries);
         } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(ErrorCode.REQUEST_TOO_LARGE)) {
+                log.warn("Central server refused a member DID registration request of {} entries as too large: {}",
+                        memberDids.size(), e.getDetails());
+                return MemberDidRegistrationSendOutcome.requestTooLarge();
+            }
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             return MemberDidRegistrationSendOutcome.sendFailure(e);
         } catch (RuntimeException e) {

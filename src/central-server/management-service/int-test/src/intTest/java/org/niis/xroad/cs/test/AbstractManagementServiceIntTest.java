@@ -216,6 +216,16 @@ abstract class AbstractManagementServiceIntTest {
                         .withStatusCode(statusCode));
     }
 
+    protected void adminApiRejectsWith(int statusCode, String errorCode) {
+        containerSetup.mockServerClient()
+                .when(adminApiRequestDefinition())
+                .withId(MOCK_RESPONSE_ID)
+                .respond(response()
+                        .withBody("{\"status\":%d,\"error\":{\"code\":\"%s\"}}".formatted(statusCode, errorCode))
+                        .withContentType(APPLICATION_JSON)
+                        .withStatusCode(statusCode));
+    }
+
     protected void assertAdminApiReceivedNoRequest() {
         containerSetup.mockServerClient().verifyZeroInteractions();
     }

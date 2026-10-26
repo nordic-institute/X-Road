@@ -5638,6 +5638,7 @@ components:
         entries:
           type: array
           description: Member DIDs to register, one entry per member
+          minItems: 1
           items:
             $ref: '#/components/schemas/MemberDidRegistrationEntry'
         results:
@@ -5653,6 +5654,7 @@ components:
       properties:
         member_id:
           type: string
+          maxLength: 1023
           description: Encoded member ID
         did:
           type: string

@@ -56,6 +56,7 @@ import org.niis.xroad.test.apitest.core.junit.Step;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -1574,6 +1575,21 @@ class ManagementRequestsApiTest extends CsApiTest {
                         .body("results[0].reason", equalTo("SYSTEM_VALUES_NOT_STORED")));
     }
 
+    @Test
+    void memberDidRegistrationOverTheEntryCapIsRefusedAsAWhole(CsBaselineSeeder seeder) throws Exception {
+        var msSession = Step.given("management service session opened", seeder::newManagementServiceOnlySession);
+        var serverId = INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr36:ssmr36";
+        var memberIds = IntStream.rangeClosed(1, 101)
+                .mapToObj(i -> INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr36m" + i)
+                .toList();
+
+        Step.then("a batch over the entry cap is refused as a whole", () ->
+                new ManagementRequestsAdminClient(msSession)
+                        .addManagementRequest(memberDidRegistration(serverId, ManagementRequestOriginDto.SECURITY_SERVER, memberIds))
+                        .statusCode(400)
+                        .body("error.code", equalTo("management_request_too_large")));
+    }
+
     private MemberDidRegistrationRequestDto memberDidRegistration(String serverId,
                                                                   ManagementRequestOriginDto origin) {
         return memberDidRegistration(serverId, origin, INSTANCE_IDENTIFIER + ":" + MEMBER_CLASS + ":membermr33");
@@ -1582,10 +1598,16 @@ class ManagementRequestsApiTest extends CsApiTest {
     private MemberDidRegistrationRequestDto memberDidRegistration(String serverId,
                                                                   ManagementRequestOriginDto origin,
                                                                   String memberId) {
-        var req = new MemberDidRegistrationRequestDto()
-                .addEntriesItem(new MemberDidRegistrationEntryDto()
-                        .memberId(memberId)
-                        .did("did:web:member.example.org:v1:member"));
+        return memberDidRegistration(serverId, origin, List.of(memberId));
+    }
+
+    private MemberDidRegistrationRequestDto memberDidRegistration(String serverId,
+                                                                  ManagementRequestOriginDto origin,
+                                                                  List<String> memberIds) {
+        var req = new MemberDidRegistrationRequestDto();
+        memberIds.forEach(memberId -> req.addEntriesItem(new MemberDidRegistrationEntryDto()
+                .memberId(memberId)
+                .did("did:web:member.example.org:v1:member")));
         req.setType(ManagementRequestTypeDto.MEMBER_DID_REGISTRATION_REQUEST);
         req.setOrigin(origin);
         req.setSecurityServerId(serverId);

@@ -55,6 +55,12 @@
         </field>
     </bean>
 
+    <bean class="MemberDidRegistrationEntryDto" ignore-annotations="false">
+        <field name="memberId">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
+        </field>
+    </bean>
+
     <bean class="MemberAddDto" ignore-annotations="false">
         <field name="memberName">
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>

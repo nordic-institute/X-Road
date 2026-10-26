@@ -44,7 +44,7 @@ import java.io.InputStream;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.BAD_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.REQUEST_TOO_LARGE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -90,7 +90,7 @@ public class ManagementRequestSoapExecutor {
     }
 
     private void onMaxCount(Long max, Long read) {
-        throw XrdRuntimeException.systemException(BAD_REQUEST)
+        throw XrdRuntimeException.systemException(REQUEST_TOO_LARGE)
                 .details("Request size limit %d exceeded".formatted(max))
                 .build();
     }

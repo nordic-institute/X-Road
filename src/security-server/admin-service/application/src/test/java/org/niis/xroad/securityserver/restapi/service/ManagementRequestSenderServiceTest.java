@@ -220,6 +220,7 @@ class ManagementRequestSenderServiceTest {
         assertThat(outcome.requestId()).isNull();
         assertThat(outcome.entries()).isEmpty();
         assertThat(outcome.cause()).isSameAs(failure);
+        assertThat(outcome.faultCode()).isNull();
     }
 
     @Test
@@ -231,6 +232,21 @@ class ManagementRequestSenderServiceTest {
 
         assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
         assertThat(outcome.cause()).isSameAs(failure);
+        assertThat(outcome.faultCode()).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
+    }
+
+    @Test
+    void memberDidRegisterIsRequestTooLargeWhenCentralServerRefusesTheWholeBatch() throws Exception {
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.REQUEST_TOO_LARGE).details("too many entries").build());
+
+        var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
+
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.REQUEST_TOO_LARGE);
+        assertThat(outcome.requestId()).isNull();
+        assertThat(outcome.entries()).isEmpty();
+        assertThat(outcome.cause()).isNull();
+        assertThat(outcome.faultCode()).isNull();
     }
 
     @Test

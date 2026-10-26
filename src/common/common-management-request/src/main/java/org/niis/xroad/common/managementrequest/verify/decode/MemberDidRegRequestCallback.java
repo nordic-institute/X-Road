@@ -28,11 +28,16 @@ package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.MemberDidRegRequestType;
+import ee.ria.xroad.common.util.CryptoUtils;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifyCertificateSubjectIsOwner;
 
 public class MemberDidRegRequestCallback extends BaseServerRequestCallback<MemberDidRegRequestType> {
 
@@ -44,6 +49,17 @@ public class MemberDidRegRequestCallback extends BaseServerRequestCallback<Membe
     @Override
     protected SecurityServerId getServer() {
         return getRequest().getServer();
+    }
+
+    @Override
+    protected void verifyMessage() {
+        super.verifyMessage();
+
+        if (getRequest().getEntry().isEmpty()) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Request contains no entries");
+        }
+
+        verifyCertificateSubjectIsOwner(globalConfProvider, CryptoUtils.readCertificate(clientCertBytes), getServer().getOwner());
     }
 
 }

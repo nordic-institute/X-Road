@@ -144,6 +144,36 @@ class DirectRequestDecoderCallbackTest {
     }
 
     @Test
+    void memberDidRegSignedByACertificateOfAnotherMemberIsRejectedAsInvalidRequest() throws Exception {
+        var request = builder().buildMemberDidRegRequest(serverId, memberDids());
+        var otherMemberCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(),
+                ClientId.Conf.create("DEV", "COM", "333"));
+        var payload = new TestGenericClientRequest(otherMemberCert.getEncoded(), ownerOcspBytes(), ownerKeyPair.getPrivate(),
+                request).createPayload();
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .satisfies(e -> {
+                    assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
+                    assertThat(e.getDetails()).startsWith("Subject identifier (").contains("(MEMBER:DEV/COM/333)")
+                            .endsWith("in request");
+                });
+    }
+
+    @Test
+    void memberDidRegWithoutEntriesIsRejectedAsInvalidRequest() throws Exception {
+        var request = builder().buildMemberDidRegRequest(serverId, Map.of());
+        var payload = ownerSignedPayload(request);
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .satisfies(e -> {
+                    assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
+                    assertThat(e.getDetails()).isEqualTo("Request contains no entries");
+                });
+    }
+
+    @Test
     void validSignedAuthCertRegPassesVerifierWithTypedFieldsIntact() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
         var request = builder().buildAuthCertRegRequest(serverId, ADDRESS, authCert);
