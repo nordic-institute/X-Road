@@ -36,6 +36,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,20 +49,16 @@ import java.util.Map;
  * requests are built over the undecorated service instead (see {@link XRoadClaimSignerExtension}),
  * so they carry no claim.
  *
- * <p>The X-Road MemberId is read from the {@link IdentityHubParticipantContext} properties
- * under key {@value #MEMBER_ID_PROPERTY} as a canonical {@code INSTANCE/CLASS/CODE} string,
- * parsed to a {@link ClientId}, and handed to the {@link MemberClaimSigner} to produce a
- * compact-serialised JWS. The JWS is then embedded under the {@value #CLAIM_KEY} claim of
+ * <p>The X-Road MemberId is read from {@link ParticipantMemberIdConfig} as a canonical
+ * {@code INSTANCE/CLASS/CODE} string, parsed to a {@link ClientId}, and handed to the
+ * {@link MemberClaimSigner} to produce a compact-serialised JWS. The JWS is then embedded under the {@value #CLAIM_KEY} claim of
  * the outer JWT.
  *
- * <p>If the property is absent or malformed for a given participant context, the request
+ * <p>If the member id is absent or malformed for a given participant context, the request
  * proceeds unchanged (the issuer-side attestation will then ERROR with {@code CLAIM_MISSING},
  * which surfaces the misconfiguration explicitly).
  */
 public class XRoadClaimAwareSecureTokenService implements ParticipantSecureTokenService {
-
-    /** Participant-context property key carrying the canonical INSTANCE/CLASS/CODE MemberId. */
-    public static final String MEMBER_ID_PROPERTY = "xroadMemberId";
 
     /** JWT claim key the issuer-side attestation source reads. */
     public static final String CLAIM_KEY = "xroadMemberClaim";
@@ -74,15 +71,18 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
 
     private final ParticipantSecureTokenService delegate;
     private final IdentityHubParticipantContextService participantContextService;
+    private final ParticipantMemberIdConfig memberIdConfig;
     private final MemberClaimSigner signer;
     private final Monitor monitor;
 
     public XRoadClaimAwareSecureTokenService(ParticipantSecureTokenService delegate,
                                              IdentityHubParticipantContextService participantContextService,
+                                             ParticipantMemberIdConfig memberIdConfig,
                                              MemberClaimSigner signer,
                                              Monitor monitor) {
         this.delegate = delegate;
         this.participantContextService = participantContextService;
+        this.memberIdConfig = memberIdConfig;
         this.signer = signer;
         this.monitor = monitor;
     }
@@ -104,17 +104,17 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
             return claims;
         }
         IdentityHubParticipantContext ctx = ctxResult.getContent();
-        Object rawMemberId = ctx.getProperties() == null ? null : ctx.getProperties().get(MEMBER_ID_PROPERTY);
-        if (!(rawMemberId instanceof String memberIdString) || memberIdString.isBlank()) {
+        String memberIdString = memberIdConfig.find(participantContextId).orElse(null);
+        if (memberIdString == null || memberIdString.isBlank()) {
             monitor.debug("X-Road claim signer: participant context '"
-                    + participantContextId + "' has no '" + MEMBER_ID_PROPERTY
-                    + "' property — passing through without xroadMemberClaim");
+                    + participantContextId + "' has no member id configured"
+                    + " — passing through without xroadMemberClaim");
             return claims;
         }
         ClientId memberClientId = parseMemberId(memberIdString);
         if (memberClientId == null) {
             monitor.warning("X-Road claim signer: participant context '" + participantContextId
-                    + "' has malformed '" + MEMBER_ID_PROPERTY + "' value '" + memberIdString
+                    + "' has malformed member id '" + memberIdString
                     + "' (expected INSTANCE/CLASS/CODE) — passing through without xroadMemberClaim");
             return claims;
         }

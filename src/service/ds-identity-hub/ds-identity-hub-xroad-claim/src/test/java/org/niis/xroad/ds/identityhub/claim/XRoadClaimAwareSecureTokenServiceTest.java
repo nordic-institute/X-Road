@@ -39,9 +39,11 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,6 +64,7 @@ class XRoadClaimAwareSecureTokenServiceTest {
 
     private ParticipantSecureTokenService delegate;
     private IdentityHubParticipantContextService participantContextService;
+    private ParticipantMemberIdConfig memberIdConfig;
     private MemberClaimSigner signer;
     private XRoadClaimAwareSecureTokenService wrapper;
 
@@ -69,9 +72,10 @@ class XRoadClaimAwareSecureTokenServiceTest {
     void setUp() {
         delegate = mock(ParticipantSecureTokenService.class);
         participantContextService = mock(IdentityHubParticipantContextService.class);
+        memberIdConfig = mock(ParticipantMemberIdConfig.class);
         signer = mock(MemberClaimSigner.class);
         Monitor monitor = mock(Monitor.class);
-        wrapper = new XRoadClaimAwareSecureTokenService(delegate, participantContextService, signer, monitor);
+        wrapper = new XRoadClaimAwareSecureTokenService(delegate, participantContextService, memberIdConfig, signer, monitor);
 
         when(delegate.createToken(anyString(), anyMap(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("outer-jwt").build()));
@@ -146,10 +150,10 @@ class XRoadClaimAwareSecureTokenServiceTest {
                 .participantContextId(CONTEXT_ID)
                 .did(HOLDER_DID)
                 .apiTokenAlias("alias")
-                .property(XRoadClaimAwareSecureTokenService.MEMBER_ID_PROPERTY, memberId)
                 .build();
         when(participantContextService.getParticipantContext(CONTEXT_ID))
                 .thenReturn(ServiceResult.success(ctx));
+        when(memberIdConfig.find(CONTEXT_ID)).thenReturn(Optional.of(memberId));
     }
 
     private void stubParticipantContextWithoutMemberId() {
@@ -160,5 +164,6 @@ class XRoadClaimAwareSecureTokenServiceTest {
                 .build();
         when(participantContextService.getParticipantContext(CONTEXT_ID))
                 .thenReturn(ServiceResult.success(ctx));
+        when(memberIdConfig.find(CONTEXT_ID)).thenReturn(Optional.empty());
     }
 }

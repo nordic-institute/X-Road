@@ -40,6 +40,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
@@ -81,13 +82,13 @@ import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateMan
 class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceGrpc.IdentityHubProvisioningServiceImplBase
         implements AutoCloseable {
 
-    private static final String XROAD_MEMBER_ID_PROPERTY = "xroadMemberId";
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
     private static final Duration RESOLVE_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration UNREACHABLE_BACKOFF = Duration.ofSeconds(30);
 
     private final IdentityHubParticipantContextService participantContextService;
+    private final ParticipantMemberIdConfig memberIdConfig;
     private final CredentialRequestManager credentialRequestManager;
     private final ParticipantCredentialRecordsPurger recordsPurger;
     private final DidResolverRegistry didResolverRegistry;
@@ -137,7 +138,6 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 .participantContextId(request.getParticipantContextId())
                 .did(request.getDid())
                 .active(true)
-                .property(XROAD_MEMBER_ID_PROPERTY, request.getMemberId())
                 .serviceEndpoint(new Service(
                         DspConventions.credentialServiceId(request.getParticipantContextId()),
                         DspConventions.CREDENTIAL_SERVICE_TYPE,
@@ -156,6 +156,12 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                     .build();
         }
         requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
+        if (result.succeeded()) {
+            var saved = memberIdConfig.save(request.getParticipantContextId(), request.getMemberId());
+            if (saved.failed()) {
+                throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), saved.getFailureDetail());
+            }
+        }
         return CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
     }
 
@@ -175,11 +181,10 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 logReanchorFailure(participantContextId, current.getFailureDetail());
                 return false;
             }
-            if (memberId.equals(current.getContent().getProperties().get(XROAD_MEMBER_ID_PROPERTY))) {
+            if (memberId.equals(memberIdConfig.find(participantContextId).orElse(null))) {
                 return true;
             }
-            var result = participantContextService.updateParticipant(participantContextId,
-                    ctx -> ctx.getProperties().put(XROAD_MEMBER_ID_PROPERTY, memberId));
+            var result = memberIdConfig.save(participantContextId, memberId);
             if (result.failed()) {
                 logReanchorFailure(participantContextId, result.getFailureDetail());
                 return false;
@@ -199,6 +204,10 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
         var participantContextId = request.getParticipantContextId();
         var result = participantContextService.deleteParticipantContext(participantContextId);
         requireSuccessOrNotFound(result, DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId);
+        var removed = memberIdConfig.remove(participantContextId);
+        if (removed.failed()) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, removed.getFailureDetail());
+        }
 
         var purged = recordsPurger.purge(participantContextId);
         if (!result.succeeded() && purged.credentialCount() == 0 && purged.holderRequestCount() == 0) {

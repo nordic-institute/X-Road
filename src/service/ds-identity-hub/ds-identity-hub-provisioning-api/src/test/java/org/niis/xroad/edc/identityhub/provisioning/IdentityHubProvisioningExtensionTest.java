@@ -30,6 +30,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
+import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -54,6 +55,8 @@ class IdentityHubProvisioningExtensionTest {
 
     @Mock
     private IdentityHubParticipantContextService participantContextService;
+    @Mock
+    private ParticipantContextConfigService participantContextConfigService;
     @Mock
     private CredentialRequestManager credentialRequestManager;
     @Mock
@@ -83,6 +86,7 @@ class IdentityHubProvisioningExtensionTest {
 
         extension = new IdentityHubProvisioningExtension();
         setField(extension, "participantContextService", participantContextService);
+        setField(extension, "participantContextConfigService", participantContextConfigService);
         setField(extension, "credentialRequestManager", credentialRequestManager);
         setField(extension, "credentialStore", credentialStore);
         setField(extension, "dataSourceRegistry", dataSourceRegistry);

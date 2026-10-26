@@ -7,6 +7,7 @@ dependencies {
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:edc-rpc"))
   implementation(project(":lib:ds-identity-core"))
+  implementation(project(":service:ds-identity-hub:ds-identity-hub-member-id"))
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.identityhub.participantcontext)
@@ -24,6 +25,8 @@ dependencies {
   testImplementation(libs.edc.lib.core)
   testImplementation(libs.edc.ih.participants)
   testImplementation(libs.edc.ih.participant.context.core)
+  testImplementation(libs.edc.core.participantcontext.config)
+  testImplementation(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
   testImplementation(libs.edc.ih.did)
   testImplementation(libs.edc.core.runtime)
   testImplementation(libs.postgresql)
