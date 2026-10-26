@@ -61,8 +61,9 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_REQUEST_TOO_
 /**
  * Refuses a batch above the configured entry cap as a whole. Otherwise decides, before the request is stored,
  * every entry that does not need the write lock: duplicate entries, entries refused while the server has no SYSTEM
- * values, entries the store refuses or already holds, and entries whose DID does not resolve. Holds no
- * transaction, so the resolver call never runs inside one.
+ * values, entries the store refuses, and entries whose DID does not resolve. An entry equal to the stored value
+ * skips resolution, since it was resolved when first stored, and is answered by the write under the lock, which
+ * validates it again. Holds no transaction, so the resolver call never runs inside one.
  */
 @Slf4j
 @Service

@@ -31,10 +31,10 @@ import jakarta.xml.bind.JAXBElement;
 import java.util.List;
 
 /**
- * Content a management request handler adds to the SOAP response: the created request id and
- * elements appended to the echoed request after the request id.
+ * Content a management request handler adds to the SOAP response: the created request id (null when no
+ * request was stored) and elements appended to the echoed request after the request id.
  */
-public record ResponsePayload(int requestId, List<JAXBElement<?>> elements) {
+public record ResponsePayload(Integer requestId, List<JAXBElement<?>> elements) {
 
     public ResponsePayload {
         elements = List.copyOf(elements);

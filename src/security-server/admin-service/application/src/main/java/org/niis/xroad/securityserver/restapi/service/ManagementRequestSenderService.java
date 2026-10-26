@@ -127,19 +127,15 @@ public class ManagementRequestSenderService {
      * to the management service, as an owner-signed X-Road message.
      *
      * @param memberDids the DID of each served member, in the order the results are expected
-     * @return {@code ANSWERED} with the central server request id and one record per entry,
-     * {@code REQUEST_TOO_LARGE} when the central server refused the whole batch as too large,
-     * or {@code SEND_FAILURE} with the cause and, for a fault, its code
+     * @return {@code ANSWERED} with one record per entry and the central server request id when it stored a
+     * request row, {@code REQUEST_TOO_LARGE} when the central server refused the whole batch as too large,
+     * or {@code SEND_FAILURE} with the cause and its code when the cause carries one
      */
     public MemberDidRegistrationSendOutcome sendMemberDidRegisterRequest(Map<ClientId.Conf, String> memberDids)
             throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             MemberDidRegResponse response = sender.sendMemberDidRegRequest(currentSecurityServerId.getServerId(), memberDids);
-            if (response.requestId() == null) {
-                return MemberDidRegistrationSendOutcome.sendFailure(
-                        new IllegalStateException("Response carries no request id"));
-            }
             var answered = response.results().stream().map(r -> r.member().asEncodedId()).toList();
             var sent = memberDids.keySet().stream().map(ClientId::asEncodedId).toList();
             if (!answered.equals(sent)) {

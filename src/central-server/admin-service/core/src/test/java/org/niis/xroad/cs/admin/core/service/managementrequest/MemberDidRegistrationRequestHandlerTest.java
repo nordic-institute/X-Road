@@ -71,6 +71,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRIES;
@@ -138,6 +139,7 @@ class MemberDidRegistrationRequestHandlerTest {
         order.verify(servers).lockForUpdateBy(securityServerId);
         order.verify(participantValueStore).writeMemberDidsOnce(anyInt(), anyMap());
         order.verify(memberDidRegistrationRequests).save(any());
+        order.verifyNoMoreInteractions();
         verify(participantValueStore).writeMemberDidsOnce(eq(SERVER_ROW_ID), writtenCaptor.capture());
         assertThat(writtenCaptor.getValue()).containsExactly(
                 Map.entry(MEMBER_1, DID_1), Map.entry(MEMBER_2, DID_2), Map.entry(MEMBER_3, DID_3));
@@ -147,6 +149,48 @@ class MemberDidRegistrationRequestHandlerTest {
                 new Result(MEMBER_1, Status.STORED, null),
                 new Result(MEMBER_2, Status.STORED, null),
                 new Result(MEMBER_3, Status.STORED, null));
+    }
+
+    @Test
+    void addTouchesNeitherTheStoreNorTheRequestRepositoryBeforeTheLock() {
+        when(servers.lockForUpdateBy(securityServerId)).thenAnswer(inv -> {
+            verifyNoInteractions(participantValueStore, memberDidRegistrationRequests, serverIds, requestMapper);
+            return Optional.empty();
+        });
+
+        handler.add(request);
+
+        verify(servers).lockForUpdateBy(securityServerId);
+    }
+
+    @Test
+    void addAnswersEveryEntryAsOwnerChangedWithoutRequestIdWhenTheLockFindsNoServerUnderTheOwner() {
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.empty());
+
+        var result = handler.add(request);
+
+        assertThat(result.getResults()).containsExactly(
+                new Result(MEMBER_1, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
+                new Result(MEMBER_2, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
+                new Result(MEMBER_3, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED));
+        assertThat(result.getId()).isZero();
+        verifyNoInteractions(participantValueStore, memberDidRegistrationRequests);
+    }
+
+    @Test
+    void addSavesOneRequestRowWhenSomeEntriesAreStoredAndOthersUnchanged() {
+        stubRowSaved();
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
+        var written = new LinkedHashMap<ClientId, ParticipantValueResult>();
+        written.put(MEMBER_1, ParticipantValueResult.UNCHANGED);
+        written.put(MEMBER_2, ParticipantValueResult.STORED);
+        written.put(MEMBER_3, ParticipantValueResult.UNCHANGED);
+        when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(written);
+
+        var result = handler.add(request);
+
+        verify(memberDidRegistrationRequests, times(1)).save(any());
+        assertThat(result.getResults()).extracting(Result::status).containsOnly(Status.STORED);
     }
 
     @Test
@@ -186,8 +230,7 @@ class MemberDidRegistrationRequestHandlerTest {
     }
 
     @Test
-    void addAnswersAnEqualResendAsStoredAndLeavesOneRequestRow() {
-        stubRowSaved();
+    void addAnswersAnEqualResendAsStoredAndLeavesNoRequestRow() {
         when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
         var written = new LinkedHashMap<ClientId, ParticipantValueResult>();
         written.put(MEMBER_1, ParticipantValueResult.UNCHANGED);
@@ -199,7 +242,8 @@ class MemberDidRegistrationRequestHandlerTest {
 
         assertThat(result.getResults()).extracting(Result::status).containsOnly(Status.STORED);
         assertThat(result.getResults()).extracting(Result::reason).containsOnlyNulls();
-        verify(memberDidRegistrationRequests).save(any(MemberDidRegistrationRequestEntity.class));
+        assertThat(result.getId()).isZero();
+        verify(memberDidRegistrationRequests, never()).save(any());
     }
 
     @Test
@@ -218,8 +262,7 @@ class MemberDidRegistrationRequestHandlerTest {
     }
 
     @Test
-    void addDoesNotCallTheStoreWhenEveryEntryIsAlreadySettled() {
-        stubRowSaved();
+    void addDoesNotCallTheStoreAndSavesNoRowWhenEveryEntryIsAlreadySettled() {
         request.setSettledResults(Map.of(
                 0, new Result(MEMBER_1, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE"),
                 1, new Result(MEMBER_2, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE"),
@@ -230,6 +273,7 @@ class MemberDidRegistrationRequestHandlerTest {
 
         assertThat(result.getResults()).extracting(Result::status).containsOnly(Status.NOT_RESOLVED);
         verify(participantValueStore, never()).writeMemberDidsOnce(anyInt(), anyMap());
+        verify(memberDidRegistrationRequests, never()).save(any());
     }
 
     @Test
@@ -254,7 +298,6 @@ class MemberDidRegistrationRequestHandlerTest {
 
     @Test
     void addTakesTheRegisteredAddressUnderTheLockForAnAddressDependentRejection() {
-        stubRowSaved();
         var server = mock(SecurityServerEntity.class);
         when(server.getAddress()).thenReturn("ss.exämple.org");
         when(servers.findById(SERVER_ROW_ID)).thenReturn(Optional.of(server));

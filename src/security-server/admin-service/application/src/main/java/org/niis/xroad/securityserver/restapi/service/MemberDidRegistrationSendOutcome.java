@@ -37,14 +37,15 @@ import java.util.List;
  *
  * @param status    {@link Status#ANSWERED} when the Central Server answered, {@link Status#REQUEST_TOO_LARGE} when it
  *                  refused the whole batch as too large, {@link Status#SEND_FAILURE} otherwise
- * @param requestId request id in the Central Server database, set only when answered
+ * @param requestId request id in the Central Server database, set only when answered and the Central Server stored a
+ *                  request row
  * @param entries   one record per request entry in request order, empty unless answered
  * @param cause     send failure cause, set only when sending failed
- * @param faultCode code of the fault the Central Server answered with, derived from the cause: the code of an
- *                  {@link XrdRuntimeException} cause, null otherwise
+ * @param causeCode code of the failure's cause when it is an XrdRuntimeException, whether a fault the Central Server
+ *                  answered with or a local failure before any request was sent; null for other causes
  */
 public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries, Exception cause,
-                                               String faultCode) {
+                                               String causeCode) {
 
     public MemberDidRegistrationSendOutcome {
         entries = List.copyOf(entries);
@@ -66,7 +67,13 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
     public record Entry(ClientId member, String status, String reason) {
     }
 
-    public static MemberDidRegistrationSendOutcome answered(int requestId, List<Entry> entries) {
+    /**
+     * Outcome of an answered request.
+     *
+     * @param requestId request id, null when the Central Server stored no request row
+     * @param entries   one record per request entry in request order
+     */
+    public static MemberDidRegistrationSendOutcome answered(Integer requestId, List<Entry> entries) {
         return new MemberDidRegistrationSendOutcome(Status.ANSWERED, requestId, entries, null, null);
     }
 
@@ -75,7 +82,7 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
     }
 
     public static MemberDidRegistrationSendOutcome sendFailure(Exception cause) {
-        var faultCode = cause instanceof XrdRuntimeException fault ? fault.getCode() : null;
-        return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause, faultCode);
+        var causeCode = cause instanceof XrdRuntimeException fault ? fault.getCode() : null;
+        return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause, causeCode);
     }
 }

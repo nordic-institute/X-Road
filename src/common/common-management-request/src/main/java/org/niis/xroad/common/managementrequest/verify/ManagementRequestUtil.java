@@ -75,15 +75,17 @@ public final class ManagementRequestUtil {
      * and appending the given elements after it.
      *
      * @param request   the request SOAP message
-     * @param requestId the request ID
+     * @param requestId the request ID, or null to add none
      * @param elements  elements appended to the response content after the request ID
      * @return the response SOAP message
      */
     @ArchUnitSuppressed("NoVanillaExceptions")
-    public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId, List<JAXBElement<?>> elements)
+    public static SoapMessageImpl toResponse(SoapMessageImpl request, Integer requestId, List<JAXBElement<?>> elements)
             throws SOAPException, JAXBException, IOException {
         return SoapUtils.toResponse(request, soap -> {
-            addRequestId(requestId, soap);
+            if (requestId != null) {
+                addRequestId(requestId, soap);
+            }
             appendElements(elements, soap);
         });
     }
@@ -124,7 +126,7 @@ public final class ManagementRequestUtil {
         SOAPElement firstChild = SoapUtils.getFirstChild(soap.getSOAPBody());
 
         if (firstChild == null) {
-            return;
+            throw new SOAPException("Response body has no element to carry the request id");
         }
 
         SOAPElement element = firstChild.addChildElement(REQUEST_ID);

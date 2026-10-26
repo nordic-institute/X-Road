@@ -84,6 +84,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -286,6 +287,20 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
         }
 
         @Test
+        @DisplayName("should leave the id absent for a request without a stored row")
+        void testUnsavedRequestConvertsWithoutId() {
+            MemberDidRegistrationRequest request = mock(MemberDidRegistrationRequest.class);
+            doReturn(List.of()).when(request).getEntries();
+            doReturn(List.of()).when(request).getResults();
+            prepareCommonStubs(request, ManagementRequestType.MEMBER_DID_REGISTRATION_REQUEST, 0);
+
+            ManagementRequestDto converted = converter.toDto(request);
+
+            assertNull(converted.getId());
+            assertEquals(originDto, converted.getOrigin());
+        }
+
+        @Test
         @DisplayName("should successfully perform MaintenanceModeEnable conversion")
         void testMaintenanceModeEnableRequestConversion() {
             var request = mock(MaintenanceModeEnableRequest.class);
@@ -316,7 +331,11 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
         }
 
         private void prepareCommonStubs(Request request, ManagementRequestType type) {
-            doReturn(ID).when(request).getId();
+            prepareCommonStubs(request, type, ID);
+        }
+
+        private void prepareCommonStubs(Request request, ManagementRequestType type, int id) {
+            doReturn(id).when(request).getId();
             doReturn(origin).when(request).getOrigin();
             doReturn(type).when(request).getManagementRequestType();
             doReturn(originDto).when(originDtoMapper).convert(origin);

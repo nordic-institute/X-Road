@@ -92,6 +92,24 @@ class MemberDidRegMessageTest {
     }
 
     @Test
+    void responseWithoutRequestIdCarriesTheResultsAndNoRequestId() throws Exception {
+        var request = builder.buildMemberDidRegRequest(server, entries());
+        var results = List.of(
+                result(memberA, "STORED", null),
+                result(memberB, "FIXABLE_CONFLICT", "VALUE_DIFFERS"),
+                result(memberC, "FIXABLE_CONFLICT", "OWNER_CHANGED"));
+
+        var responseMessage = ManagementRequestUtil.toResponse(request, null, resultElements(results));
+        var response = ManagementRequestSender.toMemberDidRegResponse(responseMessage);
+
+        assertThat(response.requestId()).isNull();
+        assertThat(response.results()).containsExactly(
+                new MemberDidRegResponse.Result(memberA, "STORED", null),
+                new MemberDidRegResponse.Result(memberB, "FIXABLE_CONFLICT", "VALUE_DIFFERS"),
+                new MemberDidRegResponse.Result(memberC, "FIXABLE_CONFLICT", "OWNER_CHANGED"));
+    }
+
+    @Test
     void responseWithoutExtraElementsAnswersRequestIdOnly() throws Exception {
         var request = builder.buildMemberDidRegRequest(server, entries());
 

@@ -220,7 +220,7 @@ class ManagementRequestSenderServiceTest {
         assertThat(outcome.requestId()).isNull();
         assertThat(outcome.entries()).isEmpty();
         assertThat(outcome.cause()).isSameAs(failure);
-        assertThat(outcome.faultCode()).isNull();
+        assertThat(outcome.causeCode()).isNull();
     }
 
     @Test
@@ -232,7 +232,7 @@ class ManagementRequestSenderServiceTest {
 
         assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
         assertThat(outcome.cause()).isSameAs(failure);
-        assertThat(outcome.faultCode()).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
+        assertThat(outcome.causeCode()).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
     }
 
     @Test
@@ -246,18 +246,23 @@ class ManagementRequestSenderServiceTest {
         assertThat(outcome.requestId()).isNull();
         assertThat(outcome.entries()).isEmpty();
         assertThat(outcome.cause()).isNull();
-        assertThat(outcome.faultCode()).isNull();
+        assertThat(outcome.causeCode()).isNull();
     }
 
     @Test
-    void memberDidRegisterIsSendFailureWhenResponseHasNoRequestId() throws Exception {
-        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS))
-                .thenReturn(new MemberDidRegResponse(null, List.of()));
+    void memberDidRegisterIsAnsweredWithoutRequestIdWhenTheCentralServerStoredNoRequestRow() throws Exception {
+        when(sender.sendMemberDidRegRequest(SERVER_ID, MEMBER_DIDS)).thenReturn(new MemberDidRegResponse(null, List.of(
+                new MemberDidRegResponse.Result(MEMBER_A, "STORED", null),
+                new MemberDidRegResponse.Result(MEMBER_B, "FIXABLE_CONFLICT", "VALUE_DIFFERS"))));
 
         var outcome = service.sendMemberDidRegisterRequest(MEMBER_DIDS);
 
-        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
-        assertThat(outcome.cause()).isInstanceOf(IllegalStateException.class);
+        assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.ANSWERED);
+        assertThat(outcome.requestId()).isNull();
+        assertThat(outcome.cause()).isNull();
+        assertThat(outcome.entries()).containsExactly(
+                new MemberDidRegistrationSendOutcome.Entry(MEMBER_A, "STORED", null),
+                new MemberDidRegistrationSendOutcome.Entry(MEMBER_B, "FIXABLE_CONFLICT", "VALUE_DIFFERS"));
     }
 
     @Test

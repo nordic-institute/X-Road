@@ -423,7 +423,10 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(false)
             .exposedInUi()
             .build();
-    /** {@code xroad.admin-service.management-requests.member-did-reg-max-entries} — maximum entries per member DID request. */
+    /**
+     * {@code xroad.admin-service.management-requests.member-did-reg-max-entries} — maximum entries per member DID
+     * request; the management service's request body size bound limits a batch before a high cap does.
+     */
     public static final ConfigKey<Integer> MANAGEMENT_REQUESTS_MEMBER_DID_REG_MAX_ENTRIES = MANAGEMENT_REQUESTS
             .integer("member-did-reg-max-entries")
             .withDefaultValue(100)
