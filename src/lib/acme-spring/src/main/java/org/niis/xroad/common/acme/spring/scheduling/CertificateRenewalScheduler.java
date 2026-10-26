@@ -118,10 +118,19 @@ public class CertificateRenewalScheduler implements DisposableBean {
     }
 
     public void globalConfInvalidated() {
-        log.debug("ACME certificate renewal cycle failed due to invalid global configuration, "
+        log.info("ACME certificate renewal cycle failed due to invalid global configuration, "
                 + "switching to global configuration recovery schedule");
-        reschedule(RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY);
+        deferCycle();
         retryMode = false;
+    }
+
+    /**
+     * Ends the running cycle without a renewal attempt and reschedules the next one after the short recovery
+     * delay. Keeps the retry backoff state, so a cycle skipped on a precondition outside the renewal itself
+     * does not discard an earlier failure's schedule.
+     */
+    public void deferCycle() {
+        reschedule(RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY);
         rescheduledDuringCycle = true;
     }
 
@@ -130,7 +139,7 @@ public class CertificateRenewalScheduler implements DisposableBean {
         try {
             acmeRenewalWorker.execute(this);
         } finally {
-            // globalConfInvalidated() already scheduled its own recovery delay; scheduling again here with
+            // deferCycle() already scheduled its own recovery delay; scheduling again here with
             // getNextDelay() (which no longer reflects that call's intent) would immediately cancel and replace
             // it with the normal, much longer renewal interval.
             if (!rescheduledDuringCycle) {

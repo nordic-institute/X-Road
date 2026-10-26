@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -33,8 +34,9 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 
 /**
  * Runs the wrapped renewal worker only while the instance is dataspace ready. A tick while not ready ends through
- * {@link CertificateRenewalScheduler#globalConfInvalidated()}, so the next readiness check follows after the
- * scheduler's short recovery delay rather than the full renewal interval, and is not counted as a failure.
+ * {@link CertificateRenewalScheduler#deferCycle()}, so the next readiness check follows after the scheduler's short
+ * recovery delay rather than the full renewal interval, is not counted as a failure and keeps any retry backoff
+ * from an earlier failed renewal.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -48,7 +50,7 @@ class DataspaceReadinessRenewalWorker implements AcmeRenewalWorker {
         if (!readinessPredicates.isDataspaceReady()) {
             log.debug("Data space is not ready, DS TLS ACME renewal skipped");
             if (scheduler != null) {
-                scheduler.globalConfInvalidated();
+                scheduler.deferCycle();
             }
             return;
         }

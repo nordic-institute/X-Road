@@ -42,9 +42,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Shared readiness predicates used by the DSP provisioning worker, the DSP status service and the
- * catalog invalidation notifier. The callers key their logic on the same state; a single
- * implementation prevents them from silently diverging.
+ * Shared readiness predicates used by the DSP provisioning worker, the DSP status service, the catalog
+ * invalidation notifier and the DS TLS renewal readiness gate. The callers key their logic on the same state;
+ * a single implementation prevents them from silently diverging.
  */
 @Slf4j
 @Component
@@ -81,7 +81,8 @@ public class DataspaceReadinessPredicates {
         try {
             return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty();
         } catch (Exception e) {
-            log.debug("Data space: readiness check failed, treating the instance as not ready", e);
+            log.debug("Data space: readiness check failed, treating the instance as not ready: {}",
+                    e.getMessage());
             return false;
         }
     }
