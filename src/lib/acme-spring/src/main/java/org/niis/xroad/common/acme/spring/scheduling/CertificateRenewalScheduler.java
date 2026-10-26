@@ -118,7 +118,7 @@ public class CertificateRenewalScheduler implements DisposableBean {
     }
 
     public void globalConfInvalidated() {
-        log.info("ACME certificate renewal cycle failed due to invalid global configuration, "
+        log.debug("ACME certificate renewal cycle failed due to invalid global configuration, "
                 + "switching to global configuration recovery schedule");
         reschedule(RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY);
         retryMode = false;

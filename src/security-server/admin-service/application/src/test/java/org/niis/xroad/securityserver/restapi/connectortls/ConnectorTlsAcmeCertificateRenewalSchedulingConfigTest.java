@@ -43,33 +43,23 @@ class ConnectorTlsAcmeCertificateRenewalSchedulingConfigTest {
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Test
-    void doesNotMatchWhenDataspaceDisabled() {
-        assertFalse(schedulingEnabled(false, NodeProperties.NodeType.PRIMARY));
-    }
-
-    @Test
     void doesNotMatchOnSecondaryNode() {
-        assertFalse(schedulingEnabled(true, NodeProperties.NodeType.SECONDARY));
+        assertFalse(schedulingEnabled(NodeProperties.NodeType.SECONDARY));
     }
 
     @Test
-    void matchesOnPrimaryNodeWhenDataspaceEnabled() {
-        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.PRIMARY));
+    void matchesOnPrimaryNode() {
+        assertTrue(schedulingEnabled(NodeProperties.NodeType.PRIMARY));
     }
 
     @Test
-    void matchesOnStandaloneNodeWhenDataspaceEnabled() {
-        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.STANDALONE));
+    void matchesOnStandaloneNode() {
+        assertTrue(schedulingEnabled(NodeProperties.NodeType.STANDALONE));
     }
 
-    /**
-     * The DataSpace-enabled flag is resolved from the DSL (stored overrides + packaged defaults) rather than the
-     * Spring {@code Environment}, so the decision is exercised directly; only the node type still comes from the
-     * environment.
-     */
-    private boolean schedulingEnabled(boolean dataspaceEnabled, NodeProperties.NodeType nodeType) {
+    private boolean schedulingEnabled(NodeProperties.NodeType nodeType) {
         variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
 
-        return ConnectorTlsAcmeCertificateRenewalSchedulingConfig.IsConnectorTlsAcmeSchedulingActive.schedulingEnabled(dataspaceEnabled);
+        return ConnectorTlsAcmeCertificateRenewalSchedulingConfig.IsConnectorTlsAcmeSchedulingActive.schedulingEnabled();
     }
 }

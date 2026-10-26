@@ -30,8 +30,7 @@ import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
 import org.niis.xroad.common.acme.spring.connectortls.ConnectorTlsAcmeCertificateRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.properties.NodeProperties;
-import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
-import org.niis.xroad.common.properties.spring.SpringConditionConfig;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -44,22 +43,14 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Wires the DS TLS certificate's own {@link CertificateRenewalScheduler} instance, entirely separate from the
- * auth/sign scheduler bean in {@code AcmeCertificateRenewalSchedulingConfig}. Gated on secondary-node status and
- * on the DataSpace feature flag ({@code AdminServiceConfigKeys#DATASPACE_ENABLED}) — there is no independent
- * DS-TLS-specific kill-switch, so disabling DataSpace is what disables this scheduler too.
+ * auth/sign scheduler bean in {@code AcmeCertificateRenewalSchedulingConfig}. The scheduler exists on every node
+ * that is not a secondary cluster node; the renewal worker is wrapped in {@link DataspaceReadinessRenewalWorker}, so
+ * each tick checks dataspace readiness and renewal starts once the instance becomes ready, without a restart.
  * <p>
  * This deliberately stays a product-local class rather than moving into {@code lib/acme-spring} alongside the
- * worker/service it wires: the {@link Conditional} evaluates before any bean exists (see
- * {@link SpringConditionConfig}'s own javadoc), so the gating decision must come from a throwaway config read,
- * never from a live {@code ConnectorTlsAcmeHostContext} bean — forcing that bean to instantiate early just to answer
- * "should I schedule" would fight Spring's own bean-creation order for no benefit. Each product that wires this
- * scheduler owns an equivalent class reading its own config keys, matching this one's shape.
- * <p>
- * Like any {@link Conditional} bean, this is evaluated once at context startup: enabling DataSpace while
- * admin-service is already running does not start this scheduler until the process restarts, same restart
- * requirement {@code AcmeCertificateRenewalSchedulingConfig}'s own {@code acme-renewal-active} flag already has.
- * {@link ConnectorTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick regardless,
- * so a blank hostname is still handled as "skip this cycle" rather than relying solely on this gate.
+ * worker/service it wires: each product that wires this scheduler owns an equivalent class with its own gating.
+ * {@link ConnectorTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick, so a blank
+ * hostname is handled as "skip this cycle" rather than relying on this gate.
  */
 @Slf4j
 @Configuration
@@ -71,9 +62,10 @@ public class ConnectorTlsAcmeCertificateRenewalSchedulingConfig {
     @Conditional(IsConnectorTlsAcmeSchedulingActive.class)
     CertificateRenewalScheduler connectorTlsAcmeCertificateRenewalScheduler(
             ConnectorTlsAcmeCertificateRenewalWorker connectorTlsAcmeCertificateRenewalWorker,
+            DataspaceReadinessPredicates dataspaceReadinessPredicates,
             AcmeSchedulingProperties acmeConfig) {
-        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(connectorTlsAcmeCertificateRenewalWorker, acmeConfig,
-                "acme-renewal-ds-tls-");
+        var worker = new DataspaceReadinessRenewalWorker(dataspaceReadinessPredicates, connectorTlsAcmeCertificateRenewalWorker);
+        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(worker, acmeConfig, "acme-renewal-ds-tls-");
         scheduler.init();
         return scheduler;
     }
@@ -82,19 +74,15 @@ public class ConnectorTlsAcmeCertificateRenewalSchedulingConfig {
     public static class IsConnectorTlsAcmeSchedulingActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
-            return schedulingEnabled(config.value(AdminServiceConfigKeys.DATASPACE_ENABLED));
+            return schedulingEnabled();
         }
 
-        static boolean schedulingEnabled(boolean dataspaceEnabled) {
-            if (!dataspaceEnabled) {
-                log.info("DataSpace feature is not enabled, DS TLS ACME certificate renewal job auto-scheduling disabled");
-            }
+        static boolean schedulingEnabled() {
             if (NodeProperties.isSecondaryNode()) {
                 log.info("This is a secondary cluster node, DS TLS ACME certificate renewal job auto-scheduling disabled");
                 return false;
             }
-            return dataspaceEnabled;
+            return true;
         }
     }
 
