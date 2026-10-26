@@ -39,6 +39,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
@@ -56,6 +58,9 @@ import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.util.ArrayList;
@@ -64,6 +69,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -82,6 +88,8 @@ public class SystemServiceTest {
     private static final String TSA_2_URL = "https://example.com";
     private static final String TSA_2_NAME = "TSA 2";
     private static final String SERVER_ADDRESS = "new.address";
+    private static final SecurityServerId.Conf OWN_SERVER_ID =
+            SecurityServerId.Conf.create(ClientId.Conf.create("CS", "GOV", "1111"), "TEST-INMEM-SS");
 
     @Mock
     private ServerConfService serverConfService;
@@ -99,6 +107,8 @@ public class SystemServiceTest {
     private ProxyRpcClient proxyRpcClient;
     @Mock
     private AuditDataHelper auditDataHelper;
+    @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
     private final MaintenanceModeStatus maintenanceModeStatus = new MaintenanceModeStatus();
     @Rule
@@ -119,7 +129,8 @@ public class SystemServiceTest {
 
         systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient);
+                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider, proxyRpcClient,
+                ownSecurityServerResolver);
     }
 
     @Test
@@ -237,7 +248,7 @@ public class SystemServiceTest {
 
     @Test
     public void changeSecurityServerAddress() {
-        when(globalConfService.getSecurityServerAddress(any())).thenReturn("ss.address");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, "ss.address"));
 
         systemService.changeSecurityServerAddress(SERVER_ADDRESS);
 
@@ -260,7 +271,7 @@ public class SystemServiceTest {
 
     @Test
     public void changeSecurityServerAddressSameAddress() {
-        when(globalConfService.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, SERVER_ADDRESS));
 
         try {
             systemService.changeSecurityServerAddress(SERVER_ADDRESS);
@@ -269,6 +280,68 @@ public class SystemServiceTest {
             assertEquals("Error[code=same_address_change_request]", e.getMessage());
             // ok
         }
+        verifyNoInteractions(managementRequestSenderService);
+    }
+
+    @Test
+    public void changeSecurityServerAddressNotRegistered() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(OWN_SERVER_ID));
+
+        var e = assertThrows(ConflictException.class, () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
+        assertEquals("Error[code=server_not_registered]", e.getMessage());
+        verifyNoInteractions(managementRequestSenderService);
+    }
+
+    @Test
+    public void changeSecurityServerAddressGlobalConfUnavailable() {
+        var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
+
+        var e = assertThrows(ConflictException.class, () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
+        assertEquals("Error[code=global_conf_unavailable]", e.getMessage());
+        assertSame(cause, e.getCause());
+        verifyNoInteractions(managementRequestSenderService);
+    }
+
+    @Test
+    public void changeSecurityServerAddressOwnerNotInitialised() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
+
+        var e = assertThrows(ConflictException.class, () -> systemService.changeSecurityServerAddress(SERVER_ADDRESS));
+        assertEquals("Error[code=server_not_initialized]", e.getMessage());
+        verifyNoInteractions(managementRequestSenderService);
+    }
+
+    @Test
+    public void registeredAddressRegistered() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(OWN_SERVER_ID, SERVER_ADDRESS));
+
+        assertEquals(Optional.of(SERVER_ADDRESS), systemService.registeredAddress());
+    }
+
+    @Test
+    public void registeredAddressNotRegistered() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(OWN_SERVER_ID));
+
+        assertEquals(Optional.empty(), systemService.registeredAddress());
+    }
+
+    @Test
+    public void registeredAddressGlobalConfUnavailable() {
+        var cause = XrdRuntimeException.systemException(ErrorCode.MALFORMED_GLOBALCONF, "unreadable");
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.GlobalConfUnavailable(cause));
+
+        var e = assertThrows(ConflictException.class, () -> systemService.registeredAddress());
+        assertEquals("Error[code=global_conf_unavailable]", e.getMessage());
+        assertSame(cause, e.getCause());
+    }
+
+    @Test
+    public void registeredAddressOwnerNotInitialised() {
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnerNotInitialised());
+
+        var e = assertThrows(ConflictException.class, () -> systemService.registeredAddress());
+        assertEquals("Error[code=server_not_initialized]", e.getMessage());
     }
 
     @Test

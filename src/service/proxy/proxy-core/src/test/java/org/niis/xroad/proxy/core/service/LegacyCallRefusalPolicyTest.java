@@ -26,24 +26,32 @@
  */
 package org.niis.xroad.proxy.core.service;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 
 class LegacyCallRefusalPolicyTest {
 
     private static final String OWN_INSTANCE = "DEV";
     private static final String FEDERATED_INSTANCE = "XRD8";
+    private static final ServiceId FEDERATED_SERVICE =
+            ServiceId.Conf.create(FEDERATED_INSTANCE, "COM", "222", "TestClient", "testService");
 
     private final ProxyProperties proxyProperties = mock(ProxyProperties.class);
     private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
@@ -129,5 +137,48 @@ class LegacyCallRefusalPolicyTest {
         assertThat(policy.refusedAsConsumer(FEDERATED_INSTANCE)).isTrue();
 
         verify(globalConfProvider, never()).isLegacyProtocolDisabled(any());
+    }
+
+    @ParameterizedTest(name = "local={0}, provider instance={1} -> consumer call refused={2}")
+    @CsvSource({
+            "false, false, false",
+            "false, true,  true",
+            "true,  false, true",
+            "true,  true,  true"
+    })
+    void consumerCallCheckThrowsForEachRefusingCombination(boolean local, boolean providerInstance, boolean refused) {
+        when(proxyProperties.legacyProtocolDisabled()).thenReturn(local);
+        when(globalConfProvider.isLegacyProtocolDisabled(FEDERATED_INSTANCE)).thenReturn(providerInstance);
+
+        if (refused) {
+            assertThatThrownBy(() -> policy.checkConsumerCallAllowed(FEDERATED_SERVICE))
+                    .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                        assertThat(e.getErrorCode()).isEqualTo("client." + LEGACY_CALL_REFUSED.code());
+                        assertThat(e.getDetails()).contains("Security Server setting", "provider instance setting");
+                    });
+        } else {
+            assertThatCode(() -> policy.checkConsumerCallAllowed(FEDERATED_SERVICE)).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void consumerCallCheckWithLocalSettingTrueReadsNoGlobalConf() {
+        when(proxyProperties.legacyProtocolDisabled()).thenReturn(true);
+
+        assertThatThrownBy(() -> policy.checkConsumerCallAllowed(FEDERATED_SERVICE))
+                .isInstanceOf(XrdRuntimeException.class);
+
+        verify(globalConfProvider, never()).isLegacyProtocolDisabled(any());
+    }
+
+    @Test
+    void consumerCallCheckPropagatesUnexpectedSettingReadError() {
+        var unexpected = new IllegalStateException("unreadable");
+        when(proxyProperties.legacyProtocolDisabled()).thenReturn(false);
+        when(globalConfProvider.isLegacyProtocolDisabled(FEDERATED_INSTANCE)).thenThrow(unexpected);
+
+        assertThatThrownBy(() -> policy.checkConsumerCallAllowed(FEDERATED_SERVICE))
+                .isSameAs(unexpected)
+                .isNotInstanceOf(XrdRuntimeException.class);
     }
 }

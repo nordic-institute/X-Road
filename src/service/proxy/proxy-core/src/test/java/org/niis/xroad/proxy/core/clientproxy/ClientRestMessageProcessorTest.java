@@ -36,6 +36,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.SneakyThrows;
+import org.apache.http.HttpEntity;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
@@ -56,11 +57,14 @@ import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.ServerConfProviderIdentitySource;
 
 import java.net.URI;
 import java.util.List;
@@ -69,6 +73,7 @@ import java.util.Map;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -78,9 +83,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
@@ -111,7 +120,8 @@ class ClientRestMessageProcessorTest {
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .build());
-        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,
+                new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(serverConfProvider), globalConfProvider));
         var httpSenderProvider = mock(HttpSenderProvider.class);
         var messageSigningService = mock(MessageSigningService.class);
         var clientVerificationService = mock(ClientVerificationService.class);
@@ -134,7 +144,8 @@ class ClientRestMessageProcessorTest {
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
-                mock(IdentifierValidationService.class)
+                mock(IdentifierValidationService.class),
+                mock(LegacyCallRefusalPolicy.class)
         );
     }
 
@@ -300,6 +311,96 @@ class ClientRestMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }
 
+    @Test
+    void sendRequestRefusesUnnegotiatedCallWhenLocalSettingRefuses() throws Exception {
+        var harness = createHarness(false, true);
+        stubUnnegotiatedAddress(harness);
+        var httpSender = mock(HttpSender.class);
+
+        assertThatThrownBy(() -> harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.getErrorCode())
+                        .isEqualTo("client." + LEGACY_CALL_REFUSED.code()));
+
+        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void sendRequestRefusesUnnegotiatedCallWhenProviderInstanceRefuses() throws Exception {
+        var harness = createHarness(false, false);
+        when(harness.globalConfProvider().isLegacyProtocolDisabled(serviceId().getXRoadInstance())).thenReturn(true);
+        stubUnnegotiatedAddress(harness);
+        var httpSender = mock(HttpSender.class);
+
+        assertThatThrownBy(() -> harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(LEGACY_CALL_REFUSED)).isTrue());
+
+        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+    }
+
+    @Test
+    void sendRequestSendsUnnegotiatedCallWhenNothingRefuses() throws Exception {
+        var harness = createHarness(false, false);
+        stubUnnegotiatedAddress(harness);
+        var httpSender = mock(HttpSender.class);
+
+        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
+    }
+
+    @Test
+    void sendRequestChecksTheRefusalOnEveryUnnegotiatedAttempt() throws Exception {
+        var harness = createHarness(false, false);
+        stubUnnegotiatedAddress(harness);
+
+        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-1",
+                restRequestContext());
+        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-1",
+                restRequestContext());
+
+        verify(harness.legacyCallRefusalPolicy(), times(2)).checkConsumerCallAllowed(serviceId());
+    }
+
+    @Test
+    void sendRequestNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
+        var harness = createHarness(true, true);
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        var httpSender = mock(HttpSender.class);
+
+        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    @Test
+    void sendRequestSurfacesTargetResolutionErrorInsteadOfTheRefusal() throws Exception {
+        var harness = createHarness(false, true);
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
+        var httpSender = mock(HttpSender.class);
+
+        assertThatThrownBy(() -> harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(UNKNOWN_MEMBER)).isTrue());
+
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+    }
+
+    private static void stubUnnegotiatedAddress(RestHarness harness) {
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+    }
+
     private static RestRequest restRequest() {
         return new RestRequest("GET", "/r1/DEV/COM/222/TestClient/testService", null, List.of(), "req-1");
     }
@@ -313,22 +414,31 @@ class ClientRestMessageProcessorTest {
     }
 
     private record RestHarness(ClientRestMessageProcessor processor, DspRequestProcessor consumerSideDspProcessor,
-                               ClientRequestPreparationService clientRequestPreparationService) {
+                               ClientRequestPreparationService clientRequestPreparationService,
+                               GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy) {
     }
 
     private RestHarness createHarness(boolean dspEnabled) {
+        return createHarness(dspEnabled, false);
+    }
+
+    private RestHarness createHarness(boolean dspEnabled, boolean legacyProtocolDisabled) {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
                 .register(ProxyConfigKeys.instance())
-                .overrides(Map.of("xroad.proxy.dsp-enabled", String.valueOf(dspEnabled)))
+                .overrides(Map.of(
+                        "xroad.proxy.dsp-enabled", String.valueOf(dspEnabled),
+                        "xroad.proxy.legacy-protocol-disabled", String.valueOf(legacyProtocolDisabled)))
                 .build());
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
                 .build());
-        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+        var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,
+                new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(serverConfProvider), globalConfProvider));
         var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
 
         var processor = new ClientRestMessageProcessor(
                 mock(MessageSigningService.class),
@@ -341,8 +451,10 @@ class ClientRestMessageProcessorTest {
                 mock(OcspVerifierFactory.class),
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
-                mock(IdentifierValidationService.class));
-        return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService);
+                mock(IdentifierValidationService.class),
+                legacyCallRefusalPolicy);
+        return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
+                globalConfProvider, legacyCallRefusalPolicy);
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

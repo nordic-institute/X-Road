@@ -31,8 +31,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,7 +42,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
  * test ServerConfService
@@ -54,6 +59,28 @@ public class ServerConfServiceTest extends AbstractServiceTestContext {
     public void getSecurityServerId() {
         SecurityServerId.Conf expected = SecurityServerId.Conf.create("FI", "GOV", "M1", "SS1");
         assertEquals(expected, serverConfService.getSecurityServerId());
+    }
+
+    @Test
+    public void getSecurityServerIdThrowsWhenOwnerNotSet() {
+        ServerConfEntity withoutOwner = new ServerConfEntity();
+        withoutOwner.setServerCode("SS1");
+        when(serverConfRepository.getServerConf()).thenReturn(withoutOwner);
+
+        XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> serverConfService.getSecurityServerId());
+
+        assertEquals(MALFORMED_SERVERCONF.code(), thrown.getErrorCode());
+    }
+
+    @Test
+    public void getSecurityServerIdThrowsWhenNoServerConfRow() {
+        when(serverConfRepository.getServerConf())
+                .thenThrow(XrdRuntimeException.systemException(MALFORMED_SERVERCONF).build());
+
+        XrdRuntimeException thrown = assertThrows(XrdRuntimeException.class, () -> serverConfService.getSecurityServerId());
+
+        assertEquals(MALFORMED_SERVERCONF.code(), thrown.getErrorCode());
+        assertTrue(thrown.getMessage().contains("Security Server owner is not set"));
     }
 
     @Test

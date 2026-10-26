@@ -77,6 +77,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 import static junit.framework.TestCase.fail;
@@ -458,6 +459,24 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         var response = systemApiController.disableMaintenanceMode();
         assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
         verify(systemService).disableMaintenanceMode();
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
+    public void getServerAddressRegistered() {
+        when(systemService.registeredAddress()).thenReturn(Optional.of("ss.example.org"));
+        var response = systemApiController.getServerAddress();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("ss.example.org", response.getBody().getCurrentAddress().getAddress());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_SS_ADDRESS"})
+    public void getServerAddressNotRegistered() {
+        when(systemService.registeredAddress()).thenReturn(Optional.empty());
+        var response = systemApiController.getServerAddress();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody().getCurrentAddress());
     }
 
     private void getSystemCertificate() throws IOException {

@@ -64,6 +64,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
@@ -125,6 +126,7 @@ public class ClientSoapMessageProcessor {
     private final ClientRequestPreparationService clientRequestPreparationService;
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
+    private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -334,19 +336,29 @@ public class ClientSoapMessageProcessor {
         }
     }
 
+    void checkUnnegotiatedCallAllowed(ServiceId requestServiceId) {
+        legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
+    }
+
     void sendRequest(HttpSender httpSender, ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
                              String xRequestId, OpMonitoringData opMonitoringData, AssetAccessResponse assetAccess,
                              ReplaySoapProxyMessageEntity replayEntity) throws Exception {
         log.trace("sendRequest()");
 
         try {
-            URI[] addresses = assetAccess != null
-                    ? clientRequestPreparationService.prepareRequest(
-                            httpSender, decoder.getServiceId(), URI.create(assetAccess.endpoint()),
-                            ctx, opMonitoringData, decoder.getOriginalSoapAction())
-                    : clientRequestPreparationService.prepareRequest(
-                            httpSender, decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
-                            ctx, opMonitoringData, decoder.getOriginalSoapAction());
+            URI[] addresses;
+            if (assetAccess != null) {
+                addresses = clientRequestPreparationService.prepareRequest(
+                        httpSender, decoder.getServiceId(), URI.create(assetAccess.endpoint()),
+                        ctx, opMonitoringData, decoder.getOriginalSoapAction());
+            } else {
+                addresses = clientRequestPreparationService.prepareRequest(
+                        httpSender, decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
+                        ctx, opMonitoringData, decoder.getOriginalSoapAction());
+                if (!proxyProperties.dspEnabled()) {
+                    checkUnnegotiatedCallAllowed(decoder.getServiceId());
+                }
+            }
 
             // Add unique id to distinguish request/response pairs
             httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
