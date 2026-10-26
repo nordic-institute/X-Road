@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.SqlContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.connector.controlplane.transfer.dataaddress.VaultDataAddressStore;
@@ -65,6 +64,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
+import org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContractNegotiationStore;
+import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -94,7 +95,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * instance drives the negotiation or transfer to its terminal state.
  *
  * <p>Instance A and instance B are each an independently constructed {@link AssetAccessCompletionPoller}
- * with its own clock, its own {@link SqlContractNegotiationStore},
+ * with its own clock, an {@link XRoadContractNegotiationStore} over its own {@link SqlContractNegotiationStore},
  * its own {@link SqlTransferProcessStore}, its own {@link VaultDataAddressStore} and its own
  * {@link ReusableAgreementLookup}. The two instances never share a Java object other than the one {@link Vault};
  * every other collaborator is a fresh instance per side, so the only channel between them is the PostgreSQL
@@ -107,9 +108,8 @@ class TwoInstanceCompletionPostgresTest {
 
     private static final Duration LONG_TIMEOUT = Duration.ofSeconds(30);
 
-    private final ContractNegotiationStatements negotiationStatements =
-            new org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres
-                    .PostgresDialectStatements(Clock.systemUTC());
+    private final XRoadPostgresContractNegotiationStatements negotiationStatements =
+            new XRoadPostgresContractNegotiationStatements(Clock.systemUTC());
     private final PostgresDialectStatements transferStatements = new PostgresDialectStatements(Clock.systemUTC());
     private final List<AssetAccessCompletionPoller> pollers = new ArrayList<>();
 
@@ -394,9 +394,12 @@ class TwoInstanceCompletionPostgresTest {
         var manager = new JacksonTypeManager();
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        var negotiationStore = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
+        var stockNegotiationStore = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), manager::getMapper, negotiationStatements, queryExecutor, "test-connector",
                 Clock.systemUTC());
+        var negotiationStore = new XRoadContractNegotiationStore(stockNegotiationStore, extension.getDataSourceRegistry(),
+                extension.getDatasourceName(), extension.getTransactionContext(), manager::getMapper, negotiationStatements,
+                queryExecutor, "test-connector", Clock.systemUTC());
 
         var transferProcessStore = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), manager::getMapper, transferStatements, queryExecutor, "test-connector",

@@ -28,9 +28,6 @@
 package org.niis.xroad.edc.extension.store.contractnegotiation;
 
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -61,7 +58,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * to match), copy the new values reported in this test's failure output into the {@code EXPECTED_*} constants
  * below.
  */
-@Disabled("fork upsert not yet migrated to the RC5 schema")
 class XRoadContractNegotiationStoreCanaryTest {
 
     private static final String RE_DIFF_HINT = "Re-diff XRoadContractNegotiationStore#save and "
@@ -69,22 +65,23 @@ class XRoadContractNegotiationStoreCanaryTest {
             + "store, then, after a deliberate review, update the recorded EXPECTED_* constants in "
             + "XRoadContractNegotiationStoreCanaryTest to match.";
 
-    private static final String EXPECTED_EDC_VERSION = "1.0.0-RC4";
+    private static final String EXPECTED_EDC_VERSION = "1.0.0-RC5";
 
     private static final List<String> EXPECTED_AGREEMENT_UPSERT_COLUMNS = List.of(
             "agr_id", "provider_agent_id", "consumer_agent_id", "signing_date", "asset_id",
-            "policy", "agr_participant_context_id", "agr_agreement_id", "claims");
+            "policy", "agr_participant_context_id", "agr_agreement_id", "claims",
+            "retired", "retirement_reason", "retirement_date");
 
     private static final List<String> EXPECTED_NEGOTIATION_UPSERT_COLUMNS = List.of(
             "id", "correlation_id", "counterparty_id", "counterparty_address", "type", "protocol",
             "state", "state_count", "state_timestamp", "error_detail", "agreement_id",
             "contract_offers", "callback_addresses", "trace_context", "created_at", "updated_at",
-            "pending", "protocol_messages", "participant_context_id");
+            "pending", "protocol_messages", "participant_context_id", "negotiation_claims",
+            "leased_by", "leased_at", "lease_duration", "version");
 
     private static final Pattern INSERT_COLUMNS_PATTERN = Pattern.compile("INSERT INTO \\S+ \\(([^)]*)\\)");
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final PostgresDialectStatements stockStatements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
+    private final PostgresDialectStatements stockStatements = new PostgresDialectStatements(Clock.systemUTC());
 
     @Test
     void stockAgreementUpsertColumnsMatchRecordedExpectation() {
@@ -145,6 +142,17 @@ class XRoadContractNegotiationStoreCanaryTest {
                         + "composite-arbiter agreement id; if the column is renamed, removed or reordered the "
                         + "fork's bind breaks silently. " + RE_DIFF_HINT)
                 .contains("agreement_id");
+    }
+
+    @Test
+    void stockNegotiationUpsertIsGuardedByTheVersionAndLeaseFilter() {
+        var template = stockStatements.getUpsertNegotiationTemplate();
+
+        assertThat(updateSetClause(template))
+                .as("XRoadContractNegotiationStore#save binds the trailing version, lease holder and clock "
+                        + "parameters for this guard in that order; a changed filter shifts the binds. "
+                        + RE_DIFF_HINT)
+                .contains("WHERE " + stockStatements.getVersionAndLeaseFilter(stockStatements.getContractNegotiationTable()));
     }
 
     @Test

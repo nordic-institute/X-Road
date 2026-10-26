@@ -43,6 +43,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
 
 import java.time.Clock;
+import java.time.Duration;
 
 import static org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContractNegotiationStoreExtension.EXTENSION_NAME;
 
@@ -69,6 +70,12 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE,
             key = "edc.sql.store.contractnegotiation.datasource")
     private String dataSourceName;
+
+    @Setting(description = "How long a runtime keeps the lease on a contract negotiation while processing it, "
+            + "in ISO-8601 duration format",
+            key = ContractNegotiationStore.LEASE_DURATION_SETTING,
+            defaultValue = ContractNegotiationStore.LEASE_DURATION_DEFAULT_VALUE)
+    private Duration leaseDuration;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -97,10 +104,10 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
     public void initialize(ServiceExtensionContext context) {
         var statements = new XRoadPostgresContractNegotiationStatements(clock);
         var delegate = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager::getMapper, statements, queryExecutor, context.getRuntimeId(), clock);
+                typeManager::getMapper, statements, queryExecutor, context.getRuntimeId(), clock, leaseDuration);
 
         var store = new XRoadContractNegotiationStore(delegate, dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager::getMapper, statements, queryExecutor);
+                typeManager::getMapper, statements, queryExecutor, context.getRuntimeId(), clock);
 
         context.registerService(ContractNegotiationStore.class, store);
 

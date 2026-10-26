@@ -44,6 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.XRoadContractNegotiationStatements;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -79,7 +80,17 @@ class XRoadContractNegotiationStoreTest {
     @BeforeEach
     void setUp() {
         store = new XRoadContractNegotiationStore(delegate, dataSourceRegistry, "test-datasource", transactionContext,
-                ObjectMapper::new, statements, queryExecutor);
+                ObjectMapper::new, statements, queryExecutor, "test-holder", Clock.systemUTC());
+    }
+
+    @Test
+    void retireAgreementDelegates() {
+        var agreement = mock(ContractAgreement.class);
+        var result = StoreResult.<Void>success(null);
+        when(delegate.retireAgreement(agreement)).thenReturn(result);
+
+        assertThat(store.retireAgreement(agreement)).isSameAs(result);
+        verify(delegate).retireAgreement(agreement);
     }
 
     @Test

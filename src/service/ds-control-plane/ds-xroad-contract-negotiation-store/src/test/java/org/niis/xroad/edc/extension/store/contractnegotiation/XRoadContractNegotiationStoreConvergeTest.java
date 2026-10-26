@@ -42,7 +42,6 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
@@ -68,7 +67,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
  * same wire agreement id + participant context id pair) directly against Postgres. The in-memory store cannot
  * reproduce this: it does not model the composite unique constraint at all, so it is never used here as evidence.
  */
-@Disabled("fork upsert not yet migrated to the RC5 schema")
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class XRoadContractNegotiationStoreConvergeTest {
 
@@ -87,7 +85,7 @@ class XRoadContractNegotiationStoreConvergeTest {
                 extension.getTransactionContext(), manager::getMapper, statements, queryExecutor, "test-connector", Clock.systemUTC());
 
         store = new XRoadContractNegotiationStore(delegate, extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager::getMapper, statements, queryExecutor);
+                extension.getTransactionContext(), manager::getMapper, statements, queryExecutor, "test-connector", Clock.systemUTC());
 
         var schema = TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql");
         extension.runQuery(schema);

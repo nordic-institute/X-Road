@@ -38,7 +38,6 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.sql.testfixtures.RowLeaseUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
 
@@ -52,7 +51,6 @@ import java.time.Duration;
  * this suite ever share a composite pair; it proves stock behaviour is preserved for the normal, non-colliding
  * case. Collision convergence itself is covered by {@link XRoadContractNegotiationStoreConvergeTest}.
  */
-@Disabled("fork upsert not yet migrated to the RC5 schema")
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class XRoadContractNegotiationStorePostgresTest extends ContractNegotiationStoreTestBase {
 
@@ -70,7 +68,7 @@ class XRoadContractNegotiationStorePostgresTest extends ContractNegotiationStore
                 extension.getTransactionContext(), manager::getMapper, statements, queryExecutor, CONNECTOR_NAME, clock);
 
         store = new XRoadContractNegotiationStore(delegate, extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager::getMapper, statements, queryExecutor);
+                extension.getTransactionContext(), manager::getMapper, statements, queryExecutor, CONNECTOR_NAME, clock);
 
         var schema = TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql");
         extension.runQuery(schema);
