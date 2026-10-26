@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../lib/common.sh"
 
-XROAD_UPGRADE_UNATTENDED="${XROAD_UPGRADE_UNATTENDED:-}"
+XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 XROAD_DELETE_OBSOLETE_FILES="${XROAD_DELETE_OBSOLETE_FILES:-}"
 
 # Obsolete V7 paths (files, dirs, globs) that V8 no longer reads.
@@ -79,7 +79,7 @@ cleanup_obsolete() {
 
   # Unattended without explicit choice: delete (no operator to confirm).
   # Set XROAD_DELETE_OBSOLETE_FILES=no in your config to opt out.
-  if [[ "$XROAD_UPGRADE_UNATTENDED" == "true" ]]; then
+  if [[ "$XROAD_MIGRATION_UNATTENDED" == "true" ]]; then
     log_info "Unattended mode — deleting obsolete V7 config files"
     delete_obsolete
     return 0

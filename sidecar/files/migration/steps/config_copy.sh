@@ -1,11 +1,7 @@
 #!/bin/bash
 #
-# Configuration copy step for X-Road sidecar migration mode. Copies the
-# mounted 7.8 configuration volume to the target configuration volume, then
-# rewrites db.properties on the copy to the X-Road 8 prefixed key form,
-# reusing the native upgrade wizard's rewrite task shipped in the image at
-# MIGRATION_TASKS_DIR. The message log archive volume is reused in place and
-# is neither read nor written by this step.
+# Migration step 3: copies the 7.8 configuration volume to the target and
+# rewrites db.properties to the X-Road 8 keys with the native wizard's task.
 
 MIGRATION_TASKS_DIR="${MIGRATION_TASKS_DIR:-/usr/share/xroad/scripts/sidecar/migration-tasks}"
 

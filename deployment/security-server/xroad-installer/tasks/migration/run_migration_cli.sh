@@ -13,8 +13,8 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 XROAD_MIGRATION_UNATTENDED="${XROAD_MIGRATION_UNATTENDED:-}"
 
-# This constant must match the destination set in download_migration_cli.sh.
-MIGRATION_CLI_JAR="/var/tmp/migration-cli.jar"
+# Where download_migration_cli.sh puts it; the sidecar image overrides this.
+MIGRATION_CLI_JAR="${MIGRATION_CLI_JAR:-/var/tmp/migration-cli.jar}"
 
 # Sentinel directory for per-step completion tracking.
 SENTINEL_DIR="/var/lib/xroad-upgrade"
@@ -406,8 +406,14 @@ main() {
   if is_step_done "$batch_sentinel"; then
     log_info "Step '$batch_sentinel' already completed (sentinel found) — skipping"
   elif [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
-    log_info "Unattended mode: leaving batch signing at X-Road 8 default (disabled)"
-    mark_step_done "$batch_sentinel"
+    if [[ "${XROAD_MIGRATION_BATCH_SIGNING_ENABLED:-}" == "true" ]]; then
+      log_info "Unattended mode: enabling batch signing (XROAD_MIGRATION_BATCH_SIGNING_ENABLED)"
+      run_migration_step "set-property" --id "$batch_sentinel" --no-confirm \
+        "/etc/xroad/db.properties" "xroad.proxy.batch-signing-enabled" "true"
+    else
+      log_info "Unattended mode: leaving batch signing at X-Road 8 default (disabled)"
+      mark_step_done "$batch_sentinel"
+    fi
   elif whiptail --title "Migration Step: batch-signing" --defaultno \
     --yesno "Keep batch signing enabled?\n\nBatch signing is disabled by default in X-Road 8. Select Yes to preserve the X-Road 7 behavior of batch signing being enabled." 12 60; then
     log_info "Operator opted to enable batch signing"
@@ -428,9 +434,14 @@ main() {
   if is_step_done "$strict_sentinel"; then
     log_info "Step '$strict_sentinel' already completed (sentinel found) — skipping"
   elif [[ "${XROAD_MIGRATION_UNATTENDED:-}" == "true" ]]; then
-    log_info "Unattended mode: preserving X-Road 7 behavior (strict identifier checks disabled)"
-    run_migration_step "set-property" --id "$strict_sentinel" --no-confirm \
-      "/etc/xroad/db.properties" "xroad.proxy.strict-identifier-checks" "false"
+    if [[ "${XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS:-}" == "true" ]]; then
+      log_info "Unattended mode: enabling strict identifier checks (XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS)"
+      mark_step_done "$strict_sentinel"
+    else
+      log_info "Unattended mode: preserving X-Road 7 behavior (strict identifier checks disabled)"
+      run_migration_step "set-property" --id "$strict_sentinel" --no-confirm \
+        "/etc/xroad/db.properties" "xroad.proxy.strict-identifier-checks" "false"
+    fi
   elif whiptail --title "Migration Step: strict-identifier-checks" \
     --yesno "Keep strict identifier checks disabled?\n\nStrict identifier checks were disabled in X-Road 7 and are enabled by default in X-Road 8.\n\nSelect Yes to preserve the X-Road 7 behavior (disabled).\nSelect No to use the X-Road 8 default (enabled)." 14 70; then
     log_info "Operator opted to keep strict identifier checks disabled (X-Road 7 behavior)"
