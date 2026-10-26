@@ -109,7 +109,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
     }
 
     @Test
-    void startTrustsNothingWhenNotDataspaceEnabled(ServiceExtensionContext context, ObjectFactory factory) {
+    void startTrustsNothingWhenNoIssuerDidsAreDistributed(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 

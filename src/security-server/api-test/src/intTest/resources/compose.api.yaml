@@ -84,7 +84,6 @@ services:
         ('xroad.proxy-ui-api.key-management-api-whitelist', '0.0.0.0/0, ::/0', now(), now()),
         ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', now(), now()),
 
-        ('xroad.proxy-ui-api.dataspace.enabled', 'true', now(), now()),
         -- host is 'ui' (the admin-service container), not 'ds-identity-hub': the DS TLS ACME worker's HTTP-01
         -- challenge is served from admin-service's own challenge port, which acme2certifier (testca) can only
         -- reach at a hostname resolvable to that container, matching the same reasoning AcmeOrderTest's CSRs

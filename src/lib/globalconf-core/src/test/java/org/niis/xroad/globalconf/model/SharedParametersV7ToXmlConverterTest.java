@@ -230,7 +230,7 @@ class SharedParametersV7ToXmlConverterTest {
     }
 
     @Test
-    void shouldRoundTripEmptyIssuerDidListAsNotDataspaceEnabled() {
+    void shouldRoundTripEmptyIssuerDidListWithoutCredentialIssuerElement() {
         var xml = new SharedParametersV7Marshaller().marshall(minimalSharedParameters(List.of()));
 
         assertThat(xml).doesNotContain("credentialIssuer", "did");

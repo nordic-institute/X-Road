@@ -242,7 +242,7 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureMembershipCredentialReturnsAbsentAndAttemptsNothingWhenNotDataspaceEnabled() {
+    void ensureMembershipCredentialReturnsAbsentAndAttemptsNothingWhenNoIssuerDidsAreDistributed() {
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
         assertThat(service.ensureMembershipCredential(GENERIC_CONTEXT)).isEqualTo(CredentialStatus.ABSENT);

@@ -455,15 +455,9 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("mail-notification")
             .build();
 
-    public static final ConfigKey<Boolean> DATASPACE_ENABLED = DATASPACE
-            .bool("enabled")
-            .withDefaultValue(false)
-            .build();
-
     /**
-     * {@code xroad.proxy-ui-api.dataspace.provisioning-enabled}. Independent of
-     * {@link #DATASPACE_ENABLED}: holds back the participant provisioning worker without touching
-     * the DataSpace feature flag itself.
+     * {@code xroad.proxy-ui-api.dataspace.provisioning-enabled}. Holds back the participant
+     * provisioning worker.
      */
     public static final ConfigKey<Boolean> DATASPACE_PROVISIONING_ENABLED = DATASPACE
             .bool("provisioning-enabled")

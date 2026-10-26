@@ -59,13 +59,11 @@ public class CentralServerConnectorTlsAcmeHostContext implements ConnectorTlsAcm
     private final DsTlsCertificationAuthoritiesService connectorTlsCertificationAuthoritiesService;
 
     /**
-     * @return the co-located Issuer Service's shared host, read live from the Central Server database, the
-     *     same value {@code DataspaceIssuerProvisioningServiceImpl} already uses to build this component's
-     *     own {@code did:web} identifier. Central Server has no DataSpace-enabled-style feature flag: the
-     *     Issuer Service is an unconditional part of every Central Server install, so this is never {@code
-     *     null} once the host is set — the blank check exists so no host configured yet is treated as "skip
-     *     this cycle", matching the shared worker's contract, rather than producing a certificate with an
-     *     empty SAN.
+     * @return the co-located Issuer Service's shared host, read live from the Central Server database, the same value {@code
+     *     DataspaceIssuerProvisioningServiceImpl} already uses to build this component's own {@code did:web} identifier.
+     *     The Issuer Service is an unconditional part of every Central Server install, so this is never {@code null} once
+     *     the host is set — the blank check exists so no host configured yet is treated as "skip this cycle", matching the
+     *     shared worker's contract, rather than producing a certificate with an empty SAN.
      */
     @Override
     public String getPublicHostname() {

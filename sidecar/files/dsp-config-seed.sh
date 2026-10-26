@@ -23,8 +23,7 @@
 # anywhere else).
 #
 # Contract:
-#   in  - XROAD_DATASPACE_ENABLED (optional, defaults to true)
-#         XROAD_DATASPACE_IDENTITY_HUB_URL (optional, defaults to
+#   in  - XROAD_DATASPACE_IDENTITY_HUB_URL (optional, defaults to
 #           https://<hostname>:7183 - override with the externally-resolvable
 #           address other participants reach this container's identity-hub
 #           through, e.g. a shared network alias)
@@ -86,9 +85,6 @@ VALUES (:'k', :'v')
 ON CONFLICT (property_key) DO NOTHING;
 SQL
 }
-
-seed_property_if_absent "xroad.proxy-ui-api.dataspace.enabled" \
-  "${XROAD_DATASPACE_ENABLED:-true}"
 
 seed_property_if_absent "xroad.proxy-ui-api.dataspace.identity-hub-url" \
   "${XROAD_DATASPACE_IDENTITY_HUB_URL:-https://${HOSTNAME:-localhost}:7183}"
