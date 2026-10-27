@@ -76,6 +76,12 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
 
+    /** EDC's own setting keys for its default client; X-Road defaults both to 10 s where EDC defaults to 30 s. */
+    private static final String CONNECT_TIMEOUT_SETTING = "edc.http.client.timeout.connect";
+    private static final String READ_TIMEOUT_SETTING = "edc.http.client.timeout.read";
+    private static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 10;
+    private static final long DEFAULT_READ_TIMEOUT_SECONDS = 10;
+
     @Inject
     @SuppressWarnings("unused")
     private RetryPolicy<?> retryPolicy;
@@ -105,7 +111,9 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
         reloader = PeriodicMaterialReloader.schedule("ds-tls-ca-trust", initial, reloadInterval,
                 RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor);
 
-        return buildClient(trustManager);
+        return buildClient(trustManager,
+                Duration.ofSeconds(context.getSetting(CONNECT_TIMEOUT_SETTING, DEFAULT_CONNECT_TIMEOUT_SECONDS)),
+                Duration.ofSeconds(context.getSetting(READ_TIMEOUT_SETTING, DEFAULT_READ_TIMEOUT_SECONDS)));
     }
 
     @Override
@@ -134,12 +142,14 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
         }
     }
 
-    private static OkHttpClient buildClient(X509ExtendedTrustManager trustManager) {
+    private static OkHttpClient buildClient(X509ExtendedTrustManager trustManager, Duration connectTimeout, Duration readTimeout) {
         try {
             var sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[] {trustManager}, null);
             return new OkHttpClient.Builder()
                     .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
+                    .connectTimeout(connectTimeout)
+                    .readTimeout(readTimeout)
                     .build();
         } catch (GeneralSecurityException e) {
             throw new EdcException("Failed to initialize the DataSpace outbound TLS trust context", e);

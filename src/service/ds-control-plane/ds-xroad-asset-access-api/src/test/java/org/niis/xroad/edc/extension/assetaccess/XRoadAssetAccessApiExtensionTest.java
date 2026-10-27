@@ -39,6 +39,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStor
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -56,6 +58,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,6 +67,7 @@ import static org.mockito.Mockito.when;
 class XRoadAssetAccessApiExtensionTest {
 
     private static final String COOLDOWN_SETTING = "xroad.asset-access.cooldown.period-seconds";
+    private static final String CANDIDATE_TIMEOUT_SETTING = "xroad.asset-access.candidate.timeout-seconds";
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -99,6 +103,29 @@ class XRoadAssetAccessApiExtensionTest {
         var tracker = initializedCooldownTracker(context, factory);
 
         assertThat(tracker.period()).isEqualTo(Duration.ofSeconds(30));
+    }
+
+    @Test
+    void candidateTimeoutDefaultsToTwentySeconds() throws Exception {
+        var setting = XRoadAssetAccessApiExtension.class.getDeclaredField("candidateTimeoutSeconds")
+                .getAnnotation(Setting.class);
+        assertThat(setting.key()).isEqualTo("xroad.asset-access.candidate.timeout-seconds");
+        assertThat(setting.defaultValue()).isEqualTo("20");
+    }
+
+    @Test
+    void candidateTimeoutRejectsZeroAndNegative(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(CANDIDATE_TIMEOUT_SETTING, "0")));
+        var zero = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(CANDIDATE_TIMEOUT_SETTING, "-1")));
+        var negative = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+
+        assertThatThrownBy(() -> zero.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(CANDIDATE_TIMEOUT_SETTING);
+        assertThatThrownBy(() -> negative.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(CANDIDATE_TIMEOUT_SETTING);
     }
 
     private static CooldownTracker initializedCooldownTracker(ServiceExtensionContext context, ObjectFactory factory)

@@ -341,7 +341,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.control-plane.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_CONTROL_PLANE_DEADLINE_AFTER = CHANNEL_CONTROL_PLANE
             .integer(DEADLINE_AFTER)
-            .withDefaultValue(60000)
+            .withDefaultValue(65000)
             .build();
 
     private CommonRpcConfigKeys() {

@@ -149,6 +149,36 @@ class XRoadTlsOkHttpClientExtensionTest {
     }
 
     @Test
+    void theBuiltClientDefaultsToTenSecondConnectAndReadTimeouts() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.connectTimeoutMillis()).isEqualTo(10_000);
+        assertThat(client.readTimeoutMillis()).isEqualTo(10_000);
+        verify(context).getSetting("edc.http.client.timeout.connect", 10L);
+        verify(context).getSetting("edc.http.client.timeout.read", 10L);
+    }
+
+    @Test
+    void theEdcClientTimeoutSettingsOverrideTheDefaults() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(connectorTlsCaInfo("any", ca.certificate())));
+        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.connect"), ArgumentMatchers.anyLong()))
+                .thenReturn(3L);
+        lenient().when(context.getSetting(ArgumentMatchers.eq("edc.http.client.timeout.read"), ArgumentMatchers.anyLong()))
+                .thenReturn(45L);
+
+        var client = new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        assertThat(client.connectTimeoutMillis()).isEqualTo(3_000);
+        assertThat(client.readTimeoutMillis()).isEqualTo(45_000);
+    }
+
+    @Test
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
         startHttpsServer(issueLeaf(ca, "any"));

@@ -93,6 +93,9 @@ import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -123,6 +126,7 @@ import static org.mockito.Mockito.when;
 class AssetAccessOrchestratorTest {
 
     private static final Duration COOLDOWN_PERIOD = Duration.ofSeconds(180);
+    private static final Duration CANDIDATE_TIMEOUT = Duration.ofSeconds(20);
 
     @Mock
     CatalogService catalogService;
@@ -150,6 +154,7 @@ class AssetAccessOrchestratorTest {
     AssetAccessOrchestrator orchestrator;
 
     private final FakeTicker ticker = new FakeTicker();
+    private final MutableClock clock = new MutableClock();
     private final CooldownTracker cooldownTracker = new CooldownTracker(COOLDOWN_PERIOD, ticker);
 
     private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
@@ -165,11 +170,11 @@ class AssetAccessOrchestratorTest {
             return address != null ? StoreResult.success(address) : StoreResult.notFound("no data address stored");
         });
         completionPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
-                new NoopTransactionContext(), ExecutorInstrumentation.noop(), Clock.systemUTC(), monitor, Duration.ofMillis(250));
+                new NoopTransactionContext(), ExecutorInstrumentation.noop(), clock, monitor, Duration.ofMillis(250));
         orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
                 jsonLd, transformerRegistry, monitor,
-                Duration.ofSeconds(60), Duration.ofSeconds(60));
+                Duration.ofSeconds(60), Duration.ofSeconds(60), CANDIDATE_TIMEOUT);
     }
 
     @AfterEach
@@ -349,7 +354,7 @@ class AssetAccessOrchestratorTest {
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
-                jsonLd, transformerRegistry, monitor, Duration.ofSeconds(60), Duration.ZERO);
+                jsonLd, transformerRegistry, monitor, Duration.ofSeconds(60), Duration.ZERO, CANDIDATE_TIMEOUT);
 
         var future = impatient.acquireAssetAccess(buildParticipantContext(), request);
         pollUntilDone(future);
@@ -1074,6 +1079,79 @@ class AssetAccessOrchestratorTest {
         verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
     }
 
+    @Test
+    void candidateHangingPastTheLimitIsAbandonedMarkedAndTheNextCandidateWins() throws Exception {
+        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
+                .thenReturn(new CompletableFuture<>());
+        stubReusableAgreementAt("provider-2");
+        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        clock.advance(CANDIDATE_TIMEOUT);
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-2");
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
+        assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isFalse();
+    }
+
+    @Test
+    void candidateAnsweringWithinTheLimitIsNotAbandoned() throws Exception {
+        stubReusableAgreementAt("provider-1");
+        var address = startedAddress("tp-2", "http://provider-1.example.org/data");
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        clock.advance(CANDIDATE_TIMEOUT.minusSeconds(1));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
+    }
+
+    @Test
+    void loneCandidateHangingPastTheLimitFailsAcquisitionWithATimeoutCause() {
+        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
+                .thenReturn(new CompletableFuture<>());
+        var request = requestForCandidates("provider-1");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        clock.advance(CANDIDATE_TIMEOUT);
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_acquisition_failed"))
+                .satisfies(ex -> assertThat(ex.getCause().getCause())
+                        .isInstanceOf(TimeoutException.class)
+                        .hasMessage("Candidate http://provider-1.example.org/dsp abandoned after PT20S"));
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
+    }
+
+    @Test
+    void acquisitionAfterThePollerStoppedFailsWithoutAbandoningOrMarkingCandidates() {
+        lenient().when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(new CompletableFuture<>());
+        completionPoller.stop();
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("Asset access completion poller stopped");
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
+    }
+
     private void stubTransportFaultAtCatalog(String counterPartyId) {
         when(catalogService.requestCatalog(any(), eq(counterPartyId), any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(new EdcHttpClientException("no response", 0, null)));
@@ -1442,6 +1520,29 @@ class AssetAccessOrchestratorTest {
         var dataset = Dataset.Builder.newInstance().id(assetId).distribution(distribution);
         offers.forEach(dataset::offer);
         return Catalog.Builder.newInstance().dataset(dataset.build()).build();
+    }
+
+    private static final class MutableClock extends Clock {
+        private Instant instant = Instant.parse("2026-01-01T00:00:00Z");
+
+        private void advance(Duration duration) {
+            instant = instant.plus(duration);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 
     private static final class FakeTicker extends Ticker {

@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +80,14 @@ class AssetAccessGrpcExtensionTest {
         extension.initialize(mock(ServiceExtensionContext.class));
 
         verify(grpcServiceRegistry).register(any(AssetAccessGrpcService.class));
+    }
+
+    @Test
+    void acquisitionTimeoutDefaultsToSixtySeconds() throws Exception {
+        var setting = AssetAccessGrpcExtension.class.getDeclaredField("acquisitionTimeoutSeconds")
+                .getAnnotation(Setting.class);
+        assertThat(setting.key()).isEqualTo("xroad.asset-access.acquisition.timeout-seconds");
+        assertThat(setting.defaultValue()).isEqualTo("60");
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {
