@@ -148,6 +148,7 @@ RUN --mount=type=bind,from=migration-cli-jar,target=/tmp/migration-cli-jar \
     curl -fsSL "$MIGRATION_CLI_URL" -o "$cli_jar" \
     && echo "$(curl -fsSL "$MIGRATION_CLI_URL.sha256" | awk '{print $1}')  $cli_jar" | sha256sum -c -; \
   fi \
+  && ln -sf "$cli_jar" /var/tmp/migration-cli.jar \
   && chmod 0755 /usr/share/xroad/scripts/sidecar/migration/orchestrator.sh \
     /usr/share/xroad/scripts/sidecar/migration/steps/*.sh \
     /usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/*.sh

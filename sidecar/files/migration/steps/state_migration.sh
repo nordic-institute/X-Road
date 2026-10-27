@@ -62,7 +62,6 @@ migration_state_copy_tls() {
 
 migration_state_run_migration_cli() {
   export XROAD_MIGRATION_UNATTENDED=true
-  export MIGRATION_CLI_JAR
 
   if ! bash "$MIGRATION_TASKS_DIR/tasks/migration/run_migration_cli.sh" >>"$MIGRATION_STATE_LOG" 2>&1; then
     STEP_REASON="migration CLI steps failed, see $MIGRATION_STATE_LOG"
@@ -71,6 +70,71 @@ migration_state_run_migration_cli() {
   fi
 
   unset XROAD_MIGRATION_SOFTTOKEN_PIN
+  return 0
+}
+
+# Sets one property via the migration CLI's set-property, the same CLI
+# command run_migration_cli.sh uses.
+migration_state_set_property() {
+  local property="$1" value="$2"
+
+  case "$value" in
+    true | false) ;;
+    *)
+      return 0
+      ;;
+  esac
+
+  local tmpout
+  tmpout=$(mktemp)
+  if ! XROAD_MIGRATION_AUTO_CONFIRM=true java -jar "$MIGRATION_CLI_JAR" set-property "/etc/xroad/db.properties" "$property" "$value" 2>&1 \
+    | tee -a "$tmpout" >>"$MIGRATION_STATE_LOG"; then
+    rm -f "$tmpout"
+    STEP_REASON="failed to set $property, see $MIGRATION_STATE_LOG"
+    return 1
+  fi
+  if grep -qE '^(Error |Caused by:|Exception in |[[:alpha:].]+Exception:)' "$tmpout"; then
+    rm -f "$tmpout"
+    STEP_REASON="set-property reported an error for $property, see $MIGRATION_STATE_LOG"
+    return 1
+  fi
+  rm -f "$tmpout"
+  return 0
+}
+
+# Add-on toggles: message logging, environmental monitoring and operational
+# monitoring are enabled by the X-Road 7.8 full image but left out of slim.
+# The operator's choice comes from the environment; unset keeps the source
+# image's 7.8 behavior and a non-boolean value keeps the X-Road 8 default.
+# Only the full image runs 7.8's setup_opmonitor_db.sh, which writes the
+# op-monitor connection URL.
+migration_state_set_addon_properties() {
+  local source_full_image="false"
+  if [[ -n "$(crudini --get "$SOURCE_CONFIG_DIR/db.properties" '' 'op-monitor.hibernate.connection.url' 2>/dev/null)" ]]; then
+    source_full_image="true"
+  fi
+
+  migration_state_set_property "xroad.proxy.message-log.enabled" \
+    "${XROAD_MIGRATION_MESSAGE_LOG_ENABLED:-$source_full_image}" || return 1
+  migration_state_set_property "xroad.proxy.addon.proxy-monitor.enabled" \
+    "${XROAD_MIGRATION_ENV_MONITORING_ENABLED:-$source_full_image}" || return 1
+  migration_state_set_property "xroad.proxy.addon.op-monitor.enabled" \
+    "${XROAD_MIGRATION_OP_MONITORING_ENABLED:-$source_full_image}" || return 1
+  return 0
+}
+
+# Batch signing and strict identifier checks: run_migration_cli.sh's
+# unattended mode leaves batch signing at the X-Road 8 default (disabled, no
+# property written) and writes strict identifier checks to false (the X-Road
+# 7 behavior). An explicit "true" here overrides either; any other value
+# leaves what run_migration_cli.sh already wrote.
+migration_state_set_migration_cli_overrides() {
+  if [[ "${XROAD_MIGRATION_BATCH_SIGNING_ENABLED:-}" == "true" ]]; then
+    migration_state_set_property "xroad.proxy.batch-signing-enabled" "true" || return 1
+  fi
+  if [[ "${XROAD_MIGRATION_STRICT_IDENTIFIER_CHECKS:-}" == "true" ]]; then
+    migration_state_set_property "xroad.proxy.strict-identifier-checks" "true" || return 1
+  fi
   return 0
 }
 
@@ -83,5 +147,7 @@ step_state_migration() {
   fi
   migration_state_copy_tls || return 1
   migration_state_run_migration_cli || return 1
+  migration_state_set_addon_properties || return 1
+  migration_state_set_migration_cli_overrides || return 1
   return 0
 }

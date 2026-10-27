@@ -95,6 +95,29 @@ migration_preflight_check_target_db_empty() {
   return 0
 }
 
+migration_preflight_check_country_variant() {
+  local source_variant target_variant
+  source_variant="$(migration_preflight_detect_variant "$SOURCE_CONFIG_DIR")" || source_variant=""
+  target_variant="$(migration_preflight_detect_variant "$TARGET_CONFIG_DIR")" || target_variant=""
+
+  if [[ "$source_variant" != "$target_variant" ]]; then
+    STEP_REASON="country variant mismatch: the source is ${source_variant:-the regular (non-variant) image} and the target is ${target_variant:-the regular (non-variant) image}"
+    return 1
+  fi
+  return 0
+}
+
+# The target image's country variant file is seeded into the empty target
+# volume by Docker before migration mode runs, next to the source's own copy
+# of it on the source volume.
+migration_preflight_detect_variant() {
+  local f
+  f="$(compgen -G "$1/conf.d/override-securityserver-*.ini" | head -1)"
+  [[ -n "$f" ]] || return 1
+  f="${f##*/override-securityserver-}"
+  echo "${f%.ini}"
+}
+
 # The schema migration (Liquibase) and the deduplication run in place on an
 # external server, so it must already be new enough to take them.
 migration_preflight_check_external_db_version() {
@@ -147,6 +170,7 @@ step_preflight() {
   migration_preflight_detect_db_shape
   migration_preflight_check_source_version || return 1
   migration_preflight_check_target_config_empty || return 1
+  migration_preflight_check_country_variant || return 1
   if [[ "$SOURCE_DB_HOST" == 127.* ]]; then
     migration_preflight_check_target_db_empty || return 1
   fi

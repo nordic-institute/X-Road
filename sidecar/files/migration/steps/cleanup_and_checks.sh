@@ -40,7 +40,7 @@ migration_checks_psql() {
 }
 
 migration_checks_cleanup_obsolete_files() {
-  if ! XROAD_MIGRATION_UNATTENDED=true XROAD_DELETE_OBSOLETE_FILES=yes \
+  if ! XROAD_UPGRADE_UNATTENDED=true XROAD_DELETE_OBSOLETE_FILES=yes \
     bash "$MIGRATION_TASKS_DIR/tasks/migration/cleanup_obsolete_files.sh" \
     >>/var/log/xroad/migration-cleanup.log 2>&1; then
     STEP_REASON="failed to delete the obsolete 7.8 configuration files, see /var/log/xroad/migration-cleanup.log"
