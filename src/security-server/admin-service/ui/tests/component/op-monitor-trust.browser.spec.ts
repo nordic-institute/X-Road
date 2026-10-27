@@ -82,7 +82,7 @@ describe('SS Operational Monitoring Trust tab — Security Server RPC CA (Browse
   });
   it('shows the SHA-256 fingerprint as a hash row and no inline subject, issuer or validity', async () => {
     await renderRoute(OP_MONITOR_TRUST_PATH, { permissions: viewAndDownload, msw: [detailsHandler] });
-    await expect.poll(() => page.getByTestId('external-rpc-ca-hash').element().textContent).toContain(FINGERPRINT);
+    await expect.element(page.getByTestId('external-rpc-ca-hash')).toMatchTextContent(FINGERPRINT);
     await expectNoInlineSummary('CN=External RPC CA, O=X-Road');
   });
   it('opens the full certificate details when the hash is clicked', async () => {
