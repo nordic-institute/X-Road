@@ -29,7 +29,6 @@ package org.niis.xroad.edc.extension.assetaccess.failure;
 
 import com.sun.net.httpserver.HttpServer;
 import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
@@ -44,7 +43,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.time.Duration;
@@ -60,15 +58,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Drives EDC's own DSP dispatcher, the one behind every catalog request, at a closed port, at a server answering 503
- * and at a socket that never answers.
+ * Drives EDC's own DSP dispatcher, the one behind every catalog request, at a refused connection, at a server answering
+ * 503 and at a socket that never answers.
  */
 class CatalogTransportShapeTest {
     @Test
     void catalogRequestAgainstAClosedPortFailsTheFutureAndIsATransportFault() throws Exception {
-        var closedPort = closedPort();
-
-        var future = dispatcher().dispatch("participant-1", byte[].class, catalogRequest("http://localhost:" + closedPort + "/dsp"));
+        var future = dispatcher().dispatch("participant-1", byte[].class,
+                catalogRequest("http://" + StubbedNetwork.REFUSING_HOST + "/dsp"));
 
         var failure = failureOf(future);
         assertThat(failure).isInstanceOfSatisfying(EdcHttpClientException.class,
@@ -121,7 +118,7 @@ class CatalogTransportShapeTest {
     }
 
     private static DspHttpRemoteMessageDispatcherImpl dispatcher(Duration readTimeout) {
-        var okHttpClient = new OkHttpClient.Builder().readTimeout(readTimeout).connectTimeout(Duration.ofSeconds(2)).build();
+        var okHttpClient = StubbedNetwork.httpClientBuilder().readTimeout(readTimeout).connectTimeout(Duration.ofSeconds(2)).build();
         var retryPolicy = RetryPolicy.<Response>builder().withMaxRetries(0).build();
         var httpClient = new EdcHttpClientImpl(okHttpClient, retryPolicy, mock(Monitor.class));
         var identityService = mock(IdentityService.class);
@@ -143,11 +140,5 @@ class CatalogTransportShapeTest {
                 .counterPartyAddress(counterPartyAddress)
                 .counterPartyId("provider-1")
                 .build();
-    }
-
-    private static int closedPort() throws IOException {
-        try (var socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        }
     }
 }

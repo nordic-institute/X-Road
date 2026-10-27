@@ -347,6 +347,7 @@ public class AssetAccessOrchestrator {
             monitor.info("%s negotiation initiated, awaiting completion: negotiationId=%s".formatted(key, negotiationId));
 
             return completionPoller.awaitNegotiation(negotiationId, negotiationTimeout)
+                    .thenCompose(AssetAccessOrchestrator::valueOrFailure)
                     .whenComplete((result, throwable) -> onNegotiationComplete(key, negotiationId, result, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
@@ -414,6 +415,7 @@ public class AssetAccessOrchestrator {
         monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
         return completionPoller.awaitTransfer(transferProcessId, transferTimeout)
+                .thenCompose(AssetAccessOrchestrator::valueOrFailure)
                 .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
     }
 
@@ -424,6 +426,13 @@ public class AssetAccessOrchestrator {
             monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
             monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
         }
+    }
+
+    private static <T> CompletableFuture<T> valueOrFailure(StageOutcome<T> outcome) {
+        return switch (outcome) {
+            case StageOutcome.Succeeded(var value) -> CompletableFuture.completedFuture(value);
+            case StageOutcome.Failed(_, var failure) -> CompletableFuture.failedFuture(failure);
+        };
     }
 
     private record OfferContext(String offerId, Policy policy, Dataset dataset, String transferType) {
