@@ -27,8 +27,12 @@
 package org.niis.xroad.proxy.core.dsp;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
+
+import java.util.List;
+
 /**
  * Acquires asset access responses from the DSP control plane.
  * <p>
@@ -38,17 +42,21 @@ import jakarta.annotation.Nullable;
 public interface AssetAccessAcquisitionService {
 
     /**
-     * Acquires an asset access response from the control plane for the given asset and provider.
+     * Acquires an asset access response from the control plane for the given asset. The control plane
+     * chooses among the candidates; the result is the same for the same candidates in any order.
      *
      * @param participantContextId the consumer participant context to negotiate as
      * @param assetId              the asset identifier for the data transfer
-     * @param counterPartyId       the provider participant identifier
-     * @param counterPartyAddress  the provider's DSP protocol address
+     * @param candidates           the provider participants that may serve the asset, in the caller's order
+     * @param forcedTarget         the Security Server the caller forced the target to, which {@code candidates}
+     *                             is then narrowed to; {@code null} when the caller states none
      * @param consumerClientId     the calling client, subsystem included; {@code null} when the request states none
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
-    AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                           String counterPartyAddress, @Nullable ClientId consumerClientId);
+    AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
+                                           List<AcquisitionCandidate> candidates,
+                                           @Nullable SecurityServerId forcedTarget,
+                                           @Nullable ClientId consumerClientId);
 
     /**
      * Drops any cached asset access acquired for the given participant context, asset and calling client,
