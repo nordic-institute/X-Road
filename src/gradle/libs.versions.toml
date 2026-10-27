@@ -273,6 +273,7 @@ edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-trans
 edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
 edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
 edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }
+edc-core-dsp-http = { module = "org.eclipse.edc:dsp-http-core", version.ref = "edc" }
 edc-core-dps = { module = "org.eclipse.edc:data-plane-signaling-core", version.ref = "edc" }
 edc-core-dps-oauth = { module = "org.eclipse.edc:data-plane-signaling-oauth2", version.ref = "edc" }
 edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }

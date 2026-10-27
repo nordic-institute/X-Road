@@ -7,6 +7,7 @@ dependencies {
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.dsp)
   implementation(libs.edc.spi.dsp.v2025)
+  implementation(libs.apache.commonsLang3)
   implementation(libs.jakarta.annotationApi)
 
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
@@ -30,6 +31,7 @@ dependencies {
   testImplementation(libs.edc.sql.contract.negotiation)
   testImplementation(libs.edc.sql.transfer.process)
   testImplementation(libs.edc.core.controlplane.transfer)
+  testImplementation(libs.edc.core.dsp.http)
   testImplementation(libs.edc.spi.core)
   testImplementation(libs.edc.transaction.local)
   testImplementation(libs.edc.sql.lease)

@@ -46,6 +46,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.controlplane.DataAddress;
+import org.eclipse.edc.http.spi.EdcHttpClientException;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -70,6 +71,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -77,6 +81,8 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
+import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
@@ -486,6 +492,76 @@ class AssetAccessOrchestratorTest {
                     assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
                     assertThat(cause.getCause()).isSameAs(edcException);
                 });
+    }
+
+    @ParameterizedTest
+    @MethodSource("catalogStageFailedFutures")
+    void catalogStageFailedFutureCarriesTheClassifiedKind(Throwable failure, FailureKind expectedKind) throws Exception {
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(failure));
+
+        var outcome = catalogStageOutcome();
+
+        assertThat(outcome).isEqualTo(new StageOutcome.Failed<>(expectedKind, failure));
+    }
+
+    static Stream<Arguments> catalogStageFailedFutures() {
+        return Stream.of(
+                Arguments.of(new EdcHttpClientException("no response", 0, null), FailureKind.TRANSPORT_FAULT),
+                Arguments.of(new EdcHttpClientException("Server response was 503", 503, "unavailable"), FailureKind.OTHER),
+                Arguments.of(new TimeoutException(), FailureKind.TRANSPORT_FAULT));
+    }
+
+    @Test
+    void catalogStageProviderClientErrorIsAProviderRejectionCarryingDspCatalogFetchFailed() throws Exception {
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(
+                        StatusResult.failure(ResponseStatus.FATAL_ERROR, "Counter Party responded with 403")));
+
+        var outcome = catalogStageOutcome();
+
+        assertThat(outcome).isInstanceOfSatisfying(StageOutcome.Failed.class, failed -> {
+            assertThat(failed.failureKind()).isEqualTo(FailureKind.PROVIDER_REJECTION);
+            assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, xre -> {
+                assertThat(xre.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
+                assertThat(xre.getDetails()).contains("403");
+            });
+        });
+    }
+
+    @Test
+    void catalogStageSynchronousEdcExceptionIsOther() throws Exception {
+        var edcException = new EdcException("upstream failure");
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenThrow(edcException);
+
+        var outcome = catalogStageOutcome();
+
+        assertThat(outcome).isInstanceOfSatisfying(StageOutcome.Failed.class, failed -> {
+            assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+            assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, xre -> {
+                assertThat(xre.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
+                assertThat(xre.getCause()).isSameAs(edcException);
+            });
+        });
+    }
+
+    @Test
+    void catalogNoResponseFailedFutureFailsTheAcquisitionWithTheOriginalEdcHttpClientException() {
+        var noResponse = new EdcHttpClientException("no response", 0, null);
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(noResponse));
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), assetAccessRequest);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCause(noResponse);
+    }
+
+    private StageOutcome<?> catalogStageOutcome() throws Exception {
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+        return orchestrator.fetchCatalog("key", buildParticipantContext(), assetAccessRequest).get(5, TimeUnit.SECONDS);
     }
 
     @Test
