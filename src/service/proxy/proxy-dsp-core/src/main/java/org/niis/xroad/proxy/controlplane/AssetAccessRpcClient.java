@@ -27,6 +27,7 @@
 package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.grpc.ManagedChannel;
 import jakarta.annotation.Nullable;
@@ -41,8 +42,12 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * gRPC-based implementation of {@link AssetAccessAcquisitionService} that calls
@@ -102,19 +107,21 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     }
 
     @Override
-    public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                                  String counterPartyAddress, @Nullable ClientId consumerClientId) {
+    public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
+                                                  List<AcquisitionCandidate> candidates,
+                                                  @Nullable SecurityServerId forcedTarget,
+                                                  @Nullable ClientId consumerClientId) {
         var cacheKey = new AssetAccessCache.CacheKey(
                 participantContextId,
                 assetId,
-                counterPartyId,
-                counterPartyAddress,
+                Set.copyOf(candidates),
+                forcedTarget != null ? forcedTarget.asEncodedId() : null,
                 clientProperties.protocol(),
                 consumerClientId != null ? consumerClientId.asEncodedId() : null);
         if (cache == null) {
-            return loadAssetAccess(cacheKey).response();
+            return loadAssetAccess(cacheKey, candidates).response();
         }
-        return cache.get(cacheKey, this::loadAssetAccess).response();
+        return cache.get(cacheKey, key -> loadAssetAccess(key, candidates)).response();
     }
 
     @Override
@@ -124,22 +131,22 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         }
     }
 
-    private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey) {
+    private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey,
+                                                         List<AcquisitionCandidate> candidates) {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())
                 .setAssetId(cacheKey.assetId())
-                .addCandidates(AssetAccessCandidate.newBuilder()
-                        .setCounterPartyId(cacheKey.counterPartyId())
-                        .setCounterPartyAddress(cacheKey.counterPartyAddress()))
                 .setProtocol(cacheKey.protocol());
+        candidates.forEach(candidate -> request.addCandidates(
+                AssetAccessCandidate.newBuilder()
+                        .setCounterPartyId(candidate.counterPartyId())
+                        .setCounterPartyAddress(candidate.counterPartyAddress())));
+        if (cacheKey.forcedTarget() != null) {
+            request.setForcedTargetServerId(cacheKey.forcedTarget());
+        }
         if (cacheKey.consumerClientId() != null) {
             request.setClientId(cacheKey.consumerClientId());
         }
-        var response = exec(() -> accessServiceBlockingStub.acquire(request.build()));
-        long expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
-        var assetAccessResponse = new AssetAccessResponse(
-                response.getEndpoint(),
-                response.hasAuthorization() ? response.getAuthorization() : null);
-        return new AssetAccessCache.CachedEntry(assetAccessResponse, expiresAt);
+        return AssetAccessCache.CachedEntry.from(exec(() -> accessServiceBlockingStub.acquire(request.build())));
     }
 }

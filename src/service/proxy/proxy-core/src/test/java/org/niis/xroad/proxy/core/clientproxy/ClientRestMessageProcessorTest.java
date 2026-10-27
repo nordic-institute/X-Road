@@ -223,7 +223,8 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(true);
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var httpSender = mock(HttpSender.class);
 
@@ -239,7 +240,8 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(true);
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, null));
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var httpSender = mock(HttpSender.class);
 
@@ -269,7 +271,8 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(true);
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var firstAttemptSender = mock(HttpSender.class);
         var replayedAttemptSender = mock(HttpSender.class);
@@ -396,7 +399,8 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(true, true);
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var httpSender = mock(HttpSender.class);
 

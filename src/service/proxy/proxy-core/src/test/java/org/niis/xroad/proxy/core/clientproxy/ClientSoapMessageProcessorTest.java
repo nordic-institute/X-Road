@@ -149,7 +149,8 @@ class ClientSoapMessageProcessorTest {
     @Test
     void sendRequestAddsAgreementTokenHeaderWhenAssetAccessCarriesToken() throws Exception {
         var harness = createHarness();
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var ctx = newSoapRequestContext();
         var decoder = newSoapRequestDecoder(ctx);
@@ -164,7 +165,8 @@ class ClientSoapMessageProcessorTest {
     @Test
     void sendRequestOmitsAgreementTokenHeaderWhenAssetAccessHasNoAuthorization() throws Exception {
         var harness = createHarness();
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var ctx = newSoapRequestContext();
         var decoder = newSoapRequestDecoder(ctx);
@@ -197,7 +199,8 @@ class ClientSoapMessageProcessorTest {
     @Test
     void sendRequestAddsAgreementTokenHeaderOnEveryAttempt() throws Exception {
         var harness = createHarness();
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var ctx = newSoapRequestContext();
         var decoder = newSoapRequestDecoder(ctx);
@@ -315,7 +318,8 @@ class ClientSoapMessageProcessorTest {
     @Test
     void sendRequestNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
         var harness = createRefusalHarness(true, true);
-        when(harness.clientRequestPreparationService().prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var ctx = newSoapRequestContext();
         var decoder = newUnnegotiatedDecoder(ctx);
