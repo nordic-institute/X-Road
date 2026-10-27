@@ -151,7 +151,11 @@ migration_checks_stop_started_services() {
 # Otherwise the regular start that follows sees a 7.8 VERSION and overlays the
 # packaged configuration again.
 migration_checks_write_version_marker() {
-  echo "$PACKAGED_VERSION" >"$TARGET_CONFIG_DIR/VERSION"
+  if ! echo "$PACKAGED_VERSION" >"$TARGET_CONFIG_DIR/VERSION"; then
+    STEP_REASON="failed to write the X-Road 8 version marker to $TARGET_CONFIG_DIR/VERSION"
+    return 1
+  fi
+  return 0
 }
 
 step_cleanup_and_checks() {
@@ -165,6 +169,6 @@ step_cleanup_and_checks() {
   migration_checks_client_count_matches || return 1
   migration_checks_anchor_in_db || return 1
   migration_checks_stop_started_services
-  migration_checks_write_version_marker
+  migration_checks_write_version_marker || return 1
   return 0
 }
