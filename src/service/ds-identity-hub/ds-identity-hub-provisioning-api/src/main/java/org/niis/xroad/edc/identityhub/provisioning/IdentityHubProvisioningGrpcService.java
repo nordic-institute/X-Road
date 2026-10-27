@@ -149,20 +149,40 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                         .build())
                 .build();
 
+        var participantContextId = request.getParticipantContextId();
         var result = participantContextService.createParticipantContext(manifest);
-        if (result.failed() && result.reason() == ServiceFailure.Reason.CONFLICT && request.getReanchorMemberIdOnConflict()) {
+        requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId);
+        if (result.succeeded()) {
+            saveMemberId(participantContextId, request.getMemberId());
+            return CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
+        }
+        requireExistingContext(participantContextId, result.getFailureDetail());
+        if (request.getReanchorMemberIdOnConflict()) {
             return CreateParticipantContextResp.newBuilder()
-                    .setMemberIdReanchored(tryReanchorMemberId(request.getParticipantContextId(), request.getMemberId()))
+                    .setMemberIdReanchored(tryReanchorMemberId(participantContextId, request.getMemberId()))
                     .build();
         }
-        requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
-        if (result.succeeded()) {
-            var saved = memberIdConfig.save(request.getParticipantContextId(), request.getMemberId());
-            if (saved.failed()) {
-                throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), saved.getFailureDetail());
-            }
+        if (memberIdConfig.find(participantContextId).isEmpty()) {
+            saveMemberId(participantContextId, request.getMemberId());
         }
         return CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
+    }
+
+    /**
+     * A failed creation can also be reported as {@code CONFLICT}, so the conflict only counts as "already
+     * exists" when the participant context is actually there.
+     */
+    private void requireExistingContext(String participantContextId, String conflictDetail) {
+        if (participantContextService.getParticipantContext(participantContextId).failed()) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, conflictDetail);
+        }
+    }
+
+    private void saveMemberId(String participantContextId, String memberId) {
+        var saved = memberIdConfig.save(participantContextId, memberId);
+        if (saved.failed()) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, saved.getFailureDetail());
+        }
     }
 
     /**
@@ -170,17 +190,12 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
      * leaving everything else about the context untouched. A no-op when the stored value already
      * matches, so repeated calls with the same member id do not write on every tick.
      *
-     * <p>Every read or write failure, reported or thrown, is logged and absorbed: {@code CONFLICT}
-     * on create is a tolerated outcome that never fails the RPC, and the caller's provisioning loop
-     * retries on its next tick. Returns whether the stored member id is confirmed to match.
+     * <p>Every read or write failure, reported or thrown, is logged and absorbed: the caller's
+     * provisioning loop retries on its next tick. Returns whether the stored member id is confirmed
+     * to match.
      */
     private boolean tryReanchorMemberId(String participantContextId, String memberId) {
         try {
-            var current = participantContextService.getParticipantContext(participantContextId);
-            if (current.failed()) {
-                logReanchorFailure(participantContextId, current.getFailureDetail());
-                return false;
-            }
             if (memberId.equals(memberIdConfig.find(participantContextId).orElse(null))) {
                 return true;
             }

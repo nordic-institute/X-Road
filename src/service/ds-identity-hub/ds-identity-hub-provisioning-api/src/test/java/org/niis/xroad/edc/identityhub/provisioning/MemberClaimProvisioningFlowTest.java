@@ -29,6 +29,7 @@ package org.niis.xroad.edc.identityhub.provisioning;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.encryption.EncryptionAlgorithmRegistryImpl;
@@ -88,7 +89,10 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -113,6 +117,7 @@ class MemberClaimProvisioningFlowTest {
 
     private IdentityHubProvisioningGrpcService service;
     private ParticipantContextConfigService configService;
+    private ParticipantMemberIdConfig memberIdConfig;
     private ParticipantSecureTokenService tokenService;
 
     @BeforeEach
@@ -157,7 +162,7 @@ class MemberClaimProvisioningFlowTest {
 
         var recordsPurger = mock(ParticipantCredentialRecordsPurger.class);
         when(recordsPurger.purge(anyString())).thenReturn(new ParticipantCredentialRecordsPurger.PurgeCounts(0, 0));
-        var memberIdConfig = new ParticipantMemberIdConfig(configService);
+        memberIdConfig = spy(new ParticipantMemberIdConfig(configService));
         service = new IdentityHubProvisioningGrpcService(participantContextService, memberIdConfig,
                 mock(CredentialRequestManager.class),
                 recordsPurger, mock(DidResolverRegistry.class), new RpcResponseHandler(), monitor);
@@ -186,6 +191,24 @@ class MemberClaimProvisioningFlowTest {
 
         requestToken();
         assertThat(signedMember()).isEqualTo(OTHER_MEMBER_ID);
+    }
+
+    @Test
+    void retryAfterFailedMemberIdSaveStoresTheMemberId() {
+        doReturn(ServiceResult.unexpected("db down")).doCallRealMethod()
+                .when(memberIdConfig).save(PARTICIPANT_CONTEXT_ID, MEMBER_ID);
+        service.createParticipantContext(createRequest(MEMBER_ID, false), createObserver);
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).isEmpty();
+        StreamObserver<CreateParticipantContextResp> retryObserver = mock();
+
+        service.createParticipantContext(createRequest(MEMBER_ID, false), retryObserver);
+
+        verify(retryObserver).onCompleted();
+        verify(retryObserver, never()).onError(any());
+        assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).contains(MEMBER_ID);
+        requestToken();
+        assertThat(signedMember()).isEqualTo(MEMBER_ID);
     }
 
     @Test
