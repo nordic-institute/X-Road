@@ -53,7 +53,11 @@ step_liquibase_openbao() {
     return 1
   fi
 
-  migration_trust_openbao_cert || return 1
+  # configure_secret_store only generates and installs this certificate for
+  # the embedded OpenBao; an external store brings its own trust.
+  if [[ -z "${XROAD_SECRET_STORE_HOST:-}" ]]; then
+    migration_trust_openbao_cert || return 1
+  fi
 
   return 0
 }

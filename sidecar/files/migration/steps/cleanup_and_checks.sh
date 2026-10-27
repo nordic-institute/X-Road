@@ -4,8 +4,6 @@
 # stops the PostgreSQL and OpenBao that migration mode started.
 
 MIGRATION_CLIENT_COUNT_FILE="${MIGRATION_CLIENT_COUNT_FILE:-/var/tmp/xroad-migration-source-client-count}"
-SECRET_STORE_DIR="${SECRET_STORE_DIR:-/etc/xroad/secret-store}"
-BAO_ADDR="${BAO_ADDR:-https://127.0.0.1:8200}"
 
 migration_checks_read_target_credentials() {
   local db_props="$TARGET_CONFIG_DIR/db.properties"
@@ -16,12 +14,28 @@ migration_checks_read_target_credentials() {
   jdbc_url="$(crudini --get "$db_props" '' 'xroad.db.serverconf.hibernate.connection.url' 2>/dev/null)"
   TARGET_DB_NAME="$(sed -E 's|^jdbc:postgresql://[^/]*/([^?]*).*|\1|' <<<"$jdbc_url")"
   TARGET_DB_NAME="${TARGET_DB_NAME:-serverconf}"
+  TARGET_DB_HOST="127.0.0.1"
+  TARGET_DB_PORT="5432"
+  if [[ "$jdbc_url" =~ ^jdbc:postgresql://([^/:]+)(:([0-9]+))?/ ]]; then
+    TARGET_DB_HOST="${BASH_REMATCH[1]}"
+    TARGET_DB_PORT="${BASH_REMATCH[3]:-5432}"
+  fi
+
+  # A prefixed XROAD_DATABASE_NAME setup names its schema after the
+  # connection user, the way 7.8's setup_serverconf_db.sh does:
+  # currentSchema's first element, else the username without an @suffix.
+  # Step 3 copies the source value and only prefixes the keys.
+  TARGET_DB_SCHEMA="$(crudini --get "$db_props" '' 'xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema' 2>/dev/null)"
+  TARGET_DB_SCHEMA="${TARGET_DB_SCHEMA%%,*}"
+  if [[ -z "$TARGET_DB_SCHEMA" || "$TARGET_DB_SCHEMA" == "public" ]]; then
+    TARGET_DB_SCHEMA="${TARGET_DB_USER%%@*}"
+  fi
 
   [[ -n "$TARGET_DB_USER" && -n "$TARGET_DB_NAME" ]]
 }
 
 migration_checks_psql() {
-  PGPASSWORD="$TARGET_DB_PASSWORD" psql -qtA -h 127.0.0.1 -p 5432 \
+  PGPASSWORD="$TARGET_DB_PASSWORD" psql -qtA -h "$TARGET_DB_HOST" -p "$TARGET_DB_PORT" \
     -U "$TARGET_DB_USER" -d "$TARGET_DB_NAME" -c "$1" 2>/dev/null
 }
 
@@ -55,30 +69,40 @@ migration_checks_softtoken_initialized() {
   return 0
 }
 
+# Same secret-store-local.conf and client token the shared migration tasks
+# (run_migration_cli.sh) use, so this works against the embedded store and
+# an external one alike.
 migration_checks_internal_tls_matches() {
   local cert_file="$TARGET_CONFIG_DIR/ssl/internal.crt"
   if [[ ! -f "$cert_file" ]]; then
     return 0
   fi
 
-  local root_token
-  root_token="$(cat "$SECRET_STORE_DIR/root-token" 2>/dev/null)"
-  if [[ -z "$root_token" ]]; then
-    STEP_REASON="result check failed: no OpenBao root token found to verify the internal TLS certificate"
+  local secret_store_local_conf="$TARGET_CONFIG_DIR/services/secret-store-local.conf"
+  if [[ ! -f "$secret_store_local_conf" ]]; then
+    STEP_REASON="result check failed: secret store configuration not found at $secret_store_local_conf"
+    return 1
+  fi
+  # shellcheck source=/dev/null
+  source "$secret_store_local_conf"
+
+  if [[ -z "${XROAD_SECRET_STORE_TOKEN:-}" ]]; then
+    STEP_REASON="result check failed: no secret store client token available to verify the internal TLS certificate"
     return 1
   fi
 
+  local addr="${XROAD_SECRET_STORE_SCHEME}://${XROAD_SECRET_STORE_HOST}:${XROAD_SECRET_STORE_PORT}"
   local stored
-  stored="$(curl -s -k -H "X-Vault-Token: $root_token" "$BAO_ADDR/v1/xrd-secret/tls/internal" \
+  stored="$(curl -s -k -H "X-Vault-Token: $XROAD_SECRET_STORE_TOKEN" "$addr/v1/xrd-secret/tls/internal" \
     | jq -r '.data.certificate // empty' | sed 's/\\n/\n/g')"
 
   if [[ -z "$stored" ]]; then
-    STEP_REASON="result check failed: internal TLS certificate not found in OpenBao"
+    STEP_REASON="result check failed: internal TLS certificate not found in the secret store"
     return 1
   fi
 
   if [[ "$(tr -d '[:space:]' <<<"$stored")" != "$(tr -d '[:space:]' <"$cert_file")" ]]; then
-    STEP_REASON="result check failed: internal TLS certificate in OpenBao does not match the 7.8 certificate"
+    STEP_REASON="result check failed: internal TLS certificate in the secret store does not match the 7.8 certificate"
     return 1
   fi
   return 0
@@ -92,7 +116,7 @@ migration_checks_client_count_matches() {
 
   local expected actual
   expected="$(cat "$MIGRATION_CLIENT_COUNT_FILE")"
-  actual="$(migration_checks_psql 'SELECT COUNT(*) FROM serverconf.client')"
+  actual="$(migration_checks_psql "SELECT COUNT(*) FROM \"$TARGET_DB_SCHEMA\".client")"
 
   if [[ -z "$actual" || "$actual" != "$expected" ]]; then
     STEP_REASON="result check failed: client count ${actual:-unknown} does not match the 7.8 count $expected"

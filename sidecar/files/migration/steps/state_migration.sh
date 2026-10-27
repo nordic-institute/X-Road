@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# Migration step 5: starts and unseals OpenBao, copies the TLS certificates
-# into it and runs the migration CLI steps. OpenBao stays running until step 6.
+# Migration step 5: with the embedded OpenBao, starts and unseals it first;
+# with an external store, that part is skipped. Either way, it then copies
+# the TLS certificates into the store and runs the migration CLI steps. An
+# embedded OpenBao stays running until step 6.
 
 MIGRATION_CLI_JAR="${MIGRATION_CLI_JAR:-/usr/share/xroad/scripts/sidecar/migration-tasks/migration-cli.jar}"
 BAO_HCL="${BAO_HCL:-/etc/openbao/openbao.hcl}"
@@ -73,7 +75,12 @@ migration_state_run_migration_cli() {
 }
 
 step_state_migration() {
-  migration_state_start_and_unseal_openbao || return 1
+  # An external store is never started, initialized or unsealed by migration
+  # mode; the TLS copy and the migration CLI reach it through
+  # XROAD_SECRET_STORE_* instead.
+  if [[ -z "${XROAD_SECRET_STORE_HOST:-}" ]]; then
+    migration_state_start_and_unseal_openbao || return 1
+  fi
   migration_state_copy_tls || return 1
   migration_state_run_migration_cli || return 1
   return 0

@@ -1,8 +1,13 @@
 #!/bin/bash
 #
-# Migration step 2: dumps the 7.8 PostgreSQL 16 data into the target
-# PostgreSQL 18 cluster and deduplicates serverconf.identifier there. The
-# source is never started; a temporary copy of it is.
+# Migration step 2: deduplicates serverconf.identifier before the schema
+# migration in step 4 creates its unique index.
+#
+# Local database: dumps the 7.8 PostgreSQL 16 data into the target
+# PostgreSQL 18 cluster and deduplicates there. The source is never started;
+# a temporary copy of it is.
+# External database: deduplicates in place on the source server; nothing is
+# copied or started locally.
 
 PG16_BINDIR="${PG16_BINDIR:-/usr/lib/postgresql/16/bin}"
 PG18_BINDIR="${PG18_BINDIR:-/usr/lib/postgresql/18/bin}"
@@ -27,6 +32,15 @@ migration_database_read_source_credentials() {
 
   DB_NAME="$(sed -E 's|^jdbc:postgresql://[^/]*/([^?]*).*|\1|' <<<"$jdbc_url")"
   DB_NAME="${DB_NAME:-serverconf}"
+
+  # A prefixed XROAD_DATABASE_NAME setup names its schema after the
+  # connection user, the way 7.8's setup_serverconf_db.sh does:
+  # currentSchema's first element, else the username without an @suffix.
+  DB_SCHEMA="$(crudini --get "$db_props" '' 'serverconf.hibernate.hikari.dataSource.currentSchema' 2>/dev/null)"
+  DB_SCHEMA="${DB_SCHEMA%%,*}"
+  if [[ -z "$DB_SCHEMA" || "$DB_SCHEMA" == "public" ]]; then
+    DB_SCHEMA="${DB_USER%%@*}"
+  fi
   return 0
 }
 
@@ -102,18 +116,39 @@ migration_database_dump_and_restore() {
 
 # As the serverconf user, like the native wizard: its triggers need its search_path.
 migration_database_serverconf_psql() {
+  local host="$1"
+  local port="$2"
+  shift 2
   PGPASSWORD="$DB_PASSWORD" "$PG18_BINDIR/psql" -X -q -v ON_ERROR_STOP=1 \
-    -h 127.0.0.1 -p 5432 -U "$DB_USER" -d "$DB_NAME" "$@"
+    -h "$host" -p "$port" -U "$DB_USER" -d "$DB_NAME" "$@"
 }
 
+# The deduplication SQL is shared with the native upgrade wizard and names
+# the serverconf schema explicitly; a prefixed schema gets a rewritten copy.
 migration_database_deduplicate_and_count() {
-  if ! migration_database_serverconf_psql -f "$DEDUP_SQL" >>"$MIGRATION_DB_LOG" 2>&1; then
-    STEP_REASON="serverconf.identifier deduplication failed, see $MIGRATION_DB_LOG"
-    return 1
+  local host="$1"
+  local port="$2"
+  local dedup_sql="$DEDUP_SQL"
+
+  if [[ "$DB_SCHEMA" != "serverconf" ]]; then
+    if [[ ! "$DB_SCHEMA" =~ ^[A-Za-z0-9_-]+$ ]]; then
+      STEP_REASON="unsupported serverconf schema name: $DB_SCHEMA"
+      return 1
+    fi
+    dedup_sql="$(mktemp)"
+    sed "s/\bserverconf\./\"$DB_SCHEMA\"./g" "$DEDUP_SQL" >"$dedup_sql"
   fi
 
+  local rc=0
+  if ! migration_database_serverconf_psql "$host" "$port" -f "$dedup_sql" >>"$MIGRATION_DB_LOG" 2>&1; then
+    STEP_REASON="serverconf.identifier deduplication failed, see $MIGRATION_DB_LOG"
+    rc=1
+  fi
+  [[ "$dedup_sql" == "$DEDUP_SQL" ]] || rm -f "$dedup_sql"
+  [[ $rc -eq 0 ]] || return 1
+
   local count
-  count="$(migration_database_serverconf_psql -tA -c 'SELECT COUNT(*) FROM serverconf.client' 2>>"$MIGRATION_DB_LOG")"
+  count="$(migration_database_serverconf_psql "$host" "$port" -tA -c "SELECT COUNT(*) FROM \"$DB_SCHEMA\".client" 2>>"$MIGRATION_DB_LOG")"
   if [[ -z "$count" ]]; then
     STEP_REASON="failed to read the client count"
     return 1
@@ -122,9 +157,18 @@ migration_database_deduplicate_and_count() {
   return 0
 }
 
+# An external database is migrated in place: no local PostgreSQL cluster is
+# copied or started, the dump/restore is skipped, and deduplication runs
+# directly against the source server.
 step_database() {
   mkdir -p /var/log/xroad
   migration_database_read_source_credentials || return 1
+
+  if [[ "$SOURCE_DB_HOST" != 127.* ]]; then
+    migration_database_deduplicate_and_count "$SOURCE_DB_HOST" "$SOURCE_DB_PORT"
+    return $?
+  fi
+
   migration_database_copy_source || return 1
 
   local rc=0
@@ -133,7 +177,7 @@ step_database() {
     migration_database_dump_and_restore || rc=1
   fi
   if [[ $rc -eq 0 ]]; then
-    migration_database_deduplicate_and_count || rc=1
+    migration_database_deduplicate_and_count 127.0.0.1 5432 || rc=1
   fi
   migration_database_stop_servers
 
