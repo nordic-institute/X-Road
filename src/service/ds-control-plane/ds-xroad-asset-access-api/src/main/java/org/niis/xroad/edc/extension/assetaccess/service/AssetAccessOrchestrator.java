@@ -80,6 +80,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -128,6 +129,7 @@ public class AssetAccessOrchestrator {
     private final Monitor monitor;
     private final Duration negotiationTimeout;
     private final Duration transferTimeout;
+    private final Duration candidateTimeout;
 
     /**
      * Acquires access to an asset from the first candidate that answers, de-duplicating concurrent requests
@@ -217,7 +219,27 @@ public class AssetAccessOrchestrator {
             monitor.info("%s no reusable agreement found, negotiating".formatted(key));
             attempt = negotiateAndTransfer(key, participantContext, request, candidate);
         }
-        return attempt.exceptionally(failure -> new StageOutcome.Failed<>(FailureClassifier.classify(failure), unwrap(failure)));
+        var classified = attempt.exceptionally(
+                failure -> new StageOutcome.Failed<>(FailureClassifier.classify(failure), unwrap(failure)));
+        return abandonAtCandidateLimit(candidate, classified);
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> abandonAtCandidateLimit(
+            AssetAccessRequest.Candidate candidate, CompletableFuture<StageOutcome<DataAddress>> attempt) {
+        var deadline = completionPoller.awaitDeadline(candidateTimeout);
+        var abandoned = deadline.thenApply(outcome -> switch (outcome) {
+            case StageOutcome.Failed(var failureKind, var failure) when failureKind != FailureKind.TRANSPORT_FAULT ->
+                    new StageOutcome.Failed<DataAddress>(failureKind, failure);
+            default -> candidateAbandoned(candidate);
+        });
+        return attempt.applyToEither(abandoned, Function.identity())
+                .whenComplete((_, _) -> deadline.cancel(false));
+    }
+
+    private StageOutcome<DataAddress> candidateAbandoned(AssetAccessRequest.Candidate candidate) {
+        var timeout = new TimeoutException("Candidate %s abandoned after %s"
+                .formatted(candidate.counterPartyAddress(), candidateTimeout));
+        return new StageOutcome.Failed<>(FailureClassifier.classify(timeout), timeout);
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> transferUnderReusedAgreement(

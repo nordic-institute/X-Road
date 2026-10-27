@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -121,6 +122,7 @@ public class AssetAccessCompletionPoller {
 
     private final Map<String, Waiter<ContractAgreement>> negotiationWaiters = new ConcurrentHashMap<>();
     private final Map<String, Waiter<DataAddress>> transferWaiters = new ConcurrentHashMap<>();
+    private final Map<String, Waiter<Void>> deadlineWaiters = new ConcurrentHashMap<>();
 
     public AssetAccessCompletionPoller(ContractNegotiationStore negotiationStore,
                                         TransferProcessStore transferProcessStore,
@@ -172,6 +174,20 @@ public class AssetAccessCompletionPoller {
         return register(transferWaiters, transferProcessId, timeout);
     }
 
+    /**
+     * Registers a bare deadline, for bounding work that has no store record to poll; the returned future never
+     * fails and completes with {@link StageOutcome.Failed} of kind {@link FailureKind#TRANSPORT_FAULT} and a
+     * {@link TimeoutException} once {@code timeout} passes. The caller cancels it when the bounded work finishes
+     * first, which removes the registration. Registered after {@link #stop()}, it completes at once with kind
+     * {@link FailureKind#OTHER}; one already pending when {@link #stop()} runs stays pending.
+     */
+    public CompletableFuture<StageOutcome<Void>> awaitDeadline(Duration timeout) {
+        var id = UUID.randomUUID().toString();
+        var future = register(deadlineWaiters, id, timeout);
+        future.whenComplete((_, _) -> deadlineWaiters.remove(id));
+        return future;
+    }
+
     private <T> CompletableFuture<StageOutcome<T>> register(Map<String, Waiter<T>> waiters, String id, Duration timeout) {
         if (!active.get()) {
             return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureKind.OTHER, acquisitionStoppedFailure(id)));
@@ -190,7 +206,8 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Stops the poll loop, fails every pending waiter through the completion executor and shuts both
+     * Stops the poll loop, fails every pending negotiation and transfer waiter (deadlines from
+     * {@link #awaitDeadline(Duration)} stay pending) through the completion executor and shuts both
      * executors down, waiting (bounded) for the completion executor so that no completion runs after
      * this method returns. A final fail-all sweep runs once the completion executor has terminated,
      * so a waiter registered by a completion continuation that was still running during the drain is
@@ -248,6 +265,7 @@ public class AssetAccessCompletionPoller {
             sweepExpiredDeadlines(negotiationWaiters, completions);
             sweepExpiredDeadlines(transferWaiters, completions);
         }
+        sweepExpiredDeadlines(deadlineWaiters, completions);
         completions.forEach(Runnable::run);
     }
 

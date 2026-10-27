@@ -47,6 +47,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -129,6 +130,17 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             defaultValue = "60")
     private long transferTimeoutSeconds;
 
+    @Setting(key = "xroad.asset-access.candidate.timeout-seconds",
+            description = "Time limit in seconds for one candidate provider Security Server across catalog fetch, "
+                    + "negotiation and transfer. A candidate that exceeds it is abandoned, counted as a transport fault "
+                    + "and put in cooldown, and the next candidate is tried. A typical acquisition has two candidates "
+                    + "(a failed server and a sibling), so the default of 20 times 2 stays below "
+                    + "xroad.asset-access.acquisition.timeout-seconds (60), which stays below the proxy-to-control-plane "
+                    + "gRPC deadline (xroad.common-rpc.channel.control-plane.deadline-after, 65000 ms). With three or more "
+                    + "hanging candidates the acquisition times out first.",
+            defaultValue = "20")
+    private long candidateTimeoutSeconds;
+
     @Setting(key = "xroad.asset-access.cooldown.period-seconds",
             description = "How long, in seconds, a provider Security Server that failed with a transport fault is kept "
                     + "out of acquisition. When every candidate is cooling down, all of them are tried.",
@@ -175,6 +187,10 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor.info("Initializing extension: " + EXTENSION_NAME);
+        if (candidateTimeoutSeconds <= 0) {
+            throw new EdcException("xroad.asset-access.candidate.timeout-seconds must be positive, was %d"
+                    .formatted(candidateTimeoutSeconds));
+        }
 
         completionPoller = new AssetAccessCompletionPoller(
                 contractNegotiationStore,
@@ -240,7 +256,8 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     assetAccessTransformerRegistry,
                     monitor,
                     Duration.ofSeconds(negotiationTimeoutSeconds),
-                    Duration.ofSeconds(transferTimeoutSeconds)
+                    Duration.ofSeconds(transferTimeoutSeconds),
+                    Duration.ofSeconds(candidateTimeoutSeconds)
             );
         }
         return assetAccessOrchestrator;

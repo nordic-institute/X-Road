@@ -349,6 +349,37 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
+    void awaitDeadlineFailsAsTransportFaultWithTimeoutWhenItsTimeoutPasses() {
+        var future = poller.awaitDeadline(Duration.ofSeconds(20));
+        poller.poll();
+        assertThat(future).isNotDone();
+
+        clock.advanceTo(clock.instant().plusSeconds(21));
+        poller.poll();
+
+        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
+    }
+
+    @Test
+    void cancelledDeadlineIsRemovedFromTheRegistry() throws Exception {
+        var future = poller.awaitDeadline(Duration.ofSeconds(20));
+
+        future.cancel(false);
+
+        assertThat(future).isCancelled();
+        assertThat(pendingDeadlines()).isEmpty();
+    }
+
+    @Test
+    void stopLeavesDeadlinePending() {
+        var future = poller.awaitDeadline(LONG_TIMEOUT);
+
+        poller.stop();
+
+        assertThat(future).isNotDone();
+    }
+
+    @Test
     void stopFailsPendingWaitersWithAcquisitionFailureBeforeReturning() {
         var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         var transferFuture = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
@@ -668,6 +699,12 @@ class AssetAccessCompletionPollerTest {
         poller.poll();
 
         assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
+    }
+
+    private Map<?, ?> pendingDeadlines() throws ReflectiveOperationException {
+        var field = AssetAccessCompletionPoller.class.getDeclaredField("deadlineWaiters");
+        field.setAccessible(true);
+        return (Map<?, ?>) field.get(poller);
     }
 
     private static StageOutcome.Failed<?> failedOutcome(CompletableFuture<? extends StageOutcome<?>> future) {
