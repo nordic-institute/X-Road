@@ -55,6 +55,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.listener.ConsumerDataFlowCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.assetaccess.poller.ExpiredTransferSweeper;
@@ -128,6 +129,12 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             defaultValue = "60")
     private long transferTimeoutSeconds;
 
+    @Setting(key = "xroad.asset-access.cooldown.period-seconds",
+            description = "How long, in seconds, a provider Security Server that failed with a transport fault is kept "
+                    + "out of acquisition. When every candidate is cooling down, all of them are tried.",
+            defaultValue = "180")
+    private long cooldownPeriodSeconds;
+
     @Setting(key = "xroad.asset-access.poll-interval-ms",
             description = "Completion poller tick interval in milliseconds",
             defaultValue = "250")
@@ -157,6 +164,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     private AssetAccessCompletionPoller completionPoller;
     private ExpiredTransferSweeper expiredTransferSweeper;
     private ReusableAgreementLookup reusableAgreementLookup;
+    private CooldownTracker cooldownTracker;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
 
     @Override
@@ -190,6 +198,8 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                 Duration.ofSeconds(expiredTransferSweepUntokenedLifetimeSeconds));
 
         reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
+
+        cooldownTracker = new CooldownTracker(Duration.ofSeconds(cooldownPeriodSeconds));
 
         transferProcessObservable.registerListener(new ConsumerDataFlowCompletionListener(dataFlowController, monitor));
 
@@ -225,6 +235,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     contractNegotiationService,
                     transferProcessService,
                     completionPoller,
+                    cooldownTracker,
                     jsonLd,
                     assetAccessTransformerRegistry,
                     monitor,

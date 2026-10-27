@@ -8,6 +8,7 @@ dependencies {
   implementation(libs.edc.spi.dsp)
   implementation(libs.edc.spi.dsp.v2025)
   implementation(libs.apache.commonsLang3)
+  implementation(libs.guava)
   implementation(libs.jakarta.annotationApi)
 
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
