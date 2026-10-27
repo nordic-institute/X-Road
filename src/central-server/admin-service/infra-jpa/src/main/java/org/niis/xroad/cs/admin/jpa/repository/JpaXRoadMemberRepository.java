@@ -33,17 +33,9 @@ import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public interface JpaXRoadMemberRepository extends JpaSecurityServerClientRepository<XRoadMemberEntity>, XRoadMemberRepository {
@@ -60,24 +52,6 @@ public interface JpaXRoadMemberRepository extends JpaSecurityServerClientReposit
         ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.MEMBER) ? clientId
                 : MemberIdEntity.create(clientId);
         return findOneBy(memberId);
-    }
-
-    @Query("select m from XRoadMemberEntity m join fetch m.identifier i left join fetch m.subsystems "
-            + "where i.xRoadInstance = :xRoadInstance and i.memberClass = :memberClass and i.memberCode in :memberCodes")
-    List<XRoadMemberEntity> findByInstanceAndClassAndCodes(String xRoadInstance, String memberClass, Collection<String> memberCodes);
-
-    @Override
-    default List<XRoadMemberEntity> findMembers(Collection<? extends ClientId> clientIds) {
-        Map<List<String>, Set<String>> codesByInstanceAndClass = new LinkedHashMap<>();
-        for (ClientId id : clientIds) {
-            codesByInstanceAndClass
-                    .computeIfAbsent(List.of(id.getXRoadInstance(), id.getMemberClass()), group -> new LinkedHashSet<>())
-                    .add(id.getMemberCode());
-        }
-        List<XRoadMemberEntity> members = new ArrayList<>();
-        codesByInstanceAndClass.forEach((group, codes) ->
-                members.addAll(findByInstanceAndClassAndCodes(group.getFirst(), group.getLast(), codes)));
-        return members;
     }
 
 }

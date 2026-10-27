@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.jpa;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
@@ -70,6 +72,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -103,6 +106,10 @@ class MemberDidRegistrationBatchPostgresTest extends AbstractCentralServerPostgr
     private static final int PARALLEL_FETCHES = 16;
     private static final Duration FETCH_LATENCY = Duration.ofMillis(200);
     private static final Duration ADMIN_CLIENT_TIMEOUT = Duration.ofSeconds(5);
+    private static final int WRITE_STATEMENTS_PER_ENTRY = 2;
+    private static final int DRY_RUN_STATEMENT_BOUND = 4;
+    private static final int WRITE_STATEMENT_BOUND = WRITE_STATEMENTS_PER_ENTRY * BATCH_SIZE + 6;
+    private static final int RESEND_STATEMENT_BOUND = 8;
 
     @MockitoBean
     private ManagementRequestService managementRequestService;
@@ -199,6 +206,38 @@ class MemberDidRegistrationBatchPostgresTest extends AbstractCentralServerPostgr
         assertThat(resend.getResults()).hasSize(BATCH_SIZE).allSatisfy(result -> assertThat(result.status()).isEqualTo(Status.STORED));
         assertThat(resend.getId()).isZero();
         assertThat(fetches).hasValue(0);
+    }
+
+    @Test
+    void statementCountsOfAFullBatchStayWithinTheirBounds() {
+        var owner = seed.member();
+        var server = seed.server(owner);
+        var members = new ArrayList<ClientRef>();
+        members.add(owner);
+        for (int i = 1; i < BATCH_SIZE; i++) {
+            var client = seed.member();
+            seed.addClient(server, client);
+            members.add(client);
+        }
+        var entries = new LinkedHashMap<ClientId, String>();
+        members.forEach(member -> entries.put(member.identifier(), memberDid(server.address(), member.identifier())));
+
+        var dryRun = statementsOf(() -> store.checkMemberDids(server.id(), entries));
+        var write = statementsOf(() -> store.writeMemberDidsOnce(server.id(), entries));
+        var resend = statementsOf(() -> {
+            store.checkMemberDids(server.id(), entries);
+            store.writeMemberDidsOnce(server.id(), entries);
+        });
+
+        assertThat(dryRun).as("dry run statements").isLessThanOrEqualTo(DRY_RUN_STATEMENT_BOUND);
+        assertThat(write).as("write statements").isLessThanOrEqualTo(WRITE_STATEMENT_BOUND);
+        assertThat(resend).as("equal resend statements").isLessThanOrEqualTo(RESEND_STATEMENT_BOUND);
+    }
+
+    private static int statementsOf(Runnable call) {
+        StatementRecorder.start();
+        call.run();
+        return StatementRecorder.stop().size();
     }
 
     private List<DidResolution> resolveAtIssuerLatency(List<String> dids) {

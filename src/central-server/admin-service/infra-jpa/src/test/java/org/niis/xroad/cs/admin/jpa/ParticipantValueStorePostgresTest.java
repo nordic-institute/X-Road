@@ -86,6 +86,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNE
 class ParticipantValueStorePostgresTest extends AbstractCentralServerPostgresTest {
 
     private static final String LOCK_NOT_AVAILABLE = "55P03";
+    private static final int SYSTEM_DRY_RUN_STATEMENT_BOUND = 2;
+    private static final int SYSTEM_WRITE_STATEMENT_BOUND = 5;
 
     @Autowired
     private ParticipantValueStore store;
@@ -321,6 +323,60 @@ class ParticipantValueStorePostgresTest extends AbstractCentralServerPostgresTes
 
         assertThat(written).containsExactlyEntriesOf(expected);
         verify(auditLogging, times(1)).auditLogFailWithData(eq(REJECT_CONNECTOR_PUBLISHED_VALUE), anyString(), anyMap());
+    }
+
+    @Test
+    void systemPairDryRunAndWriteLoadNoClientEntitiesOfAServerWithSeveralClients() {
+        var server = seed.server(seed.member());
+        for (int i = 0; i < 10; i++) {
+            clientOf(server);
+        }
+        var did = systemDid(server.address(), 7183);
+        var url = dspBaseUrl(server.address());
+
+        StatementRecorder.start();
+        store.checkSystemPair(server.id(), did, url);
+        var dryRun = StatementRecorder.stop();
+        StatementRecorder.start();
+        var written = store.writeSystemPairOnce(server.id(), did, url);
+        var write = StatementRecorder.stop();
+
+        assertThat(written).isEqualTo(ParticipantValueResult.STORED);
+        assertThat(dryRun).as("dry run statements").hasSizeLessThanOrEqualTo(SYSTEM_DRY_RUN_STATEMENT_BOUND);
+        assertThat(write).as("write statements").hasSizeLessThanOrEqualTo(SYSTEM_WRITE_STATEMENT_BOUND);
+    }
+
+    @Test
+    void disabledClientStillCountsAsServed() {
+        var server = seed.server(seed.member());
+        var disabled = clientOf(server);
+        var disabledRows = jdbc.update(
+                "update server_clients set enabled = false where security_server_id = ? and security_server_client_id = ?",
+                server.id(), disabled.id());
+        assertThat(disabledRows).isOne();
+        var entries = Map.of(disabled.identifier(), memberDid(server.address(), disabled.identifier()));
+
+        var dryRun = store.checkMemberDids(server.id(), entries);
+        var written = store.writeMemberDidsOnce(server.id(), entries);
+
+        assertThat(dryRun).containsExactlyEntriesOf(Map.of(disabled.identifier(), ParticipantValueResult.STORED));
+        assertThat(written).isEqualTo(dryRun);
+        assertThat(countMemberDids(server.id())).isOne();
+    }
+
+    @Test
+    void memberServedOnlyThroughASubsystemClientIsAccepted() {
+        var server = seed.server(seed.member());
+        var member = seed.member();
+        seed.addClient(server, seed.subsystem(member));
+        var entries = Map.of(member.identifier(), memberDid(server.address(), member.identifier()));
+
+        var dryRun = store.checkMemberDids(server.id(), entries);
+        var written = store.writeMemberDidsOnce(server.id(), entries);
+
+        assertThat(dryRun).containsExactlyEntriesOf(Map.of(member.identifier(), ParticipantValueResult.STORED));
+        assertThat(written).isEqualTo(dryRun);
+        assertThat(countMemberDids(server.id())).isOne();
     }
 
     @Test

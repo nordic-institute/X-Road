@@ -36,6 +36,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity_;
+import org.niis.xroad.cs.admin.core.entity.MemberRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity_;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -54,6 +55,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -84,6 +86,15 @@ public interface JpaSecurityServerRepository extends
         return lockForUpdateByOwnerAndServerCode(serverId.getXRoadInstance(), serverId.getMemberClass(),
                 serverId.getMemberCode(), serverId.getServerCode());
     }
+
+    @Override
+    @Query("select distinct new org.niis.xroad.cs.admin.core.entity.MemberRow("
+            + "m.id, mi.xRoadInstance, mi.memberClass, mi.memberCode) "
+            + "from ServerClientEntity sc join sc.securityServerClient c join c.identifier ci, "
+            + "XRoadMemberEntity m join m.identifier mi "
+            + "where sc.securityServer.id = :securityServerId "
+            + "and mi.xRoadInstance = ci.xRoadInstance and mi.memberClass = ci.memberClass and mi.memberCode = ci.memberCode")
+    List<MemberRow> findServedMembers(Integer securityServerId);
 
     default Optional<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId) {
         return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));

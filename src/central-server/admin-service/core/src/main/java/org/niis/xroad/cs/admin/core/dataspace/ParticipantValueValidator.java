@@ -170,7 +170,7 @@ public final class ParticipantValueValidator {
     }
 
     private boolean isOwnerOrClient(ClientId member) {
-        return member.equals(server.owner()) || server.clientMembers().contains(member);
+        return member.equals(server.owner()) || server.clientMembers().get().contains(member);
     }
 
     private static Optional<ParticipantValueRejection> checkShape(String did) {

@@ -42,13 +42,11 @@ import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
-import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
-import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -67,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -121,14 +120,13 @@ class ParticipantValueStoreImplTest {
     @Mock
     private MemberDidRepository memberDidRepository;
     @Mock
-    private XRoadMemberRepository memberRepository;
-    @Mock
     private AuditEventLoggingFacade auditLogging;
     @Mock
     private EntityManager entityManager;
 
     private final Map<Long, MemberDidEntity> storedRows = new HashMap<>();
     private final Set<String> didsOfOtherServers = new HashSet<>();
+    private final Set<ClientId> servedMembers = new HashSet<>();
 
     private SecurityServerEntity server;
     private XRoadMemberEntity ownerEntity;
@@ -144,19 +142,22 @@ class ParticipantValueStoreImplTest {
         server = new SecurityServerEntity(ownerEntity, "SS0");
         ReflectionTestUtils.setField(server, "id", SERVER_ID);
         server.setAddress(ADDRESS);
-        server.getServerClients().add(new ServerClientEntity(server,
-                new SubsystemEntity(clientEntity, ClientId.Conf.create("DEV", "COM", "333", "sub"))));
+        servedMembers.add(CLIENT);
 
         lenient().when(securityServerRepository.lockForUpdateById(SERVER_ID)).thenReturn(Optional.of(SERVER_ID));
         lenient().when(securityServerRepository.findById(SERVER_ID)).thenReturn(Optional.of(server));
         lenient().when(securityServerRepository.existsBySystemDidAndIdNot(anyString(), anyInt())).thenReturn(false);
-        lenient().when(memberRepository.findMembers(any())).thenAnswer(invocation -> {
-            var requested = invocation.<Collection<? extends ClientId>>getArgument(0);
-            return Stream.of(ownerEntity, clientEntity)
-                    .filter(entity -> requested.stream()
-                            .anyMatch(id -> entity.getIdentifier().getMemberCode().equals(id.getMemberCode())))
-                    .toList();
-        });
+        lenient().when(securityServerRepository.findServedMembers(SERVER_ID)).thenAnswer(invocation -> Stream.of(ownerEntity, clientEntity)
+                .filter(entity -> servedMembers.stream()
+                        .anyMatch(id -> id.getMemberCode().equals(entity.getIdentifier().getMemberCode())))
+                .map(entity -> new MemberRow(entity.getId(), entity.getIdentifier().getXRoadInstance(),
+                        entity.getIdentifier().getMemberClass(), entity.getIdentifier().getMemberCode()))
+                .toList());
+        lenient().when(entityManager.getReference(eq(XRoadMemberEntity.class), anyLong())).thenAnswer(invocation ->
+                Stream.of(ownerEntity, clientEntity)
+                        .filter(entity -> entity.getId().equals(invocation.getArgument(1)))
+                        .findFirst()
+                        .orElseThrow());
         lenient().when(memberDidRepository.findBySecurityServerIdAndMemberIdIn(eq(SERVER_ID), any()))
                 .thenAnswer(invocation -> invocation.<Collection<Long>>getArgument(1).stream()
                         .map(storedRows::get)
@@ -172,7 +173,7 @@ class ParticipantValueStoreImplTest {
             return row;
         });
 
-        store = new ParticipantValueStoreImpl(securityServerRepository, memberDidRepository, memberRepository,
+        store = new ParticipantValueStoreImpl(securityServerRepository, memberDidRepository,
                 auditLogging, entityManager);
     }
 
@@ -590,6 +591,7 @@ class ParticipantValueStoreImplTest {
         order.verify(securityServerRepository).lockForUpdateById(SERVER_ID);
         order.verify(securityServerRepository).findById(SERVER_ID);
         order.verify(entityManager).refresh(server);
+        order.verify(securityServerRepository).findServedMembers(SERVER_ID);
         order.verify(memberDidRepository).findBySecurityServerIdAndMemberIdIn(eq(SERVER_ID), any());
         order.verify(memberDidRepository).findDidsHeldByOtherServers(any(), eq(SERVER_ID));
         order.verify(memberDidRepository, times(2)).saveAndFlush(any());
@@ -624,7 +626,7 @@ class ParticipantValueStoreImplTest {
     @Test
     void shouldValidateAgainstClientsAsCommittedUnderTheLock() {
         doAnswer(invocation -> {
-            server.getServerClients().clear();
+            servedMembers.clear();
             return null;
         }).when(entityManager).refresh(server);
 
@@ -651,7 +653,7 @@ class ParticipantValueStoreImplTest {
 
     @Test
     void shouldRejectMemberDidWhenClientWasRemovedBeforeTheStoreCall() {
-        server.getServerClients().clear();
+        servedMembers.clear();
 
         var results = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
 
@@ -757,6 +759,66 @@ class ParticipantValueStoreImplTest {
                 Map.entry(OWNER, ParticipantValueResult.STORED),
                 Map.entry(CLIENT, ParticipantValueResult.STORED));
         assertThat(second).isEqualTo(first);
+    }
+
+    @Test
+    void shouldIssueNoMemberStoredRowOrHeldQueryWhenEveryEntryIsRejected() {
+        var entries = new LinkedHashMap<ClientId, String>();
+        entries.put(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999");
+        entries.put(CLIENT, "not-a-did");
+
+        var checked = store.checkMemberDids(SERVER_ID, entries);
+        var written = store.writeMemberDidsOnce(SERVER_ID, entries);
+
+        assertThat(checked.values()).doesNotContain(ParticipantValueResult.STORED);
+        assertThat(written).isEqualTo(checked);
+        verify(securityServerRepository, times(2)).findServedMembers(SERVER_ID);
+        verifyNoInteractions(memberDidRepository);
+    }
+
+    @Test
+    void shouldAskTheHeldQueryOnlyForTheDidsThatWouldBeWritten() {
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, CLIENT_DID));
+        var entries = new LinkedHashMap<ClientId, String>();
+        entries.put(OWNER, OWNER_DID);
+        entries.put(CLIENT, CLIENT_DID);
+        entries.put(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999");
+
+        store.checkMemberDids(SERVER_ID, entries);
+        store.writeMemberDidsOnce(SERVER_ID, entries);
+
+        verify(memberDidRepository, times(2)).findDidsHeldByOtherServers(
+                argThat(dids -> Set.copyOf(dids).equals(Set.of(OWNER_DID))), eq(SERVER_ID));
+        verify(memberDidRepository, times(2)).findBySecurityServerIdAndMemberIdIn(
+                eq(SERVER_ID), argThat(ids -> Set.copyOf(ids).equals(Set.of(1L, 2L))));
+    }
+
+    @Test
+    void shouldReadTheServedMembersOncePerMemberBatchCall() {
+        store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
+
+        verify(securityServerRepository, times(1)).findServedMembers(SERVER_ID);
+    }
+
+    @Test
+    void shouldNotReadTheServedMembersForTheSystemPairCheckOrWrite() {
+        store.checkSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+        store.writeSystemPairOnce(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        verify(securityServerRepository, never()).findServedMembers(anyInt());
+    }
+
+    @Test
+    void shouldAskNoHeldQueryWhenEveryAcceptedEntryIsAnEqualResend() {
+        storedRows.put(1L, new MemberDidEntity(server, ownerEntity, OWNER_DID));
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, CLIENT_DID));
+
+        var checked = store.checkMemberDids(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
+        var written = store.writeMemberDidsOnce(SERVER_ID, batch(OWNER_DID, CLIENT_DID));
+
+        assertThat(checked.values()).containsOnly(ParticipantValueResult.UNCHANGED);
+        assertThat(written).isEqualTo(checked);
+        verify(memberDidRepository, never()).findDidsHeldByOtherServers(any(), anyInt());
     }
 
     @Test
