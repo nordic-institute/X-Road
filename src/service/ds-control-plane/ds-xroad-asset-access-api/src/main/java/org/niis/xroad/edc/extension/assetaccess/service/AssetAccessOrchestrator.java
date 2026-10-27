@@ -58,6 +58,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureClassifier;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
@@ -69,15 +70,21 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
@@ -121,51 +128,113 @@ public class AssetAccessOrchestrator {
     private final Duration transferTimeout;
 
     /**
-     * Acquires access to an asset, de-duplicating concurrent requests for the same
-     * participant+asset+counterparty(+client) key.
+     * Acquires access to an asset from the first candidate that answers, de-duplicating concurrent requests
+     * for the same participant+asset+candidate set(+forced target)(+client) key. Candidates are tried in the
+     * order given. A transport fault moves on to the next candidate; any other failure is returned at once,
+     * so no other candidate is contacted after a provider answered.
      */
-    public CompletableFuture<ServiceResult<DataAddress>> acquireAssetAccess(ParticipantContext participantContext,
-                                                                            AssetAccessRequest request) {
+    public CompletableFuture<AssetAccessResult> acquireAssetAccess(ParticipantContext participantContext,
+                                                                   AssetAccessRequest request) {
         var key = registryKey(participantContext, request);
-        monitor.info("%s acquireAssetAccess entered: counterPartyAddress=%s protocol=%s"
-                .formatted(key, request.counterPartyAddress(), request.protocolOrDefault()));
-        return stateStore.loadOrStartInFlight(key, () -> buildAcquisitionFuture(key, participantContext, request));
+        monitor.info("%s acquireAssetAccess entered: candidates=%d protocol=%s"
+                .formatted(key, request.candidates().size(), request.protocolOrDefault()));
+        return stateStore.loadOrStartInFlight(key,
+                () -> acquireFromCandidate(key, participantContext, request, 0, new ArrayList<>()));
     }
 
     private static String registryKey(ParticipantContext participantContext, AssetAccessRequest request) {
-        var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
+        var candidateSet = request.candidates().stream()
+                .map(candidate -> candidate.counterPartyId() + "@" + candidate.counterPartyAddress())
+                .sorted()
+                .collect(Collectors.joining(",", "[", "]"));
+        var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + candidateSet;
+        if (request.forcedTarget() != null) {
+            key += "::forced=" + request.forcedTarget();
+        }
         return request.clientId() == null ? key : key + "::" + request.clientId();
     }
 
-    private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
-            String key, ParticipantContext participantContext, AssetAccessRequest request) {
-        var reusableAgreement = reusableAgreementLookup.find(
-                participantContext.getParticipantContextId(), participantContext.getIdentity(),
-                request.assetId(), request.counterPartyId(), request.clientId());
-        if (reusableAgreement.isPresent()) {
-            var agreement = reusableAgreement.get();
-            monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
-                    .formatted(key, agreement.getId(), request.clientId() != null));
-            return startTransfer(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
-                    request.counterPartyAddress(), request.protocolOrDefault())
-                    .thenCompose(outcome -> switch (outcome) {
-                        case StageOutcome.Succeeded(var dataAddress) ->
-                                CompletableFuture.completedFuture(ServiceResult.success(dataAddress));
-                        case StageOutcome.Failed(var failureKind, var failure) -> isTransferRefusal(failureKind, failure)
-                                ? negotiateAfterRefusal(key, participantContext, request, agreement, failure)
-                                : CompletableFuture.<ServiceResult<DataAddress>>failedFuture(unwrap(failure));
-                    });
+    private CompletableFuture<AssetAccessResult> acquireFromCandidate(
+            String key, ParticipantContext participantContext, AssetAccessRequest request, int index,
+            List<Throwable> transportFailures) {
+        if (index >= request.candidates().size()) {
+            return CompletableFuture.failedFuture(allCandidatesFailed(key, request.candidates().size(), transportFailures));
         }
-        monitor.info("%s no reusable agreement found, negotiating".formatted(key));
-        return executeAcquisition(participantContext, request, key);
+        var candidate = request.candidates().get(index);
+        return attemptCandidate(key, participantContext, request, candidate)
+                .thenCompose(outcome -> switch (outcome) {
+                    case StageOutcome.Succeeded(var dataAddress) -> CompletableFuture.completedFuture(
+                            new AssetAccessResult(dataAddress, winnerOf(candidate)));
+                    case StageOutcome.Failed(var failureKind, var failure) when failureKind == FailureKind.TRANSPORT_FAULT -> {
+                        monitor.warning("%s candidate unreachable, trying next: counterPartyId=%s counterPartyAddress=%s"
+                                .formatted(key, candidate.counterPartyId(), candidate.counterPartyAddress()), failure);
+                        transportFailures.add(unwrap(failure));
+                        yield acquireFromCandidate(key, participantContext, request, index + 1, transportFailures);
+                    }
+                    case StageOutcome.Failed(_, var failure) -> CompletableFuture.<AssetAccessResult>failedFuture(unwrap(failure));
+                });
     }
 
-    private CompletableFuture<ServiceResult<DataAddress>> negotiateAfterRefusal(
+    private XrdRuntimeException allCandidatesFailed(String key, int candidateCount, List<Throwable> transportFailures) {
+        var message = "All %d candidates failed".formatted(candidateCount);
+        if (transportFailures.isEmpty()) {
+            monitor.warning("%s %s".formatted(key, message));
+            return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .details(message)
+                    .build();
+        }
+        var lastFailure = transportFailures.getLast();
+        monitor.warning("%s %s: %s".formatted(key, message, lastFailure.getMessage()), lastFailure);
+        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .cause(lastFailure)
+                .details("%s: %s".formatted(message, lastFailure.getMessage()))
+                .build();
+    }
+
+    private static AssetAccessResult.Winner winnerOf(AssetAccessRequest.Candidate candidate) {
+        var host = URI.create(candidate.counterPartyAddress()).getHost();
+        return new AssetAccessResult.Winner(candidate.counterPartyId(), host != null ? host : candidate.counterPartyAddress());
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> attemptCandidate(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            ContractAgreement refusedAgreement, Throwable refusal) {
+            AssetAccessRequest.Candidate candidate) {
+        var reusableAgreement = reusableAgreementLookup.find(
+                participantContext.getParticipantContextId(), participantContext.getIdentity(),
+                request.assetId(), candidate.counterPartyId(), request.clientId());
+        CompletableFuture<StageOutcome<DataAddress>> attempt;
+        if (reusableAgreement.isPresent()) {
+            attempt = transferUnderReusedAgreement(key, participantContext, request, candidate, reusableAgreement.get());
+        } else {
+            monitor.info("%s no reusable agreement found, negotiating".formatted(key));
+            attempt = negotiateAndTransfer(key, participantContext, request, candidate);
+        }
+        return attempt.exceptionally(failure -> new StageOutcome.Failed<>(FailureClassifier.classify(failure), unwrap(failure)));
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> transferUnderReusedAgreement(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            AssetAccessRequest.Candidate candidate, ContractAgreement agreement) {
+        monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
+                .formatted(key, agreement.getId(), request.clientId() != null));
+        return startTransfer(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
+                candidate.counterPartyAddress(), request.protocolOrDefault())
+                .thenCompose(outcome -> switch (outcome) {
+                    case StageOutcome.Succeeded<DataAddress> _ -> CompletableFuture.completedFuture(outcome);
+                    case StageOutcome.Failed(var failureKind, var failure) -> isTransferRefusal(failureKind, failure)
+                            ? negotiateAfterRefusal(key, participantContext, request, candidate, agreement, failure)
+                            : CompletableFuture.completedFuture(outcome);
+                });
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> negotiateAfterRefusal(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            AssetAccessRequest.Candidate candidate, ContractAgreement refusedAgreement, Throwable refusal) {
         monitor.warning("%s reused agreement refused, negotiating afresh: agreementId=%s reason=%s"
                 .formatted(key, refusedAgreement.getId(), unwrap(refusal).getMessage()));
-        return executeAcquisition(participantContext, request, key);
+        return negotiateAndTransfer(key, participantContext, request, candidate);
     }
 
     private static boolean isTransferRefusal(FailureKind failureKind, Throwable failure) {
@@ -181,22 +250,29 @@ public class AssetAccessOrchestrator {
         return current;
     }
 
-    private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(
-            ParticipantContext participantContext, AssetAccessRequest request, String registryKey) {
-        return fetchCatalog(registryKey, participantContext, request)
-                .thenCompose(outcome -> switch (outcome) {
-                    case StageOutcome.Succeeded(var catalog) -> acquireFromCatalog(registryKey, participantContext, request, catalog);
-                    case StageOutcome.Failed(_, var failure) -> CompletableFuture.failedFuture(failure);
-                })
-                .thenApply(ServiceResult::success);
+    private CompletableFuture<StageOutcome<DataAddress>> negotiateAndTransfer(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            AssetAccessRequest.Candidate candidate) {
+        return andThen(fetchCatalog(key, participantContext, request, candidate),
+                catalog -> acquireFromCatalog(key, participantContext, request, candidate, catalog));
     }
 
-    private CompletableFuture<DataAddress> acquireFromCatalog(String registryKey, ParticipantContext participantContext,
-                                                              AssetAccessRequest request, Catalog catalog) {
-        var offer = findOffer(registryKey, catalog, request.assetId(), request.clientId());
-        return negotiateContract(registryKey, participantContext, request, offer)
-                .thenCompose(agreement -> transferAndAwaitDataAddress(registryKey, participantContext, agreement,
-                        offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault()));
+    private CompletableFuture<StageOutcome<DataAddress>> acquireFromCatalog(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            AssetAccessRequest.Candidate candidate, Catalog catalog) {
+        var offer = findOffer(key, catalog, request.assetId(), request.clientId());
+        return andThen(negotiateContract(key, participantContext, request, candidate, offer),
+                agreement -> startTransfer(key, participantContext, agreement, offer.transferType(),
+                        candidate.counterPartyAddress(), request.protocolOrDefault()));
+    }
+
+    private static <T, R> CompletableFuture<StageOutcome<R>> andThen(
+            CompletableFuture<StageOutcome<T>> stage, Function<T, CompletableFuture<StageOutcome<R>>> next) {
+        return stage.thenCompose(outcome -> switch (outcome) {
+            case StageOutcome.Succeeded<T> succeeded -> next.apply(succeeded.value());
+            case StageOutcome.Failed<T> failed ->
+                    CompletableFuture.completedFuture(new StageOutcome.Failed<R>(failed.failureKind(), failed.failure()));
+        });
     }
 
     private static QuerySpec datasetQuery(String assetId) {
@@ -206,10 +282,10 @@ public class AssetAccessOrchestrator {
     }
 
     CompletableFuture<StageOutcome<Catalog>> fetchCatalog(String key, ParticipantContext participantContext,
-                                                          AssetAccessRequest request) {
+                                                          AssetAccessRequest request, AssetAccessRequest.Candidate candidate) {
         monitor.info("%s catalog fetch started".formatted(key));
         try {
-            return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
+            return catalogService.requestCatalog(participantContext, candidate.counterPartyId(), candidate.counterPartyAddress(),
                             request.protocolOrDefault(), datasetQuery(request.assetId()))
                     .handle((result, failure) -> failure != null
                             ? catalogFailed(key, failure)
@@ -340,10 +416,11 @@ public class AssetAccessOrchestrator {
                                 || PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
     }
 
-    private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,
-                                                                   AssetAccessRequest request, OfferContext offer) {
+    private CompletableFuture<StageOutcome<ContractAgreement>> negotiateContract(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            AssetAccessRequest.Candidate candidate, OfferContext offer) {
         try {
-            var contractRequest = buildContractRequest(request, offer);
+            var contractRequest = buildContractRequest(request, candidate, offer);
             var negotiationResult = contractNegotiationService.initiateNegotiation(participantContext, contractRequest);
             var negotiationId = negotiationResult
                     .map(Entity::getId)
@@ -351,43 +428,42 @@ public class AssetAccessOrchestrator {
             monitor.info("%s negotiation initiated, awaiting completion: negotiationId=%s".formatted(key, negotiationId));
 
             return completionPoller.awaitNegotiation(negotiationId, negotiationTimeout)
-                    .thenCompose(AssetAccessOrchestrator::valueOrFailure)
-                    .whenComplete((result, throwable) -> onNegotiationComplete(key, negotiationId, result, throwable));
+                    .whenComplete((outcome, throwable) -> onNegotiationComplete(key, negotiationId, outcome, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
-            return CompletableFuture.failedFuture(e);
+            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureClassifier.classify(e), e));
         }
     }
 
-    private ContractRequest buildContractRequest(AssetAccessRequest request, OfferContext offer) {
+    private ContractRequest buildContractRequest(AssetAccessRequest request, AssetAccessRequest.Candidate candidate,
+                                                 OfferContext offer) {
         return ContractRequest.Builder.newInstance()
                 .protocol(request.protocolOrDefault())
-                .counterPartyAddress(request.counterPartyAddress())
+                .counterPartyAddress(candidate.counterPartyAddress())
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(offer.offerId())
                         .assetId(offer.dataset().getId())
                         .policy(offer.policy().toBuilder()
                                 .target(offer.dataset().getId())
-                                .assigner(request.counterPartyId())
+                                .assigner(candidate.counterPartyId())
                                 .type(PolicyType.OFFER)
                                 .build())
                         .build())
                 .build();
     }
 
-    private void onNegotiationComplete(String key, String negotiationId, ContractAgreement result, Throwable throwable) {
+    private void onNegotiationComplete(String key, String negotiationId, StageOutcome<ContractAgreement> outcome,
+                                       Throwable throwable) {
         if (throwable != null) {
             monitor.warning("%s negotiation failed: negotiationId=%s".formatted(key, negotiationId), throwable);
-        } else if (result != null) {
-            monitor.info("%s agreement received: agreementId=%s".formatted(key, result.getId()));
+            return;
         }
-    }
-
-    private CompletableFuture<DataAddress> transferAndAwaitDataAddress(
-            String key, ParticipantContext participantContext, ContractAgreement agreement,
-            String transferType, String counterPartyAddress, String protocol) {
-        return startTransfer(key, participantContext, agreement, transferType, counterPartyAddress, protocol)
-                .thenCompose(AssetAccessOrchestrator::valueOrFailure);
+        switch (outcome) {
+            case StageOutcome.Succeeded(var agreement) ->
+                    monitor.info("%s agreement received: agreementId=%s".formatted(key, agreement.getId()));
+            case StageOutcome.Failed(_, var failure) ->
+                    monitor.warning("%s negotiation failed: negotiationId=%s".formatted(key, negotiationId), failure);
+        }
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> startTransfer(
@@ -442,13 +518,6 @@ public class AssetAccessOrchestrator {
             case StageOutcome.Failed(_, var failure) ->
                     monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), failure);
         }
-    }
-
-    private static <T> CompletableFuture<T> valueOrFailure(StageOutcome<T> outcome) {
-        return switch (outcome) {
-            case StageOutcome.Succeeded(var value) -> CompletableFuture.completedFuture(value);
-            case StageOutcome.Failed(_, var failure) -> CompletableFuture.failedFuture(failure);
-        };
     }
 
     private record OfferContext(String offerId, Policy policy, Dataset dataset, String transferType) {

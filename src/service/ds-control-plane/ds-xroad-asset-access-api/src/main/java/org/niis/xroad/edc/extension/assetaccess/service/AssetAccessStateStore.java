@@ -27,8 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
-import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.spi.result.ServiceResult;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +40,7 @@ import java.util.function.Supplier;
  */
 public class AssetAccessStateStore {
 
-    private final ConcurrentHashMap<String, CompletableFuture<ServiceResult<DataAddress>>> inFlightRequests = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CompletableFuture<AssetAccessResult>> inFlightRequests = new ConcurrentHashMap<>();
 
     /**
      * Returns the existing in-flight future for {@code key} if one exists; otherwise claims the slot with
@@ -51,10 +50,10 @@ public class AssetAccessStateStore {
      * <p>The slot is claimed before {@code supplier} runs, so the supplier may block; a supplier that throws
      * synchronously fails the claimed future and leaves no entry behind.
      */
-    public CompletableFuture<ServiceResult<DataAddress>> loadOrStartInFlight(
+    public CompletableFuture<AssetAccessResult> loadOrStartInFlight(
             String key,
-            Supplier<CompletableFuture<ServiceResult<DataAddress>>> supplier) {
-        var claimed = new CompletableFuture<ServiceResult<DataAddress>>();
+            Supplier<CompletableFuture<AssetAccessResult>> supplier) {
+        var claimed = new CompletableFuture<AssetAccessResult>();
         var existing = inFlightRequests.putIfAbsent(key, claimed);
         if (existing != null) {
             return existing;

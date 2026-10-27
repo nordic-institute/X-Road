@@ -36,17 +36,31 @@ service AssetAccessService {
   rpc Acquire(AcquireAssetAccessReq) returns (AcquireAssetAccessResp);
 }
 
+message AssetAccessCandidate {
+  string counter_party_id = 1;
+  string counter_party_address = 2;
+}
+
+message AssetAccessWinner {
+  string counter_party_id = 1;
+  string host = 2;
+}
+
 message AcquireAssetAccessReq {
+  reserved 3, 4;
+  reserved "counter_party_id", "counter_party_address";
+
   string participant_context_id = 1;
   string asset_id = 2;
-  string counter_party_id = 3;
-  string counter_party_address = 4;
   string protocol = 5;
   optional string client_id = 6;
+  repeated AssetAccessCandidate candidates = 7;
+  optional string forced_target_server_id = 8;
 }
 
 message AcquireAssetAccessResp {
   string endpoint = 1;
   optional string authorization = 2;
   optional int64 expires_at_epoch_seconds = 3;
+  AssetAccessWinner winner = 4;
 }
