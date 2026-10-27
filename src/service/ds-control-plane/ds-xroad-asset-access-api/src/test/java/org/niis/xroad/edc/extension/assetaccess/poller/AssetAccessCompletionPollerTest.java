@@ -36,7 +36,9 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStor
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.controlplane.DataAddress;
+import org.eclipse.edc.http.spi.EdcHttpClientException;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -52,6 +54,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
+import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -72,7 +76,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
@@ -132,7 +135,7 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThat(future.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(agreement);
+        assertThat(succeededValue(future)).isEqualTo(agreement);
     }
 
     @Test
@@ -143,15 +146,14 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
-                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
-                    assertThat(cause.getErrorCodeMetadata()).contains("neg-1");
-                    assertThat(cause.getDetails()).isEqualTo("provider refused");
-                });
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
+            assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+            assertThat(cause.getErrorCodeMetadata()).contains("neg-1");
+            assertThat(cause.getDetails()).isEqualTo("provider refused");
+        });
     }
 
     @Test
@@ -160,13 +162,12 @@ class AssetAccessCompletionPollerTest {
                 Stream.of(buildNegotiation(ContractNegotiationStates.TERMINATING, null, "send to provider failed")));
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
-                    assertThat(cause.getDetails()).isEqualTo("send to provider failed");
-                });
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_negotiation_failed");
+            assertThat(cause.getDetails()).isEqualTo("send to provider failed");
+        });
     }
 
     @Test
@@ -188,10 +189,29 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getDetails())
-                        .isEqualTo(DEFAULT_TERMINATION_DETAIL));
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class,
+                cause -> assertThat(cause.getDetails()).isEqualTo(DEFAULT_TERMINATION_DETAIL));
+    }
+
+    @Test
+    void awaitNegotiationFailsAsProviderRejectionWhenTerminatedWithAReceivedMessageAndNoErrorDetail() {
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation("neg-1", ContractNegotiationStates.TERMINATED, null, null, receivedMessage())));
+        var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        poller.poll();
+        assertFailedWith(future, FailureKind.PROVIDER_REJECTION, XrdRuntimeException.class);
+    }
+
+    @Test
+    void awaitNegotiationFailsAsTransportFaultWhenTheStoredSendFailureHadNoHttpStatus() {
+        var errorDetail = "Failed to request contract to provider: " + EdcHttpClientException.class.getName() + ": timeout";
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.TERMINATED, null, errorDetail)));
+        var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        poller.poll();
+        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, XrdRuntimeException.class);
     }
 
     @Test
@@ -200,7 +220,7 @@ class AssetAccessCompletionPollerTest {
         clock.advanceTo(clock.instant().plusMillis(20));
         poller.poll();
 
-        assertThatThrownBy(future::join).hasCauseInstanceOf(TimeoutException.class);
+        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
     }
 
     @Test
@@ -212,7 +232,7 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThat(future.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(dataAddress);
+        assertThat(succeededValue(future)).isEqualTo(dataAddress);
     }
 
     @Test
@@ -223,15 +243,33 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
-                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
-                    assertThat(cause.getErrorCodeMetadata()).contains("tp-1");
-                    assertThat(cause.getDetails()).isEqualTo("provider terminated the transfer");
-                });
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+            assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+            assertThat(cause.getErrorCodeMetadata()).contains("tp-1");
+            assertThat(cause.getDetails()).isEqualTo("provider terminated the transfer");
+        });
+    }
+
+    @Test
+    void awaitTransferFailsAsProviderRejectionWhenTerminatedWithAReceivedMessage() {
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.TERMINATED, null, "provider free text", receivedMessage())));
+        var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+        poller.poll();
+        assertFailedWith(future, FailureKind.PROVIDER_REJECTION, XrdRuntimeException.class);
+    }
+
+    @Test
+    void awaitTransferFailsAsTransportFaultWhenTheStoredSendFailureHadNoHttpStatus() {
+        var errorDetail = EdcHttpClientException.class.getName() + ": Failed to connect to provider.test/192.0.2.1:80";
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.TERMINATED, null, errorDetail)));
+        var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+        poller.poll();
+        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, XrdRuntimeException.class);
     }
 
     @Test
@@ -249,13 +287,12 @@ class AssetAccessCompletionPollerTest {
                 Stream.of(buildTransferProcess(state, null, "send to provider failed")));
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
-                    assertThat(cause.getDetails()).isEqualTo("send to provider failed");
-                });
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+            assertThat(cause.getDetails()).isEqualTo("send to provider failed");
+        });
     }
 
     @Test
@@ -266,10 +303,10 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getDetails())
-                        .isEqualTo(DEFAULT_TERMINATION_DETAIL));
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class,
+                cause -> assertThat(cause.getDetails()).isEqualTo(DEFAULT_TERMINATION_DETAIL));
     }
 
     @Test
@@ -282,13 +319,12 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThatThrownBy(future::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataaddress_invalid");
-                    assertThat(cause.getDetails()).isEqualTo("no data address stored");
-                });
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataaddress_invalid");
+            assertThat(cause.getDetails()).isEqualTo("no data address stored");
+        });
     }
 
     @Test
@@ -309,7 +345,7 @@ class AssetAccessCompletionPollerTest {
         clock.advanceTo(clock.instant().plusMillis(20));
         poller.poll();
 
-        assertThatThrownBy(future::join).hasCauseInstanceOf(TimeoutException.class);
+        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
     }
 
     @Test
@@ -321,14 +357,13 @@ class AssetAccessCompletionPollerTest {
 
         assertThat(negotiationFuture).isDone();
         assertThat(transferFuture).isDone();
-        assertThatThrownBy(negotiationFuture::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_acquisition_failed");
-                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
-                });
-        assertThatThrownBy(transferFuture::join).hasCauseInstanceOf(XrdRuntimeException.class);
+        var failed = failedOutcome(negotiationFuture);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_acquisition_failed");
+            assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+        });
+        assertFailedWith(transferFuture, FailureKind.OTHER, XrdRuntimeException.class);
     }
 
     @Test
@@ -340,7 +375,7 @@ class AssetAccessCompletionPollerTest {
 
         verify(negotiationStore, never()).queryNegotiations(any());
         assertThat(future).isDone();
-        assertThatThrownBy(future::join).hasCauseInstanceOf(XrdRuntimeException.class);
+        assertFailedWith(future, FailureKind.OTHER, XrdRuntimeException.class);
     }
 
     @Test
@@ -352,14 +387,13 @@ class AssetAccessCompletionPollerTest {
 
         assertThat(negotiationFuture).isDone();
         assertThat(transferFuture).isDone();
-        assertThatThrownBy(negotiationFuture::join)
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var cause = (XrdRuntimeException) ex.getCause();
-                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_acquisition_failed");
-                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
-                });
-        assertThatThrownBy(transferFuture::join).hasCauseInstanceOf(XrdRuntimeException.class);
+        var failed = failedOutcome(negotiationFuture);
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+            assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_acquisition_failed");
+            assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+        });
+        assertFailedWith(transferFuture, FailureKind.OTHER, XrdRuntimeException.class);
 
         verifyNoInteractions(negotiationStore, transferProcessStore);
     }
@@ -377,7 +411,7 @@ class AssetAccessCompletionPollerTest {
 
         poller.poll();
 
-        assertThat(transferFuture.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(dataAddress);
+        assertThat(succeededValue(transferFuture)).isEqualTo(dataAddress);
         assertThat(negotiationFuture).isNotDone();
     }
 
@@ -427,7 +461,7 @@ class AssetAccessCompletionPollerTest {
 
             localPoller.poll();
 
-            assertThat(transferFuture.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(dataAddress);
+            assertThat(succeededValue(transferFuture)).isEqualTo(dataAddress);
             assertThat(negotiationFuture).isNotDone();
             assertThat(recordingContext.outcomes()).containsExactly(RecordingTransactionContext.Outcome.COMMITTED);
         } finally {
@@ -455,13 +489,12 @@ class AssetAccessCompletionPollerTest {
             localPoller.poll();
 
             assertThat(resolveDepth.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isZero();
-            assertThatThrownBy(() -> future.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS))
-                    .hasCauseInstanceOf(XrdRuntimeException.class)
-                    .satisfies(ex -> {
-                        var cause = (XrdRuntimeException) ex.getCause();
-                        assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataaddress_invalid");
-                        assertThat(cause.getDetails()).isEqualTo("vault unreachable");
-                    });
+            var failed = failedOutcome(future);
+            assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+            assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, cause -> {
+                assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_dataaddress_invalid");
+                assertThat(cause.getDetails()).isEqualTo("vault unreachable");
+            });
         } finally {
             localPoller.stop();
         }
@@ -483,8 +516,8 @@ class AssetAccessCompletionPollerTest {
         clock.advanceTo(clock.instant().plusMillis(20));
         poller.poll();
 
-        assertThatThrownBy(negotiationFuture::join).hasCauseInstanceOf(TimeoutException.class);
-        assertThatThrownBy(transferFuture::join).hasCauseInstanceOf(TimeoutException.class);
+        assertFailedWith(negotiationFuture, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
+        assertFailedWith(transferFuture, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
         verify(negotiationStore, times(3)).queryNegotiations(specWithId("neg-1"));
         verify(transferProcessStore, times(3)).findAll(specWithId("tp-1"));
 
@@ -503,7 +536,7 @@ class AssetAccessCompletionPollerTest {
             clock.advanceTo(clock.instant().plusMillis(20));
             localPoller.poll();
 
-            assertThatThrownBy(expiredFuture::join).hasCauseInstanceOf(TimeoutException.class);
+            assertFailedWith(expiredFuture, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
             assertThat(pendingFuture).isNotDone();
             verifyNoInteractions(negotiationStore, transferProcessStore);
         } finally {
@@ -519,7 +552,7 @@ class AssetAccessCompletionPollerTest {
 
         var registrationAttempted = new CountDownLatch(1);
         var releaseRegistration = new CountDownLatch(1);
-        var transferFutureRef = new AtomicReference<CompletableFuture<DataAddress>>();
+        var transferFutureRef = new AtomicReference<CompletableFuture<StageOutcome<DataAddress>>>();
 
         var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         negotiationFuture.whenComplete((result, throwable) -> {
@@ -542,10 +575,10 @@ class AssetAccessCompletionPollerTest {
 
         assertThat(stopThread.isAlive()).isFalse();
         assertThat(transferFutureRef.get()).isDone();
-        assertThatThrownBy(() -> transferFutureRef.get().join())
-                .hasCauseInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
-                        .isEqualTo("dataspace.dsp_acquisition_failed"));
+        var failed = failedOutcome(transferFutureRef.get());
+        assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
+        assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class,
+                cause -> assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_acquisition_failed"));
     }
 
     @Test
@@ -558,7 +591,7 @@ class AssetAccessCompletionPollerTest {
     @Test
     void pollWithMoreThanBatchSizeNegotiationWaitersQueriesInChunksOfBatchSize() throws Exception {
         var waiterCount = BATCH_SIZE + 1;
-        var futures = new HashMap<String, CompletableFuture<ContractAgreement>>();
+        var futures = new HashMap<String, CompletableFuture<StageOutcome<ContractAgreement>>>();
         var agreements = new HashMap<String, ContractAgreement>();
         for (int i = 0; i < waiterCount; i++) {
             var id = "neg-" + i;
@@ -581,7 +614,7 @@ class AssetAccessCompletionPollerTest {
         assertThat(chunkSizes).containsExactly(1, BATCH_SIZE);
 
         for (var entry : futures.entrySet()) {
-            assertThat(entry.getValue().get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isSameAs(agreements.get(entry.getKey()));
+            assertThat(succeededValue(entry.getValue())).isSameAs(agreements.get(entry.getKey()));
         }
     }
 
@@ -634,7 +667,26 @@ class AssetAccessCompletionPollerTest {
         clock.advanceTo(clock.instant().plusMillis(20));
         poller.poll();
 
-        assertThatThrownBy(future::join).hasCauseInstanceOf(TimeoutException.class);
+        assertFailedWith(future, FailureKind.TRANSPORT_FAULT, TimeoutException.class);
+    }
+
+    private static StageOutcome.Failed<?> failedOutcome(CompletableFuture<? extends StageOutcome<?>> future) {
+        var outcome = future.orTimeout(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS).join();
+        assertThat(outcome).isInstanceOf(StageOutcome.Failed.class);
+        return (StageOutcome.Failed<?>) outcome;
+    }
+
+    private static void assertFailedWith(CompletableFuture<? extends StageOutcome<?>> future, FailureKind kind,
+                                         Class<? extends Throwable> failureType) {
+        var failed = failedOutcome(future);
+        assertThat(failed.failureKind()).isEqualTo(kind);
+        assertThat(failed.failure()).isInstanceOf(failureType);
+    }
+
+    private static <T> T succeededValue(CompletableFuture<StageOutcome<T>> future) {
+        var outcome = future.orTimeout(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS).join();
+        assertThat(outcome).isInstanceOf(StageOutcome.Succeeded.class);
+        return ((StageOutcome.Succeeded<T>) outcome).value();
     }
 
     private ContractAgreement buildAgreement() {
@@ -654,7 +706,13 @@ class AssetAccessCompletionPollerTest {
 
     private ContractNegotiation buildNegotiation(String id, ContractNegotiationStates state, ContractAgreement agreement,
                                                   String errorDetail) {
+        return buildNegotiation(id, state, agreement, errorDetail, new ProtocolMessages());
+    }
+
+    private ContractNegotiation buildNegotiation(String id, ContractNegotiationStates state, ContractAgreement agreement,
+                                                  String errorDetail, ProtocolMessages protocolMessages) {
         return ContractNegotiation.Builder.newInstance()
+                .protocolMessages(protocolMessages)
                 .id(id)
                 .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
@@ -666,14 +724,26 @@ class AssetAccessCompletionPollerTest {
     }
 
     private TransferProcess buildTransferProcess(TransferProcessStates state, DataAddress dataAddress, String errorDetail) {
+        return buildTransferProcess(state, dataAddress, errorDetail, new ProtocolMessages());
+    }
+
+    private TransferProcess buildTransferProcess(TransferProcessStates state, DataAddress dataAddress, String errorDetail,
+                                                 ProtocolMessages protocolMessages) {
         if (dataAddress != null) {
             resolvableAddresses.put("tp-1", dataAddress);
         }
         return TransferProcess.Builder.newInstance()
                 .id("tp-1")
+                .protocolMessages(protocolMessages)
                 .state(state.code())
                 .errorDetail(errorDetail)
                 .build();
+    }
+
+    private static ProtocolMessages receivedMessage() {
+        var messages = new ProtocolMessages();
+        messages.addReceived("received-1");
+        return messages;
     }
 
     private static QuerySpec specWithId(String id) {

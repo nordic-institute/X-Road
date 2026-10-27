@@ -43,6 +43,9 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureClassifier;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
+import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -143,34 +146,37 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Registers a negotiation id to await; the returned future completes with the contract
-     * agreement once the negotiation reaches {@link ContractNegotiationStates#FINALIZED}, fails with
-     * the stored error detail once it reaches {@link ContractNegotiationStates#TERMINATING} or
-     * {@link ContractNegotiationStates#TERMINATED}, or fails with a timeout once {@code timeout}
-     * passes without a terminal state.
+     * Registers a negotiation id to await; the returned future never fails and completes with a
+     * {@link StageOutcome}: succeeded with the contract agreement once the negotiation reaches
+     * {@link ContractNegotiationStates#FINALIZED}; failed with the stored error detail and the kind
+     * {@link FailureClassifier} derives from the record once it reaches
+     * {@link ContractNegotiationStates#TERMINATING} or {@link ContractNegotiationStates#TERMINATED};
+     * failed with a timeout and {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes
+     * without a terminal state.
      */
-    public CompletableFuture<ContractAgreement> awaitNegotiation(String negotiationId, Duration timeout) {
+    public CompletableFuture<StageOutcome<ContractAgreement>> awaitNegotiation(String negotiationId, Duration timeout) {
         return register(negotiationWaiters, negotiationId, timeout);
     }
 
     /**
-     * Registers a transfer process id to await; the returned future completes with the data address
-     * resolved through {@link DataAddressStore} once the transfer reaches
-     * {@link TransferProcessStates#STARTED}, fails with the stored error detail once it reaches
+     * Registers a transfer process id to await; the returned future never fails and completes with a
+     * {@link StageOutcome}: succeeded with the data address resolved through {@link DataAddressStore}
+     * once the transfer reaches {@link TransferProcessStates#STARTED}; failed with the stored error
+     * detail and the kind {@link FailureClassifier} derives from the record once it reaches
      * {@link TransferProcessStates#TERMINATING}, {@link TransferProcessStates#TERMINATING_REQUESTED}
-     * or {@link TransferProcessStates#TERMINATED}, fails with {@code DSP_DATAADDRESS_INVALID} if a
-     * started transfer's data address cannot be resolved, or fails with a timeout once {@code timeout}
-     * passes without a terminal state.
+     * or {@link TransferProcessStates#TERMINATED}; failed with {@code DSP_DATAADDRESS_INVALID} and
+     * {@link FailureKind#OTHER} if a started transfer's data address cannot be resolved; failed with a
+     * timeout and {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes without a terminal state.
      */
-    public CompletableFuture<DataAddress> awaitTransfer(String transferProcessId, Duration timeout) {
+    public CompletableFuture<StageOutcome<DataAddress>> awaitTransfer(String transferProcessId, Duration timeout) {
         return register(transferWaiters, transferProcessId, timeout);
     }
 
-    private <T> CompletableFuture<T> register(Map<String, Waiter<T>> waiters, String id, Duration timeout) {
+    private <T> CompletableFuture<StageOutcome<T>> register(Map<String, Waiter<T>> waiters, String id, Duration timeout) {
         if (!active.get()) {
-            return CompletableFuture.failedFuture(acquisitionStoppedFailure(id));
+            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureKind.OTHER, acquisitionStoppedFailure(id)));
         }
-        var future = new CompletableFuture<T>();
+        var future = new CompletableFuture<StageOutcome<T>>();
         waiters.put(id, new Waiter<>(future, clock.instant().plus(timeout)));
         return future;
     }
@@ -309,7 +315,8 @@ public class AssetAccessCompletionPoller {
             if (state == ContractNegotiationStates.TERMINATING || state == ContractNegotiationStates.TERMINATED) {
                 monitor.debug("Negotiation %s reached %s".formatted(id, state));
                 var failure = negotiationFailure(id, errorDetailOrDefault(negotiation.getErrorDetail()));
-                completions.add(() -> failWaiter(negotiationWaiters, id, waiter, failure));
+                var failureKind = FailureClassifier.classify(negotiation);
+                completions.add(() -> failWaiter(negotiationWaiters, id, waiter, failureKind, failure));
                 return;
             }
         }
@@ -327,7 +334,8 @@ public class AssetAccessCompletionPoller {
             if (TRANSFER_FAILURE_STATES.contains(state)) {
                 monitor.debug("Transfer process %s reached %s".formatted(id, state));
                 var failure = transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail()));
-                completions.add(() -> failWaiter(transferWaiters, id, waiter, failure));
+                var failureKind = FailureClassifier.classify(transferProcess);
+                completions.add(() -> failWaiter(transferWaiters, id, waiter, failureKind, failure));
                 return;
             }
         }
@@ -341,7 +349,8 @@ public class AssetAccessCompletionPoller {
      */
     private <T> void checkDeadline(Map<String, Waiter<T>> waiters, List<Runnable> completions, String id, Waiter<T> waiter) {
         if (!clock.instant().isBefore(waiter.deadline())) {
-            completions.add(() -> failWaiter(waiters, id, waiter, new TimeoutException()));
+            var timeout = new TimeoutException();
+            completions.add(() -> failWaiter(waiters, id, waiter, FailureClassifier.classify(timeout), timeout));
         }
     }
 
@@ -357,12 +366,13 @@ public class AssetAccessCompletionPoller {
             try {
                 var resolved = dataAddressStore.resolve(transferProcess);
                 if (resolved.succeeded()) {
-                    waiter.future().complete(resolved.getContent());
+                    waiter.future().complete(new StageOutcome.Succeeded<>(resolved.getContent()));
                 } else {
-                    waiter.future().completeExceptionally(dataAddressResolutionFailure(id, resolved.getFailureDetail()));
+                    waiter.future().complete(new StageOutcome.Failed<>(FailureKind.OTHER,
+                            dataAddressResolutionFailure(id, resolved.getFailureDetail())));
                 }
             } catch (Exception e) {
-                waiter.future().completeExceptionally(dataAddressResolutionFailure(id, e.getMessage()));
+                waiter.future().complete(new StageOutcome.Failed<>(FailureKind.OTHER, dataAddressResolutionFailure(id, e.getMessage())));
             }
         });
     }
@@ -373,18 +383,19 @@ public class AssetAccessCompletionPoller {
 
     private <T> void completeWaiter(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, T value) {
         if (waiters.remove(id, waiter)) {
-            dispatch(() -> waiter.future().complete(value));
+            dispatch(() -> waiter.future().complete(new StageOutcome.Succeeded<>(value)));
         }
     }
 
-    private <T> void failWaiter(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, Throwable throwable) {
+    private <T> void failWaiter(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, FailureKind failureKind,
+                                Throwable throwable) {
         if (waiters.remove(id, waiter)) {
-            dispatch(() -> waiter.future().completeExceptionally(throwable));
+            dispatch(() -> waiter.future().complete(new StageOutcome.Failed<>(failureKind, throwable)));
         }
     }
 
     private <T> void failAllPending(Map<String, Waiter<T>> waiters) {
-        waiters.forEach((id, waiter) -> failWaiter(waiters, id, waiter, acquisitionStoppedFailure(id)));
+        waiters.forEach((id, waiter) -> failWaiter(waiters, id, waiter, FailureKind.OTHER, acquisitionStoppedFailure(id)));
     }
 
     /**
@@ -443,6 +454,6 @@ public class AssetAccessCompletionPoller {
                 .build();
     }
 
-    private record Waiter<T>(CompletableFuture<T> future, Instant deadline) {
+    private record Waiter<T>(CompletableFuture<StageOutcome<T>> future, Instant deadline) {
     }
 }
