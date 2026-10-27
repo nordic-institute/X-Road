@@ -52,12 +52,16 @@ import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureClassifier;
+import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
+import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
@@ -176,11 +180,19 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(
             ParticipantContext participantContext, AssetAccessRequest request, String registryKey) {
         return fetchCatalog(registryKey, participantContext, request)
-                .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId(), request.clientId()))
-                .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
-                        .thenCompose(agreement -> transferAndAwaitDataAddress(registryKey, participantContext, agreement,
-                                offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault())))
+                .thenCompose(outcome -> switch (outcome) {
+                    case StageOutcome.Succeeded(var catalog) -> acquireFromCatalog(registryKey, participantContext, request, catalog);
+                    case StageOutcome.Failed(_, var failure) -> CompletableFuture.failedFuture(failure);
+                })
                 .thenApply(ServiceResult::success);
+    }
+
+    private CompletableFuture<DataAddress> acquireFromCatalog(String registryKey, ParticipantContext participantContext,
+                                                              AssetAccessRequest request, Catalog catalog) {
+        var offer = findOffer(registryKey, catalog, request.assetId(), request.clientId());
+        return negotiateContract(registryKey, participantContext, request, offer)
+                .thenCompose(agreement -> transferAndAwaitDataAddress(registryKey, participantContext, agreement,
+                        offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault()));
     }
 
     private static QuerySpec datasetQuery(String assetId) {
@@ -189,33 +201,49 @@ public class AssetAccessOrchestrator {
                 .build();
     }
 
-    private CompletableFuture<Catalog> fetchCatalog(String key, ParticipantContext participantContext, AssetAccessRequest request) {
+    CompletableFuture<StageOutcome<Catalog>> fetchCatalog(String key, ParticipantContext participantContext,
+                                                          AssetAccessRequest request) {
         monitor.info("%s catalog fetch started".formatted(key));
         try {
             return catalogService.requestCatalog(participantContext, request.counterPartyId(), request.counterPartyAddress(),
                             request.protocolOrDefault(), datasetQuery(request.assetId()))
-                    .thenApply(result -> {
-                        if (result.failed()) {
-                            monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
-                            throw XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
-                                    .origin(ErrorOrigin.DATASPACE)
-                                    .details(result.getFailureDetail())
-                                    .build();
-                        }
-                        var catalog = parseCatalog(key, result.getContent());
-                        monitor.debug("%s catalog fetch succeeded: datasets=%d"
-                                .formatted(key, catalog.getDatasets().size()));
-                        return catalog;
-                    });
+                    .handle((result, failure) -> failure != null
+                            ? catalogFailed(key, failure)
+                            : catalogOutcome(key, result));
         } catch (EdcException e) {
             monitor.warning("%s catalog fetch failed with EDC exception".formatted(key), e);
-            return CompletableFuture.failedFuture(
+            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureClassifier.classify(e),
                     XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
                             .origin(ErrorOrigin.DATASPACE)
                             .cause(e)
                             .details(e.getMessage())
+                            .build()));
+        }
+    }
+
+    private StageOutcome<Catalog> catalogFailed(String key, Throwable failure) {
+        var failureKind = FailureClassifier.classify(failure);
+        monitor.warning("%s catalog fetch failed: failureKind=%s".formatted(key, failureKind), failure);
+        return new StageOutcome.Failed<>(failureKind, failure);
+    }
+
+    private StageOutcome<Catalog> catalogOutcome(String key, StatusResult<byte[]> result) {
+        if (result.failed()) {
+            monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
+            return new StageOutcome.Failed<>(FailureClassifier.classify(result),
+                    XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
+                            .origin(ErrorOrigin.DATASPACE)
+                            .details(result.getFailureDetail())
                             .build());
         }
+        Catalog catalog;
+        try {
+            catalog = parseCatalog(key, result.getContent());
+        } catch (XrdRuntimeException e) {
+            return new StageOutcome.Failed<>(FailureKind.OTHER, e);
+        }
+        monitor.debug("%s catalog fetch succeeded: datasets=%d".formatted(key, catalog.getDatasets().size()));
+        return new StageOutcome.Succeeded<>(catalog);
     }
 
     private Catalog parseCatalog(String key, byte[] catalogBytes) {
