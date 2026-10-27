@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface XRoadMemberRepository extends SecurityServerClientRepository<XRoadMemberEntity> {
@@ -44,4 +46,13 @@ public interface XRoadMemberRepository extends SecurityServerClientRepository<XR
      * @return XRoadMember or Optional.empty() if none exists
      */
     Optional<XRoadMemberEntity> findMember(ClientId clientId);
+
+    /**
+     * Finds the members corresponding to the client ids in one query. Ids of members that do not exist
+     * have no entry in the result.
+     *
+     * @param clientIds member or subsystem IDs
+     * @return the existing members, in no particular order
+     */
+    List<XRoadMemberEntity> findMembers(Collection<? extends ClientId> clientIds);
 }

@@ -48,10 +48,15 @@ import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
@@ -112,6 +117,16 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                 return row;
             }
         }
+    }
+
+    private record MemberKey(String instance, String memberClass, String memberCode) {
+        static MemberKey of(ClientId id) {
+            return new MemberKey(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
+        }
+    }
+
+    private record MemberDidBatch(Map<MemberKey, XRoadMemberEntity> members, Map<Long, MemberDidEntity> storedByMemberId,
+                                  Set<String> didsHeldElsewhere) {
     }
 
     private final SecurityServerRepository securityServerRepository;
@@ -217,62 +232,79 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private Map<ClientId, ParticipantValueResult> decideMemberDids(SecurityServerEntity server, Map<ClientId, String> memberDids,
                                                                    Mode mode, Effect effect) {
         var validator = new ParticipantValueValidator(registeredServerOf(server));
+        var batch = loadBatch(server, memberDids);
 
         var results = new LinkedHashMap<ClientId, ParticipantValueResult>();
-        memberDids.forEach((member, did) -> results.put(member, decideMemberDid(server, validator, member, did, mode, effect)));
+        memberDids.forEach((member, did) -> results.put(member, decideMemberDid(server, validator, batch, member, did, mode, effect)));
         return results;
     }
 
+    private MemberDidBatch loadBatch(SecurityServerEntity server, Map<ClientId, String> memberDids) {
+        if (memberDids.isEmpty()) {
+            return new MemberDidBatch(Map.of(), new HashMap<>(), Set.of());
+        }
+        var members = memberRepository.findMembers(memberDids.keySet()).stream()
+                .collect(toMap(entity -> MemberKey.of(entity.getIdentifier()), identity()));
+        var memberIds = members.values().stream().map(XRoadMemberEntity::getId).collect(toSet());
+        var storedByMemberId = new HashMap<Long, MemberDidEntity>();
+        if (!memberIds.isEmpty()) {
+            memberDidRepository.findBySecurityServerIdAndMemberIdIn(server.getId(), memberIds)
+                    .forEach(row -> storedByMemberId.put(row.getMember().getId(), row));
+        }
+        var dids = memberDids.values().stream().filter(Objects::nonNull).collect(toSet());
+        Set<String> didsHeldElsewhere = dids.isEmpty()
+                ? Set.of()
+                : new HashSet<>(memberDidRepository.findDidsHeldByOtherServers(dids, server.getId()));
+        return new MemberDidBatch(members, storedByMemberId, didsHeldElsewhere);
+    }
+
     private ParticipantValueResult decideMemberDid(SecurityServerEntity server, ParticipantValueValidator validator,
-                                                   ClientId member, String did, Mode mode, Effect effect) {
-        return switch (planMemberDid(server, validator, member, did, mode)) {
+                                                   MemberDidBatch batch, ClientId member, String did, Mode mode, Effect effect) {
+        return switch (planMemberDid(validator, batch, member, did, mode)) {
             case MemberDidPlan.Settled settled -> settled.result();
-            case MemberDidPlan.Writable writable -> decideWrite(server, member, did, writable, effect);
+            case MemberDidPlan.Writable writable -> decideWrite(server, batch, member, did, writable, effect);
         };
     }
 
-    private ParticipantValueResult decideWrite(SecurityServerEntity server, ClientId member, String did,
+    private ParticipantValueResult decideWrite(SecurityServerEntity server, MemberDidBatch batch, ClientId member, String did,
                                                MemberDidPlan.Writable plan, Effect effect) {
-        if (isDidHeldByAnotherServer(server, did)) {
+        if (batch.didsHeldElsewhere().contains(did)) {
             return effect == Effect.APPLY
                     ? heldByAnotherServer(server, member)
                     : ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
         }
         if (effect == Effect.APPLY) {
-            memberDidRepository.saveAndFlush(plan.rowFor(server, did));
+            var row = memberDidRepository.saveAndFlush(plan.rowFor(server, did));
+            batch.storedByMemberId().put(row.getMember().getId(), row);
         }
         return ParticipantValueResult.STORED;
     }
 
-    private MemberDidPlan planMemberDid(SecurityServerEntity server, ParticipantValueValidator validator,
+    private MemberDidPlan planMemberDid(ParticipantValueValidator validator, MemberDidBatch batch,
                                         ClientId member, String did, Mode mode) {
         var rejection = validator.validate(new MemberDid(member, did));
         if (rejection.isPresent()) {
             return new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection.get()));
         }
-        var memberEntity = memberRepository.findMember(member);
-        if (memberEntity.isEmpty()) {
+        var memberEntity = batch.members().get(MemberKey.of(member));
+        if (memberEntity == null) {
             return new MemberDidPlan.Settled(ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         }
 
-        var stored = memberDidRepository.findBySecurityServerIdAndMemberId(server.getId(), memberEntity.get().getId());
-        if (stored.isEmpty()) {
+        var stored = batch.storedByMemberId().get(memberEntity.getId());
+        if (stored == null) {
             return mode == Mode.ADMIN_REPLACE
                     ? new MemberDidPlan.Settled(ParticipantValueResult.UNCHANGED)
-                    : new MemberDidPlan.Insert(memberEntity.get());
+                    : new MemberDidPlan.Insert(memberEntity);
         }
-        var storedDid = stored.get().getDid();
+        var storedDid = stored.getDid();
         if (storedDid.equals(did)) {
             return new MemberDidPlan.Settled(ParticipantValueResult.UNCHANGED);
         }
         if (mode == Mode.WRITE_ONCE && !validator.isMemberDidStale(storedDid)) {
             return new MemberDidPlan.Settled(ParticipantValueResult.rejected(VALUE_DIFFERS));
         }
-        return new MemberDidPlan.Replace(stored.get());
-    }
-
-    private boolean isDidHeldByAnotherServer(SecurityServerEntity server, String did) {
-        return memberDidRepository.existsByDidAndSecurityServerIdNot(did, server.getId());
+        return new MemberDidPlan.Replace(stored);
     }
 
     private SecurityServerEntity lockAndLoad(int securityServerId) {

@@ -53,10 +53,12 @@ import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -65,7 +67,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -149,16 +150,22 @@ class ParticipantValueStoreImplTest {
         lenient().when(securityServerRepository.lockForUpdateById(SERVER_ID)).thenReturn(Optional.of(SERVER_ID));
         lenient().when(securityServerRepository.findById(SERVER_ID)).thenReturn(Optional.of(server));
         lenient().when(securityServerRepository.existsBySystemDidAndIdNot(anyString(), anyInt())).thenReturn(false);
-        lenient().when(memberRepository.findMember(any())).thenAnswer(invocation -> {
-            var requested = (ClientId) invocation.getArgument(0);
+        lenient().when(memberRepository.findMembers(any())).thenAnswer(invocation -> {
+            var requested = invocation.<Collection<? extends ClientId>>getArgument(0);
             return Stream.of(ownerEntity, clientEntity)
-                    .filter(entity -> entity.getIdentifier().getMemberCode().equals(requested.getMemberCode()))
-                    .findFirst();
+                    .filter(entity -> requested.stream()
+                            .anyMatch(id -> entity.getIdentifier().getMemberCode().equals(id.getMemberCode())))
+                    .toList();
         });
-        lenient().when(memberDidRepository.findBySecurityServerIdAndMemberId(eq(SERVER_ID), anyLong()))
-                .thenAnswer(invocation -> Optional.ofNullable(storedRows.get((Long) invocation.getArgument(1))));
-        lenient().when(memberDidRepository.existsByDidAndSecurityServerIdNot(anyString(), eq(SERVER_ID)))
-                .thenAnswer(invocation -> didsOfOtherServers.contains((String) invocation.getArgument(0)));
+        lenient().when(memberDidRepository.findBySecurityServerIdAndMemberIdIn(eq(SERVER_ID), any()))
+                .thenAnswer(invocation -> invocation.<Collection<Long>>getArgument(1).stream()
+                        .map(storedRows::get)
+                        .filter(Objects::nonNull)
+                        .toList());
+        lenient().when(memberDidRepository.findDidsHeldByOtherServers(any(), eq(SERVER_ID)))
+                .thenAnswer(invocation -> invocation.<Collection<String>>getArgument(0).stream()
+                        .filter(didsOfOtherServers::contains)
+                        .toList());
         lenient().when(memberDidRepository.saveAndFlush(any())).thenAnswer(invocation -> {
             var row = (MemberDidEntity) invocation.getArgument(0);
             storedRows.put(row.getMember().getId(), row);
@@ -583,9 +590,9 @@ class ParticipantValueStoreImplTest {
         order.verify(securityServerRepository).lockForUpdateById(SERVER_ID);
         order.verify(securityServerRepository).findById(SERVER_ID);
         order.verify(entityManager).refresh(server);
-        order.verify(memberDidRepository).findBySecurityServerIdAndMemberId(eq(SERVER_ID), anyLong());
-        order.verify(memberDidRepository).existsByDidAndSecurityServerIdNot(anyString(), eq(SERVER_ID));
-        order.verify(memberDidRepository).saveAndFlush(any());
+        order.verify(memberDidRepository).findBySecurityServerIdAndMemberIdIn(eq(SERVER_ID), any());
+        order.verify(memberDidRepository).findDidsHeldByOtherServers(any(), eq(SERVER_ID));
+        order.verify(memberDidRepository, times(2)).saveAndFlush(any());
     }
 
     @Test
