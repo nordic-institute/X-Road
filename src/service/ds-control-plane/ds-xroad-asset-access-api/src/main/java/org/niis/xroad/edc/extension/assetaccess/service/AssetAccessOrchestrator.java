@@ -98,7 +98,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
  * entirely and transfers with the existing agreement. When that transfer is refused at initiation or terminated
  * while awaited, the same acquisition falls back to a full negotiation, whose newer agreement wins reuse from
- * then on. A timeout waiting for the transfer to start is not a refusal and fails the acquisition.
+ * then on. A transport fault or a timeout waiting for the transfer to start is not a refusal and fails the acquisition.
  *
  * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
  * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
@@ -146,12 +146,15 @@ public class AssetAccessOrchestrator {
             var agreement = reusableAgreement.get();
             monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
                     .formatted(key, agreement.getId(), request.clientId() != null));
-            return transferAndAwaitDataAddress(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
+            return startTransfer(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
                     request.counterPartyAddress(), request.protocolOrDefault())
-                    .thenApply(ServiceResult::success)
-                    .exceptionallyCompose(failure -> isTransferRefusal(failure)
-                            ? negotiateAfterRefusal(key, participantContext, request, agreement, failure)
-                            : CompletableFuture.failedFuture(unwrap(failure)));
+                    .thenCompose(outcome -> switch (outcome) {
+                        case StageOutcome.Succeeded(var dataAddress) ->
+                                CompletableFuture.completedFuture(ServiceResult.success(dataAddress));
+                        case StageOutcome.Failed(var failureKind, var failure) -> isTransferRefusal(failureKind, failure)
+                                ? negotiateAfterRefusal(key, participantContext, request, agreement, failure)
+                                : CompletableFuture.<ServiceResult<DataAddress>>failedFuture(unwrap(failure));
+                    });
         }
         monitor.info("%s no reusable agreement found, negotiating".formatted(key));
         return executeAcquisition(participantContext, request, key);
@@ -165,8 +168,9 @@ public class AssetAccessOrchestrator {
         return executeAcquisition(participantContext, request, key);
     }
 
-    private static boolean isTransferRefusal(Throwable failure) {
-        return unwrap(failure) instanceof XrdRuntimeException xrdException && xrdException.isCausedBy(DSP_TRANSFER_FAILED);
+    private static boolean isTransferRefusal(FailureKind failureKind, Throwable failure) {
+        return failureKind != FailureKind.TRANSPORT_FAULT
+                && unwrap(failure) instanceof XrdRuntimeException xrdException && xrdException.isCausedBy(DSP_TRANSFER_FAILED);
     }
 
     private static Throwable unwrap(Throwable failure) {
@@ -382,6 +386,13 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<DataAddress> transferAndAwaitDataAddress(
             String key, ParticipantContext participantContext, ContractAgreement agreement,
             String transferType, String counterPartyAddress, String protocol) {
+        return startTransfer(key, participantContext, agreement, transferType, counterPartyAddress, protocol)
+                .thenCompose(AssetAccessOrchestrator::valueOrFailure);
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> startTransfer(
+            String key, ParticipantContext participantContext, ContractAgreement agreement,
+            String transferType, String counterPartyAddress, String protocol) {
         var transferRequest = TransferRequest.Builder.newInstance()
                 .contractId(agreement.getId())
                 .counterPartyAddress(counterPartyAddress)
@@ -394,37 +405,42 @@ public class AssetAccessOrchestrator {
             result = transferProcessService.initiateTransfer(participantContext, transferRequest);
         } catch (EdcException e) {
             monitor.warning("%s transfer initiate failed with EDC exception".formatted(key), e);
-            return CompletableFuture.failedFuture(
+            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureClassifier.classify(e),
                     XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
                             .origin(ErrorOrigin.DATASPACE)
                             .cause(e)
                             .details(e.getMessage())
-                            .build());
+                            .build()));
         }
 
         if (result.failed()) {
             monitor.warning("%s transfer initiate failed: %s".formatted(key, result.getFailureDetail()));
-            return CompletableFuture.failedFuture(
+            return CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureKind.OTHER,
                     XrdRuntimeException.systemException(DSP_TRANSFER_FAILED)
                             .origin(ErrorOrigin.DATASPACE)
                             .details(result.getFailureDetail())
-                            .build());
+                            .build()));
         }
 
         var transferProcessId = result.getContent().getId();
         monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
         return completionPoller.awaitTransfer(transferProcessId, transferTimeout)
-                .thenCompose(AssetAccessOrchestrator::valueOrFailure)
-                .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
+                .whenComplete((outcome, throwable) -> onTransferComplete(key, transferProcessId, outcome, throwable));
     }
 
-    private void onTransferComplete(String key, String transferProcessId, DataAddress dataAddress, Throwable throwable) {
+    private void onTransferComplete(String key, String transferProcessId, StageOutcome<DataAddress> outcome, Throwable throwable) {
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
-        } else if (dataAddress != null) {
-            monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
-            monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
+            return;
+        }
+        switch (outcome) {
+            case StageOutcome.Succeeded(var dataAddress) -> {
+                monitor.info("%s transfer completed: endpointType=%s".formatted(key, dataAddress.getType()));
+                monitor.debug("%s transfer completed DataAddress: %s".formatted(key, dataAddress));
+            }
+            case StageOutcome.Failed(_, var failure) ->
+                    monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), failure);
         }
     }
 

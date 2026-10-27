@@ -56,6 +56,7 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -254,6 +255,74 @@ class AssetAccessOrchestratorTest {
         verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
         assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
                 .containsExactly("agreement-1", "agreement-2");
+    }
+
+    @Test
+    void reusedAgreementTerminatedByProviderRejectionNegotiatesAfresh() throws Exception {
+        var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+        stubReusableAgreement("agreement-1");
+        stubCatalogAndTransformChain("asset-1");
+        stubNegotiationInitiation();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+        var receivedMessages = new ProtocolMessages();
+        receivedMessages.addReceived("received-1");
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation -> Stream.of(
+                TransferProcess.Builder.newInstance().id("tp-1").state(TransferProcessStates.TERMINATED.code())
+                        .protocolMessages(receivedMessages).build()));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-2"))));
+        var newAddress = startedAddress("tp-2", "http://provider/new");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+
+        assertThat(future.get(5, TimeUnit.SECONDS).getContent()).isSameAs(newAddress);
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(transferProcessService, times(2)).initiateTransfer(any(), any());
+    }
+
+    @Test
+    void reusedAgreementTerminatedByTransportFaultReturnsTheFailureWithoutRenegotiating() throws Exception {
+        var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+        stubReusableAgreement("agreement-1");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-1", EdcHttpClientException.class.getName() + ": Failed to connect to provider")));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_transfer_failed"));
+        verifyNoInteractions(catalogService);
+        verifyNoInteractions(contractNegotiationService);
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+    }
+
+    @Test
+    void reusedAgreementTransferInitiationFailingWithoutAResponseReturnsTheFailureWithoutRenegotiating() throws Exception {
+        var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
+        stubReusableAgreement("agreement-1");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenThrow(new EdcException(new EdcHttpClientException("no response", 0, null)));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_transfer_failed"));
+        verifyNoInteractions(catalogService);
+        verifyNoInteractions(contractNegotiationService);
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
     }
 
     @Test
