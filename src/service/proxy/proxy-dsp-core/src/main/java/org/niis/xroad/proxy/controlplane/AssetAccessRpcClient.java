@@ -39,6 +39,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
@@ -127,8 +128,9 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())
                 .setAssetId(cacheKey.assetId())
-                .setCounterPartyId(cacheKey.counterPartyId())
-                .setCounterPartyAddress(cacheKey.counterPartyAddress())
+                .addCandidates(AssetAccessCandidate.newBuilder()
+                        .setCounterPartyId(cacheKey.counterPartyId())
+                        .setCounterPartyAddress(cacheKey.counterPartyAddress()))
                 .setProtocol(cacheKey.protocol());
         if (cacheKey.consumerClientId() != null) {
             request.setClientId(cacheKey.consumerClientId());

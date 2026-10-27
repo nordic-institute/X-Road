@@ -162,8 +162,10 @@ class AssetAccessRpcClientTest {
         var request = capturedRequest.get();
         assertThat(request.getParticipantContextId()).isEqualTo("test-participant-ctx");
         assertThat(request.getAssetId()).isEqualTo("asset-1");
-        assertThat(request.getCounterPartyId()).isEqualTo("provider-1");
-        assertThat(request.getCounterPartyAddress()).isEqualTo("http://provider/dsp");
+        assertThat(request.getCandidatesList()).singleElement().satisfies(candidate -> {
+            assertThat(candidate.getCounterPartyId()).isEqualTo("provider-1");
+            assertThat(candidate.getCounterPartyAddress()).isEqualTo("http://provider/dsp");
+        });
         assertThat(request.getProtocol()).isEqualTo("http-dsp-profile-2025-1");
     }
 

@@ -28,9 +28,9 @@
 package org.niis.xroad.edc.extension.assetaccess.service;
 
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -71,12 +71,12 @@ class AssetAccessStateStoreTest {
 
     @Test
     void loadOrStartInFlightRemovesEntryOnCompletion() throws Exception {
-        var inner = new CompletableFuture<ServiceResult<DataAddress>>();
+        var inner = new CompletableFuture<AssetAccessResult>();
         var future = store.loadOrStartInFlight("k", () -> inner);
 
         assertThat(future).isNotNull();
 
-        inner.complete(ServiceResult.success(DataAddress.Builder.newInstance().type("HttpData").build()));
+        inner.complete(resultOf(DataAddress.Builder.newInstance().type("HttpData").build()));
         future.get();
 
         // After completion, a new call with the same key should invoke the supplier again
@@ -90,7 +90,7 @@ class AssetAccessStateStoreTest {
 
     @Test
     void loadOrStartInFlightDoesNotCacheFutureAlreadyCompletedByItsSupplier() {
-        var failed = CompletableFuture.<ServiceResult<DataAddress>>failedFuture(new RuntimeException("boom"));
+        var failed = CompletableFuture.<AssetAccessResult>failedFuture(new RuntimeException("boom"));
         var first = store.loadOrStartInFlight("k", () -> failed);
         assertThat(first).isCompletedExceptionally();
 
@@ -158,19 +158,19 @@ class AssetAccessStateStoreTest {
             var taskA = executor.submit(() -> store.loadOrStartInFlight("key-a", () -> {
                 supplierStarted.countDown();
                 awaitLatch(release);
-                return CompletableFuture.completedFuture(ServiceResult.success(addressA));
+                return CompletableFuture.completedFuture(resultOf(addressA));
             }));
 
             assertThat(supplierStarted.await(2, TimeUnit.SECONDS)).isTrue();
 
             var addressB = DataAddress.Builder.newInstance().type("HttpData").build();
             var futureB = assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
-                    store.loadOrStartInFlight("key-b", () -> CompletableFuture.completedFuture(ServiceResult.success(addressB))));
-            assertThat(futureB.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(addressB);
+                    store.loadOrStartInFlight("key-b", () -> CompletableFuture.completedFuture(resultOf(addressB))));
+            assertThat(futureB.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(addressB);
 
             release.countDown();
             var futureA = taskA.get(2, TimeUnit.SECONDS);
-            assertThat(futureA.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(addressA);
+            assertThat(futureA.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(addressA);
         } finally {
             executor.shutdownNow();
         }
@@ -205,7 +205,7 @@ class AssetAccessStateStoreTest {
             var taskA = executor.submit(() -> store.loadOrStartInFlight("key-a", () -> {
                 supplierStarted.countDown();
                 awaitLatch(release);
-                return CompletableFuture.completedFuture(ServiceResult.success(address));
+                return CompletableFuture.completedFuture(resultOf(address));
             }));
 
             assertThat(supplierStarted.await(2, TimeUnit.SECONDS)).isTrue();
@@ -219,8 +219,8 @@ class AssetAccessStateStoreTest {
             var first = taskA.get(2, TimeUnit.SECONDS);
 
             assertThat(second).isSameAs(first);
-            assertThat(first.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(address);
-            assertThat(second.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(address);
+            assertThat(first.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(address);
+            assertThat(second.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(address);
         } finally {
             executor.shutdownNow();
         }
@@ -232,5 +232,9 @@ class AssetAccessStateStoreTest {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static AssetAccessResult resultOf(DataAddress dataAddress) {
+        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "provider"));
     }
 }
