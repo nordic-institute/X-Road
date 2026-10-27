@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.identityhub.provisioning;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
@@ -71,10 +72,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -96,6 +99,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 /**
  * Provisions a member through the gRPC service over the upstream participant-context service while one
@@ -213,7 +217,7 @@ class ProvisioningRollbackTest {
 
     @ParameterizedTest
     @EnumSource(FailingStep.class)
-    void failingStepIsReportedAsErrorNamingTheStep(FailingStep step) {
+    void failingStepIsReportedAsProvisioningFailure(FailingStep step) throws InvalidProtocolBufferException {
         failingStep.set(step);
 
         service.createParticipantContext(createRequest(), observer);
@@ -221,7 +225,7 @@ class ProvisioningRollbackTest {
         var error = ArgumentCaptor.forClass(Throwable.class);
         verify(observer).onError(error.capture());
         verify(observer, never()).onCompleted();
-        assertThat(StatusProto.fromThrowable(error.getValue()).getMessage()).contains(step.detail);
+        assertProvisioningFailure(error.getValue(), step.detail);
     }
 
     @ParameterizedTest
@@ -261,7 +265,7 @@ class ProvisioningRollbackTest {
 
     @ParameterizedTest
     @EnumSource(ConflictingStep.class)
-    void conflictingStepIsReportedAsErrorNotAsExistingMember(ConflictingStep step) {
+    void conflictingStepIsReportedAsErrorNotAsExistingMember(ConflictingStep step) throws InvalidProtocolBufferException {
         conflictingStep.set(step);
 
         service.createParticipantContext(createRequest(), observer);
@@ -270,7 +274,7 @@ class ProvisioningRollbackTest {
         verify(observer).onError(error.capture());
         verify(observer, never()).onNext(any());
         verify(observer, never()).onCompleted();
-        assertThat(StatusProto.fromThrowable(error.getValue()).getMessage()).contains(step.detail);
+        assertProvisioningFailure(error.getValue(), step.detail);
     }
 
     @ParameterizedTest
@@ -306,6 +310,19 @@ class ProvisioningRollbackTest {
         assertThat(didDocuments).containsOnlyKeys(DID);
         assertThat(keyMaterial).containsOnlyKeys(KEY_ID);
         assertThat(memberIdConfig.find(PARTICIPANT_CONTEXT_ID)).contains(MEMBER_ID);
+    }
+
+    private static void assertProvisioningFailure(Throwable error, String detail) throws InvalidProtocolBufferException {
+        var status = StatusProto.fromThrowable(error);
+        assertThat(status).isNotNull();
+        assertThat(status.getMessage()).contains(detail);
+        var details = status.getDetailsList().stream()
+                .filter(packed -> packed.is(XrdRuntimeExceptionProto.class))
+                .findFirst()
+                .orElseThrow()
+                .unpack(XrdRuntimeExceptionProto.class);
+        assertThat(details.getErrorCode()).isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + DSP_PARTICIPANT_CONTEXT_FAILED.code());
+        assertThat(details.getErrorMetadataList()).contains(PARTICIPANT_CONTEXT_ID);
     }
 
     private static CreateParticipantContextReq createRequest() {
