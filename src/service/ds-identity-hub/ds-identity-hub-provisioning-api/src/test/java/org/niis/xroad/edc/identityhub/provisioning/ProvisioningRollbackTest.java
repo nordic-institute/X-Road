@@ -391,6 +391,7 @@ class ProvisioningRollbackTest {
 
         @Override
         public void registerSynchronization(TransactionSynchronization sync) {
+            throw new UnsupportedOperationException();
         }
 
         void onRollback(Runnable action) {

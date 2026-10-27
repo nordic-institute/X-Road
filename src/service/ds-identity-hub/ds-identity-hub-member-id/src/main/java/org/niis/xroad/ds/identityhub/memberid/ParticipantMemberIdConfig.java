@@ -31,8 +31,12 @@ import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextCon
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Optional;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 /**
  * Answers which X-Road member a participant context belongs to. The canonical {@code INSTANCE/CLASS/CODE}
@@ -49,12 +53,21 @@ public class ParticipantMemberIdConfig {
     }
 
     /**
-     * Returns the stored member id, or empty when the context has none or its configuration cannot be read.
+     * Returns the stored member id, or empty when the context has no configuration or no member id entry.
+     *
+     * @throws XrdRuntimeException when the configuration cannot be read for any other reason
      */
     public Optional<String> find(String participantContextId) {
         var config = configService.get(participantContextId);
         if (config.failed()) {
-            return Optional.empty();
+            if (config.reason() == ServiceFailure.Reason.NOT_FOUND) {
+                return Optional.empty();
+            }
+            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .metadataItems(participantContextId)
+                    .details(config.getFailureDetail())
+                    .build();
         }
         return Optional.ofNullable(config.getContent().getPrivateEntries().get(MEMBER_ID_KEY));
     }

@@ -33,13 +33,18 @@ import org.eclipse.edc.participantcontext.config.service.ParticipantContextConfi
 import org.eclipse.edc.participantcontext.config.validation.ParticipantContextConfigValidatorRegistryImpl;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ParticipantMemberIdConfigTest {
 
@@ -85,6 +90,16 @@ class ParticipantMemberIdConfigTest {
                 .participantContextId(CONTEXT_ID).privateEntry("other", "value").build());
 
         assertThat(memberIdConfig.find(CONTEXT_ID)).isEmpty();
+    }
+
+    @Test
+    void unexpectedConfigurationReadFailureIsAnErrorNotAMissingMemberId() {
+        var failingService = mock(ParticipantContextConfigService.class);
+        when(failingService.get(CONTEXT_ID)).thenReturn(ServiceResult.unexpected("store unavailable"));
+
+        assertThatThrownBy(() -> new ParticipantMemberIdConfig(failingService).find(CONTEXT_ID))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("store unavailable");
     }
 
     @Test

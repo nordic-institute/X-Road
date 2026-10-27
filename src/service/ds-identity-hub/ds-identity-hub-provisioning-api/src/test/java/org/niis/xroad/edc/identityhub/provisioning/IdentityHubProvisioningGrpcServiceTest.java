@@ -48,6 +48,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
@@ -78,6 +79,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class IdentityHubProvisioningGrpcServiceTest {
@@ -212,6 +214,27 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(createObserver, never()).onCompleted();
+    }
+
+    @Test
+    void createParticipantContextFailsWithoutWritingWhenMemberIdReadFailsOnConflictAndReanchorFlagNotSet() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenThrow(XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED)
+                .details("store unavailable")
+                .build());
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
+        verify(memberIdConfig, never()).save(anyString(), anyString());
     }
 
     @ParameterizedTest

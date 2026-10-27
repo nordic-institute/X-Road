@@ -166,11 +166,10 @@ class SsMemberDeprovisioningTest extends E2eTest {
     private static final String DID_DOCUMENT_PATH = "/v1/" + X_ROAD_INSTANCE + "/" + MEMBER_CLASS + "/" + MEMBER_CODE + "/did.json";
 
     /**
-     * The identity hub's {@code did:web} resolver returns a {@code null} document for an unpublished
-     * DID, which its JAX-RS runtime serializes as {@code 204 No Content} with an empty body — never a
-     * {@code 404}.
+     * The identity hub's {@code did:web} endpoint answers {@code 404 Not Found} for a DID that is no
+     * longer published: its controller raises an object-not-found error for an unknown DID.
      */
-    private static final int DID_NOT_FOUND_STATUS = 204;
+    private static final int DID_NOT_FOUND_STATUS = 404;
 
     private record GeneratedCsr(String keyId, String csrId) {
     }

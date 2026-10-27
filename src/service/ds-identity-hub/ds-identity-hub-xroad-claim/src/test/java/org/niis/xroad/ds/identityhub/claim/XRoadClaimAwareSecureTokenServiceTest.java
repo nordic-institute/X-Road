@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 
 import java.util.HashMap;
@@ -47,6 +48,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -55,6 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 class XRoadClaimAwareSecureTokenServiceTest {
 
@@ -143,6 +146,20 @@ class XRoadClaimAwareSecureTokenServiceTest {
         wrapper.createToken(CONTEXT_ID, new HashMap<>(Map.of("aud", ISSUER_DID)), null);
 
         verify(signer, never()).sign(any(), anyString(), any());
+    }
+
+    @Test
+    void failsWithoutCreatingATokenWhenMemberIdCannotBeRead() {
+        stubParticipantContextWithoutMemberId();
+        when(memberIdConfig.find(CONTEXT_ID)).thenThrow(XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED)
+                .details("store unavailable")
+                .build());
+
+        Result<TokenRepresentation> result = wrapper.createToken(CONTEXT_ID, new HashMap<>(Map.of("aud", ISSUER_DID)), null);
+
+        assertTrue(result.failed());
+        verify(signer, never()).sign(any(), anyString(), any());
+        verify(delegate, never()).createToken(anyString(), anyMap(), any());
     }
 
     private void stubParticipantContextWithMemberId(String memberId) {

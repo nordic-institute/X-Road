@@ -36,6 +36,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 
 import java.util.HashMap;
@@ -56,7 +57,8 @@ import java.util.Map;
  *
  * <p>If the member id is absent or malformed for a given participant context, the request
  * proceeds unchanged (the issuer-side attestation will then ERROR with {@code CLAIM_MISSING},
- * which surfaces the misconfiguration explicitly).
+ * which surfaces the misconfiguration explicitly). If the member id cannot be read at all, token creation
+ * fails instead, so a transient read failure never yields a token without the claim.
  */
 public class XRoadClaimAwareSecureTokenService implements ParticipantSecureTokenService {
 
@@ -91,7 +93,13 @@ public class XRoadClaimAwareSecureTokenService implements ParticipantSecureToken
     public Result<TokenRepresentation> createToken(String participantContextId,
                                                    Map<String, String> claims,
                                                    String audience) {
-        Map<String, String> enrichedClaims = withXRoadClaim(participantContextId, claims);
+        Map<String, String> enrichedClaims;
+        try {
+            enrichedClaims = withXRoadClaim(participantContextId, claims);
+        } catch (XrdRuntimeException e) {
+            return Result.failure("Failed to read the member id of participant context '"
+                    + participantContextId + "': " + e.getMessage());
+        }
         return delegate.createToken(participantContextId, enrichedClaims, audience);
     }
 
