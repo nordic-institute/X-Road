@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
+import com.google.common.base.Ticker;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
@@ -83,6 +84,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
 import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
@@ -120,6 +122,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AssetAccessOrchestratorTest {
 
+    private static final Duration COOLDOWN_PERIOD = Duration.ofSeconds(180);
+
     @Mock
     CatalogService catalogService;
     @Mock
@@ -145,6 +149,9 @@ class AssetAccessOrchestratorTest {
 
     AssetAccessOrchestrator orchestrator;
 
+    private final FakeTicker ticker = new FakeTicker();
+    private final CooldownTracker cooldownTracker = new CooldownTracker(COOLDOWN_PERIOD, ticker);
+
     private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
 
     @BeforeEach
@@ -160,7 +167,7 @@ class AssetAccessOrchestratorTest {
         completionPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
                 new NoopTransactionContext(), ExecutorInstrumentation.noop(), Clock.systemUTC(), monitor, Duration.ofMillis(250));
         orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
-                catalogService, contractNegotiationService, transferProcessService, completionPoller,
+                catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
                 jsonLd, transformerRegistry, monitor,
                 Duration.ofSeconds(60), Duration.ofSeconds(60));
     }
@@ -341,7 +348,7 @@ class AssetAccessOrchestratorTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
-                catalogService, contractNegotiationService, transferProcessService, completionPoller,
+                catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
                 jsonLd, transformerRegistry, monitor, Duration.ofSeconds(60), Duration.ZERO);
 
         var future = impatient.acquireAssetAccess(buildParticipantContext(), request);
@@ -965,6 +972,121 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
+    void transportFaultMarksTheServerSoTheNextAcquisitionSkipsItAndUsesTheSibling() throws Exception {
+        stubTransportFaultAtCatalog("provider-1");
+        stubReusableAgreementAt("provider-2");
+        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        var first = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(first);
+        first.get(5, TimeUnit.SECONDS);
+
+        var second = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(second);
+
+        var result = second.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-2");
+
+        verify(catalogService, times(1)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void serverIsACandidateAgainOnceTheCooldownPeriodHasExpired() throws Exception {
+        stubTransportFaultAtCatalog("provider-1");
+        stubReusableAgreementAt("provider-2");
+        startedAddress("tp-2", "http://provider-2.example.org/data");
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        var first = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(first);
+        first.get(5, TimeUnit.SECONDS);
+
+        ticker.advance(COOLDOWN_PERIOD);
+
+        var second = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(second);
+        second.get(5, TimeUnit.SECONDS);
+
+        verify(catalogService, times(2)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void everyCandidateInCooldownAreAllTriedOnTheNextAcquisition() {
+        var noResponse = new EdcHttpClientException("no response", 0, null);
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(noResponse));
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        verify(catalogService, times(2)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+        verify(catalogService, times(2)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
+    }
+
+    @Test
+    void loneCandidateIsMarkedOnATransportFaultAndStillUsedOnTheNextCall() {
+        stubTransportFaultAtCatalog("provider-1");
+        var request = requestForCandidates("provider-1");
+
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
+
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        verify(catalogService, times(2)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void providerRejectionDoesNotMarkTheServer() {
+        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(
+                        StatusResult.failure(ResponseStatus.FATAL_ERROR, "Counter Party responded with 403")));
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
+
+        verify(catalogService, times(2)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
+    }
+
+    @Test
+    void providerServerErrorDoesNotMarkTheServer() {
+        when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(new EdcHttpClientException("server error", 503, null)));
+        var request = requestForCandidates("provider-1", "provider-2");
+
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
+
+        verify(catalogService, times(2)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
+    }
+
+    private void stubTransportFaultAtCatalog(String counterPartyId) {
+        when(catalogService.requestCatalog(any(), eq(counterPartyId), any(), any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(new EdcHttpClientException("no response", 0, null)));
+    }
+
+    private void stubReusableAgreementAt(String counterPartyId) {
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", counterPartyId, null))
+                .thenReturn(Optional.of(buildAgreement("agreement-for-" + counterPartyId)));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+    }
+
+    @Test
     void concurrentAcquisitionsForTheSameCandidateSetInDifferentOrderShareOneInFlightEntry() {
         var pending = new CompletableFuture<StatusResult<byte[]>>();
         when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenReturn(pending);
@@ -1320,5 +1442,16 @@ class AssetAccessOrchestratorTest {
         var dataset = Dataset.Builder.newInstance().id(assetId).distribution(distribution);
         offers.forEach(dataset::offer);
         return Catalog.Builder.newInstance().dataset(dataset.build()).build();
+    }
+
+    private static final class FakeTicker extends Ticker {
+        private long ticks;
+        @Override
+        public long read() {
+            return ticks;
+        }
+        private void advance(Duration duration) {
+            ticks += duration.toNanos();
+        }
     }
 }

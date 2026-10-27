@@ -60,6 +60,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureClassifier;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
 import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
@@ -121,6 +122,7 @@ public class AssetAccessOrchestrator {
     private final ContractNegotiationService contractNegotiationService;
     private final TransferProcessService transferProcessService;
     private final AssetAccessCompletionPoller completionPoller;
+    private final CooldownTracker cooldownTracker;
     private final JsonLd jsonLd;
     private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
@@ -130,8 +132,9 @@ public class AssetAccessOrchestrator {
     /**
      * Acquires access to an asset from the first candidate that answers, de-duplicating concurrent requests
      * for the same participant+asset+candidate set(+forced target)(+client) key. Candidates are tried in the
-     * order given. A transport fault moves on to the next candidate; any other failure is returned at once,
-     * so no other candidate is contacted after a provider answered.
+     * order given, skipping those in cooldown unless every candidate is. A transport fault puts the candidate in
+     * cooldown and moves on to the next; any other failure is returned at once, so no other candidate is
+     * contacted after a provider answered.
      */
     public CompletableFuture<AssetAccessResult> acquireAssetAccess(ParticipantContext participantContext,
                                                                    AssetAccessRequest request) {
@@ -139,7 +142,9 @@ public class AssetAccessOrchestrator {
         monitor.info("%s acquireAssetAccess entered: candidates=%d protocol=%s"
                 .formatted(key, request.candidates().size(), request.protocolOrDefault()));
         return stateStore.loadOrStartInFlight(key,
-                () -> acquireFromCandidate(key, participantContext, request, 0, new ArrayList<>()));
+                () -> acquireFromCandidate(key, participantContext, request,
+                        cooldownTracker.selectable(request.candidates(), AssetAccessRequest.Candidate::counterPartyAddress),
+                        0, new ArrayList<>()));
     }
 
     private static String registryKey(ParticipantContext participantContext, AssetAccessRequest request) {
@@ -155,12 +160,12 @@ public class AssetAccessOrchestrator {
     }
 
     private CompletableFuture<AssetAccessResult> acquireFromCandidate(
-            String key, ParticipantContext participantContext, AssetAccessRequest request, int index,
-            List<Throwable> transportFailures) {
-        if (index >= request.candidates().size()) {
-            return CompletableFuture.failedFuture(allCandidatesFailed(key, request.candidates().size(), transportFailures));
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            List<AssetAccessRequest.Candidate> candidates, int index, List<Throwable> transportFailures) {
+        if (index >= candidates.size()) {
+            return CompletableFuture.failedFuture(allCandidatesFailed(key, candidates.size(), transportFailures));
         }
-        var candidate = request.candidates().get(index);
+        var candidate = candidates.get(index);
         return attemptCandidate(key, participantContext, request, candidate)
                 .thenCompose(outcome -> switch (outcome) {
                     case StageOutcome.Succeeded(var dataAddress) -> CompletableFuture.completedFuture(
@@ -168,8 +173,9 @@ public class AssetAccessOrchestrator {
                     case StageOutcome.Failed(var failureKind, var failure) when failureKind == FailureKind.TRANSPORT_FAULT -> {
                         monitor.warning("%s candidate unreachable, trying next: counterPartyId=%s counterPartyAddress=%s"
                                 .formatted(key, candidate.counterPartyId(), candidate.counterPartyAddress()), failure);
+                        cooldownTracker.markFailed(candidate.counterPartyAddress());
                         transportFailures.add(unwrap(failure));
-                        yield acquireFromCandidate(key, participantContext, request, index + 1, transportFailures);
+                        yield acquireFromCandidate(key, participantContext, request, candidates, index + 1, transportFailures);
                     }
                     case StageOutcome.Failed(_, var failure) -> CompletableFuture.<AssetAccessResult>failedFuture(unwrap(failure));
                 });
