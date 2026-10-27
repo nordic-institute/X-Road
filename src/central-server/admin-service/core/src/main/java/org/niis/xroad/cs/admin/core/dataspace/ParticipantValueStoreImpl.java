@@ -119,13 +119,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         }
     }
 
-    private record MemberKey(String instance, String memberClass, String memberCode) {
-        static MemberKey of(ClientId id) {
-            return new MemberKey(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
-        }
-    }
-
-    private record MemberDidBatch(Map<MemberKey, XRoadMemberEntity> members, Map<Long, MemberDidEntity> storedByMemberId,
+    private record MemberDidBatch(Map<ClientId, XRoadMemberEntity> members, Map<Long, MemberDidEntity> storedByMemberId,
                                   Set<String> didsHeldElsewhere) {
     }
 
@@ -243,8 +237,8 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         if (memberDids.isEmpty()) {
             return new MemberDidBatch(Map.of(), new HashMap<>(), Set.of());
         }
-        var members = memberRepository.findMembers(memberDids.keySet()).stream()
-                .collect(toMap(entity -> MemberKey.of(entity.getIdentifier()), identity()));
+        Map<ClientId, XRoadMemberEntity> members = memberRepository.findMembers(memberDids.keySet()).stream()
+                .collect(toMap(XRoadMemberEntity::getIdentifier, identity()));
         var memberIds = members.values().stream().map(XRoadMemberEntity::getId).collect(toSet());
         var storedByMemberId = new HashMap<Long, MemberDidEntity>();
         if (!memberIds.isEmpty()) {
@@ -286,7 +280,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         if (rejection.isPresent()) {
             return new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection.get()));
         }
-        var memberEntity = batch.members().get(MemberKey.of(member));
+        var memberEntity = batch.members().get(member.getMemberId());
         if (memberEntity == null) {
             return new MemberDidPlan.Settled(ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         }
