@@ -27,7 +27,6 @@
 
 package org.niis.xroad.edc.extension.policy.controlplane.participantagent;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
@@ -35,6 +34,7 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

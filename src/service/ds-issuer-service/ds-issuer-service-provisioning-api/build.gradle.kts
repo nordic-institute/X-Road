@@ -19,7 +19,6 @@ dependencies {
   testImplementation(project(":lib:bootstrap-edc-quarkus"))
   testImplementation(project(":lib:globalconf-core"))
   testImplementation(libs.bouncyCastle.bcpkix)
-  testImplementation(libs.edc.lib.jsonld)
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.jupiter)

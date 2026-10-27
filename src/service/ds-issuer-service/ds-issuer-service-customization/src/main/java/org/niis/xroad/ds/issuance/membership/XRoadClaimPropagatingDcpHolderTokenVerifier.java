@@ -27,8 +27,6 @@
 
 package org.niis.xroad.ds.issuance.membership;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.protocols.dcp.spi.DcpHolderTokenVerifier;
 import org.eclipse.edc.identityhub.protocols.dcp.spi.model.DcpRequestContext;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
@@ -36,6 +34,10 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -60,7 +62,7 @@ public class XRoadClaimPropagatingDcpHolderTokenVerifier implements DcpHolderTok
 
     static final String JWT_CLAIM_TYPE = "jwt";
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
     private static final TypeReference<Map<String, Object>> CLAIMS_TYPE = new TypeReference<>() {
     };
 
@@ -101,7 +103,7 @@ public class XRoadClaimPropagatingDcpHolderTokenVerifier implements DcpHolderTok
             byte[] payload = Base64.getUrlDecoder().decode(parts[1]);
             Map<String, Object> claims = OBJECT_MAPPER.readValue(new String(payload, StandardCharsets.UTF_8), CLAIMS_TYPE);
             return ServiceResult.success(ClaimToken.Builder.newInstance().claims(claims).build());
-        } catch (IllegalArgumentException | java.io.IOException e) {
+        } catch (IllegalArgumentException | JacksonException e) {
             monitor.warning("X-Road claim propagation: failed to decode JWT payload: " + e.getMessage());
             return ServiceResult.badRequest("Failed to decode JWT payload");
         }

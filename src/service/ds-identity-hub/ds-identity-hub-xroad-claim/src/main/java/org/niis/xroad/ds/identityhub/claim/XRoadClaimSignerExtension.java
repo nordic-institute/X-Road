@@ -31,6 +31,7 @@ import org.eclipse.edc.iam.decentralizedclaims.sts.service.StsClientTokenGenerat
 import org.eclipse.edc.iam.decentralizedclaims.sts.spi.service.StsClientTokenGeneratorService;
 import org.eclipse.edc.identityhub.spi.authentication.ParticipantSecureTokenService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -38,6 +39,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 
@@ -94,6 +96,9 @@ public class XRoadClaimSignerExtension implements ServiceExtension {
     private IdentityHubParticipantContextService participantContextService;
 
     @Inject
+    private ParticipantContextConfigService participantContextConfigService;
+
+    @Inject
     private SignerRpcClient signerRpcClient;
 
     @Inject
@@ -113,7 +118,8 @@ public class XRoadClaimSignerExtension implements ServiceExtension {
                 signerRpcClient, signerSignClient,
                 new MemberClaimSignerProperties(claimLifetimeSeconds), clock);
         var wrapper = new XRoadClaimAwareSecureTokenService(
-                delegate, participantContextService, signer, context.getMonitor());
+                delegate, participantContextService, new ParticipantMemberIdConfig(participantContextConfigService),
+                signer, context.getMonitor());
         context.registerService(ParticipantSecureTokenService.class, wrapper);
         context.getMonitor().info("X-Road MemberId claim signer installed");
     }

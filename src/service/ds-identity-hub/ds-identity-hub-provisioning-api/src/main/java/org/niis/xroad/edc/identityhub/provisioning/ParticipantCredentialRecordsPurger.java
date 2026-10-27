@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -35,8 +34,10 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
+import java.util.function.Supplier;
 
 /**
  * Purges verifiable-credential and holder credential-request records left behind by a deleted
@@ -63,7 +64,8 @@ class ParticipantCredentialRecordsPurger extends AbstractSqlStore {
     private final CredentialStore credentialStore;
 
     ParticipantCredentialRecordsPurger(CredentialStore credentialStore, DataSourceRegistry dataSourceRegistry, String dataSourceName,
-                                       TransactionContext transactionContext, ObjectMapper objectMapper, QueryExecutor queryExecutor) {
+                                       TransactionContext transactionContext, Supplier<ObjectMapper> objectMapper,
+                                       QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.credentialStore = credentialStore;
     }
@@ -86,7 +88,7 @@ class ParticipantCredentialRecordsPurger extends AbstractSqlStore {
                     .formatted(participantContextId, result.getFailureDetail()));
         }
         var credentials = result.getContent();
-        credentials.forEach(vc -> credentialStore.deleteById(vc.getId()));
+        credentials.forEach(vc -> credentialStore.deleteById(participantContextId, vc.getId()));
         return credentials.size();
     }
 

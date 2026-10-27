@@ -27,7 +27,6 @@
 
 package org.niis.xroad.edc.extension.store.contractnegotiation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -35,7 +34,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +42,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.XRoadContractNegotiationStatements;
+import tools.jackson.databind.ObjectMapper;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -73,9 +73,6 @@ class XRoadContractNegotiationStoreTest {
     private XRoadContractNegotiationStatements statements;
 
     @Mock
-    private SqlLeaseContextBuilder leaseContext;
-
-    @Mock
     private QueryExecutor queryExecutor;
 
     private XRoadContractNegotiationStore store;
@@ -83,7 +80,17 @@ class XRoadContractNegotiationStoreTest {
     @BeforeEach
     void setUp() {
         store = new XRoadContractNegotiationStore(delegate, dataSourceRegistry, "test-datasource", transactionContext,
-                new ObjectMapper(), statements, leaseContext, queryExecutor);
+                ObjectMapper::new, statements, queryExecutor, "test-holder", Clock.systemUTC());
+    }
+
+    @Test
+    void retireAgreementDelegates() {
+        var agreement = mock(ContractAgreement.class);
+        var result = StoreResult.<Void>success(null);
+        when(delegate.retireAgreement(agreement)).thenReturn(result);
+
+        assertThat(store.retireAgreement(agreement)).isSameAs(result);
+        verify(delegate).retireAgreement(agreement);
     }
 
     @Test

@@ -59,6 +59,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 
@@ -101,6 +102,7 @@ class IdentityHubParticipantActivationTest {
         when(stsAccountProvisioner.create(any())).thenReturn(ServiceResult.success(null));
         var configService = mock(ParticipantContextConfigService.class);
         when(configService.save(any())).thenReturn(ServiceResult.success());
+        when(configService.merge(any())).thenReturn(ServiceResult.success());
         when(didDocumentService.store(any(), anyString())).thenReturn(ServiceResult.success());
         when(keyPairService.addKeyPair(anyString(), any(), anyBoolean())).thenReturn(ServiceResult.success());
 
@@ -122,7 +124,8 @@ class IdentityHubParticipantActivationTest {
         context.registerService(ParticipantContextObservable.class, participantContextExtension.participantContextObservable());
         factory.constructInstance(ParticipantContextCoordinatorExtension.class).initialize(context);
 
-        service = new IdentityHubProvisioningGrpcService(participantContextService, mock(CredentialRequestManager.class),
+        service = new IdentityHubProvisioningGrpcService(participantContextService,
+                new ParticipantMemberIdConfig(configService), mock(CredentialRequestManager.class),
                 mock(ParticipantCredentialRecordsPurger.class), mock(DidResolverRegistry.class), new RpcResponseHandler(), monitor);
     }
 

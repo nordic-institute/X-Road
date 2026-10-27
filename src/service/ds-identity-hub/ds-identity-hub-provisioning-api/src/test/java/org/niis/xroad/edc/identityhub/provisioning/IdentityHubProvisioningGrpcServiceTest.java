@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.identityhub.provisioning;
 
 import io.grpc.StatusRuntimeException;
+import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.Service;
@@ -47,7 +48,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import org.niis.xroad.ds.identityhub.memberid.ParticipantMemberIdConfig;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
@@ -61,8 +64,8 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -70,11 +73,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class IdentityHubProvisioningGrpcServiceTest {
@@ -85,6 +90,8 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @Mock
     private IdentityHubParticipantContextService participantContextService;
+    @Mock
+    private ParticipantMemberIdConfig memberIdConfig;
     @Mock
     private CredentialRequestManager credentialRequestManager;
     @Mock
@@ -100,8 +107,10 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new IdentityHubProvisioningGrpcService(participantContextService, credentialRequestManager,
-                recordsPurger, didResolverRegistry, new RpcResponseHandler(), monitor);
+        lenient().when(memberIdConfig.save(anyString(), anyString())).thenReturn(ServiceResult.success());
+        lenient().when(memberIdConfig.remove(anyString())).thenReturn(ServiceResult.success());
+        service = new IdentityHubProvisioningGrpcService(participantContextService, memberIdConfig,
+                credentialRequestManager, recordsPurger, didResolverRegistry, new RpcResponseHandler(), monitor);
     }
 
     @AfterEach
@@ -151,8 +160,30 @@ class IdentityHubProvisioningGrpcServiceTest {
     }
 
     @Test
-    void createParticipantContextIgnoresConflictWhenReanchorFlagNotSet() {
+    void createParticipantContextKeepsStoredMemberIdOnConflictWhenReanchorFlagNotSet() {
         when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenReturn(Optional.of("TEST/GOV/1234"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/5678")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build());
+        verify(createObserver).onCompleted();
+        verify(memberIdConfig, never()).save(anyString(), anyString());
+    }
+
+    @Test
+    void createParticipantContextStoresMissingMemberIdOnConflictWhenReanchorFlagNotSet() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenReturn(Optional.empty());
         var request = CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .setDid("did:web:example.com")
@@ -163,16 +194,108 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build());
         verify(createObserver).onCompleted();
-        verify(participantContextService, never()).getParticipantContext(anyString());
-        verify(participantContextService, never()).updateParticipant(anyString(), any());
+        verify(memberIdConfig).save("ctx-1", "TEST/GOV/1234");
+    }
+
+    @Test
+    void createParticipantContextFailsWhenMissingMemberIdCannotBeStoredOnConflict() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenReturn(Optional.empty());
+        when(memberIdConfig.save(anyString(), anyString())).thenReturn(ServiceResult.unexpected("db down"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
+    }
+
+    @Test
+    void createParticipantContextFailsWithoutWritingWhenMemberIdReadFailsOnConflictAndReanchorFlagNotSet() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenThrow(XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED)
+                .details("store unavailable")
+                .build());
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
+        verify(memberIdConfig, never()).save(anyString(), anyString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void createParticipantContextFailsOnConflictWhenContextIsAbsent(boolean reanchor) {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.conflict("key alias taken"));
+        when(participantContextService.getParticipantContext("ctx-1")).thenReturn(ServiceResult.notFound("absent"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .setReanchorMemberIdOnConflict(reanchor)
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        var error = ArgumentCaptor.forClass(Throwable.class);
+        verify(createObserver).onError(error.capture());
+        assertThat(StatusProto.fromThrowable(error.getValue()).getMessage()).contains("key alias taken");
+        verify(createObserver, never()).onCompleted();
+        verify(memberIdConfig, never()).save(anyString(), anyString());
+    }
+
+    @Test
+    void createParticipantContextStoresMemberId() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.success(null));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(memberIdConfig).save("ctx-1", "TEST/GOV/1234");
+        verify(createObserver).onCompleted();
+    }
+
+    @Test
+    void createParticipantContextFailsWhenMemberIdCannotBeStored() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.success(null));
+        when(memberIdConfig.save(anyString(), anyString())).thenReturn(ServiceResult.unexpected("db down"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
     }
 
     @Test
     void createParticipantContextReanchorsMemberIdOnConflictWhenFlagSetAndMemberIdChanged() {
         when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
         when(participantContextService.getParticipantContext("ctx-1"))
-                .thenReturn(ServiceResult.success(contextWithMemberId("TEST/GOV/1234")));
-        when(participantContextService.updateParticipant(anyString(), any())).thenReturn(ServiceResult.success());
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenReturn(Optional.of("TEST/GOV/1234"));
         var request = CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .setDid("did:web:example.com")
@@ -184,19 +307,15 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build());
         verify(createObserver).onCompleted();
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Consumer<IdentityHubParticipantContext>> mutation = ArgumentCaptor.forClass(Consumer.class);
-        verify(participantContextService).updateParticipant(eq("ctx-1"), mutation.capture());
-        var mutated = contextWithMemberId("TEST/GOV/1234");
-        mutation.getValue().accept(mutated);
-        assertThat(mutated.getProperties()).containsEntry("xroadMemberId", "TEST/GOV/5678");
+        verify(memberIdConfig).save("ctx-1", "TEST/GOV/5678");
     }
 
     @Test
     void createParticipantContextSkipsUpdateWhenMemberIdAlreadyMatches() {
         when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
         when(participantContextService.getParticipantContext("ctx-1"))
-                .thenReturn(ServiceResult.success(contextWithMemberId("TEST/GOV/1234")));
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenReturn(Optional.of("TEST/GOV/1234"));
         var request = CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .setDid("did:web:example.com")
@@ -212,7 +331,7 @@ class IdentityHubProvisioningGrpcServiceTest {
     }
 
     @Test
-    void createParticipantContextSwallowsReanchorReadFailureAndReportsNotReanchored() {
+    void createParticipantContextFailsOnConflictWhenContextLookupFails() {
         when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
         when(participantContextService.getParticipantContext("ctx-1"))
                 .thenReturn(ServiceResult.unexpected("db unreachable"));
@@ -225,18 +344,18 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         service.createParticipantContext(request, createObserver);
 
-        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(false).build());
-        verify(createObserver).onCompleted();
-        verify(createObserver, never()).onError(any());
-        verify(participantContextService, never()).updateParticipant(anyString(), any());
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
+        verify(memberIdConfig, never()).save(anyString(), anyString());
     }
 
     @Test
     void createParticipantContextSwallowsReanchorUpdateFailureAndReportsNotReanchored() {
         when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
         when(participantContextService.getParticipantContext("ctx-1"))
-                .thenReturn(ServiceResult.success(contextWithMemberId("TEST/GOV/1234")));
-        when(participantContextService.updateParticipant(anyString(), any())).thenReturn(ServiceResult.unexpected("db down"));
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenReturn(Optional.of("TEST/GOV/1234"));
+        when(memberIdConfig.save(anyString(), anyString())).thenReturn(ServiceResult.unexpected("db down"));
         var request = CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .setDid("did:web:example.com")
@@ -255,7 +374,8 @@ class IdentityHubProvisioningGrpcServiceTest {
     void createParticipantContextSwallowsThrownReanchorFailureAndReportsNotReanchored() {
         when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
         when(participantContextService.getParticipantContext("ctx-1"))
-                .thenThrow(new IllegalStateException("store unavailable"));
+                .thenReturn(ServiceResult.success(existingContext()));
+        when(memberIdConfig.find("ctx-1")).thenThrow(new IllegalStateException("store unavailable"));
         var request = CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .setDid("did:web:example.com")
@@ -285,6 +405,7 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onCompleted();
         verify(observer, never()).onError(any());
         verify(recordsPurger).purge("ctx-1");
+        verify(memberIdConfig).remove("ctx-1");
     }
 
     @Test
@@ -302,6 +423,7 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onCompleted();
         verify(observer, never()).onError(any());
         verify(recordsPurger).purge("ctx-1");
+        verify(memberIdConfig).remove("ctx-1");
     }
 
     @Test
@@ -317,6 +439,22 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(observer, never()).onCompleted();
         verify(recordsPurger, never()).purge(anyString());
+        verify(memberIdConfig, never()).remove(anyString());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteParticipantContextSurfacesErrorWhenMemberIdCannotBeRemoved() {
+        when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.success());
+        when(memberIdConfig.remove("ctx-1")).thenReturn(ServiceResult.unexpected("db down"));
+
+        StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, observer);
+
+        verify(observer).onError(any(StatusRuntimeException.class));
+        verify(observer, never()).onCompleted();
     }
 
     @Test
@@ -757,12 +895,11 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer, never()).onCompleted();
     }
 
-    private static IdentityHubParticipantContext contextWithMemberId(String memberId) {
+    private static IdentityHubParticipantContext existingContext() {
         return IdentityHubParticipantContext.Builder.newInstance()
                 .participantContextId("ctx-1")
                 .did("did:web:example.com")
                 .apiTokenAlias("ctx-1-apikey")
-                .property("xroadMemberId", memberId)
                 .build();
     }
 }

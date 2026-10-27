@@ -94,6 +94,18 @@ class XRoadClaimPropagatingDcpHolderTokenVerifierTest {
         assertThat(result.getFailureDetail()).isEqualTo("rejected");
     }
 
+    @Test
+    void verifyRejectsPayloadThatIsNotJsonWithBadRequest() {
+        var token = tokenWithPayload("{not json");
+        when(delegate.verify(issuerContext, token)).thenReturn(ServiceResult.success(
+                new DcpRequestContext(holder(), Map.of(), ACCESS_TOKEN)));
+
+        var result = verifier.verify(issuerContext, token);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureDetail()).isEqualTo("Failed to decode JWT payload");
+    }
+
     private static Holder holder() {
         return Holder.Builder.newInstance().participantContextId("issuer-context").holderId("holder-id").did("did:web:holder").build();
     }
