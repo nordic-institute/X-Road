@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
@@ -60,6 +61,7 @@ import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.listener.ConsumerDataFlowCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.assetaccess.poller.ExpiredTransferSweeper;
+import org.niis.xroad.edc.extension.assetaccess.probe.CandidateHandshakeRace;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore;
 
@@ -120,6 +122,9 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Inject
     private DataFlowController dataFlowController;
 
+    @Inject
+    private OkHttpClient okHttpClient;
+
     @Setting(key = "xroad.asset-access.negotiation.timeout-seconds",
             description = "Per-stage contract negotiation deadline in seconds",
             defaultValue = "60")
@@ -146,6 +151,14 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     + "out of acquisition. When every candidate is cooling down, all of them are tried.",
             defaultValue = "180")
     private long cooldownPeriodSeconds;
+
+    @Setting(key = "xroad.asset-access.handshake-race.deadline-millis",
+            description = "Time limit in milliseconds for one provider Security Server probe, a TLS connection "
+                    + "opened in parallel to every candidate before negotiation. The first probe to establish its "
+                    + "connection wins and its connection is reused for the catalog call. A probe that fails or "
+                    + "exceeds the limit puts its server in cooldown and orders it after the others.",
+            defaultValue = "1500")
+    private long handshakeRaceDeadlineMillis;
 
     @Setting(key = "xroad.asset-access.poll-interval-ms",
             description = "Completion poller tick interval in milliseconds",
@@ -177,6 +190,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     private ExpiredTransferSweeper expiredTransferSweeper;
     private ReusableAgreementLookup reusableAgreementLookup;
     private CooldownTracker cooldownTracker;
+    private CandidateHandshakeRace candidateHandshakeRace;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
 
     @Override
@@ -190,6 +204,10 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
         if (candidateTimeoutSeconds <= 0) {
             throw new EdcException("xroad.asset-access.candidate.timeout-seconds must be positive, was %d"
                     .formatted(candidateTimeoutSeconds));
+        }
+        if (handshakeRaceDeadlineMillis <= 0) {
+            throw new EdcException("xroad.asset-access.handshake-race.deadline-millis must be positive, was %d"
+                    .formatted(handshakeRaceDeadlineMillis));
         }
 
         completionPoller = new AssetAccessCompletionPoller(
@@ -216,6 +234,8 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
         reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
 
         cooldownTracker = new CooldownTracker(Duration.ofSeconds(cooldownPeriodSeconds));
+        candidateHandshakeRace = new CandidateHandshakeRace(
+                okHttpClient, cooldownTracker, executorInstrumentation, Duration.ofMillis(handshakeRaceDeadlineMillis), monitor);
 
         transferProcessObservable.registerListener(new ConsumerDataFlowCompletionListener(dataFlowController, monitor));
 
@@ -239,6 +259,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     public void shutdown() {
         completionPoller.stop();
         expiredTransferSweeper.stop();
+        candidateHandshakeRace.stop();
     }
 
     @Provider
@@ -252,6 +273,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     transferProcessService,
                     completionPoller,
                     cooldownTracker,
+                    candidateHandshakeRace,
                     jsonLd,
                     assetAccessTransformerRegistry,
                     monitor,

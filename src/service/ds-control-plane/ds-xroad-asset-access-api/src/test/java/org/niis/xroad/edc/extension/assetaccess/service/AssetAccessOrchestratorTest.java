@@ -88,6 +88,7 @@ import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
 import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
+import org.niis.xroad.edc.extension.assetaccess.probe.CandidateHandshakeRace;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
@@ -143,6 +144,8 @@ class AssetAccessOrchestratorTest {
     @Mock
     ReusableAgreementLookup reusableAgreementLookup;
     @Mock
+    CandidateHandshakeRace candidateHandshakeRace;
+    @Mock
     JsonLd jsonLd;
     @Mock
     TypeTransformerRegistry transformerRegistry;
@@ -162,6 +165,8 @@ class AssetAccessOrchestratorTest {
     @BeforeEach
     void setUp() {
         lenient().when(reusableAgreementLookup.find(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        lenient().when(candidateHandshakeRace.order(any()))
+                .thenAnswer(invocation -> CompletableFuture.completedFuture(invocation.getArgument(0)));
         lenient().when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> Stream.empty());
         lenient().when(transferProcessStore.findAll(any())).thenAnswer(invocation -> Stream.empty());
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
@@ -173,6 +178,7 @@ class AssetAccessOrchestratorTest {
                 new NoopTransactionContext(), ExecutorInstrumentation.noop(), clock, monitor, Duration.ofMillis(250));
         orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
+                candidateHandshakeRace,
                 jsonLd, transformerRegistry, monitor,
                 Duration.ofSeconds(60), Duration.ofSeconds(60), CANDIDATE_TIMEOUT);
     }
@@ -354,6 +360,7 @@ class AssetAccessOrchestratorTest {
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
+                candidateHandshakeRace,
                 jsonLd, transformerRegistry, monitor, Duration.ofSeconds(60), Duration.ZERO, CANDIDATE_TIMEOUT);
 
         var future = impatient.acquireAssetAccess(buildParticipantContext(), request);
@@ -1150,6 +1157,28 @@ class AssetAccessOrchestratorTest {
                 .hasMessageContaining("Asset access completion poller stopped");
         verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
         assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
+    }
+
+    @Test
+    void candidatesAreTriedInTheOrderTheHandshakeRaceReturns() throws Exception {
+        var request = requestForCandidates("provider-1", "provider-2");
+        var reversed = List.of(request.candidates().get(1), request.candidates().get(0));
+        when(candidateHandshakeRace.order(any())).thenReturn(CompletableFuture.completedFuture(reversed));
+        stubReusableAgreementAt("provider-2");
+        startedAddress("tp-2", "http://provider-2.example.org/data");
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+        assertThat(future.get(5, TimeUnit.SECONDS).winner().counterPartyId()).isEqualTo("provider-2");
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void onlyCandidatesNotInCooldownAreProbed() {
+        cooldownTracker.markFailed("http://provider-1.example.org/dsp");
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenReturn(new CompletableFuture<>());
+        var request = requestForCandidates("provider-1", "provider-2");
+        orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        verify(candidateHandshakeRace).order(List.of(request.candidates().get(1)));
     }
 
     private void stubTransportFaultAtCatalog(String counterPartyId) {
