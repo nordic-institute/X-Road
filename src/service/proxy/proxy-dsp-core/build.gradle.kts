@@ -28,7 +28,7 @@ dependencies {
   implementation(libs.jersey.container.servlet)
   implementation(libs.jersey.inject.hk2)
   implementation(libs.jersey.media.json.processing)
-  implementation(libs.jersey.media.json.jackson)
+  implementation(libs.jersey.media.json.jackson3)
   implementation(libs.jetty.ee11.servlet)
 
   testImplementation(libs.assertj.core)

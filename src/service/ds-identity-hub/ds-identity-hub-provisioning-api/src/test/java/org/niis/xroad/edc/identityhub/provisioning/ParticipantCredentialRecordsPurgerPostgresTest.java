@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -65,7 +65,7 @@ class ParticipantCredentialRecordsPurgerPostgresTest {
         when(credentialStore.query(any())).thenReturn(StoreResult.success(List.of()));
 
         purger = new ParticipantCredentialRecordsPurger(credentialStore, extension.getDataSourceRegistry(),
-                extension.getDatasourceName(), extension.getTransactionContext(), new ObjectMapper(), queryExecutor);
+                extension.getDatasourceName(), extension.getTransactionContext(), ObjectMapper::new, queryExecutor);
 
         extension.runQuery(TestUtils.getResourceFileContentAsString("holder-credential-request-schema.sql"));
     }
@@ -73,7 +73,6 @@ class ParticipantCredentialRecordsPurgerPostgresTest {
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + TABLE + " CASCADE");
-        extension.runQuery("DROP TABLE edc_lease CASCADE");
     }
 
     @Test

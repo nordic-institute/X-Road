@@ -129,12 +129,12 @@ class IssuerProvisioningGrpcServiceTest {
     void revokeCredentialHappyPath() {
         var resource = hostCredentialResource("cred-id-1", "issuer", "did:web:ss1.example.com", 1_000L);
         stubStore(resource);
-        when(credentialStatusService.revokeCredential("cred-id-1"))
+        when(credentialStatusService.revokeCredential("issuer", "cred-id-1"))
                 .thenReturn(ServiceResult.success(null));
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential(eq("cred-id-1"));
+        verify(credentialStatusService).revokeCredential(eq("issuer"), eq("cred-id-1"));
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
         verify(revokeResponseObserver).onCompleted();
     }
@@ -144,7 +144,7 @@ class IssuerProvisioningGrpcServiceTest {
         var resource = hostCredentialResource("cred-id-1", "issuer", "did:web:ss1.example.com", 1_000L);
         when(credentialStatusService.queryCredentials(querySpecCaptor.capture()))
                 .thenReturn(ServiceResult.success(List.of(resource)));
-        when(credentialStatusService.revokeCredential("cred-id-1"))
+        when(credentialStatusService.revokeCredential("issuer", "cred-id-1"))
                 .thenReturn(ServiceResult.success(null));
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
@@ -162,12 +162,12 @@ class IssuerProvisioningGrpcServiceTest {
         var first = hostCredentialResource("cred-id-1", "issuer", "did:web:ss1.example.com", 1_000L);
         var second = hostCredentialResource("cred-id-2", "issuer", "did:web:ss1.example.com", 1_500L);
         stubStore(first, second);
-        when(credentialStatusService.revokeCredential(any())).thenReturn(ServiceResult.success(null));
+        when(credentialStatusService.revokeCredential(any(), any())).thenReturn(ServiceResult.success(null));
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential("cred-id-1");
-        verify(credentialStatusService).revokeCredential("cred-id-2");
+        verify(credentialStatusService).revokeCredential("issuer", "cred-id-1");
+        verify(credentialStatusService).revokeCredential("issuer", "cred-id-2");
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(2).build());
     }
 
@@ -176,12 +176,12 @@ class IssuerProvisioningGrpcServiceTest {
         var server1Credential = hostCredentialResource("cred-ss1", "issuer", "did:web:ss1.example.com", 1_000L);
         var server2Credential = hostCredentialResource("cred-ss2", "issuer", "did:web:ss2.example.com", 1_000L);
         stubStore(server1Credential, server2Credential);
-        when(credentialStatusService.revokeCredential("cred-ss1")).thenReturn(ServiceResult.success(null));
+        when(credentialStatusService.revokeCredential("issuer", "cred-ss1")).thenReturn(ServiceResult.success(null));
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential("cred-ss1");
-        verify(credentialStatusService, never()).revokeCredential("cred-ss2");
+        verify(credentialStatusService).revokeCredential("issuer", "cred-ss1");
+        verify(credentialStatusService, never()).revokeCredential("issuer", "cred-ss2");
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
     }
 
@@ -190,12 +190,12 @@ class IssuerProvisioningGrpcServiceTest {
         var beforeCutoff = hostCredentialResource("cred-old", "issuer", "did:web:ss1.example.com", 1_000L);
         var atCutoff = hostCredentialResource("cred-new", "issuer", "did:web:ss1.example.com", 2_000L);
         stubStore(beforeCutoff, atCutoff);
-        when(credentialStatusService.revokeCredential("cred-old")).thenReturn(ServiceResult.success(null));
+        when(credentialStatusService.revokeCredential("issuer", "cred-old")).thenReturn(ServiceResult.success(null));
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential("cred-old");
-        verify(credentialStatusService, never()).revokeCredential("cred-new");
+        verify(credentialStatusService).revokeCredential("issuer", "cred-old");
+        verify(credentialStatusService, never()).revokeCredential("issuer", "cred-new");
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
     }
 
@@ -205,13 +205,13 @@ class IssuerProvisioningGrpcServiceTest {
         var hostResource = hostCredentialResource("host-id", "issuer", "did:web:ss1.example.com", 1_000L);
         when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
                 .thenReturn(ServiceResult.success(List.of(mgmtResource, hostResource)));
-        when(credentialStatusService.revokeCredential("host-id"))
+        when(credentialStatusService.revokeCredential("issuer", "host-id"))
                 .thenReturn(ServiceResult.success(null));
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential(eq("host-id"));
-        verify(credentialStatusService, never()).revokeCredential(eq("mgmt-id"));
+        verify(credentialStatusService).revokeCredential(eq("issuer"), eq("host-id"));
+        verify(credentialStatusService, never()).revokeCredential(eq("issuer"), eq("mgmt-id"));
     }
 
     @Test
@@ -220,7 +220,7 @@ class IssuerProvisioningGrpcServiceTest {
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService, never()).revokeCredential(any());
+        verify(credentialStatusService, never()).revokeCredential(any(), any());
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(0).build());
         verify(revokeResponseObserver).onCompleted();
         verify(revokeResponseObserver, never()).onError(any());

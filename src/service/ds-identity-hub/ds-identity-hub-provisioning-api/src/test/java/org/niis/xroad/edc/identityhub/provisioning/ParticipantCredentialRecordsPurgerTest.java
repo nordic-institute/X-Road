@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -41,6 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
 
@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -84,7 +85,7 @@ class ParticipantCredentialRecordsPurgerTest {
     @BeforeEach
     void setUp() {
         purger = new ParticipantCredentialRecordsPurger(credentialStore, dataSourceRegistry, DATASOURCE_NAME,
-                transactionContext, new ObjectMapper(), queryExecutor);
+                transactionContext, ObjectMapper::new, queryExecutor);
     }
 
     @Test
@@ -94,7 +95,7 @@ class ParticipantCredentialRecordsPurgerTest {
         var vc2 = mock(VerifiableCredentialResource.class);
         when(vc2.getId()).thenReturn("vc-2");
         when(credentialStore.query(any())).thenReturn(StoreResult.success(List.of(vc1, vc2)));
-        when(credentialStore.deleteById(anyString())).thenReturn(StoreResult.success());
+        when(credentialStore.deleteById(eq(PARTICIPANT_CONTEXT_ID), anyString())).thenReturn(StoreResult.success());
         when(queryExecutor.execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, PARTICIPANT_CONTEXT_ID)).thenReturn(3);
         stubJdbcConnection();
 
@@ -111,8 +112,8 @@ class ParticipantCredentialRecordsPurgerTest {
                     assertThat(criterion.getOperator()).isEqualTo("=");
                     assertThat(criterion.getOperandRight()).isEqualTo(PARTICIPANT_CONTEXT_ID);
                 });
-        verify(credentialStore).deleteById("vc-1");
-        verify(credentialStore).deleteById("vc-2");
+        verify(credentialStore).deleteById(PARTICIPANT_CONTEXT_ID, "vc-1");
+        verify(credentialStore).deleteById(PARTICIPANT_CONTEXT_ID, "vc-2");
 
         verify(queryExecutor).execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, PARTICIPANT_CONTEXT_ID);
     }
@@ -126,7 +127,7 @@ class ParticipantCredentialRecordsPurgerTest {
 
         assertThat(counts.credentialCount()).isZero();
         assertThat(counts.holderRequestCount()).isZero();
-        verify(credentialStore, never()).deleteById(anyString());
+        verify(credentialStore, never()).deleteById(eq(PARTICIPANT_CONTEXT_ID), anyString());
         verify(queryExecutor).execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, PARTICIPANT_CONTEXT_ID);
     }
 

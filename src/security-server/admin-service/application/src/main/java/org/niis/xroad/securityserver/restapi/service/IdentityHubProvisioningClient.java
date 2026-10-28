@@ -41,7 +41,8 @@ public interface IdentityHubProvisioningClient {
     /**
      * Everything the hub needs to create a participant context. {@code reanchorMemberIdOnConflict}
      * says what to do when the context already exists: re-point its stored member id at this call's
-     * {@code memberId}, or ({@code false}) leave it untouched.
+     * {@code memberId}, or ({@code false}) keep the stored member id and store this call's only when
+     * none is stored.
      */
     @Builder
     record CreateParticipantContextRequest(String participantContextId, Did did, @Nullable String memberId,
@@ -57,7 +58,7 @@ public interface IdentityHubProvisioningClient {
      *         hub, so nothing can be left unconfirmed, and the caller must not defer on this result.
      *         With it, {@code true} once the re-anchor is applied or the stored value is found already
      *         matching; {@code false} when it could not be confirmed (older hub, or the re-anchor
-     *         read/update failed).
+     *         update failed). Fails when the hub reports a conflict but the context does not exist.
      */
     boolean createParticipantContext(CreateParticipantContextRequest request);
 

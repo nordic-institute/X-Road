@@ -28,7 +28,6 @@
 package org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres;
 
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.XRoadContractNegotiationStatements;
 
 import java.time.Clock;
@@ -43,8 +42,8 @@ import static java.lang.String.format;
  */
 public class XRoadPostgresContractNegotiationStatements extends PostgresDialectStatements implements XRoadContractNegotiationStatements {
 
-    public XRoadPostgresContractNegotiationStatements(LeaseStatements leaseStatements, Clock clock) {
-        super(leaseStatements, clock);
+    public XRoadPostgresContractNegotiationStatements(Clock clock) {
+        super(clock);
     }
 
     @Override

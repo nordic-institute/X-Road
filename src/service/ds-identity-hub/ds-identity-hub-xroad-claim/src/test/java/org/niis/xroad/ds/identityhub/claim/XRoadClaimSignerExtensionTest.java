@@ -33,6 +33,8 @@ import org.eclipse.edc.identityhub.spi.authentication.ParticipantSecureTokenServ
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
+import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -70,11 +72,13 @@ class XRoadClaimSignerExtensionTest {
 
     private final ParticipantSecureTokenService delegate = mock();
     private final IdentityHubParticipantContextService participantContextService = mock();
+    private final ParticipantContextConfigService configService = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(ParticipantSecureTokenService.class, delegate);
         context.registerService(IdentityHubParticipantContextService.class, participantContextService);
+        context.registerService(ParticipantContextConfigService.class, configService);
         context.registerService(SignerRpcClient.class, mock(SignerRpcClient.class));
         context.registerService(SignerSignClient.class, mock(SignerSignClient.class));
         context.registerService(Clock.class, Clock.systemUTC());
@@ -84,10 +88,13 @@ class XRoadClaimSignerExtensionTest {
                 .participantContextId(CONTEXT_ID)
                 .did(HOLDER_DID)
                 .apiTokenAlias("alias")
-                .property(XRoadClaimAwareSecureTokenService.MEMBER_ID_PROPERTY, "DEV/COM/SS0")
                 .build();
         when(participantContextService.getParticipantContext(CONTEXT_ID))
                 .thenReturn(ServiceResult.success(participantContext));
+        when(configService.get(CONTEXT_ID)).thenReturn(ServiceResult.success(ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId(CONTEXT_ID)
+                .privateEntry("xroadMemberId", "DEV/COM/SS0")
+                .build()));
     }
 
     @Test

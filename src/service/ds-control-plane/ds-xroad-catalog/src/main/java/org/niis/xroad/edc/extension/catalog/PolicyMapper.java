@@ -30,9 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -49,6 +48,7 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.extension.policy.controlplane.util.LocalGroupConstraintValue;
 import org.niis.xroad.serverconf.model.Endpoint;
+import tools.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,8 +66,6 @@ class PolicyMapper {
     static final String XROAD_LOCALGROUP_CONSTRAINT = XRoadPolicyNamespace.XROAD_LOCAL_GROUP;
     static final String XROAD_DATAPATH_CONSTRAINT = XRoadPolicyNamespace.XROAD_DATAPATH;
     private static final String ODRL_USE_ACTION = "http://www.w3.org/ns/odrl/2/use";
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     PolicyDefinition toPolicyDefinition(String policyId, ClientId serviceOwner, XRoadId subjectId,
                                         List<Endpoint> endpoints, String participantContextId) {
@@ -206,8 +204,9 @@ class PolicyMapper {
             return List.of();
         }
         try {
-            var entries = objectMapper.readValue(additionalConditionJson,
-                    new TypeReference<List<Map<String, String>>>() { });
+            List<Map<String, String>> entries = JsonUtils.getObjectReader()
+                    .forType(new TypeReference<List<Map<String, String>>>() { })
+                    .readValue(additionalConditionJson);
             log.trace("parseAdditionalConditions method={} path={} serviceId={} parsed={} conditions",
                     method, path, serviceId, entries.size());
             return entries.stream()

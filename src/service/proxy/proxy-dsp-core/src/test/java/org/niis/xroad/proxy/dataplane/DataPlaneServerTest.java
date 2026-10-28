@@ -39,6 +39,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +89,30 @@ class DataPlaneServerTest {
                 .build();
         var response = client.send(request, HttpResponse.BodyHandlers.discarding());
         assertThat(response.statusCode()).isBetween(200, 499);
+    }
+
+    @Test
+    void signalingEndpointReadsJsonBodyAndRejectsMalformedJsonWithBadRequest() throws Exception {
+        stubProperties();
+        dataPlaneServer = new DataPlaneServer(properties, signalingController);
+        dataPlaneServer.start();
+        var port = ((ServerConnector) dataPlaneServer.getServer().getConnectors()[0]).getLocalPort();
+        var client = HttpClient.newHttpClient();
+
+        var valid = client.send(postJson(port, "{\"unknown\":\"ignored\"}"), HttpResponse.BodyHandlers.discarding());
+        var malformed = client.send(postJson(port, "{not json"), HttpResponse.BodyHandlers.discarding());
+
+        assertThat(valid.statusCode()).isEqualTo(204);
+        assertThat(malformed.statusCode()).isEqualTo(400);
+        verify(signalingController, times(1)).completed(eq("flow-1"), anyMap());
+    }
+
+    private static HttpRequest postJson(int port, String body) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:" + port + "/full/api/v1/dataflows/flow-1/completed"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
     }
 
     @Test

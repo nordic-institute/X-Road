@@ -43,8 +43,9 @@ import java.util.function.Function;
 /**
  * Delegates {@link #execute(Request)} to the wrapped client and remembers, per calling thread, the status code or
  * the exception of the last request, so that a caller that only receives failure text can tell a non-200 answer
- * from a failed fetch. It supports only the call that {@code WebDidResolver} makes; every other call throws
- * {@link UnsupportedOperationException}.
+ * from a failed fetch. It supports only the calls that {@code WebDidResolver} makes; every other call throws
+ * {@link UnsupportedOperationException}. The fallbacks passed to the calls are ignored, so a failing endpoint
+ * is requested once.
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class RecordingEdcHttpClient implements EdcHttpClient {
@@ -81,19 +82,23 @@ class RecordingEdcHttpClient implements EdcHttpClient {
     }
 
     @Override
-    public Response execute(Request request, List<FallbackFactory> fallbacks) {
-        throw new UnsupportedOperationException();
+    public Response execute(Request request, List<FallbackFactory> fallbacks) throws IOException {
+        return execute(request);
     }
 
     @Override
     public <T> Result<T> execute(Request request, Function<Response, Result<T>> mappingFunction) {
-        throw new UnsupportedOperationException();
+        return execute(request, List.of(), mappingFunction);
     }
 
     @Override
     public <T> Result<T> execute(Request request, List<FallbackFactory> fallbacks,
                                  Function<Response, Result<T>> mappingFunction) {
-        throw new UnsupportedOperationException();
+        try (var response = execute(request)) {
+            return mappingFunction.apply(response);
+        } catch (IOException | RuntimeException e) {
+            return Result.failure(String.valueOf(e.getMessage()));
+        }
     }
 
     @Override

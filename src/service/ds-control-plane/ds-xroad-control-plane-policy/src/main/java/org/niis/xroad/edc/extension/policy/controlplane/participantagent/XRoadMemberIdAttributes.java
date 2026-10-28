@@ -27,7 +27,6 @@
 
 package org.niis.xroad.edc.extension.policy.controlplane.participantagent;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
@@ -35,6 +34,8 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -125,7 +126,7 @@ public class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension
         if (element instanceof Map<?, ?> map) {
             try {
                 return MAPPER.convertValue(map, VerifiableCredential.class);
-            } catch (IllegalArgumentException e) {
+            } catch (JacksonException e) {
                 log.debug("asCredential: stored credential entry could not be read as a VerifiableCredential", e);
             }
         }
