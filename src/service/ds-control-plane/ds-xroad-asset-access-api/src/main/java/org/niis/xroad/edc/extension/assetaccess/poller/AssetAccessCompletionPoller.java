@@ -89,6 +89,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * logged once and every waiter in it is treated the same as a read that returned nothing, falling
  * through to the deadline check; if the pass's transaction itself fails, a deadline-only sweep over
  * both waiter maps still runs, since comparing the clock against a deadline needs no store access.
+ *
+ * <p>A wait can be cancelled through {@link #cancelNegotiation(String)} or {@link #cancelTransfer(String)}. The
+ * waiter is removed and its future cancelled on the caller's thread, not on the completion executor, and a terminal
+ * state read for that id afterwards completes nothing.
  */
 public class AssetAccessCompletionPoller {
 
@@ -148,30 +152,47 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Registers a negotiation id to await; the returned future never fails and completes with a
-     * {@link StageOutcome}: succeeded with the contract agreement once the negotiation reaches
-     * {@link ContractNegotiationStates#FINALIZED}; failed with the stored error detail and the kind
-     * {@link FailureClassifier} derives from the record once it reaches
-     * {@link ContractNegotiationStates#TERMINATING} or {@link ContractNegotiationStates#TERMINATED};
-     * failed with a timeout and {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes
-     * without a terminal state.
+     * Registers a negotiation id to await; the returned future never fails, unless cancelled through
+     * {@link #cancelNegotiation(String)}, and completes with a {@link StageOutcome}: succeeded with the contract
+     * agreement once the negotiation reaches {@link ContractNegotiationStates#FINALIZED}; failed with the stored
+     * error detail and the kind {@link FailureClassifier} derives from the record once it reaches
+     * {@link ContractNegotiationStates#TERMINATING} or {@link ContractNegotiationStates#TERMINATED}; failed with a
+     * timeout and {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes without a terminal state.
      */
     public CompletableFuture<StageOutcome<ContractAgreement>> awaitNegotiation(String negotiationId, Duration timeout) {
         return register(negotiationWaiters, negotiationId, timeout);
     }
 
     /**
-     * Registers a transfer process id to await; the returned future never fails and completes with a
-     * {@link StageOutcome}: succeeded with the data address resolved through {@link DataAddressStore}
-     * once the transfer reaches {@link TransferProcessStates#STARTED}; failed with the stored error
-     * detail and the kind {@link FailureClassifier} derives from the record once it reaches
-     * {@link TransferProcessStates#TERMINATING}, {@link TransferProcessStates#TERMINATING_REQUESTED}
-     * or {@link TransferProcessStates#TERMINATED}; failed with {@code DSP_DATAADDRESS_INVALID} and
-     * {@link FailureKind#OTHER} if a started transfer's data address cannot be resolved; failed with a
-     * timeout and {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes without a terminal state.
+     * Stops awaiting a negotiation: removes its registration and cancels the future returned by
+     * {@link #awaitNegotiation(String, Duration)}. Does nothing for an id that is unknown or whose wait already
+     * completed.
+     */
+    public void cancelNegotiation(String negotiationId) {
+        cancel(negotiationWaiters, negotiationId);
+    }
+
+    /**
+     * Registers a transfer process id to await; the returned future never fails, unless cancelled through
+     * {@link #cancelTransfer(String)}, and completes with a {@link StageOutcome}: succeeded with the data address
+     * resolved through {@link DataAddressStore} once the transfer reaches {@link TransferProcessStates#STARTED};
+     * failed with the stored error detail and the kind {@link FailureClassifier} derives from the record once it
+     * reaches {@link TransferProcessStates#TERMINATING}, {@link TransferProcessStates#TERMINATING_REQUESTED} or
+     * {@link TransferProcessStates#TERMINATED}; failed with {@code DSP_DATAADDRESS_INVALID} and
+     * {@link FailureKind#OTHER} if a started transfer's data address cannot be resolved; failed with a timeout and
+     * {@link FailureKind#TRANSPORT_FAULT} once {@code timeout} passes without a terminal state.
      */
     public CompletableFuture<StageOutcome<DataAddress>> awaitTransfer(String transferProcessId, Duration timeout) {
         return register(transferWaiters, transferProcessId, timeout);
+    }
+
+    /**
+     * Stops awaiting a transfer process: removes its registration and cancels the future returned by
+     * {@link #awaitTransfer(String, Duration)}. Does nothing for an id that is unknown or whose wait already
+     * completed.
+     */
+    public void cancelTransfer(String transferProcessId) {
+        cancel(transferWaiters, transferProcessId);
     }
 
     /**
@@ -195,6 +216,13 @@ public class AssetAccessCompletionPoller {
         var future = new CompletableFuture<StageOutcome<T>>();
         waiters.put(id, new Waiter<>(future, clock.instant().plus(timeout)));
         return future;
+    }
+
+    private static <T> void cancel(Map<String, Waiter<T>> waiters, String id) {
+        var waiter = waiters.remove(id);
+        if (waiter != null) {
+            waiter.future().cancel(false);
+        }
     }
 
     /**
