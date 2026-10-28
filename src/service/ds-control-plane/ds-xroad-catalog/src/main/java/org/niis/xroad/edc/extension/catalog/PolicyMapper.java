@@ -76,9 +76,10 @@ class PolicyMapper {
         var constraints = new ArrayList<Constraint>();
         constraints.add(createClientConstraint(serviceOwner, subjectId));
 
-        var specificEndpoints = endpoints.stream()
-                .filter(ep -> !ep.isBaseEndpoint())
-                .toList();
+        var allEndpointsGranted = endpoints.stream().anyMatch(Endpoint::isBaseEndpoint);
+        var specificEndpoints = allEndpointsGranted
+                ? List.<Endpoint>of()
+                : endpoints;
 
         if (!specificEndpoints.isEmpty()) {
             var pathConstraints = specificEndpoints.stream()

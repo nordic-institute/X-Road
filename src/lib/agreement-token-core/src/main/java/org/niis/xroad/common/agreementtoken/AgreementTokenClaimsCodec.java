@@ -49,6 +49,7 @@ final class AgreementTokenClaimsCodec {
     static final String CLAIM_AGREEMENT_ID = "agreement_id";
     static final String CLAIM_CLIENT = "client_id";
     static final String CLAIM_SERVICE = "service_id";
+    static final String CLAIM_SERVICE_VERSION = "service_version";
     static final String CLAIM_SCOPE = "scope";
 
     private static final String SCOPE_METHOD_KEY = "method";
@@ -74,14 +75,14 @@ final class AgreementTokenClaimsCodec {
     }
 
     static String encodeService(ServiceId service) {
-        var clientPart = service.getClientId().asEncodedId();
-        var fullServiceCode = service.getServiceVersion() == null
-                ? service.getServiceCode()
-                : service.getServiceCode() + "." + service.getServiceVersion();
-        return clientPart + XRoadId.ENCODED_ID_SEPARATOR + fullServiceCode;
+        return service.getClientId().asEncodedId() + XRoadId.ENCODED_ID_SEPARATOR + service.getServiceCode();
     }
 
-    static ServiceId decodeService(String encoded) {
+    static String encodeServiceVersion(ServiceId service) {
+        return service.getServiceVersion();
+    }
+
+    static ServiceId decodeService(String encoded, String serviceVersion) {
         if (encoded == null || encoded.isBlank()) {
             throw new IllegalArgumentException("service_id claim must not be blank");
         }
@@ -90,12 +91,18 @@ final class AgreementTokenClaimsCodec {
             throw new IllegalArgumentException("invalid service_id claim: " + encoded);
         }
         var client = decodeClient(encoded.substring(0, lastSeparator));
-        var fullServiceCode = encoded.substring(lastSeparator + 1);
-        var dotIndex = fullServiceCode.indexOf('.');
-        if (dotIndex < 0) {
-            return ServiceId.Conf.create(client, fullServiceCode);
+        return ServiceId.Conf.create(client, encoded.substring(lastSeparator + 1), serviceVersion);
+    }
+
+    static String optionalStringClaim(JWTClaimsSet claimsSet, String name) {
+        var value = claimsSet.getClaim(name);
+        if (value == null) {
+            return null;
         }
-        return ServiceId.Conf.create(client, fullServiceCode.substring(0, dotIndex), fullServiceCode.substring(dotIndex + 1));
+        if (!(value instanceof String str) || str.isBlank()) {
+            throw new IllegalArgumentException("blank or non-string claim '" + name + "'");
+        }
+        return str;
     }
 
     static List<Map<String, Object>> encodeScope(List<AgreementTokenScope> scope) {

@@ -44,9 +44,11 @@ import java.util.Optional;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_AGREEMENT_ID;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_CLIENT;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE_VERSION;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeClient;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeScope;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeService;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.optionalStringClaim;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.requireStringClaim;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.AUDIENCE_MISMATCH;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.CLIENT_MISMATCH;
@@ -221,7 +223,8 @@ public final class AgreementTokenVerifier {
     private AgreementTokenClaims decodeClaims(JWTClaimsSet claimsSet) {
         var agreementId = requireStringClaim(claimsSet, CLAIM_AGREEMENT_ID);
         var client = decodeClient(requireStringClaim(claimsSet, CLAIM_CLIENT));
-        var service = decodeService(requireStringClaim(claimsSet, CLAIM_SERVICE));
+        var service = decodeService(requireStringClaim(claimsSet, CLAIM_SERVICE),
+                optionalStringClaim(claimsSet, CLAIM_SERVICE_VERSION));
         var scope = decodeScope(claimsSet);
         var expiresAt = claimsSet.getExpirationTime().toInstant();
         return new AgreementTokenClaims(agreementId, client, service, scope, claimsSet.getIssuer(), properties.audience(), expiresAt);

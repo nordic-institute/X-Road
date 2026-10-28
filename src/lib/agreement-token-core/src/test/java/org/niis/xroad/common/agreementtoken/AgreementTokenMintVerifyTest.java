@@ -125,6 +125,17 @@ class AgreementTokenMintVerifyTest {
     }
 
     @Test
+    void shouldVerifyATokenForAServiceCodeContainingADot() {
+        var dottedService = ServiceId.Conf.create(PROVIDER, "getData.x", "v1");
+        var token = minter.mint(new AgreementTokenGrant("agreement-1", CONSUMER, dottedService,
+                List.of(new AgreementTokenScope("*", "**"))));
+
+        var result = verifierAt(NOW.plusSeconds(1)).verify(token, AgreementTokenRequestContext.forSoap(CONSUMER, dottedService));
+
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+    }
+
+    @Test
     void shouldTakeTtlFromConfigurationNotHardcode() {
         var customTtlProperties =
                 new TestProtocolProperties("xroad-agreement-token", "security-server-proxy", Duration.ofSeconds(5), Duration.ZERO);
@@ -277,6 +288,7 @@ class AgreementTokenMintVerifyTest {
                 .claim(CLAIM_AGREEMENT_ID, "agreement-1")
                 .claim(CLAIM_CLIENT, encodeClient(CONSUMER))
                 .claim(AgreementTokenClaimsCodec.CLAIM_SERVICE, AgreementTokenClaimsCodec.encodeService(SERVICE))
+                .claim(AgreementTokenClaimsCodec.CLAIM_SERVICE_VERSION, AgreementTokenClaimsCodec.encodeServiceVersion(SERVICE))
                 .claim(CLAIM_SCOPE, List.of(Map.of("method", "GET", "path", "/foo/*?")))
                 .build();
         var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(activeKey.keyId()).build(), claimsSet);
@@ -457,6 +469,7 @@ class AgreementTokenMintVerifyTest {
                 .claim(CLAIM_AGREEMENT_ID, "agreement-1")
                 .claim(CLAIM_CLIENT, encodeClient(CONSUMER))
                 .claim(AgreementTokenClaimsCodec.CLAIM_SERVICE, AgreementTokenClaimsCodec.encodeService(SERVICE))
+                .claim(AgreementTokenClaimsCodec.CLAIM_SERVICE_VERSION, AgreementTokenClaimsCodec.encodeServiceVersion(SERVICE))
                 .claim(CLAIM_SCOPE, encodeScope(List.of(new AgreementTokenScope("GET", "/foo/*"))));
     }
 

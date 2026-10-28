@@ -45,9 +45,11 @@ import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLA
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_CLIENT;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SCOPE;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE_VERSION;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeClient;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeScope;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeService;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeServiceVersion;
 
 /**
  * Mints agreement tokens: a compact, ES256-signed JWS (see {@code XRDADR-40} and the key-trust slice's
@@ -94,6 +96,7 @@ public final class AgreementTokenMinter {
                 .claim(CLAIM_AGREEMENT_ID, grant.agreementId())
                 .claim(CLAIM_CLIENT, encodeClient(grant.client()))
                 .claim(CLAIM_SERVICE, encodeService(grant.service()))
+                .claim(CLAIM_SERVICE_VERSION, encodeServiceVersion(grant.service()))
                 .claim(CLAIM_SCOPE, encodeScope(grant.scope()))
                 .build();
 
