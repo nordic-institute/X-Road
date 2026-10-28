@@ -53,10 +53,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
+import org.niis.xroad.edc.extension.assetaccess.probe.CandidateHandshakeRace;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -69,6 +71,8 @@ class XRoadAssetAccessApiExtensionTest {
 
     private static final String COOLDOWN_SETTING = "xroad.asset-access.cooldown.period-seconds";
     private static final String HANDSHAKE_RACE_DEADLINE_SETTING = "xroad.asset-access.handshake-race.deadline-millis";
+    private static final String HANDSHAKE_RACE_STAGGER_SETTING = "xroad.asset-access.handshake-race.stagger-millis";
+    private static final String SMOOTHING_FACTOR_SETTING = "xroad.asset-access.handshake-race.smoothing-factor";
     private static final String CANDIDATE_TIMEOUT_SETTING = "xroad.asset-access.candidate.timeout-seconds";
 
     @BeforeEach
@@ -152,6 +156,138 @@ class XRoadAssetAccessApiExtensionTest {
         assertThatThrownBy(() -> negative.initialize(context))
                 .isInstanceOf(EdcException.class)
                 .hasMessageContaining(HANDSHAKE_RACE_DEADLINE_SETTING);
+    }
+
+    @Test
+    void handshakeRaceStaggerDefaultsToZero(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        var race = initializedHandshakeRace(context, factory);
+
+        assertThat(race.probeStagger()).isEqualTo(Duration.ZERO);
+    }
+
+    @Test
+    void handshakeRaceStaggerHonoursTheConfiguredOverride(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(HANDSHAKE_RACE_STAGGER_SETTING, "150")));
+        var race = initializedHandshakeRace(context, factory);
+
+        assertThat(race.probeStagger()).isEqualTo(Duration.ofMillis(150));
+    }
+
+    @Test
+    void handshakeRaceStaggerRejectsNegative(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(HANDSHAKE_RACE_STAGGER_SETTING, "-1")));
+        var extension = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+
+        assertThatThrownBy(() -> extension.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(HANDSHAKE_RACE_STAGGER_SETTING);
+    }
+
+    @Test
+    void handshakeRaceStaggerRejectsTheDeadlineAndAbove(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                HANDSHAKE_RACE_DEADLINE_SETTING, "800", HANDSHAKE_RACE_STAGGER_SETTING, "800")));
+        var equal = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                HANDSHAKE_RACE_DEADLINE_SETTING, "800", HANDSHAKE_RACE_STAGGER_SETTING, "4000")));
+        var above = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+
+        assertThatThrownBy(() -> equal.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(HANDSHAKE_RACE_STAGGER_SETTING);
+        assertThatThrownBy(() -> above.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(HANDSHAKE_RACE_STAGGER_SETTING);
+    }
+
+    @Test
+    void handshakeRaceStaggerJustBelowTheDeadlineIsAccepted(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                HANDSHAKE_RACE_DEADLINE_SETTING, "800", HANDSHAKE_RACE_STAGGER_SETTING, "799")));
+        var race = initializedHandshakeRace(context, factory);
+
+        assertThat(race.probeStagger()).isEqualTo(Duration.ofMillis(799));
+    }
+
+    @Test
+    void handshakeRaceDeadlineAtFiveSecondsIsAccepted(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                HANDSHAKE_RACE_DEADLINE_SETTING, "5000")));
+
+        assertThat(initializedHandshakeRace(context, factory)).isNotNull();
+    }
+
+    @Test
+    void handshakeRaceDeadlineAboveFiveSecondsIsRejected(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                HANDSHAKE_RACE_DEADLINE_SETTING, "5001")));
+        var extension = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+
+        assertThatThrownBy(() -> extension.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(HANDSHAKE_RACE_DEADLINE_SETTING);
+    }
+
+    @Test
+    void handshakeRaceSmoothingFactorDefaultsToThreeTenths(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        var race = initializedHandshakeRace(context, factory);
+
+        assertThat(averageAfterSamples(race, 100, 200)).isEqualTo(Duration.ofMillis(130));
+    }
+
+    @Test
+    void handshakeRaceSmoothingFactorHonoursTheConfiguredOverride(ServiceExtensionContext context, ObjectFactory factory)
+            throws Exception {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SMOOTHING_FACTOR_SETTING, "0.5")));
+        var race = initializedHandshakeRace(context, factory);
+
+        assertThat(averageAfterSamples(race, 100, 200)).isEqualTo(Duration.ofMillis(150));
+    }
+
+    @Test
+    void handshakeRaceSmoothingFactorOfOneIsAccepted(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SMOOTHING_FACTOR_SETTING, "1")));
+        var race = initializedHandshakeRace(context, factory);
+
+        assertThat(averageAfterSamples(race, 100, 200)).isEqualTo(Duration.ofMillis(200));
+    }
+
+    @Test
+    void handshakeRaceSmoothingFactorRejectsZeroAndAboveOne(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SMOOTHING_FACTOR_SETTING, "0")));
+        var zero = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(SMOOTHING_FACTOR_SETTING, "1.1")));
+        var aboveOne = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+
+        assertThatThrownBy(() -> zero.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(SMOOTHING_FACTOR_SETTING);
+        assertThatThrownBy(() -> aboveOne.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(SMOOTHING_FACTOR_SETTING);
+    }
+
+    private static Duration averageAfterSamples(CandidateHandshakeRace race, long... sampleMillis) throws Exception {
+        var timesField = CandidateHandshakeRace.class.getDeclaredField("handshakeTimes");
+        timesField.setAccessible(true);
+        var times = timesField.get(race);
+        var record = times.getClass().getDeclaredMethod("record", String.class, Duration.class);
+        var average = times.getClass().getDeclaredMethod("average", String.class);
+        record.setAccessible(true);
+        average.setAccessible(true);
+        for (var sample : sampleMillis) {
+            record.invoke(times, "server", Duration.ofMillis(sample));
+        }
+        return (Duration) ((Optional<?>) average.invoke(times, "server")).orElseThrow();
+    }
+
+    private static CandidateHandshakeRace initializedHandshakeRace(ServiceExtensionContext context, ObjectFactory factory)
+            throws Exception {
+        var extension = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+        extension.initialize(context);
+        var field = XRoadAssetAccessApiExtension.class.getDeclaredField("candidateHandshakeRace");
+        field.setAccessible(true);
+        return (CandidateHandshakeRace) field.get(extension);
     }
 
     private static CooldownTracker initializedCooldownTracker(ServiceExtensionContext context, ObjectFactory factory)

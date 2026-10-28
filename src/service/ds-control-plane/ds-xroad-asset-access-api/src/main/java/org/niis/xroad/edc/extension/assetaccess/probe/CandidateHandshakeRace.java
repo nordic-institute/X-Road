@@ -32,6 +32,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Connection;
 import okhttp3.EventListener;
+import okhttp3.Handshake;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -42,19 +43,26 @@ import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest.Candidate;
 import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Orders candidate provider Security Servers by a parallel TLS probe race. Every candidate is probed at once through
- * a client derived from the shared X-Road OkHttp client, so probes use the connector TLS trust and the winner's open
- * connection stays in the shared pool for the catalog call that follows.
+ * Orders candidate provider Security Servers by a TLS probe race. Every candidate is probed through a client derived
+ * from the shared X-Road OkHttp client, so probes use the connector TLS trust and the winner's open connection stays
+ * in the shared pool for the catalog call that follows. Probes run concurrently: they start together, or one
+ * stagger apart when a stagger is set.
  *
  * <p>The first probe to hold an established connection wins and the others are cancelled. The winner's exchange is
  * allowed to finish, without reading its status, so that the connection returns to the pool before the order is
@@ -64,10 +72,18 @@ import java.util.concurrent.RejectedExecutionException;
  * <p>The order is the winner, then the cancelled candidates, then the failed ones; each of the last two groups
  * is shuffled. It is handed out on a dedicated completion executor, so the acquisition that follows does not run
  * on an OkHttp callback thread.
+ *
+ * <p>Each completed handshake updates the server's moving average of connection setup time, TCP connect plus TLS
+ * handshake ({@link HandshakeTimes}); a failed probe drops the server's average. With a probe stagger of zero all
+ * probes start together and the averages do not affect the order. With a positive stagger the probes start one
+ * stagger apart, servers with the lowest average first and servers without a recorded average last, so a server that
+ * usually answers first is probed before the others and may win before they are started. A probe that fails before
+ * the race is decided starts the next waiting probe at once instead of at that probe's slot.
  */
 public class CandidateHandshakeRace {
 
     static final String COMPLETION_THREAD_NAME = "CandidateHandshakeRace-completion";
+    static final String STAGGER_THREAD_NAME = "CandidateHandshakeRace-stagger";
 
     private static final String WELL_KNOWN_SEGMENT = ".well-known";
     private static final String VERSION_SEGMENT = "dspace-version";
@@ -75,19 +91,39 @@ public class CandidateHandshakeRace {
     private final OkHttpClient probeClient;
     private final CooldownTracker cooldownTracker;
     private final ExecutorService completionExecutor;
+    private final ScheduledExecutorService staggerExecutor;
+    private final Duration probeStagger;
+    private final HandshakeTimes handshakeTimes;
     private final Monitor monitor;
 
     /**
      * @param client                   the shared X-Road OkHttp client the probe client is derived from
      * @param cooldownTracker          marks servers whose probe failed
-     * @param executorInstrumentation  instruments the executor the order is handed out on
+     * @param executorInstrumentation  instruments the completion executor the order is handed out on and the
+     *                                 stagger scheduler that starts the delayed probes
      * @param probeDeadline            time limit for one probe, from start until its response completes
+     * @param probeStagger             delay between the starts of consecutive probes; zero starts all probes together
+     * @param smoothingFactor          weight of the newest sample in a server's average connection setup time, above 0
+     *                                 and at most 1
      */
     public CandidateHandshakeRace(OkHttpClient client,
                                   CooldownTracker cooldownTracker,
                                   ExecutorInstrumentation executorInstrumentation,
                                   Duration probeDeadline,
+                                  Duration probeStagger,
+                                  double smoothingFactor,
                                   Monitor monitor) {
+        this(client, cooldownTracker, executorInstrumentation, probeDeadline, probeStagger,
+                new HandshakeTimes(smoothingFactor), monitor);
+    }
+
+    CandidateHandshakeRace(OkHttpClient client,
+                           CooldownTracker cooldownTracker,
+                           ExecutorInstrumentation executorInstrumentation,
+                           Duration probeDeadline,
+                           Duration probeStagger,
+                           HandshakeTimes handshakeTimes,
+                           Monitor monitor) {
         this.probeClient = client.newBuilder()
                 .callTimeout(probeDeadline)
                 .connectTimeout(probeDeadline)
@@ -99,13 +135,27 @@ public class CandidateHandshakeRace {
         this.completionExecutor = executorInstrumentation.instrument(
                 Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(COMPLETION_THREAD_NAME + "-", 1).factory()),
                 COMPLETION_THREAD_NAME);
+        this.staggerExecutor = executorInstrumentation.instrument(
+                Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name(STAGGER_THREAD_NAME + "-", 1).daemon().factory()),
+                STAGGER_THREAD_NAME);
+        this.probeStagger = probeStagger;
+        this.handshakeTimes = handshakeTimes;
         this.monitor = monitor;
     }
 
     /**
-     * Shuts down the completion executor; an order decided afterwards is handed out on the deciding thread.
+     * @return the delay between the starts of consecutive probes; zero when all probes start together
+     */
+    public Duration probeStagger() {
+        return probeStagger;
+    }
+
+    /**
+     * Shuts down the executors. Probe starts already scheduled still run, so a round in flight completes. A round
+     * begun afterwards starts its probes at once, and an order decided afterwards is handed out on the deciding thread.
      */
     public void stop() {
+        staggerExecutor.shutdown();
         completionExecutor.shutdown();
     }
 
@@ -148,6 +198,7 @@ public class CandidateHandshakeRace {
         private final Candidate candidate;
         private Call call;
         private ProbeState state = ProbeState.PENDING;
+        private boolean started;
 
         private Probe(Candidate candidate) {
             this.candidate = candidate;
@@ -159,6 +210,7 @@ public class CandidateHandshakeRace {
         private final CompletableFuture<List<Candidate>> result = new CompletableFuture<>();
         private boolean decided;
         private List<Candidate> decidedOrder;
+        private List<Probe> startOrder = List.of();
 
         private Round(List<Candidate> candidates) {
             this.probes = candidates.stream().map(Probe::new).toList();
@@ -173,6 +225,23 @@ public class CandidateHandshakeRace {
                     continue;
                 }
                 var listener = new EventListener() {
+                    private volatile boolean connectStarted;
+                    private volatile long connectStartNanos;
+
+                    @Override
+                    public void connectStart(Call call, InetSocketAddress inetSocketAddress, Proxy proxy) {
+                        if (!connectStarted) {
+                            connectStartNanos = System.nanoTime();
+                            connectStarted = true;
+                        }
+                    }
+
+                    @Override
+                    public void secureConnectEnd(Call call, Handshake handshake) {
+                        handshakeTimes.record(probe.candidate.counterPartyAddress(),
+                                Duration.ofNanos(System.nanoTime() - connectStartNanos));
+                    }
+
                     @Override
                     public void connectionAcquired(Call call, Connection connection) {
                         declareWinner(probe);
@@ -181,15 +250,64 @@ public class CandidateHandshakeRace {
                 var request = new Request.Builder().url(url).header("Accept", "application/json").get().build();
                 probe.call = probeClient.newBuilder().eventListener(listener).build().newCall(request);
             }
-            for (var probe : probes) {
-                if (probe.call != null && !isDecided()) {
-                    probe.call.enqueue(new ProbeCallback(probe));
+            startProbes();
+        }
+
+        private void startProbes() {
+            var order = startOrder();
+            synchronized (this) {
+                startOrder = order;
+            }
+            for (var position = 0; position < order.size(); position++) {
+                var probe = order.get(position);
+                if (position == 0 || probeStagger.isZero()) {
+                    startProbe(probe);
+                } else {
+                    startLater(probe, probeStagger.multipliedBy(position).toNanos());
                 }
             }
         }
 
-        private synchronized boolean isDecided() {
-            return decided;
+        private void startNextWaiting() {
+            Probe next;
+            synchronized (this) {
+                next = startOrder.stream().filter(probe -> !probe.started).findFirst().orElse(null);
+            }
+            if (next != null) {
+                startProbe(next);
+            }
+        }
+
+        private void startLater(Probe probe, long delayNanos) {
+            try {
+                staggerExecutor.schedule(() -> startProbe(probe), delayNanos, TimeUnit.NANOSECONDS);
+            } catch (RejectedExecutionException _) {
+                startProbe(probe);
+            }
+        }
+
+        private void startProbe(Probe probe) {
+            synchronized (this) {
+                if (decided || probe.started) {
+                    return;
+                }
+                probe.started = true;
+            }
+            probe.call.enqueue(new ProbeCallback(probe));
+        }
+
+        private List<Probe> startOrder() {
+            var startable = probes.stream().filter(probe -> probe.call != null).toList();
+            if (probeStagger.isZero()) {
+                return startable;
+            }
+            var averages = new HashMap<Probe, Duration>();
+            startable.forEach(probe -> handshakeTimes.average(probe.candidate.counterPartyAddress())
+                    .ifPresent(average -> averages.put(probe, average)));
+            return startable.stream()
+                    .sorted(Comparator.comparing((Probe probe) -> !averages.containsKey(probe))
+                            .thenComparing(probe -> averages.getOrDefault(probe, Duration.ZERO)))
+                    .toList();
         }
 
         private void declareWinner(Probe probe) {
@@ -216,7 +334,9 @@ public class CandidateHandshakeRace {
                 probe.state = ProbeState.FAILED;
             }
             cooldownTracker.markFailed(probe.candidate.counterPartyAddress());
+            handshakeTimes.forget(probe.candidate.counterPartyAddress());
             monitor.warning("Probe failed: counterPartyAddress=%s".formatted(probe.candidate.counterPartyAddress()), cause);
+            startNextWaiting();
             completeWhenAllFailed();
         }
 

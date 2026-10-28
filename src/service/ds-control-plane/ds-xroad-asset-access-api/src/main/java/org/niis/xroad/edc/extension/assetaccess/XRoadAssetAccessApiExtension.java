@@ -73,6 +73,7 @@ import java.time.Duration;
 public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Asset Access Api Extension";
+    private static final long MAX_HANDSHAKE_RACE_DEADLINE_MILLIS = 5000;
 
     @Inject
     private CatalogService catalogService;
@@ -153,12 +154,33 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     private long cooldownPeriodSeconds;
 
     @Setting(key = "xroad.asset-access.handshake-race.deadline-millis",
-            description = "Time limit in milliseconds for one provider Security Server probe, a TLS connection "
-                    + "opened in parallel to every candidate before negotiation. The first probe to establish its "
-                    + "connection wins and its connection is reused for the catalog call. A probe that fails or "
-                    + "exceeds the limit puts its server in cooldown and orders it after the others.",
+            description = "Time limit in milliseconds for one provider Security Server probe, counted from that "
+                    + "probe's own start. A probe is a TLS connection opened to each candidate before negotiation, "
+                    + "all at once or staggered (see xroad.asset-access.handshake-race.stagger-millis). The first "
+                    + "probe to establish its connection wins and its connection is reused for the catalog call. A "
+                    + "probe that fails or exceeds the limit puts its server in cooldown and orders it after the others. "
+                    + "At most " + MAX_HANDSHAKE_RACE_DEADLINE_MILLIS + ".",
             defaultValue = "1500")
     private long handshakeRaceDeadlineMillis;
+
+    @Setting(key = "xroad.asset-access.handshake-race.stagger-millis",
+            description = "Delay in milliseconds between the starts of consecutive provider Security Server probes. "
+                    + "At 0 every probe starts at once. Above 0 the probes start one stagger apart in order of each "
+                    + "server's moving average connection setup time (TCP connect plus TLS handshake; see "
+                    + "xroad.asset-access.handshake-race.smoothing-factor; in memory only), fastest first, servers "
+                    + "with no recorded average last (a failed probe drops the server's average), so the usually "
+                    + "fastest server is probed before the others and may win before they are started. A probe that "
+                    + "fails before a winner is chosen starts the next waiting probe at once. Must be below "
+                    + "xroad.asset-access.handshake-race.deadline-millis. Typical values are 100 to 250.",
+            defaultValue = "0")
+    private long handshakeRaceStaggerMillis;
+
+    @Setting(key = "xroad.asset-access.handshake-race.smoothing-factor",
+            description = "Weight of the newest sample when a provider Security Server's moving average connection "
+                    + "setup time is updated after a completed probe. Must be above 0 and at most 1. A higher value "
+                    + "follows recent changes faster and smooths out less; 1 keeps only the latest sample.",
+            defaultValue = "0.3")
+    private double handshakeRaceSmoothingFactor;
 
     @Setting(key = "xroad.asset-access.poll-interval-ms",
             description = "Completion poller tick interval in milliseconds",
@@ -201,14 +223,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor.info("Initializing extension: " + EXTENSION_NAME);
-        if (candidateTimeoutSeconds <= 0) {
-            throw new EdcException("xroad.asset-access.candidate.timeout-seconds must be positive, was %d"
-                    .formatted(candidateTimeoutSeconds));
-        }
-        if (handshakeRaceDeadlineMillis <= 0) {
-            throw new EdcException("xroad.asset-access.handshake-race.deadline-millis must be positive, was %d"
-                    .formatted(handshakeRaceDeadlineMillis));
-        }
+        validateSettings();
 
         completionPoller = new AssetAccessCompletionPoller(
                 contractNegotiationStore,
@@ -235,7 +250,8 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
         cooldownTracker = new CooldownTracker(Duration.ofSeconds(cooldownPeriodSeconds));
         candidateHandshakeRace = new CandidateHandshakeRace(
-                okHttpClient, cooldownTracker, executorInstrumentation, Duration.ofMillis(handshakeRaceDeadlineMillis), monitor);
+                okHttpClient, cooldownTracker, executorInstrumentation, Duration.ofMillis(handshakeRaceDeadlineMillis),
+                Duration.ofMillis(handshakeRaceStaggerMillis), handshakeRaceSmoothingFactor, monitor);
 
         transferProcessObservable.registerListener(new ConsumerDataFlowCompletionListener(dataFlowController, monitor));
 
@@ -260,6 +276,34 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
         completionPoller.stop();
         expiredTransferSweeper.stop();
         candidateHandshakeRace.stop();
+    }
+
+    private void validateSettings() {
+        if (candidateTimeoutSeconds <= 0) {
+            throw new EdcException("xroad.asset-access.candidate.timeout-seconds must be positive, was %d"
+                    .formatted(candidateTimeoutSeconds));
+        }
+        if (handshakeRaceDeadlineMillis <= 0) {
+            throw new EdcException("xroad.asset-access.handshake-race.deadline-millis must be positive, was %d"
+                    .formatted(handshakeRaceDeadlineMillis));
+        }
+        if (handshakeRaceDeadlineMillis > MAX_HANDSHAKE_RACE_DEADLINE_MILLIS) {
+            throw new EdcException("xroad.asset-access.handshake-race.deadline-millis must not exceed %d, was %d"
+                    .formatted(MAX_HANDSHAKE_RACE_DEADLINE_MILLIS, handshakeRaceDeadlineMillis));
+        }
+        if (handshakeRaceStaggerMillis < 0) {
+            throw new EdcException("xroad.asset-access.handshake-race.stagger-millis must not be negative, was %d"
+                    .formatted(handshakeRaceStaggerMillis));
+        }
+        if (handshakeRaceStaggerMillis >= handshakeRaceDeadlineMillis) {
+            throw new EdcException("xroad.asset-access.handshake-race.stagger-millis must be below "
+                    + "xroad.asset-access.handshake-race.deadline-millis (%d), was %d"
+                    .formatted(handshakeRaceDeadlineMillis, handshakeRaceStaggerMillis));
+        }
+        if (!(handshakeRaceSmoothingFactor > 0 && handshakeRaceSmoothingFactor <= 1)) {
+            throw new EdcException("xroad.asset-access.handshake-race.smoothing-factor must be above 0 and at most 1, was %s"
+                    .formatted(handshakeRaceSmoothingFactor));
+        }
     }
 
     @Provider
