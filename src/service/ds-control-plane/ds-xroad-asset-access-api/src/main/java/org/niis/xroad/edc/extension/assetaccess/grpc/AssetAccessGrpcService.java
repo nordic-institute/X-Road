@@ -85,10 +85,20 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
 
     private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {
         recordSpanAttributes(request);
+        requireCandidates(request);
         var participantContext = resolveParticipantContext(request.getParticipantContextId());
         var assetAccessRequest = toAssetAccessRequest(request);
         var result = awaitResult(assetAccessOrchestrator.acquireAssetAccess(participantContext, assetAccessRequest));
         return buildResponse(result);
+    }
+
+    private static void requireCandidates(AcquireAssetAccessReq request) {
+        if (request.getCandidatesCount() == 0) {
+            throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .details("Empty candidate list")
+                    .build();
+        }
     }
 
     private void recordSpanAttributes(AcquireAssetAccessReq request) {

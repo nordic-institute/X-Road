@@ -69,6 +69,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -350,6 +351,21 @@ class AssetAccessGrpcServiceTest {
         } catch (StatusRuntimeException ex) {
             assertThat(extractErrorCode(ex)).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
         }
+    }
+
+    @Test
+    void emptyCandidateListIsRejectedWithoutCallingOrchestrator() {
+        var request = baseRequest().clearCandidates().build();
+
+        assertThatThrownBy(() -> stub.acquire(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> {
+                    var proto = unpackProto((StatusRuntimeException) ex);
+                    assertThat(proto.getErrorCode())
+                            .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(proto.getDetails()).isEqualTo("Empty candidate list");
+                });
+        verifyNoInteractions(assetAccessOrchestrator, participantContextService);
     }
 
     private AcquireAssetAccessReq.Builder baseRequest() {

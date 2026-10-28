@@ -80,6 +80,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -145,7 +146,10 @@ public class AssetAccessOrchestrator {
      * rest are probed in parallel and tried in the order the candidate handshake race returns, or tried at once,
      * without a probe, when only one is left. A transport fault puts
      * the candidate in cooldown and moves on to the next; any other failure is returned at once, so no other
-     * candidate is contacted after a provider answered.
+     * candidate is contacted after a provider answered. A candidate that does not answer within its limit is
+     * abandoned the same way as a transport fault: once its attempt is settled, it starts no further stage and its
+     * poller wait is cancelled. A stage completing at the moment of abandonment can still start the next one, and a
+     * negotiation or transfer already sent is not terminated.
      */
     public CompletableFuture<AssetAccessResult> acquireAssetAccess(ParticipantContext participantContext,
                                                                    AssetAccessRequest request) {
@@ -259,34 +263,41 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<StageOutcome<DataAddress>> attemptReuse(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             AssetAccessRequest.Candidate candidate, ContractAgreement agreement) {
-        return classifyWithinCandidateLimit(candidate,
-                transferUnderReusedAgreement(key, participantContext, request, candidate, agreement));
+        return classifyWithinCandidateLimit(candidate, attempt ->
+                transferUnderReusedAgreement(key, participantContext, request, candidate, agreement, attempt));
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> attemptNegotiation(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             AssetAccessRequest.Candidate candidate) {
         monitor.info("%s no reusable agreement found, negotiating".formatted(key));
-        return classifyWithinCandidateLimit(candidate, negotiateAndTransfer(key, participantContext, request, candidate));
+        return classifyWithinCandidateLimit(candidate,
+                attempt -> negotiateAndTransfer(key, participantContext, request, candidate, attempt));
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> classifyWithinCandidateLimit(
-            AssetAccessRequest.Candidate candidate, CompletableFuture<StageOutcome<DataAddress>> attempt) {
-        var classified = attempt.exceptionally(
+            AssetAccessRequest.Candidate candidate,
+            Function<CandidateAttempt, CompletableFuture<StageOutcome<DataAddress>>> start) {
+        var attempt = new CandidateAttempt();
+        var classified = start.apply(attempt).exceptionally(
                 failure -> new StageOutcome.Failed<>(FailureClassifier.classify(failure), unwrap(failure)));
-        return abandonAtCandidateLimit(candidate, classified);
+        return abandonAtCandidateLimit(candidate, attempt, classified);
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> abandonAtCandidateLimit(
-            AssetAccessRequest.Candidate candidate, CompletableFuture<StageOutcome<DataAddress>> attempt) {
+            AssetAccessRequest.Candidate candidate, CandidateAttempt attempt,
+            CompletableFuture<StageOutcome<DataAddress>> outcome) {
         var deadline = completionPoller.awaitDeadline(candidateTimeout);
-        var abandoned = deadline.thenApply(outcome -> switch (outcome) {
+        var abandoned = deadline.thenApply(deadlineOutcome -> switch (deadlineOutcome) {
             case StageOutcome.Failed(var failureKind, var failure) when failureKind != FailureKind.TRANSPORT_FAULT ->
                     new StageOutcome.Failed<DataAddress>(failureKind, failure);
             default -> candidateAbandoned(candidate);
         });
-        return attempt.applyToEither(abandoned, Function.identity())
-                .whenComplete((_, _) -> deadline.cancel(false));
+        return outcome.applyToEither(abandoned, Function.identity())
+                .whenComplete((_, _) -> {
+                    deadline.cancel(false);
+                    attempt.settle();
+                });
     }
 
     private StageOutcome<DataAddress> candidateAbandoned(AssetAccessRequest.Candidate candidate) {
@@ -297,25 +308,27 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<DataAddress>> transferUnderReusedAgreement(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, ContractAgreement agreement) {
+            AssetAccessRequest.Candidate candidate, ContractAgreement agreement, CandidateAttempt attempt) {
         monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
                 .formatted(key, agreement.getId(), request.clientId() != null));
         return startTransfer(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
-                candidate.counterPartyAddress(), request.protocolOrDefault())
+                candidate.counterPartyAddress(), request.protocolOrDefault(), attempt)
                 .thenCompose(outcome -> switch (outcome) {
                     case StageOutcome.Succeeded<DataAddress> _ -> CompletableFuture.completedFuture(outcome);
                     case StageOutcome.Failed(var failureKind, var failure) -> isTransferRefusal(failureKind, failure)
-                            ? negotiateAfterRefusal(key, participantContext, request, candidate, agreement, failure)
+                            ? unlessSettled(attempt, () -> negotiateAfterRefusal(
+                                    key, participantContext, request, candidate, agreement, failure, attempt))
                             : CompletableFuture.completedFuture(outcome);
                 });
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> negotiateAfterRefusal(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, ContractAgreement refusedAgreement, Throwable refusal) {
+            AssetAccessRequest.Candidate candidate, ContractAgreement refusedAgreement, Throwable refusal,
+            CandidateAttempt attempt) {
         monitor.warning("%s reused agreement refused, negotiating afresh: agreementId=%s reason=%s"
                 .formatted(key, refusedAgreement.getId(), unwrap(refusal).getMessage()));
-        return negotiateAndTransfer(key, participantContext, request, candidate);
+        return negotiateAndTransfer(key, participantContext, request, candidate, attempt);
     }
 
     private static boolean isTransferRefusal(FailureKind failureKind, Throwable failure) {
@@ -333,27 +346,42 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<DataAddress>> negotiateAndTransfer(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate) {
-        return andThen(fetchCatalog(key, participantContext, request, candidate),
-                catalog -> acquireFromCatalog(key, participantContext, request, candidate, catalog));
+            AssetAccessRequest.Candidate candidate, CandidateAttempt attempt) {
+        return andThen(attempt, fetchCatalog(key, participantContext, request, candidate),
+                catalog -> acquireFromCatalog(key, participantContext, request, candidate, catalog, attempt));
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> acquireFromCatalog(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, Catalog catalog) {
+            AssetAccessRequest.Candidate candidate, Catalog catalog, CandidateAttempt attempt) {
         var offer = findOffer(key, catalog, request.assetId(), request.clientId());
-        return andThen(negotiateContract(key, participantContext, request, candidate, offer),
+        return andThen(attempt, negotiateContract(key, participantContext, request, candidate, offer, attempt),
                 agreement -> startTransfer(key, participantContext, agreement, offer.transferType(),
-                        candidate.counterPartyAddress(), request.protocolOrDefault()));
+                        candidate.counterPartyAddress(), request.protocolOrDefault(), attempt));
     }
 
     private static <T, R> CompletableFuture<StageOutcome<R>> andThen(
-            CompletableFuture<StageOutcome<T>> stage, Function<T, CompletableFuture<StageOutcome<R>>> next) {
+            CandidateAttempt attempt, CompletableFuture<StageOutcome<T>> stage,
+            Function<T, CompletableFuture<StageOutcome<R>>> next) {
         return stage.thenCompose(outcome -> switch (outcome) {
-            case StageOutcome.Succeeded<T> succeeded -> next.apply(succeeded.value());
+            case StageOutcome.Succeeded<T> succeeded -> unlessSettled(attempt, () -> next.apply(succeeded.value()));
             case StageOutcome.Failed<T> failed ->
                     CompletableFuture.completedFuture(new StageOutcome.Failed<R>(failed.failureKind(), failed.failure()));
         });
+    }
+
+    private static <R> CompletableFuture<StageOutcome<R>> unlessSettled(
+            CandidateAttempt attempt, Supplier<CompletableFuture<StageOutcome<R>>> next) {
+        return attempt.isSettled()
+                ? CompletableFuture.completedFuture(new StageOutcome.Failed<>(FailureKind.OTHER, abandonedAttemptFailure()))
+                : next.get();
+    }
+
+    private static XrdRuntimeException abandonedAttemptFailure() {
+        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                .origin(ErrorOrigin.DATASPACE)
+                .details("Candidate attempt abandoned")
+                .build();
     }
 
     private static QuerySpec datasetQuery(String assetId) {
@@ -499,7 +527,7 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<ContractAgreement>> negotiateContract(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
-            AssetAccessRequest.Candidate candidate, OfferContext offer) {
+            AssetAccessRequest.Candidate candidate, OfferContext offer, CandidateAttempt attempt) {
         try {
             var contractRequest = buildContractRequest(request, candidate, offer);
             var negotiationResult = contractNegotiationService.initiateNegotiation(participantContext, contractRequest);
@@ -508,7 +536,9 @@ public class AssetAccessOrchestrator {
                     .orElseThrow(exceptionMapper(ContractNegotiation.class, null));
             monitor.info("%s negotiation initiated, awaiting completion: negotiationId=%s".formatted(key, negotiationId));
 
-            return completionPoller.awaitNegotiation(negotiationId, negotiationTimeout)
+            var negotiation = completionPoller.awaitNegotiation(negotiationId, negotiationTimeout);
+            attempt.cancelWaitOnSettle(() -> completionPoller.cancelNegotiation(negotiationId));
+            return negotiation
                     .whenComplete((outcome, throwable) -> onNegotiationComplete(key, negotiationId, outcome, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
@@ -535,6 +565,10 @@ public class AssetAccessOrchestrator {
 
     private void onNegotiationComplete(String key, String negotiationId, StageOutcome<ContractAgreement> outcome,
                                        Throwable throwable) {
+        if (throwable instanceof CancellationException) {
+            monitor.info("%s negotiation wait cancelled: negotiationId=%s".formatted(key, negotiationId));
+            return;
+        }
         if (throwable != null) {
             monitor.warning("%s negotiation failed: negotiationId=%s".formatted(key, negotiationId), throwable);
             return;
@@ -549,7 +583,7 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<StageOutcome<DataAddress>> startTransfer(
             String key, ParticipantContext participantContext, ContractAgreement agreement,
-            String transferType, String counterPartyAddress, String protocol) {
+            String transferType, String counterPartyAddress, String protocol, CandidateAttempt attempt) {
         var transferRequest = TransferRequest.Builder.newInstance()
                 .contractId(agreement.getId())
                 .counterPartyAddress(counterPartyAddress)
@@ -582,11 +616,17 @@ public class AssetAccessOrchestrator {
         var transferProcessId = result.getContent().getId();
         monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
-        return completionPoller.awaitTransfer(transferProcessId, transferTimeout)
+        var transfer = completionPoller.awaitTransfer(transferProcessId, transferTimeout);
+        attempt.cancelWaitOnSettle(() -> completionPoller.cancelTransfer(transferProcessId));
+        return transfer
                 .whenComplete((outcome, throwable) -> onTransferComplete(key, transferProcessId, outcome, throwable));
     }
 
     private void onTransferComplete(String key, String transferProcessId, StageOutcome<DataAddress> outcome, Throwable throwable) {
+        if (throwable instanceof CancellationException) {
+            monitor.info("%s transfer wait cancelled: transferProcessId=%s".formatted(key, transferProcessId));
+            return;
+        }
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
             return;
