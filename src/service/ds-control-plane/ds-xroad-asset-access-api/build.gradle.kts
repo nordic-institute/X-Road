@@ -10,6 +10,7 @@ dependencies {
   implementation(libs.apache.commonsLang3)
   implementation(libs.guava)
   implementation(libs.jakarta.annotationApi)
+  implementation(libs.okhttp)
 
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   implementation(project(":service:ds-control-plane:ds-xroad-control-plane-policy"))
@@ -22,6 +23,7 @@ dependencies {
   implementation(libs.edc.lib.dsp.catalog.transform.v2025)
 
   testImplementation(libs.assertj.core)
+  testImplementation(libs.bouncyCastle.bcpkix)
   testImplementation(libs.awaitility)
   testImplementation(libs.junit.jupiter.params)
 

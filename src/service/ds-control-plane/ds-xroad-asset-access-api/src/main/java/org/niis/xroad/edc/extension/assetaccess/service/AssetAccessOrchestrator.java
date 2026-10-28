@@ -66,6 +66,7 @@ import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
 import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
 import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
+import org.niis.xroad.edc.extension.assetaccess.probe.CandidateHandshakeRace;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
@@ -124,6 +125,7 @@ public class AssetAccessOrchestrator {
     private final TransferProcessService transferProcessService;
     private final AssetAccessCompletionPoller completionPoller;
     private final CooldownTracker cooldownTracker;
+    private final CandidateHandshakeRace candidateHandshakeRace;
     private final JsonLd jsonLd;
     private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
@@ -133,10 +135,10 @@ public class AssetAccessOrchestrator {
 
     /**
      * Acquires access to an asset from the first candidate that answers, de-duplicating concurrent requests
-     * for the same participant+asset+candidate set(+forced target)(+client) key. Candidates are tried in the
-     * order given, skipping those in cooldown unless every candidate is. A transport fault puts the candidate in
-     * cooldown and moves on to the next; any other failure is returned at once, so no other candidate is
-     * contacted after a provider answered.
+     * for the same participant+asset+candidate set(+forced target)(+client) key. Candidates not in cooldown (all of
+     * them when every candidate is) are probed in parallel and tried in the order the candidate handshake race
+     * returns. A transport fault puts the candidate in cooldown and moves on to the next; any other failure is
+     * returned at once, so no other candidate is contacted after a provider answered.
      */
     public CompletableFuture<AssetAccessResult> acquireAssetAccess(ParticipantContext participantContext,
                                                                    AssetAccessRequest request) {
@@ -144,9 +146,9 @@ public class AssetAccessOrchestrator {
         monitor.info("%s acquireAssetAccess entered: candidates=%d protocol=%s"
                 .formatted(key, request.candidates().size(), request.protocolOrDefault()));
         return stateStore.loadOrStartInFlight(key,
-                () -> acquireFromCandidate(key, participantContext, request,
-                        cooldownTracker.selectable(request.candidates(), AssetAccessRequest.Candidate::counterPartyAddress),
-                        0, new ArrayList<>()));
+                () -> candidateHandshakeRace.order(
+                                cooldownTracker.selectable(request.candidates(), AssetAccessRequest.Candidate::counterPartyAddress))
+                        .thenCompose(ordered -> acquireFromCandidate(key, participantContext, request, ordered, 0, new ArrayList<>())));
     }
 
     private static String registryKey(ParticipantContext participantContext, AssetAccessRequest request) {

@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -67,6 +68,7 @@ import static org.mockito.Mockito.when;
 class XRoadAssetAccessApiExtensionTest {
 
     private static final String COOLDOWN_SETTING = "xroad.asset-access.cooldown.period-seconds";
+    private static final String HANDSHAKE_RACE_DEADLINE_SETTING = "xroad.asset-access.handshake-race.deadline-millis";
     private static final String CANDIDATE_TIMEOUT_SETTING = "xroad.asset-access.candidate.timeout-seconds";
 
     @BeforeEach
@@ -88,6 +90,7 @@ class XRoadAssetAccessApiExtensionTest {
         context.registerService(ParticipantIdMapper.class, mock(ParticipantIdMapper.class));
         context.registerService(TransferProcessObservable.class, mock(TransferProcessObservable.class));
         context.registerService(DataFlowController.class, mock(DataFlowController.class));
+        context.registerService(OkHttpClient.class, new OkHttpClient());
     }
 
     @Test
@@ -126,6 +129,29 @@ class XRoadAssetAccessApiExtensionTest {
         assertThatThrownBy(() -> negative.initialize(context))
                 .isInstanceOf(EdcException.class)
                 .hasMessageContaining(CANDIDATE_TIMEOUT_SETTING);
+    }
+
+    @Test
+    void handshakeRaceDeadlineDefaultsToFifteenHundredMilliseconds() throws Exception {
+        var setting = XRoadAssetAccessApiExtension.class.getDeclaredField("handshakeRaceDeadlineMillis")
+                .getAnnotation(Setting.class);
+        assertThat(setting.key()).isEqualTo("xroad.asset-access.handshake-race.deadline-millis");
+        assertThat(setting.defaultValue()).isEqualTo("1500");
+    }
+
+    @Test
+    void handshakeRaceDeadlineRejectsZeroAndNegative(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(HANDSHAKE_RACE_DEADLINE_SETTING, "0")));
+        var zero = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(HANDSHAKE_RACE_DEADLINE_SETTING, "-1")));
+        var negative = factory.constructInstance(XRoadAssetAccessApiExtension.class);
+
+        assertThatThrownBy(() -> zero.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(HANDSHAKE_RACE_DEADLINE_SETTING);
+        assertThatThrownBy(() -> negative.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(HANDSHAKE_RACE_DEADLINE_SETTING);
     }
 
     private static CooldownTracker initializedCooldownTracker(ServiceExtensionContext context, ObjectFactory factory)
