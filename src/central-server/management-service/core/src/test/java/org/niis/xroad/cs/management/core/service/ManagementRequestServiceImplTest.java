@@ -27,26 +27,38 @@
 package org.niis.xroad.cs.management.core.service;
 
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
+import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.SystemDidRegRequestType;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.http.ResponseEntity;
 
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementRequestServiceImplTest {
@@ -106,5 +118,21 @@ class ManagementRequestServiceImplTest {
 
         assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> managementRequestService.addManagementRequest(request, AUTH_CERT_DELETION_REQUEST));
+    }
+
+    @ParameterizedTest
+    @MethodSource("directRequestTypes")
+    void shouldRejectDirectRequestTypesWithoutAdminApiCall(Object request, ManagementRequestType requestType) {
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> managementRequestService.addManagementRequest(request, requestType))
+                .satisfies(e -> assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code()));
+
+        verifyNoInteractions(managementRequestsApi);
+    }
+
+    private static Stream<Arguments> directRequestTypes() {
+        return Stream.of(
+                Arguments.of(new AuthCertRegRequestType(), AUTH_CERT_REGISTRATION_REQUEST),
+                Arguments.of(new SystemDidRegRequestType(), SYSTEM_DID_REGISTRATION_REQUEST));
     }
 }

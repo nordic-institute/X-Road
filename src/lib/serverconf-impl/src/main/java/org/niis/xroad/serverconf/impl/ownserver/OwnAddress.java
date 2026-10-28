@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.serverconf.impl.ownserver;
+
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import java.util.Optional;
 
 /**
- * What happened to one published value.
- *
- * @param outcome   whether the value was written, left as it was, or refused
- * @param rejection the reason when the value was refused, otherwise {@code null}
+ * The address registered for this Security Server in global configuration, or the reason it is not
+ * known. A database failure is not a state: it propagates as an exception.
  */
-public record PublishedValueResult(Outcome outcome, PublishedValueRejection rejection) {
+public sealed interface OwnAddress permits GlobalConfAddress, OwnerNotInitialised {
 
-    public static final PublishedValueResult STORED = new PublishedValueResult(Outcome.STORED, null);
-    public static final PublishedValueResult UNCHANGED = new PublishedValueResult(Outcome.UNCHANGED, null);
-
-    public static PublishedValueResult rejected(PublishedValueRejection rejection) {
-        return new PublishedValueResult(Outcome.REJECTED, rejection);
+    /**
+     * @return the registered address, empty for every other state
+     */
+    default Optional<String> registeredAddress() {
+        return this instanceof Registered(_, var address) ? Optional.of(address) : Optional.empty();
     }
 
-    public enum Outcome {
-        /** The value was written, as a new value or as a replacement. */
-        STORED,
-        /** Nothing was written: the stored value is already the published one, or there was nothing to replace. */
-        UNCHANGED,
-        /** The value was refused; the reason is in {@link #rejection()}. */
-        REJECTED
+    /**
+     * The server is registered with this address.
+     */
+    record Registered(SecurityServerId id, String address) implements GlobalConfAddress {
+    }
+
+    /**
+     * The identity is known, but global configuration has no address for it.
+     */
+    record NotRegistered(SecurityServerId id) implements GlobalConfAddress {
+    }
+
+    /**
+     * Global configuration could not be read.
+     */
+    record GlobalConfUnavailable(Throwable cause) implements GlobalConfAddress {
     }
 }

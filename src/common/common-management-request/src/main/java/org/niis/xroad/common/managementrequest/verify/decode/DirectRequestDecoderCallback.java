@@ -1,0 +1,243 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.common.managementrequest.verify.decode;
+
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeUtils;
+
+import jakarta.xml.soap.SOAPException;
+import lombok.Getter;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.core.exception.ErrorCode.CERT_VALIDATION;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
+
+@Getter
+public abstract class DirectRequestDecoderCallback<T> implements ManagementRequestDecoderCallback {
+    private final GlobalConfProvider globalConfProvider;
+    private final ManagementRequestCertVerifier managementRequestCertVerifier;
+    private final ManagementRequestVerifier.DecoderCallback rootCallback;
+
+    private byte[] authSignatureBytes;
+    private SignAlgorithm authSignatureAlgoId;
+
+    private byte[] ownerSignatureBytes;
+    private SignAlgorithm ownerSignatureAlgoId;
+
+    private byte[] authCertBytes;
+    private byte[] ownerCertBytes;
+    private byte[] ownerCertOcspBytes;
+
+    private T request;
+
+    protected DirectRequestDecoderCallback(GlobalConfProvider globalConfProvider,
+                                           OcspVerifierFactory ocspVerifierFactory,
+                                           ManagementRequestVerifier.DecoderCallback rootCallback) {
+        this.globalConfProvider = globalConfProvider;
+        this.rootCallback = rootCallback;
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider, ocspVerifierFactory);
+    }
+
+    @Override
+    public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
+        if (authSignatureBytes == null) {
+            authSignatureAlgoId = signatureAlgorithm("Auth", additionalHeaders);
+            authSignatureBytes = IOUtils.toByteArray(content);
+        } else if (ownerSignatureBytes == null) {
+            ownerSignatureAlgoId = signatureAlgorithm("Owner", additionalHeaders);
+            ownerSignatureBytes = IOUtils.toByteArray(content);
+        } else if (authCertBytes == null) {
+            authCertBytes = IOUtils.toByteArray(content);
+        } else if (ownerCertBytes == null) {
+            ownerCertBytes = IOUtils.toByteArray(content);
+        } else if (ownerCertOcspBytes == null) {
+            ownerCertOcspBytes = IOUtils.toByteArray(content);
+        } else {
+            throw XrdRuntimeException.systemInternalError("Unexpected content in multipart");
+        }
+    }
+
+    private static SignAlgorithm signatureAlgorithm(String part, Map<String, String> additionalHeaders) {
+        String name = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+        if (name == null) {
+            return null;
+        }
+        SignAlgorithm algorithm = SignAlgorithm.ofName(name);
+        if (!(algorithm instanceof SignAlgorithm.KnownSignAlgorithm)) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "%s signature algorithm '%s' is unknown".formatted(part, name));
+        }
+        return algorithm;
+    }
+
+    @Override
+    public void onCompleted() {
+        verifyMessagePart(rootCallback.getSoapMessage(), "Request contains no SOAP message");
+        verifyMessagePart(authSignatureAlgoId, "Auth signature algorithm id is missing");
+        verifyMessagePart(authSignatureBytes, "Auth signature is missing");
+        verifyMessagePart(ownerSignatureAlgoId, "Owner signature algorithm id is missing");
+        verifyMessagePart(ownerSignatureBytes, "Owner signature is missing");
+        verifyMessagePart(authCertBytes, "Auth certificate is missing");
+        verifyMessagePart(ownerCertBytes, "Owner certificate is missing");
+        verifyMessagePart(ownerCertOcspBytes, "Owner certificate OCSP is missing");
+
+        try {
+            request = parse(rootCallback.getSoapMessage());
+            verifyMessage();
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public Object getRequest() {
+        return request;
+    }
+
+    @Override
+    public Optional<byte[]> attachedAuthCert() {
+        return Optional.ofNullable(authCertBytes);
+    }
+
+    protected abstract T parse(SoapMessageImpl message) throws SOAPException;
+
+    protected abstract SecurityServerId getServer(T parsedRequest);
+
+    protected void verifyAttachedAuthCert(T parsedRequest, byte[] attachedAuthCert) {
+    }
+
+    protected void verifyRequestFields(T parsedRequest) {
+    }
+
+    public void verifyMessage()
+            throws IOException, CertificateException, NoSuchAlgorithmException,
+            SignatureException, InvalidKeyException, NoSuchProviderException, OCSPException {
+        final SoapMessageImpl soap = rootCallback.getSoapMessage();
+
+        final X509Certificate authCert = CryptoUtils.readCertificate(this.authCertBytes);
+        if (!verifyAuthCert(authCert)) {
+            throw XrdRuntimeException.systemException(CERT_VALIDATION, "Authentication certificate is not valid");
+        }
+
+        final byte[] dataToVerify = soap.getBytes();
+        if (!verifySignature(authCert, authSignatureBytes, authSignatureAlgoId, dataToVerify)) {
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Auth signature verification failed");
+        }
+
+        final X509Certificate ownerCert = CryptoUtils.readCertificate(this.ownerCertBytes);
+        final OCSPResp ownerCertOcsp = new OCSPResp(this.ownerCertOcspBytes);
+        managementRequestCertVerifier.verifyCertificate(ownerCert, ownerCertOcsp);
+
+        if (!verifySignature(ownerCert, ownerSignatureBytes, ownerSignatureAlgoId, dataToVerify)) {
+            throw XrdRuntimeException.systemException(INVALID_SIGNATURE_VALUE, "Owner signature verification failed.");
+        }
+
+        if (!globalConfProvider.getManagementRequestService().equals(soap.getService().getClientId())
+                || !globalConfProvider.getInstanceIdentifier().equals(soap.getClient().getXRoadInstance())) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Invalid management service address. Contact central server administrator.");
+        }
+
+        final SecurityServerId serverId = getServer(request);
+        validateServerId(serverId);
+
+        if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, "Sender does not match server owner.");
+        }
+
+        verifyAttachedAuthCert(request, this.authCertBytes);
+
+        // verify that the subject id from the certificate matches the one
+        // in the request (server id)
+        ClientId idFromReq = serverId.getOwner();
+        ClientId idFromCert = getClientIdFromCert(ownerCert, idFromReq);
+
+        if (!idFromReq.equals(idFromCert)) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match security server owner identifier (%s) in request",
+                    idFromCert, idFromReq);
+        }
+
+        verifyRequestFields(request);
+    }
+
+
+    private ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) {
+        return globalConfProvider.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                        ClientId.Conf.create(
+                                globalConfProvider.getInstanceIdentifier(),
+                                clientId.getMemberClass(),
+                                clientId.getMemberCode()
+                        ),
+                        ""
+                ),
+                cert
+        );
+    }
+
+    public boolean verifyAuthCert(X509Certificate authCert)
+            throws CertificateException, IOException, NoSuchAlgorithmException, SignatureException,
+            InvalidKeyException, NoSuchProviderException {
+
+        var instanceId = globalConfProvider.getInstanceIdentifier();
+        var caCert = globalConfProvider.getCaCert(instanceId, authCert);
+        authCert.verify(caCert.getPublicKey());
+        authCert.checkValidity();
+
+        return CertUtils.isAuthCert(authCert);
+    }
+}

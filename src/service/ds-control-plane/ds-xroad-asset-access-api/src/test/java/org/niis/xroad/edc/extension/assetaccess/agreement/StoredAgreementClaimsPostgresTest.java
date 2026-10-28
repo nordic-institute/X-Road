@@ -49,9 +49,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,8 +80,7 @@ class StoredAgreementClaimsPostgresTest {
     private static final ClientId LOCAL_GROUP_OWNER = ClientId.Conf.create("DEV", "COM", "111", "Owner");
     private static final String LOCAL_GROUP = new LocalGroupConstraintValue(LOCAL_GROUP_OWNER, "security-server-owners").encode();
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(Clock.systemUTC());
 
     private PostgresqlStoreSetupExtension extension;
     private ContractNegotiationStore store;
@@ -100,7 +96,6 @@ class StoredAgreementClaimsPostgresTest {
     void tearDown() {
         extension.runQuery("DROP TABLE " + statements.getContractNegotiationTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + statements.getContractAgreementTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Test
@@ -195,10 +190,7 @@ class StoredAgreementClaimsPostgresTest {
         var manager = new JacksonTypeManager();
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), "test-connector",
-                statements.getContractNegotiationTable(), leaseStatements, Clock.systemUTC(), queryExecutor);
-
         return new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager.getMapper(), statements, leaseContextBuilder, queryExecutor);
+                extension.getTransactionContext(), manager::getMapper, statements, queryExecutor, "test-connector", Clock.systemUTC());
     }
 }

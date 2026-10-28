@@ -29,12 +29,15 @@ package org.niis.xroad.cs.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
@@ -44,6 +47,7 @@ import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequ
 import org.niis.xroad.cs.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,10 +61,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(SpringRunner.class)
@@ -69,6 +79,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class RegistrationRequestApiTest {
 
     public static final String ENDPOINT = "/managementservice";
+    private static final String SYSTEM_DID = "did:web:ss1.example.org%3A7183:v1:system";
+    private static final String DSP_BASE_URL = "https://ss1.example.org:8183/api/dsp";
 
     @RegisterExtension
     static WireMockExtension wireMockRule = WireMockExtension.newInstance()
@@ -99,6 +111,9 @@ class RegistrationRequestApiTest {
     @Autowired
     private MockMvc mvc;
 
+    private SecurityServerId requestedServerId;
+    private byte[] requestedAuthCert;
+
     @Test
     void shouldRegisterAuthCert() throws Exception {
 
@@ -118,6 +133,41 @@ class RegistrationRequestApiTest {
                         .xpath("//xroad:requestId",
                                 Collections.singletonMap("xroad", "http://x-road.eu/xsd/xroad.xsd"))
                         .string("42"));
+
+        wireMockRule.verify(1, postRequestedFor(urlEqualTo("/api/v1/management-requests"))
+                .withRequestBody(matchingJsonPath("$.type", equalTo("AUTH_CERT_REGISTRATION_REQUEST")))
+                .withRequestBody(matchingJsonPath("$.origin", equalTo("SECURITY_SERVER")))
+                .withRequestBody(matchingJsonPath("$.security_server_id", equalTo(requestedServerId.asEncodedId())))
+                .withRequestBody(matchingJsonPath("$.server_address", equalTo("ss1.example.org")))
+                .withRequestBody(matchingJsonPath("$.authentication_certificate", equalTo(base64(requestedAuthCert)))));
+    }
+
+    @Test
+    void shouldRegisterSystemDid() throws Exception {
+        var response = new SystemDidRegistrationRequestDto();
+        response.setId(43);
+        response.setType(ManagementRequestTypeDto.SYSTEM_DID_REGISTRATION_REQUEST);
+
+        wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
+                .willReturn(WireMock.jsonResponse(response, 202)));
+
+        var payload = generateSystemDidRequest().createPayload();
+        mvc.perform(post(ENDPOINT)
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andExpect(MockMvcResultMatchers
+                        .xpath("//xroad:requestId",
+                                Collections.singletonMap("xroad", "http://x-road.eu/xsd/xroad.xsd"))
+                        .string("43"));
+
+        wireMockRule.verify(1, postRequestedFor(urlEqualTo("/api/v1/management-requests"))
+                .withRequestBody(matchingJsonPath("$.type", equalTo("SYSTEM_DID_REGISTRATION_REQUEST")))
+                .withRequestBody(matchingJsonPath("$.origin", equalTo("SECURITY_SERVER")))
+                .withRequestBody(matchingJsonPath("$.security_server_id", equalTo(requestedServerId.asEncodedId())))
+                .withRequestBody(matchingJsonPath("$.system_did", equalTo(SYSTEM_DID)))
+                .withRequestBody(matchingJsonPath("$.dsp_base_url", equalTo(DSP_BASE_URL)))
+                .withRequestBody(matchingJsonPath("$.certificate", equalTo(base64(requestedAuthCert)))));
     }
 
     @Test
@@ -141,7 +191,81 @@ class RegistrationRequestApiTest {
                         .exists());
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "management_request_did_final_conflict, system_did_final_conflict, 409, CERTIFICATE_OF_ANOTHER_SERVER",
+            "management_request_did_fixable_conflict, system_did_fixable_conflict, 409, OWNER_CHANGED",
+            "management_request_did_not_resolved, system_did_not_resolved, 400, RESOLVER_UNAVAILABLE"
+    })
+    void shouldCarryOutcomeClassAndReasonInSoapFault(String adminCode, String faultCode, int status, String reason)
+            throws Exception {
+        stubAdminError(status, adminCode, reason);
+
+        var payload = generateSystemDidRequest().createPayload();
+        mvc.perform(post(ENDPOINT)
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
+                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.xpath("//faultcode").string(faultCode))
+                .andExpect(MockMvcResultMatchers.xpath("//faultstring").string(reason));
+    }
+
+    @Test
+    void shouldKeepInternalErrorFaultForUnrelatedAdminErrorOnSystemDidRequest() throws Exception {
+        stubAdminError(409, "some_other_error", "OWNER_CHANGED");
+
+        var payload = generateSystemDidRequest().createPayload();
+        mvc.perform(post(ENDPOINT)
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
+                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.xpath("//faultcode").string("internal_error"))
+                .andExpect(MockMvcResultMatchers.xpath("//faultstring")
+                        .string(containsString("some_other_error with statusCode 409")));
+    }
+
+    @Test
+    void shouldAnswerInternalErrorFaultWhenAdminErrorBodyIsNotJson() throws Exception {
+        wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(502)
+                        .withHeader("Content-Type", "text/html")
+                        .withBody("<html>Bad Gateway</html>")));
+
+        var payload = generateSystemDidRequest().createPayload();
+        mvc.perform(post(ENDPOINT)
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
+                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.xpath("//faultcode").string("internal_error"))
+                .andExpect(MockMvcResultMatchers.xpath("//faultstring").string(containsString("Management request failed")));
+    }
+
+    private void stubAdminError(int status, String adminCode, String reason) {
+        var response = new ErrorInfoDto();
+        response.setStatus(status);
+        response.setError(new CodeWithDetailsDto().code(adminCode).addMetadataItem(reason));
+
+        wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
+                .willReturn(WireMock.jsonResponse(response, status)));
+    }
+
+    private static String base64(byte[] value) {
+        return Base64.getEncoder().encodeToString(value);
+    }
+
+    private TestBaseManagementRequest generateSystemDidRequest() throws Exception {
+        return generateRequest((builder, serverId, authCert) ->
+                builder.buildSystemDidRegRequest(serverId, SYSTEM_DID, DSP_BASE_URL));
+    }
+
     private TestBaseManagementRequest generateRequest() throws Exception {
+        return generateRequest((builder, serverId, authCert) ->
+                builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert));
+    }
+
+    private TestBaseManagementRequest generateRequest(
+            RequestFactory requestFactory) throws Exception {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
 
@@ -160,10 +284,9 @@ class RegistrationRequestApiTest {
                 CertificateStatus.GOOD);
 
         var builder = new TestManagementRequestBuilder(serverId.getOwner(), receiver);
-        var req = builder.buildAuthCertRegRequest(
-                serverId,
-                "ss1.example.org",
-                authCert);
+        var req = requestFactory.create(builder, serverId, authCert);
+        requestedServerId = serverId;
+        requestedAuthCert = authCert;
 
         return new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
@@ -171,5 +294,10 @@ class RegistrationRequestApiTest {
                 req,
                 authKeyPair.getPrivate(),
                 ownerKeyPair.getPrivate());
+    }
+
+    @FunctionalInterface
+    private interface RequestFactory {
+        SoapMessageImpl create(TestManagementRequestBuilder builder, SecurityServerId.Conf serverId, byte[] authCert);
     }
 }

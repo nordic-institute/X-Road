@@ -239,6 +239,30 @@ class SharedParametersLoaderTest {
                 .satisfies(ss -> assertThat(ss.getSystemValues()).isNull());
     }
 
+    @Test
+    void loadReadsTheNewSystemValuesAfterTheStoredPairIsReplaced() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        var replacedSystemDid = "did:web:replaced-address%3A7183:v1:system";
+        var replacedDspBaseUrl = "https://replaced-address:8183/api/dsp";
+        var serverAtNewAddress = getSecurityServers().getFirst();
+        serverAtNewAddress.setAddress("replaced-address");
+        when(securityServerService.findAll())
+                .thenReturn(List.of(withSystemValues(getSecurityServers().getFirst(), SYSTEM_DID, DSP_BASE_URL)))
+                .thenReturn(List.of(withSystemValues(serverAtNewAddress, replacedSystemDid, replacedDspBaseUrl)));
+
+        var before = sharedParametersLoader.load();
+        var after = sharedParametersLoader.load();
+
+        verify(securityServerService, times(2)).findAll();
+
+        assertThat(before.getSecurityServers()).singleElement()
+                .satisfies(ss -> assertThat(ss.getSystemValues()).isEqualTo(new ServerSystemValues(SYSTEM_DID, DSP_BASE_URL)));
+        assertThat(after.getSecurityServers()).singleElement()
+                .satisfies(ss -> assertThat(ss.getSystemValues())
+                        .isEqualTo(new ServerSystemValues(replacedSystemDid, replacedDspBaseUrl)));
+    }
+
     @ParameterizedTest
     @CsvSource({
             "did:web:security-server-address%3A7183:v1:system, ''",

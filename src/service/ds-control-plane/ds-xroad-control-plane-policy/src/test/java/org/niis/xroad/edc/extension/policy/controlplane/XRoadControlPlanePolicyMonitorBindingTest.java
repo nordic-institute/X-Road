@@ -41,10 +41,8 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
-import org.eclipse.edc.policy.engine.ScopeFilter;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
@@ -110,7 +108,7 @@ class XRoadControlPlanePolicyMonitorBindingTest {
     @BeforeEach
     void setUp() throws Exception {
         RuleBindingRegistry ruleBindingRegistry = new RuleBindingRegistryImpl();
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(ruleBindingRegistry), new RuleValidator(ruleBindingRegistry));
+        policyEngine = new PolicyEngineImpl(ruleBindingRegistry);
 
         var extension = new XRoadControlPlanePolicyExtension();
         setField(extension, "jsonLd", jsonLd);

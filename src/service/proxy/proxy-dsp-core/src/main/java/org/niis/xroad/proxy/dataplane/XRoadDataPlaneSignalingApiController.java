@@ -42,7 +42,7 @@ import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
+import org.eclipse.edc.signaling.domain.DataFlowSuspendMessage;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Map;

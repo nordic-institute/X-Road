@@ -43,6 +43,7 @@ import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
+import ee.ria.xroad.common.request.SystemDidRegRequestType;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -95,6 +96,15 @@ public class TestManagementRequestBuilder {
         request.setAddress(address);
 
         return buildMessage(element(ManagementRequestType.ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
+    }
+
+    public SoapMessageImpl buildSystemDidRegRequest(SecurityServerId.Conf securityServer, String systemDid, String dspBaseUrl) {
+        var request = FACTORY.createSystemDidRegRequestType();
+        request.setServer(securityServer);
+        request.setSystemDid(systemDid);
+        request.setDspBaseUrl(dspBaseUrl);
+
+        return buildMessage(element(ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST, SystemDidRegRequestType.class, request));
     }
 
     public SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) {

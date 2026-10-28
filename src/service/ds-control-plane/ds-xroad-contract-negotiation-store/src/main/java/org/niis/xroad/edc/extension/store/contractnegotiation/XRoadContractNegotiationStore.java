@@ -27,7 +27,6 @@
 
 package org.niis.xroad.edc.extension.store.contractnegotiation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -36,17 +35,20 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
+import org.eclipse.edc.sql.lease.StatefulEntityWriteCheck;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.edc.extension.store.contractnegotiation.schema.XRoadContractNegotiationStatements;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -54,13 +56,14 @@ import java.util.stream.Stream;
  * stock SQL store extension. Delegates every read/lease/query method to the wrapped stock store, and forks only
  * the save path to converge same-context self-negotiation onto one shared agreement row.
  *
- * <p>Forked save, single transaction: look up the agreement row for the (agreement id, participant context id)
+ * <p>Forked save, single transaction: verify the negotiation row's lease and version and lock it (as stock does,
+ * before anything is written); look up the agreement row for the (agreement id, participant context id)
  * composite pair; if it does not exist yet, or its content differs from the incoming agreement (excluding
  * {@code claims}), upsert the agreement with the composite pair as the conflict arbiter instead of the internal
  * primary key, then re-read the composite pair to learn the surviving internal id (race-free within the
  * transaction, since Postgres resolves the conflict atomically and never touches the primary-key column). The
- * negotiation row is then upserted with that surviving id as its agreement foreign key, and the lease is broken
- * as stock does.
+ * negotiation row is then upserted, version-checked, with that surviving id as its agreement foreign key; the
+ * upsert releases the lease and increments the version as stock does.
  *
  * <p>The re-read/skip step is the race guard: stock re-upserts the whole agreement row on every negotiation save
  * that carries one, which would otherwise let either side of a self-negotiation clobber the other's most recent
@@ -75,17 +78,22 @@ public class XRoadContractNegotiationStore extends AbstractSqlStore implements C
 
     private final ContractNegotiationStore delegate;
     private final XRoadContractNegotiationStatements statements;
-    private final SqlLeaseContextBuilder leaseContext;
+    private final String leaseHolder;
+    private final Clock clock;
+    private final StatefulEntityWriteCheck writeCheck;
 
     public XRoadContractNegotiationStore(ContractNegotiationStore delegate,
                                           DataSourceRegistry dataSourceRegistry, String dataSourceName,
-                                          TransactionContext transactionContext, ObjectMapper objectMapper,
+                                          TransactionContext transactionContext, Supplier<ObjectMapper> objectMapper,
                                           XRoadContractNegotiationStatements statements,
-                                          SqlLeaseContextBuilder leaseContext, QueryExecutor queryExecutor) {
+                                          QueryExecutor queryExecutor, String leaseHolder, Clock clock) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.delegate = delegate;
         this.statements = statements;
-        this.leaseContext = leaseContext;
+        this.leaseHolder = leaseHolder;
+        this.clock = clock;
+        this.writeCheck = new StatefulEntityWriteCheck(queryExecutor, statements, statements.getContractNegotiationTable(),
+                leaseHolder, clock);
     }
 
     @Override
@@ -111,12 +119,19 @@ public class XRoadContractNegotiationStore extends AbstractSqlStore implements C
                 String agreementForeignKey = null;
 
                 if (contractAgreement != null) {
+                    var writable = writeCheck.checkAndLock(connection, negotiation.getId(), negotiation.getVersion());
+                    if (writable.failed()) {
+                        return writable;
+                    }
                     agreementForeignKey = convergeAgreement(connection, contractAgreement);
                 }
 
-                upsertNegotiation(connection, negotiation, agreementForeignKey);
-
-                return leaseContext.withConnection(connection).breakLease(negotiation.getId());
+                var updated = upsertNegotiation(connection, negotiation, agreementForeignKey);
+                if (updated == 0) {
+                    return writeCheck.explainNotWritten(connection, negotiation.getId(), negotiation.getVersion());
+                }
+                negotiation.setVersion(negotiation.getVersion() + 1);
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -146,6 +161,10 @@ public class XRoadContractNegotiationStore extends AbstractSqlStore implements C
     @Override
     public Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
         return delegate.queryAgreements(querySpec);
+    }
+    @Override
+    public StoreResult<Void> retireAgreement(ContractAgreement agreement) {
+        return delegate.retireAgreement(agreement);
     }
 
     /**
@@ -184,11 +203,14 @@ public class XRoadContractNegotiationStore extends AbstractSqlStore implements C
                 toJson(contractAgreement.getPolicy()),
                 contractAgreement.getParticipantContextId(),
                 contractAgreement.getAgreementId(),
-                toJson(contractAgreement.getClaims()));
+                toJson(contractAgreement.getClaims()),
+                contractAgreement.isRetired(),
+                contractAgreement.getRetirementReason(),
+                contractAgreement.getRetirementDate());
     }
 
-    private void upsertNegotiation(Connection connection, ContractNegotiation negotiation, String agreementForeignKey) {
-        queryExecutor.execute(connection, statements.getUpsertNegotiationTemplate(),
+    private int upsertNegotiation(Connection connection, ContractNegotiation negotiation, String agreementForeignKey) {
+        return queryExecutor.execute(connection, statements.getUpsertNegotiationTemplate(),
                 negotiation.getId(),
                 negotiation.getCorrelationId(),
                 negotiation.getCounterPartyId(),
@@ -207,7 +229,15 @@ public class XRoadContractNegotiationStore extends AbstractSqlStore implements C
                 negotiation.getUpdatedAt(),
                 negotiation.isPending(),
                 toJson(negotiation.getProtocolMessages()),
-                negotiation.getParticipantContextId());
+                negotiation.getParticipantContextId(),
+                toJson(negotiation.getClaims()),
+                null,
+                null,
+                null,
+                negotiation.getVersion() + 1,
+                negotiation.getVersion(),
+                leaseHolder,
+                clock.millis());
     }
 
     private AgreementSnapshot mapAgreementSnapshot(ResultSet resultSet) throws SQLException {

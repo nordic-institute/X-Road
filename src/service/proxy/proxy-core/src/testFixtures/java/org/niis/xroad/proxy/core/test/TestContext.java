@@ -75,6 +75,8 @@ import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.ServerConfProviderIdentitySource;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 
@@ -185,7 +187,8 @@ public class TestContext {
                     .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
             HttpClientCreator httpClientCreator = new HttpClientCreator(serverConfProvider,
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
-            var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
+            var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider,
+                    new OwnSecurityServerResolver(new ServerConfProviderIdentitySource(serverConfProvider), globalConfProvider));
             var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
             var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
             var serviceAddressResolver = serviceAddressResolverOverride != null
@@ -207,7 +210,8 @@ public class TestContext {
                     messageSigningService, httpSenderProvider,
                     clientVerificationService, opMonitoringDataHelper,
                     globalConfProvider, proxyProperties, commonProperties,
-                    ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService);
+                    ocspVerifierFactory, clientRequestPreparationService, consumerSideDspProcessor, identifierValidationService,
+                    new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(
                     clientSoapMessageProcessor, proxyProperties, globalConfProvider, keyConfProvider,
                     new NoOpMonitoringBuffer(), opMonitoringDataHelper);

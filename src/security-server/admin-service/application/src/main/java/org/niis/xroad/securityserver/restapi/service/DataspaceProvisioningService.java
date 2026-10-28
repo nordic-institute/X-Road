@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
@@ -42,6 +43,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
@@ -406,15 +408,14 @@ public class DataspaceProvisioningService {
      * <p>Empty for SYSTEM with no owner known yet: there is no namespace to scan or write to.
      */
     private Optional<String> holderPidBase(ParticipantContext context) {
-        var serverId = ownSecurityServerResolver.serverId();
-        var owner = context.kind() == ParticipantKind.SYSTEM
-                ? Optional.ofNullable(context.memberId())
-                : serverId.<ClientId>map(id -> id.getOwner());
-        if (serverId.isEmpty() || owner.isEmpty()) {
-            return Optional.empty();
-        }
-        var hostingServer = ParticipantIdentifierScheme.memberCtxId(owner.get()) + ":" + serverId.get().getServerCode();
-        return Optional.of(context.participantId() + "-" + hostingServer + "-" + HOLDER_PID_BASE);
+        return ownSecurityServerResolver.identity().serverId().flatMap(serverId -> {
+            var owner = context.kind() == ParticipantKind.SYSTEM ? context.memberId() : serverId.getOwner();
+            if (owner == null) {
+                return Optional.empty();
+            }
+            var hostingServer = ParticipantIdentifierScheme.memberCtxId(owner) + ":" + serverId.getServerCode();
+            return Optional.of(context.participantId() + "-" + hostingServer + "-" + HOLDER_PID_BASE);
+        });
     }
 
     private static CredentialStatus hubCredentialState(String state) {
@@ -455,13 +456,12 @@ public class DataspaceProvisioningService {
      */
     @Transactional(readOnly = true)
     public List<ParticipantContext> participantContexts() {
-        var ownerId = ownSecurityServerResolver.owner();
-        var owner = ownerId.orElse(null);
+        ClientId owner = ownSecurityServerResolver.identity().serverId().map(SecurityServerId::getOwner).orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner));
 
-        if (ownerId.isEmpty()) {
+        if (owner == null) {
             // serverconf is not initialised: reading local clients would throw MALFORMED_SERVERCONF
             return contexts;
         }

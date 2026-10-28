@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.issuer.didresolution;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import okhttp3.MediaType;
@@ -55,6 +54,8 @@ import org.niis.xroad.edc.extension.bridge.XRoadTlsOkHttpClientExtension;
 import org.niis.xroad.edc.issuer.didresolution.SubmittedDidResolver.Reason;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -414,8 +415,9 @@ class SubmittedDidResolverTest {
     void aDocumentWithFieldsUnknownToEdcStillResolves() throws Exception {
         var stub = start(sharedCa);
         var document = identityHubDocument(stub.did());
-        assertThatThrownBy(() -> new ObjectMapper().readValue(document, DidDocument.class))
-                .hasMessageContaining("Unrecognized field");
+        assertThatThrownBy(() -> JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
+                .readValue(document, DidDocument.class))
+                .hasMessageContaining("Unrecognized property");
         stub.route(DidStubServer.DID_PATH, DidStubServer.respond(200, document));
         trust(sharedCa);
 
@@ -443,7 +445,8 @@ class SubmittedDidResolverTest {
         resolver().resolve(stub.did());
 
         assertThat(resolverMonitor.severe).isEmpty();
-        assertThat(resolverMonitor.debug).contains("Error resolving DID: " + stub.did());
+        assertThat(resolverMonitor.debug)
+                .anySatisfy(entry -> assertThat(entry).startsWith("DID document of " + stub.did() + " not resolved"));
     }
 
     private DidStubServer start(DidStubServer.Ca ca) throws Exception {

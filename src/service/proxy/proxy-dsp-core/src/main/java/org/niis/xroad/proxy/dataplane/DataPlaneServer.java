@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -41,11 +39,13 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.jackson3.JacksonFeature;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * CDI bean that owns a separate Jetty Server instance for the data-plane listener.
@@ -115,12 +115,13 @@ public class DataPlaneServer {
     }
 
     @Provider
-    static final class LenientObjectMapperResolver implements ContextResolver<ObjectMapper> {
-        private final ObjectMapper mapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    static final class LenientObjectMapperResolver implements ContextResolver<JsonMapper> {
+        private final JsonMapper mapper = JsonMapper.builder()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .build();
 
         @Override
-        public ObjectMapper getContext(Class<?> type) {
+        public JsonMapper getContext(Class<?> type) {
             return mapper;
         }
     }

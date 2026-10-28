@@ -31,6 +31,10 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -43,9 +47,11 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
+import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -59,12 +65,15 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = "spring.main.lazy-initialization=true")
 class RegistrationRequestControllerTest {
     public static final String CONTENT_TYPE = "multipart/related; boundary=partboundary";
+    private static final String SYSTEM_DID = "did:web:ss1.example.org:v1:system";
+    private static final String DSP_BASE_URL = "https://ss1.example.org:8443/dsp";
     private static KeyPair ownerKeyPair;
     private static KeyPair authKeyPair;
 
@@ -74,12 +83,49 @@ class RegistrationRequestControllerTest {
     private RegistrationRequestController controller;
     @Autowired
     private GlobalConfProvider globalConfProvider;
+    @Autowired
+    private RecordingAdminApiService adminApiService;
+
+    static class RecordingAdminApiService implements AdminApiService {
+        static final int SYSTEM_DID_REQUEST_ID = 42;
+
+        private SecurityServerId systemDidServerId;
+        private String systemDid;
+        private String dspBaseUrl;
+        private byte[] systemDidCertificate;
+        private int calls;
+
+        void reset() {
+            calls = 0;
+            systemDidServerId = null;
+            systemDid = null;
+            dspBaseUrl = null;
+            systemDidCertificate = null;
+        }
+
+        @Override
+        public int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate) {
+            calls++;
+            return 0;
+        }
+
+        @Override
+        public int addSystemDidRegistrationRequest(SecurityServerId serverId, String did, String baseUrl,
+                                                   byte[] certificate) {
+            calls++;
+            this.systemDidServerId = serverId;
+            this.systemDid = did;
+            this.dspBaseUrl = baseUrl;
+            this.systemDidCertificate = certificate;
+            return SYSTEM_DID_REQUEST_ID;
+        }
+    }
 
     @TestConfiguration
     static class TestConfig {
         @Bean
-        AdminApiService adminApiServiceImpl() {
-            return (serverId, address, certificate) -> 0;
+        RecordingAdminApiService adminApiServiceImpl() {
+            return new RecordingAdminApiService();
         }
 
         @Bean
@@ -103,6 +149,7 @@ class RegistrationRequestControllerTest {
     void beforeEach() {
         serverId = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier(),
                 "CLASS", "MEMBER", "SS1");
+        adminApiService.reset();
     }
 
     @Test
@@ -252,6 +299,80 @@ class RegistrationRequestControllerTest {
         var result = registerWithInvalidCerts(serverId);
         Assertions.assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), ErrorCode.INCORRECT_CERTIFICATE.code());
+    }
+
+    @Test
+    void shouldForwardValidSystemDidRegRequest() throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+        var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
+                TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key,
+                CertificateStatus.GOOD);
+
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), globalConfProvider.getManagementRequestService());
+        var req = builder.buildSystemDidRegRequest(serverId, SYSTEM_DID, DSP_BASE_URL);
+
+        var envelope = new TestAuthRegTypeRequest(authCert,
+                ownerCert.getEncoded(),
+                ownerOcsp.getEncoded(),
+                req,
+                authKeyPair.getPrivate(),
+                ownerKeyPair.getPrivate());
+
+        var payload = envelope.createPayload();
+        var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
+
+        Assertions.assertTrue(result.getStatusCode().is2xxSuccessful());
+        Assertions.assertTrue(result.getBody().contains(String.valueOf(RecordingAdminApiService.SYSTEM_DID_REQUEST_ID)));
+        Assertions.assertEquals(serverId, adminApiService.systemDidServerId);
+        Assertions.assertEquals(SYSTEM_DID, adminApiService.systemDid);
+        Assertions.assertEquals(DSP_BASE_URL, adminApiService.dspBaseUrl);
+        Assertions.assertArrayEquals(authCert, adminApiService.systemDidCertificate);
+    }
+
+    @Test
+    void shouldAnswerInvalidRequestFaultForForeignTypeWithoutAdminCallOrErrorStackTrace() throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+        var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
+                TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key,
+                CertificateStatus.GOOD);
+
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), globalConfProvider.getManagementRequestService());
+        var req = builder.buildAuthCertDeletionRequest(serverId, authCert);
+
+        var envelope = new TestAuthRegTypeRequest(authCert,
+                ownerCert.getEncoded(),
+                ownerOcsp.getEncoded(),
+                req,
+                authKeyPair.getPrivate(),
+                ownerKeyPair.getPrivate());
+
+        var payload = envelope.createPayload();
+        var executorLogger = (Logger) LoggerFactory.getLogger(ManagementRequestSoapExecutor.class);
+        var executorLoggerLevel = executorLogger.getLevel();
+        var logEvents = new ListAppender<ILoggingEvent>();
+        executorLogger.setLevel(Level.ERROR);
+        logEvents.start();
+        executorLogger.addAppender(logEvents);
+        ResponseEntity<String> result;
+        try {
+            result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
+        } finally {
+            executorLogger.detachAppender(logEvents);
+            executorLogger.setLevel(executorLoggerLevel);
+        }
+
+        Assertions.assertTrue(result.getStatusCode().is5xxServerError());
+        assertFault(result.getBody(), ErrorCode.INVALID_REQUEST.code());
+        Assertions.assertEquals(0, adminApiService.calls);
+        List<ILoggingEvent> errors = logEvents.list.stream().filter(e -> e.getLevel().isGreaterOrEqual(Level.ERROR)).toList();
+        Assertions.assertFalse(errors.isEmpty());
+        Assertions.assertTrue(errors.stream().allMatch(e -> e.getThrowableProxy() == null));
     }
 
     private ResponseEntity<String> register(SecurityServerId.Conf sid, String address) throws Exception {

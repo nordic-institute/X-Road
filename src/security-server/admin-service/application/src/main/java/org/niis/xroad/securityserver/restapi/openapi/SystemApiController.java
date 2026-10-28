@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.restapi.util.ResourceUtils;
-import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
 import org.niis.xroad.securityserver.restapi.converter.AuthProviderTypeMapping;
@@ -108,7 +107,6 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     private final VersionConverter versionConverter;
     private final SystemService systemService;
     private final VersionService versionService;
-    private final CurrentSecurityServerId currentSecurityServerId;
     private final GlobalConfService globalConfService;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final CsrFilenameCreator csrFilenameCreator;
@@ -251,9 +249,10 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     @Override
     @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
     public ResponseEntity<SecurityServerAddressStatusDto> getServerAddress() {
-        String current = globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId());
         SecurityServerAddressStatusDto response = new SecurityServerAddressStatusDto();
-        response.setCurrentAddress(new SecurityServerAddressDto(current));
+        systemService.registeredAddress()
+                .map(SecurityServerAddressDto::new)
+                .ifPresent(response::setCurrentAddress);
         addressChangeStatus.getAddressChangeRequest()
                 .map(SecurityServerAddressDto::new)
                 .ifPresent(response::setRequestedChange);

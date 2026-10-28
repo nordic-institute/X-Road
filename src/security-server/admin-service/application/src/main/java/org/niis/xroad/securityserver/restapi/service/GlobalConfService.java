@@ -114,9 +114,6 @@ public class GlobalConfService {
         return globalConfProvider.getMemberClasses(globalConfProvider.getInstanceIdentifier());
     }
 
-    public String getSecurityServerAddress(SecurityServerId securityServerId) {
-        return globalConfProvider.getSecurityServerAddress(securityServerId);
-    }
 
     /**
      * Check the validity of the GlobalConf

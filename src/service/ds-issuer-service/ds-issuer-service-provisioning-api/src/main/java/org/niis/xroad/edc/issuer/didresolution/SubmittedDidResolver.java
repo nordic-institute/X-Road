@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.issuer.didresolution;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.RetryPolicy;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +37,7 @@ import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.iam.did.web.resolution.WebDidResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.HttpURLConnection;
 import java.time.Duration;

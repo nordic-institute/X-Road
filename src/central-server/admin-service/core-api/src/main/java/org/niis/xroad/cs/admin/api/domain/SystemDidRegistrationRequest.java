@@ -24,48 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.scheduling;
+
+package org.niis.xroad.cs.admin.api.domain;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-/**
- * Helper class for Scheduled jobs.
- * This class does not require authentication, because its
- * methods are accessed from a scheduled job that's run
- * unauthenticated.
- */
-@Slf4j
-@Service
-@Transactional
-class ScheduledJobHelper {
-    private final ServerConfRepository serverConfRepository;
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, exclude = "certificate")
+public final class SystemDidRegistrationRequest extends Request {
+    private String systemDid;
+    private String dspBaseUrl;
+    private byte[] certificate;
 
-    @Autowired
-    ScheduledJobHelper(ServerConfRepository serverConfRepository) {
-        this.serverConfRepository = serverConfRepository;
+    public SystemDidRegistrationRequest(Origin origin, SecurityServerId identifier, String systemDid, String dspBaseUrl,
+                                        byte[] certificate) {
+        super(origin, identifier);
+        this.systemDid = systemDid;
+        this.dspBaseUrl = dspBaseUrl;
+        this.certificate = certificate;
     }
 
-    /**
-     * Get the Security Server's ServerConf
-     * @return ServerConfEntity
-     */
-    ServerConfEntity getServerConf() {
-        return serverConfRepository.getServerConf();
-    }
-
-    /**
-     * Get the Security Server's id
-     * @return SecurityServerId.Conf
-     */
-    SecurityServerId.Conf getSecurityServerId() {
-        ServerConfEntity serverConf = getServerConf();
-        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST;
     }
 }

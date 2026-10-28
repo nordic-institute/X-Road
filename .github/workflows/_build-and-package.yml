@@ -153,7 +153,7 @@ jobs:
         run: ./build-native-packages.sh -d -r rpm-el9 --package-only
 
       - name: Upload RHEL9 packages
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-packages-rhel9
           path: deployment/native-packages/build/rhel/9
@@ -170,7 +170,7 @@ jobs:
         run: ./build-native-packages.sh -d -r noble --package-only
 
       - name: Upload Ubuntu 24.04 (Noble) packages
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-packages-ubuntu24.04
           path: deployment/native-packages/build/ubuntu24.04
@@ -187,14 +187,14 @@ jobs:
         run: ./build-native-packages.sh -d -r resolute --package-only
 
       - name: Upload Ubuntu 26.04 (Resolute) packages
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lxd-packages-ubuntu26.04
           path: deployment/native-packages/build/ubuntu26.04
           compression-level: '0'
 
       - name: Upload e2e-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: e2e-test-jar
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
@@ -208,7 +208,7 @@ jobs:
           echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/artifacts-ready.env
 
       - name: Upload artifacts-ready marker
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: artifacts-ready
           path: ci-markers/artifacts-ready.env
@@ -224,49 +224,49 @@ jobs:
           ./build-signer-with-hsm.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: signer-int-test-jar
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload confproxy-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: confproxy-int-test-jar
           path: src/service/configuration-proxy/configuration-proxy-int-test/build/libs/confproxy-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload softtoken-signer-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: softtoken-signer-int-test-jar
           path: src/service/softtoken-signer/softtoken-signer-int-test/build/libs/softtoken-signer-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload opmonitor-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: opmonitor-int-test-jar
           path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-management-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: cs-management-int-test-jar
           path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload ss-api-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ss-api-test-jar
           path: src/security-server/api-test/build/libs/security-server-api-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-api-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: cs-api-test-jar
           path: src/central-server/admin-service/api-test/build/libs/central-server-api-test-1.0.jar
@@ -324,7 +324,7 @@ jobs:
           echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/images-ready.env
 
       - name: Upload images-ready marker
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: images-ready
           path: ci-markers/images-ready.env

@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.jpa;
 
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.cs.admin.core.dataspace.PublishedValueStoreImpl;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueStoreImpl;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ClientDeletionRequestHandler;
 import org.niis.xroad.cs.admin.jpa.config.JpaConfiguration;
 import org.niis.xroad.cs.admin.jpa.config.XRoadSettingsProvidingTransactionManager;
@@ -50,7 +50,7 @@ import org.springframework.context.annotation.Import;
 @Import({
         JpaConfiguration.class,
         XRoadSettingsProvidingTransactionManager.class,
-        PublishedValueStoreImpl.class,
+        ParticipantValueStoreImpl.class,
         ClientDeletionRequestHandler.class})
 class PostgresTestConfiguration {
 
