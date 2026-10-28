@@ -45,7 +45,7 @@ public class CertificateRenewalScheduler implements DisposableBean {
     private final boolean ownsTaskScheduler;
     private ScheduledFuture<?> scheduledFuture;
 
-    private static final Duration RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY = Duration.of(60, SECONDS);
+    private static final Duration RECOVERY_DELAY = Duration.of(60, SECONDS);
     private static final Duration INITIAL_DELAY = Duration.of(5, SECONDS);
     private boolean retryMode;
     private boolean rescheduledDuringCycle;
@@ -130,7 +130,7 @@ public class CertificateRenewalScheduler implements DisposableBean {
      * does not discard an earlier failure's schedule.
      */
     public void deferCycle() {
-        reschedule(RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY);
+        reschedule(RECOVERY_DELAY);
         rescheduledDuringCycle = true;
     }
 

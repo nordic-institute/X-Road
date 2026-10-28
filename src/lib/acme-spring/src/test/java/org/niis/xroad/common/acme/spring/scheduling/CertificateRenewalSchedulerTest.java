@@ -44,6 +44,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -54,6 +56,7 @@ class CertificateRenewalSchedulerTest {
     private static final Instant NOW = Instant.parse("2026-01-01T00:00:00Z");
     private static final int RETRY_DELAY = 10;
     private static final int RENEWAL_INTERVAL = 3600;
+    private static final int RECOVERY_DELAY = 60;
 
     @Mock
     private AcmeRenewalWorker acmeRenewalWorker;
@@ -91,30 +94,57 @@ class CertificateRenewalSchedulerTest {
     }
 
     @Test
-    void deferCycleKeepsRetryBackoffSchedule() {
+    void deferCycleDuringTheJobKeepsTheRecoveryDelay() {
         var scheduler = schedulerWithInjectedClock();
-        scheduler.failure();
+        onFirstRun(scheduler, scheduler::deferCycle);
+        scheduler.init();
 
-        scheduler.deferCycle();
+        runLastScheduledJob();
+
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RECOVERY_DELAY));
+        verify(injectedTaskScheduler, times(2)).schedule(any(Runnable.class), any(Instant.class));
+    }
+
+    @Test
+    void deferCycleDuringTheJobKeepsRetryBackoffForTheNextRun() {
+        var scheduler = schedulerInRetryBackoff();
+        onFirstRun(scheduler, scheduler::deferCycle);
+
+        runLastScheduledJob();
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RECOVERY_DELAY));
         runLastScheduledJob();
 
         assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RETRY_DELAY));
     }
 
     @Test
-    void globalConfInvalidatedClearsRetryBackoffSchedule() {
-        var scheduler = schedulerWithInjectedClock();
-        scheduler.failure();
+    void globalConfInvalidatedDuringTheJobClearsRetryBackoffForTheNextRun() {
+        var scheduler = schedulerInRetryBackoff();
+        onFirstRun(scheduler, scheduler::globalConfInvalidated);
 
-        scheduler.globalConfInvalidated();
+        runLastScheduledJob();
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RECOVERY_DELAY));
         runLastScheduledJob();
 
         assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RENEWAL_INTERVAL));
     }
 
-    private CertificateRenewalScheduler schedulerWithInjectedClock() {
+    private void onFirstRun(CertificateRenewalScheduler scheduler, Runnable action) {
+        doAnswer(_ -> {
+            action.run();
+            return null;
+        }).doNothing().when(acmeRenewalWorker).execute(scheduler);
+    }
+
+    private CertificateRenewalScheduler schedulerInRetryBackoff() {
         when(acmeConfig.getAcmeRenewalRetryDelay()).thenReturn(RETRY_DELAY);
         when(acmeConfig.getAcmeRenewalInterval()).thenReturn(RENEWAL_INTERVAL);
+        var scheduler = schedulerWithInjectedClock();
+        scheduler.failure();
+        return scheduler;
+    }
+
+    private CertificateRenewalScheduler schedulerWithInjectedClock() {
         when(injectedTaskScheduler.getClock()).thenReturn(Clock.fixed(NOW, ZoneOffset.UTC));
         return new CertificateRenewalScheduler(acmeRenewalWorker, acmeConfig, injectedTaskScheduler);
     }
