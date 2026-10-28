@@ -54,17 +54,17 @@ public class MemberDidRegistrationRequestEntity extends RequestEntity {
 
     public static final String DISCRIMINATOR_VALUE = "MemberDidRegistrationRequest";
 
-    @Column(name = "did_entries", columnDefinition = "TEXT")
+    @Column(name = "request_data", columnDefinition = "TEXT")
     @Convert(converter = DidBatchJson.EntriesConverter.class)
     @Immutable
     @Getter
-    private List<DidBatchJson.Entry> didEntries;
+    private List<DidBatchJson.Entry> requestData;
 
-    @Column(name = "did_results", columnDefinition = "TEXT")
+    @Column(name = "response_data", columnDefinition = "TEXT")
     @Convert(converter = DidBatchJson.ResultsConverter.class)
     @Immutable
     @Getter
-    private List<DidBatchJson.Result> didResults;
+    private List<DidBatchJson.Result> responseData;
 
     /**
      * @param entries the entries as received
@@ -72,10 +72,10 @@ public class MemberDidRegistrationRequestEntity extends RequestEntity {
      */
     public MemberDidRegistrationRequestEntity(Origin origin, SecurityServerId identifier, List<Entry> entries, List<Result> results) {
         super(origin, identifier, null);
-        this.didEntries = entries.stream()
+        this.requestData = entries.stream()
                 .map(entry -> new DidBatchJson.Entry(entry.memberId().asEncodedId(), entry.did()))
                 .toList();
-        this.didResults = IntStream.range(0, results.size())
+        this.responseData = IntStream.range(0, results.size())
                 .mapToObj(i -> new DidBatchJson.Result(entries.get(i).did(), results.get(i).status(), results.get(i).reason()))
                 .toList();
     }

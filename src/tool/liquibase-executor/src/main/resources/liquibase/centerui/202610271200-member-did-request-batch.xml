@@ -6,11 +6,11 @@
                    logicalFilePath="centerui/202610271200-member-did-request-batch.xml">
 
     <changeSet author="niis" id="202610271200-member-did-request-batch">
-        <comment>DID batch of a member DID registration request and the result of each entry, as JSON text; null for every other request type.</comment>
+        <comment>Submitted data of a request and the outcome answered for it, as JSON text; null for request types that record none.</comment>
 
         <addColumn tableName="requests">
-            <column name="did_entries" type="TEXT"/>
-            <column name="did_results" type="TEXT"/>
+            <column name="request_data" type="TEXT"/>
+            <column name="response_data" type="TEXT"/>
         </addColumn>
     </changeSet>
 

@@ -41,7 +41,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * The JSON text of the DID batch of a member DID registration request and of its per-entry results, as stored in
- * the {@code did_entries} and {@code did_results} columns of the request row.
+ * the {@code request_data} and {@code response_data} columns of the request row.
  */
 public final class DidBatchJson {
 

@@ -147,11 +147,11 @@ class MemberDidRegistrationRequestHandlerTest {
                 Map.entry(MEMBER_1, DID_1), Map.entry(MEMBER_2, DID_2), Map.entry(MEMBER_3, DID_3));
         assertThat(entityCaptor.getValue().getManagementRequestType()).isEqualTo(ManagementRequestType.MEMBER_DID_REGISTRATION_REQUEST);
         assertThat(entityCaptor.getValue().getOrigin()).isEqualTo(SECURITY_SERVER);
-        assertThat(entityCaptor.getValue().getDidEntries()).containsExactly(
+        assertThat(entityCaptor.getValue().getRequestData()).containsExactly(
                 new DidBatchJson.Entry("DEV:COM:111", DID_1),
                 new DidBatchJson.Entry("DEV:COM:222", DID_2),
                 new DidBatchJson.Entry("DEV:COM:333", DID_3));
-        assertThat(entityCaptor.getValue().getDidResults()).containsExactly(
+        assertThat(entityCaptor.getValue().getResponseData()).containsExactly(
                 new DidBatchJson.Result(DID_1, Status.STORED, null),
                 new DidBatchJson.Result(DID_2, Status.STORED, null),
                 new DidBatchJson.Result(DID_3, Status.STORED, null));
@@ -188,9 +188,9 @@ class MemberDidRegistrationRequestHandlerTest {
                 new Result(MEMBER_2, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
                 new Result(MEMBER_3, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED));
         assertThat(result.getId()).isEqualTo(REQUEST_ID);
-        assertThat(entityCaptor.getValue().getDidResults()).extracting(DidBatchJson.Result::status)
+        assertThat(entityCaptor.getValue().getResponseData()).extracting(DidBatchJson.Result::status)
                 .containsOnly(Status.FIXABLE_CONFLICT);
-        assertThat(entityCaptor.getValue().getDidResults()).extracting(DidBatchJson.Result::reason)
+        assertThat(entityCaptor.getValue().getResponseData()).extracting(DidBatchJson.Result::reason)
                 .containsOnly(SystemDidRegistrationOutcome.OWNER_CHANGED);
         verifyNoInteractions(participantValueStore);
     }
@@ -244,7 +244,7 @@ class MemberDidRegistrationRequestHandlerTest {
                 new Result(MEMBER_1, Status.STORED, null),
                 new Result(MEMBER_2, Status.FIXABLE_CONFLICT, ParticipantValueRejection.VALUE_DIFFERS.name()),
                 new Result(MEMBER_3, Status.STORED, null));
-        assertThat(entityCaptor.getValue().getDidResults()).containsExactly(
+        assertThat(entityCaptor.getValue().getResponseData()).containsExactly(
                 new DidBatchJson.Result(DID_1, Status.STORED, null),
                 new DidBatchJson.Result(DID_2, Status.FIXABLE_CONFLICT, "VALUE_DIFFERS"),
                 new DidBatchJson.Result(DID_3, Status.STORED, null));
@@ -353,9 +353,9 @@ class MemberDidRegistrationRequestHandlerTest {
         assertThat(writtenCaptor.getValue()).containsExactly(Map.entry(MEMBER_1, DID_1));
         assertThat(result.getResults()).containsExactly(
                 new Result(MEMBER_1, Status.STORED, null), new Result(MEMBER_1, Status.STORED, null));
-        assertThat(entityCaptor.getValue().getDidEntries()).containsExactly(
+        assertThat(entityCaptor.getValue().getRequestData()).containsExactly(
                 new DidBatchJson.Entry("DEV:COM:111", DID_1), new DidBatchJson.Entry("DEV:COM:111", DID_1));
-        assertThat(entityCaptor.getValue().getDidResults()).hasSize(2);
+        assertThat(entityCaptor.getValue().getResponseData()).hasSize(2);
     }
 
     @Test

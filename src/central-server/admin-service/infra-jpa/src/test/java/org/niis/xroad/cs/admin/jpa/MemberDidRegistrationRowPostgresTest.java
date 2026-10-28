@@ -77,7 +77,7 @@ import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.memberDid;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.systemDid;
 
 /**
- * The columns {@code did_entries} and {@code did_results} of the request row: the text written to Postgres, the
+ * The columns {@code request_data} and {@code response_data} of the request row: the text written to Postgres, the
  * entity read back through the repository, and the rows of other request types.
  */
 class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgresTest {
@@ -171,8 +171,8 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
                 + resultJson(unresolvedDid, "NOT_RESOLVED", "NO_DOCUMENT")
                 + "]";
         var columns = rawColumns(answer.getId());
-        assertThat((String) columns.get("did_entries")).isEqualTo(expectedEntries);
-        assertThat((String) columns.get("did_results")).isEqualTo(expectedResults);
+        assertThat((String) columns.get("request_data")).isEqualTo(expectedEntries);
+        assertThat((String) columns.get("response_data")).isEqualTo(expectedResults);
 
         var statuses = answer.getResults().stream().map(Result::status).toList();
         assertThat(statuses).containsExactly(Status.STORED, Status.STORED, Status.STORED, Status.FINAL_CONFLICT,
@@ -181,9 +181,9 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
 
         entityManager.clear();
         var row = transactions.execute(status -> memberRequests.findById(answer.getId()).orElseThrow());
-        assertThat(row.getDidEntries()).containsExactlyElementsOf(entries.stream()
+        assertThat(row.getRequestData()).containsExactlyElementsOf(entries.stream()
                 .map(entry -> new DidBatchJson.Entry(entry.memberId().asEncodedId(), entry.did())).toList());
-        assertThat(row.getDidResults()).containsExactlyElementsOf(IntStream.range(0, entries.size())
+        assertThat(row.getResponseData()).containsExactlyElementsOf(IntStream.range(0, entries.size())
                 .mapToObj(i -> new DidBatchJson.Result(entries.get(i).did(), answer.getResults().get(i).status(),
                         answer.getResults().get(i).reason()))
                 .toList());
@@ -200,7 +200,7 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
                 server.identifier(), systemDid(server.address(), 7183), dspBaseUrl(server.address()), new byte[] {1})));
 
         var columns = rawColumns(added.getId());
-        assertThat(columns).containsEntry("did_entries", null).containsEntry("did_results", null);
+        assertThat(columns).containsEntry("request_data", null).containsEntry("response_data", null);
     }
 
     @Test
@@ -221,15 +221,15 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
 
         entityManager.clear();
         var row = transactions.execute(status -> memberRequests.findById(added.getId()).orElseThrow());
-        assertThat(row.getDidEntries()).hasSize(MAX_ENTRIES);
-        assertThat(row.getDidResults()).hasSize(MAX_ENTRIES);
+        assertThat(row.getRequestData()).hasSize(MAX_ENTRIES);
+        assertThat(row.getResponseData()).hasSize(MAX_ENTRIES);
         for (int i = 0; i < MAX_ENTRIES; i++) {
             var did = entries.get(i).did();
             assertThat(did).hasSize(LONG_DID_LENGTH);
-            assertThat(row.getDidEntries().get(i)).isEqualTo(new DidBatchJson.Entry(entries.get(i).memberId().asEncodedId(), did));
-            assertThat(row.getDidResults().get(i)).isEqualTo(new DidBatchJson.Result(did, Status.FINAL_CONFLICT, "WRONG_SCHEME"));
+            assertThat(row.getRequestData().get(i)).isEqualTo(new DidBatchJson.Entry(entries.get(i).memberId().asEncodedId(), did));
+            assertThat(row.getResponseData().get(i)).isEqualTo(new DidBatchJson.Result(did, Status.FINAL_CONFLICT, "WRONG_SCHEME"));
         }
-        assertThat((String) rawColumns(added.getId()).get("did_entries")).hasSizeGreaterThan(MAX_ENTRIES * LONG_DID_LENGTH);
+        assertThat((String) rawColumns(added.getId()).get("request_data")).hasSizeGreaterThan(MAX_ENTRIES * LONG_DID_LENGTH);
     }
 
     private ClientRef servedClient(Server server) {
@@ -257,6 +257,6 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
     }
 
     private Map<String, Object> rawColumns(int requestId) {
-        return jdbc.queryForMap("select did_entries, did_results from requests where id = ?", requestId);
+        return jdbc.queryForMap("select request_data, response_data from requests where id = ?", requestId);
     }
 }
