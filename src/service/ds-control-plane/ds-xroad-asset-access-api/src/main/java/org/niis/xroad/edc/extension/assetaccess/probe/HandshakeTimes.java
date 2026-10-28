@@ -27,6 +27,8 @@
 
 package org.niis.xroad.edc.extension.assetaccess.probe;
 
+import org.niis.xroad.edc.extension.assetaccess.SecurityServerAuthority;
+
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Keeps an exponentially weighted moving average (EWMA) of the connection setup time of each provider Security
- * Server, keyed by counter-party address. A sample is the time from the first TCP connect attempt to the end of the
+ * Server, keyed by the host and port of the counter-party address, so every participant context served by one
+ * Security Server shares one average. A sample is the time from the first TCP connect attempt to the end of the
  * TLS handshake. The first sample is the average; every later sample moves it by the smoothing factor of the
  * distance to the new sample, so recent samples weigh more than old ones. State is held in memory for this process
  * only.
@@ -53,7 +56,7 @@ final class HandshakeTimes {
 
     void record(String counterPartyAddress, Duration connectionSetupTime) {
         var sample = (double) connectionSetupTime.toNanos();
-        averageNanos.merge(counterPartyAddress, sample, this::updatedAverage);
+        averageNanos.merge(SecurityServerAuthority.of(counterPartyAddress), sample, this::updatedAverage);
     }
 
     private double updatedAverage(double average, double latest) {
@@ -61,10 +64,11 @@ final class HandshakeTimes {
     }
 
     void forget(String counterPartyAddress) {
-        averageNanos.remove(counterPartyAddress);
+        averageNanos.remove(SecurityServerAuthority.of(counterPartyAddress));
     }
 
     Optional<Duration> average(String counterPartyAddress) {
-        return Optional.ofNullable(averageNanos.get(counterPartyAddress)).map(nanos -> Duration.ofNanos(Math.round(nanos)));
+        return Optional.ofNullable(averageNanos.get(SecurityServerAuthority.of(counterPartyAddress)))
+                .map(nanos -> Duration.ofNanos(Math.round(nanos)));
     }
 }

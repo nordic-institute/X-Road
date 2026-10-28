@@ -1049,6 +1049,22 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
+    void transportFaultForOneMembersContextPutsTheServerInCooldownForAnotherMembersAcquisition() throws Exception {
+        stubTransportFaultAtCatalog("provider-1-for-222");
+        stubNegotiatedAccessViaCatalogOf("provider-2-for-333");
+        var firstMember = requestForMemberContext("222", "provider-1");
+        var secondMember = requestForMemberContext("333", "provider-1", "provider-2");
+
+        assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), firstMember).get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class);
+        var second = orchestrator.acquireAssetAccess(buildParticipantContext(), secondMember);
+        pollUntilDone(second);
+
+        assertThat(second.get(5, TimeUnit.SECONDS).winner().counterPartyId()).isEqualTo("provider-2-for-333");
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-1-for-333"), any(), any(), any());
+    }
+
+    @Test
     void providerRejectionDoesNotMarkTheServer() {
         when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(
@@ -1416,6 +1432,14 @@ class AssetAccessOrchestratorTest {
     private static AssetAccessRequest requestForCandidates(String... counterPartyIds) {
         var candidates = Stream.of(counterPartyIds)
                 .map(id -> new AssetAccessRequest.Candidate(id, "http://%s.example.org/dsp".formatted(id)))
+                .toList();
+        return new AssetAccessRequest("asset-1", candidates, null, null, null);
+    }
+
+    private static AssetAccessRequest requestForMemberContext(String memberCode, String... servers) {
+        var candidates = Stream.of(servers)
+                .map(server -> new AssetAccessRequest.Candidate("%s-for-%s".formatted(server, memberCode),
+                        "https://%s.example.org:8183/api/dsp/DEV:COM:%s/http-dsp-profile-2025-1".formatted(server, memberCode)))
                 .toList();
         return new AssetAccessRequest("asset-1", candidates, null, null, null);
     }

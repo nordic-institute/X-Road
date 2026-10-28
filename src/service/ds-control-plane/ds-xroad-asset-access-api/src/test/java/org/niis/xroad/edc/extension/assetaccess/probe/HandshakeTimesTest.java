@@ -39,6 +39,11 @@ class HandshakeTimesTest {
     private static final String FAST = "https://fast.example.org/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SLOW = "https://slow.example.org/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
 
+    private static final String MEMBER_CONTEXT_ADDRESS = "https://ss1.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String OTHER_MEMBER_CONTEXT_ADDRESS = "https://ss1.example.org:8183/api/dsp/DEV:COM:333/http-dsp-profile-2025-1";
+    private static final String SYSTEM_CONTEXT_ADDRESS = "https://ss1.example.org:8183/api/dsp/system/http-dsp-profile-2025-1";
+    private static final String OTHER_PORT_ADDRESS = "https://ss1.example.org:9183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+
     private final HandshakeTimes handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
 
     @Test
@@ -105,6 +110,41 @@ class HandshakeTimesTest {
 
         assertThat(handshakeTimes.average(FAST)).contains(Duration.ofMillis(50));
         assertThat(handshakeTimes.average(SLOW)).contains(Duration.ofMillis(400));
+    }
+
+    @Test
+    void participantContextsOfOneServerShareOneAverage() {
+        handshakeTimes.record(MEMBER_CONTEXT_ADDRESS, Duration.ofMillis(100));
+        handshakeTimes.record(OTHER_MEMBER_CONTEXT_ADDRESS, Duration.ofMillis(200));
+
+        assertThat(handshakeTimes.average(SYSTEM_CONTEXT_ADDRESS)).contains(Duration.ofMillis(130));
+        assertThat(handshakeTimes.average(MEMBER_CONTEXT_ADDRESS)).contains(Duration.ofMillis(130));
+    }
+
+    @Test
+    void anotherPortOnTheSameHostHasItsOwnAverage() {
+        handshakeTimes.record(MEMBER_CONTEXT_ADDRESS, Duration.ofMillis(100));
+
+        assertThat(handshakeTimes.average(OTHER_PORT_ADDRESS)).isEmpty();
+    }
+
+    @Test
+    void forgettingOneParticipantContextForgetsTheServerForAllItsContexts() {
+        handshakeTimes.record(MEMBER_CONTEXT_ADDRESS, Duration.ofMillis(100));
+
+        handshakeTimes.forget(OTHER_MEMBER_CONTEXT_ADDRESS);
+
+        assertThat(handshakeTimes.average(MEMBER_CONTEXT_ADDRESS)).isEmpty();
+        assertThat(handshakeTimes.average(SYSTEM_CONTEXT_ADDRESS)).isEmpty();
+    }
+
+    @Test
+    void addressThatIsNotAUrlIsItsOwnKey() {
+        handshakeTimes.record("not a url", Duration.ofMillis(100));
+
+        assertThat(handshakeTimes.average("not a url")).contains(Duration.ofMillis(100));
+        assertThat(handshakeTimes.average("another one")).isEmpty();
+        assertThat(handshakeTimes.average(MEMBER_CONTEXT_ADDRESS)).isEmpty();
     }
 
     @Test
