@@ -34,7 +34,7 @@
     host: localhost
     port: 4000
     delay: 5
-    timeout: 120
+    timeout: 300
 
 # The Issuer Service host is read live from the Central Server database, not from configuration
 # (XRoadConfig values are resolved once at build time), so it is set here through the admin API.
