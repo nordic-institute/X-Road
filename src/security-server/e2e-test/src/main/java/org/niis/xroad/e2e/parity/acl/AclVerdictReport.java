@@ -37,9 +37,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The verdict of every parity row as one tab-separated line: the row id, {@code MATCH} or {@code MISMATCH},
- * the verdicts the row expected, and the verdicts its requests ended in. A row that stops at its first mismatch
- * lists only the requests it polled.
+ * The verdict of a parity row as one tab-separated line: the row id, {@code MATCH} or {@code MISMATCH},
+ * the verdicts the row expected, and the verdicts its requests ended in. A row matches only when every request
+ * reached its verdict and carried its notice. A row that stops at its first mismatch lists only the requests it
+ * polled.
  */
 public final class AclVerdictReport {
 
@@ -53,7 +54,7 @@ public final class AclVerdictReport {
 
     /** The line of a row that sent requests. */
     public static String line(String scenarioId, List<Outcome> outcomes) {
-        var matched = !outcomes.isEmpty() && outcomes.stream().allMatch(outcome -> outcome.result().matched());
+        var matched = AclScenarioVerdicts.failureMessage(scenarioId, outcomes).isEmpty();
         return line(scenarioId, matched,
                 outcomes.stream().map(outcome -> outcome.check().expected().name()).collect(Collectors.joining(LIST_SEPARATOR)),
                 outcomes.stream().map(outcome -> outcome.result().last().name()).collect(Collectors.joining(LIST_SEPARATOR)));

@@ -89,8 +89,9 @@ import static org.niis.xroad.e2e.AdminApi.login;
  * the subsystem pool is registered. Every scenario creates namespaced fixtures on its provider's Security Server
  * (ss0 unless the fixture names ss1), polls until the expected verdict or the cache deadline, and removes its
  * fixtures. A scenario that expects an admin API status instead issues one grant and checks the status, without
- * polling. When {@code test-framework.acl-verdicts-file} is set, one line per scenario names its expected and its
- * observed verdicts.
+ * polling. When {@code test-framework.acl-verdicts-file} is set, every scenario that gets through its fixtures
+ * writes one line naming its expected and its observed verdicts; a scenario whose fixture setup or phase change
+ * throws writes none.
  *
  * <p>Before the first scenario the shared {@link SubsystemPoolSetup subsystem pool} is registered once, and the
  * service clients holding the management client registration service are listed; after the last scenario the list

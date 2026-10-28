@@ -67,6 +67,24 @@ class AclVerdictReportTest {
     }
 
     @Test
+    void aRowWhoseReplyReachedItsVerdictWithoutItsNoticeMismatches() {
+        var outcome = new Outcome(new Check(REQUEST, Verdict.SERVICE_DISABLED, "back at noon"),
+                new Result(Verdict.SERVICE_DISABLED, "service is disabled", true, 1, Duration.ZERO));
+
+        assertThat(AclVerdictReport.line("V120", List.of(outcome)))
+                .isEqualTo("V120\tMISMATCH\tSERVICE_DISABLED\tSERVICE_DISABLED");
+    }
+
+    @Test
+    void aRowWhoseReplyCarriesItsNoticeMatches() {
+        var outcome = new Outcome(new Check(REQUEST, Verdict.SERVICE_DISABLED, "back at noon"),
+                new Result(Verdict.SERVICE_DISABLED, "service is disabled: back at noon", true, 1, Duration.ZERO));
+
+        assertThat(AclVerdictReport.line("V120", List.of(outcome)))
+                .isEqualTo("V120\tMATCH\tSERVICE_DISABLED\tSERVICE_DISABLED");
+    }
+
+    @Test
     void aRowWithNoRequestsPolledMismatches() {
         assertThat(AclVerdictReport.line("V99", List.of())).isEqualTo("V99\tMISMATCH\t\t");
     }
