@@ -157,8 +157,9 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             description = "Time limit in milliseconds for one provider Security Server probe, counted from that "
                     + "probe's own start. A probe is a TLS connection opened to each candidate before negotiation, "
                     + "all at once or staggered (see xroad.asset-access.handshake-race.stagger-millis). The first "
-                    + "probe to establish its connection wins and its connection is reused for the catalog call. A "
-                    + "probe that fails or exceeds the limit puts its server in cooldown and orders it after the others. "
+                    + "probe to complete its TLS handshake wins; every probe opens a fresh connection, and the catalog "
+                    + "call opens its own. A probe that fails or exceeds the limit, the winner's included, puts its "
+                    + "server in cooldown and orders it after the others. "
                     + "At most " + MAX_HANDSHAKE_RACE_DEADLINE_MILLIS + ".",
             defaultValue = "1500")
     private long handshakeRaceDeadlineMillis;

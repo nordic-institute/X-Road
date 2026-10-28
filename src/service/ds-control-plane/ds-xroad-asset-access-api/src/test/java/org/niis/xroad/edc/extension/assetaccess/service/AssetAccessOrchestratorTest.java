@@ -1045,6 +1045,7 @@ class AssetAccessOrchestratorTest {
         assertThatThrownBy(() -> orchestrator.acquireAssetAccess(buildParticipantContext(), request).get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class);
         verify(catalogService, times(2)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+        verifyNoInteractions(candidateHandshakeRace);
     }
 
     @Test
@@ -1169,9 +1170,34 @@ class AssetAccessOrchestratorTest {
     void onlyCandidatesNotInCooldownAreProbed() {
         cooldownTracker.markFailed("http://provider-1.example.org/dsp");
         when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenReturn(new CompletableFuture<>());
-        var request = requestForCandidates("provider-1", "provider-2");
+        var request = requestForCandidates("provider-1", "provider-2", "provider-3");
         orchestrator.acquireAssetAccess(buildParticipantContext(), request);
-        verify(candidateHandshakeRace).order(List.of(request.candidates().get(1)));
+        verify(candidateHandshakeRace).order(List.of(request.candidates().get(1), request.candidates().get(2)));
+    }
+
+    @Test
+    void aSingleCandidateIsTriedAtOnceWithoutProbing() throws Exception {
+        var address = stubNegotiatedAccessViaCatalogOf("provider-1");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1"));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+        verifyNoInteractions(candidateHandshakeRace);
+    }
+
+    @Test
+    void theOnlyCandidateLeftNotInCooldownIsTriedWithoutProbing() throws Exception {
+        cooldownTracker.markFailed("http://provider-1.example.org/dsp");
+        stubNegotiatedAccessViaCatalogOf("provider-2");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        assertThat(future.get(5, TimeUnit.SECONDS).winner().counterPartyId()).isEqualTo("provider-2");
+        verifyNoInteractions(candidateHandshakeRace);
     }
 
     @Test
@@ -1273,7 +1299,7 @@ class AssetAccessOrchestratorTest {
         assertThat(result.dataAddress()).isSameAs(address);
         assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
         assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isTrue();
-        verify(candidateHandshakeRace).order(List.of(request.candidates().get(0)));
+        verifyNoInteractions(candidateHandshakeRace);
         verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
     }
 

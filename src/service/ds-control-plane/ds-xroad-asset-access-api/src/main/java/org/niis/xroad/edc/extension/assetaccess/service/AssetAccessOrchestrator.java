@@ -142,7 +142,8 @@ public class AssetAccessOrchestrator {
      * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+candidate
      * set(+forced target)(+client) key. Candidates not in cooldown (all of them when every candidate is) are
      * considered. Those holding a reusable agreement are tried first, newest agreement first, without probing. The
-     * rest are probed in parallel and tried in the order the candidate handshake race returns. A transport fault puts
+     * rest are probed in parallel and tried in the order the candidate handshake race returns, or tried at once,
+     * without a probe, when only one is left. A transport fault puts
      * the candidate in cooldown and moves on to the next; any other failure is returned at once, so no other
      * candidate is contacted after a provider answered.
      */
@@ -181,7 +182,10 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<AssetAccessResult> acquireByNegotiation(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             List<AssetAccessRequest.Candidate> candidates, List<Throwable> transportFailures) {
-        return candidateHandshakeRace.order(candidates)
+        var ordering = candidates.size() == 1
+                ? CompletableFuture.completedFuture(candidates)
+                : candidateHandshakeRace.order(candidates);
+        return ordering
                 .thenCompose(ordered -> acquireInOrder(key, ordered, transportFailures,
                         candidate -> attemptNegotiation(key, participantContext, request, candidate),
                         () -> CompletableFuture.failedFuture(allCandidatesFailed(key, transportFailures))));
