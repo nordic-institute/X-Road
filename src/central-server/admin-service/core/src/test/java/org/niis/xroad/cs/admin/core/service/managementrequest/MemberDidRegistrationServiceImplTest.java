@@ -189,7 +189,7 @@ class MemberDidRegistrationServiceImplTest {
 
         var result = add(threeEntries());
 
-        assertThat(result.getSettledResults()).containsOnlyKeys(0, 1, 2);
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1, MEMBER_2, MEMBER_3);
         assertThat(result.getSettledResults().values()).containsExactly(
                 new Result(MEMBER_1, Status.FIXABLE_CONFLICT, MemberDidRegistrationOutcome.SYSTEM_VALUES_NOT_STORED),
                 new Result(MEMBER_2, Status.FIXABLE_CONFLICT, MemberDidRegistrationOutcome.SYSTEM_VALUES_NOT_STORED),
@@ -199,13 +199,23 @@ class MemberDidRegistrationServiceImplTest {
     }
 
     @Test
-    void anUnknownServerAnswersEveryEntryOwnerChangedWithoutResolving() {
+    void anUnknownServerLeavesTheCandidatesUnsettledForTheLockAndNeitherChecksNorResolves() {
         server = Optional.empty();
 
         var result = add(threeEntries());
 
-        assertThat(result.getSettledResults().values()).extracting(Result::reason)
-                .containsExactly("OWNER_CHANGED", "OWNER_CHANGED", "OWNER_CHANGED");
+        assertThat(result.getSettledResults()).isEmpty();
+        assertThat(calls).containsExactly("add");
+    }
+
+    @Test
+    void anUnknownServerStillSettlesTheConflictingDuplicateAndLeavesTheOtherMembersUnsettled() {
+        server = Optional.empty();
+
+        var result = add(new Entry(MEMBER_1, DID_1), new Entry(MEMBER_2, DID_2), new Entry(MEMBER_1, OTHER_DID_1));
+
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1)
+                .containsEntry(MEMBER_1, new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE));
         assertThat(calls).containsExactly("add");
     }
 
@@ -232,9 +242,8 @@ class MemberDidRegistrationServiceImplTest {
     void theSameMemberWithDifferentDidsIsFinalOnBothEntriesAndNeverCheckedOrResolved() {
         var result = add(new Entry(MEMBER_1, DID_1), new Entry(MEMBER_2, DID_2), new Entry(MEMBER_1, OTHER_DID_1));
 
-        assertThat(result.getSettledResults()).containsOnlyKeys(0, 2)
-                .containsEntry(0, new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE))
-                .containsEntry(2, new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE));
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1)
+                .containsEntry(MEMBER_1, new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE));
         assertThat(checked).containsExactly(Map.of(MEMBER_2, DID_2));
         assertThat(resolved).containsExactly(List.of(DID_2));
     }
@@ -282,10 +291,10 @@ class MemberDidRegistrationServiceImplTest {
         var result = add(new Entry(MEMBER_1, DID_1), new Entry(MEMBER_2, DID_2), new Entry(MEMBER_3, DID_3), new Entry(member4, did4));
 
         assertThat(resolved).containsExactly(List.of(DID_3));
-        assertThat(result.getSettledResults()).containsOnlyKeys(0, 1, 3)
-                .containsEntry(0, new Result(MEMBER_1, Status.FINAL_CONFLICT, "NOT_CANONICAL"))
-                .containsEntry(1, new Result(MEMBER_2, Status.FIXABLE_CONFLICT, "VALUE_DIFFERS"))
-                .containsEntry(3, new Result(member4, Status.FIXABLE_CONFLICT, "MEMBER_NOT_SERVED"));
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1, MEMBER_2, member4)
+                .containsEntry(MEMBER_1, new Result(MEMBER_1, Status.FINAL_CONFLICT, "NOT_CANONICAL"))
+                .containsEntry(MEMBER_2, new Result(MEMBER_2, Status.FIXABLE_CONFLICT, "VALUE_DIFFERS"))
+                .containsEntry(member4, new Result(member4, Status.FIXABLE_CONFLICT, "MEMBER_NOT_SERVED"));
     }
 
     @Test
@@ -298,8 +307,8 @@ class MemberDidRegistrationServiceImplTest {
         var result = add(threeEntries());
 
         assertThat(result.getSettledResults())
-                .containsOnlyKeys(1)
-                .containsEntry(1, new Result(MEMBER_2, Status.NOT_RESOLVED, DidResolutionReason.FETCH_FAILURE.name()));
+                .containsOnlyKeys(MEMBER_2)
+                .containsEntry(MEMBER_2, new Result(MEMBER_2, Status.NOT_RESOLVED, DidResolutionReason.FETCH_FAILURE.name()));
     }
 
     @Test
@@ -309,7 +318,7 @@ class MemberDidRegistrationServiceImplTest {
         var result = add(threeEntries());
 
         assertThat(resolved).hasSize(1);
-        assertThat(result.getSettledResults()).containsOnlyKeys(0, 1, 2);
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1, MEMBER_2, MEMBER_3);
         assertThat(result.getSettledResults().values()).extracting(Result::status).containsOnly(Status.NOT_RESOLVED);
         assertThat(result.getSettledResults().values()).extracting(Result::reason).containsOnly("FETCH_FAILURE");
     }
@@ -324,7 +333,7 @@ class MemberDidRegistrationServiceImplTest {
         var result = add(threeEntries());
 
         assertThat(resolved).hasSize(1);
-        assertThat(result.getSettledResults()).containsOnlyKeys(0, 1, 2);
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1, MEMBER_2, MEMBER_3);
         assertThat(result.getSettledResults().values()).allSatisfy(settled -> {
             assertThat(settled.status()).isEqualTo(Status.NOT_RESOLVED);
             assertThat(settled.reason()).isEqualTo(SystemDidRegistrationOutcome.RESOLVER_UNAVAILABLE);
@@ -341,7 +350,7 @@ class MemberDidRegistrationServiceImplTest {
 
         var result = add(threeEntries());
 
-        assertThat(result.getSettledResults()).containsOnlyKeys(1, 2);
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_2, MEMBER_3);
     }
 
     @Test
@@ -350,7 +359,7 @@ class MemberDidRegistrationServiceImplTest {
 
         var result = add(threeEntries());
 
-        assertThat(result.getSettledResults()).containsOnlyKeys(1, 2);
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_2, MEMBER_3);
     }
 
     @Test
@@ -360,7 +369,7 @@ class MemberDidRegistrationServiceImplTest {
 
         var result = add(new Entry(MEMBER_1, DID_1));
 
-        assertThat(result.getSettledResults()).containsEntry(0, new Result(MEMBER_1, Status.FIXABLE_CONFLICT, "NON_ASCII_HOST"));
+        assertThat(result.getSettledResults()).containsEntry(MEMBER_1, new Result(MEMBER_1, Status.FIXABLE_CONFLICT, "NON_ASCII_HOST"));
     }
 
     @Test

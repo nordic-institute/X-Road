@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -59,11 +60,14 @@ import java.util.function.Function;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_REQUEST_TOO_LARGE;
 
 /**
- * Refuses a batch above the configured entry cap as a whole. Otherwise decides, before the request is stored,
- * every entry that does not need the write lock: duplicate entries, entries refused while the server has no SYSTEM
- * values, entries the store refuses, and entries whose DID does not resolve. An entry equal to the stored value
- * skips resolution, since it was resolved when first stored, and is answered by the write under the lock, which
- * validates it again. Holds no transaction, so the resolver call never runs inside one.
+ * Refuses a batch above the configured entry cap as a whole. Otherwise settles, before the request is stored,
+ * what needs no server (conflicting duplicate entries) and what the server's state at that moment decides:
+ * entries refused while the server has no SYSTEM values, entries the store refuses, and entries whose DID does
+ * not resolve. An entry equal to the stored value skips resolution, since it was resolved when first stored,
+ * and is answered by the write under the lock, which validates it again. The write lock in the request handler
+ * is the sole authority on the server's existence: a server missing at this point leaves every candidate
+ * unsettled, and one removed after it is answered as owner changed by the handler for every entry. Holds no
+ * transaction, so the resolver call never runs inside one.
  */
 @Slf4j
 @Service
@@ -86,29 +90,16 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
         return managementRequestService.add(request);
     }
 
-    private Map<Integer, Result> settle(MemberDidRegistrationRequest request) {
-        var entries = request.getEntries();
-        var settledByMember = new LinkedHashMap<ClientId, Result>();
+    private Map<ClientId, Result> settle(MemberDidRegistrationRequest request) {
+        var settled = new LinkedHashMap<ClientId, Result>();
 
-        var candidates = singleDidPerMember(entries, settledByMember);
+        var candidates = singleDidPerMember(request.getEntries(), settled);
         if (!candidates.isEmpty()) {
-            var server = securityServerRepository.findBy(request.getSecurityServerId());
-            if (server.isEmpty()) {
-                candidates.keySet().forEach(member -> settledByMember.put(member, MemberDidRegistrationOutcome.ownerChanged(member)));
-            } else if (server.get().getSystemDid() == null) {
-                candidates.keySet().forEach(member ->
-                        settledByMember.put(member, MemberDidRegistrationOutcome.systemValuesNotStored(member)));
-            } else {
-                settledByMember.putAll(settleCandidates(server.get(), candidates));
-            }
-        }
-
-        var settled = new LinkedHashMap<Integer, Result>();
-        for (int i = 0; i < entries.size(); i++) {
-            var result = settledByMember.get(entries.get(i).memberId());
-            if (result != null) {
-                settled.put(i, result);
-            }
+            securityServerRepository.findBy(request.getSecurityServerId())
+                    .map(server -> server.getSystemDid() == null
+                            ? byMember(candidates.keySet(), MemberDidRegistrationOutcome::systemValuesNotStored)
+                            : settleCandidates(server, candidates))
+                    .ifPresent(settled::putAll);
         }
         return settled;
     }
@@ -116,7 +107,7 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
     /**
      * Settles the members named with more than one distinct DID and returns the DID of every other member.
      */
-    private static Map<ClientId, String> singleDidPerMember(List<Entry> entries, Map<ClientId, Result> settledByMember) {
+    private static Map<ClientId, String> singleDidPerMember(List<Entry> entries, Map<ClientId, Result> settled) {
         var didsByMember = new LinkedHashMap<ClientId, SequencedSet<String>>();
         for (var entry : entries) {
             didsByMember.computeIfAbsent(entry.memberId(), member -> new LinkedHashSet<>()).add(entry.did());
@@ -124,7 +115,7 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
         var candidates = new LinkedHashMap<ClientId, String>();
         didsByMember.forEach((member, dids) -> {
             if (dids.size() > 1) {
-                settledByMember.put(member, MemberDidRegistrationOutcome.conflictingDuplicate(member));
+                settled.put(member, MemberDidRegistrationOutcome.conflictingDuplicate(member));
             } else {
                 candidates.put(member, dids.getFirst());
             }
@@ -172,7 +163,7 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
         return unresolved;
     }
 
-    private static Map<ClientId, Result> byMember(List<ClientId> members, Function<ClientId, Result> answer) {
+    private static Map<ClientId, Result> byMember(Collection<ClientId> members, Function<ClientId, Result> answer) {
         var results = new LinkedHashMap<ClientId, Result>();
         members.forEach(member -> results.put(member, answer.apply(member)));
         return results;

@@ -58,24 +58,11 @@ public final class ManagementRequestUtil {
     private static final QName MEMBER_DID_REG_RESULT = new QName(NS_XROAD, "result", PREFIX_XROAD);
 
     /**
-     * Converts the given management request to a response, adding the specified
-     * request ID.
-     *
-     * @param request   the request SOAP message
-     * @param requestId the request ID
-     * @return the response SOAP message
-     */
-    @ArchUnitSuppressed("NoVanillaExceptions")
-    public static SoapMessageImpl toResponse(SoapMessageImpl request, int requestId) throws SOAPException, JAXBException, IOException {
-        return SoapUtils.toResponse(request, soap -> addRequestId(requestId, soap));
-    }
-
-    /**
      * Converts the given management request to a response, adding the specified request ID
      * and appending the given elements after it.
      *
      * @param request   the request SOAP message
-     * @param requestId the request ID, or null to add none
+     * @param requestId the request ID; null adds no request ID element
      * @param elements  elements appended to the response content after the request ID
      * @return the response SOAP message
      */

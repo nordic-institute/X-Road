@@ -48,11 +48,11 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRIES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DID_ENTRY_COUNT;
@@ -67,9 +67,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 
 /**
  * Locks the Security Server row by its identifier, which also settles that the server still exists under the
- * requesting owner, and keeps the lock until commit. Everything after the lock sees the server as it is at
- * that moment: an owner change committed after the pre-transaction checks answers every entry as owner
- * changed and stores no DID.
+ * requesting owner, and keeps the lock until commit. The lock is the sole authority on the server's existence:
+ * a server the lock does not find, whether it went missing before the pre-transaction checks or after them, is
+ * answered as owner changed for every entry, settled or not, and no DID is stored. Everything after the lock
+ * sees the server as it is at that moment.
  *
  * <p>Every call that gets this far stores one request row holding the entries as received and the result of
  * each, whatever the results are, so every answer carries the request id.
@@ -126,26 +127,19 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
 
     private Map<ClientId, ParticipantValueResult> storeUnsettled(int serverRowId, MemberDidRegistrationRequest request) {
         var settled = request.getSettledResults();
-        var unsettled = new LinkedHashMap<ClientId, String>();
-        for (int i = 0; i < request.getEntries().size(); i++) {
-            if (!settled.containsKey(i)) {
-                var entry = request.getEntries().get(i);
-                unsettled.put(entry.memberId(), entry.did());
-            }
-        }
+        var unsettled = request.getEntries().stream()
+                .filter(entry -> !settled.containsKey(entry.memberId()))
+                .collect(Collectors.toMap(Entry::memberId, Entry::did, (first, second) -> first, LinkedHashMap::new));
         return unsettled.isEmpty() ? Map.of() : participantValueStore.writeMemberDidsOnce(serverRowId, unsettled);
     }
 
     private List<Result> resultsOf(int serverRowId, MemberDidRegistrationRequest request, Map<ClientId, ParticipantValueResult> written) {
         var settled = request.getSettledResults();
         var registeredAddress = hasRejection(written) ? registeredAddressOf(serverRowId) : null;
-
-        var results = new ArrayList<Result>(request.getEntries().size());
-        for (int i = 0; i < request.getEntries().size(); i++) {
-            var entry = request.getEntries().get(i);
-            results.add(settled.containsKey(i) ? settled.get(i) : toResult(entry, written.get(entry.memberId()), registeredAddress));
-        }
-        return results;
+        return request.getEntries().stream()
+                .map(entry -> Optional.ofNullable(settled.get(entry.memberId()))
+                        .orElseGet(() -> toResult(entry, written.get(entry.memberId()), registeredAddress)))
+                .toList();
     }
 
     private static boolean hasRejection(Map<ClientId, ParticipantValueResult> written) {

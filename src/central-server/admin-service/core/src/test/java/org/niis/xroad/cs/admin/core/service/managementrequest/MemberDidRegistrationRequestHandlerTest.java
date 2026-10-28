@@ -214,7 +214,7 @@ class MemberDidRegistrationRequestHandlerTest {
     @Test
     void addWritesOnlyTheEntriesTheResolverLetThroughAndKeepsRequestOrder() {
         stubRowSaved();
-        request.setSettledResults(Map.of(1, new Result(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE")));
+        request.setSettledResults(Map.of(MEMBER_2, new Result(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE")));
         when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
         when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(storedFor(MEMBER_1, MEMBER_3));
 
@@ -291,9 +291,9 @@ class MemberDidRegistrationRequestHandlerTest {
     void addDoesNotCallTheStoreButSavesTheRowWhenEveryEntryIsAlreadySettled() {
         stubRowSaved();
         request.setSettledResults(Map.of(
-                0, new Result(MEMBER_1, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE"),
-                1, new Result(MEMBER_2, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE"),
-                2, new Result(MEMBER_3, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE")));
+                MEMBER_1, new Result(MEMBER_1, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE"),
+                MEMBER_2, new Result(MEMBER_2, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE"),
+                MEMBER_3, new Result(MEMBER_3, Status.NOT_RESOLVED, "RESOLVER_UNAVAILABLE")));
         when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
 
         var result = handler.add(request);
@@ -307,7 +307,7 @@ class MemberDidRegistrationRequestHandlerTest {
     @Test
     void addAnswersAStoreRejectionUnderTheLockWithTheStoreClassAndReasonAndNeverReWritesAPreTransactionRejection() {
         stubRowSaved();
-        request.setSettledResults(Map.of(0, new Result(MEMBER_1, Status.FINAL_CONFLICT, "NOT_CANONICAL")));
+        request.setSettledResults(Map.of(MEMBER_1, new Result(MEMBER_1, Status.FINAL_CONFLICT, "NOT_CANONICAL")));
         when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
         var written = new LinkedHashMap<ClientId, ParticipantValueResult>();
         written.put(MEMBER_2, ParticipantValueResult.rejected(ParticipantValueRejection.DID_OF_OTHER_MEMBER));
@@ -359,9 +359,38 @@ class MemberDidRegistrationRequestHandlerTest {
     }
 
     @Test
+    void addAnswersEveryEntryOfAConflictingDuplicateMemberInInputOrderAndWritesOnlyTheOtherMembers() {
+        stubRowSaved();
+        var conflict = new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE);
+        request.setEntries(List.of(new Entry(MEMBER_1, DID_1), new Entry(MEMBER_2, DID_2), new Entry(MEMBER_1, "did:web:other")));
+        request.setSettledResults(Map.of(MEMBER_1, conflict));
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
+        when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(storedFor(MEMBER_2));
+
+        var result = handler.add(request);
+
+        verify(participantValueStore).writeMemberDidsOnce(eq(SERVER_ROW_ID), writtenCaptor.capture());
+        assertThat(writtenCaptor.getValue()).containsExactly(Map.entry(MEMBER_2, DID_2));
+        assertThat(result.getResults()).containsExactly(conflict, new Result(MEMBER_2, Status.STORED, null), conflict);
+    }
+
+    @Test
+    void addAnswersOwnerChangedForEveryEntryEvenWhenSomeMembersAreSettledWhenTheLockFindsNoServer() {
+        stubRowSaved();
+        request.setSettledResults(Map.of(MEMBER_2, new Result(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE")));
+        when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.empty());
+
+        var result = handler.add(request);
+
+        assertThat(result.getResults()).hasSameSizeAs(request.getEntries());
+        assertThat(result.getResults()).extracting(Result::reason).containsOnly(SystemDidRegistrationOutcome.OWNER_CHANGED);
+        verifyNoInteractions(participantValueStore);
+    }
+
+    @Test
     void addAuditsTheServerTheEntryCountAndEachEntryWithStatusAndReason() {
         stubRowSaved();
-        request.setSettledResults(Map.of(1, new Result(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE")));
+        request.setSettledResults(Map.of(MEMBER_2, new Result(MEMBER_2, Status.NOT_RESOLVED, "FETCH_FAILURE")));
         when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.of(SERVER_ROW_ID));
         when(participantValueStore.writeMemberDidsOnce(anyInt(), anyMap())).thenReturn(storedFor(MEMBER_1, MEMBER_3));
 

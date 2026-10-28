@@ -51,8 +51,8 @@ import java.util.Map;
 @ToString(callSuper = true)
 public final class MemberDidRegistrationRequest extends Request {
     private List<Entry> entries = List.of();
-    /** Results already decided before the request is stored, keyed by the index of the entry. */
-    private Map<Integer, Result> settledResults = Map.of();
+    /** Results already decided before the request is stored, keyed by member; they apply to every entry of the member. */
+    private Map<ClientId, Result> settledResults = Map.of();
     /** One result per entry, in the order of the entries; filled when the request is stored. */
     private List<Result> results = List.of();
 

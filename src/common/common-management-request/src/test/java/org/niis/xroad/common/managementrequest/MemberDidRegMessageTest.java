@@ -113,7 +113,7 @@ class MemberDidRegMessageTest {
     void responseWithoutExtraElementsAnswersRequestIdOnly() throws Exception {
         var request = builder.buildMemberDidRegRequest(server, entries());
 
-        var responseMessage = ManagementRequestUtil.toResponse(request, 7);
+        var responseMessage = ManagementRequestUtil.toResponse(request, 7, List.of());
         var response = ManagementRequestSender.toMemberDidRegResponse(responseMessage);
 
         assertThat(response.requestId()).isEqualTo(7);

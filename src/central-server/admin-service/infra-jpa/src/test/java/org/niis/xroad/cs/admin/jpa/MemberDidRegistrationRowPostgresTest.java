@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.jpa;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
@@ -205,12 +207,12 @@ class MemberDidRegistrationRowPostgresTest extends AbstractCentralServerPostgres
     void fullBatchOfMaximumLengthDidsIsStoredAndReadsBackIntact() {
         var server = seed.server(seed.member());
         var entries = new ArrayList<Entry>();
-        var settled = new LinkedHashMap<Integer, Result>();
+        var settled = new LinkedHashMap<ClientId, Result>();
         for (int i = 0; i < MAX_ENTRIES; i++) {
             var member = seed.member();
             var did = ("did:web:long" + i + ".test:" + "x".repeat(LONG_DID_LENGTH)).substring(0, LONG_DID_LENGTH);
             entries.add(entry(member, did));
-            settled.put(i, new Result(member.identifier(), Status.FINAL_CONFLICT, "WRONG_SCHEME"));
+            settled.put(member.identifier(), new Result(member.identifier(), Status.FINAL_CONFLICT, "WRONG_SCHEME"));
         }
         var request = new MemberDidRegistrationRequest(SECURITY_SERVER, server.identifier(), entries);
         request.setSettledResults(settled);
