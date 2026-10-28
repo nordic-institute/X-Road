@@ -43,6 +43,12 @@ class CooldownTrackerTest {
     private static final String ADDRESS_2 = "https://ss2.example.org/dsp";
     private static final String ADDRESS_3 = "https://ss3.example.org/dsp";
 
+    private static final String MEMBER_CONTEXT_ADDRESS = "https://ss1.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String OTHER_MEMBER_CONTEXT_ADDRESS = "https://ss1.example.org:8183/api/dsp/DEV:COM:333/http-dsp-profile-2025-1";
+    private static final String SYSTEM_CONTEXT_ADDRESS = "https://ss1.example.org:8183/api/dsp/system/http-dsp-profile-2025-1";
+    private static final String OTHER_HOST_ADDRESS = "https://ss2.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String OTHER_PORT_ADDRESS = "https://ss1.example.org:9183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+
     private final FakeTicker ticker = new FakeTicker();
     private final CooldownTracker tracker = new CooldownTracker(PERIOD, ticker);
 
@@ -105,6 +111,32 @@ class CooldownTrackerTest {
         tracker.markFailed(ADDRESS_2);
 
         assertThat(select(ADDRESS_2, ADDRESS_3, ADDRESS_1)).containsExactly(ADDRESS_3, ADDRESS_1);
+    }
+
+    @Test
+    void failureForOneParticipantContextPutsTheServersOtherContextsInCooldown() {
+        tracker.markFailed(MEMBER_CONTEXT_ADDRESS);
+
+        assertThat(tracker.isCoolingDown(OTHER_MEMBER_CONTEXT_ADDRESS)).isTrue();
+        assertThat(tracker.isCoolingDown(SYSTEM_CONTEXT_ADDRESS)).isTrue();
+        assertThat(select(OTHER_MEMBER_CONTEXT_ADDRESS, OTHER_HOST_ADDRESS)).containsExactly(OTHER_HOST_ADDRESS);
+    }
+
+    @Test
+    void failureDoesNotAffectAnotherHostOrAnotherPortOnTheSameHost() {
+        tracker.markFailed(MEMBER_CONTEXT_ADDRESS);
+
+        assertThat(tracker.isCoolingDown(OTHER_HOST_ADDRESS)).isFalse();
+        assertThat(tracker.isCoolingDown(OTHER_PORT_ADDRESS)).isFalse();
+    }
+
+    @Test
+    void addressThatIsNotAUrlIsItsOwnKey() {
+        tracker.markFailed("not a url");
+
+        assertThat(tracker.isCoolingDown("not a url")).isTrue();
+        assertThat(tracker.isCoolingDown("another one")).isFalse();
+        assertThat(tracker.isCoolingDown(MEMBER_CONTEXT_ADDRESS)).isFalse();
     }
 
     @Test

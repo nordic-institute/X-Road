@@ -30,6 +30,7 @@ package org.niis.xroad.edc.extension.assetaccess.cooldown;
 import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.niis.xroad.edc.extension.assetaccess.SecurityServerAuthority;
 
 import java.time.Duration;
 import java.util.List;
@@ -37,8 +38,9 @@ import java.util.function.Function;
 
 /**
  * Keeps provider Security Servers that failed with a transport fault out of acquisition for a cooldown period,
- * keyed by counter-party address. State is held in memory for this process only. A period of zero or less
- * disables the tracker.
+ * keyed by the host and port of the counter-party address, so a failure takes the server out of acquisition for every
+ * participant context it serves. State is held in memory for this process only. A period of zero or less disables
+ * the tracker.
  */
 public class CooldownTracker {
 
@@ -64,16 +66,16 @@ public class CooldownTracker {
     }
 
     /**
-     * Starts the cooldown for the address from now, restarting it when the address is already cooling down.
+     * Starts the cooldown for the address's server from now, restarting it when the server is already cooling down.
      */
     public void markFailed(String counterPartyAddress) {
         if (enabled) {
-            coolingDown.put(counterPartyAddress, Boolean.TRUE);
+            coolingDown.put(SecurityServerAuthority.of(counterPartyAddress), Boolean.TRUE);
         }
     }
 
     public boolean isCoolingDown(String counterPartyAddress) {
-        return enabled && coolingDown.getIfPresent(counterPartyAddress) != null;
+        return enabled && coolingDown.getIfPresent(SecurityServerAuthority.of(counterPartyAddress)) != null;
     }
 
     /**
