@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.config;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
-import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeCertificateRenewalWorker;
@@ -49,7 +48,7 @@ public class AcmeCertificateRenewalSchedulingConfig {
     @Bean
     @Profile("!test")
     @Order(Ordered.LOWEST_PRECEDENCE - 99)
-    @Conditional(IsAcmeCertRenewalJobsActive.class)
+    @Conditional({PrimaryNodeCondition.class, IsAcmeCertRenewalJobsActive.class})
     CertificateRenewalScheduler acmeCertificateRenewalScheduler(AcmeCertificateRenewalWorker acmeCertificateRenewalWorker,
                                                                 AcmeConfig acmeConfig) {
         var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(acmeCertificateRenewalWorker, acmeConfig,
@@ -69,10 +68,6 @@ public class AcmeCertificateRenewalSchedulingConfig {
         static boolean schedulingEnabled(boolean renewalActive) {
             if (!renewalActive) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
-            }
-            if (NodeProperties.isSecondaryNode()) {
-                log.info("This is a secondary cluster node, ACME certificate renewal job auto-scheduling disabled");
-                return false;
             }
             return renewalActive;
         }

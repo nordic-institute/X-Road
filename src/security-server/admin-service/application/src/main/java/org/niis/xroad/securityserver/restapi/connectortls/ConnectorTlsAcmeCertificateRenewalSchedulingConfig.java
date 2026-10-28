@@ -29,17 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
 import org.niis.xroad.common.acme.spring.connectortls.ConnectorTlsAcmeCertificateRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
-import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.securityserver.restapi.config.PrimaryNodeCondition;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Wires the DS TLS certificate's own {@link CertificateRenewalScheduler} instance, entirely separate from the
@@ -59,7 +56,7 @@ public class ConnectorTlsAcmeCertificateRenewalSchedulingConfig {
     @Bean
     @Profile("!test")
     @Order(Ordered.LOWEST_PRECEDENCE - 98)
-    @Conditional(IsConnectorTlsAcmeSchedulingActive.class)
+    @Conditional(PrimaryNodeCondition.class)
     CertificateRenewalScheduler connectorTlsAcmeCertificateRenewalScheduler(
             ConnectorTlsAcmeCertificateRenewalWorker connectorTlsAcmeCertificateRenewalWorker,
             DataspaceReadinessPredicates dataspaceReadinessPredicates,
@@ -68,22 +65,6 @@ public class ConnectorTlsAcmeCertificateRenewalSchedulingConfig {
         var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(worker, acmeConfig, "acme-renewal-ds-tls-");
         scheduler.init();
         return scheduler;
-    }
-
-    @Slf4j
-    public static class IsConnectorTlsAcmeSchedulingActive implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return schedulingEnabled();
-        }
-
-        static boolean schedulingEnabled() {
-            if (NodeProperties.isSecondaryNode()) {
-                log.info("This is a secondary cluster node, DS TLS ACME certificate renewal job auto-scheduling disabled");
-                return false;
-            }
-            return true;
-        }
     }
 
 }

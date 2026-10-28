@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,43 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.connectortls;
+package org.niis.xroad.securityserver.restapi.config;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.MethodMetadata;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
+/**
+ * Background jobs run on a primary or standalone node only: a secondary cluster node shares the primary's
+ * database and never schedules them. A job with its own configuration switch combines this with a further
+ * condition in the same {@code @Conditional} array.
+ */
+@Slf4j
+public class PrimaryNodeCondition implements Condition {
 
-@ExtendWith(SystemStubsExtension.class)
-class ConnectorTlsAcmeCertificateRenewalSchedulingConfigTest {
-
-    @SystemStub
-    private final EnvironmentVariables variables = new EnvironmentVariables();
-
-    @Test
-    void doesNotMatchOnSecondaryNode() {
-        assertFalse(schedulingEnabled(NodeProperties.NodeType.SECONDARY));
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return primaryNode(beanName(metadata));
     }
 
-    @Test
-    void matchesOnPrimaryNode() {
-        assertTrue(schedulingEnabled(NodeProperties.NodeType.PRIMARY));
+    static boolean primaryNode(String jobName) {
+        if (NodeProperties.isSecondaryNode()) {
+            log.info("This is a secondary cluster node, {} auto-scheduling disabled", jobName);
+            return false;
+        }
+        return true;
     }
 
-    @Test
-    void matchesOnStandaloneNode() {
-        assertTrue(schedulingEnabled(NodeProperties.NodeType.STANDALONE));
-    }
-
-    private boolean schedulingEnabled(NodeProperties.NodeType nodeType) {
-        variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
-
-        return ConnectorTlsAcmeCertificateRenewalSchedulingConfig.IsConnectorTlsAcmeSchedulingActive.schedulingEnabled();
+    private static String beanName(AnnotatedTypeMetadata metadata) {
+        if (metadata instanceof MethodMetadata method) {
+            return method.getMethodName();
+        }
+        if (metadata instanceof ClassMetadata type) {
+            return type.getClassName();
+        }
+        return metadata.toString();
     }
 }
