@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.assetaccess.probe;
 
+import com.sun.net.httpserver.HttpServer;
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -110,6 +111,7 @@ class CandidateHandshakeRaceTest {
     private static TestCa untrustedCa;
 
     private final List<TlsServer> servers = new ArrayList<>();
+    private final List<HttpServer> plainServers = new ArrayList<>();
     private final List<CandidateHandshakeRace> races = new ArrayList<>();
     private final CooldownTracker cooldownTracker = new CooldownTracker(Duration.ofSeconds(180));
     private OkHttpClient client;
@@ -124,6 +126,7 @@ class CandidateHandshakeRaceTest {
     void tearDown() {
         races.forEach(CandidateHandshakeRace::stop);
         servers.forEach(TlsServer::close);
+        plainServers.forEach(server -> server.stop(0));
         if (client != null) {
             client.connectionPool().evictAll();
             client.dispatcher().executorService().shutdown();
@@ -158,18 +161,73 @@ class CandidateHandshakeRaceTest {
     }
 
     @Test
-    void theCatalogCallReusesTheWinnersPooledConnection() throws Exception {
-        var fast = startServer(FAST_HOST, trustedCa, 0);
+    void aConnectionPooledByTheEdcClientDoesNotWinWithoutAHandshake() throws Exception {
+        var warm = startServer(SLOW_HOST, trustedCa, 0);
+        var fresh = startServer(FAST_HOST, trustedCa, 0);
         var race = race(DEADLINE);
-
-        race.order(List.of(candidate("fast", fast))).get(10, TimeUnit.SECONDS);
-        var catalogRequest = new Request.Builder().url("https://" + FAST_HOST + ":" + fast.port() + "/api/dsp/catalog/request").build();
-        try (var response = client.newCall(catalogRequest).execute()) {
-            assertThat(response.code()).isEqualTo(404);
+        var warmUpRequest = new Request.Builder().url("https://" + SLOW_HOST + ":" + warm.port() + VERSION_PATH).build();
+        try (var response = client.newCall(warmUpRequest).execute()) {
+            assertThat(response.code()).isEqualTo(200);
         }
+        assertThat(warm.handshakesCompleted()).hasValue(1);
+        warm.holdHandshakes();
+        fresh.holdHandshakes();
 
-        assertThat(fast.handshakesCompleted()).hasValue(1);
-        assertThat(fast.requests()).hasSize(2);
+        var order = race.order(List.of(candidate("warm", warm), candidate("fresh", fresh)));
+        await().atMost(8, TimeUnit.SECONDS).until(() -> warm.acceptNanos().size() == 2 && !fresh.acceptNanos().isEmpty());
+        assertThat(order).isNotDone();
+        fresh.releaseHandshakes();
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("fresh", "warm");
+        warm.releaseHandshakes();
+        assertThat(cooldownTracker.isCoolingDown(warm.address())).isFalse();
+    }
+
+    @Test
+    void aWinnerWhoseProbeRequestGetsNoAnswerIsOrderedAfterTheOthersAndMarkedInCooldown() throws Exception {
+        var silent = startServer("silent.xroad.test", trustedCa, 0);
+        var healthy = startServer("healthy.xroad.test", trustedCa, 0);
+        silent.holdResponses();
+        healthy.holdHandshakes();
+        var race = race(Duration.ofSeconds(2));
+
+        var order = race.order(List.of(candidate("silent", silent), candidate("healthy", healthy)));
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "silent");
+        assertThat(silent.handshakesCompleted()).hasValue(1);
+        assertThat(cooldownTracker.isCoolingDown(silent.address())).isTrue();
+        assertThat(cooldownTracker.isCoolingDown(healthy.address())).isFalse();
+        silent.releaseResponses();
+        healthy.releaseHandshakes();
+    }
+
+    @Test
+    void aWinnerWhoseProbeRequestGetsNoAnswerLosesItsAverage() throws Exception {
+        var silent = startServer("silent.xroad.test", trustedCa, 0);
+        var healthy = startServer("healthy.xroad.test", trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        silent.holdResponses();
+        healthy.holdHandshakes();
+        var race = race(Duration.ofSeconds(2), Duration.ZERO, handshakeTimes);
+
+        var order = race.order(List.of(candidate("silent", silent), candidate("healthy", healthy)));
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "silent");
+        assertThat(handshakeTimes.average(silent.address())).isEmpty();
+    }
+
+    @Test
+    void aProbeThatGetsAResponseWithoutATlsHandshakeIsAFailureSoTheRoundCompletes() throws Exception {
+        var plainAddress = startPlainServer();
+        var unapproved = startServer("unapproved.xroad.test", untrustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(plainAddress, Duration.ofMillis(5));
+        var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
+        var order = race.order(List.of(new Candidate("plain", plainAddress), candidate("unapproved", unapproved)));
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactlyInAnyOrder("plain", "unapproved");
+        assertThat(cooldownTracker.isCoolingDown(plainAddress)).isTrue();
+        assertThat(cooldownTracker.isCoolingDown(unapproved.address())).isTrue();
+        assertThat(handshakeTimes.average(plainAddress)).isEmpty();
     }
 
     @Test
@@ -205,7 +263,6 @@ class CandidateHandshakeRaceTest {
 
         Set<List<String>> failedOrders = new HashSet<>();
         for (var run = 0; run < 10; run++) {
-            client.connectionPool().evictAll();
             var order = race.order(candidates).get(10, TimeUnit.SECONDS);
             assertThat(order.getFirst().counterPartyId()).isEqualTo("winner");
             failedOrders.add(order.stream().skip(1).map(Candidate::counterPartyId).toList());
@@ -314,7 +371,6 @@ class CandidateHandshakeRaceTest {
         assertThat(firstOrder.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId)
                 .containsExactly("known", "flaky");
         assertThat(cooldownTracker.isCoolingDown(flaky.address())).isTrue();
-        client.connectionPool().evictAll();
         flaky.holdHandshakes();
         known.holdHandshakes();
         var secondOrder = race.order(candidates);
@@ -597,6 +653,17 @@ class CandidateHandshakeRaceTest {
         return server;
     }
 
+    private String startPlainServer() throws IOException {
+        var server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+        server.createContext("/", exchange -> {
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        server.start();
+        plainServers.add(server);
+        return "http://plain.xroad.test:" + server.getAddress().getPort() + DSP_PATH;
+    }
+
     private static Candidate candidate(String id, TlsServer server) {
         return new Candidate(id, server.address());
     }
@@ -657,6 +724,7 @@ class CandidateHandshakeRaceTest {
         private final List<String> requests = new CopyOnWriteArrayList<>();
         private final List<Long> acceptNanos = new CopyOnWriteArrayList<>();
         private volatile CountDownLatch handshakeGate = new CountDownLatch(0);
+        private volatile CountDownLatch responseGate = new CountDownLatch(0);
 
         private TlsServer(String host, TestLeaf leaf, long handshakeDelayMillis) throws Exception {
             this.host = host;
@@ -711,7 +779,17 @@ class CandidateHandshakeRaceTest {
             handshakeGate.countDown();
         }
 
+        void holdResponses() {
+            responseGate = new CountDownLatch(1);
+        }
+
+        void releaseResponses() {
+            responseGate.countDown();
+        }
+
         void close() {
+            handshakeGate.countDown();
+            responseGate.countDown();
             try {
                 serverSocket.close();
             } catch (IOException _) {
@@ -749,6 +827,7 @@ class CandidateHandshakeRaceTest {
                             hostHeaders.add(header.substring("Host:".length()).trim());
                         }
                     }
+                    responseGate.await();
                     var path = requestLine.split(" ")[1];
                     var status = VERSION_PATH.equals(path) ? 200 : 404;
                     requests.add("GET " + path + " -> " + status);

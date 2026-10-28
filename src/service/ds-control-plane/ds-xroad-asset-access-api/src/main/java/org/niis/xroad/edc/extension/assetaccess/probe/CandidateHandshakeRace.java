@@ -30,11 +30,12 @@ package org.niis.xroad.edc.extension.assetaccess.probe;
 import jakarta.annotation.Nullable;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Connection;
+import okhttp3.ConnectionPool;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -60,18 +61,23 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Orders candidate provider Security Servers by a TLS probe race. Every candidate is probed through a client derived
- * from the shared X-Road OkHttp client, so probes use the connector TLS trust and the winner's open connection stays
- * in the shared pool for the catalog call that follows. Probes run concurrently: they start together, or one
- * stagger apart when a stagger is set.
+ * from the X-Road OkHttp client, so probes use the connector TLS trust and host-name verification. The connect, read
+ * and call timeouts of a probe are the probe deadline; only the write timeout is inherited. The probe client has a
+ * connection pool of its own that keeps no idle connection and speaks HTTP/1.1 only, so a connection is never shared
+ * between probes, every probe opens a fresh connection, and a connection pooled by earlier DSP calls never wins.
+ * Probes run concurrently: they start together, or one stagger apart when a
+ * stagger is set.
  *
- * <p>The first probe to hold an established connection wins and the others are cancelled. The winner's exchange is
- * allowed to finish, without reading its status, so that the connection returns to the pool before the order is
- * handed out. A probe that fails before the race is decided puts its server in cooldown; probes cancelled by the
- * winner are not failures.
+ * <p>The first probe to complete its TLS handshake wins and the others are cancelled. The winner's exchange is
+ * allowed to finish, without reading its status, so that a winner whose request fails, for example by getting no
+ * answer before the probe deadline, is demoted before the order is handed out. A probe that fails before the race
+ * is decided, or the winner's probe that fails after its handshake, puts its server in cooldown; probes cancelled
+ * by the winner are not failures. A probe that gets a response without completing a TLS handshake, for example over
+ * plain HTTP, is a failure too.
  *
- * <p>The order is the winner, then the cancelled candidates, then the failed ones; each of the last two groups
- * is shuffled. It is handed out on a dedicated completion executor, so the acquisition that follows does not run
- * on an OkHttp callback thread.
+ * <p>The order is the winner, then the cancelled candidates, then the failed ones, a demoted winner among them;
+ * each of the last two groups is shuffled. It is handed out on a dedicated completion executor, so the acquisition
+ * that follows does not run on an OkHttp callback thread.
  *
  * <p>Each completed handshake updates the server's moving average of connection setup time, TCP connect plus TLS
  * handshake ({@link HandshakeTimes}); a failed probe drops the server's average. With a probe stagger of zero all
@@ -97,7 +103,8 @@ public class CandidateHandshakeRace {
     private final Monitor monitor;
 
     /**
-     * @param client                   the shared X-Road OkHttp client the probe client is derived from
+     * @param client                   the X-Road OkHttp client the probe client is derived from; its connection pool
+     *                                 is not used
      * @param cooldownTracker          marks servers whose probe failed
      * @param executorInstrumentation  instruments the completion executor the order is handed out on and the
      *                                 stagger scheduler that starts the delayed probes
@@ -125,6 +132,8 @@ public class CandidateHandshakeRace {
                            HandshakeTimes handshakeTimes,
                            Monitor monitor) {
         this.probeClient = client.newBuilder()
+                .connectionPool(new ConnectionPool(0, 1, TimeUnit.SECONDS))
+                .protocols(List.of(Protocol.HTTP_1_1))
                 .callTimeout(probeDeadline)
                 .connectTimeout(probeDeadline)
                 .readTimeout(probeDeadline)
@@ -209,7 +218,7 @@ public class CandidateHandshakeRace {
         private final List<Probe> probes;
         private final CompletableFuture<List<Candidate>> result = new CompletableFuture<>();
         private boolean decided;
-        private List<Candidate> decidedOrder;
+        private Probe declaredWinner;
         private List<Probe> startOrder = List.of();
 
         private Round(List<Candidate> candidates) {
@@ -240,10 +249,6 @@ public class CandidateHandshakeRace {
                     public void secureConnectEnd(Call call, Handshake handshake) {
                         handshakeTimes.record(probe.candidate.counterPartyAddress(),
                                 Duration.ofNanos(System.nanoTime() - connectStartNanos));
-                    }
-
-                    @Override
-                    public void connectionAcquired(Call call, Connection connection) {
                         declareWinner(probe);
                     }
                 };
@@ -317,10 +322,10 @@ public class CandidateHandshakeRace {
                     return;
                 }
                 probe.state = ProbeState.WINNER;
+                declaredWinner = probe;
                 decided = true;
                 cancelled = probes.stream().filter(other -> other.state == ProbeState.PENDING).toList();
                 cancelled.forEach(other -> other.state = ProbeState.CANCELLED);
-                decidedOrder = orderAround(probe);
             }
             monitor.debug("Probe won the race: counterPartyAddress=%s".formatted(probe.candidate.counterPartyAddress()));
             cancelled.forEach(other -> other.call.cancel());
@@ -328,7 +333,8 @@ public class CandidateHandshakeRace {
 
         private void recordFailure(Probe probe, Throwable cause) {
             synchronized (this) {
-                if (decided || probe.state != ProbeState.PENDING) {
+                var demotesWinner = probe.state == ProbeState.WINNER;
+                if (!demotesWinner && (decided || probe.state != ProbeState.PENDING)) {
                     return;
                 }
                 probe.state = ProbeState.FAILED;
@@ -341,23 +347,37 @@ public class CandidateHandshakeRace {
         }
 
         private void completeWhenAllFailed() {
+            List<Candidate> order;
             synchronized (this) {
                 if (decided || probes.stream().anyMatch(probe -> probe.state == ProbeState.PENDING)) {
                     return;
                 }
                 decided = true;
-                decidedOrder = orderAround(null);
+                order = decidedOrder();
             }
-            handOut(decidedOrder);
+            handOut(order);
+        }
+
+        private void failWhenNoHandshakeCompleted(Probe probe) {
+            boolean noHandshake;
+            synchronized (this) {
+                noHandshake = probe.state == ProbeState.PENDING;
+            }
+            if (noHandshake) {
+                recordFailure(probe, new IllegalStateException(
+                        "Probe response without a TLS handshake: " + probe.candidate.counterPartyAddress()));
+            }
         }
 
         private void exchangeEnded(Probe probe) {
+            List<Candidate> order;
             synchronized (this) {
-                if (probe.state != ProbeState.WINNER) {
+                if (probe != declaredWinner) {
                     return;
                 }
+                order = decidedOrder();
             }
-            handOut(decidedOrder);
+            handOut(order);
         }
 
         private void handOut(List<Candidate> order) {
@@ -368,11 +388,9 @@ public class CandidateHandshakeRace {
             }
         }
 
-        private List<Candidate> orderAround(@Nullable Probe winner) {
+        private List<Candidate> decidedOrder() {
             var ordered = new ArrayList<Candidate>();
-            if (winner != null) {
-                ordered.add(winner.candidate);
-            }
+            ordered.addAll(shuffled(ProbeState.WINNER));
             ordered.addAll(shuffled(ProbeState.CANCELLED));
             ordered.addAll(shuffled(ProbeState.FAILED));
             return List.copyOf(ordered);
@@ -403,6 +421,7 @@ public class CandidateHandshakeRace {
             @Override
             public void onResponse(Call call, Response response) {
                 response.close();
+                failWhenNoHandshakeCompleted(probe);
                 exchangeEnded(probe);
             }
         }
