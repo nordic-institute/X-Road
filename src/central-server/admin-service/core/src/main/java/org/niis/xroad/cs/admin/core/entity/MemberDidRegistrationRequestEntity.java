@@ -29,11 +29,21 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Immutable;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Entry;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Result;
 import org.niis.xroad.cs.admin.api.domain.Origin;
+import org.niis.xroad.cs.admin.core.entity.converter.DidBatchJson;
+
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity.DISCRIMINATOR_VALUE;
 
@@ -44,8 +54,30 @@ public class MemberDidRegistrationRequestEntity extends RequestEntity {
 
     public static final String DISCRIMINATOR_VALUE = "MemberDidRegistrationRequest";
 
-    public MemberDidRegistrationRequestEntity(Origin origin, SecurityServerId identifier) {
+    @Column(name = "did_entries", columnDefinition = "TEXT")
+    @Convert(converter = DidBatchJson.EntriesConverter.class)
+    @Immutable
+    @Getter
+    private List<DidBatchJson.Entry> didEntries;
+
+    @Column(name = "did_results", columnDefinition = "TEXT")
+    @Convert(converter = DidBatchJson.ResultsConverter.class)
+    @Immutable
+    @Getter
+    private List<DidBatchJson.Result> didResults;
+
+    /**
+     * @param entries the entries as received
+     * @param results one result per entry, in the order of the entries
+     */
+    public MemberDidRegistrationRequestEntity(Origin origin, SecurityServerId identifier, List<Entry> entries, List<Result> results) {
         super(origin, identifier, null);
+        this.didEntries = entries.stream()
+                .map(entry -> new DidBatchJson.Entry(entry.memberId().asEncodedId(), entry.did()))
+                .toList();
+        this.didResults = IntStream.range(0, results.size())
+                .mapToObj(i -> new DidBatchJson.Result(entries.get(i).did(), results.get(i).status(), results.get(i).reason()))
+                .toList();
     }
 
     @Override

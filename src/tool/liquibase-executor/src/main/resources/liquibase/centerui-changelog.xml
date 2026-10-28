@@ -46,6 +46,7 @@
     <include file="centerui/202608121200-ds-tls-cas.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202609081200-issuer-dids.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202610141200-published-dids.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202610271200-member-did-request-batch.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/002-drop-scope.xml" relativeToChangelogFile="true"/>

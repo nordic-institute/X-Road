@@ -204,7 +204,7 @@ class MemberDidRegistrationBatchPostgresTest extends AbstractCentralServerPostgr
 
         assertThat(resendElapsed).isLessThan(ADMIN_CLIENT_TIMEOUT);
         assertThat(resend.getResults()).hasSize(BATCH_SIZE).allSatisfy(result -> assertThat(result.status()).isEqualTo(Status.STORED));
-        assertThat(resend.getId()).isZero();
+        assertThat(resend.getId()).isPositive();
         assertThat(fetches).hasValue(0);
     }
 

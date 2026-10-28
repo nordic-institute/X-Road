@@ -149,15 +149,10 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         }
         var body = result.getBody();
         var requestId = Optional.ofNullable(body).map(ManagementRequestDto::getId).orElse(null);
-        if (requestId == null && !answersWithoutRequestId(body)) {
+        if (requestId == null) {
             throw XrdRuntimeException.systemInternalError("Response without request id");
         }
         return new ResponsePayload(requestId, resultElements(body));
-    }
-
-    private static boolean answersWithoutRequestId(ManagementRequestDto body) {
-        return body instanceof MemberDidRegistrationRequestDto memberDidReg
-                && memberDidReg.getResults() != null && !memberDidReg.getResults().isEmpty();
     }
 
     private List<JAXBElement<?>> resultElements(ManagementRequestDto body) {

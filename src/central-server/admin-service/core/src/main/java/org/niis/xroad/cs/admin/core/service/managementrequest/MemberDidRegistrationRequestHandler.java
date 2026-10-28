@@ -69,12 +69,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
  * Locks the Security Server row by its identifier, which also settles that the server still exists under the
  * requesting owner, and keeps the lock until commit. Everything after the lock sees the server as it is at
  * that moment: an owner change committed after the pre-transaction checks answers every entry as owner
- * changed and writes nothing.
+ * changed and stores no DID.
  *
- * <p>The request row is persisted only when the call stored at least one value. An equal resend, a batch of
- * refusals and the owner-changed answer leave no row, so a Security Server that resends each cycle adds none;
- * the audit event of every call records each entry's outcome. A request without a row keeps the id 0, which
- * the REST and SOAP layers report as an absent request id.
+ * <p>Every call that gets this far stores one request row holding the entries as received and the result of
+ * each, whatever the results are, so every answer carries the request id.
  */
 @Service
 @Transactional
@@ -95,10 +93,11 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
 
     @Override
     public MemberDidRegistrationRequest add(MemberDidRegistrationRequest request) {
-        var added = servers.lockForUpdateBy(request.getSecurityServerId())
-                .map(serverRowId -> writeOnceAndRecord(serverRowId, request))
-                .orElseGet(() -> request.setResults(ownerChanged(request.getEntries())));
-        audit(request, added.getResults());
+        var results = servers.lockForUpdateBy(request.getSecurityServerId())
+                .map(serverRowId -> writeOnce(serverRowId, request))
+                .orElseGet(() -> ownerChanged(request.getEntries()));
+        var added = record(request, results);
+        audit(request, results);
         return added;
     }
 
@@ -112,20 +111,20 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
         return MemberDidRegistrationRequest.class;
     }
 
-    private MemberDidRegistrationRequest writeOnceAndRecord(int serverRowId, MemberDidRegistrationRequest request) {
-        var written = writeOnce(serverRowId, request);
-        var results = resultsOf(serverRowId, request, written);
-        if (written.values().stream().noneMatch(result -> result.outcome() == Outcome.STORED)) {
-            return request.setResults(results);
-        }
-        final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        var saved = memberDidRegistrationRequests.save(new MemberDidRegistrationRequestEntity(request.getOrigin(), serverId));
+    private MemberDidRegistrationRequest record(MemberDidRegistrationRequest request, List<Result> results) {
+        var serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        var saved = memberDidRegistrationRequests.save(
+                new MemberDidRegistrationRequestEntity(request.getOrigin(), serverId, request.getEntries(), results));
         return requestMapper.toDto(saved)
                 .setEntries(request.getEntries())
                 .setResults(results);
     }
 
-    private Map<ClientId, ParticipantValueResult> writeOnce(int serverRowId, MemberDidRegistrationRequest request) {
+    private List<Result> writeOnce(int serverRowId, MemberDidRegistrationRequest request) {
+        return resultsOf(serverRowId, request, storeUnsettled(serverRowId, request));
+    }
+
+    private Map<ClientId, ParticipantValueResult> storeUnsettled(int serverRowId, MemberDidRegistrationRequest request) {
         var settled = request.getSettledResults();
         var unsettled = new LinkedHashMap<ClientId, String>();
         for (int i = 0; i < request.getEntries().size(); i++) {

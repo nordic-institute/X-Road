@@ -1569,6 +1569,7 @@ class ManagementRequestsApiTest extends CsApiTest {
                         .addManagementRequest(memberDidRegistration(serverId,
                                 ManagementRequestOriginDto.SECURITY_SERVER, memberId))
                         .statusCode(202)
+                        .body("id", notNullValue())
                         .body("results", hasSize(1))
                         .body("results[0].member_id", equalTo(memberId))
                         .body("results[0].status", equalTo("FIXABLE_CONFLICT"))

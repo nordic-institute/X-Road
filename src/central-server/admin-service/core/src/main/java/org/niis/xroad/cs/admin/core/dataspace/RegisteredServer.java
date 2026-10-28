@@ -29,15 +29,14 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * One Security Server as registered in the Central Server: what a participant value is checked against.
  *
  * @param registeredAddress the registered address, as stored: a host, optionally with a port that is ignored
  * @param owner             the owner member of the server
- * @param clientMembers     supplies the members that have a registered client on the server, without subsystem
- *                          codes; asked only when a check needs the client set
+ * @param clientMembers     the members that have a registered client on the server, without subsystem codes;
+ *                          empty when only system pairs are checked
  */
-public record RegisteredServer(String registeredAddress, ClientId owner, Supplier<Set<ClientId>> clientMembers) {
+public record RegisteredServer(String registeredAddress, ClientId owner, Set<ClientId> clientMembers) {
 }

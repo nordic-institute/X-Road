@@ -37,8 +37,7 @@ import java.util.List;
  *
  * @param status    {@link Status#ANSWERED} when the Central Server answered, {@link Status#REQUEST_TOO_LARGE} when it
  *                  refused the whole batch as too large, {@link Status#SEND_FAILURE} otherwise
- * @param requestId request id in the Central Server database, set only when answered and the Central Server stored a
- *                  request row
+ * @param requestId request id in the Central Server database, set only when answered
  * @param entries   one record per request entry in request order, empty unless answered
  * @param cause     send failure cause, set only when sending failed
  * @param causeCode code of the failure's cause when it is an XrdRuntimeException, whether a fault the Central Server
@@ -67,13 +66,7 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
     public record Entry(ClientId member, String status, String reason) {
     }
 
-    /**
-     * Outcome of an answered request.
-     *
-     * @param requestId request id, null when the Central Server stored no request row
-     * @param entries   one record per request entry in request order
-     */
-    public static MemberDidRegistrationSendOutcome answered(Integer requestId, List<Entry> entries) {
+    public static MemberDidRegistrationSendOutcome answered(int requestId, List<Entry> entries) {
         return new MemberDidRegistrationSendOutcome(Status.ANSWERED, requestId, entries, null, null);
     }
 

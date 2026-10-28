@@ -53,13 +53,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -107,9 +105,6 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
         record Replace(MemberDidEntity row) implements Writable {
         }
-    }
-
-    private record MemberDidBatch(Map<ClientId, Long> memberIds, Map<Long, MemberDidEntity> storedByMemberId) {
     }
 
     private final SecurityServerRepository securityServerRepository;
@@ -206,17 +201,18 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private Map<ClientId, ParticipantValueResult> decideMemberDids(SecurityServerEntity server, Map<ClientId, String> memberDids,
                                                                    Mode mode, Effect effect) {
         var servedMemberIds = servedMembers(server);
-        var validator = validatorFor(server, servedMemberIds::keySet);
+        var validator = validatorFor(server, servedMemberIds.keySet());
         var plans = new HashMap<ClientId, MemberDidPlan>();
         var accepted = new LinkedHashMap<ClientId, String>();
         memberDids.forEach((member, did) -> validator.validate(new MemberDid(member, did)).ifPresentOrElse(
                 rejection -> plans.put(member, new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection))),
                 () -> accepted.put(member, did)));
 
-        var batch = new MemberDidBatch(servedMemberIds, loadStoredRows(server, servedMemberIds, accepted.keySet()));
+        var storedByMemberId = loadStoredRows(server, servedMemberIds, accepted.keySet());
         var writableDids = new HashSet<String>();
         accepted.forEach((member, did) -> {
-            var plan = planMemberDid(validator, batch, member, did, mode);
+            var memberId = servedMemberIds.get(member.getMemberId());
+            var plan = planMemberDid(validator, memberId, storedByMemberId.get(memberId), did, mode);
             plans.put(member, plan);
             if (plan instanceof MemberDidPlan.Writable) {
                 writableDids.add(did);
@@ -290,14 +286,8 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         };
     }
 
-    private MemberDidPlan planMemberDid(ParticipantValueValidator validator, MemberDidBatch batch,
-                                        ClientId member, String did, Mode mode) {
-        var memberId = batch.memberIds().get(member.getMemberId());
-        if (memberId == null) {
-            return new MemberDidPlan.Settled(ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
-        }
-
-        var stored = batch.storedByMemberId().get(memberId);
+    private MemberDidPlan planMemberDid(ParticipantValueValidator validator, long memberId, MemberDidEntity stored,
+                                        String did, Mode mode) {
         if (stored == null) {
             return mode == Mode.ADMIN_REPLACE
                     ? new MemberDidPlan.Settled(ParticipantValueResult.UNCHANGED)
@@ -328,10 +318,10 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     }
 
     private ParticipantValueValidator validatorFor(SecurityServerEntity server) {
-        return validatorFor(server, () -> servedMembers(server).keySet());
+        return validatorFor(server, Set.of());
     }
 
-    private ParticipantValueValidator validatorFor(SecurityServerEntity server, Supplier<Set<ClientId>> clientMembers) {
+    private ParticipantValueValidator validatorFor(SecurityServerEntity server, Set<ClientId> clientMembers) {
         return new ParticipantValueValidator(
                 new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers));
     }

@@ -118,7 +118,7 @@ class ParticipantValueValidatorTest {
     @Test
     void shouldCheckDidLengthCap() {
         var code = "a".repeat(ParticipantValueValidator.MAX_DID_LENGTH - MEMBER_DID_PREFIX.length());
-        var atCap = new ParticipantValueValidator(new RegisteredServer(ADDRESS, OWNER, () -> Set.of(member(code))));
+        var atCap = new ParticipantValueValidator(new RegisteredServer(ADDRESS, OWNER, Set.of(member(code))));
         var didAtCap = MEMBER_DID_PREFIX + code;
         var didOverCap = didAtCap + "a";
 
@@ -270,7 +270,7 @@ class ParticipantValueValidatorTest {
     }
 
     private static ParticipantValueValidator validatorFor(String registeredAddress) {
-        return new ParticipantValueValidator(new RegisteredServer(registeredAddress, OWNER, () -> Set.of(CLIENT)));
+        return new ParticipantValueValidator(new RegisteredServer(registeredAddress, OWNER, Set.of(CLIENT)));
     }
 
     private static ClientId member(String code) {

@@ -138,7 +138,7 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
     }
 
     @RepeatedTest(2)
-    void ownerChangeCommittedBetweenThePreCheckAndTheLockedWriteAnswersEveryEntryOwnerChangedAndWritesNothing() {
+    void ownerChangeCommittedBetweenThePreCheckAndTheLockedWriteAnswersEveryEntryOwnerChangedAndStoresNoDid() {
         var owner = seed.member();
         var server = seed.server(owner);
         var clients = servedClients(server, 2);
@@ -149,14 +149,14 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
         var answer = service.add(request(server, withOwner(owner, clients)));
 
         assertEveryEntry(answer, Status.FIXABLE_CONFLICT, OWNER_CHANGED);
-        assertThat(answer.getId()).isZero();
+        assertThat(answer.getId()).isPositive();
         assertThat(countMemberDids(server.id())).isZero();
-        assertThat(memberRequestRows(server)).isZero();
+        assertThat(memberRequestRows(server)).isEqualTo(1);
         assertThat(resolvedDids).hasSize(3);
     }
 
     @RepeatedTest(2)
-    void ownerChangeCommittedWhileTheHandlerWaitsForTheRowLockAnswersEveryEntryOwnerChangedAndWritesNothing() throws Exception {
+    void ownerChangeCommittedWhileTheHandlerWaitsForTheRowLockAnswersEveryEntryOwnerChangedAndStoresNoDid() throws Exception {
         var owner = seed.member();
         var server = seed.server(owner);
         var clients = servedClients(server, 2);
@@ -190,9 +190,9 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
         }
 
         assertEveryEntry(answer, Status.FIXABLE_CONFLICT, OWNER_CHANGED);
-        assertThat(answer.getId()).isZero();
+        assertThat(answer.getId()).isPositive();
         assertThat(countMemberDids(server.id())).isZero();
-        assertThat(memberRequestRows(server)).isZero();
+        assertThat(memberRequestRows(server)).isEqualTo(1);
     }
 
     @RepeatedTest(2)
@@ -226,8 +226,9 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
         assertEveryEntry(first, Status.STORED, null);
         assertEveryEntry(second, Status.STORED, null);
         assertThat(countMemberDids(server.id())).isEqualTo(3);
-        assertThat(memberRequestRows(server)).isEqualTo(1);
-        assertThat(List.of(first.getId(), second.getId())).containsOnlyOnce(0);
+        assertThat(memberRequestRows(server)).isEqualTo(2);
+        assertThat(first.getId()).isPositive();
+        assertThat(second.getId()).isPositive().isNotEqualTo(first.getId());
     }
 
     @RepeatedTest(2)
@@ -269,18 +270,18 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
         var resend = service.add(request(server, List.of(member)));
 
         assertEveryEntry(resend, Status.STORED, null);
-        assertThat(resend.getId()).isZero();
+        assertThat(resend.getId()).isPositive();
         assertThat(resolvedDids).hasSize(1);
-        assertThat(memberRequestRows(server)).isEqualTo(1);
+        assertThat(memberRequestRows(server)).isEqualTo(2);
 
         var differing = new Entry(member.identifier(), did.replace("%3A7183", "%3A7184"));
         var refused = service.add(new MemberDidRegistrationRequest(SECURITY_SERVER, server.identifier(), List.of(differing)));
 
         assertEveryEntry(refused, Status.FIXABLE_CONFLICT, VALUE_DIFFERS);
-        assertThat(refused.getId()).isZero();
+        assertThat(refused.getId()).isPositive();
         assertThat(resolvedDids).hasSize(1);
         assertThat(storedDids(server)).containsExactly(did);
-        assertThat(memberRequestRows(server)).isEqualTo(1);
+        assertThat(memberRequestRows(server)).isEqualTo(3);
     }
 
     @RepeatedTest(2)
@@ -308,10 +309,10 @@ class MemberDidRegistrationSequencePostgresTest extends AbstractCentralServerPos
         var answer = service.add(request(server, withOwner(owner, clients)));
 
         assertEveryEntry(answer, Status.FIXABLE_CONFLICT, SYSTEM_VALUES_NOT_STORED);
-        assertThat(answer.getId()).isZero();
+        assertThat(answer.getId()).isPositive();
         assertThat(resolvedDids).isEmpty();
         assertThat(countMemberDids(server.id())).isZero();
-        assertThat(memberRequestRows(server)).isZero();
+        assertThat(memberRequestRows(server)).isEqualTo(1);
 
         registerSystemPair(server);
         assertEveryEntry(service.add(request(server, withOwner(owner, clients))), Status.STORED, null);

@@ -191,12 +191,11 @@ class ManagementRequestServiceImplTest {
     }
 
     @Test
-    void shouldAnswerMemberDidRegResultsWithoutRequestIdWhenNoRequestRowWasStored() {
+    void shouldRejectAMemberDidRegAnswerWithoutRequestIdEvenWhenItCarriesResults() {
         var server = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
         var memberA = ClientId.Conf.create("DEV", "COM", "222");
         when(securityServerIdConverter.convertId(server)).thenReturn("DEV:COM:222:SS1");
         when(clientIdConverter.convertId(memberA)).thenReturn("DEV:COM:222");
-        when(clientIdConverter.convertId("DEV:COM:222")).thenReturn(memberA);
         when(managementRequestsApi.addManagementRequest(any()))
                 .thenReturn(ResponseEntity.ok(new MemberDidRegistrationRequestDto()
                         .results(List.of(new MemberDidRegistrationResultDto().memberId("DEV:COM:222")
@@ -205,37 +204,8 @@ class ManagementRequestServiceImplTest {
         request.setServer(server);
         request.getEntry().add(entry(memberA, "did:web:a"));
 
-        var payload = managementRequestService.addManagementRequestWithPayload(request, MEMBER_DID_REGISTRATION_REQUEST);
-
-        assertThat(payload.requestId()).isNull();
-        assertThat(payload.elements()).hasSize(1);
-        assertThat(((MemberDidRegResultType) payload.elements().getFirst().getValue()).getReason()).isEqualTo("OWNER_CHANGED");
-    }
-
-    @Test
-    void shouldRejectAMissingRequestIdForAMemberDidRegAnswerWithoutResults() {
-        var server = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
-        var memberA = ClientId.Conf.create("DEV", "COM", "222");
-        when(securityServerIdConverter.convertId(server)).thenReturn("DEV:COM:222:SS1");
-        when(clientIdConverter.convertId(memberA)).thenReturn("DEV:COM:222");
-        when(managementRequestsApi.addManagementRequest(any()))
-                .thenReturn(ResponseEntity.ok(new MemberDidRegistrationRequestDto()));
-        var request = new MemberDidRegRequestType();
-        request.setServer(server);
-        request.getEntry().add(entry(memberA, "did:web:a"));
-
         assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> managementRequestService.addManagementRequestWithPayload(request, MEMBER_DID_REGISTRATION_REQUEST))
-                .withMessageContaining("Response without request id");
-    }
-
-    @Test
-    void shouldStillRejectAMissingRequestIdForOtherTypes() {
-        when(managementRequestsApi.addManagementRequest(any()))
-                .thenReturn(ResponseEntity.accepted().body(new ManagementRequestDto()));
-
-        assertThatExceptionOfType(XrdRuntimeException.class)
-                .isThrownBy(() -> managementRequestService.addManagementRequestWithPayload(new ClientRequestType(), CLIENT_ENABLE_REQUEST))
                 .withMessageContaining("Response without request id");
     }
 

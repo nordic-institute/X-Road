@@ -130,16 +130,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             result.status(statusMapper.convert(req.getProcessingStatus()));
         }
 
-        return result.id(idOf(request))
+        return result.id(request.getId())
                 .type(requestTypeConverter.convert(request.getManagementRequestType()))
                 .origin(originMapper.convert(request.getOrigin()))
                 .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
                 .createdAt(request.getCreatedAt().atOffset(dtoZoneOffset))
                 .updatedAt(request.getUpdatedAt().atOffset(dtoZoneOffset));
-    }
-
-    private static Integer idOf(Request request) {
-        return request instanceof MemberDidRegistrationRequest && request.getId() == 0 ? null : request.getId();
     }
 
     public Request fromDto(ManagementRequestDto request) {
