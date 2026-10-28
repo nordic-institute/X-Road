@@ -42,6 +42,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.e2e.container.AuxStackSetup;
 import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
+import org.niis.xroad.e2e.parity.acl.AclMode;
 import org.niis.xroad.e2e.parity.acl.AclModeProbe;
 import org.niis.xroad.e2e.parity.acl.AclParticipants;
 import org.niis.xroad.e2e.parity.acl.AclScenario;
@@ -56,6 +57,7 @@ import org.niis.xroad.e2e.parity.acl.AclScenario.RestRequest;
 import org.niis.xroad.e2e.parity.acl.AclScenario.SoapRequest;
 import org.niis.xroad.e2e.parity.acl.AclScenario.Transport;
 import org.niis.xroad.e2e.parity.acl.AclScenarioVerdicts;
+import org.niis.xroad.e2e.parity.acl.AclVerdictReport;
 import org.niis.xroad.e2e.parity.acl.Reply;
 import org.niis.xroad.e2e.parity.acl.RestRequests;
 import org.niis.xroad.e2e.parity.acl.RestSender;
@@ -66,6 +68,7 @@ import org.niis.xroad.e2e.parity.acl.VerdictPoller;
 import org.niis.xroad.e2e.parity.acl.VerdictPoller.Observation;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -78,12 +81,16 @@ import static org.niis.xroad.e2e.AdminApi.login;
 
 /**
  * Calls each catalogue scenario from ss1 to ss0 and compares the outcome with the legacy verdict. The legacy
- * verdicts are the expectation in both modes: with {@code -Pe2e.acl-mode=legacy} ss1 sends calls without data
- * space negotiation, so ss0 decides by its access rights alone; with {@code -Pe2e.acl-mode=dsp} ss1 negotiates
- * through the data space protocol, and every difference from the legacy verdict shows as a failure. Every
- * scenario creates namespaced fixtures on its provider's Security Server (ss0 unless the fixture names ss1),
- * polls until the expected verdict or the cache deadline, and removes its fixtures. A scenario that expects an
- * admin API status instead issues one grant and checks the status, without polling.
+ * verdicts are the expectation in every mode, except for a request whose row carries its own expectation for the
+ * data space protocol: with {@code -Pe2e.acl-mode=legacy} ss1 sends calls without data space negotiation, so ss0
+ * decides by its access rights alone; with {@code -Pe2e.acl-mode=dsp} ss1 negotiates through the data space
+ * protocol, and every difference from the expected verdict shows as a failure; with
+ * {@code -Pe2e.acl-mode=dsp-refusal} ss1 negotiates as well, and ss0 refuses X-Road 7 style calls from the moment
+ * the subsystem pool is registered. Every scenario creates namespaced fixtures on its provider's Security Server
+ * (ss0 unless the fixture names ss1), polls until the expected verdict or the cache deadline, and removes its
+ * fixtures. A scenario that expects an admin API status instead issues one grant and checks the status, without
+ * polling. When {@code test-framework.acl-verdicts-file} is set, one line per scenario names its expected and its
+ * observed verdicts.
  *
  * <p>Before the first scenario the shared {@link SubsystemPoolSetup subsystem pool} is registered once, and the
  * service clients holding the management client registration service are listed; after the last scenario the list
@@ -107,6 +114,7 @@ class AclParityTest extends E2eTest {
     private static final String RUN_TOKEN = Long.toString(Instant.now().getEpochSecond(), Character.MAX_RADIX);
 
     private static List<String> managementGrantsBefore;
+    private static AclMode aclMode;
 
     @BeforeAll
     static void registerSubsystemPool(E2eEnvironment env) {
@@ -114,10 +122,15 @@ class AclParityTest extends E2eTest {
         assumeTrue(mode.isPresent(), "ACL parity runs only with -Pe2e.acl-mode");
         assumeTrue(env instanceof E2eEnvSetup,
                 "ACL parity runs only with -Pe2e.env-mode=compose: only the Compose stack applies -Pe2e.acl-mode");
-        log.info(AclModeProbe.verify(mode.get(), storedDspEnabled((E2eEnvSetup) env)));
+        aclMode = mode.get();
+        log.info(AclModeProbe.verify(aclMode, storedDspEnabled((E2eEnvSetup) env)));
+        AclParityProperties.verdictsFile().ifPresent(file -> AclVerdictReport.start(Path.of(file)));
         var ss1BaseUrl = adminBaseUrl(env, SS1_ENV);
         AdminApi.setConnectionType(ss1BaseUrl, login(ss1BaseUrl), AclParticipants.MEMBER_OF_CONSUMER, "HTTP");
         SubsystemPoolSetup.ensure(env);
+        if (aclMode.refusesLegacyCalls()) {
+            ((E2eEnvSetup) env).refuseLegacyCallsOnSs0();
+        }
         managementGrantsBefore = managementGrants(env);
     }
 
@@ -155,7 +168,8 @@ class AclParityTest extends E2eTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("scenarios")
-    void scenarioGetsItsExpectedVerdict(AclScenario scenario, E2eEnvironment env) {
+    void scenarioGetsItsExpectedVerdict(AclScenario catalogued, E2eEnvironment env) {
+        var scenario = catalogued.forMode(aclMode);
         var providerBaseUrl = adminBaseUrl(env, providerEnv(scenario));
         var csBaseUrl = CentralServerApi.baseUrl(env);
         var gateway = new AdminApiGateway(providerBaseUrl, login(providerBaseUrl), backendUrl(env), csBaseUrl,
@@ -172,6 +186,7 @@ class AclParityTest extends E2eTest {
                     request -> call(env, management, scenario, serviceCodes, request),
                     scenario.waitClass().firstCheckTimeout(), scenario.waitClass().timeout(),
                     DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
+            recordVerdicts(AclVerdictReport.line(scenario.id(), outcomes));
             outcomes.forEach(outcome -> log.info("{}: {} -> verdict {} ({}) after {} attempts in {} s",
                     scenario.id(), outcome.check().request().describe(), outcome.result().last(),
                     outcome.result().detail(), outcome.result().attempts(),
@@ -187,10 +202,17 @@ class AclParityTest extends E2eTest {
         var errorCode = JsonPath.from(reply.body().isBlank() ? "{}" : reply.body()).getString("error.code");
         log.info("{}: grant to {} -> admin API status {}, error code {}", scenario.id(), grant.subjectId(),
                 reply.status(), errorCode);
+        recordVerdicts(AclVerdictReport.adminGrantLine(scenario.id(),
+                "%d %s".formatted(grant.expectedStatus(), grant.expectedErrorCode()),
+                "%d %s".formatted(reply.status(), errorCode)));
         Assertions.assertEquals(grant.expectedStatus(), reply.status(),
                 "admin API status of the grant to " + grant.subjectId());
         Assertions.assertEquals(grant.expectedErrorCode(), errorCode,
                 "admin API error code of the grant to " + grant.subjectId());
+    }
+
+    private static void recordVerdicts(String line) {
+        AclParityProperties.verdictsFile().ifPresent(file -> AclVerdictReport.append(Path.of(file), line));
     }
 
     private static String providerEnv(AclScenario scenario) {

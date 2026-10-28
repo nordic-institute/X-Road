@@ -72,4 +72,40 @@ class AclModeProbeTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("DSP").hasMessageContaining("LEGACY");
     }
+
+    @Test
+    void refusalModeNeedsTheConsumerToNegotiate() {
+        assertThat(AclModeProbe.verify(AclMode.DSP_REFUSAL, "")).contains("DSP");
+        assertThatThrownBy(() -> AclModeProbe.verify(AclMode.DSP_REFUSAL, "false"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("DSP_REFUSAL").hasMessageContaining("LEGACY");
+    }
+
+    @Test
+    void onlyRefusalModeRefusesLegacyCalls() {
+        assertThat(AclMode.LEGACY.refusesLegacyCalls()).isFalse();
+        assertThat(AclMode.DSP.refusesLegacyCalls()).isFalse();
+        assertThat(AclMode.DSP_REFUSAL.refusesLegacyCalls()).isTrue();
+    }
+
+    @Test
+    void onlyLegacyModeRunsTheConsumerWithoutNegotiation() {
+        assertThat(AclMode.LEGACY.consumerMode()).isEqualTo(AclMode.LEGACY);
+        assertThat(AclMode.DSP.consumerMode()).isEqualTo(AclMode.DSP);
+        assertThat(AclMode.DSP_REFUSAL.consumerMode()).isEqualTo(AclMode.DSP);
+    }
+
+    @Test
+    void refusalModeWithTheSidecarStackIsRejected() {
+        assertThatThrownBy(() -> AclModeProbe.verifyProviderStack(AclMode.DSP_REFUSAL, true))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("DSP_REFUSAL").hasMessageContaining("sidecar");
+    }
+
+    @Test
+    void refusalModeWithTheDefaultStackAndOtherModesWithAnyStackPass() {
+        AclModeProbe.verifyProviderStack(AclMode.DSP_REFUSAL, false);
+        AclModeProbe.verifyProviderStack(AclMode.LEGACY, true);
+        AclModeProbe.verifyProviderStack(AclMode.DSP, true);
+    }
 }

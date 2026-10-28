@@ -38,7 +38,8 @@ import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
  *
  * <p>For REST, {@link Verdict#ALLOWED} needs a 2xx status and the {@code mock-response: true} header the backend stub
  * adds, so a 2xx that did not reach the backend is an error. A provider refusal arrives as HTTP 500 with an
- * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code. HTTP 400 with neither
+ * {@code X-Road-Error} header holding {@code server.serverproxy.} followed by the error code; a data space failure
+ * on the consumer side carries {@code server.clientproxy.} followed by a generic error code. HTTP 400 with neither
  * an {@code X-Road-Error} header nor the backend stub's {@code mock-response} header is the consumer proxy's HTTP
  * server refusing the request URI before any X-Road handler ran, which is {@link Verdict#CONSUMER_REJECTED}; a 400
  * the backend stub answered is not. Every other shape is {@link Verdict#ERROR}.
@@ -54,19 +55,25 @@ public final class VerdictClassifier {
 
     private static final int DESCRIBED_BODY_LENGTH = 300;
     private static final Pattern ACCESS_DENIED_CODE = Pattern.compile("server\\.serverproxy\\.access_denied");
+    private static final Pattern TOKEN_REJECTED_CODE =
+            Pattern.compile("server\\.serverproxy\\.agreement_token_rejected");
     private static final Pattern FAULT_CODE =
             Pattern.compile("<(?:[\\w.-]+:)?faultcode[^>]*>\\s*([^<]*?)\\s*</(?:[\\w.-]+:)?faultcode>");
 
-    private static final Map<String, Verdict> FAULTS = Map.of(
-            FAULT_PREFIX + "access_denied", Verdict.ACCESS_DENIED,
-            FAULT_PREFIX + "unknown_service", Verdict.UNKNOWN_SERVICE,
-            FAULT_PREFIX + "service_disabled", Verdict.SERVICE_DISABLED,
-            FAULT_PREFIX + "service_type", Verdict.INVALID_SERVICE_TYPE,
-            FAULT_PREFIX + "unknown_member", Verdict.UNKNOWN_MEMBER,
-            FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER,
-            FAULT_PREFIX + "internal_error", Verdict.INTERNAL_ERROR,
-            CLIENT_FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER,
-            CLIENT_FAULT_PREFIX + "unknown_member", Verdict.UNKNOWN_MEMBER);
+    private static final Map<String, Verdict> FAULTS = Map.ofEntries(
+            Map.entry(FAULT_PREFIX + "access_denied", Verdict.ACCESS_DENIED),
+            Map.entry(FAULT_PREFIX + "unknown_service", Verdict.UNKNOWN_SERVICE),
+            Map.entry(FAULT_PREFIX + "service_disabled", Verdict.SERVICE_DISABLED),
+            Map.entry(FAULT_PREFIX + "service_type", Verdict.INVALID_SERVICE_TYPE),
+            Map.entry(FAULT_PREFIX + "unknown_member", Verdict.UNKNOWN_MEMBER),
+            Map.entry(FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER),
+            Map.entry(FAULT_PREFIX + "internal_error", Verdict.INTERNAL_ERROR),
+            Map.entry(FAULT_PREFIX + "agreement_token_rejected", Verdict.AGREEMENT_TOKEN_REJECTED),
+            Map.entry(CLIENT_FAULT_PREFIX + "invalid_security_server", Verdict.INVALID_SECURITY_SERVER),
+            Map.entry(CLIENT_FAULT_PREFIX + "unknown_member", Verdict.UNKNOWN_MEMBER),
+            Map.entry(CLIENT_FAULT_PREFIX + "access_denied", Verdict.ACCESS_DENIED),
+            Map.entry(CLIENT_FAULT_PREFIX + "io_error", Verdict.CONSUMER_FAILED),
+            Map.entry(CLIENT_FAULT_PREFIX + "service_failed", Verdict.CONSUMER_FAILED));
 
     private VerdictClassifier() {
     }
@@ -92,8 +99,9 @@ public final class VerdictClassifier {
     /**
      * Classifies the answer of the admin API to a client registration, which the Security Server forwards to the
      * management service. A 2xx answer is {@link Verdict#ALLOWED}; a body that carries the fault code
-     * {@code server.serverproxy.access_denied} is {@link Verdict#ACCESS_DENIED}; every other shape is
-     * {@link Verdict#ERROR}.
+     * {@code server.serverproxy.access_denied} is {@link Verdict#ACCESS_DENIED}; one that carries
+     * {@code server.serverproxy.agreement_token_rejected} is {@link Verdict#AGREEMENT_TOKEN_REJECTED}; every other
+     * shape is {@link Verdict#ERROR}.
      */
     public static Verdict classifyManagement(Reply reply) {
         if (reply == null) {
@@ -102,7 +110,10 @@ public final class VerdictClassifier {
         if (reply.isSuccess()) {
             return Verdict.ALLOWED;
         }
-        return ACCESS_DENIED_CODE.matcher(reply.body()).find() ? Verdict.ACCESS_DENIED : Verdict.ERROR;
+        if (ACCESS_DENIED_CODE.matcher(reply.body()).find()) {
+            return Verdict.ACCESS_DENIED;
+        }
+        return TOKEN_REJECTED_CODE.matcher(reply.body()).find() ? Verdict.AGREEMENT_TOKEN_REJECTED : Verdict.ERROR;
     }
 
     /** The status and the start of the body of an admin API answer, for failure messages. */
@@ -179,10 +190,15 @@ public final class VerdictClassifier {
 
     /**
      * What a REST answer says, for failure messages: its status and fault header, and for a disabled-service fault
-     * also its body, which carries the operator's notice.
+     * also its body, which carries the operator's notice, and for a rejected agreement token the start of its body,
+     * which names the reason.
      */
     public static String describe(Reply reply) {
-        return classify(reply) == Verdict.SERVICE_DISABLED ? reply + "; body " + reply.body() : reply.toString();
+        return switch (classify(reply)) {
+            case SERVICE_DISABLED -> reply + "; body " + reply.body();
+            case AGREEMENT_TOKEN_REJECTED -> describeWithBody(reply);
+            default -> reply.toString();
+        };
     }
 
     /**

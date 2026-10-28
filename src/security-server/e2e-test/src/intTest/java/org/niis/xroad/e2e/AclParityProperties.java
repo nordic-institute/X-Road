@@ -33,8 +33,9 @@ import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
 import java.util.Optional;
 
 /**
- * The ACL parity switch: {@code test-framework.acl-mode}, set by the Gradle property {@code e2e.acl-mode}.
- * Unset means the parity scenarios are skipped and no stack is altered.
+ * The ACL parity switch: {@code test-framework.acl-mode}, set by the Gradle property {@code e2e.acl-mode} to
+ * {@code legacy}, {@code dsp} or {@code dsp-refusal}. Unset means the parity scenarios are skipped and no stack is
+ * altered. {@code test-framework.acl-verdicts-file} names the file the verdict of every row is written to.
  */
 @ConfigMapping(prefix = "test-framework")
 public interface AclParityProperties {
@@ -42,8 +43,16 @@ public interface AclParityProperties {
     @WithName("acl-mode")
     Optional<AclMode> aclMode();
 
+    @WithName("acl-verdicts-file")
+    Optional<String> aclVerdictsFile();
+
     /** The configured mode, or empty when the run is not an ACL parity run. */
     static Optional<AclMode> configuredMode() {
         return ApiTestConfigSource.getInstance().buildConfigMapping(AclParityProperties.class).aclMode();
+    }
+
+    /** The file the verdict of every row is written to, or empty when none is configured. */
+    static Optional<String> verdictsFile() {
+        return ApiTestConfigSource.getInstance().buildConfigMapping(AclParityProperties.class).aclVerdictsFile();
     }
 }
