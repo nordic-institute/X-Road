@@ -199,23 +199,27 @@ class MemberDidRegistrationServiceImplTest {
     }
 
     @Test
-    void anUnknownServerLeavesTheCandidatesUnsettledForTheLockAndNeitherChecksNorResolves() {
+    void anUnknownServerSettlesEveryCandidateAsOwnerChangedAndNeitherChecksNorResolves() {
         server = Optional.empty();
 
         var result = add(threeEntries());
 
-        assertThat(result.getSettledResults()).isEmpty();
+        assertThat(result.getSettledResults().values()).containsExactly(
+                new Result(MEMBER_1, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
+                new Result(MEMBER_2, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED),
+                new Result(MEMBER_3, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED));
         assertThat(calls).containsExactly("add");
     }
 
     @Test
-    void anUnknownServerStillSettlesTheConflictingDuplicateAndLeavesTheOtherMembersUnsettled() {
+    void anUnknownServerStillSettlesTheConflictingDuplicateAndSettlesTheOtherMembersAsOwnerChanged() {
         server = Optional.empty();
 
         var result = add(new Entry(MEMBER_1, DID_1), new Entry(MEMBER_2, DID_2), new Entry(MEMBER_1, OTHER_DID_1));
 
-        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1)
-                .containsEntry(MEMBER_1, new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE));
+        assertThat(result.getSettledResults()).containsOnlyKeys(MEMBER_1, MEMBER_2)
+                .containsEntry(MEMBER_1, new Result(MEMBER_1, Status.FINAL_CONFLICT, MemberDidRegistrationOutcome.CONFLICTING_DUPLICATE))
+                .containsEntry(MEMBER_2, new Result(MEMBER_2, Status.FIXABLE_CONFLICT, SystemDidRegistrationOutcome.OWNER_CHANGED));
         assertThat(calls).containsExactly("add");
     }
 

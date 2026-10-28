@@ -257,7 +257,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private ParticipantValueResult decideMemberDid(SecurityServerEntity server, Set<String> didsHeldElsewhere,
                                                    ClientId member, String did, MemberDidPlan plan, Effect effect) {
         return switch (plan) {
-            case MemberDidPlan.Settled settled -> settled.result();
+            case MemberDidPlan.Settled(var result) -> result;
             case MemberDidPlan.Writable writable -> decideWrite(server, didsHeldElsewhere, member, did, writable, effect);
         };
     }
@@ -277,11 +277,11 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
     private MemberDidEntity rowFor(SecurityServerEntity server, MemberDidPlan.Writable plan, String did) {
         return switch (plan) {
-            case MemberDidPlan.Insert insert ->
-                    new MemberDidEntity(server, entityManager.getReference(XRoadMemberEntity.class, insert.memberId()), did);
-            case MemberDidPlan.Replace replace -> {
-                replace.row().setDid(did);
-                yield replace.row();
+            case MemberDidPlan.Insert(var memberId) ->
+                    new MemberDidEntity(server, entityManager.getReference(XRoadMemberEntity.class, memberId), did);
+            case MemberDidPlan.Replace(var row) -> {
+                row.setDid(did);
+                yield row;
             }
         };
     }

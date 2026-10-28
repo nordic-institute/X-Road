@@ -67,10 +67,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 
 /**
  * Locks the Security Server row by its identifier, which also settles that the server still exists under the
- * requesting owner, and keeps the lock until commit. The lock is the sole authority on the server's existence:
- * a server the lock does not find, whether it went missing before the pre-transaction checks or after them, is
- * answered as owner changed for every entry, settled or not, and no DID is stored. Everything after the lock
- * sees the server as it is at that moment.
+ * requesting owner, and keeps the lock until commit. A server missing at the pre-transaction checks is already
+ * answered as owner changed for every candidate there; a server the lock does not find because it went missing
+ * after them is answered as owner changed for every entry, settled or not, and no DID is stored. Everything
+ * after the lock sees the server as it is at that moment.
  *
  * <p>Every call that gets this far stores one request row holding the entries as received and the result of
  * each, whatever the results are, so every answer carries the request id.
@@ -97,7 +97,7 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
         var results = servers.lockForUpdateBy(request.getSecurityServerId())
                 .map(serverRowId -> writeOnce(serverRowId, request))
                 .orElseGet(() -> ownerChanged(request.getEntries()));
-        var added = record(request, results);
+        var added = storeRequest(request, results);
         audit(request, results);
         return added;
     }
@@ -112,7 +112,7 @@ public class MemberDidRegistrationRequestHandler implements RequestHandler<Membe
         return MemberDidRegistrationRequest.class;
     }
 
-    private MemberDidRegistrationRequest record(MemberDidRegistrationRequest request, List<Result> results) {
+    private MemberDidRegistrationRequest storeRequest(MemberDidRegistrationRequest request, List<Result> results) {
         var serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         var saved = memberDidRegistrationRequests.save(
                 new MemberDidRegistrationRequestEntity(request.getOrigin(), serverId, request.getEntries(), results));

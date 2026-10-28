@@ -64,10 +64,10 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_REQUEST_TOO_
  * what needs no server (conflicting duplicate entries) and what the server's state at that moment decides:
  * entries refused while the server has no SYSTEM values, entries the store refuses, and entries whose DID does
  * not resolve. An entry equal to the stored value skips resolution, since it was resolved when first stored,
- * and is answered by the write under the lock, which validates it again. The write lock in the request handler
- * is the sole authority on the server's existence: a server missing at this point leaves every candidate
- * unsettled, and one removed after it is answered as owner changed by the handler for every entry. Holds no
- * transaction, so the resolver call never runs inside one.
+ * and is answered by the write under the lock, which validates it again. A server missing at this point
+ * settles every candidate as owner changed, so none of them is written; a server removed after it is
+ * answered as owner changed by the handler for every entry. Holds no transaction, so the resolver call
+ * never runs inside one.
  */
 @Slf4j
 @Service
@@ -95,11 +95,11 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
 
         var candidates = singleDidPerMember(request.getEntries(), settled);
         if (!candidates.isEmpty()) {
-            securityServerRepository.findBy(request.getSecurityServerId())
+            settled.putAll(securityServerRepository.findBy(request.getSecurityServerId())
                     .map(server -> server.getSystemDid() == null
                             ? byMember(candidates.keySet(), MemberDidRegistrationOutcome::systemValuesNotStored)
                             : settleCandidates(server, candidates))
-                    .ifPresent(settled::putAll);
+                    .orElseGet(() -> byMember(candidates.keySet(), MemberDidRegistrationOutcome::ownerChanged)));
         }
         return settled;
     }

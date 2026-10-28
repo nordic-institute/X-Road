@@ -825,7 +825,9 @@ class ParticipantValueStoreImplTest {
     void shouldFailTheMemberDidCheckForUnknownServer() {
         when(securityServerRepository.findById(99)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> store.checkMemberDids(99, batch(OWNER_DID, CLIENT_DID))).isInstanceOf(NotFoundException.class);
+        var members = batch(OWNER_DID, CLIENT_DID);
+
+        assertThatThrownBy(() -> store.checkMemberDids(99, members)).isInstanceOf(NotFoundException.class);
     }
 
     @Test

@@ -271,7 +271,8 @@ class MemberDidRegistrationRequestHandlerTest {
 
     @Test
     void addResolvesTheServerIdentifierWithFindOrCreateWhenTheServerRowAndItsIdentifierAreGone() {
-        when(serverIds.findOrCreate(SecurityServerIdEntity.create(securityServerId))).thenReturn(mock(SecurityServerIdEntity.class));
+        var serverIdEntity = mock(SecurityServerIdEntity.class);
+        when(serverIds.findOrCreate(SecurityServerIdEntity.create(securityServerId))).thenReturn(serverIdEntity);
         when(memberDidRegistrationRequests.save(entityCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(requestMapper.toDto(any(MemberDidRegistrationRequestEntity.class))).thenReturn(requestWithId());
         when(servers.lockForUpdateBy(securityServerId)).thenReturn(Optional.empty());
@@ -443,7 +444,8 @@ class MemberDidRegistrationRequestHandlerTest {
     }
 
     private void stubRowSaved() {
-        when(serverIds.findOrCreate(SecurityServerIdEntity.create(securityServerId))).thenReturn(mock(SecurityServerIdEntity.class));
+        var serverIdEntity = mock(SecurityServerIdEntity.class);
+        when(serverIds.findOrCreate(SecurityServerIdEntity.create(securityServerId))).thenReturn(serverIdEntity);
         when(memberDidRegistrationRequests.save(entityCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(requestMapper.toDto(any(MemberDidRegistrationRequestEntity.class))).thenReturn(requestWithId());
     }

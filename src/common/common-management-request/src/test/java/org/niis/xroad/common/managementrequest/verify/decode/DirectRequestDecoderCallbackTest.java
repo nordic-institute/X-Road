@@ -135,8 +135,11 @@ class DirectRequestDecoderCallbackTest {
                 .buildMemberDidRegRequest(serverId, memberDids());
         var payload = ownerSignedPayload(request);
 
+        var contentType = payload.getContentType();
+        var content = payload.getPayloadAsStream();
+
         assertThatExceptionOfType(XrdRuntimeException.class)
-                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .isThrownBy(() -> verifier.readRequest(contentType, content))
                 .satisfies(e -> {
                     assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
                     assertThat(e.getDetails()).isEqualTo("Sender does not match server owner.");
@@ -151,8 +154,11 @@ class DirectRequestDecoderCallbackTest {
         var payload = new TestGenericClientRequest(otherMemberCert.getEncoded(), ownerOcspBytes(), ownerKeyPair.getPrivate(),
                 request).createPayload();
 
+        var contentType = payload.getContentType();
+        var content = payload.getPayloadAsStream();
+
         assertThatExceptionOfType(XrdRuntimeException.class)
-                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .isThrownBy(() -> verifier.readRequest(contentType, content))
                 .satisfies(e -> {
                     assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
                     assertThat(e.getDetails()).startsWith("Subject identifier (").contains("(MEMBER:DEV/COM/333)")
@@ -165,8 +171,11 @@ class DirectRequestDecoderCallbackTest {
         var request = builder().buildMemberDidRegRequest(serverId, Map.of());
         var payload = ownerSignedPayload(request);
 
+        var contentType = payload.getContentType();
+        var content = payload.getPayloadAsStream();
+
         assertThatExceptionOfType(XrdRuntimeException.class)
-                .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
+                .isThrownBy(() -> verifier.readRequest(contentType, content))
                 .satisfies(e -> {
                     assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
                     assertThat(e.getDetails()).isEqualTo("Request contains no entries");
