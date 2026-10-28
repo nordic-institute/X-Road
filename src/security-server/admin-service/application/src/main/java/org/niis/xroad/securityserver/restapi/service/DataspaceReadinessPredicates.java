@@ -66,7 +66,7 @@ public class DataspaceReadinessPredicates {
                     .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
                     .flatMap(k -> k.getCerts().stream())
                     .anyMatch(cert -> CertificateInfo.STATUS_REGISTERED.equals(cert.getStatus()));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.debug("Data space: could not read signer state, treating auth cert as not registered", e);
             return false;
         }
@@ -80,7 +80,7 @@ public class DataspaceReadinessPredicates {
     public boolean isDataspaceReady() {
         try {
             return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.debug("Data space: readiness check failed, treating the instance as not ready: {}",
                     e.getMessage());
             return false;
