@@ -1,0 +1,186 @@
+#!/bin/bash
+#
+# Migration step 2: deduplicates serverconf.identifier before the schema
+# migration in step 4 creates its unique index.
+#
+# Local database: dumps the 7.8 PostgreSQL 16 data into the target
+# PostgreSQL 18 cluster and deduplicates there. The source is never started;
+# a temporary copy of it is.
+# External database: deduplicates in place on the source server; nothing is
+# copied or started locally.
+
+PG16_BINDIR="${PG16_BINDIR:-/usr/lib/postgresql/16/bin}"
+PG18_BINDIR="${PG18_BINDIR:-/usr/lib/postgresql/18/bin}"
+TARGET_DB_ROOT="${TARGET_DB_ROOT:-/var/lib/postgresql}"
+DEDUP_SQL="${DEDUP_SQL:-/usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/fix_serverconf_identifier_duplicates.sql}"
+# For the client-count result check in step 6.
+MIGRATION_CLIENT_COUNT_FILE="${MIGRATION_CLIENT_COUNT_FILE:-/var/tmp/xroad-migration-source-client-count}"
+MIGRATION_DB_LOG="/var/log/xroad/migration-database.log"
+PG16_PORT=5433
+
+migration_database_read_source_credentials() {
+  local db_props="$SOURCE_CONFIG_DIR/db.properties"
+  DB_USER="$(crudini --get "$db_props" '' 'serverconf.hibernate.connection.username' 2>/dev/null)"
+  DB_PASSWORD="$(crudini --get "$db_props" '' 'serverconf.hibernate.connection.password' 2>/dev/null)"
+  local jdbc_url
+  jdbc_url="$(crudini --get "$db_props" '' 'serverconf.hibernate.connection.url' 2>/dev/null)"
+
+  if [[ -z "$DB_USER" || -z "$jdbc_url" ]]; then
+    STEP_REASON="could not read the serverconf connection details from $db_props"
+    return 1
+  fi
+
+  DB_NAME="$(sed -E 's|^jdbc:postgresql://[^/]*/([^?]*).*|\1|' <<<"$jdbc_url")"
+  DB_NAME="${DB_NAME:-serverconf}"
+
+  # A prefixed XROAD_DATABASE_NAME setup names its schema after the
+  # connection user, the way 7.8's setup_serverconf_db.sh does:
+  # currentSchema's first element, else the username without an @suffix.
+  DB_SCHEMA="$(crudini --get "$db_props" '' 'serverconf.hibernate.hikari.dataSource.currentSchema' 2>/dev/null)"
+  DB_SCHEMA="${DB_SCHEMA%%,*}"
+  if [[ -z "$DB_SCHEMA" || "$DB_SCHEMA" == "public" ]]; then
+    DB_SCHEMA="${DB_USER%%@*}"
+  fi
+  return 0
+}
+
+# PostgreSQL cannot start on the read-only source mount.
+migration_database_copy_source() {
+  local source_data="$SOURCE_DB_DIR/16/main"
+  local copy_data="$TARGET_DB_ROOT/16/main"
+
+  mkdir -p "$copy_data"
+  if ! cp -a "$source_data/." "$copy_data/"; then
+    STEP_REASON="failed to copy $source_data to $copy_data"
+    return 1
+  fi
+  chown -R postgres:postgres "$copy_data"
+
+  # The 7.8 cluster keeps its config files in /etc/postgresql/16/main, which is
+  # not mounted; pg_ctl needs them in the data directory.
+  : >"$copy_data/postgresql.conf"
+  : >"$copy_data/pg_ident.conf"
+  cat >"$copy_data/pg_hba.conf" <<'EOF'
+host all all 127.0.0.1/32 trust
+EOF
+  chown postgres:postgres "$copy_data"/{postgresql.conf,pg_ident.conf,pg_hba.conf}
+  chmod 0600 "$copy_data"/{postgresql.conf,pg_ident.conf,pg_hba.conf}
+  return 0
+}
+
+# PostgreSQL 18 first: pg_ctlcluster creates the socket directory both use.
+migration_database_start_servers() {
+  local new_data="$TARGET_DB_ROOT/18/main"
+  if [[ ! -s "$new_data/PG_VERSION" ]]; then
+    mkdir -p "$new_data"
+    chown postgres:postgres "$new_data"
+    chmod 0700 "$new_data"
+    if ! sudo -u postgres "$PG18_BINDIR/initdb" -D "$new_data" >>"$MIGRATION_DB_LOG" 2>&1; then
+      STEP_REASON="failed to initialize the PostgreSQL 18 data directory at $new_data"
+      return 1
+    fi
+  fi
+
+  if ! pg_ctlcluster 18 main start >>"$MIGRATION_DB_LOG" 2>&1; then
+    STEP_REASON="failed to start the target PostgreSQL 18"
+    return 1
+  fi
+
+  if ! sudo -u postgres "$PG16_BINDIR/pg_ctl" -D "$TARGET_DB_ROOT/16/main" -w \
+    -o "-p $PG16_PORT -c listen_addresses=127.0.0.1" start >>"$MIGRATION_DB_LOG" 2>&1; then
+    STEP_REASON="failed to start PostgreSQL 16 on the copy of the source database"
+    return 1
+  fi
+  return 0
+}
+
+migration_database_stop_servers() {
+  pg_ctlcluster 18 main stop >>"$MIGRATION_DB_LOG" 2>&1 || true
+  sudo -u postgres "$PG16_BINDIR/pg_ctl" -D "$TARGET_DB_ROOT/16/main" -w stop >>"$MIGRATION_DB_LOG" 2>&1 || true
+}
+
+migration_database_psql18() {
+  sudo -u postgres "$PG18_BINDIR/psql" -X -q -v ON_ERROR_STOP=1 -p 5432 "$@"
+}
+
+# The postgres role already exists in the target, so its CREATE ROLE is dropped.
+migration_database_dump_and_restore() {
+  if ! sudo -u postgres "$PG18_BINDIR/pg_dumpall" -h 127.0.0.1 -p "$PG16_PORT" 2>>"$MIGRATION_DB_LOG" \
+    | sed '/^CREATE ROLE postgres;$/d' \
+    | migration_database_psql18 -d postgres >>"$MIGRATION_DB_LOG" 2>&1; then
+    STEP_REASON="dump and restore from PostgreSQL 16 to 18 failed, see $MIGRATION_DB_LOG"
+    return 1
+  fi
+  return 0
+}
+
+# As the serverconf user, like the native wizard: its triggers need its search_path.
+migration_database_serverconf_psql() {
+  local host="$1"
+  local port="$2"
+  shift 2
+  PGPASSWORD="$DB_PASSWORD" "$PG18_BINDIR/psql" -X -q -v ON_ERROR_STOP=1 \
+    -h "$host" -p "$port" -U "$DB_USER" -d "$DB_NAME" "$@"
+}
+
+# The deduplication SQL is shared with the native upgrade wizard and names
+# the serverconf schema explicitly; a prefixed schema gets a rewritten copy.
+migration_database_deduplicate_and_count() {
+  local host="$1"
+  local port="$2"
+  local dedup_sql="$DEDUP_SQL"
+
+  if [[ "$DB_SCHEMA" != "serverconf" ]]; then
+    if [[ ! "$DB_SCHEMA" =~ ^[A-Za-z0-9_-]+$ ]]; then
+      STEP_REASON="unsupported serverconf schema name: $DB_SCHEMA"
+      return 1
+    fi
+    dedup_sql="$(mktemp)"
+    sed "s/\bserverconf\./\"$DB_SCHEMA\"./g" "$DEDUP_SQL" >"$dedup_sql"
+  fi
+
+  local rc=0
+  if ! migration_database_serverconf_psql "$host" "$port" -f "$dedup_sql" >>"$MIGRATION_DB_LOG" 2>&1; then
+    STEP_REASON="serverconf.identifier deduplication failed, see $MIGRATION_DB_LOG"
+    rc=1
+  fi
+  [[ "$dedup_sql" == "$DEDUP_SQL" ]] || rm -f "$dedup_sql"
+  [[ $rc -eq 0 ]] || return 1
+
+  local count
+  count="$(migration_database_serverconf_psql "$host" "$port" -tA -c "SELECT COUNT(*) FROM \"$DB_SCHEMA\".client" 2>>"$MIGRATION_DB_LOG")"
+  if [[ -z "$count" ]]; then
+    STEP_REASON="failed to read the client count"
+    return 1
+  fi
+  echo "$count" >"$MIGRATION_CLIENT_COUNT_FILE"
+  return 0
+}
+
+# An external database is migrated in place: no local PostgreSQL cluster is
+# copied or started, the dump/restore is skipped, and deduplication runs
+# directly against the source server.
+step_database() {
+  mkdir -p /var/log/xroad
+  migration_database_read_source_credentials || return 1
+
+  if [[ "$SOURCE_DB_HOST" != 127.* ]]; then
+    migration_database_deduplicate_and_count "$SOURCE_DB_HOST" "$SOURCE_DB_PORT"
+    return $?
+  fi
+
+  migration_database_copy_source || return 1
+
+  local rc=0
+  migration_database_start_servers || rc=1
+  if [[ $rc -eq 0 ]]; then
+    migration_database_dump_and_restore || rc=1
+  fi
+  if [[ $rc -eq 0 ]]; then
+    migration_database_deduplicate_and_count 127.0.0.1 5432 || rc=1
+  fi
+  migration_database_stop_servers
+
+  rm -rf "$TARGET_DB_ROOT/16/main"
+  return $rc
+}

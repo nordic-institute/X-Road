@@ -233,147 +233,169 @@ XROAD_ADMIN_USER=
 XROAD_ADMIN_PASSWORD=
 XROAD_ADMIN_PWD_HASH=
 
-if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
-  if [ -f /etc/xroad/VERSION ]; then
-    CONFIG_VERSION="$(cat /etc/xroad/VERSION)"
+# Copies the packaged configuration onto an older /etc/xroad and creates db.properties if missing.
+overlay_packaged_config() {
+  if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
+    if [ -f /etc/xroad/VERSION ]; then
+      CONFIG_VERSION="$(cat /etc/xroad/VERSION)"
+    else
+      warn "Current configuration version not known"
+      CONFIG_VERSION=
+    fi
+    if dpkg --compare-versions "$PACKAGED_VERSION" gt "$CONFIG_VERSION"; then
+      # ensure that the updated stock configuration is present in /etc/xroad
+      # handles also the case where configuration is missing (e.g. config volume not automatically populated)
+      log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
+      cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
+      # copy if not exists
+      cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
+      # packages need to be reconfigured (runs possible db and config migrations)
+      RECONFIG_REQUIRED=true
+    fi
   else
-    warn "Current configuration version not known"
-    CONFIG_VERSION=
+    warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
   fi
-  if dpkg --compare-versions "$PACKAGED_VERSION" gt "$CONFIG_VERSION"; then
-    # ensure that the updated stock configuration is present in /etc/xroad
-    # handles also the case where configuration is missing (e.g. config volume not automatically populated)
-    log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
-    cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
-    # copy if not exists
-    cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
-    # packages need to be reconfigured (runs possible db and config migrations)
+
+  # Create database properties and configure remote db address if necessary
+  if [ ! -f ${DB_PROPERTIES} ]; then
+    XROAD_DB_PORT="${XROAD_DB_PORT:-5432}"
+    XROAD_DB_HOST="${XROAD_DB_HOST:-127.0.0.1}"
+    log "Creating serverconf database and properties file"
     RECONFIG_REQUIRED=true
-  fi
-else
-  warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
-fi
-
-# Create database properties and configure remote db address if necessary
-if [ ! -f ${DB_PROPERTIES} ]; then
-  XROAD_DB_PORT="${XROAD_DB_PORT:-5432}"
-  XROAD_DB_HOST="${XROAD_DB_HOST:-127.0.0.1}"
-  log "Creating serverconf database and properties file"
-  RECONFIG_REQUIRED=true
-  if [[ "${XROAD_DB_HOST}" != "127.0.0.1" ]]; then
-    LOCAL_DB=false
-    log "Using remote database $XROAD_DB_HOST:$XROAD_DB_PORT"
-    messagelog=true
-    opmonitor=true
-    echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
-    if [ -n "${XROAD_DATABASE_NAME}" ]; then
-      touch /etc/xroad/db.properties
-      chown xroad:xroad /etc/xroad/db.properties
-      chmod 640 /etc/xroad/db.properties
-      set_db_props() {
-        crudini --set --inplace "$ROOT_PROPERTIES" "" "$1.database.admin_user" "${XROAD_DATABASE_NAME}_$1_admin"
-        echo "xroad.db.$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
-        echo "xroad.db.$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
-      }
-      set_db_props serverconf
-      if [ -n "$opmonitor" ]; then
-        set_db_props "op-monitor"
-      fi
-      if [ -n "$messagelog" ]; then
-        set_db_props messagelog
-      fi
-    fi
-  else
-    LOCAL_DB=true
-  fi
-fi
-
-if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
-  # reconfigure packages (also runs database migrations)
-
-  if [ ! -f "$ROOT_PROPERTIES" ]; then
-    touch "$ROOT_PROPERTIES"
-    chown root:root "$ROOT_PROPERTIES"
-    chmod 600 "$ROOT_PROPERTIES"
-  fi
-
-  db_host="${XROAD_DB_HOST:-127.0.0.1}:${XROAD_DB_PORT:-5432}"
-  if [ -z "$LOCAL_DB" ]; then
-    # exising config, determine database location from db.properties
-    db_url=$(crudini --get '/etc/xroad/db.properties' "" 'xroad.db.serverconf.hibernate.connection.url' 2>/dev/null)
-    pat='^jdbc:postgresql://([^/]*).*'
-    if [[ "$db_url" =~ $pat ]]; then
-      db_host="${BASH_REMATCH[1]:-$db_host}"
-    fi
-    if [[ -n "$db_host" && "$db_host" != 127.* ]]; then
+    if [[ "${XROAD_DB_HOST}" != "127.0.0.1" ]]; then
       LOCAL_DB=false
+      log "Using remote database $XROAD_DB_HOST:$XROAD_DB_PORT"
+      messagelog=true
+      opmonitor=true
+      echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
+      if [ -n "${XROAD_DATABASE_NAME}" ]; then
+        touch /etc/xroad/db.properties
+        chown xroad:xroad /etc/xroad/db.properties
+        chmod 640 /etc/xroad/db.properties
+        set_db_props() {
+          crudini --set --inplace "$ROOT_PROPERTIES" "" "$1.database.admin_user" "${XROAD_DATABASE_NAME}_$1_admin"
+          echo "xroad.db.$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+          echo "xroad.db.$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+        }
+        set_db_props serverconf
+        if [ -n "$opmonitor" ]; then
+          set_db_props "op-monitor"
+        fi
+        if [ -n "$messagelog" ]; then
+          set_db_props messagelog
+        fi
+      fi
     else
       LOCAL_DB=true
     fi
   fi
-  if [[ "$LOCAL_DB" == "true" ]]; then
-    init_db_dir
-    pg_ctlcluster 18 main start
-  else
-    if [[ -n "$XROAD_DB_PWD" ]]; then
-      if [[ -w "$ROOT_PROPERTIES" ]]; then
-        crudini --set --inplace "$ROOT_PROPERTIES" "" "postgres.connection.password" "${XROAD_DB_PWD}"
+  return 0
+}
+
+# Starts the database and reconfigures the packages (Liquibase); the local database is left running.
+run_reconfigure() {
+  if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
+    # reconfigure packages (also runs database migrations)
+
+    if [ ! -f "$ROOT_PROPERTIES" ]; then
+      touch "$ROOT_PROPERTIES"
+      chown root:root "$ROOT_PROPERTIES"
+      chmod 600 "$ROOT_PROPERTIES"
+    fi
+
+    db_host="${XROAD_DB_HOST:-127.0.0.1}:${XROAD_DB_PORT:-5432}"
+    if [ -z "$LOCAL_DB" ]; then
+      # exising config, determine database location from db.properties
+      db_url=$(crudini --get '/etc/xroad/db.properties' "" 'xroad.db.serverconf.hibernate.connection.url' 2>/dev/null)
+      pat='^jdbc:postgresql://([^/]*).*'
+      if [[ "$db_url" =~ $pat ]]; then
+        db_host="${BASH_REMATCH[1]:-$db_host}"
+      fi
+      if [[ -n "$db_host" && "$db_host" != 127.* ]]; then
+        LOCAL_DB=false
       else
-        warn "XROAD_DB_PWD is set but $ROOT_PROPERTIES is not writable"
+        LOCAL_DB=true
       fi
     fi
+    if [[ "$LOCAL_DB" == "true" ]]; then
+      init_db_dir
+      pg_ctlcluster 18 main start
+    else
+      if [[ -n "$XROAD_DB_PWD" ]]; then
+        if [[ -w "$ROOT_PROPERTIES" ]]; then
+          crudini --set --inplace "$ROOT_PROPERTIES" "" "postgres.connection.password" "${XROAD_DB_PWD}"
+        else
+          warn "XROAD_DB_PWD is set but $ROOT_PROPERTIES is not writable"
+        fi
+      fi
+    fi
+
+    log "Waiting for the database to become available..."
+    IFS=',' read -ra hosts <<<"$db_host"
+    db_addr="${hosts[0]%%:*}"
+    db_port="${hosts[0]##*:}"
+    count=0
+    while ((count++ < 60)) && ! pg_isready -q -t 2 -h "$db_addr" -p "$db_port"; do
+      sleep 1
+    done
+    ((count >= 60)) && warn "Unable to determine database $db_addr:$db_port status"
+
+    log "Reconfiguring packages"
+    if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
+      RECONFIGURED=true
+      seed_dsp_config
+      seed_signer_autologin_enabled
+    fi
+  fi
+  return 0
+}
+
+# Stops the local database again and sets whether supervisord starts it.
+finish_reconfigure() {
+  if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
+    if [[ "$LOCAL_DB" == "true" ]]; then
+      pg_ctlcluster 18 main stop
+      sleep 1
+      crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
+    else
+      crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
+    fi
+  fi
+  return 0
+}
+
+provision_first_boot() {
+  overlay_packaged_config
+  run_reconfigure
+  XROAD_DB_PWD=
+
+  if [ -n "${XROAD_LOG_LEVEL}" ]; then
+    sed -i -e "s/XROAD_LOG_LEVEL=.*/XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
   fi
 
-  log "Waiting for the database to become available..."
-  IFS=',' read -ra hosts <<<"$db_host"
-  db_addr="${hosts[0]%%:*}"
-  db_port="${hosts[0]##*:}"
-  count=0
-  while ((count++ < 60)) && ! pg_isready -q -t 2 -h "$db_addr" -p "$db_port"; do
-    sleep 1
-  done
-  ((count >= 60)) && warn "Unable to determine database $db_addr:$db_port status"
-
-  log "Reconfiguring packages"
-  if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
-    RECONFIGURED=true
-    seed_dsp_config
-    seed_signer_autologin_enabled
+  if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
+    sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
   fi
-  # The local database, if any, is left running until the provisioning steps
-  # below (and the first-boot hooks that follow them) are done with it.
-fi
-XROAD_DB_PWD=
 
-if [ -n "${XROAD_LOG_LEVEL}" ]; then
-  sed -i -e "s/XROAD_LOG_LEVEL=.*/XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
-fi
+  configure_proxy_health_check_listener
+  configure_opmonitor_metaspace
+  configure_secret_store
+  configure_secret_store_trust_env
+  create_backup_dir_if_not_exists
 
-if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
-  sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
-fi
-
-configure_proxy_health_check_listener
-configure_opmonitor_metaspace
-configure_secret_store
-configure_secret_store_trust_env
-create_backup_dir_if_not_exists
-
-# The configuration is only recorded as provisioned once the operator's hooks
-# have succeeded too, so a hook that fails leaves the container retryable: the
-# next start finds no /.xroad-reconfigured, reconfigures again and re-runs it.
-if [[ "$RECONFIGURED" == "true" ]]; then
-  run_first_boot_hooks
-  echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
-  touch /.xroad-reconfigured
-fi
-
-if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
-  if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 18 main stop
-    sleep 1
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
-  else
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
+  # The configuration is only recorded as provisioned once the operator's hooks
+  # have succeeded too, so a hook that fails leaves the container retryable: the
+  # next start finds no /.xroad-reconfigured, reconfigures again and re-runs it.
+  if [[ "$RECONFIGURED" == "true" ]]; then
+    run_first_boot_hooks
+    echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
+    touch /.xroad-reconfigured
   fi
+
+  finish_reconfigure
+}
+
+# Set by migration mode, which calls the functions above itself.
+if [[ "${XROAD_ENTRYPOINT_FUNCTIONS_ONLY:-}" != "true" ]]; then
+  provision_first_boot
 fi

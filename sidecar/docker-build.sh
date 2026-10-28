@@ -21,6 +21,11 @@ Usage: docker-build.sh [--target=main] [--no-cache] [--no-mirror]
                        packages of their own, are unaffected. DIR must exist
                        and contain at least one file.
   -h, --help           Show this help.
+
+XROAD_MIGRATION_CLI_URL overrides the URL the main image downloads migration
+mode's migration CLI jar from (default: Artifactory xroad-scripts/0.0.1-beta).
+XROAD_MIGRATION_CLI_JAR=FILE puts a pre-built jar in the image instead, e.g.
+src/tool/migration-cli/build/libs/migration-cli-1.0.jar.
 USAGE
 }
 
@@ -88,7 +93,24 @@ MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
 # Scripts shared with the native packages, kept out of the sidecar build context
 SHARED_SCRIPT_BUILD_ARGS=(
   --build-context "secret-store-scripts=$dir/../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts"
+  --build-context "migration-tasks=$dir/../deployment/security-server/xroad-installer"
 )
+
+if [[ -n "${XROAD_MIGRATION_CLI_URL:-}" ]]; then
+  PACKAGE_BUILD_ARGS+=(--build-arg "MIGRATION_CLI_URL=$XROAD_MIGRATION_CLI_URL")
+fi
+
+# The Dockerfile uses the jar in this context if there is one, else downloads it.
+migration_cli_dir="$(mktemp -d)"
+trap 'rm -rf "${empty_packages_dir:-}" "$migration_cli_dir"' EXIT
+if [[ -n "${XROAD_MIGRATION_CLI_JAR:-}" ]]; then
+  if [[ ! -f "$XROAD_MIGRATION_CLI_JAR" ]]; then
+    echo "XROAD_MIGRATION_CLI_JAR '$XROAD_MIGRATION_CLI_JAR' is not a file." >&2
+    exit 1
+  fi
+  cp "$XROAD_MIGRATION_CLI_JAR" "$migration_cli_dir/migration-cli.jar"
+fi
+PACKAGE_BUILD_ARGS+=(--build-context "migration-cli-jar=$migration_cli_dir")
 
 # Add Docker Hub mirror build arg if configured
 if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
