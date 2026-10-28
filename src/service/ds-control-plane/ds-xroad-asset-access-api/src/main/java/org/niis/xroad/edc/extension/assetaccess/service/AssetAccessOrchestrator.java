@@ -75,6 +75,8 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,6 +86,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -104,11 +107,13 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * whether the negotiation or transfer is driven to completion by this instance or another one sharing
  * the same database.
  *
- * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store, scoped
- * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
- * entirely and transfers with the existing agreement. When that transfer is refused at initiation or terminated
- * while awaited, the same acquisition falls back to a full negotiation, whose newer agreement wins reuse from
- * then on. A transport fault or a timeout waiting for the transfer to start is not a refusal and fails the acquisition.
+ * <p>Every acquisition starts with a {@link ReusableAgreementLookup} for each candidate not in cooldown (all of them
+ * when every candidate is), against the shared agreement store and scoped to agreements this participant context
+ * negotiated as consumer. The candidate holding the newest agreement is tried first; a hit skips the catalog fetch and
+ * negotiation entirely and transfers with the existing agreement. When that transfer is refused at initiation or
+ * terminated while awaited, the same candidate falls back to a full negotiation, whose newer agreement wins reuse from
+ * then on. A transport fault or a timeout waiting for the transfer to start is not a refusal: the candidate goes into
+ * cooldown and the next candidate with an agreement is tried, then the candidates without one by negotiation.
  *
  * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
  * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
@@ -134,21 +139,52 @@ public class AssetAccessOrchestrator {
     private final Duration candidateTimeout;
 
     /**
-     * Acquires access to an asset from the first candidate that answers, de-duplicating concurrent requests
-     * for the same participant+asset+candidate set(+forced target)(+client) key. Candidates not in cooldown (all of
-     * them when every candidate is) are probed in parallel and tried in the order the candidate handshake race
-     * returns. A transport fault puts the candidate in cooldown and moves on to the next; any other failure is
-     * returned at once, so no other candidate is contacted after a provider answered.
+     * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+candidate
+     * set(+forced target)(+client) key. Candidates not in cooldown (all of them when every candidate is) are
+     * considered. Those holding a reusable agreement are tried first, newest agreement first, without probing. The
+     * rest are probed in parallel and tried in the order the candidate handshake race returns. A transport fault puts
+     * the candidate in cooldown and moves on to the next; any other failure is returned at once, so no other
+     * candidate is contacted after a provider answered.
      */
     public CompletableFuture<AssetAccessResult> acquireAssetAccess(ParticipantContext participantContext,
                                                                    AssetAccessRequest request) {
         var key = registryKey(participantContext, request);
         monitor.info("%s acquireAssetAccess entered: candidates=%d protocol=%s"
                 .formatted(key, request.candidates().size(), request.protocolOrDefault()));
-        return stateStore.loadOrStartInFlight(key,
-                () -> candidateHandshakeRace.order(
-                                cooldownTracker.selectable(request.candidates(), AssetAccessRequest.Candidate::counterPartyAddress))
-                        .thenCompose(ordered -> acquireFromCandidate(key, participantContext, request, ordered, 0, new ArrayList<>())));
+        return stateStore.loadOrStartInFlight(key, () -> acquireFromSelectable(key, participantContext, request));
+    }
+
+    private CompletableFuture<AssetAccessResult> acquireFromSelectable(
+            String key, ParticipantContext participantContext, AssetAccessRequest request) {
+        var selectable = cooldownTracker.selectable(request.candidates(), AssetAccessRequest.Candidate::counterPartyAddress);
+        var reusable = newestReusableAgreementsFirst(participantContext, request, selectable);
+        var transportFailures = new ArrayList<Throwable>();
+        return acquireInOrder(key, List.copyOf(reusable.keySet()), transportFailures,
+                candidate -> attemptReuse(key, participantContext, request, candidate, reusable.get(candidate)),
+                () -> acquireByNegotiation(key, participantContext, request,
+                        selectable.stream().filter(candidate -> !reusable.containsKey(candidate)).toList(), transportFailures));
+    }
+
+    private Map<AssetAccessRequest.Candidate, ContractAgreement> newestReusableAgreementsFirst(
+            ParticipantContext participantContext, AssetAccessRequest request, List<AssetAccessRequest.Candidate> candidates) {
+        var found = new LinkedHashMap<AssetAccessRequest.Candidate, ContractAgreement>();
+        for (var candidate : candidates) {
+            reusableAgreementLookup.find(participantContext.getParticipantContextId(), participantContext.getIdentity(),
+                    request.assetId(), candidate.counterPartyId(), request.clientId())
+                    .ifPresent(agreement -> found.put(candidate, agreement));
+        }
+        return found.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.comparingLong(ContractAgreement::getContractSigningDate).reversed()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, _) -> first, LinkedHashMap::new));
+    }
+
+    private CompletableFuture<AssetAccessResult> acquireByNegotiation(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            List<AssetAccessRequest.Candidate> candidates, List<Throwable> transportFailures) {
+        return candidateHandshakeRace.order(candidates)
+                .thenCompose(ordered -> acquireInOrder(key, ordered, transportFailures,
+                        candidate -> attemptNegotiation(key, participantContext, request, candidate),
+                        () -> CompletableFuture.failedFuture(allCandidatesFailed(key, transportFailures))));
     }
 
     private static String registryKey(ParticipantContext participantContext, AssetAccessRequest request) {
@@ -163,14 +199,22 @@ public class AssetAccessOrchestrator {
         return request.clientId() == null ? key : key + "::" + request.clientId();
     }
 
-    private CompletableFuture<AssetAccessResult> acquireFromCandidate(
-            String key, ParticipantContext participantContext, AssetAccessRequest request,
-            List<AssetAccessRequest.Candidate> candidates, int index, List<Throwable> transportFailures) {
+    private CompletableFuture<AssetAccessResult> acquireInOrder(
+            String key, List<AssetAccessRequest.Candidate> candidates, List<Throwable> transportFailures,
+            Function<AssetAccessRequest.Candidate, CompletableFuture<StageOutcome<DataAddress>>> attempt,
+            Supplier<CompletableFuture<AssetAccessResult>> whenExhausted) {
+        return acquireInOrderFrom(key, candidates, 0, transportFailures, attempt, whenExhausted);
+    }
+
+    private CompletableFuture<AssetAccessResult> acquireInOrderFrom(
+            String key, List<AssetAccessRequest.Candidate> candidates, int index, List<Throwable> transportFailures,
+            Function<AssetAccessRequest.Candidate, CompletableFuture<StageOutcome<DataAddress>>> attempt,
+            Supplier<CompletableFuture<AssetAccessResult>> whenExhausted) {
         if (index >= candidates.size()) {
-            return CompletableFuture.failedFuture(allCandidatesFailed(key, candidates.size(), transportFailures));
+            return whenExhausted.get();
         }
         var candidate = candidates.get(index);
-        return attemptCandidate(key, participantContext, request, candidate)
+        return attempt.apply(candidate)
                 .thenCompose(outcome -> switch (outcome) {
                     case StageOutcome.Succeeded(var dataAddress) -> CompletableFuture.completedFuture(
                             new AssetAccessResult(dataAddress, winnerOf(candidate)));
@@ -179,14 +223,14 @@ public class AssetAccessOrchestrator {
                                 .formatted(key, candidate.counterPartyId(), candidate.counterPartyAddress()), failure);
                         cooldownTracker.markFailed(candidate.counterPartyAddress());
                         transportFailures.add(unwrap(failure));
-                        yield acquireFromCandidate(key, participantContext, request, candidates, index + 1, transportFailures);
+                        yield acquireInOrderFrom(key, candidates, index + 1, transportFailures, attempt, whenExhausted);
                     }
                     case StageOutcome.Failed(_, var failure) -> CompletableFuture.<AssetAccessResult>failedFuture(unwrap(failure));
                 });
     }
 
-    private XrdRuntimeException allCandidatesFailed(String key, int candidateCount, List<Throwable> transportFailures) {
-        var message = "All %d candidates failed".formatted(candidateCount);
+    private XrdRuntimeException allCandidatesFailed(String key, List<Throwable> transportFailures) {
+        var message = "All %d candidates failed".formatted(transportFailures.size());
         if (transportFailures.isEmpty()) {
             monitor.warning("%s %s".formatted(key, message));
             return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
@@ -208,19 +252,22 @@ public class AssetAccessOrchestrator {
         return new AssetAccessResult.Winner(candidate.counterPartyId(), host != null ? host : candidate.counterPartyAddress());
     }
 
-    private CompletableFuture<StageOutcome<DataAddress>> attemptCandidate(
+    private CompletableFuture<StageOutcome<DataAddress>> attemptReuse(
+            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            AssetAccessRequest.Candidate candidate, ContractAgreement agreement) {
+        return classifyWithinCandidateLimit(candidate,
+                transferUnderReusedAgreement(key, participantContext, request, candidate, agreement));
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> attemptNegotiation(
             String key, ParticipantContext participantContext, AssetAccessRequest request,
             AssetAccessRequest.Candidate candidate) {
-        var reusableAgreement = reusableAgreementLookup.find(
-                participantContext.getParticipantContextId(), participantContext.getIdentity(),
-                request.assetId(), candidate.counterPartyId(), request.clientId());
-        CompletableFuture<StageOutcome<DataAddress>> attempt;
-        if (reusableAgreement.isPresent()) {
-            attempt = transferUnderReusedAgreement(key, participantContext, request, candidate, reusableAgreement.get());
-        } else {
-            monitor.info("%s no reusable agreement found, negotiating".formatted(key));
-            attempt = negotiateAndTransfer(key, participantContext, request, candidate);
-        }
+        monitor.info("%s no reusable agreement found, negotiating".formatted(key));
+        return classifyWithinCandidateLimit(candidate, negotiateAndTransfer(key, participantContext, request, candidate));
+    }
+
+    private CompletableFuture<StageOutcome<DataAddress>> classifyWithinCandidateLimit(
+            AssetAccessRequest.Candidate candidate, CompletableFuture<StageOutcome<DataAddress>> attempt) {
         var classified = attempt.exceptionally(
                 failure -> new StageOutcome.Failed<>(FailureClassifier.classify(failure), unwrap(failure)));
         return abandonAtCandidateLimit(candidate, classified);

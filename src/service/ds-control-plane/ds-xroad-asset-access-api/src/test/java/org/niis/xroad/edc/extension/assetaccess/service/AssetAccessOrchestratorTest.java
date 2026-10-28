@@ -118,6 +118,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -309,7 +310,7 @@ class AssetAccessOrchestratorTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", EdcHttpClientException.class.getName() + ": Failed to connect to provider")));
+                Stream.of(transportFaultTransfer("tp-1")));
 
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
         pollUntilDone(future);
@@ -926,7 +927,6 @@ class AssetAccessOrchestratorTest {
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
                         .isEqualTo("dataspace.dsp_catalog_fetch_failed"));
         verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
-        verify(reusableAgreementLookup, times(1)).find(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -947,11 +947,7 @@ class AssetAccessOrchestratorTest {
     void transportFaultOnFirstCandidateMovesToTheSecondWhichIsNamedTheWinner() throws Exception {
         when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(new EdcHttpClientException("no response", 0, null)));
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-2", null))
-                .thenReturn(Optional.of(buildAgreement("agreement-2")));
-        when(transferProcessService.initiateTransfer(any(), any()))
-                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
-        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+        var address = stubNegotiatedAccessViaCatalogOf("provider-2");
         var request = requestForCandidates("provider-1", "provider-2");
 
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
@@ -986,8 +982,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void transportFaultMarksTheServerSoTheNextAcquisitionSkipsItAndUsesTheSibling() throws Exception {
         stubTransportFaultAtCatalog("provider-1");
-        stubReusableAgreementAt("provider-2");
-        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+        var address = stubNegotiatedAccessViaCatalogOf("provider-2");
         var request = requestForCandidates("provider-1", "provider-2");
 
         var first = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
@@ -1007,8 +1002,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void serverIsACandidateAgainOnceTheCooldownPeriodHasExpired() throws Exception {
         stubTransportFaultAtCatalog("provider-1");
-        stubReusableAgreementAt("provider-2");
-        startedAddress("tp-2", "http://provider-2.example.org/data");
+        stubNegotiatedAccessViaCatalogOf("provider-2");
         var request = requestForCandidates("provider-1", "provider-2");
 
         var first = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
@@ -1090,8 +1084,7 @@ class AssetAccessOrchestratorTest {
     void candidateHangingPastTheLimitIsAbandonedMarkedAndTheNextCandidateWins() throws Exception {
         when(catalogService.requestCatalog(any(), eq("provider-1"), any(), any(), any()))
                 .thenReturn(new CompletableFuture<>());
-        stubReusableAgreementAt("provider-2");
-        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+        var address = stubNegotiatedAccessViaCatalogOf("provider-2");
         var request = requestForCandidates("provider-1", "provider-2");
 
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
@@ -1107,7 +1100,8 @@ class AssetAccessOrchestratorTest {
 
     @Test
     void candidateAnsweringWithinTheLimitIsNotAbandoned() throws Exception {
-        stubReusableAgreementAt("provider-1");
+        stubAgreementAt("provider-1", "agreement-for-provider-1", 1_000L);
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-2"));
         var address = startedAddress("tp-2", "http://provider-1.example.org/data");
         var request = requestForCandidates("provider-1", "provider-2");
 
@@ -1164,8 +1158,7 @@ class AssetAccessOrchestratorTest {
         var request = requestForCandidates("provider-1", "provider-2");
         var reversed = List.of(request.candidates().get(1), request.candidates().get(0));
         when(candidateHandshakeRace.order(any())).thenReturn(CompletableFuture.completedFuture(reversed));
-        stubReusableAgreementAt("provider-2");
-        startedAddress("tp-2", "http://provider-2.example.org/data");
+        stubNegotiatedAccessViaCatalogOf("provider-2");
         var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
         pollUntilDone(future);
         assertThat(future.get(5, TimeUnit.SECONDS).winner().counterPartyId()).isEqualTo("provider-2");
@@ -1181,16 +1174,190 @@ class AssetAccessOrchestratorTest {
         verify(candidateHandshakeRace).order(List.of(request.candidates().get(1)));
     }
 
+    @Test
+    void newestAgreementAmongCandidatesIsReusedWithoutProbingOrNegotiating() throws Exception {
+        stubAgreementAt("provider-1", "agreement-old", 1_000L);
+        stubAgreementAt("provider-2", "agreement-new", 2_000L);
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-2"));
+        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-2");
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(1)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getValue().getContractId()).isEqualTo("agreement-new");
+        verify(reusableAgreementLookup, times(2)).find(any(), any(), any(), any(), any());
+        verifyNoInteractions(catalogService, contractNegotiationService, candidateHandshakeRace);
+    }
+
+    @Test
+    void agreementsWithTheSameSigningDateAreTriedInRequestOrder() throws Exception {
+        stubAgreementAt("provider-1", "agreement-first", 1_000L);
+        stubAgreementAt("provider-2", "agreement-second", 1_000L);
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
+        var address = startedAddress("tp-1", "http://provider-1.example.org/data");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(1)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getValue().getContractId()).isEqualTo("agreement-first");
+    }
+
+    @Test
+    void candidateInCooldownIsSkippedForReuseEvenWithTheNewestAgreement() throws Exception {
+        cooldownTracker.markFailed("http://provider-2.example.org/dsp");
+        stubAgreementAt("provider-1", "agreement-old", 1_000L);
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
+        var address = startedAddress("tp-1", "http://provider-1.example.org/data");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(1)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getValue().getContractId()).isEqualTo("agreement-old");
+        verify(reusableAgreementLookup, never()).find(any(), any(), any(), eq("provider-2"), any());
+    }
+
+    @Test
+    void transportFaultOnReuseMarksTheServerAndTriesTheNextCandidateHoldingAnAgreement() throws Exception {
+        stubAgreementAt("provider-1", "agreement-old", 1_000L);
+        stubAgreementAt("provider-2", "agreement-new", 2_000L);
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(successfulTransferInitiation("tp-2"))
+                .thenReturn(successfulTransferInitiation("tp-1"));
+        when(transferProcessStore.findAll(specWithId("tp-2"))).thenAnswer(_ -> Stream.of(transportFaultTransfer("tp-2")));
+        var address = startedAddress("tp-1", "http://provider-1.example.org/data");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+        assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isTrue();
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isFalse();
+        verifyNoInteractions(catalogService, contractNegotiationService);
+    }
+
+    @Test
+    void transportFaultOnTheOnlyReusedAgreementFallsBackToNegotiatingWithTheCandidateHoldingNone() throws Exception {
+        stubAgreementAt("provider-2", "agreement-new", 2_000L);
+        var request = requestForCandidates("provider-1", "provider-2");
+        when(transferProcessStore.findAll(specWithId("tp-2"))).thenAnswer(_ -> Stream.of(transportFaultTransfer("tp-2")));
+        stubCatalogAndTransformChain("asset-1");
+        stubNegotiationInitiation();
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
+                Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-fresh"))));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(successfulTransferInitiation("tp-2"))
+                .thenReturn(successfulTransferInitiation("tp-3"));
+        var address = startedAddress("tp-3", "http://provider-1.example.org/data");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+        assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isTrue();
+        verify(candidateHandshakeRace).order(List.of(request.candidates().get(0)));
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
+    }
+
+    @Test
+    void transportFaultOnEveryReusedAgreementFailsAcquisitionWithoutNegotiating() {
+        stubAgreementAt("provider-1", "agreement-old", 1_000L);
+        stubAgreementAt("provider-2", "agreement-new", 2_000L);
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(successfulTransferInitiation("tp-2"))
+                .thenReturn(successfulTransferInitiation("tp-1"));
+        when(transferProcessStore.findAll(specWithId("tp-2"))).thenAnswer(_ -> Stream.of(transportFaultTransfer("tp-2")));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(_ -> Stream.of(transportFaultTransfer("tp-1")));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_acquisition_failed"))
+                .satisfies(ex -> assertThat(ex.getCause()).hasMessageContaining("All 2 candidates failed"));
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
+        assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isTrue();
+        verifyNoInteractions(catalogService, contractNegotiationService);
+    }
+
+    @Test
+    void refusalOnReuseRenegotiatesOnTheSameServerWithoutMarkingItOrTryingTheNext() throws Exception {
+        stubAgreementAt("provider-1", "agreement-old", 1_000L);
+        stubAgreementAt("provider-2", "agreement-new", 2_000L);
+        stubCatalogAndTransformChain("asset-1");
+        stubNegotiationInitiation();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.badRequest("provider refused agreement-new"))
+                .thenReturn(successfulTransferInitiation("tp-2"));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
+                Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-fresh"))));
+        var address = startedAddress("tp-2", "http://provider-2.example.org/data");
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), requestForCandidates("provider-1", "provider-2"));
+        pollUntilDone(future);
+
+        var result = future.get(5, TimeUnit.SECONDS);
+        assertThat(result.dataAddress()).isSameAs(address);
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-2");
+        assertThat(cooldownTracker.isCoolingDown("http://provider-2.example.org/dsp")).isFalse();
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
+                .containsExactly("agreement-new", "agreement-fresh");
+        verify(catalogService, times(1)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
+        verify(catalogService, times(0)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    private void stubAgreementAt(String counterPartyId, String agreementId, long signingDate) {
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", counterPartyId, null))
+                .thenReturn(Optional.of(buildAgreement(agreementId, counterPartyId, signingDate)));
+    }
+
+    private DataAddress stubNegotiatedAccessViaCatalogOf(String counterPartyId) {
+        var catalog = buildCatalog("asset-1", "offer-1", XRoadTransferType.PULL.wireValue());
+        when(catalogService.requestCatalog(any(), eq(counterPartyId), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
+        stubNegotiationInitiation();
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ ->
+                Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-negotiated"))));
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-2"));
+        return startedAddress("tp-2", "http://%s.example.org/data".formatted(counterPartyId));
+    }
+
+    private static ServiceResult<TransferProcess> successfulTransferInitiation(String transferProcessId) {
+        return ServiceResult.success(TransferProcess.Builder.newInstance().id(transferProcessId).build());
+    }
+
+    private TransferProcess transportFaultTransfer(String transferProcessId) {
+        return terminatedTransfer(transferProcessId, EdcHttpClientException.class.getName() + ": Failed to connect to provider");
+    }
+
     private void stubTransportFaultAtCatalog(String counterPartyId) {
         when(catalogService.requestCatalog(any(), eq(counterPartyId), any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(new EdcHttpClientException("no response", 0, null)));
-    }
-
-    private void stubReusableAgreementAt(String counterPartyId) {
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", counterPartyId, null))
-                .thenReturn(Optional.of(buildAgreement("agreement-for-" + counterPartyId)));
-        when(transferProcessService.initiateTransfer(any(), any()))
-                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
     }
 
     @Test
@@ -1240,11 +1407,15 @@ class AssetAccessOrchestratorTest {
     }
 
     private ContractAgreement buildAgreement(String agreementId) {
+        return buildAgreement(agreementId, "provider-1", System.currentTimeMillis());
+    }
+
+    private ContractAgreement buildAgreement(String agreementId, String providerId, long signingDate) {
         return ContractAgreement.Builder.newInstance()
                 .id(agreementId)
-                .providerId("provider-1")
+                .providerId(providerId)
                 .consumerId("participant1")
-                .contractSigningDate(System.currentTimeMillis())
+                .contractSigningDate(signingDate)
                 .assetId("asset-1")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
