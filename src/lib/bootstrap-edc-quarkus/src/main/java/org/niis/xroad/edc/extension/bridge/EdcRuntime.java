@@ -94,6 +94,7 @@ public class EdcRuntime extends BaseRuntime {
         }
         return runtimeContext.getService(HealthCheckService.class).isReady();
     }
+
     @Override
     protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Config config) {
         return new QuarkusServiceExtensionContext(loggingBridge, configBridge);

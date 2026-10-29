@@ -552,14 +552,14 @@ services:
       - port: 9999
         name: debug
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       port: 4099
       scheme: "HTTP"
       initialDelaySeconds: 5
       periodSeconds: 5
       failureThreshold: 40
     livenessProbe:
-      path: "/q/health"
+      path: "/q/health/live"
       port: 4099
       scheme: "HTTP"
       initialDelaySeconds: 5
@@ -627,10 +627,10 @@ services:
     #   7185 creds        — cross-host, ADR-42 protocol surface (credentials endpoint)
     #   5460 provisioning — internal, xroad.ds.rpc.port: X-Road gRPC-over-mTLS (XRDADR-38)
     #   9999 debug        — internal, JDWP debug agent (dev only)
-    #   4099 health       — internal, Quarkus SmallRye health (/q/health); undeclared real
-    #                        listener (quarkus.http.port, xroad-common.yaml %containerized
+    #   4099 health       — internal, Quarkus SmallRye health (/q/health/live, /q/health/ready),
+    #                        probe target (quarkus.http.port, xroad-common.yaml %containerized
     #                        profile — active here via libs.bundles.quarkus.containerized,
-    #                        same as ds-control-plane); added for inventory accuracy
+    #                        same as ds-control-plane)
     ports:
       - port: 7181
         name: health
@@ -647,15 +647,15 @@ services:
       - port: 9999
         name: debug
     readinessProbe:
-      path: "/api/check/health"
-      port: 7181
+      path: "/q/health/ready"
+      port: 4099
       scheme: "HTTP"
       initialDelaySeconds: 5
       periodSeconds: 5
       failureThreshold: 40
     livenessProbe:
-      path: "/api/check/health"
-      port: 7181
+      path: "/q/health/live"
+      port: 4099
       scheme: "HTTP"
       initialDelaySeconds: 5
       periodSeconds: 5
@@ -709,8 +709,8 @@ services:
     #   6185 issuance      — cross-host, ADR-42 protocol surface (DCP issuance endpoint)
     #   6187 statuslist    — cross-host, ADR-42 protocol surface (statuslist endpoint)
     #   9999 debug         — internal, JDWP debug agent (dev only)
-    #   4099 health-quarkus — internal, Quarkus SmallRye health (/q/health); undeclared real
-    #                         listener, same rationale as ds-identity-hub above
+    #   4099 health-quarkus — internal, Quarkus SmallRye health (/q/health/live, /q/health/ready),
+    #                         probe target, same listener as ds-identity-hub above
     ports:
       - port: 6181
         name: health
@@ -725,15 +725,15 @@ services:
       - port: 9999
         name: debug
     readinessProbe:
-      path: "/api/check/health"
-      port: 6181
+      path: "/q/health/ready"
+      port: 4099
       scheme: "HTTP"
       initialDelaySeconds: 5
       periodSeconds: 5
       failureThreshold: 40
     livenessProbe:
-      path: "/api/check/health"
-      port: 6181
+      path: "/q/health/live"
+      port: 4099
       scheme: "HTTP"
       initialDelaySeconds: 5
       periodSeconds: 5

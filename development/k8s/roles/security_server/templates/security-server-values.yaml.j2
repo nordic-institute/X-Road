@@ -187,16 +187,15 @@ services:
   {{ svc }}:
     replicas: 1
 {% if ds_tls and svc in ['ds-identity-hub', 'ds-issuer-service'] %}
-    # These two default to probing an EDC web port, which serves TLS — and
-    # Jetty's sniHostCheck rejects kubelet's by-IP probes (400 Invalid SNI).
-    # Probe the plain-HTTP quarkus health port instead, same as
-    # ds-control-plane.
+    # Probe the plain-HTTP quarkus health port, never an EDC web port: those
+    # serve TLS, and Jetty's sniHostCheck rejects kubelet's by-IP probes
+    # (400 Invalid SNI).
     readinessProbe:
-      path: "/q/health"
+      path: "/q/health/ready"
       port: 4099
       scheme: "HTTP"
     livenessProbe:
-      path: "/q/health"
+      path: "/q/health/live"
       port: 4099
       scheme: "HTTP"
 {% endif %}

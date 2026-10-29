@@ -92,6 +92,10 @@ edc:
       # New mount xrd-ds-secret/ is provisioned as KV v2 by secret-store-init.sh,
       # separate from the KV v1 xrd-secret/ mount used by Quarkus services.
       folder: ds
+      health:
+        check:
+          standby:
+            ok: true
       api:
         secret:
           path: /v1/xrd-ds-secret
