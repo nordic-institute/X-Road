@@ -65,7 +65,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         var credentials = readCredentials();
         if (credentials.getCertChain().length == 0) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "DataSpace TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
+                    "Connector TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
                             + "(certificate pending). Complete ACME enrollment or upload the signed certificate "
                             + "chain through the admin API.");
         }
@@ -79,14 +79,14 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(ErrorCode.MISSING_SECRET)) {
                 throw new ConnectorTlsKeyStoreLoadException(
-                        "No DataSpace TLS certificate found in OpenBao at tls/ds-https. Enable DataSpace TLS "
+                        "No connector TLS certificate found in OpenBao at tls/ds-https. Enable connector TLS certificate "
                                 + "enrollment or complete the manual CSR upload through the admin API.", e);
             }
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Could not reach OpenBao to load the DataSpace TLS certificate from tls/ds-https: " + e.getMessage(), e);
+                    "Could not reach OpenBao to load the connector TLS certificate from tls/ds-https: " + e.getMessage(), e);
         } catch (Exception e) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Could not reach OpenBao to load the DataSpace TLS certificate from tls/ds-https: " + e.getMessage(), e);
+                    "Could not reach OpenBao to load the connector TLS certificate from tls/ds-https: " + e.getMessage(), e);
         }
     }
 
@@ -99,7 +99,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             return keyStore;
         } catch (GeneralSecurityException | IOException e) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Failed to build the DataSpace TLS keystore from the certificate stored in OpenBao", e);
+                    "Failed to build the connector TLS keystore from the certificate stored in OpenBao", e);
         }
     }
 
@@ -111,7 +111,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException | CertificateEncodingException e) {
-            throw new ConnectorTlsKeyStoreLoadException("Failed to fingerprint the DataSpace TLS certificate chain", e);
+            throw new ConnectorTlsKeyStoreLoadException("Failed to fingerprint the connector TLS certificate chain", e);
         }
     }
 }

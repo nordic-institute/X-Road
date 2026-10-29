@@ -61,13 +61,15 @@ import java.util.stream.Collectors;
  * X-Road's replacement for EDC's {@code JettyService}: same servlet-registration contract (a
  * {@link #registerServlet} call names a context by the alias its {@link PortMapping} was registered
  * under, resolved to that mapping's path — never the alias itself), but with one {@link SslContextFactory}
- * shared by every connector instead of stock's one-per-connector, so it can be swapped as a unit. The
- * factory is started eagerly, in the constructor, before any connector exists — stock only validated the
- * keystore file was loadable, deferring actual {@code SSLContext}/key-manager construction to server start;
- * starting it here fails the DataSpace TLS certificate fast if OpenBao's material cannot back a working
- * SSL context at all.
+ * shared by every connector instead of stock's one-per-connector, so it can be swapped as a unit.
  *
- * <p>Every connector is HTTPS: the DataSpace TLS certificate is mandatory for this runtime (see
+ * <p>The service is constructed without TLS material and its server starts with no connectors, so the rest of
+ * the runtime boots before the connector TLS certificate exists. The first {@link #applyConnectorTlsMaterial}
+ * call builds and starts the SSL context factory — failing fast if the material cannot back a working SSL
+ * context — and opens every HTTPS connector on the running server; later calls hot-swap the keystore. Until
+ * the first call, the ports refuse connections.
+ *
+ * <p>Every connector is HTTPS: the connector TLS certificate is mandatory for this runtime (see
  * {@link XRoadJettyExtension}), so stock's plaintext fallback for a missing keystore has no reason to exist
  * here — carrying it forward would silently reopen the unguarded HTTP path the owned module exists to close.
  */
@@ -80,19 +82,50 @@ public final class XRoadJettyService implements WebServer {
     private final PortMappingRegistry portMappingRegistry;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
-    private final SslContextFactory.Server sslContextFactory;
 
+    private SslContextFactory.Server sslContextFactory;
     private Server server;
+    private boolean connectorsOpen;
+    private boolean stopped;
 
-    public XRoadJettyService(KeyStore keyStore, Monitor monitor, PortMappingRegistry portMappingRegistry) {
+    public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
         this.monitor = monitor;
         this.portMappingRegistry = portMappingRegistry;
         System.setProperty(LOG_ANNOUNCE, "false");
         this.handlers.put(ROOT_PATH, new ServletContextHandler(ROOT_PATH, 0));
-        this.sslContextFactory = buildAndStart(keyStore);
     }
 
-    private SslContextFactory.Server buildAndStart(KeyStore keyStore) {
+    /**
+     * Accepts connector TLS material. The first call builds the shared SSL context factory; every later call
+     * applies the keystore to the running SSL context, so every connector on this JVM — including
+     * framework-internal ones such as the STS — serves the new certificate on its next handshake, without a
+     * restart. The HTTPS connectors open once the server is running and a factory exists, and a call that
+     * fails while opening them leaves them to be opened by the next call. A call after {@link #shutdown()} is
+     * ignored.
+     */
+    public synchronized void applyConnectorTlsMaterial(KeyStore keyStore) {
+        if (stopped) {
+            monitor.debug("Connector TLS material ignored, the X-Road Jetty service is stopped");
+            return;
+        }
+        if (sslContextFactory == null) {
+            sslContextFactory = buildAndStart(keyStore);
+        } else {
+            reload(keyStore);
+        }
+        if (server != null && !connectorsOpen) {
+            openConnectors(sslContextFactory);
+        }
+    }
+    private void reload(KeyStore keyStore) {
+        try {
+            sslContextFactory.reload(factory -> factory.setKeyStore(keyStore));
+        } catch (Exception e) {
+            throw new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded connector TLS keystore", e);
+        }
+    }
+
+    private static SslContextFactory.Server buildAndStart(KeyStore keyStore) {
         var contextFactory = new SslContextFactory.Server();
         contextFactory.setKeyStore(keyStore);
         contextFactory.setKeyStorePassword(new String(InternalSSLKey.getKEY_PASSWORD()));
@@ -101,40 +134,27 @@ public final class XRoadJettyService implements WebServer {
             contextFactory.start();
         } catch (Exception e) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Failed to initialize the DataSpace TLS SSL context from the certificate stored in OpenBao", e);
+                    "Failed to initialize the connector TLS SSL context from the certificate stored in OpenBao", e);
         }
         return contextFactory;
     }
 
-    /**
-     * Applies newly loaded DataSpace TLS material to the already-running SSL context, so every connector on
-     * this JVM — including framework-internal ones such as the STS — serves the new certificate on their
-     * next handshake, without a restart.
-     */
-    void reload(KeyStore keyStore) {
-        try {
-            sslContextFactory.reload(factory -> factory.setKeyStore(keyStore));
-        } catch (Exception e) {
-            throw new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded DataSpace TLS keystore", e);
-        }
-    }
-
-    public void start() {
+    public synchronized void start() {
         try {
             server = new Server();
-            var portMappingsDescription = portMappingRegistry.getAll().stream().peek(mapping -> {
-                server.addConnector(createConnector(mapping));
-                handlers.put(mapping.path(), createHandler(mapping));
-            }).map(PortMapping::toString).collect(Collectors.joining(", "));
+            portMappingRegistry.getAll().forEach(mapping -> handlers.put(mapping.path(), createHandler(mapping)));
             server.setHandler(new ContextHandlerCollection(handlers.values().toArray(ServletContextHandler[]::new)));
             server.start();
-            monitor.debug("Port mappings: " + portMappingsDescription);
         } catch (Exception e) {
             throw new EdcException("Error starting the X-Road Jetty service", e);
         }
+        if (sslContextFactory != null) {
+            openConnectors(sslContextFactory);
+        }
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
+        stopped = true;
         try {
             if (server != null) {
                 server.stop();
@@ -162,12 +182,40 @@ public final class XRoadJettyService implements WebServer {
         servletHandler.addServletWithMapping(servletHolder, actualPath + allPathSpec);
     }
 
-    public void addConnectorConfigurationCallback(Consumer<ServerConnector> callback) {
+    public synchronized void addConnectorConfigurationCallback(Consumer<ServerConnector> callback) {
         connectorConfigurationCallbacks.add(callback);
     }
 
-    private ServerConnector createConnector(PortMapping mapping) {
-        var connector = new ServerConnector(server, sslConnectionFactory(), httpsConnectionFactory(mapping.port()));
+    private void openConnectors(SslContextFactory.Server factory) {
+        var opened = new ArrayList<ServerConnector>();
+        try {
+            for (var mapping : portMappingRegistry.getAll()) {
+                var connector = createConnector(mapping, factory);
+                server.addConnector(connector);
+                opened.add(connector);
+                // A connector joining an already running server is not started automatically.
+                connector.start();
+            }
+        } catch (Exception e) {
+            opened.forEach(this::closeConnector);
+            throw new EdcException("Error opening the X-Road Jetty HTTPS connectors", e);
+        }
+        connectorsOpen = true;
+        monitor.debug("Port mappings: " + portMappingRegistry.getAll().stream()
+                .map(PortMapping::toString).collect(Collectors.joining(", ")));
+    }
+
+    private void closeConnector(ServerConnector connector) {
+        try {
+            connector.stop();
+        } catch (Exception e) {
+            monitor.warning("Failed to stop connector '" + connector.getName() + "' after a failed listener start", e);
+        }
+        server.removeConnector(connector);
+    }
+
+    private ServerConnector createConnector(PortMapping mapping, SslContextFactory.Server factory) {
+        var connector = new ServerConnector(server, sslConnectionFactory(factory), httpsConnectionFactory(mapping.port()));
         connector.setName(mapping.name());
         connector.setPort(mapping.port());
         connectorConfigurationCallbacks.forEach(callback -> callback.accept(connector));
@@ -175,11 +223,11 @@ public final class XRoadJettyService implements WebServer {
         return connector;
     }
 
-    private ConnectionFactory sslConnectionFactory() {
-        return new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
+    private static ConnectionFactory sslConnectionFactory(SslContextFactory.Server factory) {
+        return new SslConnectionFactory(factory, HttpVersion.HTTP_1_1.asString());
     }
 
-    private ConnectionFactory httpsConnectionFactory(int port) {
+    private static ConnectionFactory httpsConnectionFactory(int port) {
         var httpsConfiguration = new HttpConfiguration();
         httpsConfiguration.setSecureScheme("https");
         httpsConfiguration.setSecurePort(port);

@@ -47,12 +47,15 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -76,8 +79,9 @@ class XRoadJettyServiceTest {
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("holder-service", port, "/served-path"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
         jettyService.start();
 
         jettyService.registerServlet("holder-service", echoServlet("hello"));
@@ -90,8 +94,9 @@ class XRoadJettyServiceTest {
     void registeringAServletUnderAnUnknownAliasFails() throws Exception {
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("known-alias", TestPortUtils.findRandomPort(), "/api"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
         jettyService.start();
 
         assertThatThrownBy(() -> jettyService.registerServlet("unknown-alias", echoServlet("unreachable")))
@@ -103,8 +108,9 @@ class XRoadJettyServiceTest {
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("svc", port, "/api"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
         jettyService.start();
         jettyService.registerServlet("svc", echoServlet("ok"));
 
@@ -118,8 +124,9 @@ class XRoadJettyServiceTest {
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("external", externalPort, "/api"));
         registry.register(new PortMapping("sts", internalStsPort, "/sts"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
         jettyService.start();
         jettyService.registerServlet("external", echoServlet("external-ok"));
         jettyService.registerServlet("sts", echoServlet("sts-ok"));
@@ -127,13 +134,86 @@ class XRoadJettyServiceTest {
         assertThat(servedCertificate(externalPort, "/api")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
         assertThat(servedCertificate(internalStsPort, "/sts")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
 
-        jettyService.reload(keyStoreOf(TestCertUtil.getOcspSigner()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
 
         assertThat(servedCertificate(externalPort, "/api")).isEqualTo(TestCertUtil.getOcspSigner().certChain[0]);
         assertThat(servedCertificate(internalStsPort, "/sts")).isEqualTo(TestCertUtil.getOcspSigner().certChain[0]);
         // still serving live traffic on both connectors post-reload, without a restart
         assertThat(get(externalPort, "/api").body()).isEqualTo("external-ok");
         assertThat(get(internalStsPort, "/sts").body()).isEqualTo("sts-ok");
+    }
+
+    @Test
+    void aConnectorAddedAfterTheServerStartedCompletesATlsHandshake() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet("svc", echoServlet("ok"));
+
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(servedCertificate(port, "/api")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
+        assertThat(get(port, "/api").body()).isEqualTo("ok");
+    }
+
+    @Test
+    void thePortRefusesConnectionsUntilMaterialArrives() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        jettyService.start();
+        jettyService.registerServlet("svc", echoServlet("ok"));
+
+        assertThatThrownBy(() -> new Socket("localhost", port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    @Test
+    void aSecondMaterialIsServedByTheConnectorsOpenedForTheFirst() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet("svc", echoServlet("ok"));
+
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        assertThat(servedCertificate(port, "/api")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
+
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
+        assertThat(servedCertificate(port, "/api")).isEqualTo(TestCertUtil.getOcspSigner().certChain[0]);
+    }
+
+    @Test
+    void materialAppliedAfterShutdownIsIgnored() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        var stoppedService = new XRoadJettyService(MONITOR, registry);
+        stoppedService.start();
+        stoppedService.shutdown();
+        stoppedService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        assertThatThrownBy(() -> new Socket("localhost", port).close()).isInstanceOf(ConnectException.class);
+    }
+    @Test
+    void connectorCallbacksRegisteredBeforeMaterialArrivesApplyToTheLateConnectorsOnce() throws Exception {
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("first", TestPortUtils.findRandomPort(), "/first"));
+        registry.register(new PortMapping("second", TestPortUtils.findRandomPort(), "/second"));
+        var configured = new ConcurrentLinkedQueue<String>();
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        jettyService.addConnectorConfigurationCallback(connector -> configured.add(connector.getName()));
+        jettyService.start();
+        assertThat(configured).isEmpty();
+
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
+
+        assertThat(configured).containsExactlyInAnyOrder("first", "second");
     }
 
     /**

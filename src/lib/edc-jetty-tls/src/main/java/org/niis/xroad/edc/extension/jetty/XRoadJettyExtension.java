@@ -31,15 +31,16 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.edc.reload.InitialMaterialWait;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 
+import java.security.KeyStore;
 import java.time.Duration;
 
 import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
@@ -48,8 +49,9 @@ import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
  * X-Road's replacement for EDC's {@code JettyExtension}. Sources the HTTPS keystore for every connector on
  * this JVM from OpenBao ({@code tls/ds-https}) instead of a file, and keeps checking it on a schedule so a
  * rotated certificate replaces the served one without a restart — capabilities stock's file-at-boot,
- * no-reload design does not expose. Boot blocks until the slot holds a certificate rather than failing, so
- * a freshly installed service converges on its own once the certificate is provisioned. Excluded from EDC's
+ * no-reload design does not expose. Boot never waits for the connector TLS certificate: one load attempt is
+ * made, and when the slot is still empty the HTTPS endpoints stay closed while the rest of the runtime starts;
+ * the reloader keeps polling and opens them as soon as the certificate is stored. Excluded from EDC's
  * own boot in favour of this one via
  * {@code xroad.edc.boot.excluded-service-extensions}; the {@code jetty-core} artifact carrying it is also
  * excluded from the runtime classpath entirely (see the {@code xroad.edc-owned-jetty-conventions} Gradle
@@ -65,7 +67,7 @@ public class XRoadJettyExtension implements ServiceExtension {
     private static final String DEFAULT_PATH = "/api";
     private static final int DEFAULT_PORT = 8181;
     private static final String KEYSTORE_MATERIAL_NAME = "ds-https-keystore";
-    private static final Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration PENDING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
 
@@ -76,7 +78,7 @@ public class XRoadJettyExtension implements ServiceExtension {
     private String defaultPath;
 
     @Setting(key = "xroad.edc.web.https.keystore.reload-interval-seconds",
-            description = "How often the DataSpace TLS keystore is re-read from OpenBao to detect rotation.",
+            description = "How often the connector TLS keystore is re-read from OpenBao to detect rotation.",
             defaultValue = "60")
     private long reloadIntervalSeconds;
 
@@ -84,9 +86,15 @@ public class XRoadJettyExtension implements ServiceExtension {
     private VaultClient vaultClient;
 
     private final PortMappingRegistry portMappingRegistry = new XRoadPortMappingRegistry();
+    private Duration pendingPollInterval = PENDING_POLL_INTERVAL;
 
+    private Monitor monitor;
     private XRoadJettyService jettyService;
+    private DsHttpsKeyStoreLoader loader;
+    private PeriodicMaterialReloader.Loaded<KeyStore> initial;
     private PeriodicMaterialReloader<?> reloader;
+    private String lastLoadedFingerprint;
+    private String lastUnusableFingerprint;
 
     @Override
     public String name() {
@@ -95,25 +103,63 @@ public class XRoadJettyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
+        monitor = context.getMonitor();
         portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, defaultPort, defaultPath));
 
-        var loader = new DsHttpsKeyStoreLoader(vaultClient);
-        var initial = InitialMaterialWait.await(KEYSTORE_MATERIAL_NAME, loader, STARTUP_POLL_INTERVAL, monitor);
-
-        jettyService = new XRoadJettyService(initial.material(), monitor, portMappingRegistry);
+        jettyService = new XRoadJettyService(monitor, portMappingRegistry);
         context.registerService(WebServer.class, jettyService);
         context.registerService(XRoadJettyService.class, jettyService);
 
-        reloader = PeriodicMaterialReloader.schedule(KEYSTORE_MATERIAL_NAME, initial, Duration.ofSeconds(reloadIntervalSeconds),
-                RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, jettyService::reload, monitor);
+        loader = new DsHttpsKeyStoreLoader(vaultClient);
+        initial = loadInitial();
     }
 
     @Override
     public void start() {
         jettyService.start();
+        var reloadInterval = Duration.ofSeconds(reloadIntervalSeconds);
+        reloader = initial != null && applyInitial()
+                ? PeriodicMaterialReloader.schedule(KEYSTORE_MATERIAL_NAME, initial, reloadInterval,
+                        RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, this::load,
+                        this::applyConnectorTlsMaterial, monitor)
+                : PeriodicMaterialReloader.scheduleUntilFirstLoad(KEYSTORE_MATERIAL_NAME, pendingPollInterval, reloadInterval,
+                        RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, this::load,
+                        this::applyConnectorTlsMaterial, monitor);
     }
-
+    private PeriodicMaterialReloader.Loaded<KeyStore> loadInitial() {
+        try {
+            return load();
+        } catch (RuntimeException e) {
+            monitor.warning("Connector TLS certificate is not available yet, the HTTPS endpoints stay closed until it is "
+                    + "stored in OpenBao: " + e.getMessage());
+            return null;
+        }
+    }
+    private boolean applyInitial() {
+        try {
+            applyConnectorTlsMaterial(initial.material());
+            return true;
+        } catch (RuntimeException _) {
+            return false;
+        }
+    }
+    private PeriodicMaterialReloader.Loaded<KeyStore> load() {
+        var loaded = loader.load();
+        lastLoadedFingerprint = loaded.fingerprint();
+        return loaded;
+    }
+    private void applyConnectorTlsMaterial(KeyStore keyStore) {
+        try {
+            jettyService.applyConnectorTlsMaterial(keyStore);
+        } catch (RuntimeException e) {
+            if (!lastLoadedFingerprint.equals(lastUnusableFingerprint)) {
+                lastUnusableFingerprint = lastLoadedFingerprint;
+                monitor.severe("connector TLS certificate present but unusable (fingerprint %s): %s"
+                        .formatted(lastLoadedFingerprint, e.getMessage()), e);
+            }
+            throw e;
+        }
+    }
     @Override
     public void shutdown() {
         if (reloader != null) {
