@@ -37,26 +37,39 @@ import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
+import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class XRoadJettyExtensionTest {
 
     private static final String RELOAD_THREAD = "xrd-edc-reload-ds-https-keystore";
+    private static final Duration PENDING_POLL = Duration.ofMillis(50);
+    private static final Duration AWAIT = Duration.ofSeconds(10);
 
     private final List<String> warnings = new CopyOnWriteArrayList<>();
     private final List<String> severes = new CopyOnWriteArrayList<>();
@@ -65,12 +78,13 @@ class XRoadJettyExtensionTest {
         public void warning(String message, Throwable... errors) {
             warnings.add(message);
         }
+
         @Override
         public void severe(String message, Throwable... errors) {
             severes.add(message);
         }
     };
-    private final VaultClient vaultClient = mock(VaultClient.class);
+    private final ScriptedLoader loader = new ScriptedLoader();
     private final ServiceExtensionContext context = mock(ServiceExtensionContext.class);
     private final HealthCheckService healthCheckService = mock(HealthCheckService.class);
 
@@ -85,9 +99,8 @@ class XRoadJettyExtensionTest {
     }
 
     @Test
-    void initializeWithAnEmptySlotReturnsAndLogsOneWarning() throws Exception {
-        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("slot is empty"));
-        extension = newExtension();
+    void initializeWithAnEmptySlotReturnsAndLogsOneWarning() {
+        extension = newExtension(60);
 
         assertTimeoutPreemptively(Duration.ofSeconds(10), () -> extension.initialize(context));
 
@@ -96,10 +109,21 @@ class XRoadJettyExtensionTest {
     }
 
     @Test
+    void anEmptySlotLogsOneWarningOverBootAndTheFirstPendingCycle() {
+        extension = newExtension(60);
+        extension.initialize(context);
+        extension.start();
+
+        await().atMost(AWAIT).until(() -> loader.loads.get() >= 3);
+
+        assertThat(warnings).hasSize(1);
+        assertThat(severes).isEmpty();
+    }
+
+    @Test
     void initializeWithStoredMaterialLogsNoWarning() throws Exception {
-        var credentials = TestCertUtil.getInternalKey();
-        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(credentials.key, credentials.certChain));
-        extension = newExtension();
+        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
+        extension = newExtension(60);
 
         extension.initialize(context);
 
@@ -108,23 +132,33 @@ class XRoadJettyExtensionTest {
 
     @Test
     void readinessIsDownWhileTheSlotIsEmptyAndUpOnceTheListenerOpens() throws Exception {
-        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("slot is empty"));
-        extension = newExtension();
-        setField(extension, "pendingPollInterval", Duration.ofMillis(50));
+        extension = newExtension(60);
         extension.initialize(context);
         extension.start();
-        var captor = ArgumentCaptor.forClass(ReadinessProvider.class);
-        verify(healthCheckService).addReadinessProvider(captor.capture());
-        var readiness = captor.getValue();
+        var readiness = readinessProvider();
         assertThat(readiness.get().succeeded()).isFalse();
-        var credentials = TestCertUtil.getInternalKey();
-        doReturn(new InternalSSLKey(credentials.key, credentials.certChain)).when(vaultClient).getDsHttpsTlsCredentials();
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertThat(readiness.get().succeeded()).isTrue());
+
+        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
+
+        await().atMost(AWAIT).untilAsserted(() -> assertThat(readiness.get().succeeded()).isTrue());
     }
+
     @Test
-    void shutdownClosesTheReloaderStartedByStart() throws Exception {
-        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("slot is empty"));
-        extension = newExtension();
+    void materialArrivingInAnEmptySlotIsServedOverATlsHandshakeThroughTheExtension() throws Exception {
+        extension = newExtension(60);
+        extension.initialize(context);
+        extension.start();
+        assertThat(connectionRefused()).isTrue();
+
+        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
+
+        await().atMost(AWAIT).untilAsserted(() ->
+                assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]));
+    }
+
+    @Test
+    void shutdownClosesTheReloaderStartedByStart() {
+        extension = newExtension(60);
         extension.initialize(context);
         extension.start();
         assertThat(reloaderThreadAlive()).isTrue();
@@ -135,55 +169,184 @@ class XRoadJettyExtensionTest {
     }
 
     @Test
-    void materialThatLoadsButCannotBeAppliedIsReportedOnceAsUnusableNotAsNotAvailable() throws Exception {
-        givenStoredMaterial();
-        extension = newExtension();
-        setField(extension, "pendingPollInterval", Duration.ofMillis(50));
+    void aPortThatCannotBeBoundIsReportedOnceNamingThePortNotTheCertificate() throws Exception {
+        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
+        extension = newExtension(60);
         extension.initialize(context);
         try (var occupied = new ServerSocket(port)) {
             extension.start();
-            verify(vaultClient, timeout(5000).atLeast(4)).getDsHttpsTlsCredentials();
+            await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
         }
+
         assertThat(severes).hasSize(1);
-        assertThat(severes.getFirst()).contains("connector TLS certificate present but unusable");
+        assertThat(severes.getFirst()).contains("cannot be bound").contains("port " + port).doesNotContain("unusable");
         assertThat(warnings).isEmpty();
     }
+
     @Test
-    void theListenerOpensOnceTheMaterialThatCouldNotBeAppliedBecomesUsable() throws Exception {
-        givenStoredMaterial();
-        extension = newExtension();
-        setField(extension, "pendingPollInterval", Duration.ofMillis(50));
+    void theListenerOpensOnceThePortThatCouldNotBeBoundIsFree() throws Exception {
+        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
+        extension = newExtension(60);
         extension.initialize(context);
         try (var occupied = new ServerSocket(port)) {
             extension.start();
-            verify(vaultClient, timeout(5000).atLeast(3)).getDsHttpsTlsCredentials();
+            await().atMost(AWAIT).until(() -> loader.loads.get() >= 3);
         }
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> new Socket("localhost", port).close());
-    }
-    private void givenStoredMaterial() throws Exception {
-        var credentials = TestCertUtil.getInternalKey();
-        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(credentials.key, credentials.certChain));
-    }
-    private XRoadJettyExtension newExtension() throws Exception {
-        when(context.getMonitor()).thenReturn(monitor);
-        var created = new XRoadJettyExtension();
-        port = TestPortUtils.findRandomPort();
-        setField(created, "defaultPort", port);
-        setField(created, "defaultPath", "/api");
-        setField(created, "reloadIntervalSeconds", 60L);
-        setField(created, "vaultClient", vaultClient);
-        setField(created, "healthCheckService", healthCheckService);
-        return created;
+
+        await().atMost(AWAIT).untilAsserted(() -> new Socket("localhost", port).close());
     }
 
-    private static void setField(XRoadJettyExtension target, String name, Object value) throws Exception {
-        var field = XRoadJettyExtension.class.getDeclaredField(name);
-        field.setAccessible(true);
-        field.set(target, value);
+    @Test
+    void anSslContextThatCannotBeBuiltIsReportedOnceAsAnUnusableCertificateOrKeystore() throws Exception {
+        loader.serve(unusable("broken"));
+        extension = newExtension(60);
+        extension.initialize(context);
+        extension.start();
+
+        await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
+
+        assertThat(severes).hasSize(1);
+        assertThat(severes.getFirst()).contains("connector TLS certificate or keystore is unusable").contains("broken");
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
+    void anUnexpectedExceptionIsLoggedAsUnexpectedNotAsAnUnusableCertificate() throws Exception {
+        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
+        extension = newExtension(60);
+        extension.initialize(context);
+        capturedJettyService().addConnectorConfigurationCallback(connector -> {
+            throw new IllegalStateException("callback exploded");
+        });
+        extension.start();
+
+        await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
+
+        assertThat(severes).hasSize(1);
+        assertThat(severes.getFirst()).contains("unexpected error").contains("callback exploded").doesNotContain("unusable");
+    }
+
+    @Test
+    void twoDistinctUnusableFingerprintsAreReportedTwice() throws Exception {
+        loader.serve(unusable("first"));
+        extension = newExtension(60);
+        extension.initialize(context);
+        extension.start();
+        await().atMost(AWAIT).until(() -> severes.size() == 1);
+
+        loader.serve(unusable("second"));
+
+        await().atMost(AWAIT).until(() -> severes.size() == 2);
+        assertThat(severes.get(0)).contains("first");
+        assertThat(severes.get(1)).contains("second");
+    }
+
+    @Test
+    void theSameFingerprintUnusableAgainAfterASuccessfulApplyIsReportedAgain() throws Exception {
+        loader.serve(unusable("flaky"));
+        extension = newExtension(1);
+        extension.initialize(context);
+        extension.start();
+        await().atMost(AWAIT).until(() -> severes.size() == 1);
+        loader.serve(usable("good", TestCertUtil.getInternalKey()));
+        var readiness = readinessProvider();
+        await().atMost(AWAIT).untilAsserted(() -> assertThat(readiness.get().succeeded()).isTrue());
+
+        loader.serve(unusable("flaky"));
+
+        await().atMost(AWAIT).until(() -> severes.size() == 2);
+        assertThat(severes).allSatisfy(message -> assertThat(message).contains("flaky"));
+    }
+
+    private XRoadJettyExtension newExtension(long reloadIntervalSeconds) {
+        when(context.getMonitor()).thenReturn(monitor);
+        port = TestPortUtils.findRandomPort();
+        return new XRoadJettyExtension(healthCheckService, loader, port, "/api", reloadIntervalSeconds, PENDING_POLL);
+    }
+
+    private ReadinessProvider readinessProvider() {
+        var captor = ArgumentCaptor.forClass(ReadinessProvider.class);
+        verify(healthCheckService).addReadinessProvider(captor.capture());
+        return captor.getValue();
+    }
+
+    private XRoadJettyService capturedJettyService() {
+        var captor = ArgumentCaptor.forClass(XRoadJettyService.class);
+        verify(context).registerService(eq(XRoadJettyService.class), captor.capture());
+        return captor.getValue();
+    }
+
+    private static Loaded<KeyStore> usable(String fingerprint, TestCertUtil.PKCS12 credentials) throws Exception {
+        var keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, InternalSSLKey.getKEY_PASSWORD(), credentials.certChain);
+        return new Loaded<>(keyStore, fingerprint);
+    }
+
+    private static Loaded<KeyStore> unusable(String fingerprint) throws Exception {
+        var keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        var credentials = TestCertUtil.getInternalKey();
+        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, "not-the-keystore-password".toCharArray(),
+                credentials.certChain);
+        return new Loaded<>(keyStore, fingerprint);
+    }
+
+    private boolean connectionRefused() {
+        try (var socket = new Socket("localhost", port)) {
+            return false;
+        } catch (IOException _) {
+            return true;
+        }
+    }
+
+    private X509Certificate servedCertificate() throws Exception {
+        var trustAll = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                // trust-all test client: every certificate is accepted
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                // trust-all test client: every certificate is accepted
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        };
+        var sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] {trustAll}, new SecureRandom());
+        try (var socket = (SSLSocket) sslContext.getSocketFactory().createSocket("localhost", port)) {
+            socket.startHandshake();
+            return (X509Certificate) socket.getSession().getPeerCertificates()[0];
+        }
     }
 
     private static boolean reloaderThreadAlive() {
         return Thread.getAllStackTraces().keySet().stream()
                 .anyMatch(thread -> RELOAD_THREAD.equals(thread.getName()) && thread.isAlive());
+    }
+
+    private static final class ScriptedLoader implements MaterialLoader<KeyStore> {
+
+        private final AtomicReference<Loaded<KeyStore>> current = new AtomicReference<>();
+        private final AtomicInteger loads = new AtomicInteger();
+
+        void serve(Loaded<KeyStore> material) {
+            current.set(material);
+        }
+
+        @Override
+        public Loaded<KeyStore> load() {
+            loads.incrementAndGet();
+            var material = current.get();
+            if (material == null) {
+                throw new IllegalStateException("slot is empty");
+            }
+            return material;
+        }
     }
 }

@@ -67,7 +67,9 @@ import java.util.stream.Collectors;
  * the runtime boots before the connector TLS certificate exists. The first {@link #applyConnectorTlsMaterial}
  * call builds and starts the SSL context factory — failing fast if the material cannot back a working SSL
  * context — and opens every HTTPS connector on the running server; later calls hot-swap the keystore. Until
- * the first call, the ports refuse connections.
+ * the first call, the ports refuse connections. A keystore that cannot back an SSL context fails with
+ * {@link ConnectorTlsKeyStoreLoadException}; a port that cannot be bound fails with
+ * {@link ConnectorBindException}.
  *
  * <p>Every connector is HTTPS: the connector TLS certificate is mandatory for this runtime (see
  * {@link XRoadJettyExtension}), so stock's plaintext fallback for a missing keystore has no reason to exist
@@ -117,6 +119,7 @@ public final class XRoadJettyService implements WebServer {
             openConnectors(sslContextFactory);
         }
     }
+
     private void reload(KeyStore keyStore) {
         try {
             sslContextFactory.reload(factory -> factory.setKeyStore(keyStore));
@@ -201,16 +204,25 @@ public final class XRoadJettyService implements WebServer {
                 var connector = createConnector(mapping, factory);
                 server.addConnector(connector);
                 opened.add(connector);
-                // A connector joining an already running server is not started automatically.
-                connector.start();
+                startConnector(connector, mapping);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             opened.forEach(this::closeConnector);
-            throw new EdcException("Error opening the X-Road Jetty HTTPS connectors", e);
+            throw e;
         }
         connectorsOpen = true;
         monitor.debug("Port mappings: " + portMappingRegistry.getAll().stream()
                 .map(PortMapping::toString).collect(Collectors.joining(", ")));
+    }
+
+    private static void startConnector(ServerConnector connector, PortMapping mapping) {
+        try {
+            // A connector joining an already running server is not started automatically.
+            connector.start();
+        } catch (Exception e) {
+            throw new ConnectorBindException(
+                    "Cannot bind the HTTPS port %d of the '%s' connector".formatted(mapping.port(), mapping.name()), e);
+        }
     }
 
     private void closeConnector(ServerConnector connector) {

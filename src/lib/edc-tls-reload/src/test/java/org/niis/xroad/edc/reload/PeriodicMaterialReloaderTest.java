@@ -39,7 +39,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -195,8 +197,9 @@ class PeriodicMaterialReloaderTest {
             reloader.close();
         }
     }
+
     @Test
-    void whilePendingEachDistinctFailureIsLoggedOnceAtWarningWhenItFirstAppears() {
+    void whilePendingAFailureIsLoggedWhenItsMessageDiffersFromThePreviousFailure() {
         var attempts = new AtomicInteger();
         var failures = List.of("slot is empty", "slot is empty", "no certificate yet", "no certificate yet", "slot is empty");
         var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
@@ -213,6 +216,7 @@ class PeriodicMaterialReloaderTest {
         verify(monitor, times(1)).warning("test: material not available yet: no certificate yet");
         verify(monitor, times(2)).warning("test: material not available yet: slot is empty");
     }
+
     @Test
     void whilePendingTheProgressLineIsLoggedEveryTwelfthPoll() {
         var attempts = new AtomicInteger();
@@ -230,5 +234,52 @@ class PeriodicMaterialReloaderTest {
         }
         verify(monitor, timeout(1000)).info("test: still waiting for material after 12 polls: slot is empty");
         verify(monitor, times(1)).warning("test: material not available yet: slot is empty");
+    }
+
+    @Test
+    void aLoaderReturningANullFingerprintIsRejectedWithoutFiringOnChange() {
+        var attempts = new AtomicInteger();
+        var applied = new ConcurrentLinkedQueue<String>();
+
+        var reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3, RETRY_DELAY,
+                () -> {
+                    attempts.incrementAndGet();
+                    return new PeriodicMaterialReloader.Loaded<>("v1", null);
+                },
+                applied::add, monitor);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() >= 4);
+        } finally {
+            reloader.close();
+        }
+
+        assertThat(applied).isEmpty();
+        verify(monitor, times(1)).warning("test: material not available yet: Loaded material must carry a fingerprint");
+    }
+
+    @Test
+    void nullFingerprintMaterialCannotBeConstructed() {
+        assertThatThrownBy(() -> new PeriodicMaterialReloader.Loaded<>("v1", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("fingerprint");
+    }
+
+    @Test
+    void aPendingFailureTheCallerAlreadyReportedIsNotLoggedAgainButADifferentOneIs() {
+        var attempts = new AtomicInteger();
+        var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
+                RETRY_DELAY,
+                () -> {
+                    throw new IllegalStateException(attempts.incrementAndGet() <= 3 ? "slot is empty" : "no certificate yet");
+                },
+                material -> { }, monitor, "slot is empty");
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() >= 5);
+        } finally {
+            reloader.close();
+        }
+
+        verify(monitor, never()).warning("test: material not available yet: slot is empty");
+        verify(monitor, times(1)).warning("test: material not available yet: no certificate yet");
     }
 }

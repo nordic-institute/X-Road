@@ -40,6 +40,7 @@ import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
+import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
 
 import java.security.KeyStore;
 import java.time.Duration;
@@ -90,15 +91,30 @@ public class XRoadJettyExtension implements ServiceExtension {
     private HealthCheckService healthCheckService;
 
     private final PortMappingRegistry portMappingRegistry = new XRoadPortMappingRegistry();
-    private Duration pendingPollInterval = PENDING_POLL_INTERVAL;
+    private final Duration pendingPollInterval;
 
+    private MaterialLoader<KeyStore> loader;
     private Monitor monitor;
     private XRoadJettyService jettyService;
-    private DsHttpsKeyStoreLoader loader;
     private PeriodicMaterialReloader.Loaded<KeyStore> initial;
+    private String initialFailure;
     private PeriodicMaterialReloader<?> reloader;
     private String lastLoadedFingerprint;
-    private String lastUnusableFingerprint;
+    private String lastReportedFailure;
+
+    public XRoadJettyExtension() {
+        pendingPollInterval = PENDING_POLL_INTERVAL;
+    }
+
+    XRoadJettyExtension(HealthCheckService healthCheckService, MaterialLoader<KeyStore> loader, int defaultPort,
+                        String defaultPath, long reloadIntervalSeconds, Duration pendingPollInterval) {
+        this.healthCheckService = healthCheckService;
+        this.loader = loader;
+        this.defaultPort = defaultPort;
+        this.defaultPath = defaultPath;
+        this.reloadIntervalSeconds = reloadIntervalSeconds;
+        this.pendingPollInterval = pendingPollInterval;
+    }
 
     @Override
     public String name() {
@@ -115,7 +131,9 @@ public class XRoadJettyExtension implements ServiceExtension {
         context.registerService(XRoadJettyService.class, jettyService);
         healthCheckService.addReadinessProvider(new ConnectorTlsReadinessProvider(jettyService));
 
-        loader = new DsHttpsKeyStoreLoader(vaultClient);
+        if (loader == null) {
+            loader = new DsHttpsKeyStoreLoader(vaultClient);
+        }
         initial = loadInitial();
     }
 
@@ -129,17 +147,20 @@ public class XRoadJettyExtension implements ServiceExtension {
                         this::applyConnectorTlsMaterial, monitor)
                 : PeriodicMaterialReloader.scheduleUntilFirstLoad(KEYSTORE_MATERIAL_NAME, pendingPollInterval, reloadInterval,
                         RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, this::load,
-                        this::applyConnectorTlsMaterial, monitor);
+                        this::applyConnectorTlsMaterial, monitor, initialFailure);
     }
+
     private PeriodicMaterialReloader.Loaded<KeyStore> loadInitial() {
         try {
             return load();
         } catch (RuntimeException e) {
+            initialFailure = String.valueOf(e.getMessage());
             monitor.warning("Connector TLS certificate is not available yet, the HTTPS endpoints stay closed until it is "
                     + "stored in OpenBao: " + e.getMessage());
             return null;
         }
     }
+
     private boolean applyInitial() {
         try {
             applyConnectorTlsMaterial(initial.material());
@@ -148,23 +169,33 @@ public class XRoadJettyExtension implements ServiceExtension {
             return false;
         }
     }
+
     private PeriodicMaterialReloader.Loaded<KeyStore> load() {
         var loaded = loader.load();
         lastLoadedFingerprint = loaded.fingerprint();
         return loaded;
     }
+
     private void applyConnectorTlsMaterial(KeyStore keyStore) {
         try {
             jettyService.applyConnectorTlsMaterial(keyStore);
         } catch (RuntimeException e) {
-            if (!lastLoadedFingerprint.equals(lastUnusableFingerprint)) {
-                lastUnusableFingerprint = lastLoadedFingerprint;
-                monitor.severe("connector TLS certificate present but unusable (fingerprint %s): %s"
-                        .formatted(lastLoadedFingerprint, e.getMessage()), e);
-            }
+            reportApplyFailure(e);
             throw e;
         }
+        lastReportedFailure = null;
     }
+
+    private void reportApplyFailure(RuntimeException failure) {
+        var cause = ApplyFailure.of(failure);
+        var reported = cause + ":" + lastLoadedFingerprint;
+        if (!reported.equals(lastReportedFailure)) {
+            lastReportedFailure = reported;
+            monitor.severe(cause.description + " (fingerprint %s): %s".formatted(lastLoadedFingerprint, failure.getMessage()),
+                    failure);
+        }
+    }
+
     @Override
     public void shutdown() {
         if (reloader != null) {
@@ -178,5 +209,25 @@ public class XRoadJettyExtension implements ServiceExtension {
     @Provider
     public PortMappingRegistry portMappings() {
         return portMappingRegistry;
+    }
+
+    private enum ApplyFailure {
+        UNUSABLE_MATERIAL("connector TLS certificate or keystore is unusable"),
+        PORT_NOT_BINDABLE("connector HTTPS port cannot be bound"),
+        UNEXPECTED("unexpected error while applying the connector TLS certificate");
+
+        private final String description;
+
+        ApplyFailure(String description) {
+            this.description = description;
+        }
+
+        static ApplyFailure of(RuntimeException failure) {
+            return switch (failure) {
+                case ConnectorTlsKeyStoreLoadException _ -> UNUSABLE_MATERIAL;
+                case ConnectorBindException _ -> PORT_NOT_BINDABLE;
+                default -> UNEXPECTED;
+            };
+        }
     }
 }

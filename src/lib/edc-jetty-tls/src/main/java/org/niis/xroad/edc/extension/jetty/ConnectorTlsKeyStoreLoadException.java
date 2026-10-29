@@ -27,7 +27,7 @@
 package org.niis.xroad.edc.extension.jetty;
 
 /**
- * Signals that the DataSpace TLS certificate could not be loaded from OpenBao into a servable keystore,
+ * Signals that the connector TLS certificate could not be loaded from OpenBao into a servable keystore,
  * carrying a message that already tells the operator what to do (provision the vault slot, wait for the
  * certificate, or check vault connectivity) rather than leaving that to the caller.
  */

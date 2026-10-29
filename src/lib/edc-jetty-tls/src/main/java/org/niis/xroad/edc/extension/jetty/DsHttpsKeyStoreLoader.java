@@ -43,7 +43,7 @@ import java.security.cert.X509Certificate;
 import java.util.HexFormat;
 
 /**
- * Builds the DataSpace TLS keystore from the credentials OpenBao holds at {@code tls/ds-https}: a PKCS12
+ * Builds the connector TLS keystore from the credentials OpenBao holds at {@code tls/ds-https}: a PKCS12
  * keystore with one entry, so it plugs directly into Jetty's {@code SslContextFactory}. The fingerprint used
  * to detect rotation is a hash of the certificate chain bytes — the manual CSR flow and ACME renewal both
  * always pair a certificate change with the key that was current when it was requested, so the chain alone
@@ -79,8 +79,8 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(ErrorCode.MISSING_SECRET)) {
                 throw new ConnectorTlsKeyStoreLoadException(
-                        "No connector TLS certificate found in OpenBao at tls/ds-https. Enable connector TLS certificate "
-                                + "enrollment or complete the manual CSR upload through the admin API.", e);
+                        "No connector TLS certificate found in OpenBao at tls/ds-https. Enable ACME enrollment for the "
+                                + "connector TLS certificate or complete the manual CSR upload through the admin API.", e);
             }
             throw new ConnectorTlsKeyStoreLoadException(
                     "Could not reach OpenBao to load the connector TLS certificate from tls/ds-https: " + e.getMessage(), e);

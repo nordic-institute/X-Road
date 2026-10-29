@@ -46,10 +46,10 @@ import java.util.function.Consumer;
  *
  * <p>A reloader may also start with no material at all, for material that is provisioned after the process has
  * started. It then polls at the pending interval, one attempt per cycle, and the first successful load fires
- * the change callback; from then on it polls at the normal check interval. While pending, each distinct load
- * failure is logged once when it first appears, with a periodic progress line while it persists. Material that
- * loads but is rejected by the change callback stays pending and is retried every cycle; reporting that is
- * the callback's job.
+ * the change callback; from then on it polls at the normal check interval. While pending, a load failure is
+ * logged when its message differs from the previous failure's, with a periodic progress line while the same
+ * message persists. Material that loads but is rejected by the change callback stays pending and is retried
+ * every cycle; reporting that is the callback's job.
  *
  * @param <T> the loaded material's runtime representation (e.g. a {@link java.security.KeyStore})
  */
@@ -113,8 +113,23 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
                                                                          Duration checkInterval, int maxAttemptsPerCycle,
                                                                          Duration retryDelay, MaterialLoader<T> loader,
                                                                          Consumer<T> onChange, Monitor monitor) {
+        return scheduleUntilFirstLoad(name, pendingInterval, checkInterval, maxAttemptsPerCycle, retryDelay, loader,
+                onChange, monitor, null);
+    }
+
+    /**
+     * As {@link #scheduleUntilFirstLoad(String, Duration, Duration, int, Duration, MaterialLoader, Consumer, Monitor)},
+     * for a caller that already logged the failure of its own boot-time load: a pending load failing with
+     * {@code reportedFailure} as its message is not logged again.
+     */
+    public static <T> PeriodicMaterialReloader<T> scheduleUntilFirstLoad(String name, Duration pendingInterval,
+                                                                         Duration checkInterval, int maxAttemptsPerCycle,
+                                                                         Duration retryDelay, MaterialLoader<T> loader,
+                                                                         Consumer<T> onChange, Monitor monitor,
+                                                                         String reportedFailure) {
         var reloader = new PeriodicMaterialReloader<>(name, loader, onChange, monitor, maxAttemptsPerCycle, retryDelay,
                 checkInterval, pendingInterval, null);
+        reloader.lastPendingFailure = reportedFailure;
         reloader.scheduleNext(pendingInterval);
         return reloader;
     }
@@ -186,6 +201,7 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         appliedFingerprint = loaded.fingerprint();
         monitor.info("%s: material available after %d polls".formatted(name, pendingCycles));
     }
+
     private void logPendingFailure(Exception failure) {
         var message = String.valueOf(failure.getMessage());
         if (!message.equals(lastPendingFailure)) {
@@ -195,6 +211,7 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         }
         lastPendingFailure = message;
     }
+
     private static void sleepUninterruptibly(Duration duration) {
         try {
             Thread.sleep(duration.toMillis());
@@ -209,5 +226,11 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     }
 
     public record Loaded<T>(T material, String fingerprint) {
+
+        public Loaded {
+            if (fingerprint == null) {
+                throw new IllegalArgumentException("Loaded material must carry a fingerprint");
+            }
+        }
     }
 }
