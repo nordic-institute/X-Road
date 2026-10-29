@@ -380,7 +380,7 @@ jobs:
 
       - name: Run e2e tests (compose)
         if: inputs.variant == 'compose'
-        run: java -jar e2e-test-1.0.jar
+        run: java -Dtest-framework.acl-mode=legacy -jar e2e-test-1.0.jar
 
       # sg lxd: the suite's LXD-mode transports (messagelog SQL, archiver trigger,
       # archive download) shell out to lxc, which needs the lxd group's socket access.
