@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,8 +48,8 @@ import java.util.concurrent.RejectedExecutionException;
  * the published policies do read, so that one {@code LocalGroupService} operation signals here.</p>
  *
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
- * or failed signal degrades latency, never correctness. A no-op when the data space feature is
- * disabled, so a non-dataspace deployment never attempts the call.</p>
+ * or failed signal degrades latency, never correctness. A no-op until the instance is ready for data
+ * space traffic, so an instance whose globalconf lists no credential issuer never attempts the call.</p>
  *
  * <p>The gRPC call is dispatched off the caller's thread, and — when a transaction is active around
  * the caller — deferred until that transaction commits. Firing beforehand would let a concurrent
@@ -62,21 +61,21 @@ import java.util.concurrent.RejectedExecutionException;
 public class CatalogInvalidationNotifier implements DisposableBean {
 
     private final ControlPlaneProvisioningClient controlPlaneProvisioningClient;
-    private final AdminServiceProperties adminServiceProperties;
+    private final DataspaceReadinessPredicates readinessPredicates;
     private final ExecutorService executorService;
 
     @Autowired
     public CatalogInvalidationNotifier(ControlPlaneProvisioningClient controlPlaneProvisioningClient,
-                                       AdminServiceProperties adminServiceProperties) {
-        this(controlPlaneProvisioningClient, adminServiceProperties,
+                                       DataspaceReadinessPredicates readinessPredicates) {
+        this(controlPlaneProvisioningClient, readinessPredicates,
                 Executors.newSingleThreadExecutor(CatalogInvalidationNotifier::newDaemonThread));
     }
 
     CatalogInvalidationNotifier(ControlPlaneProvisioningClient controlPlaneProvisioningClient,
-                                AdminServiceProperties adminServiceProperties,
+                                DataspaceReadinessPredicates readinessPredicates,
                                 ExecutorService executorService) {
         this.controlPlaneProvisioningClient = controlPlaneProvisioningClient;
-        this.adminServiceProperties = adminServiceProperties;
+        this.readinessPredicates = readinessPredicates;
         this.executorService = executorService;
     }
 
@@ -85,7 +84,8 @@ public class CatalogInvalidationNotifier implements DisposableBean {
      * any failure — the caller's operation must never fail because this signal could not be delivered.
      */
     public void invalidateCatalogCaches() {
-        if (!adminServiceProperties.getDataspace().isEnabled()) {
+        if (!readinessPredicates.isDataspaceReady()) {
+            log.debug("Data space: instance not ready, skipping catalog invalidation");
             return;
         }
         if (TransactionSynchronizationManager.isSynchronizationActive()) {

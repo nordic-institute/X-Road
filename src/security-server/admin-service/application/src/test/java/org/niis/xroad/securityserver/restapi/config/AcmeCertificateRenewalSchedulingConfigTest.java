@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,50 +27,24 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.niis.xroad.common.properties.NodeProperties;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
-@ExtendWith(SystemStubsExtension.class)
+/**
+ * The renewal flag is resolved from the DSL (stored overrides + packaged defaults) rather than the
+ * Spring {@code Environment}, so the decision is exercised directly. The node type gate is
+ * {@link PrimaryNodeCondition}, tested on its own.
+ */
 class AcmeCertificateRenewalSchedulingConfigTest {
-
-    @SystemStub
-    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Test
     void doesNotMatchWhenRenewalInactive() {
-        assertFalse(schedulingEnabled(false, NodeProperties.NodeType.PRIMARY));
+        assertFalse(AcmeCertificateRenewalSchedulingConfig.IsAcmeCertRenewalJobsActive.schedulingEnabled(false));
     }
 
     @Test
-    void doesNotMatchOnSecondaryNode() {
-        assertFalse(schedulingEnabled(true, NodeProperties.NodeType.SECONDARY));
-    }
-
-    @Test
-    void matchesOnPrimaryNodeWhenRenewalActive() {
-        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.PRIMARY));
-    }
-
-    @Test
-    void matchesOnStandaloneNodeWhenRenewalActive() {
-        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.STANDALONE));
-    }
-
-    /**
-     * The renewal flag is resolved from the DSL (stored overrides + packaged defaults) rather than the
-     * Spring {@code Environment}, so the decision is exercised directly; only the node type still comes
-     * from the environment.
-     */
-    private boolean schedulingEnabled(boolean renewalActive, NodeProperties.NodeType nodeType) {
-        variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
-
-        return AcmeCertificateRenewalSchedulingConfig.IsAcmeCertRenewalJobsActive.schedulingEnabled(renewalActive);
+    void matchesWhenRenewalActive() {
+        assertTrue(AcmeCertificateRenewalSchedulingConfig.IsAcmeCertRenewalJobsActive.schedulingEnabled(true));
     }
 }

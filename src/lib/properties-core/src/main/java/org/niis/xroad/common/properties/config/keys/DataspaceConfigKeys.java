@@ -69,9 +69,8 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
 
     /**
      * {@code xroad.dataspace.issuer.acme-renewal-active} — the Central Server's own explicit kill-switch for
-     * the co-located Issuer Service's DS TLS certificate ACME renewal scheduler. Central Server has no
-     * DataSpace-enabled-style feature flag to gate on: {@code xroad-ds-issuer-service} is an unconditional
-     * dependency of the Central Server package, not an opt-in feature.
+     * the co-located Issuer Service's DS TLS certificate ACME renewal scheduler: {@code xroad-ds-issuer-service}
+     * is an unconditional dependency of the Central Server package, not an opt-in feature.
      */
     public static final ConfigKey<Boolean> ISSUER_ACME_RENEWAL_ACTIVE = ISSUER
             .bool("acme-renewal-active")

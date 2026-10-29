@@ -357,10 +357,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * Data space (EDC) membership credential provisioning configuration.
      */
     public class Dataspace {
-        public boolean isEnabled() {
-            return config.value(AdminServiceConfigKeys.DATASPACE_ENABLED);
-        }
-
         public String getIdentityHubUrl() {
             return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_URL);
         }

@@ -45,9 +45,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * Wires the co-located Issuer Service's own DS TLS certificate {@link CertificateRenewalScheduler} instance.
  * Gated on secondary-node status and on Central Server's own explicit kill-switch,
- * {@code xroad.dataspace.issuer.acme-renewal-active} — Central Server has no DataSpace-enabled-style feature
- * flag to gate on instead, since the Issuer Service is an unconditional part of every Central Server install,
- * not an opt-in feature.
+ * {@code xroad.dataspace.issuer.acme-renewal-active}, since the Issuer Service is an unconditional part of
+ * every Central Server install, not an opt-in feature.
  * <p>
  * This deliberately stays a product-local class rather than living in {@code lib/acme-spring} alongside the
  * worker/service it wires — see the equivalent Security Server class,

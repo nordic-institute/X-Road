@@ -42,9 +42,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Shared readiness predicates used by both the DSP provisioning worker and the DSP status service.
- * Both callers key their logic on the same state; a single implementation prevents the two
- * from silently diverging.
+ * Shared readiness predicates used by the DSP provisioning worker, the DSP status service, the catalog
+ * invalidation notifier and the DS TLS renewal readiness gate. The callers key their logic on the same state;
+ * a single implementation prevents them from silently diverging.
  */
 @Slf4j
 @Component
@@ -66,8 +66,23 @@ public class DataspaceReadinessPredicates {
                     .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
                     .flatMap(k -> k.getCerts().stream())
                     .anyMatch(cert -> CertificateInfo.STATUS_REGISTERED.equals(cert.getStatus()));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.debug("Data space: could not read signer state, treating auth cert as not registered", e);
+            return false;
+        }
+    }
+
+    /**
+     * Returns {@code true} if globalconf lists at least one credential issuer for this instance.
+     * Read on every call so the answer follows globalconf additions and removals.
+     * Treats any globalconf failure (no anchor yet, no shared parameters yet) as "not ready".
+     */
+    public boolean isDataspaceReady() {
+        try {
+            return !globalConfProvider.getCredentialIssuerDids(globalConfProvider.getInstanceIdentifier()).isEmpty();
+        } catch (RuntimeException e) {
+            log.debug("Data space: readiness check failed, treating the instance as not ready: {}",
+                    e.getMessage());
             return false;
         }
     }

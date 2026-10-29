@@ -27,6 +27,7 @@ package org.niis.xroad.common.acme.spring.scheduling;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
@@ -34,13 +35,28 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CertificateRenewalSchedulerTest {
+
+    private static final Instant NOW = Instant.parse("2026-01-01T00:00:00Z");
+    private static final int RETRY_DELAY = 10;
+    private static final int RENEWAL_INTERVAL = 3600;
+    private static final int RECOVERY_DELAY = 60;
 
     @Mock
     private AcmeRenewalWorker acmeRenewalWorker;
@@ -75,6 +91,74 @@ class CertificateRenewalSchedulerTest {
         scheduler.destroy();
 
         verifyNoInteractions(injectedTaskScheduler);
+    }
+
+    @Test
+    void deferCycleDuringTheJobKeepsTheRecoveryDelay() {
+        var scheduler = schedulerWithInjectedClock();
+        onFirstRun(scheduler, scheduler::deferCycle);
+        scheduler.init();
+
+        runLastScheduledJob();
+
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RECOVERY_DELAY));
+        verify(injectedTaskScheduler, times(2)).schedule(any(Runnable.class), any(Instant.class));
+    }
+
+    @Test
+    void deferCycleDuringTheJobKeepsRetryBackoffForTheNextRun() {
+        var scheduler = schedulerInRetryBackoff();
+        onFirstRun(scheduler, scheduler::deferCycle);
+
+        runLastScheduledJob();
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RECOVERY_DELAY));
+        runLastScheduledJob();
+
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RETRY_DELAY));
+    }
+
+    @Test
+    void globalConfInvalidatedDuringTheJobClearsRetryBackoffForTheNextRun() {
+        var scheduler = schedulerInRetryBackoff();
+        onFirstRun(scheduler, scheduler::globalConfInvalidated);
+
+        runLastScheduledJob();
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RECOVERY_DELAY));
+        runLastScheduledJob();
+
+        assertThat(lastScheduledDelay()).isEqualTo(Duration.ofSeconds(RENEWAL_INTERVAL));
+    }
+
+    private void onFirstRun(CertificateRenewalScheduler scheduler, Runnable action) {
+        doAnswer(_ -> {
+            action.run();
+            return null;
+        }).doNothing().when(acmeRenewalWorker).execute(scheduler);
+    }
+
+    private CertificateRenewalScheduler schedulerInRetryBackoff() {
+        when(acmeConfig.getAcmeRenewalRetryDelay()).thenReturn(RETRY_DELAY);
+        when(acmeConfig.getAcmeRenewalInterval()).thenReturn(RENEWAL_INTERVAL);
+        var scheduler = schedulerWithInjectedClock();
+        scheduler.failure();
+        return scheduler;
+    }
+
+    private CertificateRenewalScheduler schedulerWithInjectedClock() {
+        when(injectedTaskScheduler.getClock()).thenReturn(Clock.fixed(NOW, ZoneOffset.UTC));
+        return new CertificateRenewalScheduler(acmeRenewalWorker, acmeConfig, injectedTaskScheduler);
+    }
+
+    private void runLastScheduledJob() {
+        var job = ArgumentCaptor.forClass(Runnable.class);
+        verify(injectedTaskScheduler, atLeastOnce()).schedule(job.capture(), any(Instant.class));
+        job.getValue().run();
+    }
+
+    private Duration lastScheduledDelay() {
+        var startTime = ArgumentCaptor.forClass(Instant.class);
+        verify(injectedTaskScheduler, atLeastOnce()).schedule(any(Runnable.class), startTime.capture());
+        return Duration.between(NOW, startTime.getValue());
     }
 
     private static ThreadPoolTaskScheduler dedicatedScheduler(CertificateRenewalScheduler scheduler) throws Exception {

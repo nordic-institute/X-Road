@@ -70,7 +70,7 @@ class SecurityServerConnectorTlsAcmeHostContextTest {
     }
 
     @Test
-    void getPublicHostnameShouldReturnNullWhenDataSpaceIsNotEnabled() {
+    void getPublicHostnameShouldReturnNullWhenNoIdentityHubUrlIsConfigured() {
         when(dataspace.getIdentityHubUrl()).thenReturn("");
 
         assertThat(hostContext.getPublicHostname()).isNull();

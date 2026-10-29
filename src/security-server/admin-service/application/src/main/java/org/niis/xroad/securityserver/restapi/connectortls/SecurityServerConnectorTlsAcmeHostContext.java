@@ -61,9 +61,9 @@ class SecurityServerConnectorTlsAcmeHostContext implements ConnectorTlsAcmeHostC
     private final DsTlsCertificateService connectorTlsCertificateService;
 
     /**
-     * @return the host component of the configured DataSpace IdentityHub URL, or {@code null} when DataSpace
-     *     isn't enabled (blank URL) — the same value {@code DataspaceProvisioningService} already uses to
-     *     construct this server's own {@code did:web} identifier.
+     * @return the host component of the configured DataSpace IdentityHub URL, or {@code null} when no
+     *     identity-hub URL is configured (blank URL) — the same value {@code DataspaceProvisioningService}
+     *     already uses to construct this server's own {@code did:web} identifier.
      */
     @Override
     public String getPublicHostname() {

@@ -127,8 +127,6 @@ configSeed:
     # IH/CP seed). identity-hub-url is the release's own namespace-qualified
     # identity-hub Service, so the derived holder DID / credentialService / STS
     # URL resolve for whoever issues credentials.
-    - key: xroad.proxy-ui-api.dataspace.enabled
-      value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ ds_ih_host }}"
     # Seconds (prod default 60); short so a fixture-written dataset is visible to the

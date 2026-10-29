@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,53 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.connectortls;
+package org.niis.xroad.securityserver.restapi.config;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.springframework.core.type.MethodMetadata;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
 @ExtendWith(SystemStubsExtension.class)
-class ConnectorTlsAcmeCertificateRenewalSchedulingConfigTest {
+class PrimaryNodeConditionTest {
 
     @SystemStub
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Test
-    void doesNotMatchWhenDataspaceDisabled() {
-        assertFalse(schedulingEnabled(false, NodeProperties.NodeType.PRIMARY));
-    }
-
-    @Test
     void doesNotMatchOnSecondaryNode() {
-        assertFalse(schedulingEnabled(true, NodeProperties.NodeType.SECONDARY));
+        assertFalse(matches(NodeProperties.NodeType.SECONDARY));
     }
 
     @Test
-    void matchesOnPrimaryNodeWhenDataspaceEnabled() {
-        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.PRIMARY));
+    void matchesOnPrimaryNode() {
+        assertTrue(matches(NodeProperties.NodeType.PRIMARY));
     }
 
     @Test
-    void matchesOnStandaloneNodeWhenDataspaceEnabled() {
-        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.STANDALONE));
+    void matchesOnStandaloneNode() {
+        assertTrue(matches(NodeProperties.NodeType.STANDALONE));
     }
 
-    /**
-     * The DataSpace-enabled flag is resolved from the DSL (stored overrides + packaged defaults) rather than the
-     * Spring {@code Environment}, so the decision is exercised directly; only the node type still comes from the
-     * environment.
-     */
-    private boolean schedulingEnabled(boolean dataspaceEnabled, NodeProperties.NodeType nodeType) {
+    private boolean matches(NodeProperties.NodeType nodeType) {
         variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
+        var metadata = mock(MethodMetadata.class);
+        when(metadata.getMethodName()).thenReturn("scheduler");
 
-        return ConnectorTlsAcmeCertificateRenewalSchedulingConfig.IsConnectorTlsAcmeSchedulingActive.schedulingEnabled(dataspaceEnabled);
+        return new PrimaryNodeCondition().matches(null, metadata);
     }
 }

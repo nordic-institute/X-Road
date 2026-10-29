@@ -315,8 +315,8 @@ public class DataspaceProvisioningService {
      * @param context the participant context whose credential to ensure
      * @return {@code ISSUED} for a terminally issued credential, {@code PENDING} when a request is
      *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
-     *         {@code ERROR} when all slots are exhausted, {@code ABSENT} when the instance is not
-     *         dataspace-enabled (no distributed issuer trust anchor) — no request is submitted
+     *         {@code ERROR} when all slots are exhausted, {@code ABSENT} when the instance has no
+     *         distributed issuer trust anchor — no request is submitted
      */
     public CredentialStatus ensureMembershipCredential(ParticipantContext context) {
         var trustedIssuerDids = trustedIssuerDids();
@@ -427,8 +427,8 @@ public class DataspaceProvisioningService {
 
     /**
      * The dataspace issuer trust anchor: every Issuer DID published by any Central Server node of this
-     * X-Road instance's globalconf. Empty when the instance is not dataspace-enabled (no
-     * {@code credentialIssuer} in the distributed shared parameters).
+     * X-Road instance's globalconf. Empty when the distributed shared parameters
+     * carry no {@code credentialIssuer}.
      */
     private Set<String> trustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
