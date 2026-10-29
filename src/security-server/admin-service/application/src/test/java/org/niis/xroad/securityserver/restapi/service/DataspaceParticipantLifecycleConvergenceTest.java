@@ -94,6 +94,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "COM", "other");
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
     private static final String OTHER_MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER);
+    private static final String SYSTEM_CTX_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
     private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-"
             + ParticipantIdentifierScheme.memberCtxId(OWNER) + ":" + SERVER_CODE + "-xroad-membership-credential-request";
 
@@ -378,6 +379,75 @@ class DataspaceParticipantLifecycleConvergenceTest {
         assertThat(identityHubClient.contextDid(MEMBER_CTX_ID)).contains(Did.parse(memberDid));
     }
 
+    @Test
+    void theSystemContextIsBoundOnlyOnceTheAuthCertIsRegisteredAndProvisionedAfterIt() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.hasSystemRow()).isFalse();
+        assertThat(identityHubClient.hasContext(SYSTEM_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isFalse();
+
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.systemRow()).hasValueSatisfying(row -> {
+            assertThat(row.getState()).isEqualTo(ParticipantState.ACTIVE);
+            assertThat(row.getDid()).isEqualTo(ParticipantIdentifierScheme.systemDid(IDENTITY_HUB_HOST).toString());
+        });
+        assertThat(identityHubClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+    }
+
+    @Test
+    void theSystemContextIsNotProvisionedWhileItCannotBeBound() {
+        bindingTable.failSystemBind();
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        assertThat(bindingTable.hasSystemRow()).isFalse();
+        assertThat(identityHubClient.hasContext(SYSTEM_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isFalse();
+    }
+
+    @Test
+    void aSecondPassWritesNoSecondSystemRowAndChangesNoSystemBinding() {
+        worker.provisionParticipant();
+        var systemRow = bindingTable.systemRow().orElseThrow();
+        var systemDid = systemRow.getDid();
+        var rowCount = bindingTable.rowCount();
+
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.rowCount()).isEqualTo(rowCount);
+        assertThat(bindingTable.systemRow().orElseThrow()).isSameAs(systemRow);
+        assertThat(systemRow.getDid()).isEqualTo(systemDid);
+        assertThat(identityHubClient.contextDid(SYSTEM_CTX_ID)).contains(Did.parse(systemDid));
+    }
+
+    @Test
+    void aSystemContextWithoutABindingRowIsNotLeftConvergedAndIsBoundAgain() {
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+        bindingTable.removeSystemRow();
+
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.hasSystemRow()).isTrue();
+    }
+
+    @Test
+    void aBoundSystemContextWithoutHubContextIsReprovisionedWhileDataspaceIsNotReady() {
+        bindingTable.seedSystem();
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        assertThat(identityHubClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+    }
+
     private void failProvisioningStep(int step) {
         switch (step) {
             case 1 -> identityHubClient.failNextCreateContext(MEMBER_CTX_ID);
@@ -440,6 +510,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
         private final Map<ClientId, Long> idByMember = new HashMap<>();
         private final AtomicLong idSeq = new AtomicLong();
         private boolean failOnNextDelete;
+        private boolean failOnSystemBind;
+        private Long systemRowId;
         private final Set<ClientId> unbindable = new HashSet<>();
 
         void seedActive(ClientId member) {
@@ -468,8 +540,33 @@ class DataspaceParticipantLifecycleConvergenceTest {
             if (removed == null) {
                 return false;
             }
-            idByMember.remove(memberById.remove(id));
+            if (id.equals(systemRowId)) {
+                systemRowId = null;
+            } else {
+                idByMember.remove(memberById.remove(id));
+            }
             return true;
+        }
+
+        Optional<DsParticipantEntity> systemRow() {
+            return Optional.ofNullable(systemRowId).map(rowsById::get);
+        }
+
+        boolean hasSystemRow() {
+            return systemRowId != null;
+        }
+
+        void removeSystemRow() {
+            delete(systemRowId);
+        }
+
+        void failSystemBind() {
+            failOnSystemBind = true;
+        }
+
+        void seedSystem() {
+            bindSystem(ParticipantIdentifierScheme.SYSTEM_SEGMENT,
+                    ParticipantIdentifierScheme.systemDid(IDENTITY_HUB_HOST).toString());
         }
 
         Optional<DsParticipantEntity> findByMember(ClientId member) {
@@ -509,9 +606,30 @@ class DataspaceParticipantLifecycleConvergenceTest {
                 }
                 return bind(member, invocation.getArgument(1), invocation.getArgument(2));
             });
+            when(repository.findSystemParticipant()).thenAnswer(invocation -> systemRow());
+            when(repository.bindSystemParticipant(anyString(), anyString())).thenAnswer(invocation -> {
+                if (failOnSystemBind) {
+                    throw new FakeProvisioningException("ds_participant SYSTEM row insert");
+                }
+                return bindSystem(invocation.getArgument(0), invocation.getArgument(1));
+            });
             when(repository.decommissionMember(any())).thenAnswer(invocation -> decommission(invocation.getArgument(0)));
             when(repository.findDecommissioned()).thenAnswer(invocation -> findDecommissioned());
             when(repository.delete(anyLong())).thenAnswer(invocation -> delete(invocation.getArgument(0)));
+        }
+
+        DsParticipantEntity bindSystem(String ctxId, String did) {
+            var entity = new DsParticipantEntity();
+            var id = idSeq.incrementAndGet();
+            entity.setId(id);
+            entity.setParticipantType(ParticipantType.SYSTEM);
+            entity.setCtxId(ctxId);
+            entity.setDid(did);
+            entity.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+            entity.setState(ParticipantState.ACTIVE);
+            rowsById.put(id, entity);
+            systemRowId = id;
+            return entity;
         }
 
         DsParticipantEntity bind(ClientId member, String ctxId, String did) {

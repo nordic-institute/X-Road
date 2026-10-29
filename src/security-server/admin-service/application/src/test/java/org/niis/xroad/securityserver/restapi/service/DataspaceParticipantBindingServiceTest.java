@@ -54,6 +54,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -151,6 +152,68 @@ class DataspaceParticipantBindingServiceTest {
         assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isEmpty();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+    }
+
+    @Test
+    void bindsTheDerivedSystemIdentifierWhenNoSystemRowExists() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+
+        assertThat(service.bindSystemIfAbsent()).isTrue();
+
+        verify(dsParticipantRepository).bindSystemParticipant(ParticipantIdentifierScheme.SYSTEM_SEGMENT,
+                ParticipantIdentifierScheme.systemDid(SS_HOST).toString());
+    }
+
+    @Test
+    void leavesAnActiveSystemRowUntouchedAndReportsItBound() {
+        var boundRow = rowIn(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundRow));
+
+        assertThat(service.bindSystemIfAbsent()).isTrue();
+
+        verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
+    }
+
+    @Test
+    void writesOneSystemRowAcrossTwoPasses() {
+        var boundRow = rowIn(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findSystemParticipant())
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(boundRow));
+
+        assertThat(service.bindSystemIfAbsent()).isTrue();
+        assertThat(service.bindSystemIfAbsent()).isTrue();
+
+        verify(dsParticipantRepository, times(1)).bindSystemParticipant(anyString(), anyString());
+    }
+
+    @Test
+    void neitherRebindsNorReportsASystemRowThatIsDecommissioned() {
+        var tombstone = rowIn(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(tombstone));
+
+        assertThat(service.bindSystemIfAbsent()).isFalse();
+
+        verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
+    }
+
+    @Test
+    void reportsTheSystemIdentifierNotBoundWhenTheWriteFails() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(dsParticipantRepository.bindSystemParticipant(anyString(), anyString()))
+                .thenThrow(new DataIntegrityViolationException("uniq_ds_participant_system"));
+
+        assertThat(service.bindSystemIfAbsent()).isFalse();
+    }
+
+    @Test
+    void bindsNoSystemIdentifierWhileTheRegisteredAddressIsUnknown() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(SERVER_ID));
+
+        assertThat(service.bindSystemIfAbsent()).isFalse();
+
+        verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
     }
 
     private static DsParticipantEntity rowIn(ParticipantState state) {

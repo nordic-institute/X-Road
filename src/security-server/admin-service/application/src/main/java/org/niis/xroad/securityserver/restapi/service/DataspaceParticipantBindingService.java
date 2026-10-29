@@ -32,23 +32,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Writes the {@code ds_participant} MEMBER rows that bind a member's data space identity, per
- * XRDADR-41's derive-then-bind decision. The only writer of that table.
+ * Writes the {@code ds_participant} rows that bind a member's or the Security Server's own SYSTEM
+ * data space identity, per XRDADR-41's derive-then-bind decision. The only writer of that table.
  *
- * <p>Binding is level-triggered: each provisioning pass binds whichever hosted members still lack a
- * row, so a member is bound once it is a registered client of this Security Server and stays bound
- * from then on. A bound row is authoritative and is never rewritten.
+ * <p>Binding is level-triggered: each provisioning pass binds whichever hosted members, and the
+ * SYSTEM identity, still lack a row, so an identity is bound once the caller allows it and stays
+ * bound from then on. A bound row is authoritative and is never rewritten.
  *
- * <p>Binding comes before provisioning: the caller binds a member first and provisions only the
- * members this service reports as bound. Deciding when binding is allowed (readiness, a known
+ * <p>Binding comes before provisioning: the caller binds an identity first and provisions only the
+ * identities this service reports as bound. Deciding when binding is allowed (readiness, a known
  * registered address, a registered authentication certificate) is the caller's job.
  */
 @Slf4j
@@ -81,12 +83,31 @@ public class DataspaceParticipantBindingService {
         return bound;
     }
 
+    /**
+     * Binds the derived SYSTEM ctx-id and DID unless a SYSTEM row exists. An existing row is left
+     * untouched. Never throws: a SYSTEM identity that cannot be bound now is reported as not bound and
+     * retried on a later pass.
+     *
+     * @return whether an active SYSTEM binding row exists afterwards
+     */
+    public boolean bindSystemIfAbsent() {
+        try {
+            return bindUnlessPresent(dsParticipantRepository.findSystemParticipant(), this::bindSystem);
+        } catch (Exception e) {
+            log.warn("Data space: could not bind participant identity for the SYSTEM context", e);
+            return false;
+        }
+    }
+
     private boolean bindIfAbsent(ClientId member) {
-        var existing = dsParticipantRepository.findByMemberIdentifier(member);
+        return bindUnlessPresent(dsParticipantRepository.findByMemberIdentifier(member), () -> bindMember(member));
+    }
+
+    private static boolean bindUnlessPresent(Optional<DsParticipantEntity> existing, Runnable bind) {
         if (existing.isPresent()) {
             return existing.get().getState() == ParticipantState.ACTIVE;
         }
-        bindMember(member);
+        bind.run();
         return true;
     }
 
@@ -95,5 +116,12 @@ public class DataspaceParticipantBindingService {
         var did = didAuthority.memberDid(member);
         dsParticipantRepository.bindMemberParticipant(member, ctxId, did.toString());
         log.info("Dataspace: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId, did);
+    }
+
+    private void bindSystem() {
+        var ctxId = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
+        var did = didAuthority.systemDid();
+        dsParticipantRepository.bindSystemParticipant(ctxId, did.toString());
+        log.info("Dataspace: bound participant identity for the SYSTEM context (ctx-id '{}', DID '{}')", ctxId, did);
     }
 }

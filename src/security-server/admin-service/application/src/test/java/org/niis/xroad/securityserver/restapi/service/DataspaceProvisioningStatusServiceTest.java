@@ -232,7 +232,7 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     @Test
-    void readStatusReportsIdentityStatusOnlyForMemberContexts() {
+    void readStatusReportsUnboundIdentityForSystemAndMemberWithoutBindingRows() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
 
@@ -240,8 +240,56 @@ class DataspaceProvisioningStatusServiceTest {
 
         var system = status.participantContexts().get(0);
         var member = status.participantContexts().get(1);
-        assertThat(system.identityStatus()).isNull();
+        assertThat(system.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
         assertThat(member.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
+    @Test
+    void readStatusReportsSystemIdentityOkOnceItsBindingRowExists() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findSystemParticipant())
+                .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"))));
+
+        DataspaceStatus status = statusService.readStatus();
+
+        assertThat(status.participantContexts().getFirst().identityStatus()).isEqualTo(IdentityStatus.OK);
+    }
+
+    @Test
+    void readStatusReportsSystemIdentityDriftWhenHubServesDifferentDid() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        when(identityHubClient.contextDid(SYSTEM_PARTICIPANT_ID))
+                .thenReturn(Optional.of(ParticipantIdentifierScheme.systemDid("ih.other.test:7183")));
+        when(dsParticipantRepository.findSystemParticipant())
+                .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"))));
+
+        DataspaceStatus status = statusService.readStatus();
+
+        assertThat(status.participantContexts().getFirst().identityStatus()).isEqualTo(IdentityStatus.DRIFTED);
+    }
+
+    @Test
+    void readStatusReportsSystemIdentityMismatchForBindingRowOfAnotherAddress() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findSystemParticipant())
+                .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ih.other.test:7183"))));
+
+        DataspaceStatus status = statusService.readStatus();
+
+        assertThat(status.participantContexts().getFirst().identityStatus()).isEqualTo(IdentityStatus.MISMATCH);
+    }
+
+    private static DsParticipantEntity systemRow(Did did) {
+        var row = new DsParticipantEntity();
+        row.setParticipantType(ParticipantType.SYSTEM);
+        row.setCtxId(SYSTEM_PARTICIPANT_ID);
+        row.setDid(did.toString());
+        row.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        row.setState(ParticipantState.ACTIVE);
+        return row;
     }
 
     @Test

@@ -741,7 +741,20 @@ class DataspaceProvisioningServiceTest {
 
         assertThat(status.intendedDid()).isEqualTo(systemDid);
         assertThat(status.contextDidMatchesIntended()).isTrue();
-        assertThat(status.identityStatus()).isNull();
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
+    @Test
+    void readContextStatusReportsTheBoundDidAsIntendedForASystemContext() {
+        var bound = boundSystemParticipant(SS_HOST);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(bound));
+        when(identityHubClient.contextDid(SYSTEM_CONTEXT.participantId())).thenReturn(Optional.of(Did.parse(bound.getDid())));
+
+        var status = service.readContextStatus(SYSTEM_CONTEXT);
+
+        assertThat(status.intendedDid()).isEqualTo(Did.parse(bound.getDid()));
+        assertThat(status.contextDidMatchesIntended()).isTrue();
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.OK);
     }
 
     @Test
@@ -754,7 +767,7 @@ class DataspaceProvisioningServiceTest {
         assertThat(status.contextCreated()).isTrue();
         assertThat(status.intendedDid()).isEqualTo(ParticipantIdentifierScheme.systemDid(SS_HOST));
         assertThat(status.contextDidMatchesIntended()).isFalse();
-        assertThat(status.identityStatus()).isNull();
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.DRIFTED);
     }
 
     @Test
