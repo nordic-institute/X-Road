@@ -36,6 +36,7 @@ import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
@@ -56,6 +57,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus.ISSUED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
+import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.UNBOUND;
 
 /**
  * Level-triggered provisioning worker that drives dataspace participant context provisioning and
@@ -210,11 +213,14 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * the Control Plane has no status to read. A context of any kind whose hub DID differs from the
      * derived one is never converged: it takes the ensure pass, which refuses to touch it and reports
      * the drift instead of re-applying the stale DID. A context whose identity hub state could not be
-     * read is left for the next tick, rather than spending a second identity hub call on it. Members are
-     * bound only after their participant context has been ensured, so the DID written to
-     * {@code ds_participant} is one the identity hub has just confirmed or been created with. A
-     * member whose context is in DID drift is left unbound and stays recoverable by correcting the
-     * configuration the DID is derived from.
+     * read is left for the next tick, rather than spending a second identity hub call on it.
+     *
+     * <p>Members are bound first and provisioned second: no member context is provisioned without an
+     * active binding row. Only the binding of unbound members waits until dataspace readiness holds
+     * and this server has a registered authentication certificate; a member that already holds an
+     * active binding row is provisioned regardless, so it recovers from a lost hub or Control Plane
+     * context. A member whose identity is drifted or unreadable is neither bound nor provisioned. A
+     * member that cannot be bound is skipped and retried on the next tick.
      */
     private int ensure() {
         var contexts = dataspaceProvisioningService.participantContexts();
@@ -248,11 +254,11 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         }
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
+        boolean dataspaceReady = readinessPredicates.isDataspaceReady();
+        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={}", dataspaceReady, authCertRegistered);
 
-        var ensuredContexts = ensureContexts(nonConverged);
-
-        participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
+        var provisionable = provisionableContexts(nonConverged, statuses, dataspaceReady && authCertRegistered);
+        var ensuredContexts = ensureContexts(provisionable);
 
         if (!authCertRegistered) {
             log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
@@ -261,6 +267,38 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
         ensureCredentials(ensuredContexts, statuses);
         return contextCount;
+    }
+
+    /**
+     * Returns the non-converged contexts to provision in this tick: every SYSTEM context, and the
+     * members that hold an active binding row (identity status {@code OK}). Members whose identity
+     * status is {@code UNBOUND} are bound first, and only when {@code membersMayBeBound}; a member
+     * in any other state, such as drifted, is neither bound nor provisioned.
+     */
+    private List<ParticipantContext> provisionableContexts(List<ParticipantContext> nonConverged,
+            Map<ParticipantContext, ParticipantContextStatus> statuses, boolean membersMayBeBound) {
+        var bound = new HashSet<>(membersWithIdentityStatus(nonConverged, statuses, OK));
+        var unbound = membersWithIdentityStatus(nonConverged, statuses, UNBOUND);
+        if (!unbound.isEmpty()) {
+            if (membersMayBeBound) {
+                bound.addAll(participantBindingService.bindMembersIfAbsent(unbound));
+            } else {
+                log.debug("Dataspace provisioning: dataspace not ready or auth cert not registered, "
+                        + "leaving {} member(s) unbound and unprovisioned", unbound.size());
+            }
+        }
+        return nonConverged.stream()
+                .filter(context -> context.kind() == ParticipantKind.SYSTEM || bound.contains(context.memberId()))
+                .toList();
+    }
+
+    private static List<ClientId> membersWithIdentityStatus(List<ParticipantContext> contexts,
+            Map<ParticipantContext, ParticipantContextStatus> statuses, IdentityStatus identityStatus) {
+        return contexts.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .filter(context -> statuses.get(context).identityStatus() == identityStatus)
+                .map(ParticipantContext::memberId)
+                .toList();
     }
 
     /**
@@ -303,13 +341,6 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         return status.contextDidMatchesIntended()
                 && status.credentialStatus() == ISSUED
                 && (status.identityStatus() == null || status.identityStatus() == OK);
-    }
-
-    private static List<ClientId> memberIdsOf(List<ParticipantContext> contexts) {
-        return contexts.stream()
-                .filter(context -> context.kind() == ParticipantKind.MEMBER)
-                .map(ParticipantContext::memberId)
-                .toList();
     }
 
     private static boolean ownerUnknown(List<ParticipantContext> contexts) {

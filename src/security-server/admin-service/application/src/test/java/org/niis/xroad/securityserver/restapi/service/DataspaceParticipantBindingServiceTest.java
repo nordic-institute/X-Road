@@ -41,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
@@ -54,7 +55,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,7 +90,7 @@ class DataspaceParticipantBindingServiceTest {
     void bindsDerivedIdentifiersForEveryUnboundMember() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), true)).isEqualTo(2);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(MEMBER, OTHER_MEMBER);
 
         verify(dsParticipantRepository).bindMemberParticipant(MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(MEMBER),
@@ -101,12 +101,12 @@ class DataspaceParticipantBindingServiceTest {
     }
 
     @Test
-    void leavesAlreadyBoundMembersUntouched() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
-                .thenReturn(Optional.of(mock(DsParticipantEntity.class)));
+    void leavesAlreadyBoundMembersUntouchedAndReportsThemBound() {
+        var boundRow = rowIn(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundRow));
         when(dsParticipantRepository.findByMemberIdentifier(OTHER_MEMBER)).thenReturn(Optional.empty());
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), true)).isEqualTo(1);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(MEMBER, OTHER_MEMBER);
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(eq(MEMBER), anyString(), anyString());
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
@@ -114,19 +114,22 @@ class DataspaceParticipantBindingServiceTest {
 
     @Test
     void writesNothingWhenEveryMemberIsAlreadyBound() {
-        when(dsParticipantRepository.findByMemberIdentifier(any()))
-                .thenReturn(Optional.of(mock(DsParticipantEntity.class)));
+        var boundRow = rowIn(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.of(boundRow));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER), true)).isZero();
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).containsExactly(MEMBER);
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }
 
     @Test
-    void readsNoMemberStateBeforeTheServerHasARegisteredAuthenticationCertificate() {
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), false)).isZero();
+    void neitherRebindsNorReportsAMemberWhoseRowIsDecommissioned() {
+        var tombstone = rowIn(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.of(tombstone));
 
-        verifyNoInteractions(dsParticipantRepository);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isEmpty();
+
+        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }
 
     @Test
@@ -135,18 +138,24 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.bindMemberParticipant(eq(MEMBER), anyString(), anyString()))
                 .thenThrow(new DataIntegrityViolationException("uniq_ds_participant_member_identifier"));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), true)).isEqualTo(1);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(OTHER_MEMBER);
 
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
     }
 
     @Test
-    void reportsAnUnknownRegisteredAddressInsteadOfPropagating() {
+    void bindsNoMemberWhileTheRegisteredAddressIsUnknown() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(SERVER_ID));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER), true)).isZero();
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isEmpty();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+    }
+
+    private static DsParticipantEntity rowIn(ParticipantState state) {
+        var row = mock(DsParticipantEntity.class);
+        when(row.getState()).thenReturn(state);
+        return row;
     }
 }

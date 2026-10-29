@@ -54,6 +54,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +63,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doThrow;
@@ -80,11 +80,14 @@ class DataspaceParticipantProvisioningWorkerTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "1234");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "5678");
     private static final String MEMBER_ID = "TEST:COM:5678";
+    private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "COM", "9012");
 
     private static final String SYSTEM_ID = "system";
 
     private static final ParticipantContext SYSTEM_CONTEXT = new ParticipantContext(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
     private static final ParticipantContext MEMBER_CONTEXT = new ParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
+    private static final ParticipantContext OTHER_MEMBER_CONTEXT =
+            new ParticipantContext("TEST:COM:9012", ParticipantKind.MEMBER, OTHER_MEMBER);
     private static final ParticipantContext PRE_OWNER_SYSTEM_CONTEXT = new ParticipantContext(SYSTEM_ID, ParticipantKind.SYSTEM, null);
 
     @Mock
@@ -99,6 +102,8 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     private static final ParticipantContextStatus NOT_CONVERGED =
             statusOf(false, CredentialStatus.ABSENT, null);
+    private static final ParticipantContextStatus UNBOUND_MEMBER =
+            statusOf(false, CredentialStatus.ABSENT, IdentityStatus.UNBOUND);
 
     @InjectMocks
     private DataspaceParticipantProvisioningWorker worker;
@@ -111,7 +116,12 @@ class DataspaceParticipantProvisioningWorkerTest {
     void setUp() {
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
-        when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(NOT_CONVERGED);
+        when(dataspaceProvisioningService.readContextStatus(any())).thenAnswer(invocation ->
+                ((ParticipantContext) invocation.getArgument(0)).kind() == ParticipantKind.MEMBER
+                        ? UNBOUND_MEMBER : NOT_CONVERGED);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+        when(participantBindingService.bindMembersIfAbsent(any()))
+                .thenAnswer(invocation -> new ArrayList<ClientId>(invocation.getArgument(0)));
         appender.start();
         cycleLogger.addAppender(appender);
         cycleLogger.setLevel(Level.DEBUG);
@@ -148,7 +158,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantBindsMemberIdentitiesOnlyAfterTheirContextIsEnsured() {
+    void provisionParticipantBindsAMemberBeforeItsContextIsProvisioned() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts())
                 .thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
@@ -156,29 +166,118 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         var order = inOrder(dataspaceProvisioningService, participantBindingService);
+        order.verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
         order.verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
-        order.verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), true);
     }
 
     @Test
-    void provisionParticipantLeavesADriftedMemberUnbound() {
+    void provisionParticipantProvisionsOnlyTheMembersThatCouldBeBound() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT, OTHER_MEMBER_CONTEXT));
+        when(participantBindingService.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).thenReturn(List.of(OTHER_MEMBER));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService).ensureParticipantContext(OTHER_MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(OTHER_MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantKeepsTheBindingOfAMemberWhoseProvisioningFails() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
-        doThrow(new RuntimeException("DID drift")).when(dataspaceProvisioningService)
+        doThrow(new RuntimeException("identity hub unavailable")).when(dataspaceProvisioningService)
                 .ensureParticipantContext(MEMBER_CONTEXT);
 
         worker.provisionParticipant();
 
-        verify(participantBindingService).bindMembersIfAbsent(List.of(), false);
+        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
     }
 
     @Test
-    void provisionParticipantBindsNothingUntilTheAuthCertIsRegistered() {
+    void provisionParticipantBindsAndProvisionsNoMemberWhileDataspaceIsNotReady() {
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantReprovisionsABoundMemberWhileDataspaceIsNotReady() {
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantReprovisionsABoundMemberUntilTheAuthCertIsRegisteredButRequestsNoCredential() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+    }
+
+    @Test
+    void provisionParticipantBindsAndProvisionsNoMemberUntilTheAuthCertIsRegistered() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
 
         worker.provisionParticipant();
 
-        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), false);
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantStillTearsDownARemovedMemberWhileDataspaceIsNotReady() {
+        var tombstone = new TombstonedParticipant(1L, MEMBER_ID);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(dataspaceProvisioningService.decommissionedParticipants()).thenReturn(List.of(tombstone));
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).teardownParticipant(tombstone);
+    }
+
+    @Test
+    void aSecondPassOverConvergedMembersBindsAndProvisionsNothingNew() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT)).thenReturn(
+                statusOf(false, CredentialStatus.ABSENT, IdentityStatus.UNBOUND),
+                statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        verify(participantBindingService, times(1)).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, times(1)).ensureMembershipCredential(MEMBER_CONTEXT);
     }
 
     @Test
@@ -187,7 +286,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindMembersIfAbsent(any(), anyBoolean());
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
     }
 
     @Test
@@ -212,7 +311,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantEnsuresAllContextsAndDefersCredentialUntilAuthCertRegistered() {
+    void provisionParticipantEnsuresOnlySystemAndDefersCredentialUntilAuthCertRegistered() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(dataspaceProvisioningService.participantContexts())
                 .thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
@@ -220,7 +319,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
-        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
     }
 
@@ -314,7 +413,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService, times(2)).ensureControlPlaneContext(MEMBER_CONTEXT, HUB_DID);
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
-        verify(participantBindingService, never()).bindMembersIfAbsent(any(), anyBoolean());
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
     }
 
     @Test
@@ -377,7 +476,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantKeepsRecheckingAMemberWhoseIdentityCouldNotBeRead() {
+    void provisionParticipantLeavesAMemberWhoseIdentityCouldNotBeReadUnboundAndUnprovisioned() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(MEMBER_CONTEXT));
         when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
@@ -385,11 +484,27 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
     }
 
     @Test
-    void provisionParticipantEnsuresAndBindsAMemberConvergedExceptForItsIdentity() {
+    void provisionParticipantLeavesADriftedMemberUnboundAndUnprovisioned() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT)).thenReturn(new ParticipantContextStatus(
+                MEMBER_ID, ParticipantKind.MEMBER, HUB_DID, false, DRIFTED_INTENDED_DID, CredentialStatus.ISSUED,
+                IdentityStatus.DRIFTED));
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantBindsAndEnsuresAMemberConvergedExceptForItsIdentity() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(MEMBER_CONTEXT));
         when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
@@ -397,8 +512,8 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
+        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
-        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), true);
     }
 
     @Test

@@ -39,6 +39,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
 @ExtendWith(SystemStubsExtension.class)
@@ -62,6 +63,11 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
             assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
             assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
                     .isInstanceOf(NoopDataspaceParticipantProvisioningTrigger.class);
+            assertThat(context).doesNotHaveBean(DataspaceParticipantProvisioningWorker.class);
+
+            context.getBean(DataspaceParticipantProvisioningTrigger.class).provisionParticipantAsync();
+
+            verifyNoInteractions(context.getBean(DataspaceParticipantBindingService.class));
         });
     }
 

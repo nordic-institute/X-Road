@@ -32,8 +32,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,11 +47,9 @@ import java.util.List;
  * row, so a member is bound once it is a registered client of this Security Server and stays bound
  * from then on. A bound row is authoritative and is never rewritten.
  *
- * <p>The pass binds nothing until this server has a registered authentication certificate, and the
- * caller passes only members whose participant context the identity hub has already confirmed.
- * Binding an interim or misconfigured host would freeze a DID that can then only be repaired by
- * hand, and a member that stays unbound simply keeps deriving its DID on the fly until a later pass
- * binds it.
+ * <p>Binding comes before provisioning: the caller binds a member first and provisions only the
+ * members this service reports as bound. Deciding when binding is allowed (readiness, a known
+ * registered address, a registered authentication certificate) is the caller's job.
  */
 @Slf4j
 @Service
@@ -60,43 +60,40 @@ public class DataspaceParticipantBindingService {
     private final DataspaceDidAuthority didAuthority;
 
     /**
-     * Binds the derived ctx-id and DID of every given member that is not bound yet. Existing rows
-     * are left untouched. Never throws: a member that cannot be bound now is left for a later pass.
+     * Binds the derived ctx-id and DID of every given member that has no row yet. Existing rows are
+     * left untouched. Never throws: a member that cannot be bound now is left out of the result and
+     * retried on a later pass, and does not stop the other members from being bound.
      *
-     * @param members            the hosted members whose participant context has been ensured
-     * @param authCertRegistered whether this server has a registered authentication certificate;
-     *                           until it has, the pass returns without reading any member's state
-     * @return the number of rows written
+     * @param members the hosted members to bind
+     * @return the given members that hold an active binding row afterwards, in the given order
      */
-    public int bindMembersIfAbsent(Collection<ClientId> members, boolean authCertRegistered) {
-        if (!authCertRegistered) {
-            log.debug("Data space: no registered authentication certificate, leaving {} member(s) unbound",
-                    members.size());
-            return 0;
+    public List<ClientId> bindMembersIfAbsent(Collection<ClientId> members) {
+        List<ClientId> bound = new ArrayList<>();
+        for (var member : members) {
+            try {
+                if (bindIfAbsent(member)) {
+                    bound.add(member);
+                }
+            } catch (Exception e) {
+                log.warn("Data space: could not bind participant identity for member {}", member, e);
+            }
         }
-
-        try {
-            List<ClientId> unbound = members.stream()
-                    .filter(member -> dsParticipantRepository.findByMemberIdentifier(member).isEmpty())
-                    .toList();
-
-            return (int) unbound.stream().filter(this::bindMember).count();
-        } catch (Exception e) {
-            log.warn("Data space: participant identity binding pass failed", e);
-            return 0;
-        }
+        return bound;
     }
 
-    private boolean bindMember(ClientId member) {
+    private boolean bindIfAbsent(ClientId member) {
+        var existing = dsParticipantRepository.findByMemberIdentifier(member);
+        if (existing.isPresent()) {
+            return existing.get().getState() == ParticipantState.ACTIVE;
+        }
+        bindMember(member);
+        return true;
+    }
+
+    private void bindMember(ClientId member) {
         var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
         var did = didAuthority.memberDid(member);
-        try {
-            dsParticipantRepository.bindMemberParticipant(member, ctxId, did.toString());
-            log.info("Data space: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId, did);
-            return true;
-        } catch (Exception e) {
-            log.warn("Data space: could not bind participant identity for member {}", member, e);
-            return false;
-        }
+        dsParticipantRepository.bindMemberParticipant(member, ctxId, did.toString());
+        log.info("Dataspace: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId, did);
     }
 }

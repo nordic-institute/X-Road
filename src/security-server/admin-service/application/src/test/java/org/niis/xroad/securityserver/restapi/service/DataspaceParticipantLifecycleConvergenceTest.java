@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,11 +56,14 @@ import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,7 +91,9 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
+    private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "COM", "other");
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+    private static final String OTHER_MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER);
     private static final String CREDENTIAL_HOLDER_PID_SLOT0 = MEMBER_CTX_ID + "-"
             + ParticipantIdentifierScheme.memberCtxId(OWNER) + ":" + SERVER_CODE + "-xroad-membership-credential-request";
 
@@ -122,6 +128,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
@@ -270,6 +277,107 @@ class DataspaceParticipantLifecycleConvergenceTest {
         assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
     }
 
+    @Test
+    void aNewMemberIsBoundBeforeItsContextIsProvisioned() {
+        givenMemberHasRegisteredClient(MEMBER);
+        identityHubClient.failNextCreateContext(MEMBER_CTX_ID);
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        assertThat(bindingTable.stateOf(MEMBER)).isEqualTo(ParticipantState.ACTIVE);
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
+    }
+
+    @Test
+    void aMemberThatCannotBeBoundIsNotProvisionedAndTheOthersAre() {
+        givenMembersHaveRegisteredClients(MEMBER, OTHER_MEMBER);
+        bindingTable.failBindOf(MEMBER);
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(bindingTable.stateOf(OTHER_MEMBER)).isEqualTo(ParticipantState.ACTIVE);
+        assertThat(identityHubClient.hasContext(OTHER_MEMBER_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(OTHER_MEMBER_CTX_ID)).isTrue();
+    }
+
+    @Test
+    void noMemberIsBoundOrProvisionedWhileDataspaceIsNotReadyAndBothFollowOnceItIs() {
+        givenMemberHasRegisteredClient(MEMBER);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isFalse();
+
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.stateOf(MEMBER)).isEqualTo(ParticipantState.ACTIVE);
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isTrue();
+    }
+
+    @Test
+    void aBoundMemberWithoutContextsIsReprovisionedWhileDataspaceIsNotReady() {
+        bindingTable.seedActive(MEMBER);
+        givenMemberHasRegisteredClient(MEMBER);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isTrue();
+    }
+
+    @Test
+    void noMemberIsBoundOrProvisionedUntilTheAuthCertIsRegistered() {
+        givenMemberHasRegisteredClient(MEMBER);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isFalse();
+    }
+
+    @Test
+    void aRemovedMembersTeardownStillRunsWhileDataspaceIsNotReady() {
+        bindingTable.seedActive(MEMBER);
+        givenMemberHasRegisteredClient(MEMBER);
+        worker.provisionParticipant();
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isTrue();
+
+        givenMemberHasNoClients();
+        bindingTable.decommission(MEMBER);
+        when(readinessPredicates.isDataspaceReady()).thenReturn(false);
+        worker.provisionParticipant();
+
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+    }
+
+    @Test
+    void aSecondPassChangesNoBindingRow() {
+        givenMembersHaveRegisteredClients(MEMBER, OTHER_MEMBER);
+        worker.provisionParticipant();
+        var memberRow = bindingTable.findByMember(MEMBER).orElseThrow();
+        var memberDid = memberRow.getDid();
+        var rowCount = bindingTable.rowCount();
+
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.rowCount()).isEqualTo(rowCount);
+        assertThat(bindingTable.findByMember(MEMBER).orElseThrow()).isSameAs(memberRow);
+        assertThat(memberRow.getDid()).isEqualTo(memberDid);
+        assertThat(identityHubClient.contextDid(MEMBER_CTX_ID)).contains(Did.parse(memberDid));
+    }
+
     private void failProvisioningStep(int step) {
         switch (step) {
             case 1 -> identityHubClient.failNextCreateContext(MEMBER_CTX_ID);
@@ -307,6 +415,16 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(clientRepository.getAllLocalClients()).thenReturn(List.of(client));
     }
 
+    private void givenMembersHaveRegisteredClients(ClientId... members) {
+        var clients = Arrays.stream(members).map(member -> {
+            var client = mock(ClientEntity.class);
+            when(client.getIdentifier()).thenReturn(ClientIdEntityFactory.create(member));
+            when(client.getClientStatus()).thenReturn(Client.STATUS_REGISTERED);
+            return client;
+        }).toList();
+        when(clientRepository.getAllLocalClients()).thenReturn(clients);
+    }
+
     private void givenMemberHasNoClients() {
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
     }
@@ -322,6 +440,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         private final Map<ClientId, Long> idByMember = new HashMap<>();
         private final AtomicLong idSeq = new AtomicLong();
         private boolean failOnNextDelete;
+        private final Set<ClientId> unbindable = new HashSet<>();
 
         void seedActive(ClientId member) {
             seed(member, ParticipantState.ACTIVE);
@@ -369,14 +488,27 @@ class DataspaceParticipantLifecycleConvergenceTest {
             return rowsById.get(idByMember.get(member)).getState();
         }
 
+        void failBindOf(ClientId member) {
+            unbindable.add(member);
+        }
+
+        int rowCount() {
+            return rowsById.size();
+        }
+
         void failNextDelete() {
             failOnNextDelete = true;
         }
 
         void wireOnto(DsParticipantRepository repository) {
             when(repository.findByMemberIdentifier(any())).thenAnswer(invocation -> findByMember(invocation.getArgument(0)));
-            when(repository.bindMemberParticipant(any(), anyString(), anyString())).thenAnswer(invocation ->
-                    bind(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
+            when(repository.bindMemberParticipant(any(), anyString(), anyString())).thenAnswer(invocation -> {
+                ClientId member = invocation.getArgument(0);
+                if (unbindable.contains(member)) {
+                    throw new FakeProvisioningException("ds_participant row insert " + member);
+                }
+                return bind(member, invocation.getArgument(1), invocation.getArgument(2));
+            });
             when(repository.decommissionMember(any())).thenAnswer(invocation -> decommission(invocation.getArgument(0)));
             when(repository.findDecommissioned()).thenAnswer(invocation -> findDecommissioned());
             when(repository.delete(anyLong())).thenAnswer(invocation -> delete(invocation.getArgument(0)));
