@@ -78,7 +78,9 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private static final String ISSUER_SERVICE_ID_SUFFIX = "-issuer-service";
     private static final String ADMIN_ROLE = "admin";
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
-    private static final String KEY_ALGORITHM = "EdDSA";
+    private static final String KEY_ALGORITHM = "EC";
+    private static final String KEY_CURVE_PARAM = "curve";
+    private static final String KEY_CURVE = "secp256r1";
     private static final String MGMT_HOLDER_DID_SUFFIX = ":mgmt";
     private static final String EQ_OPERATOR = "=";
     private static final String LT_OPERATOR = "<";
@@ -127,7 +129,7 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
                 .key(KeyDescriptor.Builder.newInstance()
                         .keyId(request.getKeyId())
                         .privateKeyAlias(request.getPrivateKeyAlias())
-                        .keyGeneratorParams(Map.of(KEY_ALGORITHM_PARAM, KEY_ALGORITHM))
+                        .keyGeneratorParams(Map.of(KEY_ALGORITHM_PARAM, KEY_ALGORITHM, KEY_CURVE_PARAM, KEY_CURVE))
                         .build())
                 .build();
 

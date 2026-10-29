@@ -34,6 +34,8 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.CreateParticipantContextResponse;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
@@ -62,6 +64,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -88,6 +91,8 @@ class IssuerProvisioningGrpcServiceTest {
     private StreamObserver<RevokeCredentialResp> revokeResponseObserver;
     @Captor
     private ArgumentCaptor<QuerySpec> querySpecCaptor;
+    @Captor
+    private ArgumentCaptor<ParticipantManifest> manifestCaptor;
 
     private IssuerProvisioningGrpcService service;
 
@@ -123,6 +128,38 @@ class IssuerProvisioningGrpcServiceTest {
 
         verify(participantContextResponseObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+    }
+
+    @Test
+    void createParticipantContextAsksForEcP256IssuerKey() {
+        when(participantContextService.createParticipantContext(manifestCaptor.capture()))
+                .thenReturn(ServiceResult.success(new CreateParticipantContextResponse(null, null, null)));
+
+        service.createParticipantContext(createReq(), participantContextResponseObserver);
+
+        var keys = manifestCaptor.getValue().getKeys();
+        assertThat(keys).hasSize(1);
+        var key = keys.iterator().next();
+        assertThat(key.getKeyId()).isEqualTo("did:web:issuer.example.com#key-1");
+        assertThat(key.getPrivateKeyAlias()).isEqualTo("issuer-key-alias");
+        assertThat(key.getType()).isEqualTo("JsonWebKey2020");
+        assertThat(key.getKeyGeneratorParams()).containsOnly(
+                entry("algorithm", "EC"),
+                entry("curve", "secp256r1"));
+        verify(participantContextResponseObserver).onCompleted();
+    }
+
+    @Test
+    void createParticipantContextForProvisionedIssuerIsNoOp() {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.conflict("Another participant with the same DID already exists."));
+
+        service.createParticipantContext(createReq(), participantContextResponseObserver);
+
+        verify(participantContextService).createParticipantContext(any());
+        verify(participantContextResponseObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(participantContextResponseObserver).onCompleted();
+        verify(participantContextResponseObserver, never()).onError(any());
     }
 
     @Test
@@ -279,6 +316,16 @@ class IssuerProvisioningGrpcServiceTest {
             case "timestamp" -> resource.getTimestamp() < (Long) value;
             default -> throw new IllegalStateException("Unexpected filter field: " + field);
         };
+    }
+
+    private CreateParticipantContextReq createReq() {
+        return CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("issuer")
+                .setDid("did:web:issuer.example.com")
+                .setIssuerServiceUrl("https://issuer.example.com/api/issuance")
+                .setKeyId("did:web:issuer.example.com#key-1")
+                .setPrivateKeyAlias("issuer-key-alias")
+                .build();
     }
 
     private RevokeCredentialReq revokeReq(String ctx, String holderDid, long issuedBefore) {
