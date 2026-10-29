@@ -208,19 +208,20 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * or whose SYSTEM member-id re-anchor the identity hub has not confirmed, is skipped in the
      * credential pass of the same tick — see {@link #ensureContexts}.
      *
-     * <p>A context already converged — served by the identity hub under the DID this server derives
-     * today, membership credential ISSUED and its identity OK — gets no identity hub
+     * <p>A context already converged — served by the identity hub under its bound DID, membership
+     * credential ISSUED and its identity OK — gets no identity hub
      * write, no bind and no credential request; only its Control Plane records are re-applied, because
      * the Control Plane has no status to read. A context of any kind whose hub DID differs from the
-     * derived one is never converged: it takes the ensure pass, which refuses to touch it and reports
+     * bound one is never converged: it takes the ensure pass, which refuses to touch it and reports
      * the drift instead of re-applying the stale DID. A context whose identity hub state could not be
      * read is left for the next tick, rather than spending a second identity hub call on it.
      *
      * <p>Contexts are bound first and provisioned second: no context, SYSTEM included, is provisioned
      * without an active binding row. Only the binding of unbound contexts waits until dataspace
-     * readiness holds and this server has a registered authentication certificate, which for SYSTEM is
-     * the approval of its registration; a context that already holds an active binding row is
-     * provisioned regardless, so it recovers from a lost hub or Control Plane context. A context whose
+     * readiness holds, the registered address is known and this server has a registered authentication
+     * certificate, which for SYSTEM is the approval of its registration; a context that already holds an
+     * active binding row is provisioned regardless, so it recovers from a lost hub or Control Plane context
+     * even while the registered address is unknown. A context whose
      * identity is drifted, unreadable or rejected is neither bound nor provisioned. A context that cannot be
      * bound is skipped and retried on the next tick.
      */
@@ -229,10 +230,6 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         int contextCount = contexts.size();
         if (ownerUnknown(contexts)) {
             log.debug("Dataspace provisioning: SS owner not yet known, skipping");
-            return contextCount;
-        }
-        if (!dataspaceProvisioningService.registeredAddressKnown()) {
-            log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
             return contextCount;
         }
 
@@ -257,9 +254,12 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         boolean dataspaceReady = readinessPredicates.isDataspaceReady();
-        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={}", dataspaceReady, authCertRegistered);
+        boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
+        log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} registeredAddressKnown={}",
+                dataspaceReady, authCertRegistered, addressKnown);
 
-        var provisionable = provisionableContexts(nonConverged, statuses, dataspaceReady && authCertRegistered);
+        var provisionable = provisionableContexts(nonConverged, statuses,
+                dataspaceReady && authCertRegistered && addressKnown);
         var ensuredContexts = ensureContexts(provisionable);
 
         if (!authCertRegistered) {
@@ -288,8 +288,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             if (mayBind) {
                 bound.addAll(bind(unbound));
             } else {
-                log.debug("Dataspace provisioning: dataspace not ready or auth cert not registered, "
-                        + "leaving {} context(s) unbound and unprovisioned", unbound.size());
+                log.debug("Dataspace provisioning: dataspace not ready, auth cert not registered or registered address "
+                        + "not in GlobalConf yet, leaving {} context(s) unbound and unprovisioned", unbound.size());
             }
         }
         return nonConverged.stream().filter(bound::contains).toList();

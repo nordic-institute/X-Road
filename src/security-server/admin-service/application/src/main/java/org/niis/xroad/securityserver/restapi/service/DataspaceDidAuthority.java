@@ -55,8 +55,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *
  * <p>Source: the GlobalConf-registered security server address at the stored DID port
  * ({@code xroad.dsp.did-port}), the port the identity hub listens on for DID documents. The authority
- * is part of every DID bound in {@code ds_participant}, so changing the registered address or the port
- * after a member's identity has been bound makes that row fail verification.
+ * is part of every DID minted for {@code ds_participant}; a bound DID is stored and used as is, so a later
+ * change of the registered address or the port never alters it.
  *
  * <p>Unknown until the server's owner is initialized, GlobalConf has been downloaded and the
  * server's registration has landed in it — normal states before and during registration, reported

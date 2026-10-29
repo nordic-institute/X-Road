@@ -61,7 +61,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -78,9 +77,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *   <li>{@link #ensureParticipantContext(ParticipantContext)} — idempotent context
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} or
  *       {@link ParticipantKind#SYSTEM} context with a bound {@code ds_participant} row, the row is
- *       verified against a fresh derivation and its DID is used; a decommissioned row counts as no row,
- *       and without a row the DID is derived and not bound. The worker provisions only contexts that
- *       hold an active binding row, so SYSTEM provisioning waits for its binding too. This service
+ *       checked for a supported scheme version and for agreement between its columns, and its DID
+ *       is used as stored; a decommissioned row counts as no row, and without a row the DID is minted and
+ *       not bound. The worker provisions only contexts that hold an active binding row, so SYSTEM
+ *       provisioning waits for its binding too. This service
  *       never writes rows — {@link DataspaceParticipantBindingService} is the only writer. Reports whether it is safe to issue a membership
  *       credential for this context in the same tick — see the method's own Javadoc for the SYSTEM re-anchor case.</li>
  *   <li>{@link #ensureMembershipCredential(ParticipantContext)} — leaves an active
@@ -124,7 +124,7 @@ public class DataspaceProvisioningService {
      * context has no binding and no DID can be minted for it from the registered address, computed on
      * every read and never stored.
      */
-    public enum IdentityStatus { OK, MISMATCH, VERSION_UNSUPPORTED, UNBOUND, REJECTED, DRIFTED, UNKNOWN }
+    public enum IdentityStatus { OK, VERSION_UNSUPPORTED, UNBOUND, REJECTED, DRIFTED, UNKNOWN }
 
     public enum ParticipantKind { SYSTEM, MEMBER }
 
@@ -165,9 +165,10 @@ public class DataspaceProvisioningService {
      *                         {@code null} when the context does not exist there or could not be read
      * @param contextDidUnreadable whether reading {@code contextDid} from the identity hub failed, so
      *                         a {@code null} there says nothing about whether the context exists
-     * @param intendedDid      the DID this server derives for the participant context today;
-     *                         {@code null} when it cannot be derived (DID authority unknown, or an
-     *                         unreadable or broken member or SYSTEM binding)
+     * @param intendedDid      the DID this server provisions for the participant context: the bound DID
+     *                         when a binding exists, otherwise the DID it would mint now;
+     *                         {@code null} when none can be stated (DID authority unknown and no binding,
+     *                         or an unreadable or broken member or SYSTEM binding)
      * @param credentialStatus the membership credential state
      * @param identityStatus   the bound-identity state of the context, reported for MEMBER and SYSTEM alike
      */
@@ -185,8 +186,8 @@ public class DataspaceProvisioningService {
         }
 
         /**
-         * Whether the identity hub serves exactly the DID this server would provision today. False
-         * when the context is missing, when the DID could not be derived, and on DID drift.
+         * Whether the identity hub serves exactly the DID this server intends to provision. False
+         * when the context is missing, when no intended DID can be stated, and on DID drift.
          */
         public boolean contextDidMatchesIntended() {
             return contextDid != null && contextDid.equals(intendedDid);
@@ -212,9 +213,10 @@ public class DataspaceProvisioningService {
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
      *
      * <p>For a {@link ParticipantKind#MEMBER} or {@link ParticipantKind#SYSTEM} context with a bound
-     * {@code ds_participant} row, the row is verified against a fresh derivation and its DID is used —
-     * the bound row is never written or overwritten here. A decommissioned row, MEMBER or SYSTEM, is
-     * treated as no row at all. Without a usable row the DID is derived and not bound;
+     * {@code ds_participant} row, the row is checked for a supported scheme version and for agreement
+     * between its columns, and its DID is used as stored — the bound row is never written or overwritten
+     * here. A decommissioned row, MEMBER or SYSTEM, is treated as no row at all. Without a usable row the
+     * DID is minted and not bound;
      * binding is {@link DataspaceParticipantBindingService}'s job.
      *
      * @param context the participant context to create
@@ -564,18 +566,23 @@ public class DataspaceProvisioningService {
 
     private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
-            case SYSTEM -> boundOrDerivedSystemDid();
-            case MEMBER -> boundOrDerivedMemberDid(memberId);
+            case SYSTEM -> boundOrMinted(activeSystemBinding(), didAuthority::mintSystemDid);
+            case MEMBER -> boundOrMinted(activeBinding(memberId), () -> didAuthority.mintMemberDid(memberId));
         };
     }
 
-    private Did boundOrDerivedMemberDid(ClientId member) {
-        var bound = activeBinding(member);
-        if (bound.isPresent()) {
-            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
-        }
-        return didAuthority.mintMemberDid(member).requireMinted();
+    /**
+     * The bound row's DID, or the DID minted now when there is no bound row. The bound row carries no member
+     * reference for SYSTEM: the SYSTEM identifier is owner-free even though the context's credential is
+     * issued to the current owner.
+     */
+    private static Did boundOrMinted(Optional<DsParticipantEntity> bound, Supplier<DidMintResult> mint) {
+        return bound.isPresent() ? boundDid(bound.get()) : mint.get().requireMinted();
+    }
+
+    private static Did boundDid(DsParticipantEntity bound) {
+        ParticipantBindingCheck.verify(bound);
+        return ParticipantIdentifierScheme.parseDid(bound.getDid());
     }
 
     /**
@@ -593,36 +600,8 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Derive-then-bind for the per-server SYSTEM identifier, mirroring {@link #boundOrDerivedMemberDid(ClientId)}.
-     * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
-     * though the context's credential is issued to the current owner.
-     */
-    private Did boundOrDerivedSystemDid() {
-        var bound = activeSystemBinding();
-        if (bound.isPresent()) {
-            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
-        }
-        return didAuthority.mintSystemDid().requireMinted();
-    }
-
-    /**
-     * Reports the identity-binding state of one member's participant context without provisioning
-     * anything. Tolerates dataspace-backend unavailability and a not-yet-known registered address —
-     * those are reported as {@link IdentityStatus#UNKNOWN} rather than thrown; database failures
-     * propagate.
-     *
-     * @param memberId the member whose bound identity to check
-     * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND}, {@code REJECTED} or
-     *         {@code UNKNOWN}
-     */
-    public IdentityStatus readIdentityStatus(ClientId memberId) {
-        return assessMemberIdentity(memberId).status();
-    }
-
-    /**
      * Bound-identity assessment for one participant: the status plus the DID this server intends to
-     * publish (the bound DID, or the fresh derivation when nothing is bound; {@code null} when the
+     * publish (the bound DID, or the DID it would mint when nothing is bound; {@code null} when the
      * bound row itself is in an error state and no intended DID can be stated).
      */
     private record ParticipantIdentity(IdentityStatus status, @Nullable Did intendedDid) {
@@ -641,23 +620,24 @@ public class DataspaceProvisioningService {
 
     private ParticipantIdentity assessIdentity(Optional<DsParticipantEntity> bound, String subject,
             Supplier<DidMintResult> mint) {
+        if (bound.isPresent()) {
+            return assessBoundIdentity(bound.get(), subject);
+        }
         if (!didAuthority.isKnown()) {
-            if (bound.isEmpty()) {
-                return new ParticipantIdentity(IdentityStatus.UNBOUND, null);
-            }
-            log.debug("Dataspace: registered address not in GlobalConf yet, cannot verify bound identity of {}", subject);
-            return new ParticipantIdentity(IdentityStatus.UNKNOWN, null);
+            return new ParticipantIdentity(IdentityStatus.UNBOUND, null);
         }
         try {
-            if (bound.isEmpty()) {
-                return unboundIdentity(mint.get(), subject);
-            }
-            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return new ParticipantIdentity(IdentityStatus.OK, ParticipantIdentifierScheme.parseDid(bound.get().getDid()));
+            return unboundIdentity(mint.get(), subject);
         } catch (XrdRuntimeException e) {
-            if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
-                return new ParticipantIdentity(IdentityStatus.MISMATCH, null);
-            }
+            log.warn("Dataspace: could not read identity status for {}", subject, e);
+            return new ParticipantIdentity(IdentityStatus.UNKNOWN, null);
+        }
+    }
+
+    private static ParticipantIdentity assessBoundIdentity(DsParticipantEntity bound, String subject) {
+        try {
+            return new ParticipantIdentity(IdentityStatus.OK, boundDid(bound));
+        } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code().equals(e.getErrorCode())) {
                 return new ParticipantIdentity(IdentityStatus.VERSION_UNSUPPORTED, null);
             }

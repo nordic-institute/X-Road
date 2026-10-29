@@ -431,14 +431,34 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantSkipsWhenRegisteredAddressNotYetKnown() {
+    void provisionParticipantBindsAndProvisionsNoUnboundContextWhileTheRegisteredAddressIsUnknown() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(false);
 
         worker.provisionParticipant();
 
+        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+    }
+
+    @Test
+    void provisionParticipantRecreatesALostBoundContextWhileTheRegisteredAddressIsUnknown() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(false);
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(SYSTEM_CONTEXT);
+        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
     }
 
     @Test

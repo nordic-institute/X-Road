@@ -8838,7 +8838,6 @@ components:
             REJECTED means the registered address cannot carry a DID, so nothing is bound
           enum:
             - OK
-            - MISMATCH
             - VERSION_UNSUPPORTED
             - UNBOUND
             - REJECTED

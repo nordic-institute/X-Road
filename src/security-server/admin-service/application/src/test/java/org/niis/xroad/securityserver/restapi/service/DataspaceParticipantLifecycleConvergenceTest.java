@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -454,6 +455,79 @@ class DataspaceParticipantLifecycleConvergenceTest {
     }
 
     @Test
+    void aChangedRegisteredAddressLeavesEveryBoundDidUnchangedAndConverged() {
+        givenMemberHasRegisteredClient(MEMBER);
+        worker.provisionParticipant();
+        var dids = boundAndServedDids();
+
+        givenRegisteredAddress("ss2.example.test");
+        worker.provisionParticipant();
+        var afterFirstPass = boundAndServedDids();
+        worker.provisionParticipant();
+
+        assertThat(afterFirstPass).isEqualTo(dids);
+        assertThat(boundAndServedDids()).isEqualTo(dids);
+        assertThat(identityStatuses()).containsOnly(IdentityStatus.OK);
+        assertThat(bindingTable.rowCount()).isEqualTo(2);
+    }
+
+    @Test
+    void aChangedDidPortLeavesEveryBoundDidUnchanged() {
+        givenMemberHasRegisteredClient(MEMBER);
+        worker.provisionParticipant();
+        var dids = boundAndServedDids();
+        assertThat(dids).hasSize(4).doesNotContainNull();
+        assertThat(bindingTable.rowCount()).isEqualTo(2);
+
+        when(dataspace.getDidPort()).thenReturn(8443);
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(boundAndServedDids()).isEqualTo(dids);
+        assertThat(identityStatuses()).containsOnly(IdentityStatus.OK);
+    }
+
+    @Test
+    void aBoundContextStaysOkAndProvisionedWhenItsAddressBecomesNonMintable() {
+        givenMemberHasRegisteredClient(MEMBER);
+        bindingTable.seedActive(MEMBER);
+        bindingTable.seedSystem();
+        givenRegisteredAddress("b\u00fccher.example");
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(identityStatuses()).containsOnly(IdentityStatus.OK);
+        assertThat(identityHubClient.contextDid(MEMBER_CTX_ID))
+                .contains(ParticipantIdentifierScheme.memberDid(MEMBER, IDENTITY_HUB_HOST));
+        assertThat(identityHubClient.contextDid(SYSTEM_CTX_ID))
+                .contains(ParticipantIdentifierScheme.systemDid(IDENTITY_HUB_HOST));
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+        assertThat(bindingTable.rowCount()).isEqualTo(2);
+    }
+
+    @Test
+    void boundContextsLostFromTheHubAreRecreatedWithTheirBoundDidWhileTheRegisteredAddressIsUnknown() {
+        givenMembersHaveRegisteredClients(MEMBER, OTHER_MEMBER);
+        bindingTable.seedActive(MEMBER);
+        bindingTable.seedSystem();
+        givenRegisteredAddress(null);
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(identityHubClient.contextDid(MEMBER_CTX_ID)).contains(Did.parse(bindingTable.didOf(MEMBER_CTX_ID)));
+        assertThat(identityHubClient.contextDid(SYSTEM_CTX_ID)).contains(Did.parse(bindingTable.didOf(SYSTEM_CTX_ID)));
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isTrue();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isTrue();
+        assertThat(identityHubClient.hasContext(OTHER_MEMBER_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(OTHER_MEMBER_CTX_ID)).isFalse();
+        assertThat(bindingTable.didOf(OTHER_MEMBER_CTX_ID)).isNull();
+        assertThat(bindingTable.rowCount()).isEqualTo(2);
+    }
+
+    @Test
     void aSystemContextWithoutABindingRowIsNotLeftConvergedAndIsBoundAgain() {
         worker.provisionParticipant();
         worker.provisionParticipant();
@@ -508,6 +582,14 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private void givenRegisteredAddress(String address) {
         when(globalConfProvider.getSecurityServerAddress(SecurityServerId.Conf.create(OWNER, SERVER_CODE)))
                 .thenReturn(address);
+    }
+
+    private List<String> boundAndServedDids() {
+        return Stream.of(SYSTEM_CTX_ID, MEMBER_CTX_ID)
+                .flatMap(ctxId -> Stream.of(
+                        bindingTable.didOf(ctxId),
+                        identityHubClient.contextDid(ctxId).map(Did::toString).orElse(null)))
+                .toList();
     }
 
     private List<IdentityStatus> identityStatuses() {
@@ -584,6 +666,14 @@ class DataspaceParticipantLifecycleConvergenceTest {
                 idByMember.remove(memberById.remove(id));
             }
             return true;
+        }
+
+        String didOf(String ctxId) {
+            return rowsById.values().stream()
+                    .filter(row -> row.getCtxId().equals(ctxId))
+                    .map(DsParticipantEntity::getDid)
+                    .findFirst()
+                    .orElse(null);
         }
 
         Optional<DsParticipantEntity> systemRow() {
