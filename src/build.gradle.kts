@@ -112,6 +112,8 @@ tasks.register<Copy>("installGitHooks") {
   description = "Install git hooks"
   group = "build"
 
+  val gitDir = file("$rootDir/../.git")
+  onlyIf("the checkout's .git is a directory, not a linked-worktree file") { gitDir.isDirectory }
   from(file("$rootDir/../.githooks"))
   into(file("$rootDir/../.git/hooks"))
   filePermissions {
