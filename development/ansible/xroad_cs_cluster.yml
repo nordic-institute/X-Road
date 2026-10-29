@@ -1,0 +1,207 @@
+---
+# Brings up a Central Server cluster on LXD from locally built packages. Containers are
+# created on the LXD host, the package repository serves the build output, etcd on the database
+# hosts and the load balancer host stores the Patroni leader state, Patroni runs PostgreSQL on the
+# database hosts with one leader and one streaming replica, each Central Server node uses the
+# database write address on the load balancer host as its database and the load balancer host
+# passes the cluster name's traffic to the nodes.
+# Inventory: scripts/env-lxd/cluster/inventory.yml
+
+- name: Refuse to continue while a database or etcd host is not running
+  hosts: lxd_servers
+  gather_facts: false
+  become: "{{ onMacOs | default(true) }}"
+  tags:
+    - always
+  tasks:
+    - name: Read the state of the containers
+      command: lxc list -f csv -c ns
+      register: container_states
+      changed_when: false
+
+    - name: Fail when a database or etcd host exists and is not running
+      assert:
+        that: >-
+          (container_states.stdout_lines | select('match', '^' ~ item ~ ',') | list | length) == 0 or
+          (container_states.stdout_lines | select('match', '^' ~ item ~ ',RUNNING$') | list | length) == 1
+        quiet: true
+        fail_msg: >-
+          {{ item }} is not running. Patroni and etcd need every member to converge. Start it with
+          scripts/env-lxd/cluster/fault-step.sh node-start {{ item }} (node-thaw when it is frozen), then run this again.
+      loop: "{{ (groups['db_nodes'] + groups['etcd_nodes']) | unique }}"
+
+- name: Create cluster containers
+  hosts: lxd_servers
+  gather_facts: false
+  become: "{{ onMacOs | default(true) }}"
+  tags:
+    - init
+  vars:
+    build_dir: "{{ (playbook_dir + '/../../deployment/native-packages/build') | realpath }}"
+    ubuntu_image_source:
+      type: image
+      mode: pull
+      server: https://cloud-images.ubuntu.com/releases
+      protocol: simplestreams
+      alias: "{{ ubuntu_releasever }}"
+  tasks:
+    - name: Read the owner of the package build directory
+      stat:
+        path: "{{ build_dir }}"
+      register: build_dir_stat
+
+    - name: Fail when the package build directory is missing
+      assert:
+        that: build_dir_stat.stat.exists
+        quiet: true
+        fail_msg: "{{ build_dir }} not found; build the native packages first"
+
+    - name: Create or start the package repository container with the build directory mounted
+      community.general.lxd_container:
+        name: "{{ item }}"
+        url: "{{ lxd_url | default(omit) }}"
+        state: started
+        source: "{{ ubuntu_image_source }}"
+        profiles: ["default"]
+        config:
+          # Maps the build directory owner to container root so the repository
+          # indexes can be written back into the mounted directory.
+          raw.idmap: "both {{ build_dir_stat.stat.uid }} 0"
+        devices:
+          xroad-build:
+            type: disk
+            source: "{{ build_dir }}"
+            path: /srv/xroad-build
+        wait_for_ipv4_addresses: true
+        timeout: 600
+      loop: "{{ groups['repo_servers'] }}"
+      when: (container_states.stdout_lines | select('match', '^' ~ item ~ ',RUNNING$') | list | length) == 0
+      register: repo_container
+      retries: 3
+      delay: 10
+      until: repo_container is not failed
+
+    - name: Create the remaining cluster containers
+      community.general.lxd_container:
+        name: "{{ item }}"
+        url: "{{ lxd_url | default(omit) }}"
+        state: started
+        source: "{{ ubuntu_image_source }}"
+        profiles: ["default"]
+        wait_for_ipv4_addresses: true
+        timeout: 600
+      loop: "{{ groups['cluster_containers'] | difference(groups['repo_servers']) }}"
+
+- name: Prepare cluster containers
+  hosts: cluster_containers
+  strategy: free
+  become: true
+  tags:
+    - init
+  tasks:
+    - name: Force IPv4 for APT
+      copy:
+        dest: /etc/apt/apt.conf.d/99force-ipv4
+        content: |
+          Acquire::ForceIPv4 "true";
+
+    - name: Configure safe APT timeouts
+      copy:
+        dest: /etc/apt/apt.conf.d/99timeouts
+        content: |
+          Acquire::Connect::Timeout "5";
+          Acquire::http::Timeout "10";
+          Acquire::https::Timeout "10";
+          Acquire::Retries "3";
+          Acquire::http::LowSpeedLimit "100000";
+          Acquire::http::LowSpeedTime "10";
+
+    - name: Disable unattended-upgrades
+      systemd:
+        name: unattended-upgrades
+        state: stopped
+        enabled: false
+      ignore_errors: true
+
+- name: Build the package repository
+  hosts: repo_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-repo
+  tags:
+    - repo
+    - install
+
+- name: Install the etcd cluster
+  hosts: etcd_nodes
+  become: true
+  strategy: free
+  roles:
+    - etcd
+  tags:
+    - etcd
+    - install
+
+# One database host at a time in inventory order: the first host bootstraps the cluster and
+# becomes the leader, the next one copies it and streams.
+- name: Install the Patroni database cluster
+  hosts: db_nodes
+  become: true
+  serial: 1
+  roles:
+    - patroni
+  tags:
+    - db
+    - install
+
+- name: Install the load balancer
+  hosts: lb
+  become: true
+  roles:
+    - haproxy
+  tags:
+    - lb
+    - install
+
+# The dev env configuration (Mailpit, JVM flags) goes on before the package install, as on a
+# single-node Central Server. It is applied only when xroad_cs_dev_configuration is true.
+- name: Apply dev env configuration to Central Server nodes
+  hosts: cs_nodes
+  become: true
+  tags:
+    - cs
+    - install
+  tasks:
+    - name: Apply the Central Server dev env configuration
+      import_role:
+        name: init-dev-configuration
+        tasks_from: cs.yml
+      when: xroad_cs_dev_configuration | default(false) | bool
+
+# One node at a time in inventory order: the first node creates the OpenBao database, the second stops there.
+- name: Install Central Server nodes
+  hosts: cs_nodes
+  become: true
+  serial: 1
+  pre_tasks:
+    - name: Derive the admin user password hash from the inventory admin password
+      command: openssl passwd -6 -salt xrdclusteradmin1 -stdin
+      args:
+        stdin: "{{ xroad_cs_admin_password }}"
+      register: cs_admin_password_hash
+      changed_when: false
+      check_mode: false
+      no_log: true
+      when: "'xroad_cs_admin_password' in hostvars[inventory_hostname]"
+
+    - name: Use the derived hash as the admin user password
+      set_fact:
+        xroad_ui_user_password: "{{ cs_admin_password_hash.stdout }}"
+      no_log: true
+      when: "'xroad_cs_admin_password' in hostvars[inventory_hostname]"
+  roles:
+    - xroad-cs
+  tags:
+    - cs
+    - install

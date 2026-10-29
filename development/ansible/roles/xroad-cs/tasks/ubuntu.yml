@@ -9,20 +9,25 @@
     - { question: "xroad-common/username", value: "{{ xroad_ui_user }}" }
     - { question: "xroad-common/database-host", value: "{{ database_host }}" }
     - { question: "xroad-common/admin-subject", value: "{{ xroad_host_fqdn }}" }
-    - { question: "xroad-common/admin-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}" }
+    - { question: "xroad-common/admin-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}{{ xroad_cs_cluster_dns_san }}" }
     - { question: "xroad-common/service-subject", value: "{{ xroad_host_fqdn }}" }
-    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}" }
+    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}{{ xroad_cs_cluster_dns_san }}" }
     - { question: "xroad-common/global-conf-subject", value: "/CN={{ xroad_host_fqdn }}" }
-    - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}" }
+    - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}{{ xroad_cs_cluster_dns_san }}" }
     - { question: "xroad-common/skip-cs-db-migrations", value: "false" }
   tags:
     - install-xroad-cs-packages
 
 - name: create xroad properties file
-  copy:
-    content: "postgres.connection.password = {{ database_admin_password }}"
-    dest: /etc/xroad.properties
+  lineinfile:
+    path: /etc/xroad.properties
+    regexp: '^postgres\.connection\.password\s*='
+    line: "postgres.connection.password = {{ database_admin_password }}"
+    create: true
+    owner: root
+    group: root
     mode: "0600"
+  no_log: true
   when: (database_admin_password is defined) and (database_admin_password != "")
 
 - name: use remote database
@@ -31,9 +36,30 @@
   when: (database_admin_password is defined) and (database_admin_password != "")
 
 - name: install xroad central server
-  apt:
-    name: xroad-centralserver
-    state: latest
-    force: true
+  block:
+    - name: install xroad central server package
+      apt:
+        name: xroad-centralserver
+        state: latest
+        force: true
+  rescue:
+    - name: fail unless the install stopped at OpenBao database creation as expected
+      fail:
+        msg: "{{ ansible_failed_result.msg | default('xroad-centralserver install failed') }}"
+      when: >-
+        not xroad_cs_openbao_db_stop_expected
+        or "Creating database 'openbao'" not in
+        ((ansible_failed_result.stdout | default('')) ~ (ansible_failed_result.stderr | default('')) ~ (ansible_failed_result.msg | default('')))
+
+    - name: record the expected stop at OpenBao database creation
+      set_fact:
+        xroad_cs_install_stopped: true
+
+    - name: report the expected stop at OpenBao database creation
+      debug:
+        msg: >-
+          EXPECTED STOP on {{ inventory_hostname }}: the install stopped at OpenBao database creation
+          because the database already exists on the shared database host. The node is left
+          partly installed and the remaining Central Server set-up is skipped.
   tags:
     - install-xroad-cs-packages

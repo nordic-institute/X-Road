@@ -17,9 +17,6 @@
   file:
     path: /etc/xroad/conf.d
     state: directory
-    owner: root
-    group: root
-    mode: "0755"
 
 # ---------------------------------------------------------------------------
 # 2. DS issuer-service dev-only runtime tuning.
@@ -34,6 +31,7 @@
     owner: xroad
     group: xroad
     mode: "0640"
+    force: false
     content: |
       xroad:
         edc:
@@ -41,3 +39,32 @@
             https:
               trust:
                 reload-interval-seconds: 5
+
+# ---------------------------------------------------------------------------
+# 3. HA node name. Per-node identity read by the admin service from local.yaml;
+#    it has to exist before the first start of xroad-center.
+# ---------------------------------------------------------------------------
+- name: check for an existing local.yaml
+  stat:
+    path: /etc/xroad/conf.d/local.yaml
+  register: cs_local_yaml_stat
+  when: xroad_cs_ha_node_name | length > 0
+
+- name: read the existing local.yaml
+  slurp:
+    src: /etc/xroad/conf.d/local.yaml
+  register: cs_local_yaml
+  when: xroad_cs_ha_node_name | length > 0 and cs_local_yaml_stat.stat.exists
+
+- name: merge the HA node name into local.yaml
+  copy:
+    dest: /etc/xroad/conf.d/local.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: >-
+      {{ ((cs_local_yaml.content | b64decode | from_yaml) if cs_local_yaml.content is defined else {})
+      | default({}, true)
+      | combine({'xroad': {'admin-service': {'ha-node-name': xroad_cs_ha_node_name}}}, recursive=True)
+      | to_nice_yaml }}
+  when: xroad_cs_ha_node_name | length > 0

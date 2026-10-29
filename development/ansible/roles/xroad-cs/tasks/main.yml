@@ -10,3 +10,4 @@
   when: enable_postgres_remote_access | default(false) | bool
 
 - include_tasks: post-cs-install.yml
+  when: not (xroad_cs_install_stopped | default(false))

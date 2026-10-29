@@ -1,0 +1,90 @@
+---
+- name: require the cluster name, the REST API port and the passwords
+  assert:
+    that:
+      - patroni_scope is defined and patroni_scope | length > 0
+      - patroni_restapi_port is defined
+      - patroni_postgres_password | length > 0
+      - patroni_replication_password | length > 0
+    quiet: true
+    fail_msg: "Set patroni_scope, patroni_restapi_port, database_admin_password and database_replication_password for the PostgreSQL hosts"
+
+- name: install the PostgreSQL common package
+  apt:
+    name: postgresql-common
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    install_recommends: false
+    lock_timeout: 120
+
+- name: look for the PostgreSQL PGDG apt repository
+  find:
+    paths: /etc/apt/sources.list.d
+    patterns:
+      - pgdg.list
+      - pgdg.sources
+  register: patroni_pgdg_repo
+
+- name: configure the PostgreSQL PGDG apt repository
+  command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+  when: patroni_pgdg_repo.matched == 0
+
+- name: do not create a default PostgreSQL cluster; Patroni runs initdb
+  lineinfile:
+    path: /etc/postgresql-common/createcluster.conf
+    regexp: '^#?\s*create_main_cluster\s*='
+    line: create_main_cluster = false
+
+- name: install PostgreSQL and Patroni
+  apt:
+    name:
+      - "postgresql-{{ patroni_postgresql_version }}"
+      - patroni
+      - python3-etcd
+      - acl
+      - curl
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    install_recommends: false
+    lock_timeout: 120
+
+- name: resolve the address of this database host
+  set_fact:
+    patroni_address: "{{ cluster_node_address }}"
+
+- name: create the parent of the data directory
+  file:
+    path: "{{ patroni_data_dir | dirname }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0755"
+
+- name: configure Patroni
+  template:
+    src: config.yml.j2
+    dest: /etc/patroni/config.yml
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  no_log: true
+  notify: reload patroni
+
+- name: ensure Patroni is running
+  service:
+    name: patroni
+    state: started
+    enabled: true
+
+- name: wait until this member runs PostgreSQL
+  command: patronictl -c /etc/patroni/config.yml list -f json
+  register: patroni_members
+  until: >-
+    patroni_members.rc == 0 and
+    (patroni_members.stdout | from_json | selectattr('Member', 'equalto', inventory_hostname)
+     | map(attribute='State') | first | default('')) in ['running', 'streaming']
+  retries: 60
+  delay: 3
+  changed_when: false
