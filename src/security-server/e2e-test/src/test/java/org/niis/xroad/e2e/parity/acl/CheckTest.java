@@ -61,6 +61,10 @@ class CheckTest {
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Check(REST, Verdict.ERROR, "notice"))
                 .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Check(REST, Verdict.AGREEMENT_TOKEN_REJECTED))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Check(REST, Verdict.CONSUMER_FAILED))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -103,5 +107,49 @@ class CheckTest {
                 .isEqualTo(Verdict.ACCESS_DENIED);
         assertThat(new Check(healthData(Expectation.NONE), Verdict.UNKNOWN_SERVICE).expected())
                 .isEqualTo(Verdict.UNKNOWN_SERVICE);
+    }
+
+    @Test
+    void aCheckWithoutADspExpectationExpectsTheSameVerdictInEveryMode() {
+        var check = new Check(REST, Verdict.UNKNOWN_SERVICE);
+
+        assertThat(check.forMode(AclMode.LEGACY).expected()).isEqualTo(Verdict.UNKNOWN_SERVICE);
+        assertThat(check.forMode(AclMode.DSP).expected()).isEqualTo(Verdict.UNKNOWN_SERVICE);
+        assertThat(check.forMode(AclMode.DSP_REFUSAL).expected()).isEqualTo(Verdict.UNKNOWN_SERVICE);
+    }
+
+    @Test
+    void aDspExpectationReplacesTheLegacyVerdictInEveryModeThatNegotiates() {
+        var check = new Check(REST, Verdict.UNKNOWN_SERVICE).inDsp(Verdict.ACCESS_DENIED);
+
+        assertThat(check.forMode(AclMode.LEGACY).expected()).isEqualTo(Verdict.UNKNOWN_SERVICE);
+        assertThat(check.forMode(AclMode.DSP).expected()).isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(check.forMode(AclMode.DSP_REFUSAL).expected()).isEqualTo(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void aCheckForAModeKeepsTheRequestAndTheNoticeAndLosesTheModeSpecificExpectation() {
+        var check = new Check(REST, Verdict.SERVICE_DISABLED, "back at noon").inDsp(Verdict.ACCESS_DENIED);
+
+        var forDsp = check.forMode(AclMode.DSP);
+
+        assertThat(forDsp.request()).isEqualTo(REST);
+        assertThat(forDsp.notice()).isEqualTo("back at noon");
+        assertThat(forDsp.dspExpected()).isNull();
+    }
+
+    @Test
+    void aDspExpectationEqualToTheLegacyVerdictIsRejected() {
+        assertThatThrownBy(() -> new Check(REST, Verdict.ACCESS_DENIED).inDsp(Verdict.ACCESS_DENIED))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void aDspExpectationFollowsTheRulesOfAnExpectedVerdict() {
+        assertThatThrownBy(() -> new Check(REST, Verdict.ACCESS_DENIED).inDsp(Verdict.AGREEMENT_TOKEN_REJECTED))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Check(listMethods(Expectation.NONE), Verdict.ACCESS_DENIED)
+                .inDsp(Verdict.ALLOWED))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

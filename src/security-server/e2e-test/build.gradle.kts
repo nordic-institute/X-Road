@@ -87,8 +87,11 @@ tasks.register<Test>("e2eTest") {
       "LauncherSessionListener SPI; 'lxd': attaches to a pre-provisioned LXD environment; 'k8s': " +
       "attaches to a pre-provisioned kind cluster). In 'compose' mode, -Pe2e.ss0-stack selects ss0's " +
       "stack shape ('default': today's per-service stack; 'sidecar': one full-sidecar " +
-      "container in its place), ignored otherwise. -Pe2e.acl-mode=legacy runs the ACL parity scenarios with " +
-      "ss1's outgoing calls unnegotiated and no fail-fast; unset, the parity class is skipped. " +
+      "container in its place), ignored otherwise. -Pe2e.acl-mode runs the ACL parity scenarios with no fail-fast " +
+      "and writes one verdict per row to build/test-results/e2eTest/acl-parity-<mode>-verdicts.tsv: 'legacy' " +
+      "sends ss1's outgoing calls unnegotiated, 'dsp' negotiates them through the data space protocol, " +
+      "'dsp-refusal' negotiates them and makes ss0 refuse X-Road 7 style calls once the subsystem pool is " +
+      "registered (needs the default ss0 stack); unset, the parity class is skipped. " +
       "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 
@@ -124,6 +127,8 @@ tasks.register<Test>("e2eTest") {
   systemProperty("test-framework.ss0-stack", e2eSs0Stack)
   e2eAclMode?.let {
     systemProperty("test-framework.acl-mode", it)
+    systemProperty("test-framework.acl-verdicts-file",
+        layout.buildDirectory.file("test-results/e2eTest/acl-parity-$it-verdicts.tsv").get().asFile.path)
     systemProperty("test-framework.fail-fast.threshold", "0")
   }
 

@@ -27,11 +27,13 @@ package org.niis.xroad.e2e.container;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.e2e.AclParityProperties;
 import org.niis.xroad.e2e.E2eEnvironment;
 import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
 import org.niis.xroad.e2e.parity.acl.AclMode;
+import org.niis.xroad.e2e.parity.acl.AclModeProbe;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.Container;
@@ -59,6 +61,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     private static final String AUX_ENV = "aux";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
+    private static final Duration PROXY_RESTART_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration PROXY_RESTART_POLL_INTERVAL = Duration.ofSeconds(5);
 
     private AuxStackSetup aux;
     private AbstractSsStack ss0;
@@ -70,6 +74,9 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public void start() {
+        AclParityProperties.configuredMode().ifPresent(mode -> AclModeProbe.verifyProviderStack(mode,
+                coreProperties.ss0Stack() == ApiTestCoreProperties.Ss0Stack.SIDECAR));
+
         aux = new AuxStackSetup(coreProperties);
         aux.start();
 
@@ -87,6 +94,35 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         await().pollDelay(GLOBALCONF_PROPAGATION_GRACE_PERIOD)
                 .timeout(GLOBALCONF_PROPAGATION_GRACE_PERIOD.plusMinutes(1))
                 .until(() -> true);
+    }
+
+    /**
+     * Makes ss0 refuse X-Road 7 style calls: stores {@code xroad.proxy.legacy-protocol-disabled} in its serverconf and
+     * restarts its proxy, which reads the setting once at start, then waits until the proxy is ready again.
+     * Only the per-service ss0 stack has a proxy container of its own to restart.
+     */
+    @SneakyThrows
+    public void refuseLegacyCallsOnSs0() {
+        if (!(ss0 instanceof SsStackSetup stack)) {
+            throw new IllegalStateException(
+                    "legacy refusal needs the default ss0 stack; the sidecar stack has no proxy container");
+        }
+        var upsert = """
+                INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
+                VALUES ('%s', 'true', now(), now())
+                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now()
+                """.formatted(ProxyConfigKeys.LEGACY_PROTOCOL_DISABLED.key());
+        var stored = stack.execInContainer(SsStackSetup.DB_SERVERCONF, "psql", "-U", "postgres", "-d", "serverconf",
+                "-v", "ON_ERROR_STOP=1", "-c", upsert);
+        if (stored.getExitCode() != 0) {
+            throw new IllegalStateException(
+                    "storing legacy-protocol-disabled in the serverconf of ss0 failed: " + stored.getStderr());
+        }
+        stack.restartService(SsStackSetup.PROXY);
+        await().atMost(PROXY_RESTART_TIMEOUT).pollInterval(PROXY_RESTART_POLL_INTERVAL).ignoreExceptions()
+                .until(() -> stack.execInContainer(SsStackSetup.PROXY, "curl", "-fs",
+                        "http://localhost:5588/q/health/ready").getExitCode() == 0);
+        log.info("ss0 proxy is ready with legacy calls refused");
     }
 
     @Override
