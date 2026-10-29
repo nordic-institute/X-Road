@@ -3,6 +3,7 @@
 # Configuration
 VM_NAME="xroad-lxd"
 LXD_PORT=28443
+REMOTE_NAME="xroad-lxd"
 
 function verify_lxd_version() {
   echo "Checking LXD version in VM..."
@@ -14,40 +15,50 @@ function check_lxd_port() {
   limactl shell ${VM_NAME} sudo ss -tlpn | grep ${LXD_PORT}
 }
 
-function discover_lima_ip() {
-  # Lima exposes the VM on socket_vmnet at a stable DHCP-leased IP (lima0).
-  limactl shell ${VM_NAME} ip -4 -br addr show lima0 \
-    | awk '{print $3}' | cut -d/ -f1
+function remote_url() {
+  lxc remote list --format csv \
+    | awk -F, -v name="${REMOTE_NAME}" '$1 == name || $1 == name " (current)" {print $2}'
+}
+
+function remote_is_usable() {
+  lxc info "${REMOTE_NAME}:" >/dev/null 2>&1
+}
+
+function add_remote() {
+  local api_url=$1
+
+  echo "Generating trust token..."
+  TOKEN=$(limactl shell ${VM_NAME} sudo lxc config trust add --name xroad-host --quiet)
+
+  echo "Adding remote with token..."
+  lxc remote add "${REMOTE_NAME}" "${api_url}" --token="${TOKEN}"
 }
 
 function configure_lxc_client() {
   echo "Configuring LXC client..."
 
-  local lima_ip
-  lima_ip=$(discover_lima_ip)
-  if [[ -z "$lima_ip" ]]; then
-    echo "ERROR: could not discover Lima socket_vmnet IP (lima0). Is the VM running?"
-    exit 1
-  fi
-  echo "Using Lima socket_vmnet IP: $lima_ip"
+  # The API is reached through lima's loopback port forward (lima.yaml), not the socket_vmnet IP.
+  local api_url="https://127.0.0.1:${LXD_PORT}"
+  local current_url
+  current_url=$(remote_url)
 
-  # Remove existing remote if it exists (but not default)
-  if lxc remote list | grep -q xroad-lxd; then
-    lxc remote switch local
-    lxc remote remove xroad-lxd
+  if [[ -n "$current_url" && "${current_url%/}" != "$api_url" ]]; then
+    echo "Pointing remote ${REMOTE_NAME} at ${api_url} (was ${current_url})..."
+    lxc remote set-url ${REMOTE_NAME} ${api_url}
   fi
 
-  # Generate trust token
-  echo "Generating trust token..."
-  TOKEN=$(limactl shell ${VM_NAME} sudo lxc config trust add --name xroad-host --quiet)
-
-  # Add remote with token
-  echo "Adding remote with token..."
-  lxc remote add xroad-lxd https://${lima_ip}:${LXD_PORT} \
-    --token=${TOKEN}
+  if [[ -n "$current_url" ]] && remote_is_usable; then
+    echo "Remote ${REMOTE_NAME} at ${api_url} is reachable"
+  else
+    if [[ -n "$current_url" ]]; then
+      lxc remote switch local
+      lxc remote remove ${REMOTE_NAME}
+    fi
+    add_remote ${api_url}
+  fi
 
   echo "Switching to remote..."
-  lxc remote switch xroad-lxd
+  lxc remote switch ${REMOTE_NAME}
 }
 
 function verify_setup() {
