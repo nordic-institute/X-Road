@@ -1,7 +1,7 @@
 ---
 {# DS-HTTPS TLS follows the fixture stack: e2e_fixtures_enabled gates the DSP wiring,
    and the fixtures' hurl bootstrap provisions each release's DS TLS certificate
-   through the admin API (the ds-* pods wait at startup for the slot until then). #}
+   through the admin API (the ds-* pods boot without it, stay not ready and open HTTPS once it lands). #}
 {% set ds_tls = e2e_fixtures_enabled | default(false) | bool %}
 {# DS hostnames. The externally advertised DSP surface (DID resolution 7183, DSP 8183)
    lives on the GlobalConf-registered address — the proxy Service — per XRDADR-41:
@@ -182,7 +182,7 @@ services:
   # trust is the chart's secretStore.tls knob (set once, above), not
   # per-service here. The ds-* pods serve HTTPS from the tls/ds-https vault
   # slot, provisioned through the admin API by the fixtures' hurl bootstrap;
-  # until that runs they block at startup waiting for the slot.
+  # until that runs they boot without HTTPS and report not ready.
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1
