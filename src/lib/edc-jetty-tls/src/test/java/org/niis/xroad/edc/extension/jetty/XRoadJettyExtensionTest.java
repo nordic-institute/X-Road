@@ -32,8 +32,11 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.net.ServerSocket;
@@ -45,6 +48,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -68,6 +72,7 @@ class XRoadJettyExtensionTest {
     };
     private final VaultClient vaultClient = mock(VaultClient.class);
     private final ServiceExtensionContext context = mock(ServiceExtensionContext.class);
+    private final HealthCheckService healthCheckService = mock(HealthCheckService.class);
 
     private XRoadJettyExtension extension;
     private int port;
@@ -101,6 +106,21 @@ class XRoadJettyExtensionTest {
         assertThat(warnings).isEmpty();
     }
 
+    @Test
+    void readinessIsDownWhileTheSlotIsEmptyAndUpOnceTheListenerOpens() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("slot is empty"));
+        extension = newExtension();
+        setField(extension, "pendingPollInterval", Duration.ofMillis(50));
+        extension.initialize(context);
+        extension.start();
+        var captor = ArgumentCaptor.forClass(ReadinessProvider.class);
+        verify(healthCheckService).addReadinessProvider(captor.capture());
+        var readiness = captor.getValue();
+        assertThat(readiness.get().succeeded()).isFalse();
+        var credentials = TestCertUtil.getInternalKey();
+        doReturn(new InternalSSLKey(credentials.key, credentials.certChain)).when(vaultClient).getDsHttpsTlsCredentials();
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertThat(readiness.get().succeeded()).isTrue());
+    }
     @Test
     void shutdownClosesTheReloaderStartedByStart() throws Exception {
         when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("slot is empty"));
@@ -152,6 +172,7 @@ class XRoadJettyExtensionTest {
         setField(created, "defaultPath", "/api");
         setField(created, "reloadIntervalSeconds", 60L);
         setField(created, "vaultClient", vaultClient);
+        setField(created, "healthCheckService", healthCheckService);
         return created;
     }
 

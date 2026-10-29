@@ -85,8 +85,8 @@ public final class XRoadJettyService implements WebServer {
 
     private SslContextFactory.Server sslContextFactory;
     private Server server;
-    private boolean connectorsOpen;
-    private boolean stopped;
+    private volatile boolean connectorsOpen;
+    private volatile boolean stopped;
 
     public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
         this.monitor = monitor;
@@ -137,6 +137,14 @@ public final class XRoadJettyService implements WebServer {
                     "Failed to initialize the connector TLS SSL context from the certificate stored in OpenBao", e);
         }
         return contextFactory;
+    }
+
+    /**
+     * Whether the HTTPS connectors are open and serving connector TLS material. Reads volatile state, so a
+     * health probe never waits on a connector that is still being opened.
+     */
+    public boolean isServingConnectorTls() {
+        return connectorsOpen && !stopped;
     }
 
     public synchronized void start() {

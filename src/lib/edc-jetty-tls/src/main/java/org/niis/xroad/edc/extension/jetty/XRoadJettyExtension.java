@@ -34,6 +34,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
@@ -85,6 +86,9 @@ public class XRoadJettyExtension implements ServiceExtension {
     @Inject
     private VaultClient vaultClient;
 
+    @Inject
+    private HealthCheckService healthCheckService;
+
     private final PortMappingRegistry portMappingRegistry = new XRoadPortMappingRegistry();
     private Duration pendingPollInterval = PENDING_POLL_INTERVAL;
 
@@ -109,6 +113,7 @@ public class XRoadJettyExtension implements ServiceExtension {
         jettyService = new XRoadJettyService(monitor, portMappingRegistry);
         context.registerService(WebServer.class, jettyService);
         context.registerService(XRoadJettyService.class, jettyService);
+        healthCheckService.addReadinessProvider(new ConnectorTlsReadinessProvider(jettyService));
 
         loader = new DsHttpsKeyStoreLoader(vaultClient);
         initial = loadInitial();

@@ -40,6 +40,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.system.health.HealthStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -81,6 +83,17 @@ public class EdcRuntime extends BaseRuntime {
         log.info("EDC runtime loaded in {} ms", System.currentTimeMillis() - startupTime);
     }
 
+    /**
+     * EDC's readiness as its health service reports it. Unhealthy before the runtime has booted, and when no
+     * readiness provider is registered, which is how {@link HealthStatus} treats an empty provider list.
+     */
+    public HealthStatus readiness() {
+        var runtimeContext = context;
+        if (runtimeContext == null || !runtimeContext.hasService(HealthCheckService.class)) {
+            return new HealthStatus();
+        }
+        return runtimeContext.getService(HealthCheckService.class).isReady();
+    }
     @Override
     protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Config config) {
         return new QuarkusServiceExtensionContext(loggingBridge, configBridge);
