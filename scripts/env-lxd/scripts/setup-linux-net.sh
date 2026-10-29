@@ -20,6 +20,7 @@ fi
 ACTION="${1:-apply}"
 BRIDGE=lxdbr0
 LXD_DNS_IP=10.10.10.1
+SMOKE_HOST="${SMOKE_HOST:-xrd-cs}"
 LXD_DOMAIN=lxd
 
 function bridgePresent() {
@@ -44,23 +45,23 @@ function smokeTest() {
   # answering; system-resolver config is verified separately below.
   local out smoke
   if command -v dig >/dev/null 2>&1; then
-    out=$(dig +short +time=2 +tries=1 @"$LXD_DNS_IP" "xrd-cs.$LXD_DOMAIN" 2>&1 || true)
+    out=$(dig +short +time=2 +tries=1 @"$LXD_DNS_IP" "$SMOKE_HOST.$LXD_DOMAIN" 2>&1 || true)
     smoke=$(echo "$out" | awk '/^10\.10\.10\./ {print; exit}')
   else
-    out=$(nslookup -timeout=2 -retry=0 "xrd-cs.$LXD_DOMAIN" "$LXD_DNS_IP" 2>&1 || true)
+    out=$(nslookup -timeout=2 -retry=0 "$SMOKE_HOST.$LXD_DOMAIN" "$LXD_DNS_IP" 2>&1 || true)
     smoke=$(echo "$out" | awk '/^Address: 10\.10\.10\./ {print $2; exit}')
   fi
   if [[ "$smoke" =~ ^10\.10\.10\. ]]; then
-    log_info "smoke: xrd-cs.$LXD_DOMAIN -> $smoke (direct via $LXD_DNS_IP)"
+    log_info "smoke: $SMOKE_HOST.$LXD_DOMAIN -> $smoke (direct via $LXD_DNS_IP)"
   else
-    log_info "smoke: WARNING xrd-cs.$LXD_DOMAIN did not resolve via $LXD_DNS_IP (env may not be up yet)"
+    log_info "smoke: WARNING $SMOKE_HOST.$LXD_DOMAIN did not resolve via $LXD_DNS_IP (env may not be up yet)"
   fi
 
   # System resolver path — relies on the resolvectl config we just applied.
-  if getent hosts "xrd-cs.$LXD_DOMAIN" >/dev/null 2>&1; then
-    log_info "smoke: xrd-cs.$LXD_DOMAIN resolves via system resolver"
+  if getent hosts "$SMOKE_HOST.$LXD_DOMAIN" >/dev/null 2>&1; then
+    log_info "smoke: $SMOKE_HOST.$LXD_DOMAIN resolves via system resolver"
   else
-    log_info "smoke: NOTE xrd-cs.$LXD_DOMAIN not yet resolvable via system resolver"
+    log_info "smoke: NOTE $SMOKE_HOST.$LXD_DOMAIN not yet resolvable via system resolver"
   fi
 }
 

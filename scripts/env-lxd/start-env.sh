@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
+INVOKED_FROM=$PWD
 cd "$(dirname "${BASH_SOURCE[0]}")"
 source "../../scripts/lib/base-script.sh"
+source "./cluster/cluster-transport.sh"
 
 RECREATE=false
 SKIP_COMPILE=false
@@ -11,7 +13,11 @@ SKIP_INITIALIZE=false
 SKIP_HOST_NETWORKING=false
 BUST_CACHE=false
 SNAPSHOT_EMPTY=false
+PROFILE="single"
+CUSTOM_INVENTORY=false
 INVENTORY_PATH="config/ansible_hosts.txt"
+CLUSTER_INVENTORY_PATH="config/ansible_hosts_cluster.txt"
+CLUSTER_MIN_VM_MEMORY_GIB=20
 
 CACHEABLE_ROLES=(xroad-is xroad-ca xroad-repo)
 UBUNTU_RELEASEVER="${UBUNTU_RELEASEVER:-resolute}"
@@ -27,7 +33,15 @@ function parse_arguments() {
     --skip-host-networking) SKIP_HOST_NETWORKING=true ;;
     --bust-cache) BUST_CACHE=true ;;
     --snapshot-empty-containers) SNAPSHOT_EMPTY=true ;;
+    --profile=*)
+      PROFILE="${1#*=}"
+      if [[ "$PROFILE" != "single" && "$PROFILE" != "cluster" ]]; then
+        log_error "Unknown profile: $PROFILE (expected single or cluster)"
+        exit 1
+      fi
+      ;;
     --custom-inventory=*)
+      CUSTOM_INVENTORY=true
       INVENTORY_PATH="${1#*=}"
       if [ ! -f "$INVENTORY_PATH" ]; then
         log_error "Inventory file not found: $INVENTORY_PATH"
@@ -49,7 +63,17 @@ function parse_arguments() {
     exit 1
   fi
 
+  if [ "$PROFILE" = cluster ]; then
+    if [ "$SNAPSHOT_EMPTY" = true ]; then
+      log_error "--profile=cluster does not support --snapshot-empty-containers"
+      exit 1
+    fi
+    if [ "$CUSTOM_INVENTORY" = false ]; then
+      INVENTORY_PATH="$CLUSTER_INVENTORY_PATH"
+    fi
+  fi
   log_info "Execution plan:"
+  log_kv "Profile" "$PROFILE" 2 5
   log_kv "Recreate containers" "$RECREATE" 2 5
   log_kv "Skip compile" "$SKIP_COMPILE" 2 5
   log_kv "Skip tests" "$SKIP_TESTS" 2 5
@@ -59,6 +83,9 @@ function parse_arguments() {
   log_kv "Bust cached images" "$BUST_CACHE" 2 5
   log_kv "Snapshot empty containers" "$SNAPSHOT_EMPTY" 2 5
   log_kv "Using inventory" "$INVENTORY_PATH" 2 5
+  if [ "$PROFILE" = cluster ]; then
+    log_kv "Cluster inventory" "$CLUSTER_INVENTORY" 2 5
+  fi
 }
 
 usage() {
@@ -73,37 +100,61 @@ usage() {
   echo " --bust-cache              Delete cached LXD images and refill"
   echo " --snapshot-empty-containers  Take 'empty' snapshot of all containers before hurl init"
   echo " --custom-inventory=PATH   Use custom inventory file instead of default"
+  echo " --profile=single|cluster  single (default): one Central Server node xrd-cs;"
+  echo "                           cluster: two-node Central Server cluster instead of xrd-cs"
+  echo "                           (not with --snapshot-empty-containers). The cluster itself is"
+  echo "                           described by CLUSTER_INVENTORY (default cluster/inventory.yml);"
+  echo "                           on Linux use cluster/inventory.linux.sample.yml with"
+  echo "                           --custom-inventory=config/custom/linux-cluster.sample.hosts"
+  echo "                           On macOS the lima VM needs at least ${CLUSTER_MIN_VM_MEMORY_GIB} GiB memory."
   echo " -h, --help                This help text."
   exit 1
 }
 
-function handlePrepare() {
-  if limactl list | grep -q '^xroad-lxd'; then
-    # Check current status
-    current_status=$(limactl list | grep '^xroad-lxd' | awk '{print $2}')
-
-    if [ "$current_status" = "Running" ]; then
-      log_info "Lima instance xroad-lxd is already running"
-    elif [ "$current_status" = "Stopped" ]; then
-      log_info "Starting lima instance xroad-lxd"
-      limactl start xroad-lxd
-
-      # Verify that the instance is running
-      if limactl list | grep '^xroad-lxd' | awk '{print $2}' | grep -q 'Running'; then
-        log_info "Lima instance xroad-lxd started successfully"
-      else
-        log_error "Failed to start lima instance xroad-lxd"
-        exit 1
-      fi
-    else
-      log_info "Lima instance xroad-lxd has status: $current_status - waiting for it to be ready"
-      # Wait for the instance to reach a stable state
-      sleep 5
-      handlePrepare # Recursive call to check again
+function handleClusterVmMemory() {
+  if [ "$PROFILE" != cluster ]; then
+    return 0
+  fi
+  local bytes
+  bytes=$(limactl list xroad-lxd --format '{{.Memory}}') || {
+    log_error "Cannot read the memory of lima instance xroad-lxd"
+    exit 1
+  }
+  if [[ ! "$bytes" =~ ^[0-9]+$ ]]; then
+    log_error "Cannot read the memory of lima instance xroad-lxd: got '$bytes', expected a number of bytes"
+    exit 1
+  fi
+  if [ "$bytes" -lt $((CLUSTER_MIN_VM_MEMORY_GIB * 1024 * 1024 * 1024)) ]; then
+    log_error "--profile=cluster needs a lima VM with at least ${CLUSTER_MIN_VM_MEMORY_GIB} GiB memory; xroad-lxd has $((bytes / 1024 / 1024 / 1024)) GiB."
+    log_error "Raise it, then run again:"
+    log_error "  limactl stop xroad-lxd && limactl edit xroad-lxd --memory ${CLUSTER_MIN_VM_MEMORY_GIB} && limactl start xroad-lxd"
+    log_error "or recreate the VM (deletes all containers): ./scripts/setup-mac.sh --recreate --memory=${CLUSTER_MIN_VM_MEMORY_GIB}"
+    exit 1
+  fi
+}
+function handleProfileGuard() {
+  if [ "$RECREATE" = true ] || [ "$BUST_CACHE" = true ]; then
+    return 0
+  fi
+  local existing
+  existing=$(lxc list -f csv -c n)
+  if [ "$PROFILE" = cluster ]; then
+    if grep -qxF xrd-cs <<<"$existing"; then
+      log_error "Container xrd-cs exists: the env was started without --profile=cluster. Run with --recreate to rebuild it as a cluster env."
+      exit 1
     fi
   else
-    log_error "Lima instance xroad-lxd not found. Please create it first."
-    exit 1
+    local container containers
+    containers=$(./cluster/list-cluster-containers.sh) || {
+      log_error "Cannot list the cluster containers of $CLUSTER_INVENTORY"
+      exit 1
+    }
+    while IFS= read -r container; do
+      if grep -qxF "$container" <<<"$existing"; then
+        log_error "Cluster container $container exists: the env was started with --profile=cluster. Run with --recreate to rebuild it as a single-node env."
+        exit 1
+      fi
+    done <<<"$containers"
   fi
 }
 
@@ -295,10 +346,19 @@ function handleAnsible() {
     -vv
 }
 
+function handleCluster() {
+  if [ "$PROFILE" = cluster ]; then
+    ./cluster/start-cluster.sh -e cs_ds_tls_throwaway=false -e xroad_cs_dev_configuration=true
+  fi
+}
+
 function applyHostNet() {
   if [ "$SKIP_HOST_NETWORKING" = true ]; then
     log_info "Skipping host networking apply (--skip-host-networking)"
     return 0
+  fi
+  if [ "$PROFILE" = cluster ]; then
+    export SMOKE_HOST=xrd-cs1
   fi
   case "$(uname)" in
     Darwin) ./scripts/setup-mac-net.sh apply ;;
@@ -335,9 +395,10 @@ function main() {
   local onMacOs="no"
   if [[ $(uname) == "Darwin" ]]; then
     onMacOs="yes"
-    # lima is only for MacOS
-    handlePrepare
+    ensure_lima
+    handleClusterVmMemory
   fi
+  handleProfileGuard
   handleRecreate
   handleBustCache
   handleBuild
@@ -345,6 +406,7 @@ function main() {
   ensureCacheFilled
   listSnapshots
   handleAnsible
+  handleCluster
   applyHostNet
   handleSnapshotEmpty
   handleInitialize

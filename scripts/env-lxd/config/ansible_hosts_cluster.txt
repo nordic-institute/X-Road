@@ -1,0 +1,63 @@
+# Dev env inventory for `start-env.sh --profile=cluster`: the dev hosts of ansible_hosts.txt
+# without the single-node Central Server. The Central Server cluster is described by
+# cluster/inventory.yml and installed by xroad_cs_cluster.yml.
+
+[cs_servers]
+
+[cp_servers]
+#xrd-cp ansible_connection=lxd
+
+[ca_servers]
+xrd-ca ansible_connection=lxd ubuntu_releasever=noble
+
+[ss_servers]
+#xrd-ss0 ansible_connection=lxd
+#xrd-ss1 ansible_connection=lxd
+
+[ss_servers:children]
+ubuntu_ss
+rhel_ss
+
+[ubuntu_ss:children]
+ubuntu_hsm_ss
+
+[ubuntu_hsm_ss]
+xrd-ss1 ansible_connection=lxd
+
+[rhel_ss]
+xrd-ss0 ansible_connection=lxd
+
+[is_servers]
+xrd-is ansible_connection=lxd
+
+[lxd_servers]
+lima-xroad-lxd ansible_ssh_args="-F {{ lookup('env','HOME') }}/.lima/xroad-lxd/ssh.config"
+
+[compile_servers]
+localhost ansible_connection=local
+
+[hurl_servers]
+xrd-hurl ansible_connection=lxd ubuntu_releasever=noble
+
+[repo_servers]
+xrd-repo ansible_connection=lxd
+
+[jaeger_servers]
+#xrd-jaeger ansible_connection=lxd
+
+### vars ###
+
+[ss_servers:vars]
+variant=vanilla
+xroad_install_opmonitoring=true
+
+[all:vars]
+ansible_lxd_remote=xroad-lxd
+disable_automatic_upgrades=true
+# Security Servers send mail to Mailpit on Central Server node 1.
+xroad_ss_mail_host=xrd-cs1
+# hurl reaches the Central Server admin API on node 1 and the Issuer Service through the cluster name.
+hurl_cs_host=xrd-cs1.lxd
+hurl_is_host=xrd-cs-lb.lxd
+hurl_cs_ds_tls_dn=CN=xrd-cs-lb.lxd
+hurl_cs_ds_tls_san=DNS:xrd-cs-lb.lxd,DNS:xrd-cs1,DNS:xrd-cs1.lxd,DNS:xrd-cs2,DNS:xrd-cs2.lxd,DNS:localhost
