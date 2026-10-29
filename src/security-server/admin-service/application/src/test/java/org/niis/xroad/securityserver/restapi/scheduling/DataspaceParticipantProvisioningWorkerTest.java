@@ -109,6 +109,8 @@ class DataspaceParticipantProvisioningWorkerTest {
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
     private final Logger cycleLogger =
             (Logger) LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
+    private final ListAppender<ILoggingEvent> workerAppender = new ListAppender<>();
+    private final Logger workerLogger = (Logger) LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class);
 
     @BeforeEach
     void setUp() {
@@ -122,6 +124,9 @@ class DataspaceParticipantProvisioningWorkerTest {
         appender.start();
         cycleLogger.addAppender(appender);
         cycleLogger.setLevel(Level.DEBUG);
+        workerAppender.start();
+        workerLogger.addAppender(workerAppender);
+        workerLogger.setLevel(Level.WARN);
     }
 
     @AfterEach
@@ -132,6 +137,9 @@ class DataspaceParticipantProvisioningWorkerTest {
         cycleLogger.detachAppender(appender);
         appender.stop();
         cycleLogger.setLevel(null);
+        workerLogger.detachAppender(workerAppender);
+        workerAppender.stop();
+        workerLogger.setLevel(null);
     }
 
     private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
@@ -600,6 +608,41 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(participantBindingService, never()).bindMembersIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(MEMBER_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantBindsAndProvisionsNothingForRejectedContextsOnTwoPasses() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(any()))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.REJECTED));
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+        verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(any(), any());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+    }
+
+    @Test
+    void provisionParticipantWarnsNamingEachRejectedContextItSkips() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(any()))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.REJECTED));
+
+        worker.provisionParticipant();
+
+        var warnings = workerAppender.list.stream()
+                .filter(event -> event.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
+        assertThat(warnings).hasSize(2);
+        assertThat(warnings.getFirst()).contains(SYSTEM_ID).contains("rejected");
+        assertThat(warnings.getLast()).contains(MEMBER_ID).contains("rejected");
     }
 
     @Test

@@ -69,6 +69,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus.ISSUED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
+import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.REJECTED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.UNBOUND;
 
 /**
@@ -220,7 +221,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * readiness holds and this server has a registered authentication certificate, which for SYSTEM is
      * the approval of its registration; a context that already holds an active binding row is
      * provisioned regardless, so it recovers from a lost hub or Control Plane context. A context whose
-     * identity is drifted or unreadable is neither bound nor provisioned. A context that cannot be
+     * identity is drifted, unreadable or rejected is neither bound nor provisioned. A context that cannot be
      * bound is skipped and retried on the next tick.
      */
     private int ensure() {
@@ -273,12 +274,15 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     /**
      * Returns the non-converged contexts to provision in this tick: those that hold an active binding
      * row (identity status {@code OK}). Contexts whose identity status is {@code UNBOUND} are bound
-     * first, and only when {@code mayBind}; a context in any other state, such as drifted, is neither
-     * bound nor provisioned.
+     * first, and only when {@code mayBind}; a context in any other state, such as drifted or
+     * rejected, is neither bound nor provisioned.
      */
     private List<ParticipantContext> provisionableContexts(List<ParticipantContext> nonConverged,
             Map<ParticipantContext, ParticipantContextStatus> statuses, boolean mayBind) {
         var bound = new HashSet<>(contextsWithIdentityStatus(nonConverged, statuses, OK));
+        contextsWithIdentityStatus(nonConverged, statuses, REJECTED).forEach(context -> log.warn(
+                "Dataspace provisioning: skipping participant context {}, its identity is rejected because the "
+                        + "registered address cannot carry a DID", context.participantId()));
         var unbound = contextsWithIdentityStatus(nonConverged, statuses, UNBOUND);
         if (!unbound.isEmpty()) {
             if (mayBind) {

@@ -245,6 +245,22 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     @Test
+    void readStatusReportsRejectedIdentityForSystemAndMemberWhenTheAddressCannotCarryADid() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("b\u00fccher.example");
+
+        DataspaceStatus status = statusService.readStatus();
+
+        var system = status.participantContexts().getFirst();
+        var member = status.participantContexts().getLast();
+        assertThat(system.identityStatus()).isEqualTo(IdentityStatus.REJECTED);
+        assertThat(system.intendedDid()).isNull();
+        assertThat(member.identityStatus()).isEqualTo(IdentityStatus.REJECTED);
+        assertThat(member.intendedDid()).isNull();
+    }
+
+    @Test
     void readStatusReportsSystemIdentityOkOnceItsBindingRowExists() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());

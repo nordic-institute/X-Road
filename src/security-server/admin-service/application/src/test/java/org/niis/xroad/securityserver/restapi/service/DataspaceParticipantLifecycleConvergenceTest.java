@@ -48,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -117,6 +118,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private final FakeControlPlaneProvisioningClient controlPlaneClient = new FakeControlPlaneProvisioningClient();
     private final InMemoryBindingTable bindingTable = new InMemoryBindingTable();
 
+    private DataspaceProvisioningService provisioningService;
     private DataspaceParticipantProvisioningWorker worker;
 
     @BeforeEach
@@ -139,9 +141,10 @@ class DataspaceParticipantLifecycleConvergenceTest {
         var ownSecurityServerResolver = new OwnSecurityServerResolver(
                 new ServerConfRepositoryIdentitySource(serverConfRepository), globalConfProvider);
         var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
-        var service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider, didAuthority);
-        worker = new DataspaceParticipantProvisioningWorker(service, readinessPredicates,
+        provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient,
+                controlPlaneClient, clientRepository, ownSecurityServerResolver, dsParticipantRepository,
+                globalConfProvider, didAuthority);
+        worker = new DataspaceParticipantProvisioningWorker(provisioningService, readinessPredicates,
                 new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority));
     }
 
@@ -427,6 +430,30 @@ class DataspaceParticipantLifecycleConvergenceTest {
     }
 
     @Test
+    void aRejectedHostIsRejectedInTheStatusAndUnboundUntilTheAddressBecomesValid() {
+        givenMemberHasRegisteredClient(MEMBER);
+        givenRegisteredAddress("b\u00fccher.example");
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(identityStatuses()).containsExactly(IdentityStatus.REJECTED, IdentityStatus.REJECTED);
+        assertThat(bindingTable.rowCount()).isZero();
+        assertThat(identityHubClient.hasContext(SYSTEM_CTX_ID)).isFalse();
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(SYSTEM_CTX_ID)).isFalse();
+        assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isFalse();
+
+        givenRegisteredAddress(SS_ADDRESS);
+        worker.provisionParticipant();
+
+        assertThat(identityStatuses()).doesNotContain(IdentityStatus.REJECTED);
+        assertThat(bindingTable.hasSystemRow()).isTrue();
+        assertThat(bindingTable.stateOf(MEMBER)).isEqualTo(ParticipantState.ACTIVE);
+        assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isTrue();
+    }
+
+    @Test
     void aSystemContextWithoutABindingRowIsNotLeftConvergedAndIsBoundAgain() {
         worker.provisionParticipant();
         worker.provisionParticipant();
@@ -476,6 +503,17 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         when(globalConfProvider.getSecurityServerAddress(SecurityServerId.Conf.create(owner, SERVER_CODE)))
                 .thenReturn(SS_ADDRESS);
+    }
+
+    private void givenRegisteredAddress(String address) {
+        when(globalConfProvider.getSecurityServerAddress(SecurityServerId.Conf.create(OWNER, SERVER_CODE)))
+                .thenReturn(address);
+    }
+
+    private List<IdentityStatus> identityStatuses() {
+        return provisioningService.participantContexts().stream()
+                .map(context -> provisioningService.readContextStatus(context).identityStatus())
+                .toList();
     }
 
     private void givenMemberHasRegisteredClient(ClientId member) {

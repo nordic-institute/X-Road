@@ -28,10 +28,12 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.service.DidMintResult.Rejected;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 /**
  * Writes the {@code ds_participant} rows that bind a member's or the Security Server's own SYSTEM
@@ -63,8 +66,9 @@ public class DataspaceParticipantBindingService {
 
     /**
      * Binds the derived ctx-id and DID of every given member that has no row yet. Existing rows are
-     * left untouched. Never throws: a member that cannot be bound now is left out of the result and
-     * retried on a later pass, and does not stop the other members from being bound.
+     * left untouched. Never throws: a member that cannot be bound now, including one whose DID minting is
+     * rejected, is left out of the result and retried on a later pass, and does not stop the other members
+     * from being bound.
      *
      * @param members the hosted members to bind
      * @return the given members that hold an active binding row afterwards, in the given order
@@ -103,25 +107,42 @@ public class DataspaceParticipantBindingService {
         return bindUnlessPresent(dsParticipantRepository.findByMemberIdentifier(member), () -> bindMember(member));
     }
 
-    private static boolean bindUnlessPresent(Optional<DsParticipantEntity> existing, Runnable bind) {
+    private static boolean bindUnlessPresent(Optional<DsParticipantEntity> existing, BooleanSupplier bind) {
         if (existing.isPresent()) {
             return existing.get().getState() == ParticipantState.ACTIVE;
         }
-        bind.run();
+        return bind.getAsBoolean();
+    }
+
+    private boolean bindMember(ClientId member) {
+        var minted = mintedDid(didAuthority.mintMemberDid(member), "member " + member);
+        if (minted.isEmpty()) {
+            return false;
+        }
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
+        dsParticipantRepository.bindMemberParticipant(member, ctxId, minted.get().toString());
+        log.info("Dataspace: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId,
+                minted.get());
         return true;
     }
 
-    private void bindMember(ClientId member) {
-        var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
-        var did = didAuthority.memberDid(member);
-        dsParticipantRepository.bindMemberParticipant(member, ctxId, did.toString());
-        log.info("Dataspace: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId, did);
+    private boolean bindSystem() {
+        var minted = mintedDid(didAuthority.mintSystemDid(), "the SYSTEM context");
+        if (minted.isEmpty()) {
+            return false;
+        }
+        var ctxId = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
+        dsParticipantRepository.bindSystemParticipant(ctxId, minted.get().toString());
+        log.info("Dataspace: bound participant identity for the SYSTEM context (ctx-id '{}', DID '{}')", ctxId,
+                minted.get());
+        return true;
     }
 
-    private void bindSystem() {
-        var ctxId = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
-        var did = didAuthority.systemDid();
-        dsParticipantRepository.bindSystemParticipant(ctxId, did.toString());
-        log.info("Dataspace: bound participant identity for the SYSTEM context (ctx-id '{}', DID '{}')", ctxId, did);
+    private static Optional<Did> mintedDid(DidMintResult result, String subject) {
+        if (result instanceof Rejected rejected) {
+            log.warn("Dataspace: not binding {}, no DID can be minted ({}): {}", subject, rejected.reason(),
+                    rejected.detail());
+        }
+        return result.did();
     }
 }

@@ -41,6 +41,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.service.DidMintResult.Rejected;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
@@ -119,9 +120,11 @@ public class DataspaceProvisioningService {
 
     /**
      * Bound-identity state of one participant context. {@code DRIFTED} means the identity
-     * hub serves a different DID than this server intends to publish.
+     * hub serves a different DID than this server intends to publish. {@code REJECTED} means the
+     * context has no binding and no DID can be minted for it from the registered address, computed on
+     * every read and never stored.
      */
-    public enum IdentityStatus { OK, MISMATCH, VERSION_UNSUPPORTED, UNBOUND, DRIFTED, UNKNOWN }
+    public enum IdentityStatus { OK, MISMATCH, VERSION_UNSUPPORTED, UNBOUND, REJECTED, DRIFTED, UNKNOWN }
 
     public enum ParticipantKind { SYSTEM, MEMBER }
 
@@ -572,7 +575,7 @@ public class DataspaceProvisioningService {
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
-        return didAuthority.memberDid(member);
+        return didAuthority.mintMemberDid(member).requireMinted();
     }
 
     /**
@@ -600,7 +603,7 @@ public class DataspaceProvisioningService {
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
-        return didAuthority.systemDid();
+        return didAuthority.mintSystemDid().requireMinted();
     }
 
     /**
@@ -610,7 +613,8 @@ public class DataspaceProvisioningService {
      * propagate.
      *
      * @param memberId the member whose bound identity to check
-     * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
+     * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND}, {@code REJECTED} or
+     *         {@code UNKNOWN}
      */
     public IdentityStatus readIdentityStatus(ClientId memberId) {
         return assessMemberIdentity(memberId).status();
@@ -626,16 +630,17 @@ public class DataspaceProvisioningService {
 
     private ParticipantIdentity assessIdentity(ParticipantContext context) {
         return switch (context.kind()) {
-            case SYSTEM -> assessIdentity(activeSystemBinding(), "the SYSTEM context", didAuthority::systemDid);
+            case SYSTEM -> assessIdentity(activeSystemBinding(), "the SYSTEM context", didAuthority::mintSystemDid);
             case MEMBER -> assessMemberIdentity(context.memberId());
         };
     }
 
     private ParticipantIdentity assessMemberIdentity(ClientId memberId) {
-        return assessIdentity(activeBinding(memberId), "member " + memberId, () -> didAuthority.memberDid(memberId));
+        return assessIdentity(activeBinding(memberId), "member " + memberId, () -> didAuthority.mintMemberDid(memberId));
     }
 
-    private ParticipantIdentity assessIdentity(Optional<DsParticipantEntity> bound, String subject, Supplier<Did> derivedDid) {
+    private ParticipantIdentity assessIdentity(Optional<DsParticipantEntity> bound, String subject,
+            Supplier<DidMintResult> mint) {
         if (!didAuthority.isKnown()) {
             if (bound.isEmpty()) {
                 return new ParticipantIdentity(IdentityStatus.UNBOUND, null);
@@ -645,7 +650,7 @@ public class DataspaceProvisioningService {
         }
         try {
             if (bound.isEmpty()) {
-                return new ParticipantIdentity(IdentityStatus.UNBOUND, derivedDid.get());
+                return unboundIdentity(mint.get(), subject);
             }
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return new ParticipantIdentity(IdentityStatus.OK, ParticipantIdentifierScheme.parseDid(bound.get().getDid()));
@@ -659,6 +664,16 @@ public class DataspaceProvisioningService {
             log.warn("Dataspace: could not read identity status for {}", subject, e);
             return new ParticipantIdentity(IdentityStatus.UNKNOWN, null);
         }
+    }
+
+    private static ParticipantIdentity unboundIdentity(DidMintResult mint, String subject) {
+        if (mint instanceof Rejected rejected) {
+            log.debug("Dataspace: no DID can be minted for {} ({}): {}", subject, rejected.reason(),
+                    rejected.detail());
+        }
+        return mint.did()
+                .map(did -> new ParticipantIdentity(IdentityStatus.UNBOUND, did))
+                .orElseGet(() -> new ParticipantIdentity(IdentityStatus.REJECTED, null));
     }
 
     private boolean createIdentityHubContext(ParticipantContext context, Did did, String identityHubHost) {

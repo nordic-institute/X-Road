@@ -216,6 +216,39 @@ class DataspaceParticipantBindingServiceTest {
         verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
     }
 
+    @Test
+    void writesNothingForAMemberWhoseDidMintingIsRejected() {
+        when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, "b\u00fccher.example"));
+
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).isEmpty();
+
+        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+    }
+
+    @Test
+    void keepsBindingTheRemainingMembersWhenOneDidIsRejected() {
+        when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
+        var host = DidLengthTestHosts.hostForMemberDidLength(OTHER_MEMBER, ParticipantIdentifierScheme.MAX_DID_LENGTH);
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, host));
+        when(dataspace.getDidPort()).thenReturn(443);
+
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(OTHER_MEMBER);
+
+        verify(dsParticipantRepository, never()).bindMemberParticipant(eq(MEMBER), anyString(), anyString());
+        verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
+    }
+
+    @Test
+    void writesNothingForTheSystemContextWhenItsDidMintingIsRejected() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, "b\u00fccher.example"));
+
+        assertThat(service.bindSystemIfAbsent()).isFalse();
+
+        verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
+    }
+
     private static DsParticipantEntity rowIn(ParticipantState state) {
         var row = mock(DsParticipantEntity.class);
         when(row.getState()).thenReturn(state);
