@@ -24,7 +24,7 @@
     "is-ip": "^5.0.1"
   },
   "devDependencies": {
-    "@pinia/testing": "^2.0.1",
+    "@pinia/testing": "^2.0.2",
     "@vitest/ui": "5.0.5",
     "@vue/test-utils": "^2.5.1",
     "openapi-types": "^12.1.3",

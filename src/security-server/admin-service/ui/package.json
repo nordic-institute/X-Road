@@ -24,13 +24,13 @@
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
     "echarts": "^6.1.0",
-    "maska": "^3.2.1",
-    "vue-echarts": "^8.3.0"
+    "maska": "^3.2.2",
+    "vue-echarts": "^8.3.2"
   },
   "devDependencies": {
-    "@pinia/testing": "^2.0.1",
-    "@typescript-eslint/eslint-plugin": "~8.70.1",
-    "@typescript-eslint/parser": "~8.70.1",
+    "@pinia/testing": "^2.0.2",
+    "@typescript-eslint/eslint-plugin": "~8.72.1",
+    "@typescript-eslint/parser": "~8.72.1",
     "@vitest/ui": "5.0.5",
     "@vue/test-utils": "^2.5.1",
     "eslint-plugin-vue-scoped-css": "^3.1.3",
