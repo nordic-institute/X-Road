@@ -45,7 +45,7 @@ owaspDependencyCheck = "12.2.2"
 edc = "1.0.0-RC5"
 carbon-did = "0.10.0"
 nimbus = "10.10"
-opentelemetry-javaagent = "2.32.0"
+opentelemetry-javaagent = "2.33.1"
 opentelemetry-sdk-testing = "1.66.0"
 
 [libraries]
