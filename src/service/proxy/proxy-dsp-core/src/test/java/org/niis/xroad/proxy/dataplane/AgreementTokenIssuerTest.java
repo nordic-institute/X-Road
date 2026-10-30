@@ -91,12 +91,12 @@ class AgreementTokenIssuerTest {
     }
 
     @Test
-    void mintsTokenWhenGrantAndLiveAclFullyMatch() {
+    void mintsTokenOverTheLiveAclEndpoints() {
         var scope = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
         when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
                 new Endpoint("getData", "GET", "/foo/*", false),
-                new Endpoint("getData", "post", "/bar", false)));
+                new Endpoint("getData", "POST", "/bar", false)));
 
         var token = issuer.issueToken(AGREEMENT_ID);
 
@@ -193,25 +193,85 @@ class AgreementTokenIssuerTest {
     }
 
     @Test
-    void keepsOnlyTheScopeEntriesTheLiveAclStillGrants() {
-        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
-        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
-        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
-                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+    void listsEveryLiveAclEndpointWhenDirectAndGroupGrantsAreMixed() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/a"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
+                new Endpoint("getData", "GET", "/a", false),
+                new Endpoint("getData", "GET", "/b", false)));
 
         var token = issuer.issueToken(AGREEMENT_ID);
 
         assertThat(token).isPresent();
-        var claims = decodeAndVerify(token.get());
-        assertThat(claims.scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+        assertThat(decodeAndVerify(token.get()).scope())
+                .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/a"), new AgreementTokenScope("GET", "/b"));
     }
 
     @Test
-    void returnsEmptyWhenNoGrantedScopeEntrySurvivesTheLiveAcl() {
-        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
-        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
+    void listsAnEndpointGrantedBothDirectlyAndThroughAGroupOnce() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/a"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
+                new Endpoint("getData", "GET", "/a", false),
+                new Endpoint("getData", "GET", "/a", false)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        assertThat(decodeAndVerify(token.get()).scope()).containsExactly(new AgreementTokenScope("GET", "/a"));
+    }
+
+    @Test
+    void anAclBroadenedAfterNegotiationIsInTheNextToken() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
         when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
-                .thenReturn(List.of(new Endpoint("getData", "DELETE", "/other", false)));
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false), new Endpoint("getData", "POST", "/bar", false)));
+
+        var first = issuer.issueToken(AGREEMENT_ID);
+        var next = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(decodeAndVerify(first.orElseThrow()).scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+        assertThat(decodeAndVerify(next.orElseThrow()).scope())
+                .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+    }
+
+    @Test
+    void anAclNarrowedAfterNegotiationIsOutOfTheNextToken() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false), new Endpoint("getData", "POST", "/bar", false)))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+
+        var first = issuer.issueToken(AGREEMENT_ID);
+        var next = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(decodeAndVerify(first.orElseThrow()).scope())
+                .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+        assertThat(decodeAndVerify(next.orElseThrow()).scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+    }
+
+    @Test
+    void aBaseEndpointInTheUnionCollapsesTheScopeToAllEndpoints() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/a"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
+                new Endpoint("getData", "GET", "/a", false),
+                new Endpoint("getData", "*", "**", false)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        assertThat(decodeAndVerify(token.get()).scope()).containsExactly(new AgreementTokenScope("*", "**"));
+    }
+
+    @Test
+    void returnsEmptyWhenTheLiveAclUnionIsEmpty() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of());
 
         assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
     }
