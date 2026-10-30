@@ -34,10 +34,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessWinner;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -117,12 +123,12 @@ class AssetAccessCacheTest {
 
     @Test
     void invalidatingDropsEveryProviderCandidateOfTheAssetAndLeavesOthersCached() {
-        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
-                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
-        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-b",
-                "http://provider-b/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
-        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
-                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:B");
+        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
+                Set.of(candidate("provider-a")), null, "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
+                Set.of(candidate("provider-b")), null, "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
+                Set.of(candidate("provider-a")), null, "http-dsp-profile-2025-1", "DEV:COM:222:B");
         var otherAsset = key("asset-2");
         Stream.of(candidateA, candidateB, otherClient, otherAsset).forEach(k -> cache.get(k, x -> load(60)));
         loadCount.set(0);
@@ -133,16 +139,110 @@ class AssetAccessCacheTest {
         assertThat(loadCount.get()).isEqualTo(2);
     }
 
+    @Test
+    void theSameCandidatesInADifferentOrderShareOneEntry() {
+        var ab = new LinkedHashSet<>(List.of(candidate("provider-a"), candidate("provider-b")));
+        var ba = new LinkedHashSet<>(List.of(candidate("provider-b"), candidate("provider-a")));
+
+        cache.get(keyOf(ab, null), k -> load(60));
+        cache.get(keyOf(ba, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void separatelyBuiltCandidatesEqualInValueShareOneEntry() {
+        var firstA = candidate("provider-a");
+        var firstB = candidate("provider-b");
+        var secondA = freshCandidate("provider-a");
+        var secondB = freshCandidate("provider-b");
+        var first = new LinkedHashSet<>(List.of(firstA, firstB));
+        var second = new LinkedHashSet<>(List.of(secondA, secondB));
+
+        assertThat(secondA).isNotSameAs(firstA);
+        assertThat(secondB).isNotSameAs(firstB);
+        assertThat(secondA.counterPartyId()).isNotSameAs(firstA.counterPartyId());
+        assertThat(secondA.counterPartyAddress()).isNotSameAs(firstA.counterPartyAddress());
+        assertThat(secondA).isEqualTo(firstA);
+        assertThat(secondB).isEqualTo(firstB);
+        assertThat(keyOf(second, null)).isEqualTo(keyOf(first, null));
+
+        cache.get(keyOf(first, null), k -> load(60));
+        cache.get(keyOf(second, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void theSameCounterPartyAtADifferentAddressIsADifferentEntry() {
+        var atFirstAddress = Set.of(new AcquisitionCandidate("provider-a", "http://first/dsp"));
+        var atSecondAddress = Set.of(new AcquisitionCandidate("provider-a", "http://second/dsp"));
+
+        cache.get(keyOf(atFirstAddress, null), k -> load(60));
+        cache.get(keyOf(atSecondAddress, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aDifferentForcedTargetIsADifferentEntry() {
+        var candidates = Set.of(candidate("provider-a"));
+
+        cache.get(keyOf(candidates, "DEV:COM:1234:ss-a"), k -> load(60));
+        cache.get(keyOf(candidates, "DEV:COM:1234:ss-b"), k -> load(60));
+        cache.get(keyOf(candidates, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(3);
+    }
+
+    @Test
+    void theEntryRecordsTheWinnerFromTheResponse() {
+        var response = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setWinner(AssetAccessWinner.newBuilder().setCounterPartyId("provider-b").setHost("ss1.example"))
+                .build();
+
+        var entry = AssetAccessCache.CachedEntry.from(response);
+
+        assertThat(entry.winner()).isEqualTo(new AssetAccessCache.Winner("provider-b", "ss1.example"));
+        assertThat(entry.response().endpoint()).isEqualTo("http://provider/api/data");
+    }
+
+    @Test
+    void anEntryFromAResponseWithoutAWinnerHasNone() {
+        var response = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
+
+        assertThat(AssetAccessCache.CachedEntry.from(response).winner()).isNull();
+    }
+
     private AssetAccessCache.CachedEntry load(long expiresInSeconds) {
         loadCount.incrementAndGet();
         return new AssetAccessCache.CachedEntry(
                 new AssetAccessResponse("http://provider/api/data", "token"),
+                null,
                 Instant.now().getEpochSecond() + expiresInSeconds);
     }
 
     private static AssetAccessCache.CacheKey key(String assetId) {
-        return new AssetAccessCache.CacheKey("test-participant-ctx", assetId, "provider-1",
-                "http://provider/dsp", "http-dsp-profile-2025-1", null);
+        return keyOf(Set.of(candidate("provider-1")), null, assetId);
+    }
+
+    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String forcedTarget) {
+        return keyOf(candidates, forcedTarget, "asset-1");
+    }
+
+    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String forcedTarget, String assetId) {
+        return new AssetAccessCache.CacheKey("test-participant-ctx", assetId, candidates, forcedTarget,
+                "http-dsp-profile-2025-1", null);
+    }
+
+    private static AcquisitionCandidate candidate(String counterPartyId) {
+        return new AcquisitionCandidate(counterPartyId, "http://" + counterPartyId + "/dsp");
+    }
+
+    private static AcquisitionCandidate freshCandidate(String counterPartyId) {
+        return new AcquisitionCandidate(String.valueOf(counterPartyId.toCharArray()),
+                String.join("", "http://", counterPartyId, "/dsp"));
     }
 
     private static final class ManualTicker implements Ticker {

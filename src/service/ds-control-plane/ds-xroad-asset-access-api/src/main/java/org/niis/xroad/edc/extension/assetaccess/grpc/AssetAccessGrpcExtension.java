@@ -48,7 +48,10 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     public static final String EXTENSION_NAME = "X-Road Asset Access gRPC Extension";
 
     @Setting(key = "xroad.asset-access.acquisition.timeout-seconds",
-            description = "Overall asset acquisition deadline in seconds (gRPC await for catalog → negotiation → transfer)",
+            description = "Overall asset acquisition deadline in seconds (gRPC await for catalog → negotiation → transfer). "
+                    + "Default 60: above a typical two candidates (a failed server and a sibling) at the per-candidate limit "
+                    + "(xroad.asset-access.candidate.timeout-seconds, 20) "
+                    + "and below the proxy-to-control-plane gRPC deadline (65000 ms), so the aggregated failure reaches the proxy first.",
             defaultValue = "60")
     private long acquisitionTimeoutSeconds;
 

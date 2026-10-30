@@ -21,6 +21,7 @@ junitJupiter = "6.1.3"
 junitPlatform = "6.1.3"
 xmlUnit = "2.14.0"
 bouncyCastle = "1.86"
+okhttp = "5.5.0"
 slf4j = "2.0.19"
 protoc = "4.36.2"
 grpc = "1.84.0"
@@ -135,6 +136,8 @@ xmlunit-assertj3 = { module = "org.xmlunit:xmlunit-assertj3", version.ref = "xml
 
 bouncyCastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
 bouncyCastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncyCastle" }
+
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protoc" }
 protobuf-javaUtil = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protoc" }
@@ -273,6 +276,7 @@ edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-trans
 edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
 edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
 edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }
+edc-core-dsp-http = { module = "org.eclipse.edc:dsp-http-core", version.ref = "edc" }
 edc-core-dps = { module = "org.eclipse.edc:data-plane-signaling-core", version.ref = "edc" }
 edc-core-dps-oauth = { module = "org.eclipse.edc:data-plane-signaling-oauth2", version.ref = "edc" }
 edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }

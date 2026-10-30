@@ -54,8 +54,10 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
@@ -67,6 +69,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -119,13 +122,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .setProtocol("http-dsp-profile-2025-1")
                 .build();
         var response = stub.acquire(request);
@@ -145,8 +147,7 @@ class AssetAccessGrpcServiceTest {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         assertThatThrownBy(() -> stub.acquire(request))
                 .isInstanceOf(StatusRuntimeException.class)
@@ -164,13 +165,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         var response = stub.acquire(request);
 
@@ -190,13 +190,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         var response = stub.acquire(request);
 
@@ -216,13 +215,12 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
                 any(ParticipantContext.class), any(AssetAccessRequest.class)))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp")
+                .addCandidates(candidate("provider-1", "http://provider/dsp"))
                 .build();
         var response = stub.acquire(request);
 
@@ -355,12 +353,26 @@ class AssetAccessGrpcServiceTest {
         }
     }
 
+    @Test
+    void emptyCandidateListIsRejectedWithoutCallingOrchestrator() {
+        var request = baseRequest().clearCandidates().build();
+
+        assertThatThrownBy(() -> stub.acquire(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> {
+                    var proto = unpackProto((StatusRuntimeException) ex);
+                    assertThat(proto.getErrorCode())
+                            .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(proto.getDetails()).isEqualTo("Empty candidate list");
+                });
+        verifyNoInteractions(assetAccessOrchestrator, participantContextService);
+    }
+
     private AcquireAssetAccessReq.Builder baseRequest() {
         return AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp");
+                .addCandidates(candidate("provider-1", "http://provider/dsp"));
     }
 
     private String extractErrorCode(StatusRuntimeException ex) {
@@ -412,6 +424,50 @@ class AssetAccessGrpcServiceTest {
     }
 
     @Test
+    void acquireForwardsCandidatesInOrderAndForcedTarget() {
+        var captor = stubOrchestratorCapturingRequest();
+
+        stub.acquire(minimalRequest()
+                .clearCandidates()
+                .addCandidates(candidate("provider-b", "http://b/dsp"))
+                .addCandidates(candidate("provider-a", "http://a/dsp"))
+                .setForcedTargetServerId("DEV:COM:222:SS1")
+                .build());
+
+        var forwarded = captor.getValue();
+        assertThat(forwarded.candidates()).containsExactly(
+                new AssetAccessRequest.Candidate("provider-b", "http://b/dsp"),
+                new AssetAccessRequest.Candidate("provider-a", "http://a/dsp"));
+        assertThat(forwarded.forcedTarget()).isEqualTo("DEV:COM:222:SS1");
+    }
+
+    @Test
+    void acquireWithoutForcedTargetForwardsNull() {
+        var captor = stubOrchestratorCapturingRequest();
+
+        stub.acquire(minimalRequest().build());
+
+        assertThat(captor.getValue().forcedTarget()).isNull();
+    }
+
+    @Test
+    void acquireResponseNamesWinner() {
+        stubParticipantContext();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NS + "endpoint", "http://provider/api/data")
+                .build();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(new AssetAccessResult(
+                        dataAddress, new AssetAccessResult.Winner("provider-b", "b.example.org"))));
+
+        var response = stub.acquire(minimalRequest().build());
+
+        assertThat(response.getWinner().getCounterPartyId()).isEqualTo("provider-b");
+        assertThat(response.getWinner().getHost()).isEqualTo("b.example.org");
+    }
+
+    @Test
     void acquireWithoutClientIdForwardsNull() {
         var captor = stubOrchestratorCapturingRequest();
 
@@ -428,15 +484,25 @@ class AssetAccessGrpcServiceTest {
                 .build();
         var captor = ArgumentCaptor.forClass(AssetAccessRequest.class);
         when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), captor.capture()))
-                .thenReturn(CompletableFuture.completedFuture(ServiceResult.success(dataAddress)));
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
         return captor;
+    }
+
+    private static AssetAccessResult resultOf(DataAddress dataAddress) {
+        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "provider"));
+    }
+
+    private static AssetAccessCandidate candidate(String counterPartyId, String counterPartyAddress) {
+        return AssetAccessCandidate.newBuilder()
+                .setCounterPartyId(counterPartyId)
+                .setCounterPartyAddress(counterPartyAddress)
+                .build();
     }
 
     private static AcquireAssetAccessReq.Builder minimalRequest() {
         return AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")
                 .setAssetId("asset-1")
-                .setCounterPartyId("provider-1")
-                .setCounterPartyAddress("http://provider/dsp");
+                .addCandidates(candidate("provider-1", "http://provider/dsp"));
     }
 }

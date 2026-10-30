@@ -31,10 +31,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.Ticker;
 import jakarta.annotation.Nullable;
+import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -48,13 +51,33 @@ class AssetAccessCache {
      * Cache key for acquired asset access responses. A cache must key on every field that
      * affects the response; {@code participantContextId} varies per request with the sender.
      *
-     * <p>Planned: {@code counterPartyAddress} will be resolved from GlobalConf; multiple
-     * {@code protocol} versions are foreseeable.
+     * <p>The candidates are a set: the same candidates in any order are the same key.
+     * {@code forcedTarget} is the encoded id of the Security Server the caller forced the target to.
+     *
+     * <p>Planned: the candidates will be resolved from GlobalConf; multiple {@code protocol} versions
+     * are foreseeable.
      */
-    record CacheKey(String participantContextId, String assetId, String counterPartyId,
-                    String counterPartyAddress, String protocol, @Nullable String consumerClientId) { }
+    record CacheKey(String participantContextId, String assetId, Set<AcquisitionCandidate> candidates,
+                    @Nullable String forcedTarget, String protocol, @Nullable String consumerClientId) { }
 
-    record CachedEntry(AssetAccessResponse response, long expiresAtEpochSeconds) { }
+    /**
+     * @param winner the candidate that granted the access; {@code null} when the control plane named none
+     */
+    record CachedEntry(AssetAccessResponse response, @Nullable Winner winner, long expiresAtEpochSeconds) {
+
+        static CachedEntry from(AcquireAssetAccessResp response) {
+            var expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
+            var winner = response.hasWinner()
+                    ? new Winner(response.getWinner().getCounterPartyId(), response.getWinner().getHost())
+                    : null;
+            var assetAccessResponse = new AssetAccessResponse(
+                    response.getEndpoint(),
+                    response.hasAuthorization() ? response.getAuthorization() : null);
+            return new CachedEntry(assetAccessResponse, winner, expiresAt);
+        }
+    }
+
+    record Winner(String counterPartyId, String host) { }
 
     private final Cache<CacheKey, CachedEntry> cache;
 

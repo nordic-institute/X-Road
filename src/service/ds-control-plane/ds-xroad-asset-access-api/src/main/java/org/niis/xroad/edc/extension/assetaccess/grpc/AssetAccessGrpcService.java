@@ -29,7 +29,6 @@ package org.niis.xroad.edc.extension.assetaccess.grpc;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -39,8 +38,11 @@ import org.niis.xroad.common.core.telemetry.XrdSpanAttrs;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessWinner;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.assetaccess.token.AgreementTokenExpiry;
 
@@ -50,6 +52,8 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
@@ -58,7 +62,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
 
 /**
  * gRPC service implementation that delegates to {@link AssetAccessOrchestrator}.
- * Bridges the async {@code CompletableFuture<ServiceResult<DataAddress>>} to gRPC's
+ * Bridges the async {@code CompletableFuture<AssetAccessResult>} to gRPC's
  * sync {@code StreamObserver} pattern using {@link RpcResponseHandler#handleRequest}.
  */
 @RequiredArgsConstructor
@@ -81,21 +85,36 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
 
     private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {
         recordSpanAttributes(request);
+        requireCandidates(request);
         var participantContext = resolveParticipantContext(request.getParticipantContextId());
         var assetAccessRequest = toAssetAccessRequest(request);
-        var dataAddress = awaitAcquireResult(participantContext, assetAccessRequest);
-        return buildResponse(dataAddress);
+        var result = awaitResult(assetAccessOrchestrator.acquireAssetAccess(participantContext, assetAccessRequest));
+        return buildResponse(result);
+    }
+
+    private static void requireCandidates(AcquireAssetAccessReq request) {
+        if (request.getCandidatesCount() == 0) {
+            throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .details("Empty candidate list")
+                    .build();
+        }
     }
 
     private void recordSpanAttributes(AcquireAssetAccessReq request) {
         SpanAttributes.onCurrent()
                 .set(XrdSpanAttrs.AssetAccess.PARTICIPANT_CONTEXT_ID, request.getParticipantContextId())
                 .set(XrdSpanAttrs.AssetAccess.ASSET_ID, request.getAssetId())
-                .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ID, request.getCounterPartyId())
-                .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ADDRESS, request.getCounterPartyAddress())
+                .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ID, joinCandidates(request, AssetAccessCandidate::getCounterPartyId))
+                .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ADDRESS,
+                        joinCandidates(request, AssetAccessCandidate::getCounterPartyAddress))
                 .set(XrdSpanAttrs.AssetAccess.PROTOCOL, request.getProtocol().isEmpty() ? null : request.getProtocol())
                 .set(XrdSpanAttrs.AssetAccess.CLIENT_ID, request.hasClientId() ? request.getClientId() : null)
                 .apply();
+    }
+
+    private static String joinCandidates(AcquireAssetAccessReq request, Function<AssetAccessCandidate, String> field) {
+        return request.getCandidatesList().stream().map(field).collect(Collectors.joining(","));
     }
 
     private ParticipantContext resolveParticipantContext(String participantContextId) {
@@ -113,24 +132,17 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private static AssetAccessRequest toAssetAccessRequest(AcquireAssetAccessReq request) {
         return new AssetAccessRequest(
                 request.getAssetId(),
-                request.getCounterPartyId(),
-                request.getCounterPartyAddress(),
+                request.getCandidatesList().stream()
+                        .map(candidate -> new AssetAccessRequest.Candidate(
+                                candidate.getCounterPartyId(), candidate.getCounterPartyAddress()))
+                        .toList(),
                 request.getProtocol().isEmpty() ? null : request.getProtocol(),
-                request.hasClientId() ? request.getClientId() : null);
+                request.hasClientId() ? request.getClientId() : null,
+                request.hasForcedTargetServerId() ? request.getForcedTargetServerId() : null);
     }
 
-    private DataAddress awaitAcquireResult(ParticipantContext participantContext, AssetAccessRequest assetAccessRequest) {
-        var serviceResult = awaitResult(assetAccessOrchestrator.acquireAssetAccess(participantContext, assetAccessRequest));
-        if (serviceResult.failed()) {
-            throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
-                    .origin(ErrorOrigin.DATASPACE)
-                    .details(serviceResult.getFailureDetail())
-                    .build();
-        }
-        return serviceResult.getContent();
-    }
-
-    private static AcquireAssetAccessResp buildResponse(DataAddress dataAddress) {
+    private static AcquireAssetAccessResp buildResponse(AssetAccessResult result) {
+        var dataAddress = result.dataAddress();
         var properties = dataAddress.getProperties();
         var endpoint = (String) properties.get(ENDPOINT_KEY);
         if (endpoint == null || endpoint.isBlank()) {
@@ -140,7 +152,11 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
         }
         var authorization = (String) properties.get(AUTHORIZATION_KEY);
 
-        var respBuilder = AcquireAssetAccessResp.newBuilder().setEndpoint(endpoint);
+        var respBuilder = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint(endpoint)
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId(result.winner().counterPartyId())
+                        .setHost(result.winner().host()));
         if (authorization != null) {
             respBuilder.setAuthorization(authorization);
         }
