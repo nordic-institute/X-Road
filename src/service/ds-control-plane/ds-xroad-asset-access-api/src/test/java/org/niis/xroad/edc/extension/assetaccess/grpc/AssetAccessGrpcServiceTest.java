@@ -46,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -56,9 +57,11 @@ import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.nio.charset.StandardCharsets;
@@ -69,6 +72,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -459,12 +463,39 @@ class AssetAccessGrpcServiceTest {
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(new AssetAccessResult(
-                        dataAddress, new AssetAccessResult.Winner("provider-b", "b.example.org"))));
+                        dataAddress, new AssetAccessResult.Winner("provider-b", "http://b.example.org/dsp"))));
 
         var response = stub.acquire(minimalRequest().build());
 
         assertThat(response.getWinner().getCounterPartyId()).isEqualTo("provider-b");
-        assertThat(response.getWinner().getHost()).isEqualTo("b.example.org");
+        assertThat(response.getWinner().getCounterPartyAddress()).isEqualTo("http://b.example.org/dsp");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http://a.example.org/dsp", "not a url", "ftp://a.example.org/dsp"})
+    void reportCounterPartyFailureReachesTheOrchestratorWithTheIdAndAddress(String address) {
+        var response = stub.reportCounterPartyFailure(ReportCounterPartyFailureReq.newBuilder()
+                .setCounterPartyId("provider-a")
+                .setCounterPartyAddress(address)
+                .build());
+
+        assertThat(response).isEqualTo(Empty.getDefaultInstance());
+        verify(assetAccessOrchestrator).reportCounterPartyFailure("provider-a", address);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  "})
+    void reportCounterPartyFailureWithBlankAddressIsInvalidArgumentAndMarksNothing(String address) {
+        var request = ReportCounterPartyFailureReq.newBuilder()
+                .setCounterPartyId("provider-a")
+                .setCounterPartyAddress(address)
+                .build();
+
+        assertThatThrownBy(() -> stub.reportCounterPartyFailure(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> assertThat(((StatusRuntimeException) ex).getStatus().getCode())
+                        .isEqualTo(Status.Code.INVALID_ARGUMENT));
+        verifyNoInteractions(assetAccessOrchestrator);
     }
 
     @Test
@@ -489,7 +520,7 @@ class AssetAccessGrpcServiceTest {
     }
 
     private static AssetAccessResult resultOf(DataAddress dataAddress) {
-        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "provider"));
+        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "http://provider/dsp"));
     }
 
     private static AssetAccessCandidate candidate(String counterPartyId, String counterPartyAddress) {

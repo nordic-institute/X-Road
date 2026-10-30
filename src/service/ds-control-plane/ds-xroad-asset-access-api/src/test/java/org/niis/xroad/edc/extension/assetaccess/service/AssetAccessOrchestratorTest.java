@@ -76,6 +76,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -972,7 +973,8 @@ class AssetAccessOrchestratorTest {
 
         var result = future.get(5, TimeUnit.SECONDS);
         assertThat(result.dataAddress()).isSameAs(address);
-        assertThat(result.winner()).isEqualTo(new AssetAccessResult.Winner("provider-2", "provider-2.example.org"));
+        assertThat(result.winner()).isEqualTo(new AssetAccessResult.Winner(
+                "provider-2", "http://provider-2.example.org/dsp"));
     }
 
     @Test
@@ -1493,6 +1495,72 @@ class AssetAccessOrchestratorTest {
                 .containsExactly("agreement-new", "agreement-fresh");
         verify(catalogService, times(1)).requestCatalog(any(), eq("provider-2"), any(), any(), any());
         verify(catalogService, times(0)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void reusedAgreementWinnerCarriesTheCandidateAddress() throws Exception {
+        stubAgreementAt("provider-1", "agreement-1", 1_000L);
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-1"));
+        startedAddress("tp-1", "http://provider-1.example.org/data");
+        assertThat(acquireAndAwait(requestForCandidates("provider-1")).winner().counterPartyAddress())
+                .isEqualTo("http://provider-1.example.org/dsp");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http://provider-1.example.org/dsp", "ftp://provider-1.example.org/dsp", "not a url"})
+    void reportedServerIsSkippedAndTheSiblingWins(String reportedAddress) throws Exception {
+        stubNegotiatedAccessViaCatalogOf("provider-2");
+        var request = new AssetAccessRequest("asset-1", List.of(new AssetAccessRequest.Candidate("provider-1", reportedAddress),
+                new AssetAccessRequest.Candidate("provider-2", "http://provider-2.example.org/dsp")), null, null, null);
+        orchestrator.reportCounterPartyFailure("provider-1", reportedAddress);
+
+        assertThat(acquireAndAwait(request).winner().counterPartyId()).isEqualTo("provider-2");
+        verify(catalogService, never()).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void reportedServerWinsAgainAfterTheCooldownAndItsKeptAgreementIsReusedWithoutNegotiating() throws Exception {
+        stubAgreementAt("provider-1", "agreement-1", 2_000L);
+        stubAgreementAt("provider-2", "agreement-2", 1_000L);
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-2"))
+                .thenReturn(successfulTransferInitiation("tp-1"));
+        startedAddress("tp-2", "http://provider-2.example.org/data");
+        startedAddress("tp-1", "http://provider-1.example.org/data");
+        var request = requestForCandidates("provider-1", "provider-2");
+        orchestrator.reportCounterPartyFailure("provider-1", "http://provider-1.example.org/dsp");
+
+        assertThat(acquireAndAwait(request).winner().counterPartyId()).isEqualTo("provider-2");
+        ticker.advance(COOLDOWN_PERIOD);
+        assertThat(acquireAndAwait(request).winner().counterPartyId()).isEqualTo("provider-1");
+
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
+                .containsExactly("agreement-2", "agreement-1");
+        verifyNoInteractions(catalogService, contractNegotiationService);
+    }
+
+    @Test
+    void reportedLoneCandidateIsStillTried() throws Exception {
+        var address = stubNegotiatedAccessViaCatalogOf("provider-1");
+        orchestrator.reportCounterPartyFailure("provider-1", "http://provider-1.example.org/dsp");
+        assertThat(acquireAndAwait(requestForCandidates("provider-1")).dataAddress()).isSameAs(address);
+        verify(catalogService, times(1)).requestCatalog(any(), eq("provider-1"), any(), any(), any());
+    }
+
+    @Test
+    void secondReportWithinThePeriodKeepsTheServerCoolingDownLongerWithoutError() {
+        orchestrator.reportCounterPartyFailure("provider-1", "http://provider-1.example.org/dsp");
+        ticker.advance(Duration.ofSeconds(100));
+        orchestrator.reportCounterPartyFailure("provider-1", "http://provider-1.example.org/dsp");
+        ticker.advance(Duration.ofSeconds(100));
+        assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
+    }
+
+    private AssetAccessResult acquireAndAwait(AssetAccessRequest request) throws Exception {
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        pollUntilDone(future);
+        return future.get(5, TimeUnit.SECONDS);
     }
 
     private void stubAgreementAt(String counterPartyId, String agreementId, long signingDate) {

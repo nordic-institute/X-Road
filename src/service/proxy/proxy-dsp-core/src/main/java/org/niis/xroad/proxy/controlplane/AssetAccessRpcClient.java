@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.grpc.ManagedChannel;
+import io.grpc.stub.StreamObserver;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -42,12 +43,16 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.rpc.common.Empty;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * gRPC-based implementation of {@link AssetAccessAcquisitionService} that calls
@@ -58,12 +63,15 @@ import java.util.Set;
 @ApplicationScoped
 public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAccessAcquisitionService {
 
+    private static final Duration FAILURE_REPORT_DEADLINE = Duration.ofSeconds(3);
+
     private final RpcChannelFactory rpcChannelFactory;
     private final ControlPlaneRpcChannelProperties channelProperties;
     private final AssetAccessClientProperties clientProperties;
 
     private ManagedChannel channel;
     private AssetAccessServiceGrpc.AssetAccessServiceBlockingStub accessServiceBlockingStub;
+    private AssetAccessServiceGrpc.AssetAccessServiceStub failureReportStub;
 
     private AssetAccessCache cache;
 
@@ -86,6 +94,7 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
         accessServiceBlockingStub = AssetAccessServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        failureReportStub = AssetAccessServiceGrpc.newStub(channel);
         cache = buildCache();
     }
 
@@ -131,6 +140,21 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         }
     }
 
+    @Override
+    public void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
+        var request = ReportCounterPartyFailureReq.newBuilder()
+                .setCounterPartyId(counterPartyId)
+                .setCounterPartyAddress(counterPartyAddress)
+                .build();
+        try {
+            failureReportStub.withDeadlineAfter(FAILURE_REPORT_DEADLINE.toMillis(), TimeUnit.MILLISECONDS)
+                    .reportCounterPartyFailure(request, new FailureReportObserver(counterPartyId, counterPartyAddress));
+        } catch (RuntimeException e) {
+            log.warn("Failed to report counter-party failure: counterPartyId={} counterPartyAddress={}",
+                    counterPartyId, counterPartyAddress, e);
+        }
+    }
+
     private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey,
                                                          List<AcquisitionCandidate> candidates) {
         var request = AcquireAssetAccessReq.newBuilder()
@@ -148,5 +172,24 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
             request.setClientId(cacheKey.consumerClientId());
         }
         return AssetAccessCache.CachedEntry.from(exec(() -> accessServiceBlockingStub.acquire(request.build())));
+    }
+
+    private record FailureReportObserver(String counterPartyId, String counterPartyAddress) implements StreamObserver<Empty> {
+
+        @Override
+        public void onNext(Empty value) {
+            // The report has no response content.
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            log.warn("Failed to report counter-party failure: counterPartyId={} counterPartyAddress={}",
+                    counterPartyId, counterPartyAddress, t);
+        }
+
+        @Override
+        public void onCompleted() {
+            // Nothing to do once the control plane has acknowledged the report.
+        }
     }
 }

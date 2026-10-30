@@ -126,6 +126,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 request.sender());
     }
 
+    @Override
+    public void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
+        assetAccessAcquisitionService.reportCounterPartyFailure(counterPartyId, counterPartyAddress);
+    }
+
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
         var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
