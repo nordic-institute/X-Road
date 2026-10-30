@@ -44,6 +44,7 @@ import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.dec
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeClient;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeScope;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeService;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeServiceVersion;
 
 class AgreementTokenClaimsCodecTest {
 
@@ -82,7 +83,7 @@ class AgreementTokenClaimsCodecTest {
 
         var encoded = encodeService(service);
 
-        assertThat(decodeService(encoded)).isEqualTo(service);
+        assertThat(decodeService(encoded, encodeServiceVersion(service))).isEqualTo(service);
     }
 
     @Test
@@ -91,18 +92,28 @@ class AgreementTokenClaimsCodecTest {
 
         var encoded = encodeService(service);
 
-        assertThat(decodeService(encoded)).isEqualTo(service);
+        assertThat(decodeService(encoded, encodeServiceVersion(service))).isEqualTo(service);
+    }
+
+    @Test
+    void shouldRoundTripDottedServiceCodeWithAndWithoutVersion() {
+        var withVersion = ServiceId.Conf.create(SUBSYSTEM_CLIENT, "getData.v2", "v1");
+        var withoutVersion = ServiceId.Conf.create(SUBSYSTEM_CLIENT, "getData.v2");
+
+        assertThat(decodeService(encodeService(withVersion), encodeServiceVersion(withVersion))).isEqualTo(withVersion);
+        assertThat(decodeService(encodeService(withoutVersion), encodeServiceVersion(withoutVersion)))
+                .isEqualTo(withoutVersion);
     }
 
     @Test
     void shouldRejectMalformedServiceId() {
-        assertThatThrownBy(() -> decodeService("not-a-service-id"))
+        assertThatThrownBy(() -> decodeService("not-a-service-id", null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void shouldRejectBlankServiceId() {
-        assertThatThrownBy(() -> decodeService(" "))
+        assertThatThrownBy(() -> decodeService(" ", null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
