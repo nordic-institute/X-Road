@@ -54,4 +54,14 @@ public interface DspRequestProcessor {
      */
     default void invalidateAssetAccess(DspRequest request) {
     }
+
+    /**
+     * Reports a provider Security Server as unreachable, so that the next acquisition keeps it out of selection.
+     * Returns without waiting for the control plane; a failed report is logged and never thrown.
+     *
+     * @param counterPartyId      the counter-party id of the failed Security Server
+     * @param counterPartyAddress the counter-party address of the failed Security Server
+     */
+    default void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
+    }
 }

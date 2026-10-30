@@ -235,6 +235,6 @@ class AssetAccessStateStoreTest {
     }
 
     private static AssetAccessResult resultOf(DataAddress dataAddress) {
-        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "provider"));
+        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "http://provider/dsp"));
     }
 }

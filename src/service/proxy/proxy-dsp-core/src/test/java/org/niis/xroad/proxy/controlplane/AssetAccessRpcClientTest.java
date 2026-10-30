@@ -53,7 +53,9 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
+import org.niis.xroad.rpc.common.Empty;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -68,6 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,6 +98,10 @@ class AssetAccessRpcClientTest {
     private StatusRuntimeException configuredError;
     private CountDownLatch holdLatch;
 
+    private final AtomicReference<ReportCounterPartyFailureReq> capturedReport = new AtomicReference<>();
+    private final CountDownLatch reportReceived = new CountDownLatch(1);
+    private CountDownLatch reportHoldLatch;
+
     @BeforeEach
     void setUp() throws Exception {
         var mockService = new AssetAccessServiceGrpc.AssetAccessServiceImplBase() {
@@ -118,6 +125,23 @@ class AssetAccessRpcClientTest {
                     responseObserver.onCompleted();
                 }
             }
+
+            @Override
+            public void reportCounterPartyFailure(ReportCounterPartyFailureReq request,
+                                                  StreamObserver<Empty> responseObserver) {
+                capturedReport.set(request);
+                reportReceived.countDown();
+                if (reportHoldLatch != null) {
+                    try {
+                        reportHoldLatch.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+                responseObserver.onNext(Empty.getDefaultInstance());
+                responseObserver.onCompleted();
+            }
         };
 
         server = ServerBuilder.forPort(0)
@@ -132,7 +156,6 @@ class AssetAccessRpcClientTest {
         when(channelProperties.host()).thenReturn("localhost");
         when(channelProperties.port()).thenReturn(server.getPort());
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
-        when(clientProperties.protocol()).thenReturn("http-dsp-profile-2025-1");
         when(clientProperties.cache()).thenReturn(cacheProperties);
         when(cacheProperties.enabled()).thenReturn(true);
         when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
@@ -145,6 +168,9 @@ class AssetAccessRpcClientTest {
 
     @AfterEach
     void tearDown() {
+        if (reportHoldLatch != null) {
+            reportHoldLatch.countDown();
+        }
         if (channel != null) {
             channel.shutdownNow();
         }
@@ -153,8 +179,13 @@ class AssetAccessRpcClientTest {
         }
     }
 
+    private void stubProtocol() {
+        when(clientProperties.protocol()).thenReturn("http-dsp-profile-2025-1");
+    }
+
     @Test
     void acquireSuccessReturnsTypedEndpointAndAuthorization() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-abc-123")
@@ -177,6 +208,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessWithNullAuthorizationReturnsNullAuthorization() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
@@ -189,6 +221,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireFailureThrowsStatusRuntimeException() {
+        stubProtocol();
         configuredError = new StatusRuntimeException(Status.INTERNAL);
 
         assertThatThrownBy(() -> client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null))
@@ -199,6 +232,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessCacheHitReturnsWithoutSecondGrpcCall() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-abc-123")
@@ -216,6 +250,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessDifferentKeyCausesCacheMiss() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -229,6 +264,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessDifferentParticipantContextCausesCacheMiss() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -242,6 +278,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessDifferentCounterPartyAddressCausesCacheMiss() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -257,6 +294,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessWithoutExpiresAtUsesDefaultTtl() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
@@ -271,6 +309,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessConcurrentCallsForSameKeyCollapseToSingleGrpcRoundTrip() throws Exception {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-x")
@@ -308,6 +347,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessCacheDisabledBypassesCache() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -335,6 +375,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessCallOptionsCarryDeadline() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
@@ -384,6 +425,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireForwardsConsumerClientId() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
 
         client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null,
@@ -395,6 +437,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireWithoutConsumerClientIdLeavesTheFieldUnset() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
 
         client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
@@ -404,6 +447,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSuccessDifferentConsumerClientCausesCacheMiss() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -419,6 +463,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSameCandidatesInADifferentOrderHitTheCache() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -434,6 +479,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireDifferentForcedTargetCausesCacheMissAndIsForwarded() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -448,6 +494,7 @@ class AssetAccessRpcClientTest {
 
     @Test
     void acquireSeparatelyBuiltCandidatesEqualInValueHitTheCache() {
+        stubProtocol();
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -469,5 +516,59 @@ class AssetAccessRpcClientTest {
         client.acquireAssetAccess("test-participant-ctx", "asset-1", second, null, null);
 
         assertThat(requestCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void reportDeliversCounterPartyIdAndAddress() throws Exception {
+        client.reportCounterPartyFailure("provider-1", "http://provider/dsp");
+
+        assertThat(reportReceived.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(capturedReport.get().getCounterPartyId()).isEqualTo("provider-1");
+        assertThat(capturedReport.get().getCounterPartyAddress()).isEqualTo("http://provider/dsp");
+    }
+
+    @Test
+    void reportReturnsBeforeTheServerAnswers() throws Exception {
+        reportHoldLatch = new CountDownLatch(1);
+
+        assertTimeoutPreemptively(Duration.ofSeconds(2),
+                () -> client.reportCounterPartyFailure("provider-1", "http://provider/dsp"));
+
+        assertThat(reportReceived.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(reportHoldLatch.getCount()).isEqualTo(1);
+    }
+
+    @Test
+    void reportCallCarriesAShortDeadlineAndNoWaitForReady() throws Exception {
+        var reportCallOptions = new AtomicReference<CallOptions>();
+        var capturingInterceptor = new ClientInterceptor() {
+            @Override
+            public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
+                    MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+                if ("ReportCounterPartyFailure".equals(method.getBareMethodName())) {
+                    reportCallOptions.set(callOptions);
+                }
+                return next.newCall(method, callOptions);
+            }
+        };
+
+        client.close();
+        channel.shutdownNow();
+        channel = ManagedChannelBuilder.forAddress("localhost", server.getPort())
+                .usePlaintext()
+                .intercept(capturingInterceptor)
+                .build();
+        Mockito.reset(rpcChannelFactory);
+        when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
+        client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
+        client.init();
+
+        client.reportCounterPartyFailure("provider-1", "http://provider/dsp");
+
+        assertThat(reportReceived.await(5, TimeUnit.SECONDS)).isTrue();
+        var options = reportCallOptions.get();
+        assertThat(options.isWaitForReady()).isFalse();
+        assertThat(options.getDeadline()).isNotNull();
+        assertThat(options.getDeadline().timeRemaining(TimeUnit.MILLISECONDS)).isPositive().isLessThanOrEqualTo(5_000);
     }
 }

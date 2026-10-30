@@ -68,7 +68,7 @@ class AssetAccessCache {
         static CachedEntry from(AcquireAssetAccessResp response) {
             var expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
             var winner = response.hasWinner()
-                    ? new Winner(response.getWinner().getCounterPartyId(), response.getWinner().getHost())
+                    ? new Winner(response.getWinner().getCounterPartyId(), response.getWinner().getCounterPartyAddress())
                     : null;
             var assetAccessResponse = new AssetAccessResponse(
                     response.getEndpoint(),
@@ -77,7 +77,7 @@ class AssetAccessCache {
         }
     }
 
-    record Winner(String counterPartyId, String host) { }
+    record Winner(String counterPartyId, String counterPartyAddress) { }
 
     private final Cache<CacheKey, CachedEntry> cache;
 

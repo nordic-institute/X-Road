@@ -199,12 +199,14 @@ class AssetAccessCacheTest {
     void theEntryRecordsTheWinnerFromTheResponse() {
         var response = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
-                .setWinner(AssetAccessWinner.newBuilder().setCounterPartyId("provider-b").setHost("ss1.example"))
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId("provider-b")
+                        .setCounterPartyAddress("http://ss1.example/dsp"))
                 .build();
 
         var entry = AssetAccessCache.CachedEntry.from(response);
 
-        assertThat(entry.winner()).isEqualTo(new AssetAccessCache.Winner("provider-b", "ss1.example"));
+        assertThat(entry.winner()).isEqualTo(new AssetAccessCache.Winner("provider-b", "http://ss1.example/dsp"));
         assertThat(entry.response().endpoint()).isEqualTo("http://provider/api/data");
     }
 

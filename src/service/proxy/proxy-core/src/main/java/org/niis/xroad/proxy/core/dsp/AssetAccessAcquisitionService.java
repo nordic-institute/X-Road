@@ -68,4 +68,15 @@ public interface AssetAccessAcquisitionService {
      */
     default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
     }
+
+    /**
+     * Tells the control plane that the provider Security Server at the address was unreachable, so that it keeps
+     * the server out of acquisition for a while. Returns without waiting for the control plane; a failed report is
+     * logged and never thrown.
+     *
+     * @param counterPartyId      the counter-party id of the failed Security Server
+     * @param counterPartyAddress the counter-party address of the failed Security Server
+     */
+    default void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
+    }
 }

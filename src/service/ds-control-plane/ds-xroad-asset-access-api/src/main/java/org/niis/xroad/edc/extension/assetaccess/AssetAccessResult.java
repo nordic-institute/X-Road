@@ -38,9 +38,9 @@ import org.eclipse.edc.controlplane.DataAddress;
 public record AssetAccessResult(DataAddress dataAddress, Winner winner) {
 
     /**
-     * @param counterPartyId counter-party id of the granting candidate
-     * @param host           host of the granting candidate's DSP address
+     * @param counterPartyId      counter-party id of the granting candidate
+     * @param counterPartyAddress DSP address of the granting candidate
      */
-    public record Winner(String counterPartyId, String host) {
+    public record Winner(String counterPartyId, String counterPartyAddress) {
     }
 }

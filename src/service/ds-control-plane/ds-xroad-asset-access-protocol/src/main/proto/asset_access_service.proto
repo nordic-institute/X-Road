@@ -28,12 +28,14 @@ syntax = "proto3";
 
 package org.niis.xroad.edc.assetaccess.proto;
 
+import "common_messages.proto";
 import "error_handling.proto";
 
 option java_multiple_files = true;
 
 service AssetAccessService {
   rpc Acquire(AcquireAssetAccessReq) returns (AcquireAssetAccessResp);
+  rpc ReportCounterPartyFailure(ReportCounterPartyFailureReq) returns (Empty);
 }
 
 message AssetAccessCandidate {
@@ -43,19 +45,16 @@ message AssetAccessCandidate {
 
 message AssetAccessWinner {
   string counter_party_id = 1;
-  string host = 2;
+  string counter_party_address = 2;
 }
 
 message AcquireAssetAccessReq {
-  reserved 3, 4;
-  reserved "counter_party_id", "counter_party_address";
-
   string participant_context_id = 1;
   string asset_id = 2;
-  string protocol = 5;
-  optional string client_id = 6;
-  repeated AssetAccessCandidate candidates = 7;
-  optional string forced_target_server_id = 8;
+  string protocol = 3;
+  optional string client_id = 4;
+  repeated AssetAccessCandidate candidates = 5;
+  optional string forced_target_server_id = 6;
 }
 
 message AcquireAssetAccessResp {
@@ -63,4 +62,9 @@ message AcquireAssetAccessResp {
   optional string authorization = 2;
   optional int64 expires_at_epoch_seconds = 3;
   AssetAccessWinner winner = 4;
+}
+
+message ReportCounterPartyFailureReq {
+  string counter_party_id = 1;
+  string counter_party_address = 2;
 }

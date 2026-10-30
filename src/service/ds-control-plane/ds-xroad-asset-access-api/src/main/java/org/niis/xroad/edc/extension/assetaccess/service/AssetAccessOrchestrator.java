@@ -72,7 +72,6 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
-import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -157,6 +156,16 @@ public class AssetAccessOrchestrator {
         monitor.info("%s acquireAssetAccess entered: candidates=%d protocol=%s"
                 .formatted(key, request.candidates().size(), request.protocolOrDefault()));
         return stateStore.loadOrStartInFlight(key, () -> acquireFromSelectable(key, participantContext, request));
+    }
+
+    /**
+     * Keeps the Security Server at the address out of acquisition for the cooldown period, restarting the period
+     * when it is already running. The agreements held with the server are kept.
+     */
+    public void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
+        cooldownTracker.markFailed(counterPartyAddress);
+        monitor.info("Counter-party reported failed: counterPartyId=%s counterPartyAddress=%s"
+                .formatted(counterPartyId, counterPartyAddress));
     }
 
     private CompletableFuture<AssetAccessResult> acquireFromSelectable(
@@ -256,8 +265,7 @@ public class AssetAccessOrchestrator {
     }
 
     private static AssetAccessResult.Winner winnerOf(AssetAccessRequest.Candidate candidate) {
-        var host = URI.create(candidate.counterPartyAddress()).getHost();
-        return new AssetAccessResult.Winner(candidate.counterPartyId(), host != null ? host : candidate.counterPartyAddress());
+        return new AssetAccessResult.Winner(candidate.counterPartyId(), candidate.counterPartyAddress());
     }
 
     private CompletableFuture<StageOutcome<DataAddress>> attemptReuse(

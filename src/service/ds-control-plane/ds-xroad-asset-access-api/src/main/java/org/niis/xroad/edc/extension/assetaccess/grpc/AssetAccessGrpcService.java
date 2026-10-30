@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
@@ -41,10 +42,12 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessWinner;
+import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.assetaccess.token.AgreementTokenExpiry;
+import org.niis.xroad.rpc.common.Empty;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -81,6 +84,21 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     @WithSpan("dsp-asset-acquire")
     public void acquire(AcquireAssetAccessReq request, StreamObserver<AcquireAssetAccessResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> acquireInternal(request));
+    }
+
+    @Override
+    public void reportCounterPartyFailure(ReportCounterPartyFailureReq request, StreamObserver<Empty> responseObserver) {
+        if (request.getCounterPartyAddress().isBlank()) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Counter-party address is blank")
+                    .asRuntimeException());
+            return;
+        }
+        responseHandler.handleRequest(responseObserver, () -> {
+            assetAccessOrchestrator.reportCounterPartyFailure(
+                    request.getCounterPartyId(), request.getCounterPartyAddress());
+            return Empty.getDefaultInstance();
+        });
     }
 
     private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {
@@ -156,7 +174,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                 .setEndpoint(endpoint)
                 .setWinner(AssetAccessWinner.newBuilder()
                         .setCounterPartyId(result.winner().counterPartyId())
-                        .setHost(result.winner().host()));
+                        .setCounterPartyAddress(result.winner().counterPartyAddress()));
         if (authorization != null) {
             respBuilder.setAuthorization(authorization);
         }
