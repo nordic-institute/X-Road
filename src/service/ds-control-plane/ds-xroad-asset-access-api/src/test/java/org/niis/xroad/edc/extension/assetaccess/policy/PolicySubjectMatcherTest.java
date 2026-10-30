@@ -44,6 +44,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_CLIENT_ID;
 import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_GLOBAL_GROUP;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_LOCAL_GROUP;
 
 class PolicySubjectMatcherTest {
 
@@ -142,37 +143,53 @@ class PolicySubjectMatcherTest {
     }
 
     @Test
-    void anyConstraintMatchesConstraintNestedTwoLevelsDeep() {
-        var deepMatch = clientConstraint(Operator.EQ, CALLER_CLIENT_ID);
-        var andConstraint = AndConstraint.Builder.newInstance().constraint(deepMatch).build();
+    void namesClientReturnsTrueForEqConstraintNestedTwoLevelsDeep() {
+        var andConstraint = AndConstraint.Builder.newInstance()
+                .constraint(clientConstraint(Operator.EQ, CALLER_CLIENT_ID))
+                .build();
         var orConstraint = OrConstraint.Builder.newInstance().constraint(andConstraint).build();
 
         var policy = policyWithConstraint(orConstraint);
 
-        var matched = PolicySubjectMatcher.anyConstraint(policy,
-                atomic -> PolicySubjectMatcher.isLiteral(atomic.getRightExpression(), CALLER_CLIENT_ID));
-
-        assertThat(matched).isTrue();
+        assertThat(PolicySubjectMatcher.namesClient(policy, CALLER_CLIENT_ID)).isTrue();
     }
 
     @Test
-    void anyConstraintReturnsFalseWhenNothingMatches() {
+    void namesGroupReturnsTrueForGlobalGroupConstraint() {
+        var policy = policyWithConstraint(groupConstraint(XROAD_GLOBAL_GROUP));
+
+        assertThat(PolicySubjectMatcher.namesGroup(policy)).isTrue();
+    }
+
+    @Test
+    void namesGroupReturnsTrueForLocalGroupConstraintNestedInAndConstraint() {
+        var andConstraint = AndConstraint.Builder.newInstance().constraint(groupConstraint(XROAD_LOCAL_GROUP)).build();
+
+        var policy = policyWithConstraint(andConstraint);
+
+        assertThat(PolicySubjectMatcher.namesGroup(policy)).isTrue();
+    }
+
+    @Test
+    void namesGroupReturnsFalseForClientConstraint() {
         var policy = policyWithConstraint(clientConstraint(Operator.EQ, CALLER_CLIENT_ID));
 
-        var matched = PolicySubjectMatcher.anyConstraint(policy,
-                atomic -> PolicySubjectMatcher.isLiteral(atomic.getRightExpression(), OTHER_CLIENT_ID));
-
-        assertThat(matched).isFalse();
+        assertThat(PolicySubjectMatcher.namesGroup(policy)).isFalse();
     }
 
     @Test
-    void isLiteralReturnsTrueForEqualValue() {
-        assertThat(PolicySubjectMatcher.isLiteral(new LiteralExpression(CALLER_CLIENT_ID), CALLER_CLIENT_ID)).isTrue();
+    void isUnrestrictedReturnsTrueOnlyForPolicyWithoutPermissions() {
+        assertThat(PolicySubjectMatcher.isUnrestricted(Policy.Builder.newInstance().build())).isTrue();
+        assertThat(PolicySubjectMatcher.isUnrestricted(
+                policyWithConstraint(clientConstraint(Operator.EQ, CALLER_CLIENT_ID)))).isFalse();
     }
 
-    @Test
-    void isLiteralReturnsFalseForDifferentValue() {
-        assertThat(PolicySubjectMatcher.isLiteral(new LiteralExpression(CALLER_CLIENT_ID), OTHER_CLIENT_ID)).isFalse();
+    private static AtomicConstraint groupConstraint(String groupKey) {
+        return AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(groupKey))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("DEV:group"))
+                .build();
     }
 
     private static AtomicConstraint clientConstraint(Operator operator, String clientId) {

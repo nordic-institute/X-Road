@@ -60,7 +60,6 @@ import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
-import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
@@ -302,10 +301,7 @@ public class AssetAccessOrchestrator {
     }
 
     private static boolean appliesToMember(Policy policy, String encodedMemberId) {
-        return PolicySubjectMatcher.namesClient(policy, encodedMemberId)
-                || PolicySubjectMatcher.anyConstraint(policy, atomic ->
-                        PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
-                                || PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
+        return PolicySubjectMatcher.namesClient(policy, encodedMemberId) || PolicySubjectMatcher.namesGroup(policy);
     }
 
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,
