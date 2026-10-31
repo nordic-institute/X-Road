@@ -49,6 +49,7 @@ public class ManagementServiceCodes {
     public static final String AUTH_CERT_DELETION = "authCertDeletion";
     public static final String ADDRESS_CHANGE = "addressChange";
     public static final String SYSTEM_DID_REG = "systemDidReg";
+    public static final String MEMBER_DID_REG = "memberDidReg";
     public static final String CLIENT_DISABLE = "clientDisable";
     public static final String CLIENT_ENABLE = "clientEnable";
     public static final String CLIENT_RENAME = "clientRename";
@@ -64,6 +65,7 @@ public class ManagementServiceCodes {
             AUTH_CERT_DELETION,
             ADDRESS_CHANGE,
             SYSTEM_DID_REG,
+            MEMBER_DID_REG,
             CLIENT_DISABLE,
             CLIENT_ENABLE,
             CLIENT_RENAME,

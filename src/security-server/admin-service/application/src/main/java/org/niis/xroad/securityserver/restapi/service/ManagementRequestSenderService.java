@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -41,6 +42,8 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * management request service
@@ -105,8 +108,9 @@ public class ManagementRequestSenderService {
             Integer requestId = sender.sendSystemDidRegRequest(currentSecurityServerId.getServerId(), systemDid, dspBaseUrl,
                     authCert);
             if (requestId == null) {
-                return SystemDidRegistrationSendOutcome.sendFailure(
-                        new IllegalStateException("Response carries no request id"));
+                var missingId = new IllegalStateException("Response carries no request id");
+                log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
+                return SystemDidRegistrationSendOutcome.sendFailure(missingId);
             }
             return SystemDidRegistrationSendOutcome.stored(requestId);
         } catch (XrdRuntimeException e) {
@@ -116,6 +120,51 @@ public class ManagementRequestSenderService {
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             return SystemDidRegistrationSendOutcome.sendFailure(e);
+        }
+    }
+
+    /**
+     * Sends the member DID registration request for this security server through the proxy
+     * to the management service, as an owner-signed X-Road message.
+     *
+     * @param memberDids the DID of each served member, in the order the results are expected
+     * @return {@code ANSWERED} with the central server request id and one record per entry,
+     * {@code REQUEST_TOO_LARGE} when the central server refused the whole batch as too large,
+     * or {@code SEND_FAILURE} with the cause and its code when the cause carries one
+     */
+    public MemberDidRegistrationSendOutcome sendMemberDidRegisterRequest(Map<ClientId.Conf, String> memberDids)
+            throws GlobalConfOutdatedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            MemberDidRegResponse response = sender.sendMemberDidRegRequest(currentSecurityServerId.getServerId(), memberDids);
+            if (response.requestId() == null) {
+                var missingId = new IllegalStateException("Response carries no request id");
+                log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
+                return MemberDidRegistrationSendOutcome.sendFailure(missingId);
+            }
+            var answered = response.results().stream().map(r -> r.member().asEncodedId()).toList();
+            var sent = memberDids.keySet().stream().map(ClientId::asEncodedId).toList();
+            if (!answered.equals(sent)) {
+                return MemberDidRegistrationSendOutcome.sendFailure(
+                        new IllegalStateException("Response results do not cover the sent members in order"));
+            }
+            var entries = response.results().stream()
+                    .map(r -> new MemberDidRegistrationSendOutcome.Entry(r.member(), r.status(), r.reason()))
+                    .toList();
+            return MemberDidRegistrationSendOutcome.answered(response.requestId(), entries);
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(ErrorCode.REQUEST_TOO_LARGE)) {
+                log.warn("Central server refused a member DID registration request of {} entries as too large: {}",
+                        memberDids.size(), e.getDetails());
+                return MemberDidRegistrationSendOutcome.requestTooLarge();
+            }
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            return MemberDidRegistrationSendOutcome.sendFailure(e);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            return MemberDidRegistrationSendOutcome.sendFailure(e);
         }
     }
 

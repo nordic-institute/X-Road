@@ -408,6 +408,7 @@
     },
     "maintenanceModeDisable": "Disable maintenance mode",
     "maintenanceModeEnable": "Enable maintenance mode",
+    "memberDidRegistration": "Register member DIDs",
     "pending": "Pending",
     "rejected": "Rejected",
     "removeCertificate": "Remove Certificate",

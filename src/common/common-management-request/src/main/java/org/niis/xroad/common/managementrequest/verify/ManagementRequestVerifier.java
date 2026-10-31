@@ -38,6 +38,7 @@ import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
+import ee.ria.xroad.common.request.MemberDidRegRequestType;
 import ee.ria.xroad.common.request.SystemDidRegRequestType;
 
 import lombok.Getter;
@@ -57,6 +58,7 @@ import org.niis.xroad.common.managementrequest.verify.decode.ClientRenameRequest
 import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeDisableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.MemberDidRegRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.SystemDidRegRequestDecoderCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -84,6 +86,7 @@ public final class ManagementRequestVerifier {
             ClientRequestType.class,
             AddressChangeRequestType.class,
             SystemDidRegRequestType.class,
+            MemberDidRegRequestType.class,
             ClientRenameRequestType.class,
             ClientRegRequestType.class,
             MaintenanceModeEnableRequestType.class,
@@ -171,6 +174,8 @@ public final class ManagementRequestVerifier {
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case SYSTEM_DID_REGISTRATION_REQUEST ->
                         new SystemDidRegRequestDecoderCallback(globalConfProvider, ocspVerifierFactory, this);
+                case MEMBER_DID_REGISTRATION_REQUEST ->
+                        new MemberDidRegRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, ocspVerifierFactory, this);
                 case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, ocspVerifierFactory, this);

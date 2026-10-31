@@ -160,6 +160,7 @@ public class ManagementRequestViewEntity {
                 case AUTH_CERT_DELETION_REQUEST -> AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE;
                 case ADDRESS_CHANGE_REQUEST -> AddressChangeRequestEntity.DISCRIMINATOR_VALUE;
                 case SYSTEM_DID_REGISTRATION_REQUEST -> SystemDidRegistrationRequestEntity.DISCRIMINATOR_VALUE;
+                case MEMBER_DID_REGISTRATION_REQUEST -> MemberDidRegistrationRequestEntity.DISCRIMINATOR_VALUE;
                 case CLIENT_RENAME_REQUEST -> ClientRenameRequestEntity.DISCRIMINATOR_VALUE;
                 case MAINTENANCE_MODE_ENABLE_REQUEST -> MaintenanceModeEnableRequestEntity.DISCRIMINATOR_VALUE;
                 case MAINTENANCE_MODE_DISABLE_REQUEST -> MaintenanceModeDisableRequestEntity.DISCRIMINATOR_VALUE;

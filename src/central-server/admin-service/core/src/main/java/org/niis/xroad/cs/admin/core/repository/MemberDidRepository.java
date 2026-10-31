@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.repository;
 import org.niis.xroad.cs.admin.core.entity.MemberDidEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +43,10 @@ public interface MemberDidRepository extends GenericRepository<MemberDidEntity, 
 
     Optional<MemberDidEntity> findBySecurityServerIdAndMemberId(Integer securityServerId, Long memberId);
 
+    List<MemberDidEntity> findBySecurityServerIdAndMemberIdIn(Integer securityServerId, Collection<Long> memberIds);
+
     /**
-     * Tells whether the DID is stored for a server other than the given one.
+     * Returns those of the given DIDs that are stored for a server other than the given one.
      */
-    boolean existsByDidAndSecurityServerIdNot(String did, Integer securityServerId);
+    List<String> findDidsHeldByOtherServers(Collection<String> dids, Integer securityServerId);
 }

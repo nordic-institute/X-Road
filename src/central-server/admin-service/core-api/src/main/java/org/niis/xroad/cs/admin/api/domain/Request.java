@@ -39,7 +39,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 public abstract sealed class Request extends Auditable
         permits AddressChangeRequest, AuthenticationCertificateDeletionRequest, ClientDeletionRequest, ClientDisableRequest,
         ClientEnableRequest, ClientRenameRequest, MaintenanceModeDisableRequest, MaintenanceModeEnableRequest, RequestWithProcessing,
-        SystemDidRegistrationRequest {
+        SystemDidRegistrationRequest, MemberDidRegistrationRequest {
 
     private int id;
     private SecurityServerId securityServerId;

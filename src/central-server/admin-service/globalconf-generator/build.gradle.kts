@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 dependencies {
@@ -13,4 +14,8 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.springBoot.starterTest)
+
+  testFixturesApi(project(":central-server:admin-service:core-api"))
+  testFixturesApi(project(":lib:globalconf-core"))
+  testFixturesImplementation(libs.springBoot.starterTest)
 }

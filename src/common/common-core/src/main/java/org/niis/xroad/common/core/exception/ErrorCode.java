@@ -47,6 +47,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DATABASE_ERROR("database_error"),
     INVALID_RESPONSE("invalid_response"),
     INVALID_REQUEST("invalid_request"),
+    REQUEST_TOO_LARGE("request_too_large"),
     CRYPTO_ERROR("cryptography_error"),
     // ===== VERIFICATION ERRORS =====
     CANNOT_CREATE_SIGNATURE("cannot_create_signature"),

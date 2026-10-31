@@ -33,6 +33,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -43,4 +44,8 @@ public interface JpaMemberDidRepository extends JpaRepository<MemberDidEntity, I
             + "d.securityServer.id, i.xRoadInstance, i.memberClass, i.memberCode, d.did) "
             + "from MemberDidEntity d join d.member m join m.identifier i")
     List<MemberDidRow> findAllRows();
+
+    @Override
+    @Query("select distinct d.did from MemberDidEntity d where d.did in :dids and d.securityServer.id <> :securityServerId")
+    List<String> findDidsHeldByOtherServers(Collection<String> dids, Integer securityServerId);
 }

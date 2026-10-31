@@ -35,6 +35,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.request.MemberDidRegEntryType;
+import ee.ria.xroad.common.request.MemberDidRegRequestType;
 import ee.ria.xroad.common.request.SystemDidRegRequestType;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -49,7 +51,9 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
+import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
+import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestPayload;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.model.MultiPartOutputStream;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
@@ -62,6 +66,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -103,6 +108,78 @@ class DirectRequestDecoderCallbackTest {
         assertThat(typed.getServer()).isEqualTo(serverId);
         assertThat(typed.getSystemDid()).isEqualTo(SYSTEM_DID);
         assertThat(typed.getDspBaseUrl()).isEqualTo(DSP_BASE_URL);
+    }
+
+    @Test
+    void ownerSignedMemberDidRegWithOwnerAsSenderReachesTypedCallback() throws Exception {
+        var memberDids = memberDids();
+        var request = builder().buildMemberDidRegRequest(serverId, memberDids);
+
+        var payload = ownerSignedPayload(request);
+
+        var result = verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream());
+
+        assertThat(result.requestType()).isEqualTo(ManagementRequestType.MEMBER_DID_REGISTRATION_REQUEST);
+        var typed = result.getRequest(MemberDidRegRequestType.class).orElseThrow();
+        assertThat(typed.getServer()).isEqualTo(serverId);
+        assertThat(typed.getEntry()).extracting(MemberDidRegEntryType::getMember)
+                .containsExactlyElementsOf(memberDids.keySet());
+        assertThat(typed.getEntry()).extracting(MemberDidRegEntryType::getDid)
+                .containsExactlyElementsOf(memberDids.values());
+    }
+
+    @Test
+    void memberDidRegWithSenderOtherThanOwnerIsRejectedAsInvalidRequest() throws Exception {
+        var otherSender = ClientId.Conf.create("DEV", "COM", "333");
+        var request = new TestManagementRequestBuilder(otherSender, globalConf.getManagementRequestService())
+                .buildMemberDidRegRequest(serverId, memberDids());
+        var payload = ownerSignedPayload(request);
+
+        var contentType = payload.getContentType();
+        var content = payload.getPayloadAsStream();
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(contentType, content))
+                .satisfies(e -> {
+                    assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
+                    assertThat(e.getDetails()).isEqualTo("Sender does not match server owner.");
+                });
+    }
+
+    @Test
+    void memberDidRegSignedByACertificateOfAnotherMemberIsRejectedAsInvalidRequest() throws Exception {
+        var request = builder().buildMemberDidRegRequest(serverId, memberDids());
+        var otherMemberCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(),
+                ClientId.Conf.create("DEV", "COM", "333"));
+        var payload = new TestGenericClientRequest(otherMemberCert.getEncoded(), ownerOcspBytes(), ownerKeyPair.getPrivate(),
+                request).createPayload();
+
+        var contentType = payload.getContentType();
+        var content = payload.getPayloadAsStream();
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(contentType, content))
+                .satisfies(e -> {
+                    assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
+                    assertThat(e.getDetails()).startsWith("Subject identifier (").contains("(MEMBER:DEV/COM/333)")
+                            .endsWith("in request");
+                });
+    }
+
+    @Test
+    void memberDidRegWithoutEntriesIsRejectedAsInvalidRequest() throws Exception {
+        var request = builder().buildMemberDidRegRequest(serverId, Map.of());
+        var payload = ownerSignedPayload(request);
+
+        var contentType = payload.getContentType();
+        var content = payload.getPayloadAsStream();
+
+        assertThatExceptionOfType(XrdRuntimeException.class)
+                .isThrownBy(() -> verifier.readRequest(contentType, content))
+                .satisfies(e -> {
+                    assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_REQUEST.code());
+                    assertThat(e.getDetails()).isEqualTo("Request contains no entries");
+                });
     }
 
     @Test
@@ -253,6 +330,20 @@ class DirectRequestDecoderCallbackTest {
         assertThatExceptionOfType(XrdRuntimeException.class)
                 .isThrownBy(() -> verifier.readRequest(payload.getContentType(), payload.getPayloadAsStream()))
                 .satisfies(e -> assertThat(e.getCode()).isEqualTo(expected.code()));
+    }
+
+    private Map<ClientId.Conf, String> memberDids() {
+        var memberDids = new LinkedHashMap<ClientId.Conf, String>();
+        memberDids.put(serverId.getOwner(), "did:web:ss1.example.org:v1:member-a");
+        memberDids.put(ClientId.Conf.create("DEV", "COM", "222", "SUB1"), "did:web:ss1.example.org:v1:member-b");
+        memberDids.put(ClientId.Conf.create("DEV", "ORG", "444"), "did:web:ss1.example.org:v1:member-c");
+        return memberDids;
+    }
+
+    private TestManagementRequestPayload ownerSignedPayload(SoapMessageImpl request) throws Exception {
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+        return new TestGenericClientRequest(ownerCert.getEncoded(), ownerOcspBytes(), ownerKeyPair.getPrivate(), request)
+                .createPayload();
     }
 
     private byte[] ownerCertBytes() throws Exception {
