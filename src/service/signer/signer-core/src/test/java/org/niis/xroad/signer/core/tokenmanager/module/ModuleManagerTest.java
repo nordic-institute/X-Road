@@ -39,7 +39,10 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -136,6 +139,51 @@ class ModuleManagerTest {
 
         assertTrue(moduleManager.isModuleInitialized(swModuleType));
         assertFalse(moduleManager.isModuleInitialized(hwModuleType));
+    }
+
+    @Test
+    void testRefreshRetriesUninitializedModule() {
+        when(hwModuleWorker.getModuleType()).thenReturn(hwModuleType);
+        when(swModuleWorker.getModuleType()).thenReturn(swModuleType);
+
+        // Initial state: configuration loaded, 2 modules configured
+        when(moduleConf.hasChanged()).thenReturn(true);
+        when(moduleConf.getModules()).thenReturn(Set.of(swModuleType, hwModuleType));
+
+        when(softwareModuleWorkerFactory.create(isA(SoftwareModuleType.class)))
+                .thenReturn(swModuleWorker);
+        when(hardwareModuleWorkerFactory.create(isA(HardwareModuleType.class)))
+                .thenReturn(hwModuleWorker);
+
+        // Simulate HSM network timeout / CKR_GENERAL_ERROR on first start
+        doThrow(new RuntimeException("HSM connection failed")).when(hwModuleWorker).start();
+
+        moduleManager.refresh();
+
+        // Software module initialized, hardware module not registered
+        assertTrue(moduleManager.isModuleInitialized(swModuleType));
+        assertFalse(moduleManager.isModuleInitialized(hwModuleType));
+        verify(hwModuleWorker, times(1)).destroy();
+
+        // Second refresh: configuration file did NOT change on disk, but uninitialized module exists
+        when(moduleConf.hasChanged()).thenReturn(false);
+        // HSM is now reachable: start() succeeds
+        doNothing().when(hwModuleWorker).start();
+
+        moduleManager.refresh();
+
+        // Both modules are now initialized and operational
+        assertTrue(moduleManager.isModuleInitialized(swModuleType));
+        assertTrue(moduleManager.isModuleInitialized(hwModuleType));
+
+        when(hwTokenAddonProperties.enabled()).thenReturn(true);
+        assertTrue(moduleManager.isHSMModuleOperational());
+
+        // Verify existing swModuleWorker was preserved (not recreated), hwModuleWorker retried
+        verify(softwareModuleWorkerFactory, times(1)).create(isA(SoftwareModuleType.class));
+        verify(hardwareModuleWorkerFactory, times(2)).create(isA(HardwareModuleType.class));
+        verify(hwModuleWorker, times(2)).start();
+        verify(hwModuleWorker, times(1)).destroy();
     }
 
 }
