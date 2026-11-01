@@ -148,6 +148,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public boolean isMemberInGlobalGroup(ClientId member, GlobalGroupId group) {
+        return false;
+    }
+
+    @Override
     public X509Certificate[] getAuthTrustChain() {
         return null;
     }

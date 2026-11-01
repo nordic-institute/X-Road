@@ -26,12 +26,16 @@
 
 package org.niis.xroad.proxy.controlplane;
 
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
+
 import io.grpc.ManagedChannel;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroup;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
@@ -39,6 +43,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.edc.agreementgrant.proto.AgreementGrantServiceGrpc;
+import org.niis.xroad.edc.agreementgrant.proto.GroupGrant;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 
@@ -50,7 +55,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * Resolves the grant behind a negotiated agreement from the control plane, over the same gRPC server
  * {@link AssetAccessRpcClient} already talks to. Never throws: any gRPC error, deadline, or an explicit
  * {@code NoGrant} answer — including the {@code SUBJECT_NOT_A_SUBSYSTEM} case, which is how the control plane
- * already enforces the member/group-subject minting ban — comes back as an empty result, logged without the
+ * already enforces the member-subject minting ban — comes back as an empty result, logged without the
  * agreement id's associated grant details (only the id itself, never token or grant material). The lookup runs
  * on the data-flow start path where the token is optional, so it carries its own short per-call deadline instead
  * of the shared channel's, and must fail fast rather than wait for the channel to become ready.
@@ -97,23 +102,39 @@ public class AgreementGrantRpcClient extends AbstractRpcClient {
      * @param agreementId the negotiated agreement's id
      * @return the resolved grant, or empty when the control plane states no grant or the call otherwise fails
      */
-    public Optional<AgreementGrant> resolveAgreementGrant(String agreementId) {
+    public Optional<ResolvedAgreementGrant> resolveAgreementGrant(String agreementId) {
         try {
             var request = ResolveAgreementGrantRequest.newBuilder().setAgreementId(agreementId).build();
             var deadlineMillis = agreementTokenProperties.grantLookupDeadline().toMillis();
             var response = exec(() -> grantServiceBlockingStub
                     .withDeadlineAfter(deadlineMillis, MILLISECONDS)
                     .resolveAgreementGrant(request));
-            if (!response.hasGrant()) {
-                log.info("No agreement grant for agreement id '{}': {}", agreementId,
-                        response.hasNoGrant() ? response.getNoGrant().getReason() : "no grant stated");
-                return Optional.empty();
+            if (response.hasGrant()) {
+                return Optional.of(toAgreementGrant(response.getGrant()));
             }
-            return Optional.of(toAgreementGrant(response.getGrant()));
+            if (response.hasGroupGrant()) {
+                return toAgreementGroupGrant(response.getGroupGrant());
+            }
+            log.info("No agreement grant for agreement id '{}': {}", agreementId,
+                    response.hasNoGrant() ? response.getNoGrant().getReason() : "no grant stated");
+            return Optional.empty();
         } catch (Exception e) {
             log.warn("Failed to resolve agreement grant for agreement id '{}'", agreementId, e);
             return Optional.empty();
         }
+    }
+
+    private static Optional<ResolvedAgreementGrant> toAgreementGroupGrant(GroupGrant grant) {
+        var service = ServiceIdMapper.fromDto(grant.getServiceId());
+        return switch (grant.getGroupCase()) {
+            case LOCAL_GROUP -> Optional.of(new AgreementGroupGrant(new AgreementTokenGroup.Local(
+                    ClientIdMapper.fromDto(grant.getLocalGroup().getOwner()),
+                    LocalGroupId.Conf.create(grant.getLocalGroup().getGroupCode())), service));
+            case GLOBAL_GROUP -> Optional.of(new AgreementGroupGrant(new AgreementTokenGroup.Global(
+                    GlobalGroupId.Conf.create(grant.getGlobalGroup().getXRoadInstance(),
+                            grant.getGlobalGroup().getGroupCode())), service));
+            case GROUP_NOT_SET -> Optional.empty();
+        };
     }
 
     private static AgreementGrant toAgreementGrant(org.niis.xroad.edc.agreementgrant.proto.Grant grant) {

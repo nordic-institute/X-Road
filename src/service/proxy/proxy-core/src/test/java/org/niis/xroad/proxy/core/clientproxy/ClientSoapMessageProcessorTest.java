@@ -73,6 +73,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
@@ -233,6 +234,17 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest);
+
+        verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
+    }
+
+    @Test
+    void anAccessDenialKeepsTheCachedAssetAccess() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(true, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest);
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }

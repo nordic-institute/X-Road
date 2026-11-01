@@ -88,6 +88,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
@@ -297,6 +298,16 @@ class ClientRestMessageProcessorTest {
 
         harness.processor().dropAssetAccessOnTokenRejection(
                 XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), restRequest(), serviceId());
+
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
+    }
+
+    @Test
+    void anAccessDenialKeepsTheCachedAssetAccess() {
+        var harness = createHarness(true);
+
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), restRequest(), serviceId());
 
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }

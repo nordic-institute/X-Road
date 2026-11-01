@@ -395,6 +395,16 @@ public interface GlobalConfProvider {
     boolean isSubjectInGlobalGroup(ClientId subject, GlobalGroupId group);
 
     /**
+     * The member-level counterpart of {@link #isSubjectInGlobalGroup}, for callers that know only the member of a
+     * client, such as the DSP catalog.
+     *
+     * @param member the member identifier, its subsystem part (if any) ignored
+     * @param group  the global group
+     * @return true, if the member itself or any of its subsystems belongs to the given global group
+     */
+    boolean isMemberInGlobalGroup(ClientId member, GlobalGroupId group);
+
+    /**
      * @param client         the client identifier
      * @param securityServer the security server identifier
      * @return true, if client belongs to the security server

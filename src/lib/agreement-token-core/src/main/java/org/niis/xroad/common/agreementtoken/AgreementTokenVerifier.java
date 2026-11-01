@@ -43,27 +43,34 @@ import java.util.Optional;
 
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_AGREEMENT_ID;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_CLIENT;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_GROUP;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SCOPE;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE_VERSION;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeClient;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeGroup;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeScope;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.decodeService;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.optionalStringClaim;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.requireStringClaim;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.AUDIENCE_MISMATCH;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.CLIENT_MISMATCH;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.ENDPOINT_NOT_ALLOWED;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.EXPIRED;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.INVALID_SIGNATURE;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.ISSUER_MISMATCH;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.MALFORMED_TOKEN;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.NOT_GROUP_MEMBER;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.SCOPE_MISMATCH;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.SERVICE_MISMATCH;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason.UNKNOWN_KEY_ID;
 
 /**
  * Verifies agreement tokens end to end: signature, expiry, issuer, audience, then the client/service/scope
- * claims against what the caller actually observed for the request. Every failure — malformed input included —
- * comes back as an {@link AgreementTokenVerificationResult.Rejected} value with a reason, never as a thrown
+ * claims against what the caller actually observed for the request. A token that carries a {@code group} claim
+ * is a group token: instead of a client and scope it is judged by the {@link AgreementTokenGroupAccess}
+ * lookups. Every failure — malformed input included — comes back as an
+ * {@link AgreementTokenVerificationResult.Rejected} value with a reason, never as a thrown
  * exception, so a caller can always fall back to the ACL with one {@code switch}.
  * <p>
  * The signature check accepts ES256 only: a token re-signed under any other algorithm but naming a known
@@ -74,15 +81,27 @@ public final class AgreementTokenVerifier {
     private final AgreementTokenKeyProvider keyProvider;
     private final AgreementTokenProtocolProperties properties;
     private final Clock clock;
+    private final AgreementTokenGroupAccess groupAccess;
 
     public AgreementTokenVerifier(AgreementTokenKeyProvider keyProvider, AgreementTokenProtocolProperties properties) {
-        this(keyProvider, properties, Clock.systemUTC());
+        this(keyProvider, properties, Clock.systemUTC(), AgreementTokenGroupAccess.NONE);
     }
 
     public AgreementTokenVerifier(AgreementTokenKeyProvider keyProvider, AgreementTokenProtocolProperties properties, Clock clock) {
+        this(keyProvider, properties, clock, AgreementTokenGroupAccess.NONE);
+    }
+
+    public AgreementTokenVerifier(AgreementTokenKeyProvider keyProvider, AgreementTokenProtocolProperties properties,
+                                  AgreementTokenGroupAccess groupAccess) {
+        this(keyProvider, properties, Clock.systemUTC(), groupAccess);
+    }
+
+    public AgreementTokenVerifier(AgreementTokenKeyProvider keyProvider, AgreementTokenProtocolProperties properties,
+                                  Clock clock, AgreementTokenGroupAccess groupAccess) {
         this.keyProvider = Objects.requireNonNull(keyProvider, "keyProvider must not be null");
         this.properties = Objects.requireNonNull(properties, "properties must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.groupAccess = Objects.requireNonNull(groupAccess, "groupAccess must not be null");
     }
 
     public AgreementTokenVerificationResult verify(String token, AgreementTokenRequestContext context) {
@@ -115,6 +134,10 @@ public final class AgreementTokenVerifier {
             return envelopeRejection.get();
         }
 
+        if (claimsSet.getClaim(CLAIM_GROUP) != null) {
+            return verifyGroupToken(claimsSet, context);
+        }
+
         AgreementTokenClaims claims;
         try {
             claims = decodeClaims(claimsSet);
@@ -127,6 +150,35 @@ public final class AgreementTokenVerifier {
             return grantRejection.get();
         }
         return new AgreementTokenVerificationResult.Valid(claims);
+    }
+
+    /**
+     * A group token names a group and a service and carries neither client nor scope. The signature-proven caller
+     * must be in the group, and the live ACL must let that caller use the requested endpoint.
+     */
+    private AgreementTokenVerificationResult verifyGroupToken(JWTClaimsSet claimsSet, AgreementTokenRequestContext context) {
+        if (claimsSet.getClaim(CLAIM_CLIENT) != null || claimsSet.getClaim(CLAIM_SCOPE) != null) {
+            return rejected(MALFORMED_TOKEN, "group token must not carry client_id or scope");
+        }
+
+        AgreementTokenGroupClaims claims;
+        try {
+            claims = decodeGroupClaims(claimsSet);
+        } catch (IllegalArgumentException e) {
+            return rejected(MALFORMED_TOKEN, "token claims are malformed: " + e.getMessage());
+        }
+
+        if (!claims.service().equals(context.expectedService())) {
+            return rejected(SERVICE_MISMATCH, "token service does not match the requested service");
+        }
+        if (!groupAccess.isMember(claims.group(), context.expectedClient())) {
+            return rejected(NOT_GROUP_MEMBER, "the signature-proven client is not in the token's group");
+        }
+        if (!groupAccess.isEndpointAllowed(context.expectedClient(), context.expectedService(),
+                context.requestMethod(), context.requestPath())) {
+            return rejected(ENDPOINT_NOT_ALLOWED, "the live ACL does not grant the client the requested endpoint");
+        }
+        return new AgreementTokenVerificationResult.ValidGroup(claims);
     }
 
     private Optional<AgreementTokenVerificationResult.Rejected> checkSignature(SignedJWT signedJwt) {
@@ -228,6 +280,15 @@ public final class AgreementTokenVerifier {
         var scope = decodeScope(claimsSet);
         var expiresAt = claimsSet.getExpirationTime().toInstant();
         return new AgreementTokenClaims(agreementId, client, service, scope, claimsSet.getIssuer(), properties.audience(), expiresAt);
+    }
+
+    private AgreementTokenGroupClaims decodeGroupClaims(JWTClaimsSet claimsSet) {
+        var agreementId = requireStringClaim(claimsSet, CLAIM_AGREEMENT_ID);
+        var service = decodeService(requireStringClaim(claimsSet, CLAIM_SERVICE),
+                optionalStringClaim(claimsSet, CLAIM_SERVICE_VERSION));
+        var group = decodeGroup(claimsSet);
+        var expiresAt = claimsSet.getExpirationTime().toInstant();
+        return new AgreementTokenGroupClaims(agreementId, group, service, claimsSet.getIssuer(), properties.audience(), expiresAt);
     }
 
     private static AgreementTokenVerificationResult.Rejected rejected(AgreementTokenRejectionReason reason, String details) {

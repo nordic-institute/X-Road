@@ -161,6 +161,22 @@ public class GlobalConfTest {
     }
 
     /**
+     * Tests checking if a member has itself or any of its subsystems in a global group.
+     */
+    @Test
+    public void isMemberInGlobalGroup() {
+        var group = GlobalGroupId.Conf.create("EE", "Test group");
+
+        assertTrue(globalConfProvider.isMemberInGlobalGroup(ClientId.Conf.create("EE", "BUSINESS", "member1"), group));
+        assertTrue(globalConfProvider.isMemberInGlobalGroup(ClientId.Conf.create("EE", "BUSINESS", "member1", "other"), group));
+        assertTrue(globalConfProvider.isMemberInGlobalGroup(ClientId.Conf.create("EE", "BUSINESS", "member2"), group));
+        assertFalse(globalConfProvider.isMemberInGlobalGroup(ClientId.Conf.create("EE", "BUSINESS", "member9"), group));
+        assertFalse(globalConfProvider.isMemberInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member1"),
+                GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group")));
+    }
+
+    /**
      * Tests getting the global group description.
      */
     @Test

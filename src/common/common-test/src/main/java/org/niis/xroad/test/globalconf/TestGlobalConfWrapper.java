@@ -255,6 +255,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
+    public boolean isMemberInGlobalGroup(ClientId member, GlobalGroupId group) {
+        return globalConfProvider.isMemberInGlobalGroup(member, group);
+    }
+
+    @Override
     public boolean isSecurityServerClient(ClientId client, SecurityServerId securityServer) {
         return globalConfProvider.isSecurityServerClient(client, securityServer);
     }

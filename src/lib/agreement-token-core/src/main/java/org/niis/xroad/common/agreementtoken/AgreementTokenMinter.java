@@ -40,21 +40,24 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_AGREEMENT_ID;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_CLIENT;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_GROUP;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SCOPE;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_SERVICE_VERSION;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeClient;
+import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeGroup;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeScope;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeService;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeServiceVersion;
 
 /**
  * Mints agreement tokens: a compact, ES256-signed JWS (see {@code XRDADR-40} and the key-trust slice's
- * signing-scheme decision) stating exactly one grant, with the protocol envelope (issuer, audience, expiry)
- * derived from {@link AgreementTokenProtocolProperties} rather than hardcoded here.
+ * signing-scheme decision) stating exactly one grant, either to one subsystem or to one group, with the protocol
+ * envelope (issuer, audience, expiry) derived from {@link AgreementTokenProtocolProperties} rather than hardcoded here.
  */
 public final class AgreementTokenMinter {
 
@@ -78,7 +81,26 @@ public final class AgreementTokenMinter {
      */
     public String mint(AgreementTokenGrant grant) {
         Objects.requireNonNull(grant, "grant must not be null");
+        return sign(grant.agreementId(), claims -> claims
+                .claim(CLAIM_CLIENT, encodeClient(grant.client()))
+                .claim(CLAIM_SERVICE, encodeService(grant.service()))
+                .claim(CLAIM_SERVICE_VERSION, encodeServiceVersion(grant.service()))
+                .claim(CLAIM_SCOPE, encodeScope(grant.scope())));
+    }
 
+    /**
+     * @param grant the group and service being granted; the token carries no client and no scope
+     * @return the compact-serialized, signed group token
+     */
+    public String mint(AgreementTokenGroupGrant grant) {
+        Objects.requireNonNull(grant, "grant must not be null");
+        return sign(grant.agreementId(), claims -> claims
+                .claim(CLAIM_SERVICE, encodeService(grant.service()))
+                .claim(CLAIM_SERVICE_VERSION, encodeServiceVersion(grant.service()))
+                .claim(CLAIM_GROUP, encodeGroup(grant.group())));
+    }
+
+    private String sign(String agreementId, Consumer<JWTClaimsSet.Builder> grantClaims) {
         var activeKey = keyProvider.activeKey();
         if (!activeKey.keyPair().isPrivate()) {
             throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_KEY_NOT_AVAILABLE)
@@ -88,23 +110,19 @@ public final class AgreementTokenMinter {
         var now = Instant.now(clock);
         var expiresAt = now.plus(properties.tokenTtl());
 
-        var claimsSet = new JWTClaimsSet.Builder()
+        var claimsBuilder = new JWTClaimsSet.Builder()
                 .issuer(properties.issuer())
                 .audience(properties.audience())
                 .issueTime(Date.from(now))
                 .expirationTime(Date.from(expiresAt))
-                .claim(CLAIM_AGREEMENT_ID, grant.agreementId())
-                .claim(CLAIM_CLIENT, encodeClient(grant.client()))
-                .claim(CLAIM_SERVICE, encodeService(grant.service()))
-                .claim(CLAIM_SERVICE_VERSION, encodeServiceVersion(grant.service()))
-                .claim(CLAIM_SCOPE, encodeScope(grant.scope()))
-                .build();
+                .claim(CLAIM_AGREEMENT_ID, agreementId);
+        grantClaims.accept(claimsBuilder);
 
         var header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .keyID(activeKey.keyId())
                 .build();
 
-        var signedJwt = new SignedJWT(header, claimsSet);
+        var signedJwt = new SignedJWT(header, claimsBuilder.build());
         try {
             signedJwt.sign(new ECDSASigner(activeKey.keyPair()));
         } catch (JOSEException e) {
