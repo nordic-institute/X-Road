@@ -35,6 +35,8 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
@@ -72,7 +74,9 @@ class AssetAccessCache {
                     : null;
             var assetAccessResponse = new AssetAccessResponse(
                     response.getEndpoint(),
-                    response.hasAuthorization() ? response.getAuthorization() : null);
+                    response.hasAuthorization() ? response.getAuthorization() : null,
+                    winner != null ? winner.counterPartyId() : null,
+                    winner != null ? winner.counterPartyAddress() : null);
             return new CachedEntry(assetAccessResponse, winner, expiresAt);
         }
     }
@@ -155,5 +159,28 @@ class AssetAccessCache {
         cache.asMap().keySet().removeIf(key -> key.participantContextId().equals(participantContextId)
                 && key.assetId().equals(assetId)
                 && Objects.equals(key.consumerClientId(), consumerClientId));
+    }
+
+    /**
+     * Drops every entry won by a Security Server with the given host, whatever its participant context, asset,
+     * client or candidate set and whatever the port. Entries without a winner are kept.
+     */
+    void removeWonByHost(String host) {
+        cache.asMap().values().removeIf(entry -> entry.winner() != null
+                && host.equalsIgnoreCase(hostOf(entry.winner().counterPartyAddress())));
+    }
+
+    /**
+     * Extracts the host that winner matching compares, ignoring scheme, port and path.
+     *
+     * @return the host of the counter-party address; {@code null} when the address names none
+     */
+    @Nullable
+    static String hostOf(String counterPartyAddress) {
+        try {
+            return new URI(counterPartyAddress).getHost();
+        } catch (URISyntaxException _) {
+            return null;
+        }
     }
 }

@@ -116,6 +116,20 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
+    void invalidatingByWinnerReachesTheAcquisitionService() {
+        processor.invalidateAssetAccessWonBy(URL_A);
+
+        verify(assetAccessAcquisitionService).invalidateAssetAccessWonBy(URL_A);
+    }
+
+    @Test
+    void reportingAFailureReachesTheAcquisitionService() {
+        processor.reportCounterPartyFailure(DID_A, URL_A);
+
+        verify(assetAccessAcquisitionService).reportCounterPartyFailure(DID_A, URL_A);
+    }
+
+    @Test
     void managementRequestTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
         var managementServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg");
         when(providerSecurityServerResolver.resolve(managementServiceId, null))

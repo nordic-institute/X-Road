@@ -141,6 +141,14 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     }
 
     @Override
+    public void invalidateAssetAccessWonBy(String counterPartyAddress) {
+        var host = AssetAccessCache.hostOf(counterPartyAddress);
+        if (cache != null && host != null) {
+            cache.removeWonByHost(host);
+        }
+    }
+
+    @Override
     public void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
         var request = ReportCounterPartyFailureReq.newBuilder()
                 .setCounterPartyId(counterPartyId)

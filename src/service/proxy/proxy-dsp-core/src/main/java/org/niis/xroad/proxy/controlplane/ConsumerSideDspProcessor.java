@@ -113,6 +113,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     }
 
     @Override
+    public void invalidateAssetAccessWonBy(String counterPartyAddress) {
+        assetAccessAcquisitionService.invalidateAssetAccessWonBy(counterPartyAddress);
+    }
+
+    @Override
     public void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
         assetAccessAcquisitionService.reportCounterPartyFailure(counterPartyId, counterPartyAddress);
     }
