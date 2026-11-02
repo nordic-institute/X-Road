@@ -77,6 +77,7 @@ class AgreementGrantGrpcServiceTest {
     private static final String ODRL_USE_ACTION = "http://www.w3.org/ns/odrl/2/use";
 
     private static final ClientId.Conf CONSUMER = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
+    private static final ClientId.Conf OWNER = ClientId.Conf.create("DEV", "COM", "222", "OWNERSUB");
     private static final ClientId.Conf CONSUMER_MEMBER = ClientId.Conf.create("DEV", "COM", "222");
     private static final ServiceId.Conf SERVICE_WITH_VERSION =
             ServiceId.Conf.create("DEV", "COM", "222", "TESTSERVICE", "getRandom", "v1");
@@ -159,27 +160,69 @@ class AgreementGrantGrpcServiceTest {
     }
 
     @Test
-    void localGroupSubjectYieldsNoGrantSubjectNotASubsystem() {
-        var localGroup = LocalGroupId.Conf.create("groupCode");
-        var policy = policyWithSubjectOnly(XRoadPolicyNamespace.XROAD_LOCAL_GROUP, localGroup.asEncodedId());
+    void localGroupSubjectYieldsAGroupGrantNamingOwnerGroupAndService() {
+        var policy = policyWithSubjectOnly(XRoadPolicyNamespace.XROAD_LOCAL_GROUP, OWNER.asEncodedId() + ";groupCode");
         stubAgreement("agreement-4", policy, SERVICE_WITH_VERSION);
 
         var response = stub.resolveAgreementGrant(request("agreement-4"));
 
-        assertThat(response.hasNoGrant()).isTrue();
-        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.SUBJECT_NOT_A_SUBSYSTEM);
+        assertThat(response.hasGroupGrant()).isTrue();
+        var grant = response.getGroupGrant();
+        assertThat(ServiceIdMapper.fromDto(grant.getServiceId())).isEqualTo(SERVICE_WITH_VERSION);
+        assertThat(grant.hasLocalGroup()).isTrue();
+        assertThat(ClientIdMapper.fromDto(grant.getLocalGroup().getOwner())).isEqualTo(OWNER);
+        assertThat(grant.getLocalGroup().getGroupCode()).isEqualTo("groupCode");
     }
 
     @Test
-    void globalGroupSubjectYieldsNoGrantSubjectNotASubsystem() {
+    void localGroupGrantStatesNoEndpointsEvenWhenThePolicyHasPathConstraints() {
+        var policy = policyWithPaths(XRoadPolicyNamespace.XROAD_LOCAL_GROUP, OWNER.asEncodedId() + ";groupCode",
+                List.of("GET /getRandom", "POST /submitRandom"));
+        stubAgreement("agreement-4b", policy, SERVICE_WITH_VERSION);
+
+        var response = stub.resolveAgreementGrant(request("agreement-4b"));
+
+        assertThat(response.hasGroupGrant()).isTrue();
+        assertThat(response.hasGrant()).isFalse();
+    }
+
+    @Test
+    void localGroupSubjectWithTheOldCodeOnlyValueYieldsNoGrantPolicyNotUnderstood() {
+        var localGroup = LocalGroupId.Conf.create("groupCode");
+        var policy = policyWithSubjectOnly(XRoadPolicyNamespace.XROAD_LOCAL_GROUP, localGroup.asEncodedId());
+        stubAgreement("agreement-4c", policy, SERVICE_WITH_VERSION);
+
+        var response = stub.resolveAgreementGrant(request("agreement-4c"));
+
+        assertThat(response.hasNoGrant()).isTrue();
+        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+    }
+
+    @Test
+    void globalGroupSubjectYieldsAGroupGrantNamingTheGroupAndService() {
         var globalGroup = GlobalGroupId.Conf.create("DEV", "groupCode");
         var policy = policyWithSubjectOnly(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP, globalGroup.asEncodedId());
         stubAgreement("agreement-5", policy, SERVICE_WITH_VERSION);
 
         var response = stub.resolveAgreementGrant(request("agreement-5"));
 
+        assertThat(response.hasGroupGrant()).isTrue();
+        var grant = response.getGroupGrant();
+        assertThat(ServiceIdMapper.fromDto(grant.getServiceId())).isEqualTo(SERVICE_WITH_VERSION);
+        assertThat(grant.hasGlobalGroup()).isTrue();
+        assertThat(grant.getGlobalGroup().getXRoadInstance()).isEqualTo("DEV");
+        assertThat(grant.getGlobalGroup().getGroupCode()).isEqualTo("groupCode");
+    }
+
+    @Test
+    void globalGroupSubjectWithoutAnInstanceYieldsNoGrantPolicyNotUnderstood() {
+        var policy = policyWithSubjectOnly(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP, "groupCodeOnly");
+        stubAgreement("agreement-5b", policy, SERVICE_WITH_VERSION);
+
+        var response = stub.resolveAgreementGrant(request("agreement-5b"));
+
         assertThat(response.hasNoGrant()).isTrue();
-        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.SUBJECT_NOT_A_SUBSYSTEM);
+        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.POLICY_NOT_UNDERSTOOD);
     }
 
     @Test

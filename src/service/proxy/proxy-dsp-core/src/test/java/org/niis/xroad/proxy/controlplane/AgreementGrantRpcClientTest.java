@@ -27,6 +27,8 @@
 package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.grpc.ManagedChannel;
@@ -43,12 +45,16 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroup;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.edc.agreementgrant.proto.AgreementGrantServiceGrpc;
+import org.niis.xroad.edc.agreementgrant.proto.GlobalGroup;
 import org.niis.xroad.edc.agreementgrant.proto.Grant;
+import org.niis.xroad.edc.agreementgrant.proto.GroupGrant;
+import org.niis.xroad.edc.agreementgrant.proto.LocalGroup;
 import org.niis.xroad.edc.agreementgrant.proto.NoGrant;
 import org.niis.xroad.edc.agreementgrant.proto.NoGrantReason;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
@@ -68,6 +74,7 @@ import static org.mockito.Mockito.when;
 class AgreementGrantRpcClientTest {
 
     private static final ClientId CONSUMER = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
+    private static final ClientId PROVIDER = ClientId.Conf.create("DEV", "COM", "333", "PROVIDER");
     private static final ServiceId SERVICE = ServiceId.Conf.create("DEV", "COM", "333", "PROVIDER", "getData", "v1");
 
     @Mock
@@ -133,10 +140,46 @@ class AgreementGrantRpcClientTest {
 
         var result = client.resolveAgreementGrant("agreement-1");
 
-        assertThat(result).isPresent();
-        assertThat(result.get().client()).isEqualTo(CONSUMER);
-        assertThat(result.get().service()).isEqualTo(SERVICE);
-        assertThat(result.get().scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+        assertThat(result).contains(new AgreementGrant(CONSUMER, SERVICE, List.of(new AgreementTokenScope("GET", "/foo/*"))));
+    }
+
+    @Test
+    void resolveLocalGroupGrantReturnsTheGroupAndTheService() {
+        configuredResponse.set(ResolveAgreementGrantResponse.newBuilder()
+                .setGroupGrant(GroupGrant.newBuilder()
+                        .setServiceId(ServiceIdMapper.toDto(SERVICE))
+                        .setLocalGroup(LocalGroup.newBuilder()
+                                .setOwner(ClientIdMapper.toDto(PROVIDER))
+                                .setGroupCode("readers")))
+                .build());
+
+        var result = client.resolveAgreementGrant("agreement-1");
+
+        assertThat(result).contains(new AgreementGroupGrant(
+                new AgreementTokenGroup.Local(PROVIDER, LocalGroupId.Conf.create("readers")), SERVICE));
+    }
+
+    @Test
+    void resolveGlobalGroupGrantReturnsTheGroupAndTheService() {
+        configuredResponse.set(ResolveAgreementGrantResponse.newBuilder()
+                .setGroupGrant(GroupGrant.newBuilder()
+                        .setServiceId(ServiceIdMapper.toDto(SERVICE))
+                        .setGlobalGroup(GlobalGroup.newBuilder().setXRoadInstance("DEV").setGroupCode("consumers")))
+                .build());
+
+        var result = client.resolveAgreementGrant("agreement-1");
+
+        assertThat(result).contains(new AgreementGroupGrant(
+                new AgreementTokenGroup.Global(GlobalGroupId.Conf.create("DEV", "consumers")), SERVICE));
+    }
+
+    @Test
+    void resolveGroupGrantWithoutAGroupReturnsEmpty() {
+        configuredResponse.set(ResolveAgreementGrantResponse.newBuilder()
+                .setGroupGrant(GroupGrant.newBuilder().setServiceId(ServiceIdMapper.toDto(SERVICE)))
+                .build());
+
+        assertThat(client.resolveAgreementGrant("agreement-1")).isEmpty();
     }
 
     @Test
@@ -184,8 +227,7 @@ class AgreementGrantRpcClientTest {
 
         var result = client.resolveAgreementGrant("agreement-1");
 
-        assertThat(result).isPresent();
-        assertThat(result.get().scope()).containsExactly(
-                new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+        assertThat(result).contains(new AgreementGrant(CONSUMER, SERVICE,
+                List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"))));
     }
 }

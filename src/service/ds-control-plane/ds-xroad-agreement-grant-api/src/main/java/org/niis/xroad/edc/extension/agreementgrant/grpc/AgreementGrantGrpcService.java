@@ -39,7 +39,10 @@ import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.agreementgrant.proto.AgreementGrantServiceGrpc;
+import org.niis.xroad.edc.agreementgrant.proto.GlobalGroup;
 import org.niis.xroad.edc.agreementgrant.proto.Grant;
+import org.niis.xroad.edc.agreementgrant.proto.GroupGrant;
+import org.niis.xroad.edc.agreementgrant.proto.LocalGroup;
 import org.niis.xroad.edc.agreementgrant.proto.NoGrant;
 import org.niis.xroad.edc.agreementgrant.proto.NoGrantReason;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
@@ -57,7 +60,8 @@ import java.util.List;
  * gRPC service that resolves the grant behind a negotiated agreement, so the provider's data plane can mint an
  * agreement token without this service minting anything itself. Reads the agreement's ODRL policy tree written
  * by the catalog ({@code AND(subjectConstraint, OR(pathConstraints))}) and turns it back into a consumer client,
- * a provider service and a method/path scope, or a typed reason why no grant can be stated.
+ * a provider service and a method/path scope, into a group and a provider service for a local or global group
+ * subject, or into a typed reason why no grant can be stated.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -88,13 +92,8 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
             return noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD);
         }
 
-        if (!(shape.subject() instanceof PolicySubject.Client subject) || !subject.isSubsystem()) {
+        if (shape.subject() instanceof PolicySubject.Client member && !member.isSubsystem()) {
             return noGrant(NoGrantReason.SUBJECT_NOT_A_SUBSYSTEM);
-        }
-
-        var scopes = resolveScopes(shape);
-        if (scopes == null) {
-            return noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD);
         }
 
         var service = AssetMapper.decodeAssetId(agreement.getAssetId());
@@ -103,7 +102,37 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
             return noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD);
         }
 
+        return switch (shape.subject()) {
+            case PolicySubject.Client subject -> resolveClientGrant(agreement, shape, subject, service);
+            case PolicySubject.LocalGroup localGroup -> localGroupGrant(localGroup, service);
+            case PolicySubject.GlobalGroup globalGroup -> globalGroupGrant(globalGroup, service);
+        };
+    }
+
+    private ResolveAgreementGrantResponse resolveClientGrant(ContractAgreement agreement, XRoadPolicyShape shape,
+                                                             PolicySubject.Client subject, ServiceId service) {
+        var scopes = resolveScopes(shape);
+        if (scopes == null) {
+            log.debug("Agreement {} endpoint constraints are not a recognised datapath shape", agreement.getId());
+            return noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+        }
         return grant(subject.clientId(), service, scopes);
+    }
+
+    private static ResolveAgreementGrantResponse localGroupGrant(PolicySubject.LocalGroup subject, ServiceId service) {
+        return subject.decoded()
+                .map(value -> groupGrant(service, GroupGrant.newBuilder().setLocalGroup(LocalGroup.newBuilder()
+                        .setOwner(ClientIdMapper.toDto(value.owner()))
+                        .setGroupCode(value.groupCode()))))
+                .orElseGet(() -> noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD));
+    }
+
+    private static ResolveAgreementGrantResponse globalGroupGrant(PolicySubject.GlobalGroup subject, ServiceId service) {
+        return subject.groupId()
+                .map(groupId -> groupGrant(service, GroupGrant.newBuilder().setGlobalGroup(GlobalGroup.newBuilder()
+                        .setXRoadInstance(groupId.getXRoadInstance())
+                        .setGroupCode(groupId.getGroupCode()))))
+                .orElseGet(() -> noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD));
     }
 
     /**
@@ -132,6 +161,16 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
     private static ResolveAgreementGrantResponse noGrant(NoGrantReason reason) {
         return ResolveAgreementGrantResponse.newBuilder()
                 .setNoGrant(NoGrant.newBuilder().setReason(reason).build())
+                .build();
+    }
+
+    /**
+     * A group grant names the service and the group only: the calling subsystem is unknown when the token is
+     * issued, so no endpoints are stated.
+     */
+    private static ResolveAgreementGrantResponse groupGrant(ServiceId service, GroupGrant.Builder group) {
+        return ResolveAgreementGrantResponse.newBuilder()
+                .setGroupGrant(group.setServiceId(ServiceIdMapper.toDto(service)))
                 .build();
     }
 

@@ -27,6 +27,8 @@
 package org.niis.xroad.proxy.dataplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroup;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupAccess;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
@@ -43,6 +47,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
+import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Endpoint;
@@ -68,6 +73,9 @@ class AgreementTokenIssuerTest {
     private static final String AGREEMENT_ID = "agreement-1";
     private static final ClientId CONSUMER = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
     private static final ServiceId SERVICE = ServiceId.Conf.create("DEV", "COM", "333", "PROVIDER", "getData", "v1");
+
+    private static final AgreementTokenGroup LOCAL_GROUP = new AgreementTokenGroup.Local(
+            ClientId.Conf.create("DEV", "COM", "333", "PROVIDER"), LocalGroupId.Conf.create("readers"));
 
     private static final TestAgreementTokenProtocolProperties PROPERTIES =
             new TestAgreementTokenProtocolProperties("x-road-provider-data-plane", "x-road-server-proxy", Duration.ofSeconds(60));
@@ -106,6 +114,33 @@ class AgreementTokenIssuerTest {
         assertThat(claims.client()).isEqualTo(CONSUMER);
         assertThat(claims.service()).isEqualTo(SERVICE);
         assertThat(claims.scope()).containsExactlyInAnyOrderElementsOf(scope);
+    }
+
+    @Test
+    void mintsAGroupTokenNamingTheGroupAndTheServiceWithoutReadingTheAcl() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
+                .thenReturn(Optional.of(new AgreementGroupGrant(LOCAL_GROUP, SERVICE)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(true))
+                .verify(token.get(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.ValidGroup.class);
+        var claims = ((AgreementTokenVerificationResult.ValidGroup) result).claims();
+        assertThat(claims.agreementId()).isEqualTo(AGREEMENT_ID);
+        assertThat(claims.group()).isEqualTo(LOCAL_GROUP);
+        assertThat(claims.service()).isEqualTo(SERVICE);
+        verifyNoInteractions(serverConfProvider);
+    }
+
+    @Test
+    void mintsAGroupTokenForAGlobalGroup() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
+                .thenReturn(Optional.of(new AgreementGroupGrant(new AgreementTokenGroup.Global(
+                        GlobalGroupId.Conf.create("DEV", "consumers")), SERVICE)));
+
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
     }
 
     @Test
@@ -289,6 +324,20 @@ class AgreementTokenIssuerTest {
         assertThat(issuer.issueToken(" ")).isEmpty();
         assertThat(issuer.issueToken(null)).isEmpty();
         verifyNoInteractions(grantRpcClient, serverConfProvider);
+    }
+
+    private static AgreementTokenGroupAccess groupAccess(boolean allowed) {
+        return new AgreementTokenGroupAccess() {
+            @Override
+            public boolean isMember(AgreementTokenGroup group, ClientId client) {
+                return allowed;
+            }
+
+            @Override
+            public boolean isEndpointAllowed(ClientId client, ServiceId service, String requestMethod, String requestPath) {
+                return allowed;
+            }
+        };
     }
 
     private AgreementTokenClaimsView decodeAndVerify(String token) {

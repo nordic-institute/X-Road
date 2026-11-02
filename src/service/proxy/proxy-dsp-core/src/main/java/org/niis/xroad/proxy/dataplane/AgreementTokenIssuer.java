@@ -30,6 +30,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
@@ -37,6 +38,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
+import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.BaseEndpoint;
@@ -48,8 +50,9 @@ import java.util.Optional;
 /**
  * Resolves and mints the agreement token for a data-flow prepare/start message: looks up the grant behind the
  * agreement, which decides that the client may use the service, and mints a token whose scope is the client's
- * live ACL endpoints for that service (direct, local-group and global-group rows). Never throws — every
- * failure mode (no grant, an empty live ACL, key material unavailable, or anything else going wrong) yields an
+ * live ACL endpoints for that service (direct, local-group and global-group rows). For an agreement whose
+ * subject is a group, it mints a group token that names the group and the service and lists no endpoints.
+ * Never throws — every failure mode (no grant, an empty live ACL, key material unavailable, or anything else going wrong) yields an
  * empty result, so the caller always has a safe endpoint-only fallback.
  */
 @Slf4j
@@ -94,17 +97,21 @@ public class AgreementTokenIssuer {
         if (grantOpt.isEmpty()) {
             return Optional.empty();
         }
-        var grant = grantOpt.get();
+        var minter = new AgreementTokenMinter(keyProviderOpt.get(), protocolProperties);
+        return switch (grantOpt.get()) {
+            case AgreementGrant grant -> mintSubsystemToken(minter, agreementId, grant);
+            case AgreementGroupGrant(var group, var service) ->
+                    Optional.of(minter.mint(new AgreementTokenGroupGrant(agreementId, group, service)));
+        };
+    }
 
+    private Optional<String> mintSubsystemToken(AgreementTokenMinter minter, String agreementId, AgreementGrant grant) {
         var liveScope = liveAclScope(grant);
         if (liveScope.isEmpty()) {
             log.info("The live ACL grants no endpoint for agreement id '{}'; not minting", agreementId);
             return Optional.empty();
         }
-
-        var minter = new AgreementTokenMinter(keyProviderOpt.get(), protocolProperties);
-        var token = minter.mint(new AgreementTokenGrant(agreementId, grant.client(), grant.service(), liveScope));
-        return Optional.of(token);
+        return Optional.of(minter.mint(new AgreementTokenGrant(agreementId, grant.client(), grant.service(), liveScope)));
     }
 
     /**

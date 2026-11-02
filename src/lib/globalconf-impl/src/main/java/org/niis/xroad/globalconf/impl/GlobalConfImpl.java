@@ -690,6 +690,13 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .isPresent();
     }
 
+    @Override
+    public boolean isMemberInGlobalGroup(ClientId member, GlobalGroupId groupId) {
+        return findGlobalGroup(groupId)
+                .filter(group -> group.getGroupMembers().stream().anyMatch(m -> m.memberEquals(member)))
+                .isPresent();
+    }
+
     Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
         return globalConfSource.findShared(groupId.getXRoadInstance())
                 .flatMap(params -> params.getGlobalGroups().stream()

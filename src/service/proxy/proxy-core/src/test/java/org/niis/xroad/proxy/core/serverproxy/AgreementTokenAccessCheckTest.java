@@ -26,12 +26,16 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroup;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupAccess;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason;
@@ -56,7 +60,10 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +75,9 @@ class AgreementTokenAccessCheckTest {
     private static final ServiceId SERVICE = ServiceId.Conf.create(PROVIDER, "getData", "v1");
     private static final ServiceId OTHER_VERSION = ServiceId.Conf.create(PROVIDER, "getData", "v2");
 
+    private static final AgreementTokenGroup GROUP =
+            new AgreementTokenGroup.Global(GlobalGroupId.Conf.create("DEV", "consumers"));
+
     private static final String ISSUER = "x-road-provider-data-plane";
     private static final String AUDIENCE = "x-road-server-proxy";
     private static final Duration TOKEN_TTL = Duration.ofSeconds(60);
@@ -77,6 +87,7 @@ class AgreementTokenAccessCheckTest {
     private InMemoryAgreementTokenKeyProvider keyProvider;
     private ProxyAgreementTokenProperties properties;
     private LegacyCallRefusalPolicy refusalPolicy;
+    private AgreementTokenGroupAccess groupAccess;
     private AgreementTokenAccessCheck accessCheck;
 
     private Logger logger;
@@ -97,8 +108,9 @@ class AgreementTokenAccessCheckTest {
         when(keyMaterial.provider()).thenReturn(Optional.of(keyProvider));
 
         refusalPolicy = mock(LegacyCallRefusalPolicy.class);
+        groupAccess = mock(AgreementTokenGroupAccess.class);
 
-        accessCheck = new AgreementTokenAccessCheck(keyMaterial, properties, refusalPolicy);
+        accessCheck = new AgreementTokenAccessCheck(keyMaterial, properties, refusalPolicy, groupAccess);
 
         logger = Logger.getLogger(AgreementTokenAccessCheck.class.getName());
         originalLogLevel = logger.getLevel();
@@ -126,6 +138,42 @@ class AgreementTokenAccessCheckTest {
 
         assertThat(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/foo/bar"))
                 .isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
+    }
+
+    @Test
+    void shouldAcceptAGroupTokenWhenTheCallerIsAMemberAndTheEndpointIsGranted() {
+        when(groupAccess.isMember(GROUP, CONSUMER)).thenReturn(true);
+        when(groupAccess.isEndpointAllowed(CONSUMER, SERVICE, "GET", "/foo/bar")).thenReturn(true);
+
+        assertThat(accessCheck.decide(mintGroup(), CONSUMER, SERVICE, "GET", "/foo/bar"))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
+    }
+
+    @Test
+    void shouldDenyAGroupTokenWithoutFallingBackToTheAclWhenTheCallerIsNotAMember() {
+        when(groupAccess.isMember(GROUP, CONSUMER)).thenReturn(false);
+
+        assertDenied(accessCheck.decide(mintGroup(), CONSUMER, SERVICE, "GET", "/foo/bar"),
+                AgreementTokenRejectionReason.NOT_GROUP_MEMBER);
+        verify(groupAccess, never()).isEndpointAllowed(any(), any(), any(), any());
+        verifyNoInteractions(refusalPolicy);
+    }
+
+    @Test
+    void shouldDenyAGroupTokenWhenTheMemberHasNoAclGrantForTheEndpoint() {
+        when(groupAccess.isMember(GROUP, CONSUMER)).thenReturn(true);
+        when(groupAccess.isEndpointAllowed(CONSUMER, SERVICE, "GET", "/foo/bar")).thenReturn(false);
+
+        assertDenied(accessCheck.decide(mintGroup(), CONSUMER, SERVICE, "GET", "/foo/bar"),
+                AgreementTokenRejectionReason.ENDPOINT_NOT_ALLOWED);
+    }
+
+    @Test
+    void shouldAcceptAGroupTokenOnSoapWhenTheCallerIsAMemberAndTheServiceIsGranted() {
+        when(groupAccess.isMember(GROUP, CONSUMER)).thenReturn(true);
+        when(groupAccess.isEndpointAllowed(CONSUMER, SERVICE, null, null)).thenReturn(true);
+
+        assertThat(accessCheck.decide(mintGroup(), CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
     }
 
     @Test
@@ -251,7 +299,7 @@ class AgreementTokenAccessCheckTest {
     void shouldReturnUnavailableWhenKeyMaterialIsAbsent() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
-        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy);
+        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy, groupAccess);
         var token = mint(new AgreementTokenScope("*", "**"));
 
         assertThat(withoutKeyMaterial.decide(token, CONSUMER, SERVICE))
@@ -263,7 +311,7 @@ class AgreementTokenAccessCheckTest {
         var token = mint(new AgreementTokenScope("*", "**"));
         var throwingKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(throwingKeyMaterial.provider()).thenReturn(Optional.of(new ThrowingAgreementTokenKeyProvider()));
-        var withThrowingProvider = new AgreementTokenAccessCheck(throwingKeyMaterial, properties, refusalPolicy);
+        var withThrowingProvider = new AgreementTokenAccessCheck(throwingKeyMaterial, properties, refusalPolicy, groupAccess);
 
         assertRejected(withThrowingProvider.decide(token, CONSUMER, SERVICE), VERIFIER_ERROR_REASON);
     }
@@ -304,7 +352,7 @@ class AgreementTokenAccessCheckTest {
     void unavailableIsLoggedAtWarnWithoutTheTokenValue() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
-        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy);
+        var withoutKeyMaterial = new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy, groupAccess);
         var token = mint(new AgreementTokenScope("*", "**"));
 
         withoutKeyMaterial.decide(token, CONSUMER, SERVICE);
@@ -390,7 +438,12 @@ class AgreementTokenAccessCheckTest {
     private AgreementTokenAccessCheck withoutKeyMaterial() {
         var emptyKeyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(emptyKeyMaterial.provider()).thenReturn(Optional.empty());
-        return new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy);
+        return new AgreementTokenAccessCheck(emptyKeyMaterial, properties, refusalPolicy, groupAccess);
+    }
+
+    private void assertDenied(AgreementTokenAccessCheck.Decision decision, AgreementTokenRejectionReason reason) {
+        assertThat(decision).isInstanceOf(AgreementTokenAccessCheck.Decision.Denied.class);
+        assertThat(((AgreementTokenAccessCheck.Decision.Denied) decision).reasonClass()).isEqualTo(reason.name());
     }
 
     private void assertRejected(AgreementTokenAccessCheck.Decision decision, AgreementTokenRejectionReason reason) {
@@ -405,6 +458,11 @@ class AgreementTokenAccessCheckTest {
     private String mint(AgreementTokenScope scope) {
         return new AgreementTokenMinter(keyProvider, properties)
                 .mint(new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(scope)));
+    }
+
+    private String mintGroup() {
+        return new AgreementTokenMinter(keyProvider, properties)
+                .mint(new AgreementTokenGroupGrant("agreement-1", GROUP, SERVICE));
     }
 
     private record TestProtocolProperties(String issuer, String audience, Duration tokenTtl) implements AgreementTokenProtocolProperties {

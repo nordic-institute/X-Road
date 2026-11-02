@@ -51,6 +51,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
 class ServerSoapMessageProcessorTest {
@@ -133,6 +134,20 @@ class ServerSoapMessageProcessorTest {
         assertThatThrownBy(() -> processor.verifyAccess(requestMessage, SERVICE, AGREEMENT_TOKEN))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue());
+        verify(serverConfProvider, never()).isQueryAllowed(any(), any());
+    }
+
+    @Test
+    void shouldRefuseWithAccessDeniedWhenAGroupTokenIsDeniedEvenIfTheAclWouldAllow() throws Exception {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Denied("NOT_GROUP_MEMBER"));
+
+        var requestMessage = requestMessageFor(CLIENT);
+
+        assertThatThrownBy(() -> processor.verifyAccess(requestMessage, SERVICE, AGREEMENT_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(ACCESS_DENIED)).isTrue());
         verify(serverConfProvider, never()).isQueryAllowed(any(), any());
     }
 
