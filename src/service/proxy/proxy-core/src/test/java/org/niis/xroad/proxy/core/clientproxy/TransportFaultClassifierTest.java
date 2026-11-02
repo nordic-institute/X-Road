@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,7 +65,7 @@ class TransportFaultClassifierTest {
     }
 
     static Stream<Arguments> failures() {
-        return Stream.concat(transportFaults(), otherFailures());
+        return Stream.of(transportFaults(), mixedChains(), otherFailures()).flatMap(rows -> rows);
     }
 
     private static Stream<Arguments> transportFaults() {
@@ -86,8 +87,25 @@ class TransportFaultClassifierTest {
                                 true)));
     }
 
+    private static Stream<Arguments> mixedChains() {
+        return Stream.of(
+                Arguments.of("connection pool timeout caused by a refused connection",
+                        new ConnectionPoolTimeoutException("pool exhausted").initCause(new ConnectException("refused")),
+                        true),
+                Arguments.of("refused connection caused by a connection pool timeout",
+                        new ConnectException("refused").initCause(new ConnectionPoolTimeoutException("pool exhausted")),
+                        true));
+    }
+
     private static Stream<Arguments> otherFailures() {
         return Stream.of(
+                Arguments.of("connection pool timeout", new ConnectionPoolTimeoutException("pool exhausted"), false),
+                Arguments.of("connection pool timeout, wrapped by the sender",
+                        XrdRuntimeException.systemException(IO_ERROR,
+                                new ConnectionPoolTimeoutException("pool exhausted")), false),
+                Arguments.of("connection pool timeout, wrapped twice",
+                        new IllegalStateException(XrdRuntimeException.systemException(IO_ERROR,
+                                new ConnectionPoolTimeoutException("pool exhausted"))), false),
                 Arguments.of("http error raised inside the send after a response arrived",
                         XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 503,
                                 "Service Unavailable"), false),

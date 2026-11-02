@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -43,6 +44,8 @@ import java.util.List;
  * A failure is a transport fault only when its cause chain positively contains a refused or unreachable
  * connection, a connect timeout, a TLS handshake failure or a read timeout. Anything else,
  * including an error raised after a response arrived, is not a transport fault.
+ * A timeout waiting for a connection from the local pool never reaches the provider, so on its own it is not
+ * a transport fault either.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TransportFaultClassifier {
@@ -61,7 +64,12 @@ public final class TransportFaultClassifier {
      * @return true if the cause chain contains a transport fault
      */
     public static boolean isTransportFault(Throwable failure) {
-        return TRANSPORT_FAULT_TYPES.stream()
-                .anyMatch(type -> ExceptionUtils.indexOfType(failure, type) != -1);
+        return ExceptionUtils.getThrowableList(failure).stream()
+                .filter(cause -> !(cause instanceof ConnectionPoolTimeoutException))
+                .anyMatch(TransportFaultClassifier::isTransportFaultCause);
+    }
+
+    private static boolean isTransportFaultCause(Throwable cause) {
+        return TRANSPORT_FAULT_TYPES.stream().anyMatch(type -> type.isInstance(cause));
     }
 }
