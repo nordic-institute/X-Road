@@ -67,6 +67,15 @@ public interface DspRequestProcessor {
     }
 
     /**
+     * Drops every cached asset access won by the Security Server at the given address, so that the next
+     * {@link #execute} acquires afresh. Matches on the host only, whatever the port.
+     *
+     * @param counterPartyAddress the counter-party address of the failed Security Server
+     */
+    default void invalidateAssetAccessWonBy(String counterPartyAddress) {
+    }
+
+    /**
      * Reports a provider Security Server as unreachable, so that the next acquisition keeps it out of selection.
      * Returns without waiting for the control plane; a failed report is logged and never thrown.
      *

@@ -70,6 +70,16 @@ public interface AssetAccessAcquisitionService {
     }
 
     /**
+     * Drops every cached asset access won by the Security Server at the given address, whatever its participant
+     * context, asset, client or candidate set. Matches on the host only, so a different port of the same host
+     * matches too. A no-op when nothing is cached, the cache is disabled or the address names no host.
+     *
+     * @param counterPartyAddress the counter-party address of the Security Server whose cached asset access is dropped
+     */
+    default void invalidateAssetAccessWonBy(String counterPartyAddress) {
+    }
+
+    /**
      * Tells the control plane that the provider Security Server at the address was unreachable, so that it keeps
      * the server out of acquisition for a while. Returns without waiting for the control plane; a failed report is
      * logged and never thrown.

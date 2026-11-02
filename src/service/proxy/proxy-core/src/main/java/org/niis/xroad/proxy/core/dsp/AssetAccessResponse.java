@@ -31,8 +31,15 @@ import jakarta.annotation.Nullable;
 /**
  * Asset access response from the control plane.
  *
- * @param endpoint      the dataplane endpoint URL where the transfer request should be sent
- * @param authorization optional authorization credential for the dataplane (may be null)
+ * @param endpoint                  the dataplane endpoint URL where the transfer request should be sent
+ * @param authorization             optional authorization credential for the dataplane (may be null)
+ * @param winnerCounterPartyId      counter-party id of the Security Server that granted the access; {@code null} when unknown
+ * @param winnerCounterPartyAddress counter-party address of that Security Server; {@code null} when unknown
  */
-public record AssetAccessResponse(String endpoint, @Nullable String authorization) {
+public record AssetAccessResponse(String endpoint, @Nullable String authorization,
+                                  @Nullable String winnerCounterPartyId, @Nullable String winnerCounterPartyAddress) {
+
+    public AssetAccessResponse(String endpoint, @Nullable String authorization) {
+        this(endpoint, authorization, null, null);
+    }
 }

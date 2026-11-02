@@ -53,6 +53,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessWinner;
 import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.rpc.common.Empty;
@@ -69,6 +70,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.when;
@@ -516,6 +518,77 @@ class AssetAccessRpcClientTest {
         client.acquireAssetAccess("test-participant-ctx", "asset-1", second, null, null);
 
         assertThat(requestCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void acquireCarriesTheWinnerOnAFreshAcquisitionAndOnACacheHit() {
+        stubProtocol();
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId("provider-1")
+                        .setCounterPartyAddress("https://ss-a.example:8183/dsp"))
+                .build();
+
+        var fresh = client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
+        var cached = client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
+
+        assertThat(requestCount.get()).isEqualTo(1);
+        assertThat(List.of(fresh, cached)).allSatisfy(result -> {
+            assertThat(result.winnerCounterPartyId()).isEqualTo("provider-1");
+            assertThat(result.winnerCounterPartyAddress()).isEqualTo("https://ss-a.example:8183/dsp");
+        });
+    }
+
+    @Test
+    void acquireWithoutAWinnerCarriesNone() {
+        stubProtocol();
+        configuredResponse = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
+
+        var result = client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
+
+        assertThat(result.winnerCounterPartyId()).isNull();
+        assertThat(result.winnerCounterPartyAddress()).isNull();
+    }
+
+    @Test
+    void invalidatingByWinnerDropsTheCachedAccessWonByTheHostWhateverThePort() {
+        stubProtocol();
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId("provider-1")
+                        .setCounterPartyAddress("https://ss-a.example:8183/dsp"))
+                .build();
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
+
+        client.invalidateAssetAccessWonBy("https://ss-a.example:9999/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
+
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void withTheCacheDisabledInvalidatingByWinnerIsANoOpAndTheReportIsStillSent() throws Exception {
+        client.close();
+        channel.shutdownNow();
+        channel = ManagedChannelBuilder.forAddress("localhost", server.getPort())
+                .usePlaintext()
+                .build();
+        Mockito.reset(rpcChannelFactory);
+        when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
+        when(cacheProperties.enabled()).thenReturn(false);
+        client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
+        client.init();
+
+        assertThatCode(() -> client.invalidateAssetAccessWonBy("https://ss-a.example:8183/dsp"))
+                .doesNotThrowAnyException();
+        client.reportCounterPartyFailure("provider-1", "https://ss-a.example:8183/dsp");
+
+        assertThat(reportReceived.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(capturedReport.get().getCounterPartyAddress()).isEqualTo("https://ss-a.example:8183/dsp");
     }
 
     @Test
