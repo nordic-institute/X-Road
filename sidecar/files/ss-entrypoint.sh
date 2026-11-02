@@ -10,6 +10,10 @@ if [ "${XROAD_MIGRATION_MODE:-}" = "true" ]; then
   fi
 fi
 
+# Only migration mode reads it. The orchestrator runs as a child process, so
+# its own unset does not reach the services started below.
+unset XROAD_MIGRATION_SOFTTOKEN_PIN
+
 # Runs on every path that reaches provisioning, including the hand-over from
 # a successful migration in this same container: its last step writes the
 # X-Road 8 VERSION marker and leaves no PostgreSQL cluster but 18, so this
