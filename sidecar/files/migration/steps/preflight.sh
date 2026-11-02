@@ -1,7 +1,13 @@
 #!/bin/bash
 #
-# Migration step 1: refuses to start unless the source is 7.8.x, a soft
-# token's PIN is given and the target volumes are empty. Writes nothing.
+# Migration step 1: refuses to start unless the source is 7.8.3 (with any
+# package suffix, e.g. 7.8.3-1.ubuntu24.04), a soft token's PIN is given and
+# the target volumes are empty. Writes nothing.
+#
+# A source on another version is not a refusal:
+# migration_preflight_check_source_version returns 2 and step_preflight stops
+# right there, so the orchestrator reports the migration as skipped and exits
+# non-zero itself, instead of failing the container.
 #
 # Also detects the database shape the later steps branch on: SOURCE_DB_HOST
 # and SOURCE_DB_PORT, parsed from the source db.properties, are a local
@@ -36,9 +42,14 @@ migration_preflight_check_source_version() {
   local version
   version="$(tr -d '[:space:]' <"$version_file")"
 
-  if [[ ! "$version" =~ ^7\.8\. ]]; then
-    STEP_REASON="source configuration version is not 7.8.x (found: ${version:-empty})"
+  if [[ -z "$version" ]]; then
+    STEP_REASON="source configuration version not found: $version_file is empty"
     return 1
+  fi
+
+  if [[ ! "$version" =~ ^7\.8\.3(-.+)?$ ]]; then
+    STEP_REASON="source configuration version is $version, not 7.8.3: upgrade to 7.8.3 first"
+    return 2
   fi
 
   return 0
@@ -167,8 +178,11 @@ migration_preflight_check_softtoken_pin() {
 }
 
 step_preflight() {
+  migration_preflight_check_source_version
+  local version_rc=$?
+  [[ $version_rc -eq 0 ]] || return $version_rc
+
   migration_preflight_detect_db_shape
-  migration_preflight_check_source_version || return 1
   migration_preflight_check_target_config_empty || return 1
   migration_preflight_check_country_variant || return 1
   if [[ "$SOURCE_DB_HOST" == 127.* ]]; then

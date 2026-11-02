@@ -2,7 +2,10 @@
 #
 # Sidecar migration mode: runs the steps in main() in order and exits 1 at the
 # first failure. Starts no X-Road service. A step returns 0, or 1 with the
-# reason in STEP_REASON.
+# reason in STEP_REASON. Preflight has a third outcome: 2 means the source is
+# not 7.8.3, so migration does not run; the orchestrator reports
+# MIGRATION RESULT: SKIPPED and exits non-zero itself, writing nothing, so no
+# regular start follows.
 
 set -o pipefail
 
@@ -33,6 +36,10 @@ pass_step() {
   echo "$CURRENT_STEP: PASSED"
 }
 
+skip_step() {
+  echo "$CURRENT_STEP: SKIPPED (${1:-no reason given})"
+}
+
 fail() {
   echo "$CURRENT_STEP: FAILED (${1:-no reason given})"
   echo "MIGRATION RESULT: FAILED"
@@ -41,7 +48,14 @@ fail() {
 
 preflight_checks() {
   begin_step 1 "preflight checks"
-  step_preflight || fail "${STEP_REASON:-}"
+  step_preflight
+  local rc=$?
+  if [[ $rc -eq 2 ]]; then
+    skip_step "${STEP_REASON:-}"
+    return 2
+  elif [[ $rc -ne 0 ]]; then
+    fail "${STEP_REASON:-}"
+  fi
   pass_step
 }
 
@@ -84,6 +98,12 @@ main() {
   echo "=== X-Road sidecar migration ==="
 
   preflight_checks
+  local preflight_rc=$?
+  if [[ $preflight_rc -eq 2 ]]; then
+    echo "MIGRATION RESULT: SKIPPED (${STEP_REASON:-})"
+    exit 2
+  fi
+
   prepare_database
   copy_configuration
   setup_liquibase_and_openbao
