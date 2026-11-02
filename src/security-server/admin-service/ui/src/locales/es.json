@@ -1313,7 +1313,8 @@
             "health-statistics-period-seconds": "Período en segundos durante el cual se agregan las estadísticas de salud.",
             "rpc": {
               "listen-address": "Dirección IP en la que escucha el servidor gRPC del daemon de monitoreo operacional.",
-              "port": "Puerto en el que escucha el servidor gRPC del daemon de monitoreo operacional."
+              "port": "Puerto en el que escucha el servidor gRPC del daemon de monitoreo operacional.",
+              "allowed-client-names": "Nombres de cliente separados por comas que acepta el servidor gRPC del daemon de monitoreo operacional cuando RPC TLS está activado. Se acepta un cliente si el CN o un SAN DNS de su certificado coincide con una entrada (sin distinguir mayúsculas, sin SAN IP, sin comodines). Vacío (predeterminado) acepta cualquier cliente con un certificado de la CA del servidor de seguridad. Un comodín o una entrada vacía detiene el daemon al iniciar. Reinicie el daemon tras un cambio."
             }
           },
           "message-log-archiver": {

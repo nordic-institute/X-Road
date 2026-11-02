@@ -1291,7 +1291,8 @@
             "health-statistics-period-seconds": "Saglyk statistikasynyň jemlenýän sekuntlardaky döwür.",
             "rpc": {
               "listen-address": "Operasion gözegçilik demony gRPC serweri diňleýän IP salgysy.",
-              "port": "Operasion gözegçilik demony gRPC serweri diňleýän porty."
+              "port": "Operasion gözegçilik demony gRPC serweri diňleýän porty.",
+              "allowed-client-names": "RPC TLS açyk bolanda operasion gözegçilik demony gRPC serweriniň kabul edýän müşderi atlary, otur bilen aýrylan. Müşderiniň sertifikatynyň CN ýa-da DNS SAN-y ýazgy bilen deň bolsa, müşderi kabul edilýär (baş-kiçi harp tapawutlandyrylmaýar, IP SAN ýok, wildcard ýok). Boş (default) howpsuzlyk serweriniň CA sertifikaty bolan islendik müşderini kabul edýär. Wildcard ýa-da boş ýazgy demony başlanda duruzýar. Üýtgetmeden soň demony täzeden başladyň."
             }
           },
           "message-log-archiver": {

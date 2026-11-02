@@ -41,6 +41,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.util.DurationConverter;
 import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.test.TestCa;
 import org.niis.xroad.common.vault.VaultKeyClient;
 
 import java.security.PrivateKey;
@@ -255,6 +256,46 @@ class ReloadableVaultKeyManagerTest {
         verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
         assertThat(delayCaptor.getValue()).isEqualTo(60L);
         assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
+    }
+
+    @Test
+    void reloadUpdatesTheVerifyingTrustManagerTogetherWithTheSharedOne() throws Exception {
+        var firstCa = TestCa.selfSigned("First CA").certificate();
+        var secondCa = TestCa.selfSigned("Second CA").certificate();
+        var verifyingTrustManager = reloadableVaultKeyManager.createVerifyingTrustManager(
+                mock(AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier.class));
+
+        provisionTrustCerts(firstCa);
+        reloadableVaultKeyManager.reload();
+
+        assertThat(verifyingTrustManager.getAcceptedIssuers()).containsExactly(firstCa);
+        assertThat(verifyingTrustManager.getAcceptedIssuers()).containsExactly(trustManager.getAcceptedIssuers());
+
+        provisionTrustCerts(secondCa);
+        reloadableVaultKeyManager.reload();
+
+        assertThat(verifyingTrustManager.getAcceptedIssuers()).containsExactly(secondCa);
+        assertThat(verifyingTrustManager.getAcceptedIssuers()).containsExactly(trustManager.getAcceptedIssuers());
+    }
+
+    @Test
+    void verifyingTrustManagerCreatedAfterAReloadStartsWithTheCurrentTrustCerts() throws Exception {
+        var ca = TestCa.selfSigned("CA").certificate();
+        provisionTrustCerts(ca);
+        reloadableVaultKeyManager.reload();
+
+        var verifyingTrustManager = reloadableVaultKeyManager.createVerifyingTrustManager(
+                mock(AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier.class));
+
+        assertThat(verifyingTrustManager.getAcceptedIssuers()).containsExactly(ca);
+    }
+
+    private void provisionTrustCerts(X509Certificate... trustCerts) throws Exception {
+        var result = mock(VaultKeyClient.VaultKeyData.class);
+        when(result.identityCertChain()).thenReturn(new X509Certificate[] {mock(X509Certificate.class)});
+        when(result.identityPrivateKey()).thenReturn(mock(PrivateKey.class));
+        when(result.trustCerts()).thenReturn(trustCerts);
+        when(vaultKeyClient.provisionNewCerts()).thenReturn(result);
     }
 
     private static final class TestCertificateProvisioningProperties implements RpcProperties.RpcCertificateProvisioningProperties {

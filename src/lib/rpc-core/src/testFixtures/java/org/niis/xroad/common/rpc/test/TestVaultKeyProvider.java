@@ -45,7 +45,10 @@ public final class TestVaultKeyProvider implements VaultKeyProvider {
             .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
             .build();
 
+    private final X509Certificate[] trustAnchors;
+
     public TestVaultKeyProvider(TestCa.TestLeaf identity, X509Certificate... trustAnchors) throws Exception {
+        this.trustAnchors = trustAnchors;
         keyManager.updateIdentityCredentials(identity.chain(), identity.privateKey());
         trustManager.updateTrustCredentials(trustAnchors);
     }
@@ -58,6 +61,21 @@ public final class TestVaultKeyProvider implements VaultKeyProvider {
     @Override
     public TrustManager getTrustManager() {
         return trustManager;
+    }
+
+    @Override
+    public AdvancedTlsX509TrustManager createVerifyingTrustManager(
+            AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier verifier) {
+        try {
+            var verifyingTrustManager = AdvancedTlsX509TrustManager.newBuilder()
+                    .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+                    .setSslSocketAndEnginePeerVerifier(verifier)
+                    .build();
+            verifyingTrustManager.updateTrustCredentials(trustAnchors);
+            return verifyingTrustManager;
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to create the verifying trust manager", e);
+        }
     }
 
     @Override

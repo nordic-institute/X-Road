@@ -1370,7 +1370,8 @@
             "health-statistics-period-seconds": "Período em segundos sobre o qual as estatísticas de integridade são agregadas.",
             "rpc": {
               "listen-address": "Endereço IP no qual o servidor gRPC do daemon de monitoramento operacional escuta.",
-              "port": "Porta na qual o servidor gRPC do daemon de monitoramento operacional escuta."
+              "port": "Porta na qual o servidor gRPC do daemon de monitoramento operacional escuta.",
+              "allowed-client-names": "Nomes de cliente separados por vírgula que o servidor gRPC do daemon de monitoramento operacional aceita quando o RPC TLS está ativado. Um cliente é aceito quando o CN ou um SAN DNS do seu certificado é igual a uma entrada (sem distinção de maiúsculas, sem SAN IP, sem curingas). Vazio (padrão) aceita qualquer cliente com certificado da CA do servidor de segurança. Um curinga ou uma entrada vazia impede a inicialização do daemon. Reinicie o daemon após uma alteração."
             }
           },
           "message-log-archiver": {

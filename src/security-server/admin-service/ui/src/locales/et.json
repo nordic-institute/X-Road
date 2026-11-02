@@ -1428,7 +1428,8 @@
             "health-statistics-period-seconds": "Periood sekundites, mille jooksul tervisemõõdikuid koondatakse.",
             "rpc": {
               "listen-address": "IP-aadress, millel operatsioonide monitooringu deemoni gRPC server kuulab.",
-              "port": "Port, millel operatsioonide monitooringu deemoni gRPC server kuulab."
+              "port": "Port, millel operatsioonide monitooringu deemoni gRPC server kuulab.",
+              "allowed-client-names": "Komadega eraldatud kliendinimed, mida operatsioonide monitooringu deemoni gRPC server aktsepteerib, kui RPC TLS on sees. Klient aktsepteeritakse, kui tema sertifikaadi CN või DNS SAN võrdub kirjega (tõstutundetu, ilma IP SAN-ita, ilma metamärkideta). Tühi (vaikimisi) aktsepteerib iga klienti, kellel on turvaserveri CA sertifikaat. Metamärk või tühi kirje peatab deemoni käivitumisel. Muudatuse järel taaskäivitage deemon."
             }
           },
           "message-log-archiver": {

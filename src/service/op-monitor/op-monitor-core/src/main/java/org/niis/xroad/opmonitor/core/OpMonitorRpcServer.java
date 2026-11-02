@@ -27,11 +27,15 @@
 package org.niis.xroad.opmonitor.core;
 
 import io.grpc.BindableService;
+import io.grpc.ServerCredentials;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
 import org.niis.xroad.opmonitor.core.config.OpMonitorServerProperties;
@@ -42,10 +46,21 @@ import java.util.List;
 @Startup
 @Singleton
 public class OpMonitorRpcServer extends ManagedRpcServer {
+    private final OpMonitorServerCredentials serverCredentials;
+
     public OpMonitorRpcServer(@All List<BindableService> services,
                               OpMonitorServerProperties rpcServerProperties,
-                              RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+                              RpcCredentialsConfigurer rpcCredentialsConfigurer,
+                              RpcProperties rpcProperties,
+                              Provider<VaultKeyProvider> vaultKeyProvider) {
         super(services, rpcServerProperties, rpcCredentialsConfigurer);
+        this.serverCredentials = new OpMonitorServerCredentials(rpcServerProperties, rpcProperties,
+                rpcCredentialsConfigurer, vaultKeyProvider::get);
+    }
+
+    @Override
+    protected ServerCredentials createServerCredentials() {
+        return serverCredentials.create();
     }
 
     @Override

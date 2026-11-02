@@ -1486,7 +1486,8 @@
             "rpc": {
               "listen-address": "IP address on which the operational monitoring daemon gRPC server listens.",
               "port": "Port on which the operational monitoring daemon gRPC server listens.",
-              "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size."
+              "max-inbound-message-size": "Maximum size in bytes of a request the operational monitoring daemon gRPC server accepts, for example a batch of stored operational data records. The minimum is 65536. If not set, the gRPC default of 4 MiB applies. Keep it above xroad.proxy.addon.op-monitor.buffer.max-message-size.",
+              "allowed-client-names": "Comma-separated client names the operational monitoring daemon gRPC server accepts when RPC TLS is on. A client is accepted when its certificate CN or DNS SAN equals an entry (case-insensitive, no IP SANs, no wildcards). Empty (default) accepts any client with a certificate from the Security Server CA. A wildcard or empty entry stops the daemon at startup. Restart the daemon after a change."
             }
           },
           "message-log-archiver": {

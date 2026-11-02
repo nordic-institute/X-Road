@@ -26,6 +26,7 @@
 package org.niis.xroad.common.rpc.server;
 
 import io.grpc.BindableService;
+import io.grpc.ServerCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
@@ -67,12 +68,19 @@ public abstract class ManagedRpcServer {
         }
     }
 
+    /**
+     * @return the credentials of the server; subclasses override it to use credentials other than the shared ones
+     */
+    protected ServerCredentials createServerCredentials() {
+        return rpcCredentialsConfigurer.createServerCredentials();
+    }
+
     private RpcServer createServer() {
         log.info("RPC server is being initialized..");
         return new RpcServer(
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),
-                rpcCredentialsConfigurer.createServerCredentials(),
+                createServerCredentials(),
                 builder -> {
                     rpcServerProperties.maxInboundMessageSize().ifPresent(builder::maxInboundMessageSize);
                     services.forEach(service -> {

@@ -42,7 +42,12 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -65,6 +70,10 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
 
     private final Retry retryInstance;
     private final TimeLimiter timeLimiter;
+
+    private final Object trustLock = new Object();
+    private final List<AdvancedTlsX509TrustManager> verifyingTrustManagers = new ArrayList<>();
+    private X509Certificate[] currentTrustCerts;
 
     public ReloadableVaultKeyManager(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties,
                                      VaultKeyClient vaultKeyClient, AdvancedTlsX509TrustManager trustManager,
@@ -102,7 +111,7 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
                             result.identityCertChain(),
                             result.identityPrivateKey());
 
-                    trustManager.updateTrustCredentials(result.trustCerts());
+                    updateTrustCredentials(result.trustCerts());
                     return null;
                 } catch (Exception e) {
                     throw XrdRuntimeException.systemInternalError("Failed to provision certificates", e);
@@ -115,6 +124,36 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
         } finally {
             log.debug("Scheduling next reload in {}", certificateProvisionProperties.refreshInterval());
             scheduler.schedule(this::reload, certificateProvisionProperties.refreshInterval().toSeconds(), TimeUnit.SECONDS);
+        }
+    }
+
+    private void updateTrustCredentials(X509Certificate[] trustCerts) throws IOException, GeneralSecurityException {
+        synchronized (trustLock) {
+            trustManager.updateTrustCredentials(trustCerts);
+            for (var verifyingTrustManager : verifyingTrustManagers) {
+                verifyingTrustManager.updateTrustCredentials(trustCerts);
+            }
+            currentTrustCerts = trustCerts;
+        }
+    }
+
+    @Override
+    public AdvancedTlsX509TrustManager createVerifyingTrustManager(
+            AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier verifier) {
+        synchronized (trustLock) {
+            try {
+                var verifyingTrustManager = AdvancedTlsX509TrustManager.newBuilder()
+                        .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+                        .setSslSocketAndEnginePeerVerifier(verifier)
+                        .build();
+                if (currentTrustCerts != null) {
+                    verifyingTrustManager.updateTrustCredentials(currentTrustCerts);
+                }
+                verifyingTrustManagers.add(verifyingTrustManager);
+                return verifyingTrustManager;
+            } catch (IOException | GeneralSecurityException e) {
+                throw XrdRuntimeException.systemInternalError("Failed to create the verifying trust manager", e);
+            }
         }
     }
 
