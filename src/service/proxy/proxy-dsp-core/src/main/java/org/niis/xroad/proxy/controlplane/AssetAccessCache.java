@@ -31,12 +31,11 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.Ticker;
 import jakarta.annotation.Nullable;
+import okhttp3.HttpUrl;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
@@ -63,25 +62,26 @@ class AssetAccessCache {
                     @Nullable String forcedTarget, String protocol, @Nullable String consumerClientId) { }
 
     /**
-     * @param winner the candidate that granted the access; {@code null} when the control plane named none
+     * @param winnerHost the host of the candidate that granted the access, derived from the response when the
+     *                   entry is created; {@code null} when the response names no winner or its address has no host
      */
-    record CachedEntry(AssetAccessResponse response, @Nullable Winner winner, long expiresAtEpochSeconds) {
+    record CachedEntry(AssetAccessResponse response, @Nullable String winnerHost, long expiresAtEpochSeconds) {
 
         static CachedEntry from(AcquireAssetAccessResp response) {
             var expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
-            var winner = response.hasWinner()
-                    ? new Winner(response.getWinner().getCounterPartyId(), response.getWinner().getCounterPartyAddress())
-                    : null;
-            var assetAccessResponse = new AssetAccessResponse(
+            var winner = response.hasWinner() ? response.getWinner() : null;
+            return of(new AssetAccessResponse(
                     response.getEndpoint(),
                     response.hasAuthorization() ? response.getAuthorization() : null,
-                    winner != null ? winner.counterPartyId() : null,
-                    winner != null ? winner.counterPartyAddress() : null);
-            return new CachedEntry(assetAccessResponse, winner, expiresAt);
+                    winner != null ? winner.getCounterPartyId() : null,
+                    winner != null ? winner.getCounterPartyAddress() : null), expiresAt);
+        }
+
+        static CachedEntry of(AssetAccessResponse response, long expiresAtEpochSeconds) {
+            var address = response.winnerCounterPartyAddress();
+            return new CachedEntry(response, address != null ? hostOf(address) : null, expiresAtEpochSeconds);
         }
     }
-
-    record Winner(String counterPartyId, String counterPartyAddress) { }
 
     private final Cache<CacheKey, CachedEntry> cache;
 
@@ -163,24 +163,22 @@ class AssetAccessCache {
 
     /**
      * Drops every entry won by a Security Server with the given host, whatever its participant context, asset,
-     * client or candidate set and whatever the port. Entries without a winner are kept.
+     * client or candidate set and whatever the port. Entries without a winner are kept. The host must come from
+     * {@link #hostOf}, since entries store their host in that form and are compared exactly.
      */
     void removeWonByHost(String host) {
-        cache.asMap().values().removeIf(entry -> entry.winner() != null
-                && host.equalsIgnoreCase(hostOf(entry.winner().counterPartyAddress())));
+        cache.asMap().values().removeIf(entry -> host.equals(entry.winnerHost()));
     }
 
     /**
-     * Extracts the host that winner matching compares, ignoring scheme, port and path.
+     * Extracts the host that winner matching compares, ignoring scheme, port and path. Parsed like the control
+     * plane parses the address, so both sides agree on the host; okhttp lowercases it.
      *
-     * @return the host of the counter-party address; {@code null} when the address names none
+     * @return the host of the counter-party address; {@code null} when it is not an http(s) URL
      */
     @Nullable
     static String hostOf(String counterPartyAddress) {
-        try {
-            return new URI(counterPartyAddress).getHost();
-        } catch (URISyntaxException _) {
-            return null;
-        }
+        var url = HttpUrl.parse(counterPartyAddress);
+        return url != null ? url.host() : null;
     }
 }

@@ -21,6 +21,7 @@ dependencies {
   implementation(project(":service:op-monitor:op-monitor-api"))
 
   implementation(libs.quarkus.caffeine)
+  implementation(libs.okhttp)
   implementation(libs.quarkus.scheduler)
   implementation(libs.quarkus.health)
   implementation(libs.edc.spi.core)
