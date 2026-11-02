@@ -125,6 +125,7 @@ public class ClientRestMessageProcessor {
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
+    private final DspSendFailureHandler dspSendFailureHandler;
 
     /**
      * Processes a REST message exchange described by the given request context.
@@ -321,6 +322,9 @@ public class ClientRestMessageProcessor {
             httpSender.doPost(getServiceAddress(addresses), entity);
         } catch (Exception e) {
             clientRequestPreparationService.markAddressUnusableIfHandshakeFailure(httpSender, e);
+            if (assetAccess != null) {
+                dspSendFailureHandler.handle(e, assetAccess);
+            }
             throw e;
         }
         if (opMonitoringData != null) {

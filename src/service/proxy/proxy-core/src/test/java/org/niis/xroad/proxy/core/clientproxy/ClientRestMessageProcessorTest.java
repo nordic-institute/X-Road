@@ -37,11 +37,14 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.SneakyThrows;
 import org.apache.http.HttpEntity;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
@@ -66,9 +69,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.ServerConfProviderIdentitySource;
 
+import javax.net.ssl.SSLHandshakeException;
+
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
@@ -81,6 +89,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -90,7 +99,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
@@ -146,7 +157,8 @@ class ClientRestMessageProcessorTest {
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
-                mock(LegacyCallRefusalPolicy.class)
+                mock(LegacyCallRefusalPolicy.class),
+                mock(DspSendFailureHandler.class)
         );
     }
 
@@ -441,6 +453,141 @@ class ClientRestMessageProcessorTest {
         verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
     }
 
+    @ParameterizedTest
+    @MethodSource("transportFaults")
+    void aTransportFaultOnTheDspSendReachesTheFailureHandlerAndIsRethrownUnchanged(Throwable fault) throws Exception {
+        var harness = createHarness(true);
+        stubDspAcquisition(harness, WON_BY_SS_A);
+        var httpSender = failingSender(fault);
+
+        assertThatThrownBy(() -> harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+                .isSameAs(fault);
+
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
+        verify(harness.clientRequestPreparationService()).markAddressUnusableIfHandshakeFailure(httpSender, fault);
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
+        verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
+    }
+
+    @ParameterizedTest
+    @MethodSource("transportFaults")
+    void aTransportFaultOnTheLegacySendDoesNotReachTheFailureHandler(Throwable fault) throws Exception {
+        var harness = createHarness(false);
+        stubUnnegotiatedAddress(harness);
+        var httpSender = failingSender(fault);
+
+        assertThatThrownBy(() -> harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+                .isSameAs(fault);
+
+        verify(harness.clientRequestPreparationService()).markAddressUnusableIfHandshakeFailure(httpSender, fault);
+        verifyNoInteractions(harness.dspSendFailureHandler());
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("answersFromALiveProvider")
+    void anAnswerFromALiveProviderNeitherDropsNorReportsTheWinner(Throwable answer) throws Exception {
+        var harness = createHarness(true);
+        stubDspAcquisition(harness, WON_BY_SS_A);
+
+        assertThatThrownBy(() -> harness.processor().sendRequest(failingSender(answer), null, null, restRequest(),
+                serviceId(), "req-1", restRequestContext())).isSameAs(answer);
+
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @Test
+    void aSendThatCompletesDoesNotReachTheFailureHandler() throws Exception {
+        var harness = createHarness(true);
+        stubDspAcquisition(harness, WON_BY_SS_A);
+
+        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-1",
+                restRequestContext());
+
+        verifyNoInteractions(harness.dspSendFailureHandler());
+    }
+
+    @Test
+    void aTokenRejectionOnlyDropsTheEntryAndALaterTransportFaultDropsAndReports() throws Exception {
+        var harness = createHarness(true);
+        stubDspAcquisition(harness, WON_BY_SS_A);
+
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), true);
+
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccess(any(DspRequest.class));
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+
+        var fault = new ConnectException("refused");
+        assertThatThrownBy(() -> harness.processor().sendRequest(failingSender(fault), null, null, restRequest(),
+                serviceId(), "req-1", restRequestContext())).isSameAs(fault);
+
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
+        verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
+    }
+
+    @Test
+    void aTokenRejectionOnTheSiblingAfterATransportFaultReportsOnlyTheFailedServer() throws Exception {
+        var harness = createHarness(true);
+        stubDspAcquisition(harness, WON_BY_SS_A);
+        var fault = new ConnectException("refused");
+        assertThatThrownBy(() -> harness.processor().sendRequest(failingSender(fault), null, null, restRequest(),
+                serviceId(), "req-1", restRequestContext())).isSameAs(fault);
+        stubDspAcquisition(harness, WON_BY_SS_B);
+
+        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-2",
+                restRequestContext());
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), true);
+
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccess(any(DspRequest.class));
+        verify(harness.consumerSideDspProcessor(), times(1)).reportCounterPartyFailure(any(), any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(eq(SS_B_ID), any());
+        verify(harness.consumerSideDspProcessor(), times(1)).invalidateAssetAccessWonBy(any());
+    }
+
+    static Stream<Throwable> transportFaults() {
+        return Stream.of(
+                new ConnectException("refused"),
+                new ConnectTimeoutException("connect timed out"),
+                new SSLHandshakeException("handshake_failure"),
+                new SocketTimeoutException("Read timed out"));
+    }
+
+    static Stream<Throwable> answersFromALiveProvider() {
+        return Stream.of(
+                XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 500,
+                        "Internal Server Error"),
+                XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"));
+    }
+
+    private static final String SS_A_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:222";
+    private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
+    private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final AssetAccessResponse WON_BY_SS_A =
+            new AssetAccessResponse("https://ss-a.example:8183/data", AGREEMENT_TOKEN, SS_A_ID, SS_A_ADDRESS);
+    private static final AssetAccessResponse WON_BY_SS_B =
+            new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, SS_B_ID, SS_B_ADDRESS);
+
+    private static void stubDspAcquisition(RestHarness harness, AssetAccessResponse assetAccess) {
+        when(harness.consumerSideDspProcessor().execute(any())).thenReturn(assetAccess);
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(assetAccess.endpoint())), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(assetAccess.endpoint())});
+    }
+
+    private static HttpSender failingSender(Throwable failure) throws Exception {
+        var httpSender = mock(HttpSender.class);
+        doThrow(failure).when(httpSender).doPost(any(URI.class), nullable(HttpEntity.class));
+        return httpSender;
+    }
+
     private static void stubUnnegotiatedAddress(RestHarness harness) {
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
@@ -461,7 +608,8 @@ class ClientRestMessageProcessorTest {
 
     private record RestHarness(ClientRestMessageProcessor processor, DspRequestProcessor consumerSideDspProcessor,
                                ClientRequestPreparationService clientRequestPreparationService,
-                               GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy) {
+                               GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy,
+                               DspSendFailureHandler dspSendFailureHandler) {
     }
 
     private RestHarness createHarness(boolean dspEnabled) {
@@ -485,6 +633,7 @@ class ClientRestMessageProcessorTest {
         var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
+        var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
 
         var processor = new ClientRestMessageProcessor(
                 mock(MessageSigningService.class),
@@ -498,9 +647,10 @@ class ClientRestMessageProcessorTest {
                 clientRequestPreparationService,
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
-                legacyCallRefusalPolicy);
+                legacyCallRefusalPolicy,
+                dspSendFailureHandler);
         return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
-                globalConfProvider, legacyCallRefusalPolicy);
+                globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler);
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {
