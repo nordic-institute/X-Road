@@ -1,13 +1,14 @@
 #!/bin/bash
 #
 # Migration step 1: refuses to start unless the source is 7.8.3 (with any
-# package suffix, e.g. 7.8.3-1.ubuntu24.04), a soft token's PIN is given and
-# the target volumes are empty. Writes nothing.
+# package suffix, e.g. 7.8.3-1.ubuntu24.04), the 7.8 volumes the later steps
+# read from are present, XROAD_MIGRATION_SOFTTOKEN_PIN is given and the
+# target volumes are empty. Writes nothing.
 #
-# A source on another version is not a refusal:
+# A source on another version is a skip, not a refusal:
 # migration_preflight_check_source_version returns 2 and step_preflight stops
 # right there, so the orchestrator reports the migration as skipped and exits
-# non-zero itself, instead of failing the container.
+# non-zero.
 #
 # Also detects the database shape the later steps branch on: SOURCE_DB_HOST
 # and SOURCE_DB_PORT, parsed from the source db.properties, are a local
@@ -33,6 +34,11 @@ migration_preflight_detect_db_shape() {
 
 migration_preflight_check_source_version() {
   local version_file="$SOURCE_CONFIG_DIR/VERSION"
+
+  if [[ ! -d "$SOURCE_CONFIG_DIR" || -z "$(ls -A "$SOURCE_CONFIG_DIR" 2>/dev/null)" ]]; then
+    STEP_REASON="7.8 configuration volume is not mounted: $SOURCE_CONFIG_DIR is missing or empty"
+    return 1
+  fi
 
   if [[ ! -f "$version_file" ]]; then
     STEP_REASON="source configuration version not found: $version_file is missing"
@@ -106,6 +112,22 @@ migration_preflight_check_target_db_empty() {
   return 0
 }
 
+migration_preflight_check_source_db_volume() {
+  local source_data="$SOURCE_DB_DIR/16/main"
+
+  if [[ ! -d "$source_data" ]]; then
+    STEP_REASON="7.8 database volume is not mounted: $source_data is missing"
+    return 1
+  fi
+
+  if [[ -z "$(ls -A "$source_data" 2>/dev/null)" ]]; then
+    STEP_REASON="7.8 database volume is not mounted: $source_data is empty"
+    return 1
+  fi
+
+  return 0
+}
+
 migration_preflight_check_country_variant() {
   local source_variant target_variant
   source_variant="$(migration_preflight_detect_variant "$SOURCE_CONFIG_DIR")" || source_variant=""
@@ -165,15 +187,14 @@ migration_preflight_check_external_db_version() {
   return 0
 }
 
-# The migration CLI's keyconf step needs the soft token PIN once.
+# Always required, whether or not the 7.8 source has a soft token: the
+# migration CLI's keyconf step needs it once to hash and store a soft
+# token's credential. Without a 7.8 soft token there is nothing for
+# keyconf to hash, so the PIN is required here but never checked or stored.
 migration_preflight_check_softtoken_pin() {
-  local softtoken_p12="$SOURCE_CONFIG_DIR/signer/softtoken/.softtoken.p12"
+  [[ -n "${XROAD_MIGRATION_SOFTTOKEN_PIN:-}" ]] && return 0
 
-  if [[ ! -f "$softtoken_p12" || -n "${XROAD_MIGRATION_SOFTTOKEN_PIN:-}" ]]; then
-    return 0
-  fi
-
-  STEP_REASON="a 7.8 soft token exists at $softtoken_p12 but XROAD_MIGRATION_SOFTTOKEN_PIN is not set"
+  STEP_REASON="XROAD_MIGRATION_SOFTTOKEN_PIN is not set"
   return 1
 }
 
@@ -186,6 +207,7 @@ step_preflight() {
   migration_preflight_check_target_config_empty || return 1
   migration_preflight_check_country_variant || return 1
   if [[ "$SOURCE_DB_HOST" == 127.* ]]; then
+    migration_preflight_check_source_db_volume || return 1
     migration_preflight_check_target_db_empty || return 1
   fi
   migration_preflight_check_external_db_version || return 1
