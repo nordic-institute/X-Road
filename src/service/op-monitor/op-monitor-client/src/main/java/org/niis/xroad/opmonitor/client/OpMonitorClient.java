@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -62,8 +61,8 @@ public class OpMonitorClient extends AbstractRpcClient {
     private final OpMonitorRpcChannelProperties rpcChannelProperties;
     private final OpMonitorChannelTrustResolver channelTrustResolver;
 
-    private ManagedChannel channel;
-    private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
+    private volatile ManagedChannel channel;
+    private volatile OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
 
 
     /**
@@ -91,13 +90,30 @@ public class OpMonitorClient extends AbstractRpcClient {
         return channel;
     }
 
-    @PostConstruct
-    public void init() {
+    /**
+     * Creates the channel unless it exists. Other calls create it on first use when this has not been called; a failed
+     * creation is not remembered, so the next call tries again.
+     */
+    public synchronized void init() {
+        if (opMonitoringServiceBlockingStub != null) {
+            return;
+        }
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        channel = rpcChannelFactory.createChannel(rpcChannelProperties, channelTrustResolver.resolve());
+        var newChannel = rpcChannelFactory.createChannel(rpcChannelProperties, channelTrustResolver.resolve());
+        channel = newChannel;
+        opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(newChannel).withWaitForReady();
+    }
 
-        opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub() {
+        var stub = opMonitoringServiceBlockingStub;
+        if (stub != null) {
+            return stub;
+        }
+        synchronized (this) {
+            init();
+            return opMonitoringServiceBlockingStub;
+        }
     }
 
     @Override
@@ -114,7 +130,7 @@ public class OpMonitorClient extends AbstractRpcClient {
      * @param records records to store
      */
     public void storeOperationalData(List<OperationalDataRecordProto> records) {
-        exec(() -> opMonitoringServiceBlockingStub.storeOperationalData(
+        exec(() -> stub().storeOperationalData(
                 StoreOperationalDataReq.newBuilder().addAllRecords(records).build()));
     }
 
@@ -126,7 +142,7 @@ public class OpMonitorClient extends AbstractRpcClient {
      * @return the response message and its content type
      */
     public QueryOperationalDataResp queryOperationalData(byte[] soapQuery, String contentType, AccessScope accessScope) {
-        return exec(() -> opMonitoringServiceBlockingStub.queryOperationalData(
+        return exec(() -> stub().queryOperationalData(
                 QueryOperationalDataReq.newBuilder()
                         .setSoapQuery(ByteString.copyFrom(soapQuery))
                         .setContentType(contentType)
@@ -155,7 +171,7 @@ public class OpMonitorClient extends AbstractRpcClient {
                 reqBuilder.setServiceId(ServiceIdMapper.toDto(serviceId));
             }
             var response = exec(() ->
-                    opMonitoringServiceBlockingStub.getOperationalDataIntervals(reqBuilder.build()));
+                    stub().getOperationalDataIntervals(reqBuilder.build()));
 
             return response.getOperationalDataIntervalList().stream().map(OperationalDataInterval::new).toList();
         } catch (Exception e) {

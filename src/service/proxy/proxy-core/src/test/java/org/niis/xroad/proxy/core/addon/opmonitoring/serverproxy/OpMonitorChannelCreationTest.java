@@ -82,8 +82,7 @@ import static org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitor
  */
 class OpMonitorChannelCreationTest {
     private static final String HOST = "localhost";
-    private static final String READ_FAILURE = "Failed to read the imported op-monitor CA";
-    private static final String MALFORMED_CERTIFICATE_FAILURE = "Could not parse certificate";
+    private static final String TRUST_FAILURE = "op_monitor_trust_failure: The op-monitor channel trust could not be established";
 
     private static TestCa securityServerCa;
     private static TestCa opMonitorCa;
@@ -116,7 +115,8 @@ class OpMonitorChannelCreationTest {
                 assertThatCode(invocation::call).doesNotThrowAnyException();
             } else {
                 assertThatThrownBy(invocation::call)
-                        .satisfies(e -> assertThat(messages(e)).contains(situation.expectedFailure()));
+                        .satisfies(e -> assertThat(messages(e))
+                                .contains(situation.expectedFailure(), situation.expectedCause()));
             }
         } finally {
             invocation.close();
@@ -138,7 +138,7 @@ class OpMonitorChannelCreationTest {
         };
         var invocation = caller.open(wiring, countingFactory);
         try {
-            assertThatThrownBy(invocation::call).satisfies(e -> assertThat(messages(e)).contains(READ_FAILURE));
+            assertThatThrownBy(invocation::call).satisfies(e -> assertThat(messages(e)).contains(TRUST_FAILURE, "vault is sealed"));
 
             assertThatCode(invocation::call).doesNotThrowAnyException();
             assertThatCode(invocation::call).doesNotThrowAnyException();
@@ -192,25 +192,28 @@ class OpMonitorChannelCreationTest {
     }
 
     private enum Situation {
-        IMPORTED_CA(() -> Optional.of(opMonitorCa.certificate()), true, null),
-        BLANK_OR_MISSING_RECORD(Optional::empty, false, null),
+        IMPORTED_CA(() -> Optional.of(opMonitorCa.certificate()), true, null, null),
+        BLANK_OR_MISSING_RECORD(Optional::empty, false, null, null),
         OPENBAO_ERROR(() -> {
             throw new IllegalStateException("vault is sealed");
-        }, false, READ_FAILURE),
+        }, false, TRUST_FAILURE, "vault is sealed"),
         MALFORMED_PEM(() -> mock(VaultClient.class, CALLS_REAL_METHODS)
-                .toOpMonitorCa(Map.of(VaultClient.CERTIFICATE_KEY, "not a certificate")), false, MALFORMED_CERTIFICATE_FAILURE),
+                .toOpMonitorCa(Map.of(VaultClient.CERTIFICATE_KEY, "not a certificate")), false, TRUST_FAILURE,
+                "Could not parse certificate"),
         KV_ENGINE_NOT_INITIALISED(() -> {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
-        }, false, READ_FAILURE);
+        }, false, TRUST_FAILURE, "KV Secret Engine is not initialized");
 
         private final ImportedCaRead read;
         private final boolean serverIssuedByImportedCa;
         private final String expectedFailure;
+        private final String expectedCause;
 
-        Situation(ImportedCaRead read, boolean serverIssuedByImportedCa, String expectedFailure) {
+        Situation(ImportedCaRead read, boolean serverIssuedByImportedCa, String expectedFailure, String expectedCause) {
             this.read = read;
             this.serverIssuedByImportedCa = serverIssuedByImportedCa;
             this.expectedFailure = expectedFailure;
+            this.expectedCause = expectedCause;
         }
 
         ImportedCaRead read() {
@@ -223,6 +226,10 @@ class OpMonitorChannelCreationTest {
 
         String expectedFailure() {
             return expectedFailure;
+        }
+
+        String expectedCause() {
+            return expectedCause;
         }
     }
 

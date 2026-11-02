@@ -489,7 +489,8 @@
       "agreement_token_key_not_available": "The agreement token signing key is not available. The proxy has not loaded any signing key yet",
       "agreement_token_key_store_failed": "The agreement token signing key could not be saved to the secret store. Try again later",
       "agreement_token_rejected": "The agreement token was rejected",
-      "agreement_token_signing_failed": "Signing the agreement token failed"
+      "agreement_token_signing_failed": "Signing the agreement token failed",
+      "op_monitor_trust_failure": "Could not establish a trusted connection to Operational Monitoring"
     },
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
@@ -636,7 +637,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Network error: Operational Monitoring is not available"
-      }
+      },
+      "op_monitor_trust_failure": "Check the imported Operational Monitoring CA on the Operational Monitoring Trust tab and that the secret store (OpenBao) is available, then try again."
     },
     "unknown_host": "Connection error, unknown host",
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",

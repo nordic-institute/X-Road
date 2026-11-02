@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -112,7 +113,7 @@ class OpMonitorChannelTrustResolverTest {
         assertThatThrownBy(resolver::resolve)
                 .as(situation)
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
-                    assertThat(e.getMessage()).contains("Failed to read the imported op-monitor CA");
+                    assertTrustFailure(e);
                     assertThat(e.getCause()).isSameAs(readFailure);
                 });
         verifyNoInteractions(sharedCredentials, vaultKeyProvider);
@@ -137,8 +138,11 @@ class OpMonitorChannelTrustResolverTest {
                 sharedCredentials);
 
         assertThatThrownBy(resolverWithRealReader::resolve)
-                .isInstanceOfSatisfying(XrdRuntimeException.class,
-                        e -> assertThat(e.getMessage()).contains("Could not parse certificate"));
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertTrustFailure(e);
+                    assertThat(e.getCause()).isInstanceOf(XrdRuntimeException.class)
+                            .hasMessageContaining("Could not parse certificate");
+                });
         verifyNoInteractions(sharedCredentials, vaultKeyProvider);
     }
 
@@ -150,10 +154,18 @@ class OpMonitorChannelTrustResolverTest {
 
         assertThatThrownBy(resolver::resolve)
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
-                    assertThat(e.getMessage()).contains("Failed to trust the imported op-monitor CA");
+                    assertTrustFailure(e);
                     assertThat(e.getCause()).isSameAs(keyFailure);
                 });
         verifyNoInteractions(sharedCredentials);
+    }
+
+    private static void assertTrustFailure(XrdRuntimeException e) {
+        assertThat(e.getCode()).isEqualTo(ErrorCode.OP_MONITOR_TRUST_FAILURE.code());
+        assertThat(e.getDetails()).isEqualTo("The op-monitor channel trust could not be established");
+        assertThat(e.getErrorCodeMetadata()).isEmpty();
+        assertThat(e.getMessage()).doesNotContain("status 403", "sealed", "connection refused", "Could not parse",
+                "key manager is not ready");
     }
 
     @Test

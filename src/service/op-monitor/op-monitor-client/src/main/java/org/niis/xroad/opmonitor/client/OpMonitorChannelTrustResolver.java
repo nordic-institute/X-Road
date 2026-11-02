@@ -38,6 +38,8 @@ import org.niis.xroad.common.vault.VaultClient;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.OP_MONITOR_TRUST_FAILURE;
+
 /**
  * Chooses the credentials of the op-monitor channels: with RPC TLS on, only the imported op-monitor CA is trusted when
  * one exists; the shared credentials are used otherwise. With RPC TLS off the imported CA is not read.
@@ -45,6 +47,8 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class OpMonitorChannelTrustResolver {
+    private static final String TRUST_FAILURE_DETAILS = "The op-monitor channel trust could not be established";
+
     private final RpcProperties rpcProperties;
     private final VaultClient vaultClient;
     private final VaultKeyProvider vaultKeyProvider;
@@ -62,7 +66,7 @@ public class OpMonitorChannelTrustResolver {
         try {
             opMonitorCa = vaultClient.getOpMonitorCa();
         } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to read the imported op-monitor CA", e);
+            throw trustFailure(e);
         }
         if (opMonitorCa.isEmpty()) {
             return sharedCredentials.createClientCredentials();
@@ -84,7 +88,14 @@ public class OpMonitorChannelTrustResolver {
                     .trustManager(trustManager)
                     .build();
         } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to trust the imported op-monitor CA", e);
+            throw trustFailure(e);
         }
+    }
+
+    private static XrdRuntimeException trustFailure(Exception cause) {
+        return XrdRuntimeException.systemException(OP_MONITOR_TRUST_FAILURE)
+                .cause(cause)
+                .details(TRUST_FAILURE_DETAILS)
+                .build();
     }
 }

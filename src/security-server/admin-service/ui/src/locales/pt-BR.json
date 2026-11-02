@@ -460,7 +460,8 @@
       "agreement_token_key_not_available": "A chave de assinatura de tokens de acordo não está disponível. O proxy ainda não carregou nenhuma chave de assinatura",
       "agreement_token_key_store_failed": "Não foi possível salvar a chave de assinatura de tokens de acordo no armazenamento de segredos. Tente novamente mais tarde",
       "agreement_token_rejected": "O token de acordo foi rejeitado",
-      "agreement_token_signing_failed": "Falha ao assinar o token de acordo"
+      "agreement_token_signing_failed": "Falha ao assinar o token de acordo",
+      "op_monitor_trust_failure": "Não foi possível estabelecer uma conexão confiável com o Monitoramento Operacional"
     },
     "csr_not_found": "CSR não encontrado",
     "diagnostic_request_failed": "Falha na solicitação de diagnóstico",
@@ -542,7 +543,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Erro de rede: o monitoramento de dados operacionais não está disponível"
-      }
+      },
+      "op_monitor_trust_failure": "Verifique a AC de Monitoramento Operacional importada na guia “Confiança do Monitoramento Operacional” e se o armazenamento de segredos (OpenBao) está disponível; depois, tente novamente."
     },
     "unsupported_openapi_version": "Versão OpenAPI não suportada. Apenas 3.0.x e 3.1.0 são aceitas.",
     "url_already_exists": "URL já existe",

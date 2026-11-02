@@ -28,11 +28,13 @@ package org.niis.xroad.ss.test.api.diagnostics;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.parallel.ResourceAccessMode.READ;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -41,6 +43,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * API tests for Security Server diagnostics traffic tab: service-list population from configured service descriptions.
  */
 @DisplayName("Diagnostics traffic — service list population")
+@ResourceLock(value = "op-monitor-ca", mode = READ)
 @SuppressWarnings("checkstyle:magicnumber")
 class DiagnosticsTrafficTest extends SsApiTest {
 

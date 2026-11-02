@@ -95,6 +95,7 @@ dependencies {
   testImplementation(libs.jsonUnit.assertj)
   testImplementation(libs.springCloud.contractWiremock)
   testImplementation(testFixtures(project(":common:common-api-throttling")))
+  testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(libs.systemStubs)
   testRuntimeOnly(libs.junit.vintageEngine)
 }

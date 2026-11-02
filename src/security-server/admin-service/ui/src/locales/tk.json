@@ -398,7 +398,8 @@
         "TokenNotAvailable": "Token elýeterli däl",
         "TokenNotFound": "Token tapylmady",
         "UnknownMember": "X-Road ýadrody - gol çekiji: Näbelli agza"
-      }
+      },
+      "op_monitor_trust_failure": "Operasion maglumatlaryň gözegçiligi bilen ynamly baglanyşyk guralmady"
     },
     "csr_not_found": "CSR tapylamdy",
     "diagnostic_request_failed": "Diagnostiki barlag ýerine ýetirilemdi",
@@ -477,7 +478,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Tor ýalňyşlygy: operasion maglumatlaryň gözegçiligi elýeterli däl"
-      }
+      },
+      "op_monitor_trust_failure": "“Operasion gözegçilik ynamy” goýumynda import edilen operasion gözegçilik CA-syny we gizlin maglumatlar ammarynyň (OpenBao) elýeterlidigini barlaň, soň täzeden synanyşyň."
     },
     "unsupported_openapi_version": "Goldanmaýan OpenAPI wersiýasy. Diňe 3.0.x and 3.1.0 wersiýalary häzirki wagtda goldanýar.",
     "url_already_exists": "URL eýýäm bar",
