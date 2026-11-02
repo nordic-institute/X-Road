@@ -200,17 +200,15 @@ class AssetAccessCacheTest {
     }
 
     @Test
-    void theEntryRecordsTheWinnerFromTheResponse() {
+    void theEntryRecordsTheWinnerHostFromTheResponse() {
         var response = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setWinner(AssetAccessWinner.newBuilder()
                         .setCounterPartyId("provider-b")
-                        .setCounterPartyAddress("http://ss1.example/dsp"))
+                        .setCounterPartyAddress("http://SS1.example:8183/dsp"))
                 .build();
-
         var entry = AssetAccessCache.CachedEntry.from(response);
-
-        assertThat(entry.winner()).isEqualTo(new AssetAccessCache.Winner("provider-b", "http://ss1.example/dsp"));
+        assertThat(entry.winnerHost()).isEqualTo("ss1.example");
         assertThat(entry.response().endpoint()).isEqualTo("http://provider/api/data");
     }
 
@@ -327,6 +325,34 @@ class AssetAccessCacheTest {
     }
 
     @Test
+    void anEntryAtAHostWithTheSameNameInLowerCaseIsDroppedByARemovalDerivedFromUpperCase() {
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", "https://ss-a.example:8183/p"));
+        loadCount.set(0);
+        cache.removeWonByHost(AssetAccessCache.hostOf("https://SS-A.example:9999/p"));
+        cache.get(key, k -> load(60));
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void anEntryAtAHostTheJdkUriRejectsIsDroppedByARemovalDerivedFromTheSameAddress() {
+        var address = "https://ss_a:8183/api/dsp";
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", address));
+        loadCount.set(0);
+        assertThat(AssetAccessCache.hostOf(address)).isEqualTo("ss_a");
+        cache.removeWonByHost(AssetAccessCache.hostOf(address));
+        cache.get(key, k -> load(60));
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void anAddressWithoutASchemeYieldsNoHost() {
+        assertThat(AssetAccessCache.hostOf("ss-a.example:8183/p")).isNull();
+        assertThat(AssetAccessCache.hostOf("not a url")).isNull();
+    }
+
+    @Test
     void anEntryAtAnUnparsableWinnerAddressIsKept() {
         var key = keyWith("ctx-1", "asset-1", "provider-a", null);
         cache.get(key, k -> loadWonBy("provider-a", "not a url"));
@@ -342,22 +368,20 @@ class AssetAccessCacheTest {
     void anEntryFromAResponseWithoutAWinnerHasNone() {
         var response = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
 
-        assertThat(AssetAccessCache.CachedEntry.from(response).winner()).isNull();
+        assertThat(AssetAccessCache.CachedEntry.from(response).winnerHost()).isNull();
     }
 
     private AssetAccessCache.CachedEntry load(long expiresInSeconds) {
         loadCount.incrementAndGet();
-        return new AssetAccessCache.CachedEntry(
+        return AssetAccessCache.CachedEntry.of(
                 new AssetAccessResponse("http://provider/api/data", "token"),
-                null,
                 Instant.now().getEpochSecond() + expiresInSeconds);
     }
 
     private AssetAccessCache.CachedEntry loadWonBy(String counterPartyId, String counterPartyAddress) {
         loadCount.incrementAndGet();
-        return new AssetAccessCache.CachedEntry(
+        return AssetAccessCache.CachedEntry.of(
                 new AssetAccessResponse("http://provider/api/data", "token", counterPartyId, counterPartyAddress),
-                new AssetAccessCache.Winner(counterPartyId, counterPartyAddress),
                 Instant.now().getEpochSecond() + 60);
     }
 
