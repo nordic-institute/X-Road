@@ -69,14 +69,18 @@ import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason
  * Verifies agreement tokens end to end: signature, expiry, issuer, audience, then the client/service/scope
  * claims against what the caller actually observed for the request. A token that carries a {@code group} claim
  * is a group token: instead of a client and scope it is judged by the {@link AgreementTokenGroupAccess}
- * lookups. Every failure — malformed input included — comes back as an
+ * lookups. A token that carries neither a client, a scope nor a group is a service-only token: it is accepted only
+ * when the live ACL lets the caller use the requested endpoint. Every failure — malformed input included — comes back as an
  * {@link AgreementTokenVerificationResult.Rejected} value with a reason, never as a thrown
- * exception, so a caller can always fall back to the ACL with one {@code switch}.
+ * exception, so a caller handles every outcome with one {@code switch}.
  * <p>
  * The signature check accepts ES256 only: a token re-signed under any other algorithm but naming a known
  * key id is rejected outright instead of being checked against the wrong primitive.
  */
 public final class AgreementTokenVerifier {
+
+    private static final String MALFORMED_CLAIMS = "token claims are malformed: ";
+    private static final String SERVICE_MISMATCH_DETAIL = "token service does not match the requested service";
 
     private final AgreementTokenKeyProvider keyProvider;
     private final AgreementTokenProtocolProperties properties;
@@ -138,11 +142,15 @@ public final class AgreementTokenVerifier {
             return verifyGroupToken(claimsSet, context);
         }
 
+        if (claimsSet.getClaim(CLAIM_CLIENT) == null && claimsSet.getClaim(CLAIM_SCOPE) == null) {
+            return verifyServiceToken(claimsSet, context);
+        }
+
         AgreementTokenClaims claims;
         try {
             claims = decodeClaims(claimsSet);
         } catch (IllegalArgumentException e) {
-            return rejected(MALFORMED_TOKEN, "token claims are malformed: " + e.getMessage());
+            return rejected(MALFORMED_TOKEN, MALFORMED_CLAIMS + e.getMessage());
         }
 
         var grantRejection = checkGrant(claims, context);
@@ -165,11 +173,11 @@ public final class AgreementTokenVerifier {
         try {
             claims = decodeGroupClaims(claimsSet);
         } catch (IllegalArgumentException e) {
-            return rejected(MALFORMED_TOKEN, "token claims are malformed: " + e.getMessage());
+            return rejected(MALFORMED_TOKEN, MALFORMED_CLAIMS + e.getMessage());
         }
 
         if (!claims.service().equals(context.expectedService())) {
-            return rejected(SERVICE_MISMATCH, "token service does not match the requested service");
+            return rejected(SERVICE_MISMATCH, SERVICE_MISMATCH_DETAIL);
         }
         if (!groupAccess.isMember(claims.group(), context.expectedClient())) {
             return rejected(NOT_GROUP_MEMBER, "the signature-proven client is not in the token's group");
@@ -179,6 +187,28 @@ public final class AgreementTokenVerifier {
             return rejected(ENDPOINT_NOT_ALLOWED, "the live ACL does not grant the client the requested endpoint");
         }
         return new AgreementTokenVerificationResult.ValidGroup(claims);
+    }
+
+    /**
+     * A service-only token names a service and nothing else: it entitles no one by itself. The live ACL must let
+     * the signature-proven caller use the requested endpoint, exactly as the ACL would without a token.
+     */
+    private AgreementTokenVerificationResult verifyServiceToken(JWTClaimsSet claimsSet, AgreementTokenRequestContext context) {
+        AgreementTokenServiceClaims claims;
+        try {
+            claims = decodeServiceClaims(claimsSet);
+        } catch (IllegalArgumentException e) {
+            return rejected(MALFORMED_TOKEN, MALFORMED_CLAIMS + e.getMessage());
+        }
+
+        if (!claims.service().equals(context.expectedService())) {
+            return rejected(SERVICE_MISMATCH, SERVICE_MISMATCH_DETAIL);
+        }
+        if (!groupAccess.isEndpointAllowed(context.expectedClient(), context.expectedService(),
+                context.requestMethod(), context.requestPath())) {
+            return rejected(ENDPOINT_NOT_ALLOWED, "the live ACL does not grant the client the requested endpoint");
+        }
+        return new AgreementTokenVerificationResult.ValidService(claims);
     }
 
     private Optional<AgreementTokenVerificationResult.Rejected> checkSignature(SignedJWT signedJwt) {
@@ -236,7 +266,7 @@ public final class AgreementTokenVerifier {
             return Optional.of(rejected(CLIENT_MISMATCH, "token client does not match the signature-proven client"));
         }
         if (!claims.service().equals(context.expectedService())) {
-            return Optional.of(rejected(SERVICE_MISMATCH, "token service does not match the requested service"));
+            return Optional.of(rejected(SERVICE_MISMATCH, SERVICE_MISMATCH_DETAIL));
         }
         if (!context.isRest()) {
             return Optional.empty();
@@ -289,6 +319,14 @@ public final class AgreementTokenVerifier {
         var group = decodeGroup(claimsSet);
         var expiresAt = claimsSet.getExpirationTime().toInstant();
         return new AgreementTokenGroupClaims(agreementId, group, service, claimsSet.getIssuer(), properties.audience(), expiresAt);
+    }
+
+    private AgreementTokenServiceClaims decodeServiceClaims(JWTClaimsSet claimsSet) {
+        var agreementId = requireStringClaim(claimsSet, CLAIM_AGREEMENT_ID);
+        var service = decodeService(requireStringClaim(claimsSet, CLAIM_SERVICE),
+                optionalStringClaim(claimsSet, CLAIM_SERVICE_VERSION));
+        var expiresAt = claimsSet.getExpirationTime().toInstant();
+        return new AgreementTokenServiceClaims(agreementId, service, claimsSet.getIssuer(), properties.audience(), expiresAt);
     }
 
     private static AgreementTokenVerificationResult.Rejected rejected(AgreementTokenRejectionReason reason, String details) {

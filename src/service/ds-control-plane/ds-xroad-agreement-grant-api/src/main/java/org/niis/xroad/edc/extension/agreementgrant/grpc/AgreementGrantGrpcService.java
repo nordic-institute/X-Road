@@ -48,6 +48,7 @@ import org.niis.xroad.edc.agreementgrant.proto.NoGrantReason;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantResponse;
 import org.niis.xroad.edc.agreementgrant.proto.Scope;
+import org.niis.xroad.edc.agreementgrant.proto.ServiceGrant;
 import org.niis.xroad.edc.extension.catalog.AssetMapper;
 import org.niis.xroad.edc.extension.policy.controlplane.PolicySubject;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyReader;
@@ -61,7 +62,7 @@ import java.util.List;
  * agreement token without this service minting anything itself. Reads the agreement's ODRL policy tree written
  * by the catalog ({@code AND(subjectConstraint, OR(pathConstraints))}) and turns it back into a consumer client,
  * a provider service and a method/path scope, into a group and a provider service for a local or global group
- * subject, or into a typed reason why no grant can be stated.
+ * subject, into the service alone for an unrestricted agreement, or into a typed reason why no grant can be stated.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -86,6 +87,10 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
     }
 
     private ResolveAgreementGrantResponse resolveGrant(ContractAgreement agreement) {
+        if (XRoadPolicyReader.isUnrestricted(agreement.getPolicy())) {
+            return unrestrictedGrant(agreement);
+        }
+
         var shape = XRoadPolicyReader.read(agreement.getPolicy()).orElse(null);
         if (shape == null) {
             log.debug("Agreement {} policy is not a single-permission subject policy", agreement.getId());
@@ -107,6 +112,17 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
             case PolicySubject.LocalGroup localGroup -> localGroupGrant(localGroup, service);
             case PolicySubject.GlobalGroup globalGroup -> globalGroupGrant(globalGroup, service);
         };
+    }
+
+    private ResolveAgreementGrantResponse unrestrictedGrant(ContractAgreement agreement) {
+        var service = AssetMapper.decodeAssetId(agreement.getAssetId());
+        if (service == null) {
+            log.debug("Agreement {} asset id could not be decoded into a service id", agreement.getId());
+            return noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+        }
+        return ResolveAgreementGrantResponse.newBuilder()
+                .setServiceGrant(ServiceGrant.newBuilder().setServiceId(ServiceIdMapper.toDto(service)))
+                .build();
     }
 
     private ResolveAgreementGrantResponse resolveClientGrant(ContractAgreement agreement, XRoadPolicyShape shape,

@@ -30,9 +30,9 @@ package org.niis.xroad.proxy.controlplane;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 /**
- * What the control plane resolved for an agreement: a grant to one consumer subsystem, or to one group.
+ * What the control plane resolved for an agreement: a grant to one consumer subsystem, to one group, or to the service alone.
  */
-public sealed interface ResolvedAgreementGrant permits AgreementGrant, AgreementGroupGrant {
+public sealed interface ResolvedAgreementGrant permits AgreementGrant, AgreementGroupGrant, AgreementServiceGrant {
 
     ServiceId service();
 }

@@ -139,7 +139,7 @@ class ServerRestMessageProcessorTest {
     }
 
     @Test
-    void shouldRefuseWithAccessDeniedWhenAGroupTokenIsDeniedEvenIfTheAclWouldAllow() {
+    void shouldRefuseWithAccessDeniedAndTheReasonWhenATokenIsDeniedEvenIfTheAclWouldAllow() {
         when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
         when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
                 .thenReturn(new AgreementTokenAccessCheck.Decision.Denied("ENDPOINT_NOT_ALLOWED"));
@@ -148,7 +148,10 @@ class ServerRestMessageProcessorTest {
 
         assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, AGREEMENT_TOKEN))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(ACCESS_DENIED)).isTrue());
+                .satisfies(e -> {
+                    assertThat(((XrdRuntimeException) e).isCausedBy(ACCESS_DENIED)).isTrue();
+                    assertThat(((XrdRuntimeException) e).getDetails()).contains("ENDPOINT_NOT_ALLOWED");
+                });
         verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
     }
 

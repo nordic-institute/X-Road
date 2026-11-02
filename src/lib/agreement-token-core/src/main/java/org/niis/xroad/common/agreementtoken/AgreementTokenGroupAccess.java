@@ -32,11 +32,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 /**
  * The two lookups {@link AgreementTokenVerifier} needs to judge a group agreement token, both answered from live
  * Security Server configuration: whether the signature-proven caller is in the group, and whether the live ACL
- * lets that caller use the requested endpoint.
+ * lets that caller use the requested endpoint. A service-only token is judged by the endpoint lookup alone.
  */
 public interface AgreementTokenGroupAccess {
 
-    /** Refuses every group token. Used when a verifier is built without a source of group configuration. */
+    /** Refuses every group and service-only token. Used when a verifier is built without a source of group configuration. */
     AgreementTokenGroupAccess NONE = new AgreementTokenGroupAccess() {
         @Override
         public boolean isMember(AgreementTokenGroup group, ClientId client) {

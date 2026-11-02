@@ -227,9 +227,11 @@ class ClientRestMessageProcessorTest {
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var httpSender = mock(HttpSender.class);
 
-        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        var tokenPresented = harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
 
         verify(httpSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+        assertThat(tokenPresented).isTrue();
     }
 
     @Test
@@ -241,9 +243,11 @@ class ClientRestMessageProcessorTest {
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var httpSender = mock(HttpSender.class);
 
-        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        var tokenPresented = harness.processor()
+                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
 
         verify(httpSender, never()).addHeader(eq(HEADER_AGREEMENT_TOKEN), any());
+        assertThat(tokenPresented).isFalse();
     }
 
     @Test
@@ -284,7 +288,7 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(true);
 
         harness.processor().dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId());
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), false);
 
         var dspRequest = ArgumentCaptor.forClass(DspRequest.class);
         verify(harness.consumerSideDspProcessor()).invalidateAssetAccess(dspRequest.capture());
@@ -297,17 +301,29 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(true);
 
         harness.processor().dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), restRequest(), serviceId());
+                XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), restRequest(), serviceId(), true);
 
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }
 
     @Test
-    void anAccessDenialKeepsTheCachedAssetAccess() {
+    void anAccessDenialOfAPresentedTokenDropsCachedAssetAccess() {
         var harness = createHarness(true);
 
         harness.processor().dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), restRequest(), serviceId());
+                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), restRequest(), serviceId(), true);
+
+        var dspRequest = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccess(dspRequest.capture());
+        assertThat(dspRequest.getValue().serviceId()).isEqualTo(serviceId());
+    }
+
+    @Test
+    void anAccessDenialWithoutAPresentedTokenKeepsTheCachedAssetAccess() {
+        var harness = createHarness(true);
+
+        harness.processor().dropAssetAccessOnTokenRejection(
+                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), restRequest(), serviceId(), false);
 
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }
@@ -317,7 +333,7 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(false);
 
         harness.processor().dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId());
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), true);
 
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccess(any());
     }

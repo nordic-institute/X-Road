@@ -115,6 +115,9 @@ public class AgreementGrantRpcClient extends AbstractRpcClient {
             if (response.hasGroupGrant()) {
                 return toAgreementGroupGrant(response.getGroupGrant());
             }
+            if (response.hasServiceGrant()) {
+                return Optional.of(new AgreementServiceGrant(ServiceIdMapper.fromDto(response.getServiceGrant().getServiceId())));
+            }
             log.info("No agreement grant for agreement id '{}': {}", agreementId,
                     response.hasNoGrant() ? response.getNoGrant().getReason() : "no grant stated");
             return Optional.empty();

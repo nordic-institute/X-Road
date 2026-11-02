@@ -508,7 +508,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteDatasetNotFoundFromReachedProviderMapsToUnknownMember() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToAccessDenied() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -520,11 +520,11 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+                        .isEqualTo(ErrorCode.ACCESS_DENIED.code()));
     }
 
     @Test
-    void remoteOffersNotFoundFromReachedProviderMapsToUnknownMember() {
+    void remoteOffersNotFoundFromReachedProviderMapsToAccessDenied() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -536,11 +536,11 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+                        .isEqualTo(ErrorCode.ACCESS_DENIED.code()));
     }
 
     @Test
-    void remoteDatasetNotFoundSanitizesToGenericUnknownMemberMessage() {
+    void remoteDatasetNotFoundSanitizesToGenericAccessDeniedMessage() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -553,9 +553,9 @@ class ConsumerSideDspProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
                     assertThat(xrd.getDetails())
-                            .isEqualTo("The requested service was not found on the provider security server.")
+                            .isEqualTo("The request is not allowed by the provider security server.")
                             .doesNotContain("No catalog offer found for service")
                             .doesNotContain(serviceId.asEncodedId());
                     assertThat(xrd.getErrorCodeMetadata())
@@ -564,7 +564,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteOffersNotFoundSanitizesToGenericUnknownMemberMessage() {
+    void remoteOffersNotFoundSanitizesToGenericAccessDeniedMessage() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -577,9 +577,9 @@ class ConsumerSideDspProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
                     assertThat(xrd.getDetails())
-                            .isEqualTo("The requested service is not currently offered by the provider security server.")
+                            .isEqualTo("The request is not allowed by the provider security server.")
                             .doesNotContain("No catalog offer found for service");
                     assertThat(xrd.getErrorCodeMetadata())
                             .containsExactly("originalCode=" + ErrorCode.DSP_OFFERS_NOT_FOUND.code());
@@ -587,7 +587,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void allCandidatesHomogeneousRemoteNotFoundMapsToUnknownMember() {
+    void allCandidatesHomogeneousRemoteNotFoundMapsToAccessDenied() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
@@ -607,7 +607,7 @@ class ConsumerSideDspProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
                             .doesNotContainIgnoringCase("dsp_")
@@ -666,7 +666,7 @@ class ConsumerSideDspProcessorTest {
                     assertThat(xrd.isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue();
                     assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
                     assertThat(xrd.getErrorCodeMetadata().getFirst())
-                            .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_PROVIDER_NOT_FOUND.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
                             .doesNotContain(serviceId.asEncodedId())

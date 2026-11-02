@@ -60,6 +60,7 @@ import org.niis.xroad.edc.agreementgrant.proto.NoGrantReason;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantResponse;
 import org.niis.xroad.edc.agreementgrant.proto.Scope;
+import org.niis.xroad.edc.agreementgrant.proto.ServiceGrant;
 import org.niis.xroad.proxy.core.configuration.ProxyAgreementTokenProperties;
 
 import java.time.Duration;
@@ -171,6 +172,15 @@ class AgreementGrantRpcClientTest {
 
         assertThat(result).contains(new AgreementGroupGrant(
                 new AgreementTokenGroup.Global(GlobalGroupId.Conf.create("DEV", "consumers")), SERVICE));
+    }
+
+    @Test
+    void resolveServiceGrantReturnsTheServiceAlone() {
+        configuredResponse.set(ResolveAgreementGrantResponse.newBuilder()
+                .setServiceGrant(ServiceGrant.newBuilder().setServiceId(ServiceIdMapper.toDto(SERVICE)))
+                .build());
+
+        assertThat(client.resolveAgreementGrant("agreement-1")).contains(new AgreementServiceGrant(SERVICE));
     }
 
     @Test

@@ -27,19 +27,35 @@
 package org.niis.xroad.common.agreementtoken;
 
 /**
- * Every way {@link AgreementTokenVerifier#verify} can decline a token, in the order they are checked. Every
- * value means exactly one thing: fall back to the ACL — none of them is ever an allow.
+ * Every way {@link AgreementTokenVerifier#verify} can decline a token, in the order they are checked. None of
+ * them is ever an allow. A reason is either a validity failure (the token itself is unusable) or an authorization
+ * failure (the token is sound but does not entitle the caller to this request); see
+ * {@link #isAuthorizationFailure()}.
  */
 public enum AgreementTokenRejectionReason {
-    MALFORMED_TOKEN,
-    UNKNOWN_KEY_ID,
-    INVALID_SIGNATURE,
-    EXPIRED,
-    ISSUER_MISMATCH,
-    AUDIENCE_MISMATCH,
-    CLIENT_MISMATCH,
-    SERVICE_MISMATCH,
-    SCOPE_MISMATCH,
-    NOT_GROUP_MEMBER,
-    ENDPOINT_NOT_ALLOWED
+    MALFORMED_TOKEN(false),
+    UNKNOWN_KEY_ID(false),
+    INVALID_SIGNATURE(false),
+    EXPIRED(false),
+    ISSUER_MISMATCH(false),
+    AUDIENCE_MISMATCH(false),
+    CLIENT_MISMATCH(true),
+    SERVICE_MISMATCH(true),
+    SCOPE_MISMATCH(true),
+    NOT_GROUP_MEMBER(true),
+    ENDPOINT_NOT_ALLOWED(true);
+
+    private final boolean authorizationFailure;
+
+    AgreementTokenRejectionReason(boolean authorizationFailure) {
+        this.authorizationFailure = authorizationFailure;
+    }
+
+    /**
+     * @return true when the token is sound but the signature-proven caller, the requested service or the requested
+     *         endpoint is not entitled by it
+     */
+    public boolean isAuthorizationFailure() {
+        return authorizationFailure;
+    }
 }

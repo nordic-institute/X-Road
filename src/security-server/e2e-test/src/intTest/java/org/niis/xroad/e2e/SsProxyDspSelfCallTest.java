@@ -103,7 +103,7 @@ class SsProxyDspSelfCallTest extends E2eTest {
      */
     private static final String NO_ACCESS_RIGHT_SERVICE_PATH = "/r1/DEV/COM/1234/TestService/restapi/api/members";
 
-    private static final String EXPECTED_FAULT_CODE = SERVER_CLIENTPROXY_X + "." + ErrorCode.UNKNOWN_MEMBER.code();
+    private static final String EXPECTED_FAULT_CODE = SERVER_CLIENTPROXY_X + "." + ErrorCode.ACCESS_DENIED.code();
 
     @Test
     @DisplayName("Self-call converges its consumer and provider negotiation onto one agreement, and the transfer succeeds")
@@ -148,7 +148,7 @@ class SsProxyDspSelfCallTest extends E2eTest {
                 () -> callNoAccessRightService(env));
 
         then("the call is denied: the provider's catalog carries no offer for the caller, surfaced to the "
-                + "consumer as an unknown-member fault", () ->
+                + "consumer as an access-denied fault", () ->
                 response.statusCode(500)
                         .header(MimeUtils.HEADER_ERROR, equalTo(EXPECTED_FAULT_CODE))
                         .body("type", equalTo(EXPECTED_FAULT_CODE)));

@@ -249,8 +249,9 @@ public class ServerRestMessageProcessor {
             throw XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED,
                     "Agreement token rejected: %s".formatted(reasonClass));
         }
-        if (decision instanceof AgreementTokenAccessCheck.Decision.Denied) {
-            throw XrdRuntimeException.systemException(ACCESS_DENIED, "Request is not allowed: %s".formatted(requestServiceId));
+        if (decision instanceof AgreementTokenAccessCheck.Decision.Denied(var reasonClass)) {
+            throw XrdRuntimeException.systemException(ACCESS_DENIED,
+                    "Request is not allowed: %s (agreement token: %s)".formatted(requestServiceId, reasonClass));
         }
         var aclSkipped = decision instanceof AgreementTokenAccessCheck.Decision.Accepted;
         if (!aclSkipped && !serverConfProvider.isQueryAllowed(

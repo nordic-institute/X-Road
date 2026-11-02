@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVIDER_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
@@ -121,7 +122,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 serviceId, assetId, request.managementSubsystem(), candidates.size());
 
         if (candidates.isEmpty()) {
-            throw XrdRuntimeException.systemException(DSP_DATASET_NOT_FOUND)
+            throw XrdRuntimeException.systemException(DSP_PROVIDER_NOT_FOUND)
                     .origin(DATASPACE)
                     .details("No candidate security servers found for service %s".formatted(serviceId))
                     .build();

@@ -95,6 +95,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
@@ -254,7 +255,7 @@ public class ClientSoapMessageProcessor {
 
             response = parseResponse(httpSender, decoder, opMonitoringData);
         } catch (XrdRuntimeException e) {
-            dropAssetAccessOnTokenRejection(e, dspRequest);
+            dropAssetAccessOnTokenRejection(e, dspRequest, assetAccess);
             throw e;
         }
 
@@ -265,8 +266,10 @@ public class ClientSoapMessageProcessor {
         return response;
     }
 
-    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, DspRequest dspRequest) {
-        if (proxyProperties.dspEnabled() && failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)) {
+    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, DspRequest dspRequest, AssetAccessResponse assetAccess) {
+        var tokenPresented = assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization());
+        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
             consumerSideDspProcessor.invalidateAssetAccess(dspRequest);
         }
     }
