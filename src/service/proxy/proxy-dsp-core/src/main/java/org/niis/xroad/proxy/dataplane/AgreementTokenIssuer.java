@@ -100,8 +100,8 @@ public class AgreementTokenIssuer {
         var minter = new AgreementTokenMinter(keyProviderOpt.get(), protocolProperties);
         return switch (grantOpt.get()) {
             case AgreementGrant grant -> mintSubsystemToken(minter, agreementId, grant);
-            case AgreementGroupGrant grant ->
-                    Optional.of(minter.mint(new AgreementTokenGroupGrant(agreementId, grant.group(), grant.service())));
+            case AgreementGroupGrant(var group, var service) ->
+                    Optional.of(minter.mint(new AgreementTokenGroupGrant(agreementId, group, service)));
         };
     }
 

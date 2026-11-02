@@ -52,10 +52,10 @@ public class ServerConfGroupAccess implements AgreementTokenGroupAccess {
     @Override
     public boolean isMember(AgreementTokenGroup group, ClientId client) {
         return switch (group) {
-            case AgreementTokenGroup.Local local ->
-                    serverConfProvider.isExactLocalGroupMember(local.owner(), local.groupId(), client);
-            case AgreementTokenGroup.Global global ->
-                    globalConfProvider.isSubjectInGlobalGroup(client, global.groupId());
+            case AgreementTokenGroup.Local(var owner, var groupId) ->
+                    serverConfProvider.isExactLocalGroupMember(owner, groupId, client);
+            case AgreementTokenGroup.Global(var groupId) ->
+                    globalConfProvider.isSubjectInGlobalGroup(client, groupId);
         };
     }
 

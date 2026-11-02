@@ -297,7 +297,7 @@ public class ServerConfImpl implements ServerConfProvider {
             if (ownerEntity == null) {
                 return false;
             }
-            return isMemberInLocalGroup(clientId, localGroupId, ownerEntity, (a, b) -> a.equals(b));
+            return isMemberInLocalGroup(clientId, localGroupId, ownerEntity, Object::equals);
         });
     }
 

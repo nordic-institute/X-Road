@@ -143,14 +143,14 @@ final class AgreementTokenClaimsCodec {
 
     static Map<String, Object> encodeGroup(AgreementTokenGroup group) {
         return switch (group) {
-            case AgreementTokenGroup.Local local -> Map.of(
+            case AgreementTokenGroup.Local(var owner, var groupId) -> Map.of(
                     GROUP_TYPE_KEY, GROUP_TYPE_LOCAL,
-                    GROUP_OWNER_KEY, encodeClient(local.owner()),
-                    GROUP_CODE_KEY, local.groupId().getGroupCode());
-            case AgreementTokenGroup.Global global -> Map.of(
+                    GROUP_OWNER_KEY, encodeClient(owner),
+                    GROUP_CODE_KEY, groupId.getGroupCode());
+            case AgreementTokenGroup.Global(var groupId) -> Map.of(
                     GROUP_TYPE_KEY, GROUP_TYPE_GLOBAL,
-                    GROUP_INSTANCE_KEY, global.groupId().getXRoadInstance(),
-                    GROUP_CODE_KEY, global.groupId().getGroupCode());
+                    GROUP_INSTANCE_KEY, groupId.getXRoadInstance(),
+                    GROUP_CODE_KEY, groupId.getGroupCode());
         };
     }
 
@@ -164,12 +164,12 @@ final class AgreementTokenClaimsCodec {
         if (raw == null) {
             throw new IllegalArgumentException("group claim must not be empty");
         }
-        var code = requireString(raw, GROUP_CODE_KEY, "group");
-        return switch (requireString(raw, GROUP_TYPE_KEY, "group")) {
+        var code = requireString(raw, GROUP_CODE_KEY, CLAIM_GROUP);
+        return switch (requireString(raw, GROUP_TYPE_KEY, CLAIM_GROUP)) {
             case GROUP_TYPE_LOCAL -> new AgreementTokenGroup.Local(
-                    decodeClient(requireString(raw, GROUP_OWNER_KEY, "group")), LocalGroupId.Conf.create(code));
+                    decodeClient(requireString(raw, GROUP_OWNER_KEY, CLAIM_GROUP)), LocalGroupId.Conf.create(code));
             case GROUP_TYPE_GLOBAL -> new AgreementTokenGroup.Global(
-                    GlobalGroupId.Conf.create(requireString(raw, GROUP_INSTANCE_KEY, "group"), code));
+                    GlobalGroupId.Conf.create(requireString(raw, GROUP_INSTANCE_KEY, CLAIM_GROUP), code));
             default -> throw new IllegalArgumentException("unknown group type in group claim");
         };
     }
