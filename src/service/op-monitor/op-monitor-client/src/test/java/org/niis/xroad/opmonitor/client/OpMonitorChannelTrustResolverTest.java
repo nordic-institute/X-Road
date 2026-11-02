@@ -25,19 +25,32 @@
 package org.niis.xroad.opmonitor.client;
 
 import io.grpc.ChannelCredentials;
+import io.grpc.TlsChannelCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.test.TestCa;
+import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
 import org.niis.xroad.common.vault.VaultClient;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -69,10 +82,77 @@ class OpMonitorChannelTrustResolverTest {
     }
 
     @Test
-    void unreadableImportedCaFailsInsteadOfFallingBackToTheSharedCredentials() {
-        when(vaultClient.getOpMonitorCa()).thenThrow(new IllegalStateException("sealed"));
+    void importedCaGivesDedicatedCredentialsAndNotTheSharedOnes() throws Exception {
+        var ca = TestCa.selfSigned("Op-monitor CA");
+        var identity = ca.issueLeaf("proxy", List.of("localhost"), List.of());
+        var resolverWithKeys = new OpMonitorChannelTrustResolver(rpcProperties, vaultClient,
+                new TestVaultKeyProvider(identity, ca.certificate()), sharedCredentials);
+        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(ca.certificate()));
 
-        assertThatThrownBy(resolver::resolve).isInstanceOf(XrdRuntimeException.class);
+        assertThat(resolverWithKeys.resolve()).isInstanceOf(TlsChannelCredentials.class);
+        verifyNoInteractions(sharedCredentials);
+    }
+
+    @Test
+    void blankOrMissingRecordGivesTheSharedCredentialsUnchanged() {
+        var shared = mock(ChannelCredentials.class);
+        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.empty());
+        when(sharedCredentials.createClientCredentials()).thenReturn(shared);
+
+        assertThat(resolver.resolve()).isSameAs(shared);
+        assertThat(resolver.resolve()).isSameAs(shared);
+        verifyNoInteractions(vaultKeyProvider);
+    }
+
+    @ParameterizedTest
+    @MethodSource("unreadableCaCases")
+    void unreadableImportedCaFailsInsteadOfFallingBackToTheSharedCredentials(String situation, Throwable readFailure) {
+        when(vaultClient.getOpMonitorCa()).thenThrow(readFailure);
+
+        assertThatThrownBy(resolver::resolve)
+                .as(situation)
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.getMessage()).contains("Failed to read the imported op-monitor CA");
+                    assertThat(e.getCause()).isSameAs(readFailure);
+                });
+        verifyNoInteractions(sharedCredentials, vaultKeyProvider);
+    }
+
+    static Stream<Arguments> unreadableCaCases() {
+        return Stream.of(
+                Arguments.of("OpenBao answers 403", new IllegalArgumentException("status 403")),
+                Arguments.of("OpenBao answers 500", new IllegalArgumentException("status 500")),
+                Arguments.of("OpenBao is sealed", new IllegalStateException("vault is sealed")),
+                Arguments.of("OpenBao is not reachable", new UncheckedIOException(new IOException("connection refused"))),
+                Arguments.of("KV engine is not initialised",
+                        new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.")));
+    }
+
+    @Test
+    void malformedCaCertificateFailsInsteadOfFallingBackToTheSharedCredentials() {
+        var realReader = mock(VaultClient.class, CALLS_REAL_METHODS);
+        doAnswer(_ -> realReader.toOpMonitorCa(Map.of(VaultClient.CERTIFICATE_KEY, "not a certificate")))
+                .when(realReader).getOpMonitorCa();
+        var resolverWithRealReader = new OpMonitorChannelTrustResolver(rpcProperties, realReader, vaultKeyProvider,
+                sharedCredentials);
+
+        assertThatThrownBy(resolverWithRealReader::resolve)
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getMessage()).contains("Could not parse certificate"));
+        verifyNoInteractions(sharedCredentials, vaultKeyProvider);
+    }
+
+    @Test
+    void unusableKeyManagerFailsInsteadOfFallingBackToTheSharedCredentials() {
+        var keyFailure = new IllegalStateException("key manager is not ready");
+        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(mock(X509Certificate.class)));
+        when(vaultKeyProvider.getKeyManager()).thenThrow(keyFailure);
+
+        assertThatThrownBy(resolver::resolve)
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+                    assertThat(e.getMessage()).contains("Failed to trust the imported op-monitor CA");
+                    assertThat(e.getCause()).isSameAs(keyFailure);
+                });
         verifyNoInteractions(sharedCredentials);
     }
 

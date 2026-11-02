@@ -9,4 +9,5 @@ dependencies {
 
   testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
 }

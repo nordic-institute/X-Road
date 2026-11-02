@@ -47,6 +47,7 @@ import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataResp;
 
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,11 +63,14 @@ import static org.mockito.Mockito.when;
 
 class OpMonitorChannelTrustHandshakeTest {
     private static final String HOST = "localhost";
+    private static final String OTHER_HOST = "other.example.org";
     private static final long FAIL_FAST_DEADLINE_SECONDS = 10;
 
     private TestCa securityServerCa;
     private TestCa opMonitorCa;
-    private OpMonitorChannelTrustResolver resolver;
+    private TestCa untrustedCa;
+    private OpMonitorChannelTrustResolver resolverWithImportedCa;
+    private OpMonitorChannelTrustResolver resolverWithoutImportedCa;
     private TlsTestServer server;
     private OpMonitorClient client;
 
@@ -74,16 +78,16 @@ class OpMonitorChannelTrustHandshakeTest {
     void setUp() throws Exception {
         securityServerCa = TestCa.selfSigned("Security Server CA");
         opMonitorCa = TestCa.selfSigned("Op-monitor CA");
+        untrustedCa = TestCa.selfSigned("Untrusted CA");
 
         var clientIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
         var keyProvider = new TestVaultKeyProvider(clientIdentity, securityServerCa.certificate());
         RpcCredentialsConfigurer shared = new TlsRpcCredentialsConfigurer(keyProvider);
 
-        var vaultClient = mock(VaultClient.class);
-        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(opMonitorCa.certificate()));
         var rpcProperties = mock(RpcProperties.class);
         when(rpcProperties.useTls()).thenReturn(true);
-        resolver = new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, keyProvider, shared);
+        resolverWithImportedCa = resolver(rpcProperties, Optional.of(opMonitorCa.certificate()), keyProvider, shared);
+        resolverWithoutImportedCa = resolver(rpcProperties, Optional.empty(), keyProvider, shared);
     }
 
     @AfterEach
@@ -98,14 +102,54 @@ class OpMonitorChannelTrustHandshakeTest {
 
     @Test
     void importedCaIsTrustedForTheServerCertificateItIssued() throws Exception {
-        startServer(opMonitorCa);
+        startServer(opMonitorCa, HOST, resolverWithImportedCa);
 
         assertThatCode(() -> client.storeOperationalData(List.of())).doesNotThrowAnyException();
     }
 
     @Test
     void securityServerCaCertificateIsRejectedWhenACaIsImported() throws Exception {
-        startServer(securityServerCa);
+        startServer(securityServerCa, HOST, resolverWithImportedCa);
+
+        assertRejectedByCertificateVerification();
+    }
+
+    @Test
+    void certificateFromAnUntrustedCaIsRejectedWhenACaIsImported() throws Exception {
+        startServer(untrustedCa, HOST, resolverWithImportedCa);
+
+        assertRejectedByCertificateVerification();
+    }
+
+    @Test
+    void certificateWithANameThatDoesNotMatchTheDialedHostIsRejectedWhenACaIsImported() throws Exception {
+        startServer(opMonitorCa, OTHER_HOST, resolverWithImportedCa);
+
+        assertRejectedByCertificateVerification();
+    }
+
+    @Test
+    void securityServerCaIsTrustedWhenNoCaIsImported() throws Exception {
+        startServer(securityServerCa, HOST, resolverWithoutImportedCa);
+
+        assertThatCode(() -> client.storeOperationalData(List.of())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void certificateFromAnUntrustedCaIsRejectedWhenNoCaIsImported() throws Exception {
+        startServer(untrustedCa, HOST, resolverWithoutImportedCa);
+
+        assertRejectedByCertificateVerification();
+    }
+
+    @Test
+    void certificateWithANameThatDoesNotMatchTheDialedHostIsRejectedWhenNoCaIsImported() throws Exception {
+        startServer(securityServerCa, OTHER_HOST, resolverWithoutImportedCa);
+
+        assertRejectedByCertificateVerification();
+    }
+
+    private void assertRejectedByCertificateVerification() {
         var failFastStub = OpMonitorServiceGrpc.newBlockingStub(client.getChannel())
                 .withDeadlineAfter(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
 
@@ -116,12 +160,19 @@ class OpMonitorChannelTrustHandshakeTest {
         assertThat(client.getChannel().getState(false)).isEqualTo(ConnectivityState.TRANSIENT_FAILURE);
     }
 
+    private static OpMonitorChannelTrustResolver resolver(RpcProperties rpcProperties, Optional<X509Certificate> importedCa,
+                                                          TestVaultKeyProvider keyProvider, RpcCredentialsConfigurer shared) {
+        var vaultClient = mock(VaultClient.class);
+        when(vaultClient.getOpMonitorCa()).thenReturn(importedCa);
+        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, keyProvider, shared);
+    }
+
     private static Stream<Throwable> causalChain(Throwable throwable) {
         return Stream.iterate(throwable, Objects::nonNull, Throwable::getCause);
     }
 
-    private void startServer(TestCa serverCa) throws Exception {
-        var serverIdentity = serverCa.issueLeaf("op-monitor", List.of(HOST), List.of());
+    private void startServer(TestCa serverCa, String serverName, OpMonitorChannelTrustResolver resolver) throws Exception {
+        var serverIdentity = serverCa.issueLeaf("op-monitor", List.of(serverName), List.of());
         server = TlsTestServer.start(serverIdentity, securityServerCa.certificate(), new StoreService());
         client = OpMonitorClient.create(new RpcChannelFactory(mock(RpcCredentialsConfigurer.class)), config(server.port()),
                 resolver);

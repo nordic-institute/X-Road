@@ -36,6 +36,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
 
+  testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
