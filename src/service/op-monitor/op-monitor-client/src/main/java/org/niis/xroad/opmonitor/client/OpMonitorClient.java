@@ -60,6 +60,7 @@ import java.util.List;
 public class OpMonitorClient extends AbstractRpcClient {
     private final RpcChannelFactory rpcChannelFactory;
     private final OpMonitorRpcChannelProperties rpcChannelProperties;
+    private final OpMonitorChannelTrustResolver channelTrustResolver;
 
     private ManagedChannel channel;
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
@@ -69,10 +70,13 @@ public class OpMonitorClient extends AbstractRpcClient {
      * Creates an initialised client for the op-monitor channel configured in {@code config}.
      * @param rpcChannelFactory the factory of the channel
      * @param config the configuration the channel properties are read from
+     * @param channelTrustResolver chooses the credentials of the channel
      * @return the client, to be closed after use
      */
-    public static OpMonitorClient create(RpcChannelFactory rpcChannelFactory, XRoadConfig config) {
-        var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(config));
+    public static OpMonitorClient create(RpcChannelFactory rpcChannelFactory, XRoadConfig config,
+                                         OpMonitorChannelTrustResolver channelTrustResolver) {
+        var opMonitorClient = new OpMonitorClient(rpcChannelFactory, new OpMonitorRpcChannelProperties(config),
+                channelTrustResolver);
         opMonitorClient.init();
         return opMonitorClient;
     }
@@ -91,7 +95,7 @@ public class OpMonitorClient extends AbstractRpcClient {
     public void init() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
+        channel = rpcChannelFactory.createChannel(rpcChannelProperties, channelTrustResolver.resolve());
 
         opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }

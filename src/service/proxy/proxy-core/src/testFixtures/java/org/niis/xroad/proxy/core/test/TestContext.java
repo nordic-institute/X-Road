@@ -37,6 +37,7 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
@@ -225,7 +226,8 @@ public class TestContext {
 
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
                         serverConfProvider, globalConfProvider, proxyProperties, commonProperties,
-                        mock(RpcChannelFactory.class), mock(XRoadConfig.class), monitorRpcClient,
+                        mock(RpcChannelFactory.class), mock(XRoadConfig.class), mock(OpMonitorChannelTrustResolver.class),
+                        monitorRpcClient,
                         httpSenderProvider, httpClientCreator.getHttpClient());
                 serviceHandlerLoader.init();
 

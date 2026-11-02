@@ -30,12 +30,17 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcChannelProperties;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
@@ -122,9 +127,17 @@ class RpcClientsConfig {
     }
 
     @Bean
+    OpMonitorChannelTrustResolver opMonitorChannelTrustResolver(RpcProperties rpcProperties, VaultClient vaultClient,
+                                                                VaultKeyProvider vaultKeyProvider,
+                                                                RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, vaultKeyProvider, rpcCredentialsConfigurer);
+    }
+
+    @Bean
     public OpMonitorClient opMonitorClient(RpcChannelFactory rpcChannelFactory,
-                                           OpMonitorRpcChannelProperties rpcChannelProperties) {
-        return new OpMonitorClient(rpcChannelFactory, rpcChannelProperties);
+                                           OpMonitorRpcChannelProperties rpcChannelProperties,
+                                           OpMonitorChannelTrustResolver channelTrustResolver) {
+        return new OpMonitorClient(rpcChannelFactory, rpcChannelProperties, channelTrustResolver);
     }
 
 }

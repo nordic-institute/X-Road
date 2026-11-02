@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.common.rpc.client;
 
+import io.grpc.ChannelCredentials;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
@@ -45,8 +46,13 @@ public final class RpcChannelFactory {
     private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
 
     public ManagedChannel createChannel(RpcChannelProperties channelProperties)  {
-        var credentials = rpcCredentialsConfigurer.createClientCredentials();
+        return createChannel(channelProperties, rpcCredentialsConfigurer.createClientCredentials());
+    }
 
+    /**
+     * Creates a channel that authenticates with the given credentials instead of the shared ones.
+     */
+    public ManagedChannel createChannel(RpcChannelProperties channelProperties, ChannelCredentials credentials) {
         var host = channelProperties.host();
         var port = channelProperties.port();
 

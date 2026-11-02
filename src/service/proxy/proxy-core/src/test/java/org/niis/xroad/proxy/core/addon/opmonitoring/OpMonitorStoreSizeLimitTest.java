@@ -38,15 +38,19 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
+import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataResp;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 
@@ -62,6 +66,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_MAX_INBOUND_MESSAGE_SIZE;
 
 /**
@@ -96,7 +101,9 @@ class OpMonitorStoreSizeLimitTest {
                 "xroad.common-rpc.channel.op-monitor.host", "127.0.0.1",
                 "xroad.common-rpc.channel.op-monitor.port", String.valueOf(port)));
         startServer(config, port);
-        opMonitorClient = new OpMonitorClient(new RpcChannelFactory(credentials), new OpMonitorRpcChannelProperties(config));
+        opMonitorClient = new OpMonitorClient(new RpcChannelFactory(credentials), new OpMonitorRpcChannelProperties(config),
+                new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient(), new NoopVaultKeyProvider(),
+                        credentials));
         opMonitorClient.init();
 
         int proxyBatchCap = new OpMonitorBufferProperties(config).maxMessageSize();

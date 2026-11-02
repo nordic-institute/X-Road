@@ -51,8 +51,10 @@ import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -62,6 +64,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorStoreClient;
@@ -243,18 +246,27 @@ class ProxyConfig {
     }
 
     @ApplicationScoped
+    OpMonitorChannelTrustResolver opMonitorChannelTrustResolver(RpcProperties rpcProperties, VaultClient vaultClient,
+                                                                VaultKeyProvider vaultKeyProvider,
+                                                                RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, vaultKeyProvider, rpcCredentialsConfigurer);
+    }
+
+    @ApplicationScoped
     static class OpMonitoringBufferInitializer {
 
         @ApplicationScoped
         OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
                                               ProxyProperties proxyProperties,
                                               RpcChannelFactory rpcChannelFactory,
-                                              XRoadConfig xRoadConfig) {
+                                              XRoadConfig xRoadConfig,
+                                              OpMonitorChannelTrustResolver channelTrustResolver) {
 
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
                 var opMonitoringBuffer = new OpMonitoringBufferImpl(serverConfProvider, proxyProperties.addon().opMonitor(),
-                        () -> new OpMonitorStoreClient(() -> OpMonitorClient.create(rpcChannelFactory, xRoadConfig)));
+                        () -> new OpMonitorStoreClient(
+                                () -> OpMonitorClient.create(rpcChannelFactory, xRoadConfig, channelTrustResolver)));
                 opMonitoringBuffer.init();
                 return opMonitoringBuffer;
             } else {

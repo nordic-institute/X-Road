@@ -1,0 +1,90 @@
+/*
+ * The MIT License
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.opmonitor.client;
+
+import io.grpc.ChannelCredentials;
+import io.grpc.TlsChannelCredentials;
+import io.grpc.util.AdvancedTlsX509TrustManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.vault.VaultClient;
+
+import java.security.cert.X509Certificate;
+import java.util.Optional;
+
+/**
+ * Chooses the credentials of the op-monitor channels: with RPC TLS on, only the imported op-monitor CA is trusted when
+ * one exists; the shared credentials are used otherwise. With RPC TLS off the imported CA is not read.
+ */
+@Slf4j
+@RequiredArgsConstructor
+public class OpMonitorChannelTrustResolver {
+    private final RpcProperties rpcProperties;
+    private final VaultClient vaultClient;
+    private final VaultKeyProvider vaultKeyProvider;
+    private final RpcCredentialsConfigurer sharedCredentials;
+
+    /**
+     * @return the credentials for a new op-monitor channel
+     * @throws XrdRuntimeException when the imported op-monitor CA cannot be read or used; no credentials are returned
+     */
+    public ChannelCredentials resolve() {
+        if (!rpcProperties.useTls()) {
+            return sharedCredentials.createClientCredentials();
+        }
+        final Optional<X509Certificate> opMonitorCa;
+        try {
+            opMonitorCa = vaultClient.getOpMonitorCa();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("Failed to read the imported op-monitor CA", e);
+        }
+        if (opMonitorCa.isEmpty()) {
+            return sharedCredentials.createClientCredentials();
+        }
+        var credentials = importedCaCredentials(opMonitorCa.get());
+        log.info("Trusting only the imported op-monitor CA on the op-monitor channel");
+        return credentials;
+    }
+
+    private ChannelCredentials importedCaCredentials(X509Certificate opMonitorCa) {
+        try {
+            var keyManager = vaultKeyProvider.getKeyManager();
+            var trustManager = AdvancedTlsX509TrustManager.newBuilder()
+                    .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+                    .build();
+            trustManager.updateTrustCredentials(new X509Certificate[] {opMonitorCa});
+            return TlsChannelCredentials.newBuilder()
+                    .keyManager(keyManager)
+                    .trustManager(trustManager)
+                    .build();
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemInternalError("Failed to trust the imported op-monitor CA", e);
+        }
+    }
+}

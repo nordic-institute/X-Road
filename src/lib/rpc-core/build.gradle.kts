@@ -23,6 +23,7 @@ dependencies {
   api(libs.resilience4j.timelimiter)
 
   testFixturesImplementation(libs.quarkus.junit5)
+  testFixturesImplementation(libs.bouncyCastle.bcpkix)
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.assertj.core)
