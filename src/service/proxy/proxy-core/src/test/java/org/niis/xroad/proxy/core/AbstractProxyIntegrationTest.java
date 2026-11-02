@@ -61,6 +61,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
+import org.niis.xroad.proxy.core.clientproxy.DspSendFailureHandler;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
@@ -262,7 +263,8 @@ public abstract class AbstractProxyIntegrationTest {
                 TEST_GLOBAL_CONF, proxyProperties, commonProperties,
                 OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
                 CONSUMER_SIDE_DSP_PROCESSOR, identifierValidationService,
-                new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF));
+                new LegacyCallRefusalPolicy(proxyProperties, TEST_GLOBAL_CONF),
+                new DspSendFailureHandler(CONSUMER_SIDE_DSP_PROCESSOR));
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
                 proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),

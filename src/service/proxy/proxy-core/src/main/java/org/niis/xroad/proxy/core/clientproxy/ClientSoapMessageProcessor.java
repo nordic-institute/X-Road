@@ -127,6 +127,7 @@ public class ClientSoapMessageProcessor {
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
+    private final DspSendFailureHandler dspSendFailureHandler;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
@@ -384,6 +385,9 @@ public class ClientSoapMessageProcessor {
 
         } catch (Exception e) {
             clientRequestPreparationService.markAddressUnusableIfHandshakeFailure(httpSender, e);
+            if (assetAccess != null) {
+                dspSendFailureHandler.handle(e, assetAccess);
+            }
             throw e;
         }
     }
