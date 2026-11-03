@@ -4,11 +4,6 @@
 # present and on 7.8.3 (with any package suffix, e.g. 7.8.3-1.ubuntu24.04),
 # the target configuration volume is unused, the country variant matches and
 # XROAD_MIGRATION_SOFTTOKEN_PIN is given. Writes nothing.
-#
-# A source on another version is a skip, not a refusal:
-# migration_preflight_check_source_version returns 2 and step_preflight stops
-# right there, so migration_start.sh reports the migration as skipped and exits
-# non-zero.
 
 migration_preflight_check_source_version() {
   if [[ ! -d "$SOURCE_CONFIG_DIR" || -z "$(ls -A "$SOURCE_CONFIG_DIR" 2>/dev/null)" ]]; then

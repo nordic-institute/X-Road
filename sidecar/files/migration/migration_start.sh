@@ -3,10 +3,6 @@
 # Migration mode, steps 1-3. _entrypoint_common.sh runs it before its
 # provisioning (overlay, Liquibase, OpenBao bootstrap), so the provisioning
 # migrates the restored 7.8 database and the copied 7.8 configuration.
-#
-# Preflight has a third outcome: 2 means the source is not 7.8.3, so migration
-# does not run; this script reports MIGRATION RESULT: SKIPPED and exits
-# non-zero itself, writing nothing, so no regular start follows.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
