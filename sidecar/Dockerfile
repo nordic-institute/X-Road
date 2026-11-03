@@ -117,6 +117,31 @@ COPY --from=secret-store-scripts --chown=root:root _openbao.sh /usr/share/xroad/
 COPY --chown=root:root files/secret-store-init.sh files/xroad-secret-store-gate.sh files/dsp-config-seed.sh files/signer-autologin-config-seed.sh /usr/share/xroad/scripts/sidecar/
 RUN chmod 0755 /usr/share/xroad/scripts/sidecar/*.sh
 
+# Migration mode, with the native wizard's migration tasks and migration CLI.
+COPY --chown=root:root files/migration/ /usr/share/xroad/scripts/sidecar/migration/
+COPY --from=migration-tasks --chown=root:root lib/common.sh \
+  /usr/share/xroad/scripts/sidecar/migration-tasks/lib/common.sh
+COPY --from=migration-tasks --chown=root:root \
+  tasks/migration/migrate_db_properties.sh \
+  tasks/migration/cleanup_obsolete_files.sh \
+  tasks/migration/migrate_tls_to_secret_store.sh \
+  tasks/migration/run_migration_cli.sh \
+  tasks/migration/fix_serverconf_identifier_duplicates.sql \
+  /usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/
+ARG MIGRATION_CLI_URL=https://artifactory.niis.org/artifactory/xroad-scripts/0.0.1-beta/migration-cli.jar
+RUN --mount=type=bind,from=migration-cli-jar,target=/tmp/migration-cli-jar \
+  cli_jar=/usr/share/xroad/scripts/sidecar/migration-tasks/migration-cli.jar \
+  && if [ -f /tmp/migration-cli-jar/migration-cli.jar ]; then \
+    cp /tmp/migration-cli-jar/migration-cli.jar "$cli_jar"; \
+  else \
+    curl -fsSL "$MIGRATION_CLI_URL" -o "$cli_jar" \
+    && echo "$(curl -fsSL "$MIGRATION_CLI_URL.sha256" | awk '{print $1}')  $cli_jar" | sha256sum -c -; \
+  fi \
+  && ln -sf "$cli_jar" /var/tmp/migration-cli.jar \
+  && chmod 0755 /usr/share/xroad/scripts/sidecar/migration/migration_*.sh \
+    /usr/share/xroad/scripts/sidecar/migration/steps/*.sh \
+    /usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/*.sh
+
 # Cleanup mirror configuration (restore public mirrors for published image)
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
     --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-openbao-deb.sh,target=/tmp/cleanup-mirror-openbao-deb.sh \
