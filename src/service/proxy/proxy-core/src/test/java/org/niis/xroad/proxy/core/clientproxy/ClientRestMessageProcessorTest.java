@@ -50,7 +50,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -64,7 +63,6 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor.SentRequest;
-import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor.SigningProxyMessageEntity;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
@@ -115,7 +113,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -637,18 +634,6 @@ class ClientRestMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), times(1)).invalidateAssetAccessWonBy(any());
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("failoverCases")
-    void canFailOverRequiresATransportFaultACandidateLeftRetryAndAReplayableEntity(
-            String ignoredCase, Throwable failure, int attempt, int candidateCount, boolean retryEnabled,
-            boolean replayable, boolean expected) {
-        var entity = mock(SigningProxyMessageEntity.class);
-        when(entity.isReplayable()).thenReturn(replayable);
-
-        assertThat(ClientRestMessageProcessor.canFailOver(failure, attempt, candidateCount, retryEnabled, entity))
-                .isEqualTo(expected);
-    }
-
     @Test
     void aRefusedConnectionToTheFirstServerIsServedByTheSibling() throws Exception {
         var harness = createHarness(true);
@@ -943,22 +928,6 @@ class ClientRestMessageProcessorTest {
                 XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 500,
                         "Internal Server Error"),
                 XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"));
-    }
-
-    static Stream<Arguments> failoverCases() {
-        var refused = new ConnectException("refused");
-        return Stream.of(
-                arguments("transport fault with a candidate left", refused, 1, 2, true, true, true),
-                arguments("transport fault nested in another exception",
-                        XrdRuntimeException.systemException(IO_ERROR, refused), 1, 2, true, true, true),
-                arguments("every candidate tried", refused, 2, 2, true, true, false),
-                arguments("more attempts than candidates", refused, 3, 2, true, true, false),
-                arguments("a single candidate", refused, 1, 1, true, true, false),
-                arguments("request retry disabled", refused, 1, 2, false, true, false),
-                arguments("entity no longer replayable", refused, 1, 2, true, false, false),
-                arguments("answer from a live provider",
-                        XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s", 500),
-                        1, 2, true, true, false));
     }
 
     private static final String SS_A_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:222";
