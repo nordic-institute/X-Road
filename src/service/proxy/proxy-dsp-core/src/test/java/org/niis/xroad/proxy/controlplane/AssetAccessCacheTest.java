@@ -49,6 +49,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -205,17 +206,14 @@ class AssetAccessCacheTest {
     private static void awaitQuietly(CountDownLatch latch) {
         try {
             latch.await();
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }
 
-    private static void awaitWaiting(Thread thread) throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        while (thread.getState() != Thread.State.WAITING) {
-            assertThat(System.nanoTime()).as("%s parked before deadline", thread).isLessThan(deadline);
-            Thread.sleep(1);
-        }
+    private static void awaitWaiting(Thread thread) {
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> thread.getState() == Thread.State.WAITING);
     }
 
     @Test

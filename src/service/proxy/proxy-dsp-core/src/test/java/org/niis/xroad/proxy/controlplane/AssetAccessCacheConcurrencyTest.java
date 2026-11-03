@@ -83,7 +83,7 @@ class AssetAccessCacheConcurrencyTest {
     private static void awaitQuietly(CountDownLatch latch) {
         try {
             latch.await();
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }
