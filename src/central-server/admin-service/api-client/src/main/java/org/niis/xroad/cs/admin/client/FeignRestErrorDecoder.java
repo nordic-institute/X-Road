@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.REQUEST_TOO_LARGE;
 import static org.niis.xroad.common.core.exception.ErrorCode.SYSTEM_DID_FINAL_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.SYSTEM_DID_FIXABLE_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.SYSTEM_DID_NOT_RESOLVED;
@@ -52,7 +53,8 @@ public class FeignRestErrorDecoder implements ErrorDecoder {
     private static final Map<String, ErrorCode> OUTCOME_CODES = Map.of(
             "management_request_did_final_conflict", SYSTEM_DID_FINAL_CONFLICT,
             "management_request_did_fixable_conflict", SYSTEM_DID_FIXABLE_CONFLICT,
-            "management_request_did_not_resolved", SYSTEM_DID_NOT_RESOLVED);
+            "management_request_did_not_resolved", SYSTEM_DID_NOT_RESOLVED,
+            "management_request_too_large", REQUEST_TOO_LARGE);
 
     private final ObjectMapper mapper;
 

@@ -34,10 +34,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.api.service.MemberDidRegistrationService;
 import org.niis.xroad.cs.admin.api.service.SystemDidRegistrationService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ManagementRequestDtoConverter;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.restapi.exceptions.ExceptionTranslator;
 import org.niis.xroad.restapi.exceptions.ValidationErrorHelper;
@@ -63,6 +66,8 @@ class ManagementRequestsApiControllerTest {
     @Mock
     private SystemDidRegistrationService systemDidRegistrationService;
     @Mock
+    private MemberDidRegistrationService memberDidRegistrationService;
+    @Mock
     private ManagementRequestDtoConverter converter;
 
     @InjectMocks
@@ -84,6 +89,24 @@ class ManagementRequestsApiControllerTest {
         assertThat(response.getBody()).isSameAs(responseDto);
         verify(systemDidRegistrationService).add(request);
         verifyNoInteractions(service);
+    }
+
+    @Test
+    void addMemberDidRegistrationRequestGoesThroughTheBatchServiceAndAnswersAccepted() {
+        var dto = new MemberDidRegistrationRequestDto();
+        var request = mock(MemberDidRegistrationRequest.class);
+        var added = mock(MemberDidRegistrationRequest.class);
+        var responseDto = new MemberDidRegistrationRequestDto();
+        when(converter.fromDto(dto)).thenReturn(request);
+        when(memberDidRegistrationService.add(request)).thenReturn(added);
+        when(converter.toDto(added)).thenReturn(responseDto);
+
+        var response = controller.addManagementRequest(dto);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        assertThat(response.getBody()).isSameAs(responseDto);
+        verify(memberDidRegistrationService).add(request);
+        verifyNoInteractions(service, systemDidRegistrationService);
     }
 
     @Test

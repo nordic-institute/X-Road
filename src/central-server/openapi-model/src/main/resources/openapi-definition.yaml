@@ -5306,6 +5306,7 @@ components:
           OWNER_CHANGE_REQUEST: "#/components/schemas/OwnerChangeRequest"
           ADDRESS_CHANGE_REQUEST: "#/components/schemas/AddressChangeRequest"
           SYSTEM_DID_REGISTRATION_REQUEST: "#/components/schemas/SystemDidRegistrationRequest"
+          MEMBER_DID_REGISTRATION_REQUEST: "#/components/schemas/MemberDidRegistrationRequest"
           MAINTENANCE_MODE_ENABLE_REQUEST: "#/components/schemas/MaintenanceModeEnableRequest"
           MAINTENANCE_MODE_DISABLE_REQUEST: "#/components/schemas/MaintenanceModeDisableRequest"
       properties:
@@ -5383,6 +5384,7 @@ components:
         - AUTH_CERT_DELETION_REQUEST
         - ADDRESS_CHANGE_REQUEST
         - SYSTEM_DID_REGISTRATION_REQUEST
+        - MEMBER_DID_REGISTRATION_REQUEST
         - MAINTENANCE_MODE_ENABLE_REQUEST
         - MAINTENANCE_MODE_DISABLE_REQUEST
     ManagementRequestStatus:
@@ -5628,6 +5630,59 @@ components:
         - system_did
         - dsp_base_url
         - certificate
+    MemberDidRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        entries:
+          type: array
+          description: Member DIDs to register, one entry per member
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/MemberDidRegistrationEntry'
+        results:
+          type: array
+          description: One result per entry, in request order
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/MemberDidRegistrationResult'
+      required:
+        - entries
+    MemberDidRegistrationEntry:
+      type: object
+      properties:
+        member_id:
+          type: string
+          maxLength: 1023
+          description: Encoded member ID
+        did:
+          type: string
+          description: DID of the member
+      required:
+        - member_id
+        - did
+    MemberDidRegistrationResult:
+      type: object
+      properties:
+        member_id:
+          type: string
+          description: Encoded member ID
+        status:
+          $ref: '#/components/schemas/MemberDidRegistrationStatus'
+        reason:
+          type: string
+          description: Reason code, absent when the status is STORED
+      required:
+        - member_id
+        - status
+    MemberDidRegistrationStatus:
+      type: string
+      enum:
+        - STORED
+        - FINAL_CONFLICT
+        - FIXABLE_CONFLICT
+        - NOT_RESOLVED
     MaintenanceModeEnableRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'

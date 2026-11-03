@@ -94,7 +94,7 @@ class EndpointSecurityIntTest extends AbstractManagementServiceIntTest {
                 .build();
 
         var response = executeRequest(request.createPayload());
-        assertSoapFaultCodeAndString(response, 500, "bad_request", "Request size limit " + REQUEST_SIZE_LIMIT + " exceeded");
+        assertSoapFaultCodeAndString(response, 500, "request_too_large", "Request size limit " + REQUEST_SIZE_LIMIT + " exceeded");
     }
 
     private void assertSoapFault403(Response response) {

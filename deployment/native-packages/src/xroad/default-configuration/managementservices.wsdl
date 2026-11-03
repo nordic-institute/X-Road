@@ -155,6 +155,8 @@
             <xsd:element name="maintenanceModeEnableResponse" type="tns:MaintenanceModeEnableRequestType"/>
             <xsd:element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
             <xsd:element name="maintenanceModeDisableResponse" type="tns:MaintenanceModeDisableRequestType"/>
+            <xsd:element name="memberDidReg" type="tns:MemberDidRegRequestType"/>
+            <xsd:element name="memberDidRegResponse" type="tns:MemberDidRegResponseType"/>
             <!-- Header fields -->
             <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
             <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
@@ -333,6 +335,55 @@
               <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
             </xsd:sequence>
           </xsd:complexType>
+            <xsd:complexType name="MemberDidRegRequestType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifier of the security server the member DIDs belong to.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="entry" type="tns:MemberDidRegEntryType" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>A member served by the security server and the DID minted for it.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="MemberDidRegEntryType">
+                <xsd:sequence>
+                    <xsd:element name="member" type="id:XRoadClientIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifier of the member.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="did" type="string">
+                        <xsd:annotation>
+                            <xsd:documentation>Dataspace identifier (DID) of the member.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="MemberDidRegResponseType">
+                <xsd:complexContent>
+                    <xsd:extension base="tns:MemberDidRegRequestType">
+                        <xsd:sequence>
+                            <xsd:element name="result" type="tns:MemberDidRegResultType" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation>Outcome of one entry, in request order.</xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="MemberDidRegResultType">
+                <xsd:sequence>
+                    <xsd:element name="member" type="id:XRoadClientIdentifierType"/>
+                    <xsd:element name="status" type="string"/>
+                    <xsd:element name="reason" type="string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
             <xsd:simpleType name="RequestIdType">
                 <xsd:annotation>
                     <xsd:documentation>For responses only, unique identifier
@@ -416,6 +467,12 @@
     <wsdl:message name="maintenanceModeDisableResponse">
       <wsdl:part element="xroad:maintenanceModeDisableResponse" name="parameters"/>
     </wsdl:message>
+    <wsdl:message name="memberDidReg">
+        <wsdl:part element="xroad:memberDidReg" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="memberDidRegResponse">
+        <wsdl:part element="xroad:memberDidRegResponse" name="parameters"/>
+    </wsdl:message>
     <wsdl:portType name="centralservice">
         <wsdl:operation name="clientReg">
             <wsdl:input message="tns:clientReg"/>
@@ -456,6 +513,10 @@
         <wsdl:operation name="maintenanceModeDisable">
           <wsdl:input message="tns:maintenanceModeDisable"/>
           <wsdl:output message="tns:maintenanceModeDisableResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="memberDidReg">
+            <wsdl:input message="tns:memberDidReg"/>
+            <wsdl:output message="tns:memberDidRegResponse"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
@@ -639,6 +700,24 @@
             <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
           </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="memberDidReg">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+            </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="centralservice">

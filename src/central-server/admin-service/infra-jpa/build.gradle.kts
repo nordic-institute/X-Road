@@ -11,6 +11,7 @@ dependencies {
   implementation("org.hibernate.validator:hibernate-validator")
 
   testImplementation(libs.springBoot.starterTest)
+  testImplementation(testFixtures(project(":central-server:admin-service:globalconf-generator")))
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)
   testImplementation(project(":common:common-db"))

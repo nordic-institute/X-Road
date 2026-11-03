@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202610271200-member-did-request-batch.xml">
+
+    <changeSet author="niis" id="202610271200-member-did-request-batch">
+        <comment>Submitted data of a request and the outcome answered for it, as JSON text; null for request types that record none.</comment>
+
+        <addColumn tableName="requests">
+            <column name="request_data" type="TEXT"/>
+            <column name="response_data" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

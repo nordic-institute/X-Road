@@ -41,6 +41,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRenameRequest;
 import org.niis.xroad.cs.admin.api.domain.MaintenanceModeDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.MaintenanceModeEnableRequest;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
@@ -64,6 +65,10 @@ import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationEntryDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationResultDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationStatusDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -113,6 +118,9 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     .systemDid(req.getSystemDid())
                     .dspBaseUrl(req.getDspBaseUrl())
                     .certificate(req.getCertificate());
+            case MemberDidRegistrationRequest req -> new MemberDidRegistrationRequestDto()
+                    .entries(req.getEntries().stream().map(this::toDto).toList())
+                    .results(req.getResults().stream().map(this::toDto).toList());
             case MaintenanceModeEnableRequest req -> new MaintenanceModeEnableRequestDto().message(req.getComments());
             case MaintenanceModeDisableRequest ignored -> new MaintenanceModeDisableRequestDto();
             case null -> throw new BadRequestException(MR_UNKNOWN_TYPE.build());
@@ -176,6 +184,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     req.getSystemDid(),
                     req.getDspBaseUrl(),
                     req.getCertificate());
+            case MemberDidRegistrationRequestDto req -> new MemberDidRegistrationRequest(
+                    originMapper.convert(req.getOrigin()),
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
+                    req.getEntries().stream()
+                            .map(entry -> new MemberDidRegistrationRequest.Entry(fromEncodedId(entry.getMemberId()), entry.getDid()))
+                            .toList());
             case MaintenanceModeEnableRequestDto req -> new MaintenanceModeEnableRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
@@ -186,6 +200,19 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             case null -> throw new BadRequestException(MR_UNKNOWN_TYPE.build());
             default -> throw new BadRequestException(MR_UNKNOWN_TYPE.build(request.getClass().getName()));
         };
+    }
+
+    private MemberDidRegistrationEntryDto toDto(MemberDidRegistrationRequest.Entry entry) {
+        return new MemberDidRegistrationEntryDto()
+                .memberId(clientIdConverter.convertId(entry.memberId()))
+                .did(entry.did());
+    }
+
+    private MemberDidRegistrationResultDto toDto(MemberDidRegistrationRequest.Result result) {
+        return new MemberDidRegistrationResultDto()
+                .memberId(clientIdConverter.convertId(result.memberId()))
+                .status(MemberDidRegistrationStatusDto.valueOf(result.status().name()))
+                .reason(result.reason());
     }
 
     public ClientId fromEncodedId(String encodedId) {

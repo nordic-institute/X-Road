@@ -53,6 +53,10 @@ public final class ManagementRequestParser {
     private ManagementRequestParser() {
     }
 
+    static JAXBContext jaxbContext() {
+        return JAXB_CTX;
+    }
+
     /**
      * Parses an authentication certificate registration request.
      *
