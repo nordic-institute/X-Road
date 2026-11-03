@@ -38,6 +38,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -53,6 +54,11 @@ import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoad
  * needed here. Each refresh replaces the trusted issuers wholesale, so a DID dropped from globalconf (a
  * compromised issuer removed by the Central Server operator) loses trust within one refresh cycle instead of
  * surviving until process restart.
+ *
+ * <p>Globalconf may not exist yet when the runtime boots (a fresh Security Server before the anchor import, or
+ * confclient starting late). Boot then continues, the profile keeps the trusted issuers it was registered with,
+ * and the first load is retried every 5 seconds; once it succeeds the
+ * normal refresh takes over.
  */
 @Extension(value = EXTENSION_NAME)
 public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
@@ -62,6 +68,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     static final String SETTING_REFRESH_INTERVAL_SECONDS = "xroad.dsp.issuer-trust.refresh-interval-seconds";
 
     private static final long DEFAULT_REFRESH_INTERVAL_SECONDS = 60L;
+    private static final long PENDING_POLL_INTERVAL_SECONDS = 5L;
 
     @Setting(key = SETTING_REFRESH_INTERVAL_SECONDS,
             description = "Period (in seconds) at which the trusted issuer set is refreshed from globalconf; <= 0 disables the refresh",
@@ -93,22 +100,20 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         issuerTrust = new DataspaceProfileIssuerTrust(profileRegistry);
 
-        if (refreshIntervalSeconds > 0) {
-            scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), EXTENSION_NAME);
-        } else {
+        scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), EXTENSION_NAME);
+        if (refreshIntervalSeconds <= 0) {
             monitor.info("%s: periodic refresh is disabled (%s <= 0)".formatted(EXTENSION_NAME, SETTING_REFRESH_INTERVAL_SECONDS));
         }
     }
 
     @Override
     public void start() {
-        currentDids = loadTrustedIssuerDids();
-        issuerTrust.trustOnly(currentDids);
-        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, currentDids.size()));
-
-        if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
-            scheduledExecutorService.scheduleAtFixedRate(this::refreshSafely, refreshIntervalSeconds, refreshIntervalSeconds,
-                    TimeUnit.SECONDS);
+        try {
+            applyInitialLoad();
+        } catch (Exception e) {
+            monitor.warning(("%s: globalconf is not available yet, the profile keeps its registered trusted issuers and the load "
+                    + "is retried every %d s: %s").formatted(EXTENSION_NAME, PENDING_POLL_INTERVAL_SECONDS, e.getMessage()));
+            schedulePendingPoll();
         }
     }
 
@@ -116,6 +121,38 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     public void shutdown() {
         if (scheduledExecutorService != null) {
             scheduledExecutorService.shutdownNow();
+        }
+    }
+
+    private void applyInitialLoad() {
+        currentDids = loadTrustedIssuerDids();
+        issuerTrust.trustOnly(currentDids);
+        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, currentDids.size()));
+        scheduleRefresh();
+    }
+
+    private void scheduleRefresh() {
+        if (refreshIntervalSeconds > 0 && !scheduledExecutorService.isShutdown()) {
+            scheduledExecutorService.scheduleAtFixedRate(this::refreshSafely, refreshIntervalSeconds, refreshIntervalSeconds,
+                    TimeUnit.SECONDS);
+        }
+    }
+
+    private void schedulePendingPoll() {
+        try {
+            scheduledExecutorService.schedule(this::pollUntilFirstLoad, PENDING_POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        } catch (RejectedExecutionException _) {
+            monitor.debug("%s: shut down, no further issuer trust polls".formatted(EXTENSION_NAME));
+        }
+    }
+
+    private void pollUntilFirstLoad() {
+        try {
+            applyInitialLoad();
+        } catch (Throwable t) {
+            // an escaping exception would end the poll chain, so every failure is swallowed and the next poll is scheduled
+            monitor.debug("%s: globalconf still not available: %s".formatted(EXTENSION_NAME, t.getMessage()));
+            schedulePendingPoll();
         }
     }
 

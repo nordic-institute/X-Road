@@ -56,9 +56,8 @@ import java.util.List;
 public final class ConnectorTlsCaTrustManagerLoader implements PeriodicMaterialReloader.MaterialLoader<X509ExtendedTrustManager> {
 
     /**
-     * Shared by every successful load whose result is reject-all, whether the list came back genuinely empty or
-     * the initial boot-time load failed and fell back to reject-all: the resulting trust posture is identical,
-     * so reusing one fingerprint avoids a spurious "reloaded" cycle the next time the list is confirmed empty.
+     * Fingerprint of every successful load whose result is reject-all, so that a list confirmed empty again does
+     * not count as a changed list and trigger a spurious "reloaded" cycle.
      */
     public static final String REJECT_ALL_FINGERPRINT = "REJECT-ALL";
 
