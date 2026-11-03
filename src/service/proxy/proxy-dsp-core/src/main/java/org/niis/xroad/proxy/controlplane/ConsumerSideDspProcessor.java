@@ -79,6 +79,11 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *       is never the consumer's own negotiation identity.</li>
  * </ul>
  *
+ * <p>A metaservice ({@link BuiltinServiceCodes#METASERVICES}) addressed to a subsystem bypasses DSP
+ * ({@link #bypassesDsp}): metaservices carry no access rights, so the provider's built-in handlers serve
+ * them tokenless over the X-Road 7 path. The set is the union of the SOAP and REST handlers' codes; a
+ * code the handler for that transport does not serve falls to the provider's access-checked default handler.
+ *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
  * {@link ClientFacingErrorPolicy#sanitizeForConsumer(XrdRuntimeException)}.
  */
@@ -101,6 +106,14 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         } catch (XrdRuntimeException ex) {
             throw ClientFacingErrorPolicy.sanitizeForConsumer(ex);
         }
+    }
+
+    @Override
+    public boolean bypassesDsp(DspRequest request) {
+        var serviceId = request.serviceId();
+        return serviceId != null
+                && serviceId.getSubsystemCode() != null
+                && BuiltinServiceCodes.METASERVICES.contains(serviceId.getServiceCode());
     }
 
     @Override

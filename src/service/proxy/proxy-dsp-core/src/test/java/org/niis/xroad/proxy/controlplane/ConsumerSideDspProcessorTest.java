@@ -33,6 +33,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -125,7 +127,7 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void nonWhitelistedServiceUnderManagementSubsystemUsesMemberTargetNotSystem() {
-        var nonWhitelistedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "listMethods");
+        var nonWhitelistedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "otherService");
         when(providerSecurityServerResolver.resolve(nonWhitelistedService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
@@ -207,18 +209,36 @@ class ConsumerSideDspProcessorTest {
         assertThat(result.authorization()).isEqualTo("token-abc");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"listMethods", "allowedMethods", "getWsdl", "getOpenAPI"})
+    void subsystemAddressedMetaserviceBypassesDsp(String serviceCode) {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isTrue();
+    }
+
     @Test
-    void metadataServiceFlowsThroughDspAndReturnsNonNull() {
-        var listMethods = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "listMethods");
-        when(providerSecurityServerResolver.resolve(listMethods, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp/e", null);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any())).thenReturn(expected);
+    void subsystemAddressedMetaserviceWithAVersionBypassesDsp() {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "listMethods", "v1");
 
-        var result = processor.execute(new DspRequest(listMethods, SENDER, null, false));
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isTrue();
+    }
 
-        assertThat(result).isSameAs(expected);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), any(), any(), any());
+    @ParameterizedTest
+    @ValueSource(strings = {"listMethods", "allowedMethods", "getWsdl", "getOpenAPI"})
+    void serverLevelMetaserviceDoesNotBypassDsp(String serviceCode) {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"getSecurityServerMetrics", "getSecurityServerOperationalData",
+            "getSecurityServerHealthData", "testService"})
+    void subsystemAddressedNonMetaserviceDoesNotBypassDsp(String serviceCode) {
+        var service = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(service, SENDER, null, false))).isFalse();
     }
 
     @Test

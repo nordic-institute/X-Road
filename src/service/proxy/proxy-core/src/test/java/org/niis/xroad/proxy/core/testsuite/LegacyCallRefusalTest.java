@@ -45,6 +45,7 @@ import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.core.addon.metaservice.testcases.GetWSDLMessage;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.test.Message;
@@ -65,10 +66,13 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
@@ -205,11 +209,41 @@ class LegacyCallRefusalTest {
     void shouldServeTokenlessMetaserviceRequestWhenTheInstanceRefuses() throws Exception {
         startContext();
         PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
         var request = new Probe("listMethods.query", null);
         request.execute(ctx);
         assertThat(request.faultCode).isNull();
         assertTrue(request.served);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
     }
+
+    @Test
+    void shouldServeTokenlessSubsystemAddressedAllowedMethodsRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new Probe("allowedMethods-subsystem.query", null);
+        request.execute(ctx);
+        assertThat(request.faultCode).isNull();
+        assertTrue(request.served);
+        assertThat(request.aclChecks).hasValue(0);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
+    @Test
+    void shouldServeTokenlessSubsystemAddressedGetWsdlRequestWhenTheInstanceRefuses() throws Exception {
+        startContext();
+        PROXY_TEST_SUITE_HELPER.legacyProtocolDisabledByInstance.put(OWN_INSTANCE, true);
+        stubMetaserviceBypass();
+        var request = new GetWSDLMessage() {
+            {
+                requestFileName = "getWsdl-subsystem.query";
+            }
+        };
+        request.execute(ctx);
+        verify(ctx.getConsumerSideDspProcessor(), never()).execute(any());
+    }
+
     @Test
     void shouldServeTokenlessProxyMonitoringRequestWhenTheInstanceRefuses() throws Exception {
         startContext(monitorReturningMetrics());
@@ -236,6 +270,10 @@ class LegacyCallRefusalTest {
     private String mintToken(ClientId client, ServiceId service) {
         return new AgreementTokenMinter(ctx.getAgreementTokenKeyProvider(), ctx.getAgreementTokenProperties())
                 .mint(new AgreementTokenGrant("agreement-1", client, service, List.of(new AgreementTokenScope("*", "**"))));
+    }
+
+    private void stubMetaserviceBypass() {
+        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(true);
     }
 
     private void stubAssetAccess(ClientId client, ServiceId service) {
