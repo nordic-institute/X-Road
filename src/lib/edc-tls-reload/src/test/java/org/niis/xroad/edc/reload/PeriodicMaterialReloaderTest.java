@@ -39,7 +39,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -235,34 +234,6 @@ class PeriodicMaterialReloaderTest {
         }
         verify(monitor, timeout(1000)).info("test: still waiting for material after 12 polls: slot is empty");
         verify(monitor, times(1)).warning("test: material not available yet: slot is empty");
-    }
-
-    @Test
-    void aLoaderReturningANullFingerprintIsRejectedWithoutFiringOnChange() {
-        var attempts = new AtomicInteger();
-        var applied = new ConcurrentLinkedQueue<String>();
-
-        var reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3, RETRY_DELAY,
-                () -> {
-                    attempts.incrementAndGet();
-                    return new PeriodicMaterialReloader.Loaded<>("v1", null);
-                },
-                applied::add, monitor);
-        try {
-            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() >= 4);
-        } finally {
-            reloader.close();
-        }
-
-        assertThat(applied).isEmpty();
-        verify(monitor, times(1)).warning("test: material not available yet: Loaded material must carry a fingerprint");
-    }
-
-    @Test
-    void nullFingerprintMaterialCannotBeConstructed() {
-        assertThatThrownBy(() -> new PeriodicMaterialReloader.Loaded<>("v1", null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("fingerprint");
     }
 
     @Test

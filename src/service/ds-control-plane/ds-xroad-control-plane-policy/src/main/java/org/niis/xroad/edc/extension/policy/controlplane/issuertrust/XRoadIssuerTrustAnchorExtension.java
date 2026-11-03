@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Set;
@@ -68,7 +69,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     static final String SETTING_REFRESH_INTERVAL_SECONDS = "xroad.dsp.issuer-trust.refresh-interval-seconds";
 
     private static final long DEFAULT_REFRESH_INTERVAL_SECONDS = 60L;
-    private static final long PENDING_POLL_INTERVAL_SECONDS = 5L;
+    private static final long PENDING_POLL_INTERVAL_SECONDS = PeriodicMaterialReloader.DEFAULT_PENDING_INTERVAL.toSeconds();
 
     @Setting(key = SETTING_REFRESH_INTERVAL_SECONDS,
             description = "Period (in seconds) at which the trusted issuer set is refreshed from globalconf; <= 0 disables the refresh",

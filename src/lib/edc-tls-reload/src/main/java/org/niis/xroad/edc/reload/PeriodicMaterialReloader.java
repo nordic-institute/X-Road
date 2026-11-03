@@ -60,6 +60,9 @@ import java.util.function.Consumer;
  */
 public final class PeriodicMaterialReloader<T> implements AutoCloseable {
 
+    /** How often a reloader started without material polls for it. */
+    public static final Duration DEFAULT_PENDING_INTERVAL = Duration.ofSeconds(5);
+
     private static final int PENDING_PROGRESS_EVERY_CYCLES = 12;
 
     private final String name;
@@ -241,11 +244,5 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     }
 
     public record Loaded<T>(T material, String fingerprint) {
-
-        public Loaded {
-            if (fingerprint == null) {
-                throw new IllegalArgumentException("Loaded material must carry a fingerprint");
-            }
-        }
     }
 }

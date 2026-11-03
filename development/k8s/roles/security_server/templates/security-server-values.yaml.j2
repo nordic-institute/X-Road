@@ -186,19 +186,6 @@ services:
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1
-{% if ds_tls and svc in ['ds-identity-hub', 'ds-issuer-service'] %}
-    # Probe the plain-HTTP quarkus health port, never an EDC web port: those
-    # serve TLS, and Jetty's sniHostCheck rejects kubelet's by-IP probes
-    # (400 Invalid SNI).
-    readinessProbe:
-      path: "/q/health/ready"
-      port: 4099
-      scheme: "HTTP"
-    livenessProbe:
-      path: "/q/health/live"
-      port: 4099
-      scheme: "HTTP"
-{% endif %}
 {# Only these two need service-specific env entries here (DSP callback address for
    ds-control-plane, public DID hostname for ds-identity-hub). ds-issuer-service has
    none - it is not "excluded"; EDC_IAM_DID_WEB_USE_HTTPS is no longer set per-service

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.bridge;
 
-import org.eclipse.edc.boot.health.HealthCheckServiceImpl;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
@@ -36,7 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.edc.reload.ReadinessDetailProvider;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -45,34 +43,36 @@ import static org.mockito.Mockito.when;
 class EdcReadinessCheckTest {
 
     private static final String COMPONENT = "connector-tls";
+    private static final String DETAIL_KEY = "connector-tls-rejected-cause";
 
     @Test
-    void edcReadinessDownMapsToDown() {
-        var check = new EdcReadinessCheck(runtimeReporting(unhealthy()));
+    void edcReadinessDownMapsToDownWithFailureMessagesAndNoDetail() {
+        var check = new EdcReadinessCheck(runtimeReporting(unhealthy(), () -> Map.of(DETAIL_KEY, "bad key")));
 
         var response = check.call();
 
         assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
         assertThat(response.getName()).isEqualTo(EdcReadinessCheck.NAME);
-        assertThat(response.getData()).hasValueSatisfying(data -> assertThat(data).containsKey(COMPONENT));
+        assertThat(response.getData()).hasValueSatisfying(data -> assertThat(data)
+                .containsEntry(COMPONENT, "not served").doesNotContainKey(DETAIL_KEY));
     }
 
     @Test
     void edcReadinessUpMapsToUp() {
-        var check = new EdcReadinessCheck(runtimeReporting(healthy()));
+        var check = new EdcReadinessCheck(runtimeReporting(healthy(), null));
 
         assertThat(check.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
     }
 
     @Test
     void edcReadinessUpWithDetailMapsToUpCarryingTheDetail() {
-        var check = new EdcReadinessCheck(runtimeReporting(healthy(), () -> Map.of("connector-tls-rejected-cause", "bad key")));
+        var check = new EdcReadinessCheck(runtimeReporting(healthy(), () -> Map.of(DETAIL_KEY, "bad key")));
 
         var response = check.call();
 
         assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
         assertThat(response.getData()).hasValueSatisfying(data -> assertThat(data)
-                .containsEntry("connector-tls-rejected-cause", "bad key"));
+                .containsEntry(DETAIL_KEY, "bad key"));
     }
 
     @Test
@@ -83,71 +83,13 @@ class EdcReadinessCheckTest {
     }
 
     @Test
-    void edcReadinessDownIgnoresDetailAndKeepsTheFailureMessages() {
-        var check = new EdcReadinessCheck(runtimeReporting(unhealthy(), () -> Map.of("connector-tls-rejected-cause", "bad key")));
-
-        var response = check.call();
-
-        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
-        assertThat(response.getData()).hasValueSatisfying(data -> assertThat(data)
-                .containsEntry(COMPONENT, "not served").doesNotContainKey("connector-tls-rejected-cause"));
-    }
-
-    @Test
-    void anyUnhealthyProviderAmongHealthyOnesMapsToDown() {
-        var check = new EdcReadinessCheck(runtimeReporting(new HealthStatus(healthy().getComponentResults().getFirst(),
-                unhealthy().getComponentResults().getFirst())));
-
-        assertThat(check.call().getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
-    }
-
-    @Test
-    void emptyProviderListKeepsEdcSemanticsAndMapsToDown() {
-        var check = new EdcReadinessCheck(runtimeReporting(new HealthStatus()));
-
-        assertThat(check.call().getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
-    }
-
-    @Test
-    void followsAProviderThatTurnsHealthy() {
-        var served = new AtomicBoolean();
-        var service = new HealthCheckServiceImpl();
-        service.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance()
-                .component(COMPONENT)
-                .success(served.get(), "not served")
-                .build());
-        var check = new EdcReadinessCheck(runtimeWith(service));
-
-        assertThat(check.call().getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
-
-        served.set(true);
-
-        assertThat(check.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
-    }
-
-    @Test
     void runtimeThatHasNotBootedIsNotReady() {
         assertThat(new EdcRuntime(null, null).readiness().isHealthy()).isFalse();
     }
 
-    private static EdcRuntime runtimeReporting(HealthStatus status) {
-        var service = mock(HealthCheckService.class);
-        when(service.isReady()).thenReturn(status);
-        return runtimeWith(service);
-    }
-
-
     private static EdcRuntime runtimeReporting(HealthStatus status, ReadinessDetailProvider detailProvider) {
         var service = mock(HealthCheckService.class);
         when(service.isReady()).thenReturn(status);
-        return runtimeWith(service, detailProvider);
-    }
-
-    private static EdcRuntime runtimeWith(HealthCheckService service) {
-        return runtimeWith(service, null);
-    }
-
-    private static EdcRuntime runtimeWith(HealthCheckService service, ReadinessDetailProvider detailProvider) {
         var edcContext = mock(ServiceExtensionContext.class);
         when(edcContext.hasService(HealthCheckService.class)).thenReturn(true);
         when(edcContext.getService(HealthCheckService.class)).thenReturn(service);

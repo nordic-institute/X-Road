@@ -37,25 +37,17 @@ import org.eclipse.edc.spi.system.health.ReadinessProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.ScriptedLoader;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
-import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -64,6 +56,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.unusable;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.usable;
 
 class XRoadJettyExtensionTest {
 
@@ -286,22 +280,6 @@ class XRoadJettyExtensionTest {
         return captor.getValue();
     }
 
-    private static Loaded<KeyStore> usable(String fingerprint, TestCertUtil.PKCS12 credentials) throws Exception {
-        var keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, InternalSSLKey.getKEY_PASSWORD(), credentials.certChain);
-        return new Loaded<>(keyStore, fingerprint);
-    }
-
-    private static Loaded<KeyStore> unusable(String fingerprint) throws Exception {
-        var keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        var credentials = TestCertUtil.getInternalKey();
-        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, "not-the-keystore-password".toCharArray(),
-                credentials.certChain);
-        return new Loaded<>(keyStore, fingerprint);
-    }
-
     private static Loaded<KeyStore> mismatched(String fingerprint) throws Exception {
         var keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, null);
@@ -319,52 +297,11 @@ class XRoadJettyExtensionTest {
     }
 
     private X509Certificate servedCertificate() throws Exception {
-        var trustAll = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
-                // trust-all test client: every certificate is accepted
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
-                // trust-all test client: every certificate is accepted
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        };
-        var sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[] {trustAll}, new SecureRandom());
-        try (var socket = (SSLSocket) sslContext.getSocketFactory().createSocket("localhost", port)) {
-            socket.startHandshake();
-            return (X509Certificate) socket.getSession().getPeerCertificates()[0];
-        }
+        return ConnectorTlsTestSupport.servedCertificate(port);
     }
 
     private static boolean reloaderThreadAlive() {
         return Thread.getAllStackTraces().keySet().stream()
                 .anyMatch(thread -> RELOAD_THREAD.equals(thread.getName()) && thread.isAlive());
-    }
-
-    private static final class ScriptedLoader implements MaterialLoader<KeyStore> {
-
-        private final AtomicReference<Loaded<KeyStore>> current = new AtomicReference<>();
-        private final AtomicInteger loads = new AtomicInteger();
-
-        void serve(Loaded<KeyStore> material) {
-            current.set(material);
-        }
-
-        @Override
-        public Loaded<KeyStore> load() {
-            loads.incrementAndGet();
-            var material = current.get();
-            if (material == null) {
-                throw new IllegalStateException("slot is empty");
-            }
-            return material;
-        }
     }
 }

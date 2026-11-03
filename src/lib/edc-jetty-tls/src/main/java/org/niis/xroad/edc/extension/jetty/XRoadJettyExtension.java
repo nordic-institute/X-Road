@@ -70,7 +70,6 @@ public class XRoadJettyExtension implements ServiceExtension {
     private static final String DEFAULT_PATH = "/api";
     private static final int DEFAULT_PORT = 8181;
     private static final String KEYSTORE_MATERIAL_NAME = "ds-https-keystore";
-    private static final Duration PENDING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
 
@@ -102,7 +101,7 @@ public class XRoadJettyExtension implements ServiceExtension {
     private PeriodicMaterialReloader<?> reloader;
 
     public XRoadJettyExtension() {
-        pendingPollInterval = PENDING_POLL_INTERVAL;
+        pendingPollInterval = PeriodicMaterialReloader.DEFAULT_PENDING_INTERVAL;
     }
 
     XRoadJettyExtension(HealthCheckService healthCheckService, MaterialLoader<KeyStore> loader, int defaultPort,

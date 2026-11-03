@@ -35,6 +35,7 @@ import java.time.Instant;
  * @param cause          why the material was refused
  * @param since          when the first of the currently rejected materials was refused
  * @param servedNotAfter when the certificate that keeps being served expires
+ * @param reportedAt     when this fingerprint and cause were last written to the log
  */
-record MaterialRejection(String fingerprint, String cause, Instant since, Instant servedNotAfter) {
+record MaterialRejection(String fingerprint, String cause, Instant since, Instant servedNotAfter, Instant reportedAt) {
 }

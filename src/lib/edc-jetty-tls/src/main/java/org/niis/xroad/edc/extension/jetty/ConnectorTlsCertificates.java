@@ -28,18 +28,20 @@ package org.niis.xroad.edc.extension.jetty;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
 
 /**
  * Checks and describes the certificate in a connector TLS keystore. A private key that does not belong to its
@@ -48,7 +50,6 @@ import java.util.stream.Collectors;
  */
 final class ConnectorTlsCertificates {
 
-    private static final String FINGERPRINT_ALGORITHM = "SHA-256";
     private static final byte[] PROBE = "connector-tls-key-pair-probe".getBytes(StandardCharsets.UTF_8);
     private static final String UNKNOWN = "unknown";
 
@@ -77,13 +78,6 @@ final class ConnectorTlsCertificates {
         }
     }
 
-    static String fingerprint(X509Certificate certificate) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance(FINGERPRINT_ALGORITHM).digest(certificate.getEncoded()));
-        } catch (GeneralSecurityException e) {
-            throw new ConnectorTlsKeyStoreLoadException("Cannot fingerprint the connector TLS certificate", e);
-        }
-    }
 
     /**
      * The fingerprint of the keystore's connector TLS certificate, or {@code unknown} when it cannot be read.
@@ -91,16 +85,16 @@ final class ConnectorTlsCertificates {
     static String fingerprintOrUnknown(KeyStore keyStore) {
         try {
             return keyStore.getCertificate(InternalSSLKey.KEY_ALIAS) instanceof X509Certificate certificate
-                    ? fingerprint(certificate)
+                    ? calculateCertHexHashOrThrow(certificate)
                     : UNKNOWN;
-        } catch (GeneralSecurityException | ConnectorTlsKeyStoreLoadException _) {
+        } catch (GeneralSecurityException | XrdRuntimeException _) {
             return UNKNOWN;
         }
     }
 
     static String describe(X509Certificate certificate) {
         return "%s (SAN %s, SHA-256 %s, expires %s)".formatted(certificate.getSubjectX500Principal().getName(),
-                subjectAlternativeNames(certificate), fingerprint(certificate), certificate.getNotAfter().toInstant());
+                subjectAlternativeNames(certificate), calculateCertHexHashOrThrow(certificate), certificate.getNotAfter().toInstant());
     }
 
     private static String subjectAlternativeNames(X509Certificate certificate) {

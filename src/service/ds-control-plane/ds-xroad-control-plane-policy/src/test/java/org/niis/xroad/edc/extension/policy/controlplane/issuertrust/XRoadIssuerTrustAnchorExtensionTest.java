@@ -41,16 +41,31 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
+import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -58,26 +73,40 @@ class XRoadIssuerTrustAnchorExtensionTest {
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final String PROFILE_NAME = "test-profile";
+    private static final String REGISTERED_DID = "did:web:registered.example.test%3A6183:issuer";
     private static final String DID_1 = "did:web:cs1.example.test%3A6183:issuer";
     private static final String DID_2 = "did:web:cs2.example.test%3A6183:issuer";
 
     private final GlobalConfProvider globalConfProvider = mock();
     private final DataspaceProfileContextRegistry profileRegistry = new DataspaceProfileContextRegistryImpl();
 
+    private ScheduledExecutorService scheduler;
     private XRoadIssuerTrustAnchorExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
+        var instrumentation = new ExecutorInstrumentation() {
+
+            @Override
+            public ScheduledExecutorService instrument(ScheduledExecutorService executor, String name) {
+                if (scheduler == null) {
+                    return executor;
+                }
+                executor.shutdownNow();
+                return scheduler;
+            }
+        };
         context.registerService(GlobalConfProvider.class, globalConfProvider);
         context.registerService(DataspaceProfileContextRegistry.class, profileRegistry);
-        context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
+        context.registerService(ExecutorInstrumentation.class, instrumentation);
         profileRegistry.registerDefault(new DataspaceProfileContext(PROFILE_NAME,
                 new ProtocolVersion("2025-1", "/" + PROFILE_NAME, "HTTPS"),
                 () -> "https://localhost/dsp/" + PROFILE_NAME,
                 claimToken -> "participant",
                 new JsonLdNamespace("https://w3id.org/dspace/2025/1/"),
                 List.of(),
-                List.of()));
+                List.of(TrustedIssuer.Builder.newInstance().id(REGISTERED_DID)
+                        .supportedTypes(List.of(TrustedIssuer.WILDCARD_TYPE)).build())));
     }
 
     @AfterEach
@@ -147,6 +176,69 @@ class XRoadIssuerTrustAnchorExtensionTest {
 
         await().atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> assertThat(trustedIssuerDids()).containsExactly(DID_2));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = GlobalConfInitState.class, names = {"UNINITIALIZED", "FAILURE_MALFORMED"})
+    void startCompletesWhileGlobalConfIsNotAvailable(GlobalConfInitState state, ServiceExtensionContext context,
+                                                     ObjectFactory factory) {
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(new GlobalConfInitException(state));
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
+        extension.initialize(context);
+
+        assertThatCode(extension::start).doesNotThrowAnyException();
+    }
+
+    @Test
+    void theProfileKeepsItsRegisteredIssuersAndNothingIsRefreshedUntilTheFirstLoad(ServiceExtensionContext context,
+                                                                                    ObjectFactory factory) {
+        startWithGlobalConfUnavailable(context, factory);
+
+        assertThat(trustedIssuerDids()).containsExactly(REGISTERED_DID);
+        verify(scheduler).schedule(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
+        verify(scheduler, never()).scheduleAtFixedRate(any(), anyLong(), anyLong(), any());
+    }
+
+    @Test
+    void theFirstPollAfterGlobalConfArrivesTrustsTheDistributedIssuersAndSwitchesToTheNormalRefresh(
+            ServiceExtensionContext context, ObjectFactory factory) {
+        startWithGlobalConfUnavailable(context, factory);
+        var poll = capturePendingPoll(1);
+        doReturn(INSTANCE_IDENTIFIER).when(globalConfProvider).getInstanceIdentifier();
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1));
+
+        poll.run();
+
+        assertThat(trustedIssuerDids()).containsExactly(DID_1);
+        verify(scheduler).scheduleAtFixedRate(any(), eq(60L), eq(60L), eq(TimeUnit.SECONDS));
+        verify(scheduler, times(1)).schedule(any(Runnable.class), anyLong(), any());
+    }
+
+    @Test
+    void aPollThatStillFindsNoGlobalConfSchedulesAnother5SecondPoll(ServiceExtensionContext context, ObjectFactory factory) {
+        startWithGlobalConfUnavailable(context, factory);
+        var poll = capturePendingPoll(1);
+
+        poll.run();
+
+        verify(scheduler, times(2)).schedule(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
+        verify(scheduler, never()).scheduleAtFixedRate(any(), anyLong(), anyLong(), any());
+        assertThat(trustedIssuerDids()).containsExactly(REGISTERED_DID);
+    }
+
+    private void startWithGlobalConfUnavailable(ServiceExtensionContext context, ObjectFactory factory) {
+        scheduler = mock();
+        when(globalConfProvider.getInstanceIdentifier())
+                .thenThrow(new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED));
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
+        extension.initialize(context);
+        extension.start();
+    }
+
+    private Runnable capturePendingPoll(int expectedSchedules) {
+        var captor = ArgumentCaptor.forClass(Runnable.class);
+        verify(scheduler, times(expectedSchedules)).schedule(captor.capture(), eq(5L), eq(TimeUnit.SECONDS));
+        return captor.getValue();
     }
 
     private List<String> trustedIssuerDids() {

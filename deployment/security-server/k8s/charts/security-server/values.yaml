@@ -536,7 +536,7 @@ services:
     #                        classification pending an ADR-42 amendment (not decided here)
     #   5461 control-plane — internal, xroad.common-rpc.channel.control-plane: X-Road gRPC-over-mTLS
     #                        (XRDADR-38), not DS TLS; provisioning channel, same trust as signer/proxy
-    #   4099 health       — internal, Quarkus SmallRye health (/q/health); k8s probe only
+    #   4099 health       — internal, Quarkus SmallRye health (/q/health/live, /q/health/ready); k8s probe only
     #   9999 debug        — internal, JDWP debug agent (dev only)
     ports:
       - port: 8181

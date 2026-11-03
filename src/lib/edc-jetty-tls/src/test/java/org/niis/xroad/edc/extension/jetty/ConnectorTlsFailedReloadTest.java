@@ -29,7 +29,6 @@ package org.niis.xroad.edc.extension.jetty;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -41,42 +40,41 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.ScriptedLoader;
 import org.niis.xroad.edc.reload.MaterialRejectedException;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
 import org.niis.xroad.edc.reload.ReadinessDetailProvider;
+import org.niis.xroad.test.MutableClock;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.WRONG_KEY_PASSWORD;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStoreOf;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.wrongKeyPassword;
 
 class ConnectorTlsFailedReloadTest {
 
@@ -96,6 +94,7 @@ class ConnectorTlsFailedReloadTest {
         public void severe(String message, Throwable... errors) {
             severes.add(message);
         }
+
         @Override
         public void info(String message, Throwable... errors) {
             infos.add(message);
@@ -120,53 +119,44 @@ class ConnectorTlsFailedReloadTest {
         }
     }
 
-    @Test
-    void aReloadThatJettyCannotLoadKeepsServingThePreviousCertificate() throws Exception {
-        startService(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
-
-        assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
-        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(wrongKeyPassword()))
-                .isInstanceOf(MaterialRejectedException.class);
-        assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
-        assertThat(jettyService.isServingConnectorTls()).isTrue();
-        assertThat(sharedSslContextFactory().getSslContext()).isNotNull();
-        assertThat(jettyService.rejection()).isPresent();
-    }
-
-    @Test
-    void aKeyStoreThatOnlyJettyCannotLoadIsRejectedByTheThrowawayLoadBeforeTheLiveFactoryIsTouched() throws Exception {
-        startService(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
-        var extraEntryWithOtherPassword = keyStoreOf(TestCertUtil.getOcspSigner(), InternalSSLKey.getKEY_PASSWORD());
+    static Stream<Arguments> materialsJettyCannotLoad() throws Exception {
+        var wrongPassword = wrongKeyPassword();
+        var extraEntryWithOtherPassword = keyStoreOf(TestCertUtil.getOcspSigner());
         extraEntryWithOtherPassword.setKeyEntry("extra", TestCertUtil.getInternalKey().key, "other".toCharArray(),
                 TestCertUtil.getInternalKey().certChain);
-
-        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(extraEntryWithOtherPassword))
-                .isInstanceOf(MaterialRejectedException.class)
-                .hasMessageContaining("cannot be loaded by Jetty");
-        assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
-        assertThat(sharedSslContextFactory().getSslContext()).isNotNull();
+        return Stream.of(
+                argumentSet("key entry with a wrong password", wrongPassword, "",
+                        ConnectorTlsCertificates.fingerprintOrUnknown(wrongPassword)),
+                argumentSet("extra entry with another password", extraEntryWithOtherPassword, "cannot be loaded by Jetty",
+                        ConnectorTlsCertificates.fingerprintOrUnknown(extraEntryWithOtherPassword)),
+                argumentSet("uninitialized keystore", KeyStore.getInstance("PKCS12"), "", "unknown"));
     }
 
-    @Test
-    void anUninitializedKeyStoreIsRejectedAndTheServedCertificateStays() throws Exception {
-        startService(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
+    @ParameterizedTest
+    @MethodSource("materialsJettyCannotLoad")
+    void materialThatJettyCannotLoadIsRejectedAndThePreviousCertificateKeepsBeingServed(
+            KeyStore material, String messagePart, String fingerprint) throws Exception {
+        startService(keyStoreOf(TestCertUtil.getInternalKey()));
 
-        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(KeyStore.getInstance("PKCS12")))
-                .isInstanceOf(MaterialRejectedException.class);
+        assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
+        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(material))
+                .isInstanceOf(MaterialRejectedException.class)
+                .hasMessageContaining(messagePart);
         assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
         assertThat(jettyService.isServingConnectorTls()).isTrue();
-        assertThat(jettyService.rejection()).hasValueSatisfying(rejection -> assertThat(rejection.fingerprint()).isEqualTo("unknown"));
+        assertThat(sharedSslContextFactory().getSslContext()).isNotNull();
+        assertThat(jettyService.rejection()).hasValueSatisfying(rejection -> assertThat(rejection.fingerprint()).isEqualTo(fingerprint));
     }
 
     @Test
     void aLaterUsableReloadServesTheNewCertificateAndClearsTheRejection() throws Exception {
-        startService(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
+        startService(keyStoreOf(TestCertUtil.getInternalKey()));
 
         assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(wrongKeyPassword()))
                 .isInstanceOf(MaterialRejectedException.class);
         assertThat(jettyService.rejection()).isPresent();
 
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner(), InternalSSLKey.getKEY_PASSWORD()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
 
         assertThat(servedCertificate()).isEqualTo(TestCertUtil.getOcspSigner().certChain[0]);
         assertThat(jettyService.rejection()).isEmpty();
@@ -215,27 +205,8 @@ class ConnectorTlsFailedReloadTest {
     }
 
     @Test
-    void theLoaderRejectsAChainWhoseCertificatesDoNotLinkBeforeJettySeesIt() throws Exception {
-        var vaultClient = mock(VaultClient.class);
-        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(TestCertUtil.getInternalKey().key,
-                new X509Certificate[] {TestCertUtil.getInternalKey().certChain[0], TestCertUtil.getOcspSigner().certChain[0]}));
-
-        assertThatThrownBy(() -> new DsHttpsKeyStoreLoader(vaultClient).load())
-                .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
-                .hasMessageContaining("Failed to build the connector TLS keystore");
-    }
-
-    @Test
-    void corruptPemMaterialFailsWhileParsingBeforeTheLoaderBuildsAKeyStore() {
-        var corrupt = "-----BEGIN PRIVATE KEY-----\nbm90IGEga2V5\n-----END PRIVATE KEY-----\n";
-
-        assertThatThrownBy(() -> CryptoUtils.getPrivateKey(new ByteArrayInputStream(corrupt.getBytes(StandardCharsets.UTF_8))))
-                .isInstanceOf(Exception.class);
-    }
-
-    @Test
     void aSevereLineNamesTheServedCertificateOncePerCauseAndRemindsHourlyWhileTheRejectionPersists() throws Exception {
-        startService(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
+        startService(keyStoreOf(TestCertUtil.getInternalKey()));
         var bad = wrongKeyPassword();
         rejectTimes(bad, 3);
 
@@ -256,10 +227,10 @@ class ConnectorTlsFailedReloadTest {
 
     @Test
     void noReminderAfterAGoodReloadClearedTheRejectionAndANewRejectionIsReportedAsNew() throws Exception {
-        startService(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
+        startService(keyStoreOf(TestCertUtil.getInternalKey()));
         var bad = wrongKeyPassword();
         rejectTimes(bad, 1);
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner(), InternalSSLKey.getKEY_PASSWORD()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
         clock.advance(Duration.ofHours(3));
 
         assertThat(severes).hasSize(1);
@@ -273,7 +244,7 @@ class ConnectorTlsFailedReloadTest {
     @Test
     void aRejectedRotationOverSeveralReloadCyclesIsLoggedOnceAndNeverRetried() throws Exception {
         var loader = new ScriptedLoader();
-        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()), "good"));
+        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey()), "good"));
         var healthCheckService = startExtension(loader);
         var readiness = readinessProvider(healthCheckService);
 
@@ -296,7 +267,7 @@ class ConnectorTlsFailedReloadTest {
     @Test
     void aRotationTheLoaderRejectsKeepsServingThePreviousCertificate() throws Exception {
         var loader = new ScriptedLoader();
-        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()), "good"));
+        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey()), "good"));
         var healthCheckService = startExtension(loader);
         var readiness = readinessProvider(healthCheckService);
 
@@ -312,7 +283,7 @@ class ConnectorTlsFailedReloadTest {
     @Test
     void aRotationRejectedAndThenRestoredToTheServedMaterialClearsTheRejectionWithOneInfoLine() throws Exception {
         var loader = new ScriptedLoader();
-        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()), "good"));
+        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey()), "good"));
         var healthCheckService = startExtension(loader);
         var readiness = readinessProvider(healthCheckService);
         var service = registeredJettyService();
@@ -320,7 +291,7 @@ class ConnectorTlsFailedReloadTest {
         loader.serve(new Loaded<>(wrongKeyPassword(), "rotated-unusable"));
         await().atMost(AWAIT).until(() -> service.rejection().isPresent());
         assertThat(((ReadinessDetailProvider) readiness).readinessDetail()).isNotEmpty();
-        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()), "good"));
+        loader.serve(new Loaded<>(keyStoreOf(TestCertUtil.getInternalKey()), "good"));
         await().atMost(AWAIT).until(() -> service.rejection().isEmpty());
         var loadsAtRecovery = loader.loads.get();
         await().atMost(AWAIT).until(() -> loader.loads.get() >= loadsAtRecovery + 3);
@@ -328,6 +299,7 @@ class ConnectorTlsFailedReloadTest {
         assertThat(infos).filteredOn(message -> message.contains("rejection cleared")).hasSize(1);
         assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
     }
+
     @Test
     void aLiveFactoryThatFailsWhileReloadingIsPutBackToTheServedKeyStore() throws Exception {
         var created = new AtomicReference<FailingOnceFactory>();
@@ -338,16 +310,16 @@ class ConnectorTlsFailedReloadTest {
             created.set(new FailingOnceFactory(keyStore));
             return created.get();
         });
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey(), InternalSSLKey.getKEY_PASSWORD()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
         jettyService.start();
         assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
         created.get().failNextReload();
-        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(
-                keyStoreOf(TestCertUtil.getOcspSigner(), InternalSSLKey.getKEY_PASSWORD())))
+        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner())))
                 .isInstanceOf(MaterialRejectedException.class);
         assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
         assertThat(jettyService.rejection()).isPresent();
     }
+
     @Test
     void anEmptyOpenBaoSlotKeepsTheServiceNotReadyAndSaysSo() throws Exception {
         var vaultClient = mock(VaultClient.class);
@@ -359,17 +331,20 @@ class ConnectorTlsFailedReloadTest {
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureDetail()).contains("slot empty");
     }
+
     private XRoadJettyService registeredJettyService() {
         var captor = ArgumentCaptor.forClass(XRoadJettyService.class);
         verify(extensionContext).registerService(eq(XRoadJettyService.class), captor.capture());
         return captor.getValue();
     }
+
     private void rejectTimes(KeyStore keyStore, int times) {
         for (var i = 0; i < times; i++) {
             assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(keyStore))
                     .isInstanceOf(MaterialRejectedException.class);
         }
     }
+
     private void startService(KeyStore initial) {
         port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
@@ -403,60 +378,23 @@ class ConnectorTlsFailedReloadTest {
         return captor.getValue();
     }
 
-    private static KeyStore keyStoreOf(TestCertUtil.PKCS12 credentials, char[] keyPassword) throws Exception {
-        var keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, keyPassword, credentials.certChain);
-        return keyStore;
-    }
-
-    private static KeyStore wrongKeyPassword() throws Exception {
-        return keyStoreOf(TestCertUtil.getOcspSigner(), "not-the-keystore-password".toCharArray());
-    }
-
-    private boolean portAcceptsTcp() {
-        try (var socket = new Socket("localhost", port)) {
-            return socket.isConnected();
-        } catch (IOException _) {
-            return false;
-        }
-    }
-
     private X509Certificate servedCertificate() throws Exception {
-        var trustAll = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
-                // trust-all test client: every certificate is accepted
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
-                // trust-all test client: every certificate is accepted
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        };
-        var sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[] {trustAll}, new SecureRandom());
-        try (var socket = (SSLSocket) sslContext.getSocketFactory().createSocket("localhost", port)) {
-            socket.setSoTimeout((int) Duration.ofSeconds(5).toMillis());
-            socket.startHandshake();
-            return (X509Certificate) socket.getSession().getPeerCertificates()[0];
-        }
+        return ConnectorTlsTestSupport.servedCertificate(port);
     }
 
     private static final class FailingOnceFactory extends SslContextFactory.Server {
+
         private final AtomicReference<Boolean> failNext = new AtomicReference<>(false);
+
         FailingOnceFactory(KeyStore keyStore) {
             setKeyStore(keyStore);
             resetPasswords();
         }
+
         void failNextReload() {
             failNext.set(true);
         }
+
         @Override
         public void reload(Consumer<SslContextFactory> consumer) throws Exception {
             if (!failNext.getAndSet(false)) {
@@ -466,41 +404,17 @@ class ConnectorTlsFailedReloadTest {
             try {
                 super.reload(factory -> {
                     consumer.accept(factory);
-                    factory.setKeyStorePassword("not-the-keystore-password");
-                    factory.setKeyManagerPassword("not-the-keystore-password");
+                    factory.setKeyStorePassword(WRONG_KEY_PASSWORD);
+                    factory.setKeyManagerPassword(WRONG_KEY_PASSWORD);
                 });
             } finally {
                 resetPasswords();
             }
         }
+
         private void resetPasswords() {
             setKeyStorePassword(new String(InternalSSLKey.getKEY_PASSWORD()));
             setKeyManagerPassword(new String(InternalSSLKey.getKEY_PASSWORD()));
-        }
-    }
-    private static final class ScriptedLoader implements MaterialLoader<KeyStore> {
-
-        private final AtomicReference<Loaded<KeyStore>> current = new AtomicReference<>();
-        private final AtomicReference<RuntimeException> failure = new AtomicReference<>();
-        private final AtomicInteger loads = new AtomicInteger();
-
-        void serve(Loaded<KeyStore> material) {
-            failure.set(null);
-            current.set(material);
-        }
-
-        void fail(RuntimeException exception) {
-            failure.set(exception);
-        }
-
-        @Override
-        public Loaded<KeyStore> load() {
-            loads.incrementAndGet();
-            var exception = failure.get();
-            if (exception != null) {
-                throw exception;
-            }
-            return current.get();
         }
     }
 }

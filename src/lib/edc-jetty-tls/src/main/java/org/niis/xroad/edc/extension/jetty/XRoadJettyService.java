@@ -107,8 +107,6 @@ public final class XRoadJettyService implements WebServer {
     private SslContextFactory.Server sslContextFactory;
     private KeyStore servedKeyStore;
     private volatile X509Certificate servedCertificate;
-    private String lastLoggedRejection;
-    private Instant lastLoggedRejectionAt;
     private Server server;
     private volatile boolean connectorsOpen;
     private volatile boolean stopped;
@@ -235,8 +233,6 @@ public final class XRoadJettyService implements WebServer {
                     .formatted(ConnectorTlsCertificates.describe(servedCertificate)));
         }
         rejection = null;
-        lastLoggedRejection = null;
-        lastLoggedRejectionAt = null;
     }
 
     private void loadInThrowawayFactory(KeyStore keyStore) {
@@ -259,28 +255,26 @@ public final class XRoadJettyService implements WebServer {
         var cause = describeCause(failure);
         var fingerprint = ConnectorTlsCertificates.fingerprintOrUnknown(keyStore);
         var previous = rejection;
-        rejection = new MaterialRejection(fingerprint, cause, previous == null ? now : previous.since(),
-                servedCertificate.getNotAfter().toInstant());
-        reportRejection(failure, now, fingerprint, cause);
+        var changed = previous == null || !previous.fingerprint().equals(fingerprint) || !previous.cause().equals(cause);
+        var report = changed || Duration.between(previous.reportedAt(), now).compareTo(REJECTION_REMINDER_INTERVAL) >= 0;
+        var recorded = new MaterialRejection(fingerprint, cause, previous == null ? now : previous.since(),
+                servedCertificate.getNotAfter().toInstant(), report ? now : previous.reportedAt());
+        rejection = recorded;
+        if (report) {
+            reportRejection(recorded, failure, changed);
+        }
         return new MaterialRejectedException(
                 "Connector TLS material rejected, still serving %s: %s".formatted(
                         ConnectorTlsCertificates.describe(servedCertificate), cause), failure);
     }
 
-    private void reportRejection(ConnectorTlsKeyStoreLoadException failure, Instant now, String fingerprint, String cause) {
-        var key = fingerprint + ":" + cause;
-        var changed = !key.equals(lastLoggedRejection);
-        if (!changed && Duration.between(lastLoggedRejectionAt, now).compareTo(REJECTION_REMINDER_INTERVAL) < 0) {
-            return;
-        }
-        lastLoggedRejection = key;
-        lastLoggedRejectionAt = now;
+    private void reportRejection(MaterialRejection current, ConnectorTlsKeyStoreLoadException failure, boolean changed) {
         var served = ConnectorTlsCertificates.describe(servedCertificate);
-        var rejectedSince = rejection.since();
         monitor.severe(changed
-                ? "Connector TLS material rejected (fingerprint %s): %s. Still serving %s".formatted(fingerprint, cause, served)
+                ? "Connector TLS material rejected (fingerprint %s): %s. Still serving %s"
+                        .formatted(current.fingerprint(), current.cause(), served)
                 : "Connector TLS material is still rejected since %s (fingerprint %s): %s. Still serving %s"
-                        .formatted(rejectedSince, fingerprint, cause, served), failure);
+                        .formatted(current.since(), current.fingerprint(), current.cause(), served), failure);
     }
 
     private static String describeCause(Throwable failure) {

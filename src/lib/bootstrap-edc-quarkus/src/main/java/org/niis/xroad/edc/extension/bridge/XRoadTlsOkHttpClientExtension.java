@@ -77,7 +77,6 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     private static final long DEFAULT_RELOAD_INTERVAL_SECONDS = 60;
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
-    private static final Duration PENDING_POLL_INTERVAL = Duration.ofSeconds(5);
 
     @Inject
     @SuppressWarnings("unused")
@@ -88,7 +87,7 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     private PeriodicMaterialReloader<?> reloader;
 
     public XRoadTlsOkHttpClientExtension() {
-        this(PENDING_POLL_INTERVAL);
+        this(PeriodicMaterialReloader.DEFAULT_PENDING_INTERVAL);
     }
 
     XRoadTlsOkHttpClientExtension(Duration pendingPollInterval) {
