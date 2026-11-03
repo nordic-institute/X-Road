@@ -87,8 +87,8 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
-                // No start-time waits on the ds-* services: they block at startup on the
-                // empty tls/ds-https vault slot until the baseline seeder provisions the
+                // No start-time waits on the ds-* services: their HTTPS endpoints stay closed
+                // while the tls/ds-https vault slot is empty, until the baseline seeder provisions the
                 // certificate through the admin API, which runs after `up`.
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
