@@ -5,7 +5,7 @@
 
 migration_configuration_copy() {
   if ! cp -a "$SOURCE_CONFIG_DIR/." "$TARGET_CONFIG_DIR/"; then
-    STEP_REASON="failed to copy $src to $dst"
+    STEP_REASON="failed to copy $SOURCE_CONFIG_DIR to $TARGET_CONFIG_DIR"
     return 1
   fi
   return 0

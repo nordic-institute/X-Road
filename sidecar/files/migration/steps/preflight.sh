@@ -39,11 +39,11 @@ migration_preflight_check_source_version() {
 }
 
 # Docker seeds a new volume with the image's /etc/xroad, which has no
-# db.properties; provisioning and step 3 both create one.
+# db.properties; provisioning and step 2 both create one.
 migration_preflight_check_target_config_empty() {
   [[ -f "$TARGET_CONFIG_DIR/db.properties" ]] || return 0
 
-  STEP_REASON="target volume $TARGET_CONFIG_DIR is not empty."
+  STEP_REASON="target volume $TARGET_CONFIG_DIR is not empty: recreate the target configuration and database volumes before retrying"
   return 1
 }
 
