@@ -253,7 +253,19 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     # ensure that the updated stock configuration is present in /etc/xroad
     # handles also the case where configuration is missing (e.g. config volume not automatically populated)
     log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
+    # migration mode: the packaged local.ini is empty, but the migration CLI
+    # still has to read the operator's settings from the copied 7.8 one
+    MIGRATION_LOCAL_INI=
+    if [ "${XROAD_MIGRATION_MODE:-}" = "true" ] && [ -f /etc/xroad/conf.d/local.ini ]; then
+      MIGRATION_LOCAL_INI="$(mktemp -d)" && cp -a /etc/xroad/conf.d/local.ini "$MIGRATION_LOCAL_INI/" \
+        || { warn "Cannot preserve the 7.8 conf.d/local.ini for migration"; exit 1; }
+    fi
     cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
+    if [ -n "$MIGRATION_LOCAL_INI" ]; then
+      cp -a "$MIGRATION_LOCAL_INI/local.ini" /etc/xroad/conf.d/ \
+        || { warn "Cannot restore the 7.8 conf.d/local.ini for migration"; exit 1; }
+      rm -rf "$MIGRATION_LOCAL_INI"
+    fi
     # copy if not exists
     cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
     # packages need to be reconfigured (runs possible db and config migrations)
