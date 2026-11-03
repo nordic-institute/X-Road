@@ -55,14 +55,12 @@ import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -414,7 +412,8 @@ class ClientSoapMessageProcessorTest {
         var decoder = mock(SoapRequestDecoder.class);
         when(decoder.getServiceId()).thenReturn(serviceId);
         when(decoder.getOutputContentType()).thenReturn("multipart/mixed; boundary=xtop");
-        when(decoder.getEncoder()).thenReturn(mock(ProxyMessageEncoder.class));
+        var encoder = mock(ProxyMessageEncoder.class);
+        when(decoder.getEncoder()).thenReturn(encoder);
         var dspRequest = new DspRequest(serviceId, OTHER_CLIENT, null, false);
         return new FailoverHarness(processor, dspProcessor, preparationService, ctx, decoder, dspRequest);
     }
@@ -483,24 +482,11 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void failuresThatAreNotConnectionFailuresDoNotFailOver() throws Exception {
-        for (var failure : List.<Exception>of(
-                XrdRuntimeException.systemException(ACCESS_DENIED, "denied by the provider"),
-                XrdRuntimeException.systemException(ACCESS_DENIED, ""),
-                new IOException("Connection reset"))) {
-            var harness = createFailoverHarness(senderFailingToStream(failure));
-
-            assertThatThrownBy(() -> executeWithRetry(harness, new AtomicReference<>(ACCESS_A))).isSameAs(failure);
-
-            verify(harness.dspProcessor(), never()).failOver(any(), any());
-        }
-    }
-
-    @Test
     void aConnectionFailureOfARequestSentWithoutAssetAccessDoesNotFailOver() throws Exception {
         var failure = new ConnectException("Connection refused");
         var harness = createFailoverHarness(senderFailingToStream(failure));
-        when(harness.decoder().getRequestSoap()).thenReturn(mock(SoapMessageImpl.class));
+        var requestSoap = mock(SoapMessageImpl.class);
+        when(harness.decoder().getRequestSoap()).thenReturn(requestSoap);
         when(harness.preparationService().prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
 

@@ -117,14 +117,7 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     }
 
     @Override
-    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
-        if (cache != null) {
-            cache.invalidate(participantContextId, assetId, consumerClientId != null ? consumerClientId.asEncodedId() : null);
-        }
-    }
-
-    @Override
-    public void invalidateAssetAccess(String participantContextId, String assetId, String counterPartyId,
+    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable String counterPartyId,
                                       @Nullable ClientId consumerClientId) {
         if (cache != null) {
             cache.invalidate(participantContextId, assetId, counterPartyId,

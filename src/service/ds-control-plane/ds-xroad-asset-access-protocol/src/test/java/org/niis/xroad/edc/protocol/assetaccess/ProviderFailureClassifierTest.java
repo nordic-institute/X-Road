@@ -27,9 +27,14 @@
 
 package org.niis.xroad.edc.protocol.assetaccess;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ProviderFailureClassifierTest {
 
@@ -38,55 +43,32 @@ class ProviderFailureClassifierTest {
                 + "url=https://provider.example/dsp/transfers/request}. Body: %s.").formatted(code, body);
     }
 
-    @Test
-    void aConflictIsARefusal() {
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(409, "{\"message\":\"anything\"}"))).isTrue();
+    private static Stream<Arguments> details() {
+        return Stream.of(
+                arguments("a conflict", providerAnswer(409, "{\"message\":\"anything\"}"), true),
+                arguments("a not found naming the agreement",
+                        providerAnswer(404, "Cannot process TransferRequestMessage because agreement not found or not valid"), true),
+                arguments("the agreement wording in another case",
+                        providerAnswer(404, "Agreement Not Found Or Not Valid"), true),
+                arguments("a bare not found", providerAnswer(404, "Not found"), false),
+                arguments("a bad request", providerAnswer(400, "TransferType is not supported"), false),
+                arguments("the agreement wording under a bad request",
+                        providerAnswer(400, "agreement not found or not valid"), false),
+                arguments("the agreement wording under a server error",
+                        providerAnswer(500, "agreement not found or not valid"), false),
+                arguments("the wording outside a provider answer", "agreement not found or not valid", false),
+                arguments("a status code in the url",
+                        "Counter Party responded with Response{protocol=h2, code=400, message=, "
+                                + "url=https://p.example/x?code=409}. Body: bad.",
+                        false),
+                arguments("a failure without a provider sentence", "provider terminated", false),
+                arguments("an empty detail", "", false),
+                arguments("a missing detail", null, false));
     }
 
-    @Test
-    void aNotFoundNamingTheAgreementIsARefusal() {
-        var body = "Cannot process TransferRequestMessage because agreement not found or not valid";
-
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(404, body))).isTrue();
-    }
-
-    @Test
-    void theAgreementWordingIsMatchedIgnoringCase() {
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(404, "Agreement Not Found Or Not Valid"))).isTrue();
-    }
-
-    @Test
-    void aBareNotFoundIsNotARefusal() {
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(404, "Not found"))).isFalse();
-    }
-
-    @Test
-    void aBadRequestIsNotARefusal() {
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(400, "TransferType is not supported"))).isFalse();
-    }
-
-    @Test
-    void theAgreementWordingUnderAnotherStatusIsNotARefusal() {
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(400, "agreement not found or not valid"))).isFalse();
-        assertThat(ProviderFailureClassifier.isRefusal(providerAnswer(500, "agreement not found or not valid"))).isFalse();
-    }
-
-    @Test
-    void theWordingOutsideAProviderAnswerIsNotARefusal() {
-        assertThat(ProviderFailureClassifier.isRefusal("agreement not found or not valid")).isFalse();
-    }
-
-    @Test
-    void aStatusCodeInTheUrlIsNotTheProviderStatus() {
-        var detail = "Counter Party responded with Response{protocol=h2, code=400, message=, url=https://p.example/x?code=409}. Body: bad.";
-
-        assertThat(ProviderFailureClassifier.isRefusal(detail)).isFalse();
-    }
-
-    @Test
-    void failuresWithoutAProviderSentenceAreNotRefusals() {
-        assertThat(ProviderFailureClassifier.isRefusal("provider terminated")).isFalse();
-        assertThat(ProviderFailureClassifier.isRefusal("")).isFalse();
-        assertThat(ProviderFailureClassifier.isRefusal(null)).isFalse();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("details")
+    void classifiesTheDetailAsARefusalOrNot(String description, String detail, boolean refusal) {
+        assertThat(ProviderFailureClassifier.isRefusal(detail)).isEqualTo(refusal);
     }
 }

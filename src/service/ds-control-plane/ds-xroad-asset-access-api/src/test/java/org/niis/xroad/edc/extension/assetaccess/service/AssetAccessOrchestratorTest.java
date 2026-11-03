@@ -101,6 +101,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -982,7 +983,7 @@ class AssetAccessOrchestratorTest {
 
     private CompletableFuture<ServiceResult<DataAddress>> lastAcquisition;
 
-    private ServiceResult<DataAddress> acquire(String clientId) throws Exception {
+    private CompletableFuture<ServiceResult<DataAddress>> completedAcquisition(String clientId) {
         var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, clientId);
         var started = new AtomicReference<CompletableFuture<ServiceResult<DataAddress>>>();
         await().atMost(10, TimeUnit.SECONDS).until(() -> {
@@ -992,7 +993,22 @@ class AssetAccessOrchestratorTest {
         var acquisition = started.get();
         lastAcquisition = acquisition;
         pollUntilDone(acquisition);
-        return acquisition.get(5, TimeUnit.SECONDS);
+        return acquisition;
+    }
+
+    private ServiceResult<DataAddress> acquire(String clientId) throws Exception {
+        return completedAcquisition(clientId).get(5, TimeUnit.SECONDS);
+    }
+
+    private Throwable acquireExpectingFailure(String clientId) {
+        var acquisition = completedAcquisition(clientId);
+        var failure = catchThrowable(() -> acquisition.get(5, TimeUnit.SECONDS));
+        assertThat(failure).isInstanceOf(ExecutionException.class);
+        return failure.getCause();
+    }
+
+    private static void assertTransferFailed(Throwable failure) {
+        assertThat(((XrdRuntimeException) failure).getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
     }
 
     private AgreementReuseNote.Key noteKey(String clientId) {
@@ -1110,7 +1126,7 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
-    void aRefusedRenegotiatedAgreementLeavesNoEntryAndDoesNotLoop() throws Exception {
+    void aRefusedRenegotiatedAgreementLeavesNoEntryAndDoesNotLoop() {
         reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
         stubFindById(buildAgreement("agreement-1"));
         stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
@@ -1123,11 +1139,8 @@ class AssetAccessOrchestratorTest {
         when(transferProcessStore.findAll(specWithId("tp-2"))).thenAnswer(invocation ->
                 Stream.of(terminatedTransfer("tp-2", PROVIDER_CONFLICT)));
 
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
-                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
-        pollUntilDone(future);
+        acquireExpectingFailure(GROUP_CLIENT_A);
 
-        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
         assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).isEmpty();
     }
@@ -1143,7 +1156,7 @@ class AssetAccessOrchestratorTest {
 
     @ParameterizedTest
     @MethodSource("failuresThatAreNotRefusals")
-    void aFailureThatIsNotARefusalEvictsNothingAndDoesNotRenegotiate(String detail) throws Exception {
+    void aFailureThatIsNotARefusalEvictsNothingAndDoesNotRenegotiate(String detail) {
         reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
         stubFindById(buildAgreement("agreement-1"));
         when(transferProcessService.initiateTransfer(any(), any()))
@@ -1151,21 +1164,14 @@ class AssetAccessOrchestratorTest {
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
                 Stream.of(terminatedTransfer("tp-1", detail)));
 
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
-                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
-        pollUntilDone(future);
-
-        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
-                .isInstanceOf(ExecutionException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
-                        .isEqualTo("dataspace.dsp_transfer_failed"));
+        assertTransferFailed(acquireExpectingFailure(GROUP_CLIENT_A));
         verifyNoInteractions(catalogService);
         verifyNoInteractions(contractNegotiationService);
         assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-1");
     }
 
     @Test
-    void refusalOfAnAgreementTheNoteDoesNotHoldLeavesTheNewerEntryInPlace() throws Exception {
+    void refusalOfAnAgreementTheNoteDoesNotHoldLeavesTheNewerEntryInPlace() {
         stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-a", clientPolicy(GROUP_CLIENT_A))));
         stubNegotiatedAgreements("agreement-2");
         when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", GROUP_CLIENT_A))
@@ -1179,11 +1185,8 @@ class AssetAccessOrchestratorTest {
             return ServiceResult.conflict(PROVIDER_CONFLICT);
         });
 
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
-                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
-        pollUntilDone(future);
+        acquireExpectingFailure(GROUP_CLIENT_A);
 
-        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
         assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-newer");
     }
 
@@ -1196,15 +1199,8 @@ class AssetAccessOrchestratorTest {
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
         startedAddress("tp-2", "http://provider/data-tp-2");
 
-        var outage = orchestrator.acquireAssetAccess(buildParticipantContext(),
-                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
-        pollUntilDone(outage);
-        assertThatThrownBy(() -> outage.get(5, TimeUnit.SECONDS))
-                .isInstanceOf(ExecutionException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
-                        .isEqualTo("dataspace.dsp_transfer_failed"));
+        assertTransferFailed(acquireExpectingFailure(GROUP_CLIENT_A));
         assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-1");
-        lastAcquisition = outage;
 
         var recovered = acquire(GROUP_CLIENT_A);
 

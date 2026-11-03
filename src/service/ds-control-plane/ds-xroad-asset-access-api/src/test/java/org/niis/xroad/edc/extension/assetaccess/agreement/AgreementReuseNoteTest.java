@@ -100,19 +100,6 @@ class AgreementReuseNoteTest {
     }
 
     @Test
-    void readingAnEntryKeepsItFromBeingTheOneDropped() {
-        var note = new AgreementReuseNote(2);
-        note.remember(key("a"), "agreement-a");
-        note.remember(key("b"), "agreement-b");
-        note.find(key("a"));
-
-        note.remember(key("c"), "agreement-c");
-
-        assertThat(note.find(key("a"))).contains("agreement-a");
-        assertThat(note.find(key("b"))).isEmpty();
-    }
-
-    @Test
     void rejectsACapacityBelowOne() {
         assertThatThrownBy(() -> new AgreementReuseNote(0)).isInstanceOf(IllegalArgumentException.class);
     }

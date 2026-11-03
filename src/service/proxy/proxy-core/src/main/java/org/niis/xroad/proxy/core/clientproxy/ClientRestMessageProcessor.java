@@ -236,6 +236,7 @@ public class ClientRestMessageProcessor {
                                  RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
                                  String xRequestId, ProxyRequestContext ctx) throws Exception {
         final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
+        var dspRequest = dspRequest(restRequest, requestServiceId);
         SigningProxyMessageEntity entity = null;
         var assetAccess = new AtomicReference<AssetAccessResponse>();
         boolean failedOver = false;
@@ -247,8 +248,8 @@ public class ClientRestMessageProcessor {
                         entity = createRequestEntity(jRequest, opMonitoringData, restRequest, senderId, xRequestId,
                                 retryEnabled);
                     }
-                    var tokenPresented = sendRequest(httpSender, entity, opMonitoringData, restRequest, requestServiceId,
-                            xRequestId, ctx, assetAccess);
+                    var tokenPresented = sendRequest(httpSender, entity, opMonitoringData, dspRequest, xRequestId, ctx,
+                            assetAccess);
                     return new SentRequest(httpSender, entity.getRestBodyDigest(), tokenPresented);
                 } catch (Exception e) {
                     var targets = httpSender.getAttribute(ID_TARGETS);
@@ -263,8 +264,10 @@ public class ClientRestMessageProcessor {
                                 xRequestId, attempt, failedAddress, e);
                     } else if (!failedOver && entity != null && entity.isReplayable() && assetAccess.get() != null
                             && DataCallFailover.isConnectionFailure(e)) {
-                        assetAccess.set(DataCallFailover.failOver(consumerSideDspProcessor,
-                                dspRequest(restRequest, requestServiceId), assetAccess.get(), e).orElseThrow(() -> e));
+                        log.warn("Data call to {} could not connect, failing over (xRequestId: {})",
+                                assetAccess.get().endpoint(), xRequestId, e);
+                        assetAccess.set(consumerSideDspProcessor.failOver(dspRequest, assetAccess.get())
+                                .orElseThrow(() -> e));
                         failedOver = true;
                     } else {
                         throw e;
@@ -303,26 +306,18 @@ public class ClientRestMessageProcessor {
         legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
     }
 
-    boolean sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
-                             RestRequest restRequest, ServiceId requestServiceId, String xRequestId,
-                             ProxyRequestContext ctx) throws Exception {
-        return sendRequest(httpSender, entity, opMonitoringData, restRequest, requestServiceId, xRequestId, ctx,
-                new AtomicReference<>());
-    }
-
     /**
      * Sends the request with the asset access held in {@code assetAccessInUse}, acquiring it first when none
      * is held, so that the caller knows which provider server a failed send went to.
      */
     boolean sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
-                             RestRequest restRequest, ServiceId requestServiceId, String xRequestId,
-                             ProxyRequestContext ctx, AtomicReference<AssetAccessResponse> assetAccessInUse)
-            throws Exception {
+                        DspRequest dspRequest, String xRequestId, ProxyRequestContext ctx,
+                        AtomicReference<AssetAccessResponse> assetAccessInUse) throws Exception {
         log.trace("sendRequest()");
 
         final URI[] addresses;
+        final var requestServiceId = dspRequest.serviceId();
         AssetAccessResponse assetAccess = null;
-        var dspRequest = dspRequest(restRequest, requestServiceId);
         if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
             assetAccess = assetAccessInUse.get();
             if (assetAccess == null) {
@@ -333,7 +328,7 @@ public class ClientRestMessageProcessor {
                     httpSender, requestServiceId, URI.create(assetAccess.endpoint()), ctx, opMonitoringData, null);
         } else {
             addresses = clientRequestPreparationService.prepareRequest(
-                    httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
+                    httpSender, requestServiceId, dspRequest.targetSecurityServer(), ctx, opMonitoringData, null);
             if (!proxyProperties.dspEnabled()) {
                 checkUnnegotiatedCallAllowed(requestServiceId);
             }

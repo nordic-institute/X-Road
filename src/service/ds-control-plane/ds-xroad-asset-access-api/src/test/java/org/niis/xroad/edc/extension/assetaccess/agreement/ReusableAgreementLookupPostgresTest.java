@@ -304,27 +304,19 @@ class ReusableAgreementLookupPostgresTest {
     }
 
     @Test
-    void aRetiredAgreementIsSkippedByTheQueryAndTheNextNewestIsReturned() {
+    void aRetiredAgreementIsSkippedByTheQuery() {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-live", participantContextId, "asset-1", "provider-1", Instant.now().minusSeconds(120));
         saveAgreement(store, "neg-retired", participantContextId, "asset-1", "provider-1", Instant.now());
         retire(store, "neg-retired", participantContextId, "asset-1", "provider-1");
-
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo("agreement-neg-live");
-    }
-
-    @Test
-    void aRetiredAgreementOnItsOwnLeavesNothingToReuse() {
-        var participantContextId = "participant-" + UUID.randomUUID();
-        saveAgreement(store, "neg-retired", participantContextId, "asset-1", "provider-1", Instant.now(),
+        saveAgreement(store, "neg-retired-alone", participantContextId, "asset-2", "provider-1", Instant.now(),
                 clientPolicy("DEV:COM:222:A"));
-        retire(store, "neg-retired", participantContextId, "asset-1", "provider-1");
+        retire(store, "neg-retired-alone", participantContextId, "asset-2", "provider-1");
 
-        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", "DEV:COM:222:A")).isEmpty();
-        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null)).isEmpty();
+        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
+                .map(ContractAgreement::getId).contains("agreement-neg-live");
+        assertThat(lookup.find(participantContextId, "consumer", "asset-2", "provider-1", "DEV:COM:222:A")).isEmpty();
+        assertThat(lookup.find(participantContextId, "consumer", "asset-2", "provider-1", null)).isEmpty();
     }
 
     @Test

@@ -27,31 +27,25 @@
 
 package org.niis.xroad.proxy.core.clientproxy;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
-import org.niis.xroad.proxy.core.dsp.DspRequest;
-import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 
 /**
- * Decides when a data call that failed on a provider security server moves on to another one, and moves it.
+ * Decides when a data call that failed on a provider security server moves on to another one.
  *
  * <p>A data call fails over only when it could not connect to the provider: connection refused, connect
  * timeout, no route to host, unknown host. Once the connection stands, the provider may already have processed
  * the request, so a read timeout, a TLS error, an HTTP error response and every other failure reach the client
  * unchanged and leave the cached asset access alone.
  */
-@Slf4j
 final class DataCallFailover {
 
     private DataCallFailover() {
@@ -75,26 +69,5 @@ final class DataCallFailover {
             }
         }
         return false;
-    }
-
-    /**
-     * Fails the data call over: drops the failed server's cached asset access and acquires asset access from
-     * another candidate server.
-     *
-     * @return the asset access of another provider server, or empty when no other server is available or
-     *         acquiring from the others fails; the acquisition failure is then attached to {@code failure} as
-     *         suppressed, and the caller rethrows {@code failure}
-     */
-    static Optional<AssetAccessResponse> failOver(DspRequestProcessor processor, DspRequest request,
-                                                  AssetAccessResponse failed, Exception failure) {
-        try {
-            var next = processor.failOver(request, failed);
-            next.ifPresent(access -> log.warn("Data call to {} failed to connect, failing over to {}",
-                    failed.endpoint(), access.endpoint(), failure));
-            return next;
-        } catch (RuntimeException acquisitionFailure) {
-            failure.addSuppressed(acquisitionFailure);
-            return Optional.empty();
-        }
     }
 }

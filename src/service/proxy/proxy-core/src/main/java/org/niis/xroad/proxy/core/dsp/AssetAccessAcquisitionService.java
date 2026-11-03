@@ -51,26 +51,16 @@ public interface AssetAccessAcquisitionService {
                                            String counterPartyAddress, @Nullable ClientId consumerClientId);
 
     /**
-     * Drops any cached asset access acquired for the given participant context, asset and calling client,
-     * so that the next acquisition asks the control plane afresh. A no-op when nothing is cached.
+     * Drops the cached asset access acquired for the given participant context, asset and calling client, so
+     * that the next acquisition asks the control plane afresh. A no-op when nothing is cached.
      *
      * @param participantContextId the consumer participant context the asset access was acquired for
      * @param assetId              the asset identifier
+     * @param counterPartyId       the provider participant to drop the asset access of, leaving the access cached
+     *                             for other provider servers; {@code null} drops it for every provider server
      * @param consumerClientId     the calling client; {@code null} when the request states none
      */
-    default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
-    }
-
-    /**
-     * Drops the cached asset access acquired from one provider server for the given participant context, asset
-     * and calling client, leaving the access cached for other provider servers. A no-op when nothing is cached.
-     *
-     * @param participantContextId the consumer participant context the asset access was acquired for
-     * @param assetId              the asset identifier
-     * @param counterPartyId       the provider participant the asset access was acquired from
-     * @param consumerClientId     the calling client; {@code null} when the request states none
-     */
-    default void invalidateAssetAccess(String participantContextId, String assetId, String counterPartyId,
+    default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable String counterPartyId,
                                        @Nullable ClientId consumerClientId) {
     }
 }

@@ -292,7 +292,6 @@ public class ClientSoapMessageProcessor {
                                 String xRequestId, OpMonitoringData opMonitoringData,
                                 DspRequest dspRequest, AtomicReference<AssetAccessResponse> assetAccess)
             throws Exception {
-        final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
         ReplaySoapProxyMessageEntity replayEntity = null;
         boolean failedOver = false;
         for (int attempt = 1; ; attempt++) {
@@ -304,21 +303,15 @@ public class ClientSoapMessageProcessor {
                 var targets = httpSender.getAttribute(ID_TARGETS);
                 var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
                 httpSender.close();
-                if (!retryEnabled) {
-                    throw e;
-                }
-                var tlsRetry = clientRequestPreparationService.shouldRetry(e, targets, attempt);
-                var failOver = !tlsRetry && !failedOver && assetAccess.get() != null
-                        && DataCallFailover.isConnectionFailure(e);
-                if (!(tlsRetry || failOver) || !completeRequestForReplay(ctx, decoder, attempt)) {
+                var action = nextRetryAction(e, targets, attempt, failedOver, assetAccess.get());
+                if (action == RetryAction.NONE || !completeRequestForReplay(ctx, decoder, attempt)) {
                     throw e;
                 }
                 if (replayEntity == null) {
                     replayEntity = new ReplaySoapProxyMessageEntity(decoder);
                 }
-                if (failOver) {
-                    assetAccess.set(DataCallFailover.failOver(
-                            consumerSideDspProcessor, dspRequest, assetAccess.get(), e).orElseThrow(() -> e));
+                if (action == RetryAction.FAIL_OVER) {
+                    assetAccess.set(failOver(dspRequest, assetAccess.get(), xRequestId, e));
                     failedOver = true;
                 } else {
                     log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
@@ -327,6 +320,28 @@ public class ClientSoapMessageProcessor {
                 }
             }
         }
+    }
+
+    private enum RetryAction { NONE, TLS_RETRY, FAIL_OVER }
+
+    private RetryAction nextRetryAction(Exception failure, Object targets, int attempt, boolean failedOver,
+                                        AssetAccessResponse assetAccess) {
+        if (!proxyProperties.clientProxy().enableRequestRetry()) {
+            return RetryAction.NONE;
+        }
+        if (clientRequestPreparationService.shouldRetry(failure, targets, attempt)) {
+            return RetryAction.TLS_RETRY;
+        }
+        return !failedOver && assetAccess != null && DataCallFailover.isConnectionFailure(failure)
+                ? RetryAction.FAIL_OVER
+                : RetryAction.NONE;
+    }
+
+    private AssetAccessResponse failOver(DspRequest dspRequest, AssetAccessResponse failed, String xRequestId,
+                                         Exception connectionFailure) throws Exception {
+        log.warn("Data call to {} could not connect, failing over (xRequestId: {})",
+                failed.endpoint(), xRequestId, connectionFailure);
+        return consumerSideDspProcessor.failOver(dspRequest, failed).orElseThrow(() -> connectionFailure);
     }
 
     /**

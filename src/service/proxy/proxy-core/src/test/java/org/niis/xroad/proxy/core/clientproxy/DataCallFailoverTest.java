@@ -32,9 +32,6 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
-import org.niis.xroad.proxy.core.dsp.DspRequest;
-import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -44,19 +41,13 @@ import java.net.InetAddress;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 class DataCallFailoverTest {
-
-    private static final AssetAccessResponse FAILED = new AssetAccessResponse("https://a.example/data", "token-a", "member@a");
-    private static final AssetAccessResponse NEXT = new AssetAccessResponse("https://b.example/data", "token-b", "member@b");
 
     private static XrdRuntimeException couldNotConnect(Exception cause) {
         return XrdRuntimeException.systemException(NETWORK_ERROR, cause, "Could not connect to any target host");
@@ -107,37 +98,5 @@ class DataCallFailoverTest {
         assertThat(DataCallFailover.isConnectionFailure(XrdRuntimeException.systemException(ACCESS_DENIED, "denied"))).isFalse();
         assertThat(DataCallFailover.isConnectionFailure(new IOException("Connection reset"))).isFalse();
         assertThat(DataCallFailover.isConnectionFailure(new IllegalStateException("boom"))).isFalse();
-    }
-
-    @Test
-    void failOverReturnsTheNextServersAccess() {
-        var processor = mock(DspRequestProcessor.class);
-        var request = mock(DspRequest.class);
-        when(processor.failOver(request, FAILED)).thenReturn(Optional.of(NEXT));
-
-        assertThat(DataCallFailover.failOver(processor, request, FAILED, new ConnectException("refused"))).contains(NEXT);
-    }
-
-    @Test
-    void failOverIsEmptyWhenNoServerIsLeft() {
-        var processor = mock(DspRequestProcessor.class);
-        var request = mock(DspRequest.class);
-        when(processor.failOver(request, FAILED)).thenReturn(Optional.empty());
-        var failure = new ConnectException("refused");
-
-        assertThat(DataCallFailover.failOver(processor, request, FAILED, failure)).isEmpty();
-        assertThat(failure.getSuppressed()).isEmpty();
-    }
-
-    @Test
-    void failOverIsEmptyWithTheAcquisitionFailureAttachedToTheDataCallFailure() {
-        var processor = mock(DspRequestProcessor.class);
-        var request = mock(DspRequest.class);
-        var acquisitionFailure = new IllegalStateException("no candidate answered");
-        when(processor.failOver(request, FAILED)).thenThrow(acquisitionFailure);
-        var failure = new ConnectException("refused");
-
-        assertThat(DataCallFailover.failOver(processor, request, FAILED, failure)).isEmpty();
-        assertThat(failure).hasSuppressedException(acquisitionFailure);
     }
 }

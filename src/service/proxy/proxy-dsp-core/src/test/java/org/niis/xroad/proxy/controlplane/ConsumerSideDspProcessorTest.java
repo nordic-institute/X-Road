@@ -52,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -109,7 +110,7 @@ class ConsumerSideDspProcessorTest {
         processor.invalidateAssetAccess(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), SENDER);
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), null, SENDER);
     }
 
     @Test
@@ -830,7 +831,7 @@ class ConsumerSideDspProcessorTest {
         verify(assetAccessAcquisitionService)
                 .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
         verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), eq(DID_A), any(), any());
-        verify(assetAccessAcquisitionService, never()).invalidateAssetAccess(any(), any(), eq(SENDER));
+        verify(assetAccessAcquisitionService, never()).invalidateAssetAccess(any(), any(), isNull(), any());
     }
 
     @Test
@@ -858,16 +859,16 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void failOverFailsWhenTheOtherCandidatesCannotProvideAccessEither() {
+    void failOverReturnsNothingWhenTheOtherCandidatesCannotProvideAccessEither() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), any(), any()))
                 .thenThrow(new IllegalStateException("provider b is down too"));
         var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
 
-        assertThatThrownBy(() -> processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed))
-                .isInstanceOf(XrdRuntimeException.class);
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
 
+        assertThat(result).isEmpty();
         verify(assetAccessAcquisitionService)
                 .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
     }
