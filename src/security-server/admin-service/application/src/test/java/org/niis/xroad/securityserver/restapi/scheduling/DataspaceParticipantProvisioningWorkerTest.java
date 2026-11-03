@@ -755,8 +755,8 @@ class DataspaceParticipantProvisioningWorkerTest {
         var warnings = skippedWarnings();
         assertThat(warnings).hasSize(1);
         var warning = warnings.getFirst();
-        assertThat(warning).contains("25 participant");
-        assertThat(warning).contains("rejected-0", "rejected-9").doesNotContain("rejected-10", "rejected-24");
+        assertThat(warning).contains("25 participant", "rejected-0", "rejected-9")
+                .doesNotContain("rejected-10", "rejected-24");
     }
 
     @Test

@@ -124,20 +124,20 @@ public class DataspaceDidAuthority {
     public Optional<String> dspBaseUrl() {
         var dspPort = adminServiceProperties.getDataspace().getDspPort();
         return resolve().map(address -> switch (address) {
-            case RegisteredAddress.Valid valid -> DspConventions.dspBaseUrl(valid.host(), dspPort);
-            case RegisteredAddress.Invalid invalid -> throw invalid.rejection().toException();
+            case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
+            case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
         });
     }
 
     private DidMintResult mint(Function<String, Did> derive) {
         return switch (resolve().orElseThrow(this::addressUnknown)) {
-            case RegisteredAddress.Invalid invalid -> invalid.rejection();
-            case RegisteredAddress.Valid valid -> {
-                var did = derive.apply(valid.authority());
+            case RegisteredAddress.Invalid(var rejection) -> rejection;
+            case RegisteredAddress.Valid(var host, var authority) -> {
+                var did = derive.apply(authority);
                 var length = did.toString().length();
                 yield length > ParticipantIdentifierScheme.MAX_DID_LENGTH
                         ? new Rejected(Reason.DID_TOO_LONG, "DID of %d characters for host '%s' is longer than the limit of %d"
-                                .formatted(length, valid.host(), ParticipantIdentifierScheme.MAX_DID_LENGTH))
+                                .formatted(length, host, ParticipantIdentifierScheme.MAX_DID_LENGTH))
                         : new Minted(did);
             }
         };

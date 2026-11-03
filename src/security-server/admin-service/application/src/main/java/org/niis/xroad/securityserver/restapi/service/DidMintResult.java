@@ -78,6 +78,6 @@ public sealed interface DidMintResult {
      * @return the minted DID, or empty when the minting was rejected
      */
     default Optional<Did> did() {
-        return this instanceof Minted minted ? Optional.of(minted.value()) : Optional.empty();
+        return this instanceof Minted(var value) ? Optional.of(value) : Optional.empty();
     }
 }
