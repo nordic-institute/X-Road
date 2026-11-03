@@ -1,0 +1,3 @@
+---
+# Index RPM packages next to the DEB packages. A caller whose build has no RPMs turns it off.
+xroad_repo_index_rpm: true

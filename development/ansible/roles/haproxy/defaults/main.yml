@@ -1,0 +1,17 @@
+---
+# TCP ports passed through to the backend hosts. Each port is served by the backends on the same port.
+lb_tcp_ports: []
+
+# Inventory group whose hosts are the backends. A backend is reached at its cluster_node_address
+# host variable (default <inventory name>.lxd, see group_vars/all/cluster.yml).
+haproxy_backend_group: cs_nodes
+
+# Further layer-4 services with an HTTP health check, each {name, port, backend_group, backend_port,
+# health_check_port, health_check_path}: haproxy listens on port and passes it to the hosts of
+# backend_group on backend_port. Only a backend whose health check path answers 200 on
+# health_check_port receives traffic, and its open connections are closed when it stops answering.
+haproxy_extra_services: []
+haproxy_timeout_client: 1m
+haproxy_timeout_server: 1m
+haproxy_db_timeout_client: 30m
+haproxy_db_timeout_server: 30m

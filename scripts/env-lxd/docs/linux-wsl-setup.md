@@ -16,7 +16,7 @@ with the inventory replaced.
 - **Ansible** (≥2.14) with `ansible.posix` collection (`ansible-galaxy collection install ansible.posix`).
 - **Python 3** on PATH (`ansible_python_interpreter = auto_silent` in `config/ansible.cfg`).
 - **jq**, **dig** or **nslookup** (used by `scripts/setup-linux-net.sh`).
-- Sufficient resources: ≥8 GB RAM, ≥20 GB free disk.
+- Sufficient resources: ≥20 GB free disk, and enough RAM for the containers you start.
 
 On WSL2: LXD must be installed inside the WSL2 distribution (not Windows-side).
 WSL2 kernels from Ubuntu 22.04+ ship the required cgroup namespacing. Confirm with
@@ -123,7 +123,9 @@ echo "nameserver 10.10.10.1" | sudo tee -a /etc/resolv.conf
 - Central Server admin UI: <https://xrd-cs.lxd:4000/>
 - Security Server admin UI: <https://xrd-ss0.lxd:4000/>, <https://xrd-ss1.lxd:4000/>
 - Test CA web: <http://xrd-ca.lxd:8888/testca/>
-- Jaeger traces: <http://xrd-jaeger.lxd/>
+- Jaeger traces, if enabled (off by default): <http://xrd-jaeger.lxd/>
+
+For the two-node Central Server cluster on Linux, see [Linux](../cluster/README.md#linux). The cluster profile uses `xrd-cs1.lxd` instead of `xrd-cs.lxd`.
 
 ---
 

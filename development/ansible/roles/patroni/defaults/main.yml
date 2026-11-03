@@ -1,0 +1,30 @@
+---
+# Inventory group of the etcd members Patroni stores its leader state in.
+patroni_etcd_group: etcd_nodes
+patroni_etcd_client_port: 2379
+
+# patroni_scope (name of the Patroni cluster) and patroni_restapi_port (the load balancer health
+# check port) are inventory variables.
+
+patroni_postgresql_version: 18
+patroni_postgresql_port: "{{ db_port | default(5432) }}"
+patroni_data_dir: "/var/lib/postgresql/{{ patroni_postgresql_version }}/patroni"
+patroni_bin_dir: "/usr/lib/postgresql/{{ patroni_postgresql_version }}/bin"
+
+# Client networks allowed to connect. Defaults to the subnet of the host's default interface,
+# which holds the Central Server nodes on LXD.
+patroni_client_cidrs:
+  - "{{ ansible_facts['default_ipv4']['network'] }}/{{ ansible_facts['default_ipv4']['prefix'] }}"
+
+# Password of the postgres superuser. Central Server nodes read the same value from
+# database_admin_password to create their databases.
+patroni_postgres_password: "{{ database_admin_password | default('') }}"
+
+patroni_replication_user: "{{ database_replication_user | default('replicator') }}"
+patroni_replication_password: "{{ database_replication_password | default('') }}"
+
+# Failover timing in seconds. The leader key expires after ttl; loop_wait + 2 * retry_timeout
+# must not exceed ttl.
+patroni_ttl: 30
+patroni_loop_wait: 10
+patroni_retry_timeout: 10

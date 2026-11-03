@@ -87,7 +87,7 @@ setup_psql_functions() {
   }
 
   if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
-    local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
+    db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
     psql_master() {
       PGDATABASE="postgres" PGPASSWORD="${db_master_passwd}" PGUSER="${db_master_conn_user}" remote_psql "$@"
     }
