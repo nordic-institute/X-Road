@@ -41,7 +41,6 @@ import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
-import org.niis.xroad.edc.reload.ReadinessDetailProvider;
 
 import java.security.KeyStore;
 import java.time.Duration;
@@ -61,7 +60,7 @@ import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
  * convention), so both layers agree on which module serves HTTPS.
  */
 @Extension(NAME)
-@Provides({WebServer.class, XRoadJettyService.class, ReadinessDetailProvider.class})
+@Provides({WebServer.class, XRoadJettyService.class})
 public class XRoadJettyExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Jetty Service";
@@ -127,9 +126,7 @@ public class XRoadJettyExtension implements ServiceExtension {
         jettyService = new XRoadJettyService(monitor, portMappingRegistry);
         context.registerService(WebServer.class, jettyService);
         context.registerService(XRoadJettyService.class, jettyService);
-        var readinessProvider = new ConnectorTlsReadinessProvider(jettyService);
-        healthCheckService.addReadinessProvider(readinessProvider);
-        context.registerService(ReadinessDetailProvider.class, readinessProvider);
+        healthCheckService.addReadinessProvider(new ConnectorTlsReadinessProvider(jettyService));
 
         if (loader == null) {
             loader = new DsHttpsKeyStoreLoader(vaultClient);

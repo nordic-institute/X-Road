@@ -28,21 +28,13 @@ package org.niis.xroad.edc.extension.jetty;
 
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
-import org.niis.xroad.edc.reload.ReadinessDetailProvider;
-
-import java.util.Map;
 
 /**
  * Reports ready only while the HTTPS connectors serve connector TLS material that has not expired. While
- * connector TLS is not served the reason is the text of the failure; while newer material is refused the
- * previously served certificate keeps the service ready until that certificate expires, and the refusal is
- * published as readiness detail.
+ * connector TLS is not served the reason is the text of the failure.
  */
-final class ConnectorTlsReadinessProvider implements ReadinessProvider, ReadinessDetailProvider {
+final class ConnectorTlsReadinessProvider implements ReadinessProvider {
     static final String COMPONENT = "connector-tls";
-    static final String DETAIL_SERVED_EXPIRES = COMPONENT + "-served-expires";
-    static final String DETAIL_REJECTED_SINCE = COMPONENT + "-rejected-since";
-    static final String DETAIL_REJECTED_CAUSE = COMPONENT + "-rejected-cause";
 
     private final XRoadJettyService jettyService;
 
@@ -62,19 +54,6 @@ final class ConnectorTlsReadinessProvider implements ReadinessProvider, Readines
         if (expiredAt.isEmpty()) {
             return result.success().build();
         }
-        var text = "Served connector TLS certificate expired at " + expiredAt.get();
-        return result.failure(jettyService.rejection()
-                .map(rejection -> "%s and newer material is rejected since %s: %s"
-                        .formatted(text, rejection.since(), rejection.cause()))
-                .orElse(text)).build();
-    }
-    @Override
-    public Map<String, String> readinessDetail() {
-        return jettyService.rejection()
-                .map(rejection -> Map.of(
-                        DETAIL_SERVED_EXPIRES, rejection.servedNotAfter().toString(),
-                        DETAIL_REJECTED_SINCE, rejection.since().toString(),
-                        DETAIL_REJECTED_CAUSE, rejection.cause()))
-                .orElse(Map.of());
+        return result.failure("Served connector TLS certificate expired at " + expiredAt.get()).build();
     }
 }

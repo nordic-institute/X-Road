@@ -43,11 +43,9 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.health.HealthStatus;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.edc.reload.ReadinessDetailProvider;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -95,18 +93,6 @@ public class EdcRuntime extends BaseRuntime {
             return new HealthStatus();
         }
         return runtimeContext.getService(HealthCheckService.class).isReady();
-    }
-
-    /**
-     * The details a ready-but-degraded component publishes through {@link ReadinessDetailProvider}; empty before
-     * the runtime has booted or when no component publishes any.
-     */
-    public Map<String, String> readinessDetail() {
-        var runtimeContext = context;
-        if (runtimeContext == null || !runtimeContext.hasService(ReadinessDetailProvider.class)) {
-            return Map.of();
-        }
-        return runtimeContext.getService(ReadinessDetailProvider.class).readinessDetail();
     }
 
     @Override

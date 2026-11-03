@@ -70,9 +70,6 @@ final class ConnectorTlsTestSupport {
         return new Loaded<>(keyStoreOf(credentials), fingerprint);
     }
 
-    static Loaded<KeyStore> unusable(String fingerprint) throws Exception {
-        return new Loaded<>(wrongKeyPassword(), fingerprint);
-    }
 
     static SSLContext trustAllTlsContext() throws Exception {
         var trustAll = new X509TrustManager() {

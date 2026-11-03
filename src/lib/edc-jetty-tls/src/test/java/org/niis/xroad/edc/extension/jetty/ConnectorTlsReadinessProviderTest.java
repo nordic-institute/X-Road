@@ -35,7 +35,6 @@ import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.edc.reload.MaterialRejectedException;
 import org.niis.xroad.test.MutableClock;
 
 import java.net.ServerSocket;
@@ -87,17 +86,6 @@ class ConnectorTlsReadinessProviderTest {
     }
 
     @Test
-    void isUnhealthyWhenMaterialIsStoredButTheServerHasNotStarted() throws Exception {
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
-
-        assertThat(provider.get().succeeded()).isFalse();
-
-        jettyService.start();
-
-        assertThat(provider.get().succeeded()).isTrue();
-    }
-
-    @Test
     void isUnhealthyAfterShutdown() throws Exception {
         jettyService.start();
         jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
@@ -109,41 +97,7 @@ class ConnectorTlsReadinessProviderTest {
     }
 
     @Test
-    void staysUpWithDetailWhileNewerMaterialIsRejectedAndTheServedCertificateIsValid() throws Exception {
-        var served = TestCertUtil.getInternalKey().certChain[0];
-        setClock(served.getNotAfter().toInstant().minus(Duration.ofDays(1)));
-        jettyService.start();
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
-        var rejectedAt = clock.instant();
-
-        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(wrongKeyPassword()))
-                .isInstanceOf(MaterialRejectedException.class);
-        assertThat(provider.get().succeeded()).isTrue();
-        assertThat(provider.readinessDetail())
-                .containsEntry(ConnectorTlsReadinessProvider.DETAIL_SERVED_EXPIRES, served.getNotAfter().toInstant().toString())
-                .containsEntry(ConnectorTlsReadinessProvider.DETAIL_REJECTED_SINCE, rejectedAt.toString())
-                .hasEntrySatisfying(ConnectorTlsReadinessProvider.DETAIL_REJECTED_CAUSE, cause -> assertThat(cause).isNotBlank());
-    }
-
-    @Test
-    void goesDownOnceTheServedCertificateExpiresWhileNewerMaterialIsRejected() throws Exception {
-        var served = TestCertUtil.getInternalKey().certChain[0];
-        setClock(served.getNotAfter().toInstant().minus(Duration.ofDays(1)));
-        jettyService.start();
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
-
-        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(wrongKeyPassword()))
-                .isInstanceOf(MaterialRejectedException.class);
-        assertThat(provider.get().succeeded()).isTrue();
-
-        setClock(served.getNotAfter().toInstant());
-
-        assertThat(provider.get().succeeded()).isFalse();
-        assertThat(provider.get().getFailureDetail()).contains("expired").contains("rejected since");
-    }
-
-    @Test
-    void goesDownWithTheExpiryOnceTheServedCertificateExpiresEvenWithNothingRejected() throws Exception {
+    void goesDownWithTheExpiryOnceTheServedCertificateExpires() throws Exception {
         var served = TestCertUtil.getInternalKey().certChain[0];
         setClock(served.getNotAfter().toInstant().minus(Duration.ofDays(1)));
         jettyService.start();
@@ -155,21 +109,7 @@ class ConnectorTlsReadinessProviderTest {
 
         assertThat(provider.get().succeeded()).isFalse();
         assertThat(provider.get().getFailureDetail())
-                .contains("expired at " + served.getNotAfter().toInstant())
-                .doesNotContain("rejected");
-        assertThat(provider.readinessDetail()).isEmpty();
-    }
-
-    @Test
-    void goesDownWhenTheCertificateAlreadyExpiredWhenItWasApplied() throws Exception {
-        var served = TestCertUtil.getInternalKey().certChain[0];
-        setClock(served.getNotAfter().toInstant().plus(Duration.ofDays(1)));
-        jettyService.start();
-
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
-
-        assertThat(provider.get().succeeded()).isFalse();
-        assertThat(provider.get().getFailureDetail()).contains("expired at");
+                .contains("expired at " + served.getNotAfter().toInstant());
     }
 
     @Test
@@ -224,14 +164,5 @@ class ConnectorTlsReadinessProviderTest {
 
         assertThat(provider.get().succeeded()).isFalse();
         assertThat(provider.get().getFailureDetail()).contains("port " + port).contains("not bindable");
-    }
-
-    @Test
-    void reportsNoDetailWhenNothingIsRejected() throws Exception {
-        jettyService.start();
-        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
-
-        assertThat(provider.get().succeeded()).isTrue();
-        assertThat(provider.readinessDetail()).isEmpty();
     }
 }

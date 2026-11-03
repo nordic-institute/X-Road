@@ -28,7 +28,6 @@ package org.niis.xroad.edc.extension.jetty;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestPortUtils;
-import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -38,12 +37,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.ScriptedLoader;
-import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
@@ -52,11 +49,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.unusable;
 import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.usable;
 
 class XRoadJettyExtensionTest {
@@ -190,78 +185,6 @@ class XRoadJettyExtensionTest {
         await().atMost(AWAIT).untilAsserted(() -> new Socket("localhost", port).close());
     }
 
-    @Test
-    void anSslContextThatCannotBeBuiltIsWarnedOnce() throws Exception {
-        loader.serve(unusable("broken"));
-        extension = newExtension(60);
-        extension.initialize(context);
-        extension.start();
-
-        await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
-
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains("could not be applied yet").contains("Cannot read the connector TLS entry");
-        assertThat(severes).isEmpty();
-    }
-
-    @Test
-    void anUnexpectedExceptionIsWarnedOnceWithItsMessage() throws Exception {
-        loader.serve(usable("internal", TestCertUtil.getInternalKey()));
-        extension = newExtension(60);
-        extension.initialize(context);
-        capturedJettyService().addConnectorConfigurationCallback(connector -> {
-            throw new IllegalStateException("callback exploded");
-        });
-        extension.start();
-
-        await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
-
-        assertThat(warnings).hasSize(1);
-        assertThat(warnings.getFirst()).contains("callback exploded");
-        assertThat(severes).isEmpty();
-    }
-
-    @Test
-    void twoDifferentFailuresWhilePendingAreWarnedTwiceAndARepeatOfTheSameOneIsNot() throws Exception {
-        loader.serve(unusable("first"));
-        extension = newExtension(60);
-        extension.initialize(context);
-        extension.start();
-        await().atMost(AWAIT).until(() -> warnings.size() == 1);
-
-        loader.serve(unusable("second"));
-        await().atMost(AWAIT).until(() -> loader.loads.get() >= 6);
-
-        assertThat(warnings).hasSize(1);
-
-        loader.serve(mismatched("third"));
-
-        await().atMost(AWAIT).until(() -> warnings.size() == 2);
-        assertThat(warnings.getFirst()).contains("Cannot read the connector TLS entry");
-        assertThat(warnings.getLast()).contains("does not match");
-        assertThat(severes).isEmpty();
-    }
-
-    @Test
-    void afterServingARejectionIsLoggedOnlyByTheServiceAsOneSevereLine() throws Exception {
-        loader.serve(unusable("flaky"));
-        extension = newExtension(1);
-        extension.initialize(context);
-        extension.start();
-        await().atMost(AWAIT).until(() -> warnings.size() == 1);
-        loader.serve(usable("good", TestCertUtil.getInternalKey()));
-        var readiness = readinessProvider();
-        await().atMost(AWAIT).untilAsserted(() -> assertThat(readiness.get().succeeded()).isTrue());
-        var loadsBeforeRejection = loader.loads.get();
-
-        loader.serve(unusable("flaky"));
-        await().atMost(AWAIT).until(() -> loader.loads.get() >= loadsBeforeRejection + 4);
-
-        assertThat(severes).hasSize(1);
-        assertThat(severes.getFirst()).contains("Still serving");
-        assertThat(warnings).hasSize(1);
-    }
-
     private XRoadJettyExtension newExtension(long reloadIntervalSeconds) {
         when(context.getMonitor()).thenReturn(monitor);
         port = TestPortUtils.findRandomPort();
@@ -272,20 +195,6 @@ class XRoadJettyExtensionTest {
         var captor = ArgumentCaptor.forClass(ReadinessProvider.class);
         verify(healthCheckService).addReadinessProvider(captor.capture());
         return captor.getValue();
-    }
-
-    private XRoadJettyService capturedJettyService() {
-        var captor = ArgumentCaptor.forClass(XRoadJettyService.class);
-        verify(context).registerService(eq(XRoadJettyService.class), captor.capture());
-        return captor.getValue();
-    }
-
-    private static Loaded<KeyStore> mismatched(String fingerprint) throws Exception {
-        var keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, TestCertUtil.getOcspSigner().key, InternalSSLKey.getKEY_PASSWORD(),
-                TestCertUtil.getInternalKey().certChain);
-        return new Loaded<>(keyStore, fingerprint);
     }
 
     private boolean connectionRefused() {

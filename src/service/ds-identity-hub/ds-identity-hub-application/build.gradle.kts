@@ -67,8 +67,4 @@ dependencies {
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-provisioning-api"))
-
-  testImplementation(libs.smallrye.config.yaml)
-  testImplementation(libs.junit.jupiter.params)
-  testImplementation(libs.assertj.core)
 }

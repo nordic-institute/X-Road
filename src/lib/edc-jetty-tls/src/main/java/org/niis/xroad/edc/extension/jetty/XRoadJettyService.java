@@ -47,12 +47,10 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.niis.xroad.edc.reload.MaterialRejectedException;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +59,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -80,11 +77,9 @@ import java.util.stream.Collectors;
  * {@link #notServedCause()}).
  *
  * <p>New material for a running factory is proven first: a throwaway factory with the same configuration must
- * load it, and its private key must match its certificate. Material that fails either check is rejected, the
- * previously served certificate keeps serving, and the rejection is recorded (see {@link #rejection()}) and
- * logged once per cause, with a reminder while it persists. If the live factory fails to take the new keystore
- * after that check, the previously served keystore is put back and the failure is a rejection like any other.
- * The rejection is cleared, with one info line, when material the factory accepts is applied again.
+ * load it, and its private key must match its certificate. Material that fails either check is rejected with a
+ * {@link ConnectorTlsKeyStoreLoadException} naming the rejected material and the certificate still served, and
+ * the previously served certificate keeps serving.
  *
  * <p>Every connector is HTTPS: the connector TLS certificate is mandatory for this runtime (see
  * {@link XRoadJettyExtension}), so stock's plaintext fallback for a missing keystore has no reason to exist
@@ -94,7 +89,6 @@ public final class XRoadJettyService implements WebServer {
 
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private static final String ROOT_PATH = "/";
-    private static final Duration REJECTION_REMINDER_INTERVAL = Duration.ofHours(1);
     private static final int MAX_CAUSE_LENGTH = 300;
 
     private final Monitor monitor;
@@ -102,15 +96,12 @@ public final class XRoadJettyService implements WebServer {
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
     private final Clock clock;
-    private final Function<KeyStore, SslContextFactory.Server> factoryCreator;
 
     private SslContextFactory.Server sslContextFactory;
-    private KeyStore servedKeyStore;
     private volatile X509Certificate servedCertificate;
     private Server server;
     private volatile boolean connectorsOpen;
     private volatile boolean stopped;
-    private volatile MaterialRejection rejection;
     private volatile String notServedCause;
 
     public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
@@ -118,14 +109,8 @@ public final class XRoadJettyService implements WebServer {
     }
 
     XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, Clock clock) {
-        this(monitor, portMappingRegistry, clock, XRoadJettyService::newSslContextFactory);
-    }
-
-    XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, Clock clock,
-                      Function<KeyStore, SslContextFactory.Server> factoryCreator) {
         this.monitor = monitor;
         this.clock = clock;
-        this.factoryCreator = factoryCreator;
         this.portMappingRegistry = portMappingRegistry;
         System.setProperty(LOG_ANNOUNCE, "false");
         this.handlers.put(ROOT_PATH, new ServletContextHandler(ROOT_PATH, 0));
@@ -135,10 +120,10 @@ public final class XRoadJettyService implements WebServer {
      * Accepts connector TLS material. The first call builds the shared SSL context factory; every later call
      * applies the keystore to the running SSL context, so every connector on this JVM — including
      * framework-internal ones such as the STS — serves the new certificate on its next handshake, without a
-     * restart. The HTTPS connectors open once the server is running and a factory exists, and a call that
-     * fails while opening them leaves them to be opened by the next call. A call after {@link #shutdown()} is
-     * ignored. Material that a running factory cannot serve is rejected with a
-     * {@link MaterialRejectedException} and leaves the served certificate untouched.
+     * restart. The HTTPS connectors open once a factory exists, and a call that fails while opening them leaves
+     * them to be opened by the next call; the server must be started first. A call after {@link #shutdown()} is
+     * ignored. Material that a running factory cannot serve is rejected and leaves the served certificate
+     * untouched.
      */
     public synchronized void applyConnectorTlsMaterial(KeyStore keyStore) {
         if (stopped) {
@@ -158,12 +143,11 @@ public final class XRoadJettyService implements WebServer {
         if (sslContextFactory == null) {
             var leaf = ConnectorTlsCertificates.leafOfMatchingKey(keyStore);
             sslContextFactory = buildAndStart(keyStore);
-            servedKeyStore = keyStore;
             servedCertificate = leaf;
         } else {
             reload(keyStore);
         }
-        if (server != null && !connectorsOpen) {
+        if (!connectorsOpen) {
             openConnectors(sslContextFactory);
         }
     }
@@ -185,13 +169,9 @@ public final class XRoadJettyService implements WebServer {
     }
 
     private static String describeFailure(RuntimeException failure) {
-        var cause = failure;
-        if (cause instanceof MaterialRejectedException && cause.getCause() instanceof RuntimeException inner) {
-            cause = inner;
-        }
-        return cause instanceof ConnectorTlsKeyStoreLoadException loadFailure
+        return failure instanceof ConnectorTlsKeyStoreLoadException loadFailure
                 ? loadFailure.summary()
-                : String.valueOf(cause.getMessage());
+                : String.valueOf(failure.getMessage());
     }
 
     private static String sanitize(String text) {
@@ -205,38 +185,18 @@ public final class XRoadJettyService implements WebServer {
             loadInThrowawayFactory(keyStore);
             leaf = ConnectorTlsCertificates.leafOfMatchingKey(keyStore);
         } catch (ConnectorTlsKeyStoreLoadException e) {
-            throw reject(keyStore, e);
+            throw rejected(keyStore, e);
         }
         try {
             sslContextFactory.reload(factory -> factory.setKeyStore(keyStore));
         } catch (Exception e) {
-            restoreServedKeyStore();
-            throw reject(keyStore, new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded connector TLS keystore", e));
+            throw new ConnectorTlsKeyStoreLoadException("Failed to apply the reloaded connector TLS keystore", e);
         }
-        servedKeyStore = keyStore;
         servedCertificate = leaf;
-        clearRejection();
-    }
-
-    private void restoreServedKeyStore() {
-        try {
-            sslContextFactory.reload(factory -> factory.setKeyStore(servedKeyStore));
-        } catch (Exception e) {
-            monitor.severe("Failed to restore the previously served connector TLS keystore; TLS handshakes may fail "
-                    + "until the next successful reload", e);
-        }
-    }
-
-    private void clearRejection() {
-        if (rejection != null) {
-            monitor.info("Connector TLS material accepted again, rejection cleared; serving %s"
-                    .formatted(ConnectorTlsCertificates.describe(servedCertificate)));
-        }
-        rejection = null;
     }
 
     private void loadInThrowawayFactory(KeyStore keyStore) {
-        var probe = factoryCreator.apply(keyStore);
+        var probe = newSslContextFactory(keyStore);
         try {
             probe.start();
         } catch (Exception e) {
@@ -250,31 +210,12 @@ public final class XRoadJettyService implements WebServer {
         }
     }
 
-    private MaterialRejectedException reject(KeyStore keyStore, ConnectorTlsKeyStoreLoadException failure) {
-        var now = clock.instant();
-        var cause = describeCause(failure);
-        var fingerprint = ConnectorTlsCertificates.fingerprintOrUnknown(keyStore);
-        var previous = rejection;
-        var changed = previous == null || !previous.fingerprint().equals(fingerprint) || !previous.cause().equals(cause);
-        var report = changed || Duration.between(previous.reportedAt(), now).compareTo(REJECTION_REMINDER_INTERVAL) >= 0;
-        var recorded = new MaterialRejection(fingerprint, cause, previous == null ? now : previous.since(),
-                servedCertificate.getNotAfter().toInstant(), report ? now : previous.reportedAt());
-        rejection = recorded;
-        if (report) {
-            reportRejection(recorded, failure, changed);
-        }
-        return new MaterialRejectedException(
-                "Connector TLS material rejected, still serving %s: %s".formatted(
-                        ConnectorTlsCertificates.describe(servedCertificate), cause), failure);
-    }
-
-    private void reportRejection(MaterialRejection current, ConnectorTlsKeyStoreLoadException failure, boolean changed) {
-        var served = ConnectorTlsCertificates.describe(servedCertificate);
-        monitor.severe(changed
-                ? "Connector TLS material rejected (fingerprint %s): %s. Still serving %s"
-                        .formatted(current.fingerprint(), current.cause(), served)
-                : "Connector TLS material is still rejected since %s (fingerprint %s): %s. Still serving %s"
-                        .formatted(current.since(), current.fingerprint(), current.cause(), served), failure);
+    private ConnectorTlsKeyStoreLoadException rejected(KeyStore keyStore, ConnectorTlsKeyStoreLoadException failure) {
+        return new ConnectorTlsKeyStoreLoadException(
+                "Connector TLS material (SHA-256 %s) rejected: %s. Still serving %s".formatted(
+                        ConnectorTlsCertificates.fingerprintOrUnknown(keyStore), describeCause(failure),
+                        ConnectorTlsCertificates.describe(servedCertificate)),
+                failure.summary(), failure);
     }
 
     private static String describeCause(Throwable failure) {
@@ -294,7 +235,7 @@ public final class XRoadJettyService implements WebServer {
     }
 
     private SslContextFactory.Server buildAndStart(KeyStore keyStore) {
-        var contextFactory = factoryCreator.apply(keyStore);
+        var contextFactory = newSslContextFactory(keyStore);
         try {
             contextFactory.start();
         } catch (Exception e) {
@@ -313,16 +254,8 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * The newer material currently refused while an earlier certificate keeps serving; empty when no material
-     * is being refused.
-     */
-    Optional<MaterialRejection> rejection() {
-        return Optional.ofNullable(rejection);
-    }
-
-    /**
      * When the served certificate expired, once it has; empty while there is no served certificate or it is still
-     * valid. Independent of whether newer material is being refused.
+     * valid.
      */
     Optional<Instant> servedCertificateExpiredAt() {
         var certificate = servedCertificate;
@@ -341,9 +274,6 @@ public final class XRoadJettyService implements WebServer {
             server.start();
         } catch (Exception e) {
             throw new EdcException("Error starting the X-Road Jetty service", e);
-        }
-        if (sslContextFactory != null) {
-            openConnectors(sslContextFactory);
         }
     }
 

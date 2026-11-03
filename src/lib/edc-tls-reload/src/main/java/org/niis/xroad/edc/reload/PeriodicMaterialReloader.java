@@ -51,11 +51,6 @@ import java.util.function.Consumer;
  * message persists. Material that loads but cannot be applied by the change callback stays pending and is retried
  * every cycle, logged by the same rule.
  *
- * <p>A change callback that refuses material it has already reported throws {@link MaterialRejectedException}.
- * The reloader then neither retries nor logs within the cycle, offers the material again on the next cycle, and
- * also offers the currently applied material once it is back, so the callback can clear its record of the
- * refusal.
- *
  * @param <T> the loaded material's runtime representation (e.g. a {@link java.security.KeyStore})
  */
 public final class PeriodicMaterialReloader<T> implements AutoCloseable {
@@ -76,7 +71,6 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     private final ScheduledExecutorService executor;
 
     private volatile String appliedFingerprint;
-    private boolean rejected;
     private int pendingCycles;
     private String lastPendingFailure;
 
@@ -116,20 +110,9 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     /**
      * Starts polling {@code loader} every {@code pendingInterval} for material that does not exist yet. The first
      * successful load calls {@code onChange} once; afterwards the reloader polls every {@code checkInterval} and
-     * behaves like one started with {@link #schedule}.
-     */
-    public static <T> PeriodicMaterialReloader<T> scheduleUntilFirstLoad(String name, Duration pendingInterval,
-                                                                         Duration checkInterval, int maxAttemptsPerCycle,
-                                                                         Duration retryDelay, MaterialLoader<T> loader,
-                                                                         Consumer<T> onChange, Monitor monitor) {
-        return scheduleUntilFirstLoad(name, pendingInterval, checkInterval, maxAttemptsPerCycle, retryDelay, loader,
-                onChange, monitor, null);
-    }
-
-    /**
-     * As {@link #scheduleUntilFirstLoad(String, Duration, Duration, int, Duration, MaterialLoader, Consumer, Monitor)},
-     * for a caller that already logged the failure of its own boot-time load: a pending load failing with
-     * {@code reportedFailure} as its message is not logged again.
+     * behaves like one started with {@link #schedule}. A caller that already logged the failure of its own
+     * boot-time load passes it as {@code reportedFailure}: a pending load failing with that message is not logged
+     * again; {@code null} when there is none.
      */
     public static <T> PeriodicMaterialReloader<T> scheduleUntilFirstLoad(String name, Duration pendingInterval,
                                                                          Duration checkInterval, int maxAttemptsPerCycle,
@@ -175,18 +158,11 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         for (var attempt = 1; attempt <= maxAttemptsPerCycle; attempt++) {
             try {
                 var loaded = loader.load();
-                var changed = !Objects.equals(loaded.fingerprint(), appliedFingerprint);
-                if (changed || rejected) {
+                if (!Objects.equals(loaded.fingerprint(), appliedFingerprint)) {
                     onChange.accept(loaded.material());
-                    rejected = false;
                     appliedFingerprint = loaded.fingerprint();
-                    if (changed) {
-                        monitor.info("%s: reloaded material (fingerprint changed)".formatted(name));
-                    }
+                    monitor.info("%s: reloaded material (fingerprint changed)".formatted(name));
                 }
-                return;
-            } catch (MaterialRejectedException _) {
-                rejected = true;
                 return;
             } catch (Exception e) {
                 monitor.warning("%s: reload attempt %d/%d failed: %s".formatted(name, attempt, maxAttemptsPerCycle, e.getMessage()));
@@ -210,8 +186,6 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         }
         try {
             onChange.accept(loaded.material());
-        } catch (MaterialRejectedException _) {
-            return;
         } catch (Exception e) {
             logPendingFailure("material could not be applied yet", e);
             return;

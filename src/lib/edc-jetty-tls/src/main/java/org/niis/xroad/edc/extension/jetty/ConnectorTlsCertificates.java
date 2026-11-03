@@ -132,8 +132,6 @@ final class ConnectorTlsCertificates {
         return switch (privateKey.getAlgorithm()) {
             case "RSA" -> "SHA256withRSA";
             case "EC" -> "SHA256withECDSA";
-            case "Ed25519" -> "Ed25519";
-            case "Ed448" -> "Ed448";
             default -> null;
         };
     }
