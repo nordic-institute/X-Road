@@ -5,6 +5,8 @@ plugins {
 
 dependencies {
   api(project(":lib:rpc-core"))
+
+  testImplementation(libs.assertj.core)
 }
 
 tasks.compileJava {

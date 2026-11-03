@@ -123,6 +123,15 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         }
     }
 
+    @Override
+    public void invalidateAssetAccess(String participantContextId, String assetId, String counterPartyId,
+                                      @Nullable ClientId consumerClientId) {
+        if (cache != null) {
+            cache.invalidate(participantContextId, assetId, counterPartyId,
+                    consumerClientId != null ? consumerClientId.asEncodedId() : null);
+        }
+    }
+
     private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey) {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())
@@ -137,7 +146,8 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         long expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
         var assetAccessResponse = new AssetAccessResponse(
                 response.getEndpoint(),
-                response.hasAuthorization() ? response.getAuthorization() : null);
+                response.hasAuthorization() ? response.getAuthorization() : null,
+                cacheKey.counterPartyId());
         return new AssetAccessCache.CachedEntry(assetAccessResponse, expiresAt);
     }
 }

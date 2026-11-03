@@ -70,12 +70,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
@@ -92,6 +95,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -135,13 +140,19 @@ class AssetAccessOrchestratorTest {
 
     AssetAccessCompletionPoller completionPoller;
 
+    AgreementReuseNote reuseNote;
+
     AssetAccessOrchestrator orchestrator;
+
+    private static final String PROVIDER_CONFLICT = providerAnswer(409, "agreement no longer valid");
 
     private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
 
     @BeforeEach
     void setUp() {
         lenient().when(reusableAgreementLookup.find(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        lenient().when(reusableAgreementLookup.findById(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        reuseNote = new AgreementReuseNote(100);
         lenient().when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> Stream.empty());
         lenient().when(transferProcessStore.findAll(any())).thenAnswer(invocation -> Stream.empty());
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
@@ -151,7 +162,7 @@ class AssetAccessOrchestratorTest {
         });
         completionPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
                 new NoopTransactionContext(), ExecutorInstrumentation.noop(), Clock.systemUTC(), monitor, Duration.ofMillis(250));
-        orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
+        orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup, reuseNote,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller,
                 jsonLd, transformerRegistry, monitor,
                 Duration.ofSeconds(60), Duration.ofSeconds(60));
@@ -208,7 +219,7 @@ class AssetAccessOrchestratorTest {
         stubCatalogAndTransformChain("asset-1");
         stubNegotiationInitiation();
         when(transferProcessService.initiateTransfer(any(), any()))
-                .thenReturn(ServiceResult.badRequest("provider refused agreement-1"))
+                .thenReturn(ServiceResult.conflict(PROVIDER_CONFLICT))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
                 Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-2"))));
@@ -235,7 +246,7 @@ class AssetAccessOrchestratorTest {
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", "policy no longer holds")));
+                Stream.of(terminatedTransfer("tp-1", PROVIDER_CONFLICT)));
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
                 Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-2"))));
         var newAddress = startedAddress("tp-2", "http://provider/new");
@@ -256,7 +267,7 @@ class AssetAccessOrchestratorTest {
         stubReusableAgreement("agreement-1");
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
-        var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
+        var impatient = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup, reuseNote,
                 catalogService, contractNegotiationService, transferProcessService, completionPoller,
                 jsonLd, transformerRegistry, monitor, Duration.ofSeconds(60), Duration.ZERO);
 
@@ -302,7 +313,7 @@ class AssetAccessOrchestratorTest {
         when(transferProcessService.initiateTransfer(any(), any()))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
-                Stream.of(terminatedTransfer("tp-1", "policy no longer holds")));
+                Stream.of(terminatedTransfer("tp-1", PROVIDER_CONFLICT)));
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
                 Stream.of(terminatedNegotiation("neg-1", "no offer for this client")));
 
@@ -325,7 +336,7 @@ class AssetAccessOrchestratorTest {
         stubCatalogAndTransformChain("asset-1");
         stubNegotiationInitiation();
         when(transferProcessService.initiateTransfer(any(), any()))
-                .thenReturn(ServiceResult.badRequest("provider refused agreement-1"))
+                .thenReturn(ServiceResult.conflict(PROVIDER_CONFLICT))
                 .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
                 Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-2"))));
@@ -731,6 +742,11 @@ class AssetAccessOrchestratorTest {
                 });
     }
 
+    private static String providerAnswer(int code, String body) {
+        return "Counter Party responded with Response{protocol=h2, code=%d, message=, url=https://provider.example/dsp}. Body: %s."
+                .formatted(code, body);
+    }
+
     private ParticipantContext buildParticipantContext() {
         return ParticipantContext.Builder.newInstance()
                 .participantContextId("participant1")
@@ -959,6 +975,259 @@ class AssetAccessOrchestratorTest {
         verify(reusableAgreementLookup, times(2))
                 .find(eq("participant1"), eq("participant1"), eq("asset-1"), eq("provider-1"), clientIdCaptor.capture());
         assertThat(clientIdCaptor.getAllValues()).containsExactly(clientWithAgreement, clientWithoutAgreement);
+    }
+
+    private static final String GROUP_CLIENT_A = "DEV:COM:222:A";
+    private static final String GROUP_CLIENT_B = "DEV:COM:222:B";
+
+    private CompletableFuture<ServiceResult<DataAddress>> lastAcquisition;
+
+    private ServiceResult<DataAddress> acquire(String clientId) throws Exception {
+        var request = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, clientId);
+        var started = new AtomicReference<CompletableFuture<ServiceResult<DataAddress>>>();
+        await().atMost(10, TimeUnit.SECONDS).until(() -> {
+            started.set(orchestrator.acquireAssetAccess(buildParticipantContext(), request));
+            return started.get() != lastAcquisition;
+        });
+        var acquisition = started.get();
+        lastAcquisition = acquisition;
+        pollUntilDone(acquisition);
+        return acquisition.get(5, TimeUnit.SECONDS);
+    }
+
+    private AgreementReuseNote.Key noteKey(String clientId) {
+        return new AgreementReuseNote.Key("participant1", "participant1", "provider-1", "asset-1", clientId);
+    }
+
+    private void stubFindById(ContractAgreement agreement) {
+        lenient().when(reusableAgreementLookup.findById("participant1", "participant1", "asset-1", "provider-1", agreement.getId()))
+                .thenReturn(Optional.of(agreement));
+    }
+
+    private void stubStartedTransfers(String... transferIds) {
+        var results = Stream.of(transferIds)
+                .map(id -> ServiceResult.success(TransferProcess.Builder.newInstance().id(id).build()))
+                .toList();
+        var stubbing = when(transferProcessService.initiateTransfer(any(), any())).thenReturn(results.getFirst());
+        results.stream().skip(1).forEach(stubbing::thenReturn);
+        for (var id : transferIds) {
+            startedAddress(id, "http://provider/data-" + id);
+        }
+    }
+
+    private void stubNegotiatedAgreements(String... agreementIds) {
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenAnswer(invocation -> ServiceResult.success(
+                ContractNegotiation.Builder.newInstance().id("neg-" + (negotiationCount++))
+                        .protocol("http-dsp-profile-2025-1").counterPartyId("provider-1")
+                        .counterPartyAddress("http://provider/dsp").build()));
+        for (int i = 0; i < agreementIds.length; i++) {
+            var negotiationId = "neg-" + i;
+            var agreement = buildAgreement(agreementIds[i]);
+            lenient().when(negotiationStore.queryNegotiations(specWithId(negotiationId))).thenAnswer(invocation ->
+                    Stream.of(finalizedNegotiation(negotiationId, agreement)));
+        }
+    }
+
+    private int negotiationCount;
+
+    @Test
+    void groupGrantedSubsystemReusesItsAgreementOnTheSecondAcquisition() throws Exception {
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-g");
+        stubFindById(buildAgreement("agreement-g"));
+        stubStartedTransfers("tp-1", "tp-2");
+
+        var first = acquire(GROUP_CLIENT_A);
+        var second = acquire(GROUP_CLIENT_A);
+
+        assertThat(first.getContent().getStringProperty("endpoint")).isEqualTo("http://provider/data-tp-1");
+        assertThat(second.getContent().getStringProperty("endpoint")).isEqualTo("http://provider/data-tp-2");
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
+                .containsExactly("agreement-g", "agreement-g");
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-g");
+    }
+
+    @Test
+    void twoSubsystemsOfOneMemberInTheSameGroupGetSeparateEntries() throws Exception {
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-a", "agreement-b");
+        stubFindById(buildAgreement("agreement-a"));
+        stubFindById(buildAgreement("agreement-b"));
+        stubStartedTransfers("tp-1", "tp-2", "tp-3", "tp-4");
+
+        acquire(GROUP_CLIENT_A);
+        acquire(GROUP_CLIENT_B);
+        acquire(GROUP_CLIENT_A);
+        acquire(GROUP_CLIENT_B);
+
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-a");
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_B))).contains("agreement-b");
+        verify(contractNegotiationService, times(2)).initiateNegotiation(any(), any());
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(4)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
+                .containsExactly("agreement-a", "agreement-b", "agreement-a", "agreement-b");
+    }
+
+    @Test
+    void anAgreementTheStoreNoLongerHoldsIsForgottenAndTheLookupTakesOver() throws Exception {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-gone");
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", GROUP_CLIENT_A))
+                .thenReturn(Optional.of(buildAgreement("agreement-found")));
+        stubStartedTransfers("tp-1");
+
+        acquire(GROUP_CLIENT_A);
+
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getValue().getContractId()).isEqualTo("agreement-found");
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-found");
+        verifyNoInteractions(contractNegotiationService);
+    }
+
+    @Test
+    void aProviderRefusalRemovesTheEntryAndRenegotiatesExactlyOnce() throws Exception {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
+        stubFindById(buildAgreement("agreement-1"));
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-2");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-1", providerAnswer(404, "agreement not found or not valid"))));
+        startedAddress("tp-2", "http://provider/data-tp-2");
+
+        var result = acquire(GROUP_CLIENT_A);
+
+        assertThat(result.succeeded()).isTrue();
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-2");
+    }
+
+    @Test
+    void aRefusedRenegotiatedAgreementLeavesNoEntryAndDoesNotLoop() throws Exception {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
+        stubFindById(buildAgreement("agreement-1"));
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-2");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-1", PROVIDER_CONFLICT)));
+        when(transferProcessStore.findAll(specWithId("tp-2"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-2", PROVIDER_CONFLICT)));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).isEmpty();
+    }
+
+    static Stream<String> failuresThatAreNotRefusals() {
+        return Stream.of(
+                providerAnswer(404, "Not found"),
+                providerAnswer(400, "TransferType is not supported"),
+                providerAnswer(401, "agreement token rejected"),
+                providerAnswer(500, "agreement not found or not valid"),
+                "provider terminated");
+    }
+
+    @ParameterizedTest
+    @MethodSource("failuresThatAreNotRefusals")
+    void aFailureThatIsNotARefusalEvictsNothingAndDoesNotRenegotiate(String detail) throws Exception {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
+        stubFindById(buildAgreement("agreement-1"));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(terminatedTransfer("tp-1", detail)));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_transfer_failed"));
+        verifyNoInteractions(catalogService);
+        verifyNoInteractions(contractNegotiationService);
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-1");
+    }
+
+    @Test
+    void refusalOfAnAgreementTheNoteDoesNotHoldLeavesTheNewerEntryInPlace() throws Exception {
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-a", clientPolicy(GROUP_CLIENT_A))));
+        stubNegotiatedAgreements("agreement-2");
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", GROUP_CLIENT_A))
+                .thenReturn(Optional.of(buildAgreement("agreement-old")));
+        var calls = new AtomicInteger();
+        when(transferProcessService.initiateTransfer(any(), any())).thenAnswer(invocation -> {
+            if (calls.getAndIncrement() > 0) {
+                return ServiceResult.badRequest("renegotiated transfer rejected locally");
+            }
+            reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-newer");
+            return ServiceResult.conflict(PROVIDER_CONFLICT);
+        });
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
+        pollUntilDone(future);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-newer");
+    }
+
+    @Test
+    void providerOutageThenRecoveryKeepsTheAgreementAndTransfersAgainOnIt() throws Exception {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
+        stubFindById(buildAgreement("agreement-1"));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenThrow(new EdcException("java.net.ConnectException: Connection refused"))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+        startedAddress("tp-2", "http://provider/data-tp-2");
+
+        var outage = orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, GROUP_CLIENT_A));
+        pollUntilDone(outage);
+        assertThatThrownBy(() -> outage.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_transfer_failed"));
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-1");
+        lastAcquisition = outage;
+
+        var recovered = acquire(GROUP_CLIENT_A);
+
+        assertThat(recovered.getContent().getStringProperty("endpoint")).isEqualTo("http://provider/data-tp-2");
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId)
+                .containsExactly("agreement-1", "agreement-1");
+        verifyNoInteractions(catalogService);
+        verifyNoInteractions(contractNegotiationService);
+    }
+
+    @Test
+    void anUnrestrictedServiceOnlyAgreementIsNotedPerCallingSubsystem() throws Exception {
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-open", unrestrictedPolicy())));
+        stubNegotiatedAgreements("agreement-open-a", "agreement-open-b");
+        stubStartedTransfers("tp-1", "tp-2");
+
+        acquire(GROUP_CLIENT_A);
+        acquire(GROUP_CLIENT_B);
+
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-open-a");
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_B))).contains("agreement-open-b");
     }
 
     private static QuerySpec specWithId(String id) {

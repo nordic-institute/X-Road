@@ -207,6 +207,35 @@ class AssetAccessRpcClientTest {
     }
 
     @Test
+    void acquireSuccessIdentifiesTheProviderServerTheAccessCameFrom() {
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .build();
+
+        var result = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp", null);
+
+        assertThat(result.counterPartyId()).isEqualTo("provider-1");
+    }
+
+    @Test
+    void invalidatingOneProviderServerDropsOnlyItsCachedAccess() {
+        configuredResponse = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
+                .build();
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider-1/dsp", null);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-2", "http://provider-2/dsp", null);
+        assertThat(requestCount.get()).isEqualTo(2);
+
+        client.invalidateAssetAccess("test-participant-ctx", "asset-1", "provider-1", null);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-2", "http://provider-2/dsp", null);
+        assertThat(requestCount.get()).isEqualTo(2);
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider-1/dsp", null);
+
+        assertThat(requestCount.get()).isEqualTo(3);
+    }
+
+    @Test
     void acquireSuccessDifferentKeyCausesCacheMiss() {
         configuredResponse = AcquireAssetAccessResp.newBuilder()
                 .setEndpoint("http://provider/api/data")

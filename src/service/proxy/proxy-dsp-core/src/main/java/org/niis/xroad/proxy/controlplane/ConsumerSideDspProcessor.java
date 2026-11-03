@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
@@ -84,6 +86,10 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  * them tokenless over the X-Road 7 path. The set is the union of the SOAP and REST handlers' codes; a
  * code the handler for that transport does not serve falls to the provider's access-checked default handler.
  *
+ * <p>{@link #failOver} serves a data call that could not connect to its cached provider server: it drops that
+ * server's cached asset access and acquires from the remaining candidates, never from the failed one. Candidate
+ * failure during acquisition itself needs no such drop, as an acquisition that failed cached nothing.
+ *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
  * {@link ClientFacingErrorPolicy#sanitizeForConsumer(XrdRuntimeException)}.
  */
@@ -102,7 +108,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         log.trace("execute({})", request);
 
         try {
-            return acquireAssetAccessForService(request, request.serviceId());
+            return acquireAssetAccessForService(request, request.serviceId(), null).orElseThrow();
         } catch (XrdRuntimeException ex) {
             throw ClientFacingErrorPolicy.sanitizeForConsumer(ex);
         }
@@ -124,7 +130,29 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 request.sender());
     }
 
-    private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
+    @Override
+    public Optional<AssetAccessResponse> failOver(DspRequest request, AssetAccessResponse failed) {
+        if (failed.counterPartyId() == null) {
+            return Optional.empty();
+        }
+        assetAccessAcquisitionService.invalidateAssetAccess(
+                ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId()),
+                request.serviceId().asEncodedId(),
+                failed.counterPartyId(),
+                request.sender());
+        try {
+            return acquireAssetAccessForService(request, request.serviceId(), failed.counterPartyId());
+        } catch (XrdRuntimeException ex) {
+            throw ClientFacingErrorPolicy.sanitizeForConsumer(ex);
+        }
+    }
+
+    /**
+     * Acquires asset access from the first candidate that yields it, never from the candidate whose
+     * counter-party id is {@code excludedCounterPartyId}. Empty only when that exclusion leaves no candidate.
+     */
+    private Optional<AssetAccessResponse> acquireAssetAccessForService(DspRequest request, ServiceId serviceId,
+                                                                      @Nullable String excludedCounterPartyId) {
         var assetId = serviceId.asEncodedId();
         var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
 
@@ -147,14 +175,20 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         for (var candidate : candidates) {
             try {
                 var target = targetFor(requestTargetsSystemCtx, serviceId, candidate.hostAddress());
-                return assetAccessAcquisitionService.acquireAssetAccess(
+                if (target.counterPartyId().toString().equals(excludedCounterPartyId)) {
+                    continue;
+                }
+                return Optional.of(assetAccessAcquisitionService.acquireAssetAccess(
                         participantContextId, assetId, target.counterPartyId().toString(), target.counterPartyAddress(),
-                        request.sender());
+                        request.sender()));
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
                 remoteFailures.add(ex);
             }
+        }
+        if (remoteFailures.isEmpty()) {
+            return Optional.empty();
         }
         throw buildFinalException(remoteFailures, serviceId, candidates.size());
     }

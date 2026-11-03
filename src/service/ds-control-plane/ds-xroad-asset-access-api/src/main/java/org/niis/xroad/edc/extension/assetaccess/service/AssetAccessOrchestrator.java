@@ -57,10 +57,12 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
+import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
+import org.niis.xroad.edc.protocol.assetaccess.ProviderFailureClassifier;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
@@ -89,11 +91,18 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * whether the negotiation or transfer is driven to completion by this instance or another one sharing
  * the same database.
  *
- * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store, scoped
- * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
- * entirely and transfers with the existing agreement. When that transfer is refused at initiation or terminated
- * while awaited, the same acquisition falls back to a full negotiation, whose newer agreement wins reuse from
- * then on. A timeout waiting for the transfer to start is not a refusal and fails the acquisition.
+ * <p>Every acquisition first asks the {@link AgreementReuseNote} which agreement last worked for the calling
+ * subsystem, then the {@link ReusableAgreementLookup} against the shared agreement store, scoped to agreements
+ * this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation entirely and
+ * transfers with the existing agreement. The note is what lets a group agreement be reused, which the lookup
+ * cannot attribute to a subsystem. A successful transfer records its agreement in the note.
+ *
+ * <p>Only a provider refusal of the transfer, as recognised by {@link ProviderFailureClassifier}, ends an
+ * agreement's reuse: the note entry is removed (unless a newer one replaced it) and the same acquisition falls
+ * back to one full negotiation, whose newer agreement wins reuse from then on. Every other failure keeps the
+ * agreement and the note entry and fails the acquisition: a provider-side termination without a refusal, a
+ * failed initiation, a timeout waiting for the transfer to start, and any connection fault. A later acquisition
+ * then transfers on the same agreement again.
  *
  * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
  * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
@@ -105,6 +114,7 @@ public class AssetAccessOrchestrator {
 
     private final AssetAccessStateStore stateStore;
     private final ReusableAgreementLookup reusableAgreementLookup;
+    private final AgreementReuseNote reuseNote;
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;
     private final TransferProcessService transferProcessService;
@@ -134,34 +144,62 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
             String key, ParticipantContext participantContext, AssetAccessRequest request) {
-        var reusableAgreement = reusableAgreementLookup.find(
-                participantContext.getParticipantContextId(), participantContext.getIdentity(),
-                request.assetId(), request.counterPartyId(), request.clientId());
+        var noteKey = noteKey(participantContext, request);
+        var reusableAgreement = findReusableAgreement(participantContext, request, noteKey);
         if (reusableAgreement.isPresent()) {
             var agreement = reusableAgreement.get();
             monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
                     .formatted(key, agreement.getId(), request.clientId() != null));
             return transferAndAwaitDataAddress(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
                     request.counterPartyAddress(), request.protocolOrDefault())
-                    .thenApply(ServiceResult::success)
+                    .thenApply(dataAddress -> {
+                        reuseNote.remember(noteKey, agreement.getId());
+                        return ServiceResult.success(dataAddress);
+                    })
                     .exceptionallyCompose(failure -> isTransferRefusal(failure)
-                            ? negotiateAfterRefusal(key, participantContext, request, agreement, failure)
+                            ? negotiateAfterRefusal(key, noteKey, participantContext, request, agreement, failure)
                             : CompletableFuture.failedFuture(unwrap(failure)));
         }
         monitor.info("%s no reusable agreement found, negotiating".formatted(key));
-        return executeAcquisition(participantContext, request, key);
+        return executeAcquisition(participantContext, request, key, noteKey);
+    }
+
+    private static AgreementReuseNote.Key noteKey(ParticipantContext participantContext, AssetAccessRequest request) {
+        return new AgreementReuseNote.Key(participantContext.getParticipantContextId(), participantContext.getIdentity(),
+                request.counterPartyId(), request.assetId(), request.clientId());
+    }
+
+    private Optional<ContractAgreement> findReusableAgreement(ParticipantContext participantContext,
+                                                              AssetAccessRequest request, AgreementReuseNote.Key noteKey) {
+        var noted = reuseNote.find(noteKey).flatMap(agreementId -> {
+            var agreement = reusableAgreementLookup.findById(noteKey.participantContextId(), noteKey.participantDid(),
+                    noteKey.assetId(), noteKey.providerDid(), agreementId);
+            if (agreement.isEmpty()) {
+                reuseNote.evict(noteKey, agreementId);
+            }
+            return agreement;
+        });
+        if (noted.isPresent()) {
+            return noted;
+        }
+        return reusableAgreementLookup.find(
+                participantContext.getParticipantContextId(), participantContext.getIdentity(),
+                request.assetId(), request.counterPartyId(), request.clientId());
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> negotiateAfterRefusal(
-            String key, ParticipantContext participantContext, AssetAccessRequest request,
+            String key, AgreementReuseNote.Key noteKey, ParticipantContext participantContext, AssetAccessRequest request,
             ContractAgreement refusedAgreement, Throwable refusal) {
         monitor.warning("%s reused agreement refused, negotiating afresh: agreementId=%s reason=%s"
                 .formatted(key, refusedAgreement.getId(), unwrap(refusal).getMessage()));
-        return executeAcquisition(participantContext, request, key);
+        reuseNote.evict(noteKey, refusedAgreement.getId());
+        return executeAcquisition(participantContext, request, key, noteKey);
     }
 
     private static boolean isTransferRefusal(Throwable failure) {
-        return unwrap(failure) instanceof XrdRuntimeException xrdException && xrdException.isCausedBy(DSP_TRANSFER_FAILED);
+        return unwrap(failure) instanceof XrdRuntimeException xrdException
+                && xrdException.isCausedBy(DSP_TRANSFER_FAILED)
+                && ProviderFailureClassifier.isRefusal(xrdException.getDetails());
     }
 
     private static Throwable unwrap(Throwable failure) {
@@ -173,12 +211,17 @@ public class AssetAccessOrchestrator {
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(
-            ParticipantContext participantContext, AssetAccessRequest request, String registryKey) {
+            ParticipantContext participantContext, AssetAccessRequest request, String registryKey,
+            AgreementReuseNote.Key noteKey) {
         return fetchCatalog(registryKey, participantContext, request)
                 .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId(), request.clientId()))
                 .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
                         .thenCompose(agreement -> transferAndAwaitDataAddress(registryKey, participantContext, agreement,
-                                offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault())))
+                                offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault())
+                                .thenApply(dataAddress -> {
+                                    reuseNote.remember(noteKey, agreement.getId());
+                                    return dataAddress;
+                                })))
                 .thenApply(ServiceResult::success);
     }
 

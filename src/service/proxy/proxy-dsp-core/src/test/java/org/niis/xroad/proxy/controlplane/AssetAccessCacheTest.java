@@ -133,6 +133,23 @@ class AssetAccessCacheTest {
         assertThat(loadCount.get()).isEqualTo(2);
     }
 
+    @Test
+    void invalidatingOneProviderServerLeavesTheOtherCandidatesOfTheAssetCached() {
+        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
+                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-b",
+                "http://provider-b/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
+                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:B");
+        Stream.of(candidateA, candidateB, otherClient).forEach(k -> cache.get(k, x -> load(60)));
+        loadCount.set(0);
+
+        cache.invalidate("test-participant-ctx", "asset-1", "provider-a", "DEV:COM:222:A");
+        Stream.of(candidateA, candidateB, otherClient).forEach(k -> cache.get(k, x -> load(60)));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
     private AssetAccessCache.CachedEntry load(long expiresInSeconds) {
         loadCount.incrementAndGet();
         return new AssetAccessCache.CachedEntry(

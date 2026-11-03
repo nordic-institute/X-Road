@@ -60,4 +60,17 @@ public interface AssetAccessAcquisitionService {
      */
     default void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
     }
+
+    /**
+     * Drops the cached asset access acquired from one provider server for the given participant context, asset
+     * and calling client, leaving the access cached for other provider servers. A no-op when nothing is cached.
+     *
+     * @param participantContextId the consumer participant context the asset access was acquired for
+     * @param assetId              the asset identifier
+     * @param counterPartyId       the provider participant the asset access was acquired from
+     * @param consumerClientId     the calling client; {@code null} when the request states none
+     */
+    default void invalidateAssetAccess(String participantContextId, String assetId, String counterPartyId,
+                                       @Nullable ClientId consumerClientId) {
+    }
 }
