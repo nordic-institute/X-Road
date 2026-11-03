@@ -75,6 +75,7 @@ class TransportFaultClassifierTest {
                         new NamedFailure("connection refused", new ConnectException("refused")),
                         new NamedFailure("apache host connect failure", hostConnectException),
                         new NamedFailure("no route to host", new NoRouteToHostException("unreachable")),
+                        new NamedFailure("unresolvable host", new UnknownHostException("no.such.host")),
                         new NamedFailure("connect timeout", new ConnectTimeoutException("connect timed out")),
                         new NamedFailure("tls handshake failure", new SSLHandshakeException("handshake_failure")),
                         new NamedFailure("read timeout", new SocketTimeoutException("Read timed out")))
@@ -119,12 +120,6 @@ class TransportFaultClassifierTest {
                 Arguments.of("plain io exception", new IOException("broken"), false),
                 Arguments.of("plain io exception, wrapped",
                         XrdRuntimeException.systemException(IO_ERROR, new IOException("broken")), false),
-                Arguments.of("unresolvable host", new UnknownHostException("no.such.host"), false),
-                Arguments.of("unresolvable host, wrapped by the sender",
-                        XrdRuntimeException.systemException(IO_ERROR, new UnknownHostException("no.such.host")), false),
-                Arguments.of("unresolvable host, wrapped twice",
-                        new IllegalStateException(XrdRuntimeException.systemException(IO_ERROR,
-                                new UnknownHostException("no.such.host"))), false),
                 Arguments.of("tls failure that is not a handshake failure", new SSLException("bad record mac"), false),
                 Arguments.of("unrelated runtime exception", new IllegalArgumentException("bad argument"), false));
     }

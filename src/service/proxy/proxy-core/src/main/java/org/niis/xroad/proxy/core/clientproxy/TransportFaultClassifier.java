@@ -36,14 +36,15 @@ import javax.net.ssl.SSLHandshakeException;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
  * Tells whether a failed data-plane send was a network fault, as opposed to an answer from a live server.
  * <p>
  * A failure is a transport fault only when its cause chain positively contains a refused or unreachable
- * connection, a connect timeout, a TLS handshake failure or a read timeout. Anything else,
- * including an error raised after a response arrived, is not a transport fault.
+ * connection, a host name that does not resolve, a connect timeout, a TLS handshake failure or a read timeout.
+ * Anything else, including an error raised after a response arrived, is not a transport fault.
  * A timeout waiting for a connection from the local pool never reaches the provider, so on its own it is not
  * a transport fault either.
  */
@@ -53,6 +54,7 @@ public final class TransportFaultClassifier {
     private static final List<Class<? extends Throwable>> TRANSPORT_FAULT_TYPES = List.of(
             ConnectException.class,
             NoRouteToHostException.class,
+            UnknownHostException.class,
             ConnectTimeoutException.class,
             SSLHandshakeException.class,
             SocketTimeoutException.class);

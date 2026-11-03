@@ -27,8 +27,12 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.util.HttpSender;
 
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +43,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -104,6 +109,25 @@ class TransportFaultClassifierRealFaultTest {
 
         assertThat(sendFailure("http", server.getLocalPort()))
                 .satisfies(TransportFaultClassifierRealFaultTest::assertTransportFault);
+    }
+
+    @Test
+    void unresolvableHostIsATransportFault() throws IOException {
+        var connectionManager = new PoolingHttpClientConnectionManager(
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                        .build(),
+                null, host -> {
+                    throw new UnknownHostException(host);
+                });
+        try (var unresolvingClient = HttpClients.custom().setConnectionManager(connectionManager).build()) {
+            var failure = catchThrowable(() -> {
+                try (var sender = new HttpSender(unresolvingClient, false)) {
+                    sender.doPost(URI.create("http://unresolvable.provider.test/"), "request", "text/plain");
+                }
+            });
+            assertThat(failure).satisfies(TransportFaultClassifierRealFaultTest::assertTransportFault);
+        }
     }
 
     @Test

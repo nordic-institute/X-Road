@@ -79,6 +79,7 @@ import javax.net.ssl.SSLHandshakeException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -599,6 +600,26 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
+    void anUnresolvableHostOfTheFirstServerIsServedByTheSibling() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var unresolvableSsA = failingSender(
+                XrdRuntimeException.systemException(IO_ERROR, new UnknownHostException("ss-a.example")));
+        var servedBySsB = mock(HttpSender.class);
+        stubSenders(harness, unresolvableSsA, servedBySsB);
+
+        var sent = send(harness);
+
+        assertThat(sent.getHttpSender()).isSameAs(servedBySsB);
+        verify(unresolvableSsA).close();
+        verify(servedBySsB, never()).close();
+        verify(servedBySsB).doPost(eq(URI.create(WON_BY_SS_B.endpoint())), nullable(HttpEntity.class));
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        verify(harness.dspSendFailureHandler()).handle(any(XrdRuntimeException.class), eq(WON_BY_SS_A));
+        verify(harness.dspSendFailureHandler(), never()).handle(any(), eq(WON_BY_SS_B));
+    }
+
+    @Test
     void whenEveryCandidateRefusesTheCallerGetsTheDataPlaneErrorAfterOneAcquisitionPerCandidate() throws Exception {
         var harness = createHarness(true);
         stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
@@ -694,6 +715,7 @@ class ClientRestMessageProcessorTest {
     static Stream<Throwable> transportFaults() {
         return Stream.of(
                 new ConnectException("refused"),
+                new UnknownHostException("ss-a.example"),
                 new ConnectTimeoutException("connect timed out"),
                 new SSLHandshakeException("handshake_failure"),
                 new SocketTimeoutException("Read timed out"));
