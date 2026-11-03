@@ -76,6 +76,7 @@ public interface DspRequestProcessor {
      * @param request the request whose data call failed to connect
      * @param failed  the asset access the failed data call used
      * @return the asset access of another provider server, or empty when there is none to fail over to
+     *         or none of them yields asset access
      */
     default Optional<AssetAccessResponse> failOver(DspRequest request, AssetAccessResponse failed) {
         return Optional.empty();

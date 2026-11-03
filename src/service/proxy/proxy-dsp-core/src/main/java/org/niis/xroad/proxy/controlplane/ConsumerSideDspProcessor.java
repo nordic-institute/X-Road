@@ -189,7 +189,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .details("No candidate security servers found for service %s".formatted(serviceId))
                     .build();
         }
-        throw buildFinalException(remoteFailures, serviceId, candidates.size());
+        throw buildFinalException(remoteFailures, serviceId);
     }
 
     /**
@@ -229,8 +229,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 && ManagementServiceCodes.DSP_NEGOTIATED.contains(serviceId.getServiceCode());
     }
 
-    private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
-                                                 ServiceId serviceId, int candidateCount) {
+    private RuntimeException buildFinalException(List<RuntimeException> remoteFailures, ServiceId serviceId) {
         if (remoteFailures.stream().allMatch(XrdRuntimeException.class::isInstance)) {
             var xrdCodes = remoteFailures.stream()
                     .map(XrdRuntimeException.class::cast)
@@ -252,7 +251,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 .origin(DATASPACE)
                 .cause(remoteFailures.getLast())
                 .details("All %d candidate security servers failed to acquire asset access for service %s"
-                        .formatted(candidateCount, serviceId))
+                        .formatted(remoteFailures.size(), serviceId))
                 .build();
     }
 
