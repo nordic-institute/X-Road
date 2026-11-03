@@ -368,6 +368,10 @@ configure_secret_store
 configure_secret_store_trust_env
 create_backup_dir_if_not_exists
 
+if [[ "${XROAD_MIGRATION_MODE:-}" == "true" && "$RECONFIG_REQUIRED" == "true" && "$RECONFIGURED" != "true" ]]; then
+  warn "Package reconfiguration failed, migration not finished"
+  exit 1
+fi
 run_migration_phase finish
 unset XROAD_MIGRATION_SOFTTOKEN_PIN
 
