@@ -8,6 +8,7 @@ set -o pipefail
 
 SOURCE_CONFIG_DIR="${XROAD_MIGRATION_SOURCE_CONFIG_DIR:-/mnt/migration-source/etc/xroad}"
 TARGET_CONFIG_DIR="/etc/xroad"
+PACKAGED_CONFIG_DIR="${PACKAGED_CONFIG_DIR:-/usr/share/xroad/config/etc/xroad}"
 MIGRATION_TASKS_DIR="${MIGRATION_TASKS_DIR:-/usr/share/xroad/scripts/sidecar/migration-tasks}"
 MIGRATION_COMPLETE_MARK="$TARGET_CONFIG_DIR/.migration-complete"
 

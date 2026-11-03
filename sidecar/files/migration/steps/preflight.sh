@@ -47,9 +47,8 @@ migration_preflight_check_target_config_empty() {
   return 1
 }
 
-# The target image's country variant file is seeded into the empty target
-# volume by Docker before migration mode runs, next to the source's own copy
-# of it on the source volume.
+# The target variant comes from the image's packaged configuration: only a
+# Docker named volume is seeded with it, a bind mount or PVC starts empty.
 migration_preflight_detect_variant() {
   local f
   f="$(compgen -G "$1/conf.d/override-securityserver-*.ini" | head -1)"
@@ -61,7 +60,7 @@ migration_preflight_detect_variant() {
 migration_preflight_check_country_variant() {
   local source_variant target_variant
   source_variant="$(migration_preflight_detect_variant "$SOURCE_CONFIG_DIR")" || source_variant=""
-  target_variant="$(migration_preflight_detect_variant "$TARGET_CONFIG_DIR")" || target_variant=""
+  target_variant="$(migration_preflight_detect_variant "$PACKAGED_CONFIG_DIR")" || target_variant=""
 
   if [[ "$source_variant" != "$target_variant" ]]; then
     STEP_REASON="country variant mismatch: the source is ${source_variant:-the regular (non-variant) image} and the target is ${target_variant:-the regular (non-variant) image}"
