@@ -246,7 +246,7 @@ public class ClientSoapMessageProcessor {
                 decoder.getRequestSoap().getSecurityServer(),
                 isManagementRequest(decoder.getServiceId()));
         AssetAccessResponse assetAccess = proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)
-                ? consumerSideDspProcessor.execute(dspRequest)
+                ? consumerSideDspProcessor.execute(dspRequest).access()
                 : null;
         ProxyMessage response;
         try (HttpSender httpSender = executeWithRetry(ctx, decoder, xRequestId, opMonitoringData, assetAccess)) {

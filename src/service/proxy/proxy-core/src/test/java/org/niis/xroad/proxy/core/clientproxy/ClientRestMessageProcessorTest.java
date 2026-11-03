@@ -44,6 +44,7 @@ import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -54,9 +55,12 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor.SentRequest;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor.SigningProxyMessageEntity;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
@@ -75,6 +79,7 @@ import javax.net.ssl.SSLHandshakeException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -87,7 +92,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
@@ -100,7 +107,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
@@ -144,7 +153,7 @@ class ClientRestMessageProcessorTest {
                 .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         when(consumerSideDspProcessor.execute(any()))
-                .thenReturn(new AssetAccessResponse("https://localhost:5500/", null, WINNER));
+                .thenReturn(new DspAcquisition(new AssetAccessResponse("https://localhost:5500/", null, WINNER), 1));
 
         return new ClientRestMessageProcessor(
                 messageSigningService,
@@ -209,7 +218,7 @@ class ClientRestMessageProcessorTest {
 
         var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
 
-        // isManagementRequest drives the management flag in the DspRequest constructed by sendRequest.
+        // isManagementRequest drives the management flag in the DspRequest constructed by send.
         var dspRequest = new DspRequest(serviceId, serviceId.getClientId(), null, processor.isManagementRequest(serviceId));
         assertThat(dspRequest.managementSubsystem()).isTrue();
     }
@@ -235,71 +244,58 @@ class ClientRestMessageProcessorTest {
     private static final String AGREEMENT_TOKEN = "token-abc-123";
 
     @Test
-    void sendRequestAddsAgreementTokenHeaderWhenAssetAccessCarriesToken() throws Exception {
+    void sendAddsAgreementTokenHeaderWhenAssetAccessCarriesToken() throws Exception {
         var harness = createHarness(true);
-        when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        stubAcquisitions(harness, 1, new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        var tokenPresented = harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        var sent = send(harness);
 
         verify(httpSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
-        assertThat(tokenPresented).isTrue();
+        assertThat(sent.isTokenPresented()).isTrue();
+        assertThat(sent.getHttpSender()).isSameAs(httpSender);
     }
 
     @Test
-    void sendRequestOmitsAgreementTokenHeaderWhenAssetAccessHasNoAuthorization() throws Exception {
+    void sendOmitsAgreementTokenHeaderWhenAssetAccessHasNoAuthorization() throws Exception {
         var harness = createHarness(true);
-        when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, null, WINNER));
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        stubAcquisitions(harness, 1, new AssetAccessResponse(PROVIDER_ADDRESS, null, WINNER));
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        var tokenPresented = harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        var sent = send(harness);
 
         verify(httpSender, never()).addHeader(eq(HEADER_AGREEMENT_TOKEN), any());
-        assertThat(tokenPresented).isFalse();
+        assertThat(sent.isTokenPresented()).isFalse();
     }
 
     @Test
-    void sendRequestOmitsAgreementTokenHeaderWhenDspDisabled() throws Exception {
+    void sendOmitsAgreementTokenHeaderWhenDspDisabled() throws Exception {
         var harness = createHarness(false);
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        send(harness);
 
         verify(httpSender, never()).addHeader(eq(HEADER_AGREEMENT_TOKEN), any());
         verify(harness.consumerSideDspProcessor(), never()).execute(any());
     }
 
     @Test
-    void sendRequestAddsAgreementTokenHeaderOnEveryAttempt() throws Exception {
+    void sendAddsAgreementTokenHeaderOnEveryAttempt() throws Exception {
         var harness = createHarness(true);
-        when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
-        var firstAttemptSender = mock(HttpSender.class);
-        var replayedAttemptSender = mock(HttpSender.class);
+        stubAcquisitions(harness, 2,
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER), WON_BY_SS_B);
+        var refusedAttemptSender = failingSender(new ConnectException("refused"));
+        var servedAttemptSender = mock(HttpSender.class);
+        stubSenders(harness, refusedAttemptSender, servedAttemptSender);
 
-        // executeWithRetry invokes sendRequest fresh on every attempt with a new HttpSender, re-resolving
-        // asset access each time; two direct calls reproduce a first attempt and a retried attempt.
-        harness.processor().sendRequest(firstAttemptSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
-        harness.processor().sendRequest(replayedAttemptSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        send(harness);
 
-        verify(firstAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
-        verify(replayedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+        verify(refusedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+        verify(servedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
     }
 
     @Test
@@ -358,82 +354,81 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendRequestRefusesUnnegotiatedCallWhenLocalSettingRefuses() throws Exception {
+    void sendRefusesUnnegotiatedCallWhenLocalSettingRefuses() throws Exception {
         var harness = createHarness(false, true);
         stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+        assertThatThrownBy(() -> send(harness))
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.getErrorCode())
                         .isEqualTo("client." + LEGACY_CALL_REFUSED.code()));
 
         verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+        verify(httpSender).close();
         verify(harness.consumerSideDspProcessor(), never()).execute(any());
     }
 
     @Test
-    void sendRequestRefusesUnnegotiatedCallWhenProviderInstanceRefuses() throws Exception {
+    void sendRefusesUnnegotiatedCallWhenProviderInstanceRefuses() throws Exception {
         var harness = createHarness(false, false);
         when(harness.globalConfProvider().isLegacyProtocolDisabled(serviceId().getXRoadInstance())).thenReturn(true);
         stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+        assertThatThrownBy(() -> send(harness))
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(LEGACY_CALL_REFUSED)).isTrue());
 
         verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
     }
 
     @Test
-    void sendRequestSendsUnnegotiatedCallWhenNothingRefuses() throws Exception {
+    void sendSendsUnnegotiatedCallWhenNothingRefuses() throws Exception {
         var harness = createHarness(false, false);
         stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        send(harness);
 
         verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
     }
 
     @Test
-    void sendRequestChecksTheRefusalOnEveryUnnegotiatedAttempt() throws Exception {
+    void sendChecksTheRefusalOnEveryUnnegotiatedRequest() throws Exception {
         var harness = createHarness(false, false);
         stubUnnegotiatedAddress(harness);
+        stubSenders(harness, mock(HttpSender.class), mock(HttpSender.class));
 
-        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-1",
-                restRequestContext());
-        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-1",
-                restRequestContext());
+        send(harness);
+        send(harness);
 
         verify(harness.legacyCallRefusalPolicy(), times(2)).checkConsumerCallAllowed(serviceId());
     }
 
     @Test
-    void sendRequestNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
+    void sendNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
         var harness = createHarness(true, true);
-        when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        stubAcquisitions(harness, 1, new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        send(harness);
 
         verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
         verifyNoInteractions(harness.legacyCallRefusalPolicy());
     }
 
     @Test
-    void sendRequestSendsRequestThatBypassesDspWithoutNegotiatingOrTokenEvenIfLegacyCallsAreRefused() throws Exception {
+    void sendSendsRequestThatBypassesDspWithoutNegotiatingOrTokenEvenIfLegacyCallsAreRefused() throws Exception {
         var harness = createHarness(true, true);
         when(harness.consumerSideDspProcessor().bypassesDsp(any())).thenReturn(true);
         stubUnnegotiatedAddress(harness);
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+        send(harness);
 
         verify(harness.consumerSideDspProcessor(), never()).execute(any());
         verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
@@ -442,31 +437,48 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendRequestSurfacesTargetResolutionErrorInsteadOfTheRefusal() throws Exception {
+    void sendSurfacesTargetResolutionErrorInsteadOfTheRefusal() throws Exception {
         var harness = createHarness(false, true);
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
                 .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
         var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
+        assertThatThrownBy(() -> send(harness))
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(UNKNOWN_MEMBER)).isTrue());
 
         verifyNoInteractions(harness.legacyCallRefusalPolicy());
         verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
     }
 
+    @Test
+    void aHandshakeFailureOnTheLegacyPathIsRetriedOnAFreshSender() throws Exception {
+        var harness = createHarness(false);
+        stubUnnegotiatedAddress(harness);
+        when(harness.clientRequestPreparationService().shouldRetry(any(), any(), anyInt())).thenReturn(true, false);
+        var failedSender = failingSender(new SSLHandshakeException("handshake_failure"));
+        var servedSender = mock(HttpSender.class);
+        stubSenders(harness, failedSender, servedSender);
+
+        var sent = send(harness);
+
+        assertThat(sent.getHttpSender()).isSameAs(servedSender);
+        verify(failedSender).close();
+        verify(servedSender, never()).close();
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+        verifyNoInteractions(harness.dspSendFailureHandler());
+    }
+
     @ParameterizedTest
     @MethodSource("transportFaults")
-    void aTransportFaultOnTheDspSendReachesTheFailureHandlerAndIsRethrownUnchanged(Throwable fault) throws Exception {
+    void aTransportFaultOnTheDspSendReachesTheFailureHandlerAndEndsAsTheDataPlaneError(Throwable fault) throws Exception {
         var harness = createHarness(true);
-        stubDspAcquisition(harness, WON_BY_SS_A);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
         var httpSender = failingSender(fault);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
-                .isSameAs(fault);
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
 
         verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
         verify(harness.clientRequestPreparationService()).markAddressUnusableIfHandshakeFailure(httpSender, fault);
@@ -480,10 +492,9 @@ class ClientRestMessageProcessorTest {
         var harness = createHarness(false);
         stubUnnegotiatedAddress(harness);
         var httpSender = failingSender(fault);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext()))
-                .isSameAs(fault);
+        assertThatThrownBy(() -> send(harness)).isSameAs(fault);
 
         verify(harness.clientRequestPreparationService()).markAddressUnusableIfHandshakeFailure(httpSender, fault);
         verifyNoInteractions(harness.dspSendFailureHandler());
@@ -493,13 +504,16 @@ class ClientRestMessageProcessorTest {
 
     @ParameterizedTest
     @MethodSource("answersFromALiveProvider")
-    void anAnswerFromALiveProviderNeitherDropsNorReportsTheWinner(Throwable answer) throws Exception {
+    void anAnswerFromALiveProviderIsNotResentAndNeitherDropsNorReportsTheWinner(Throwable answer) throws Exception {
         var harness = createHarness(true);
-        stubDspAcquisition(harness, WON_BY_SS_A);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var httpSender = failingSender(answer);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor().sendRequest(failingSender(answer), null, null, restRequest(),
-                serviceId(), "req-1", restRequestContext())).isSameAs(answer);
+        assertThatThrownBy(() -> send(harness)).isSameAs(answer);
 
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(httpSender).close();
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
     }
@@ -507,10 +521,10 @@ class ClientRestMessageProcessorTest {
     @Test
     void aSendThatCompletesDoesNotReachTheFailureHandler() throws Exception {
         var harness = createHarness(true);
-        stubDspAcquisition(harness, WON_BY_SS_A);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        stubSenders(harness, mock(HttpSender.class));
 
-        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-1",
-                restRequestContext());
+        send(harness);
 
         verifyNoInteractions(harness.dspSendFailureHandler());
     }
@@ -518,7 +532,7 @@ class ClientRestMessageProcessorTest {
     @Test
     void aTokenRejectionOnlyDropsTheEntryAndALaterTransportFaultDropsAndReports() throws Exception {
         var harness = createHarness(true);
-        stubDspAcquisition(harness, WON_BY_SS_A);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
 
         harness.processor().dropAssetAccessOnTokenRejection(
                 XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), true);
@@ -528,8 +542,8 @@ class ClientRestMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
 
         var fault = new ConnectException("refused");
-        assertThatThrownBy(() -> harness.processor().sendRequest(failingSender(fault), null, null, restRequest(),
-                serviceId(), "req-1", restRequestContext())).isSameAs(fault);
+        stubSenders(harness, failingSender(fault));
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
 
         verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
         verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
@@ -538,14 +552,12 @@ class ClientRestMessageProcessorTest {
     @Test
     void aTokenRejectionOnTheSiblingAfterATransportFaultReportsOnlyTheFailedServer() throws Exception {
         var harness = createHarness(true);
-        stubDspAcquisition(harness, WON_BY_SS_A);
+        stubAcquisitions(harness, 1, WON_BY_SS_A, WON_BY_SS_B);
         var fault = new ConnectException("refused");
-        assertThatThrownBy(() -> harness.processor().sendRequest(failingSender(fault), null, null, restRequest(),
-                serviceId(), "req-1", restRequestContext())).isSameAs(fault);
-        stubDspAcquisition(harness, WON_BY_SS_B);
+        stubSenders(harness, failingSender(fault), mock(HttpSender.class));
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
 
-        harness.processor().sendRequest(mock(HttpSender.class), null, null, restRequest(), serviceId(), "req-2",
-                restRequestContext());
+        send(harness);
         harness.processor().dropAssetAccessOnTokenRejection(
                 XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), restRequest(), serviceId(), true);
 
@@ -553,6 +565,130 @@ class ClientRestMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), times(1)).reportCounterPartyFailure(any(), any());
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(eq(SS_B_ID), any());
         verify(harness.consumerSideDspProcessor(), times(1)).invalidateAssetAccessWonBy(any());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("failoverCases")
+    void canFailOverRequiresATransportFaultACandidateLeftRetryAndAReplayableEntity(
+            String ignoredCase, Throwable failure, int attempt, int candidateCount, boolean retryEnabled,
+            boolean replayable, boolean expected) {
+        var entity = mock(SigningProxyMessageEntity.class);
+        when(entity.isReplayable()).thenReturn(replayable);
+
+        assertThat(ClientRestMessageProcessor.canFailOver(failure, attempt, candidateCount, retryEnabled, entity))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    void aRefusedConnectionToTheFirstServerIsServedByTheSibling() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var refusedBySsA = failingSender(new ConnectException("refused"));
+        var servedBySsB = mock(HttpSender.class);
+        stubSenders(harness, refusedBySsA, servedBySsB);
+
+        var sent = send(harness);
+
+        assertThat(sent.getHttpSender()).isSameAs(servedBySsB);
+        verify(refusedBySsA).close();
+        verify(servedBySsB, never()).close();
+        verify(servedBySsB).doPost(eq(URI.create(WON_BY_SS_B.endpoint())), nullable(HttpEntity.class));
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        verify(harness.dspSendFailureHandler()).handle(any(ConnectException.class), eq(WON_BY_SS_A));
+        verify(harness.dspSendFailureHandler(), never()).handle(any(), eq(WON_BY_SS_B));
+    }
+
+    @Test
+    void whenEveryCandidateRefusesTheCallerGetsTheDataPlaneErrorAfterOneAcquisitionPerCandidate() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var fault = new ConnectException("refused");
+        var refusedBySsA = failingSender(fault);
+        var refusedBySsB = failingSender(fault);
+        stubSenders(harness, refusedBySsA, refusedBySsB);
+
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
+
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        verify(harness.httpSenderProvider(), times(2)).createClientHttpSender();
+        verify(refusedBySsA).close();
+        verify(refusedBySsB).close();
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_B);
+    }
+
+    @Test
+    void aSingleCandidateThatRefusesEndsTheCallWithoutAnotherAcquisition() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 1, WON_BY_SS_A, WON_BY_SS_B);
+        var fault = new ConnectException("refused");
+        stubSenders(harness, failingSender(fault));
+
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+    }
+
+    @Test
+    void theSenderIsClosedWhenTheFailoverCheckRefusesOnTheLastCandidate() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        var refusedSender = failingSender(new ConnectException("refused"));
+        stubSenders(harness, refusedSender);
+
+        assertThatThrownBy(() -> send(harness)).isInstanceOf(XrdRuntimeException.class);
+
+        verify(refusedSender).close();
+    }
+
+    @Test
+    void theUnreachableErrorReachesTheConsumerAsIoErrorWithTheOriginalCodeInTheMetadata() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        var fault = new ConnectException("refused");
+        stubSenders(harness, failingSender(fault));
+
+        assertThatThrownBy(() -> send(harness)).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+            assertThat(e.isCausedBy(IO_ERROR)).isTrue();
+            assertThat(e.isCausedBy(DSP_DATA_PLANE_UNREACHABLE)).isFalse();
+            assertThat(e.getErrorCodeMetadata()).contains("originalCode=" + DSP_DATA_PLANE_UNREACHABLE.code());
+            assertThat(e.getCause()).isSameAs(fault);
+        });
+    }
+
+    @Test
+    void anAcquisitionFailureIsThrownUnchangedAndNotFailedOver() throws Exception {
+        var harness = createHarness(true);
+        var failure = XrdRuntimeException.systemException(IO_ERROR, new ConnectException("control plane unreachable"));
+        when(harness.consumerSideDspProcessor().execute(any())).thenThrow(failure);
+
+        assertThatThrownBy(() -> send(harness)).isSameAs(failure);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verifyNoInteractions(harness.httpSenderProvider());
+        verifyNoInteractions(harness.dspSendFailureHandler());
+    }
+
+    @Test
+    void aPreparationFailureAfterAcquisitionIsThrownUnchangedAndNotFailedOver() throws Exception {
+        var harness = createHarness(true);
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(new DspAcquisition(WON_BY_SS_A, 2))
+                .thenThrow(new AssertionError("more acquisitions than the test expects"));
+        var failure = XrdRuntimeException.systemException(IO_ERROR, new ConnectException("no address"));
+        when(harness.clientRequestPreparationService()
+                .prepareRequest(any(), any(), eq(URI.create(WON_BY_SS_A.endpoint())), any(), any(), any()))
+                .thenThrow(failure);
+        var httpSender = mock(HttpSender.class);
+        stubSenders(harness, httpSender);
+
+        assertThatThrownBy(() -> send(harness)).isSameAs(failure);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(httpSender).close();
+        verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
+        verifyNoInteractions(harness.dspSendFailureHandler());
     }
 
     static Stream<Throwable> transportFaults() {
@@ -570,6 +706,22 @@ class ClientRestMessageProcessorTest {
                 XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"));
     }
 
+    static Stream<Arguments> failoverCases() {
+        var refused = new ConnectException("refused");
+        return Stream.of(
+                arguments("transport fault with a candidate left", refused, 1, 2, true, true, true),
+                arguments("transport fault nested in another exception",
+                        XrdRuntimeException.systemException(IO_ERROR, refused), 1, 2, true, true, true),
+                arguments("every candidate tried", refused, 2, 2, true, true, false),
+                arguments("more attempts than candidates", refused, 3, 2, true, true, false),
+                arguments("a single candidate", refused, 1, 1, true, true, false),
+                arguments("request retry disabled", refused, 1, 2, false, true, false),
+                arguments("entity no longer replayable", refused, 1, 2, true, false, false),
+                arguments("answer from a live provider",
+                        XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s", 500),
+                        1, 2, true, true, false));
+    }
+
     private static final String SS_A_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:222";
     private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
@@ -579,11 +731,40 @@ class ClientRestMessageProcessorTest {
     private static final AssetAccessResponse WON_BY_SS_B =
             new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
 
-    private static void stubDspAcquisition(RestHarness harness, AssetAccessResponse assetAccess) {
-        when(harness.consumerSideDspProcessor().execute(any())).thenReturn(assetAccess);
-        when(harness.clientRequestPreparationService()
-                .prepareRequest(any(), any(), eq(URI.create(assetAccess.endpoint())), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(assetAccess.endpoint())});
+    /**
+     * Makes {@code execute} return the given accesses in order, each reporting {@code candidateCount} candidates,
+     * and fail the test on any further acquisition, so a broken attempt limit cannot loop.
+     */
+    private static void stubAcquisitions(RestHarness harness, int candidateCount, AssetAccessResponse... accesses) {
+        var acquisitions = Stream.of(accesses)
+                .map(access -> new DspAcquisition(access, candidateCount))
+                .toArray(DspAcquisition[]::new);
+        var remaining = Arrays.copyOfRange(acquisitions, 1, acquisitions.length);
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(acquisitions[0], remaining)
+                .thenThrow(new AssertionError("more acquisitions than the test expects"));
+        for (var access : accesses) {
+            when(harness.clientRequestPreparationService()
+                    .prepareRequest(any(), any(), eq(URI.create(access.endpoint())), any(), any(), any()))
+                    .thenReturn(new URI[]{URI.create(access.endpoint())});
+        }
+    }
+
+    private static void stubSenders(RestHarness harness, HttpSender first, HttpSender... rest) {
+        when(harness.httpSenderProvider().createClientHttpSender()).thenReturn(first, rest);
+    }
+
+    private static SentRequest send(RestHarness harness) throws Exception {
+        return harness.processor().send(mock(RequestWrapper.class), null, restRequest(), restRequest().getClientId(),
+                serviceId(), "req-1", restRequestContext());
+    }
+
+    private static void assertDataPlaneUnreachable(Throwable thrown, Throwable cause) {
+        assertThat(thrown).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+            assertThat(e.isCausedBy(IO_ERROR)).isTrue();
+            assertThat(e.getErrorCodeMetadata()).contains("originalCode=" + DSP_DATA_PLANE_UNREACHABLE.code());
+            assertThat(e.getCause()).isSameAs(cause);
+        });
     }
 
     private static HttpSender failingSender(Throwable failure) throws Exception {
@@ -613,7 +794,7 @@ class ClientRestMessageProcessorTest {
     private record RestHarness(ClientRestMessageProcessor processor, DspRequestProcessor consumerSideDspProcessor,
                                ClientRequestPreparationService clientRequestPreparationService,
                                GlobalConfProvider globalConfProvider, LegacyCallRefusalPolicy legacyCallRefusalPolicy,
-                               DspSendFailureHandler dspSendFailureHandler) {
+                               DspSendFailureHandler dspSendFailureHandler, HttpSenderProvider httpSenderProvider) {
     }
 
     private RestHarness createHarness(boolean dspEnabled) {
@@ -638,10 +819,11 @@ class ClientRestMessageProcessorTest {
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
         var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
+        var httpSenderProvider = mock(HttpSenderProvider.class);
 
         var processor = new ClientRestMessageProcessor(
                 mock(MessageSigningService.class),
-                mock(HttpSenderProvider.class),
+                httpSenderProvider,
                 mock(ClientVerificationService.class),
                 opMonitoringDataHelper,
                 globalConfProvider,
@@ -654,7 +836,7 @@ class ClientRestMessageProcessorTest {
                 legacyCallRefusalPolicy,
                 dspSendFailureHandler);
         return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
-                globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler);
+                globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler, httpSenderProvider);
     }
 
     private void verifyOpMonitoringData(Map<String, Object> data) {

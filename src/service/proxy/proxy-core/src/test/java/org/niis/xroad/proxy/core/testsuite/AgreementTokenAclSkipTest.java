@@ -44,6 +44,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -59,6 +60,7 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
@@ -210,8 +212,9 @@ class AgreementTokenAclSkipTest {
 
     private void stubAssetAccess(String token) {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
+        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
         when(ctx.getConsumerSideDspProcessor().execute(argThat(req -> GET_STATE.equals(req.serviceId()))))
-                .thenReturn(new AssetAccessResponse(endpoint, token, WINNER));
+                .thenReturn(new DspAcquisition(new AssetAccessResponse(endpoint, token, WINNER), 1));
     }
 
     private static ProxyProperties buildProxyProperties(Map<String, String> overrides) {

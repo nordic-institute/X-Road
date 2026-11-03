@@ -41,6 +41,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_F
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
@@ -80,6 +81,7 @@ public final class ClientFacingErrorPolicy {
         rule(DSP_CATALOG_PARSE_FAILED, IO_ERROR, "Failed to process service metadata received from the provider security server.");
         rule(DSP_ACQUISITION_TIMEOUT, IO_ERROR, "The request to the provider security server timed out.");
         rule(DSP_ACQUISITION_FAILED, IO_ERROR, "Failed to establish a connection to the provider security server.");
+        rule(DSP_DATA_PLANE_UNREACHABLE, IO_ERROR, "No provider security server could be reached to send the request.");
         rule(DSP_PROVIDER_NOT_FOUND, UNKNOWN_MEMBER, "No provider security server was found for the requested service.");
         rule(DSP_DATASET_NOT_FOUND, ACCESS_DENIED, "The request is not allowed by the provider security server.");
         rule(DSP_OFFERS_NOT_FOUND, ACCESS_DENIED, "The request is not allowed by the provider security server.");
