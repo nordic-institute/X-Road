@@ -75,7 +75,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * 0201 - The proxy's op-monitor channel trust follows the op-monitor CA record of the real OpenBao. The resolver and
+ * 0210 - The proxy's op-monitor channel trust follows the op-monitor CA record of the real OpenBao. The resolver and
  * {@link OpMonitorClient} are built as the proxy builds them: the Quarkus vault client reads the record and RPC TLS is
  * on. In-JVM op-monitor servers require mutual TLS; one presents a certificate of the Security Server CA, the other one of
  * the op-monitor CA. Creating a channel again stands for a restart. Each case starts and ends without an op-monitor CA
