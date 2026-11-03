@@ -1,24 +1,53 @@
 #!/bin/bash
 #
-# Migration step 5: with the embedded OpenBao, starts and unseals it first;
-# with an external store, that part is skipped. Either way, it then copies
-# the TLS certificates into the store and runs the migration CLI steps. An
-# embedded OpenBao stays running until step 6.
+# Migration step 4, the first after the regular provisioning: with the
+# embedded OpenBao, makes its certificate trusted and starts and unseals it
+# first; with an external store, that part is skipped. Either way, it then
+# copies the TLS certificates into the store and runs the migration CLI steps.
+# An embedded OpenBao stays running until the script exits, whether the
+# migration passed or failed.
 
 MIGRATION_CLI_JAR="${MIGRATION_CLI_JAR:-/usr/share/xroad/scripts/sidecar/migration-tasks/migration-cli.jar}"
 BAO_HCL="${BAO_HCL:-/etc/openbao/openbao.hcl}"
 BAO_BIN="${BAO_BIN:-/usr/bin/bao}"
 SECRET_STORE_DIR="${SECRET_STORE_DIR:-/etc/xroad/secret-store}"
-MIGRATION_STATE_LOG="/var/log/xroad/migration-state.log"
+
+# curl and the migration CLI must trust the embedded OpenBao's self-signed
+# certificate, as the native xroad-secret-store-local postinst sets up.
+migration_state_trust_openbao_cert() {
+  local cert=/etc/xroad/ssl/openbao.crt
+
+  if [[ ! -s "$cert" ]]; then
+    STEP_REASON="OpenBao TLS certificate not found at $cert after the secret store bootstrap"
+    return 1
+  fi
+
+  if ! install -m 644 "$cert" /usr/local/share/ca-certificates/xroad-migration-openbao.crt \
+    || ! update-ca-certificates >/dev/null; then
+    STEP_REASON="failed to add the OpenBao TLS certificate to the system trust store"
+    return 1
+  fi
+
+  if [[ -x /var/lib/dpkg/info/ca-certificates-java.postinst ]] \
+    && ! /var/lib/dpkg/info/ca-certificates-java.postinst configure >/dev/null; then
+    STEP_REASON="failed to sync the OpenBao TLS certificate into the JVM trust store"
+    return 1
+  fi
+
+  return 0
+}
 
 migration_state_start_and_unseal_openbao() {
   # shellcheck source=/dev/null
   source /usr/share/xroad/scripts/sidecar/_openbao.sh
   export BAO_ADDR="https://127.0.0.1:8200"
 
-  mkdir -p /var/log/xroad
-  "$BAO_BIN" server -config="$BAO_HCL" >>/var/log/xroad/openbao.log 2>&1 &
+  "$BAO_BIN" server -config="$BAO_HCL" &
   MIGRATION_BAO_PID=$!
+  # fail() exits at once, so stopping on exit keeps a failed step from leaving
+  # an unsealed OpenBao behind. The entrypoint waits for this script, so the
+  # store is down before the X-Road services start.
+  trap migration_state_stop_openbao EXIT
 
   if ! wait_until_ready "$BAO_ADDR" 60 1; then
     STEP_REASON="timed out waiting for OpenBao to become ready"
@@ -52,9 +81,16 @@ migration_state_start_and_unseal_openbao() {
   return 0
 }
 
+migration_state_stop_openbao() {
+  if kill -0 "$MIGRATION_BAO_PID" 2>/dev/null; then
+    kill -INT "$MIGRATION_BAO_PID" 2>/dev/null || true
+    wait "$MIGRATION_BAO_PID" 2>/dev/null || true
+  fi
+}
+
 migration_state_copy_tls() {
-  if ! bash "$MIGRATION_TASKS_DIR/tasks/migration/migrate_tls_to_secret_store.sh" >>"$MIGRATION_STATE_LOG" 2>&1; then
-    STEP_REASON="failed to copy the TLS certificates into OpenBao, see $MIGRATION_STATE_LOG"
+  if ! bash "$MIGRATION_TASKS_DIR/tasks/migration/migrate_tls_to_secret_store.sh"; then
+    STEP_REASON="failed to copy the TLS certificates into the secret store"
     return 1
   fi
   return 0
@@ -63,8 +99,8 @@ migration_state_copy_tls() {
 migration_state_run_migration_cli() {
   export XROAD_MIGRATION_UNATTENDED=true
 
-  if ! bash "$MIGRATION_TASKS_DIR/tasks/migration/run_migration_cli.sh" >>"$MIGRATION_STATE_LOG" 2>&1; then
-    STEP_REASON="migration CLI steps failed, see $MIGRATION_STATE_LOG"
+  if ! bash "$MIGRATION_TASKS_DIR/tasks/migration/run_migration_cli.sh"; then
+    STEP_REASON="migration CLI steps failed"
     unset XROAD_MIGRATION_SOFTTOKEN_PIN
     return 1
   fi
@@ -88,14 +124,14 @@ migration_state_set_property() {
   local tmpout
   tmpout=$(mktemp)
   if ! XROAD_MIGRATION_AUTO_CONFIRM=true java -jar "$MIGRATION_CLI_JAR" set-property "/etc/xroad/db.properties" "$property" "$value" 2>&1 \
-    | tee -a "$tmpout" >>"$MIGRATION_STATE_LOG"; then
+    | tee "$tmpout"; then
     rm -f "$tmpout"
-    STEP_REASON="failed to set $property, see $MIGRATION_STATE_LOG"
+    STEP_REASON="failed to set $property"
     return 1
   fi
   if grep -qE '^(Error |Caused by:|Exception in |[[:alpha:].]+Exception:)' "$tmpout"; then
     rm -f "$tmpout"
-    STEP_REASON="set-property reported an error for $property, see $MIGRATION_STATE_LOG"
+    STEP_REASON="set-property reported an error for $property"
     return 1
   fi
   rm -f "$tmpout"
@@ -143,6 +179,7 @@ step_state_migration() {
   # mode; the TLS copy and the migration CLI reach it through
   # XROAD_SECRET_STORE_* instead.
   if [[ -z "${XROAD_SECRET_STORE_HOST:-}" ]]; then
+    migration_state_trust_openbao_cert || return 1
     migration_state_start_and_unseal_openbao || return 1
   fi
   migration_state_copy_tls || return 1

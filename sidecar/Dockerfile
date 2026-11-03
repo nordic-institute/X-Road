@@ -33,17 +33,6 @@ RUN apt-get -qq update \
   # Do not exclude man pages & other documentation from the X-Road packages
   && rm -f /etc/dpkg/dpkg.cfg.d/excludes
 
-# PostgreSQL 16 binaries for migration mode's database upgrade. Ubuntu 26.04
-# has no postgresql-16, so it comes from the PostgreSQL apt repository.
-RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/keyrings/postgresql-keyring.asc \
-  && . /etc/os-release \
-  && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main" \
-    >/etc/apt/sources.list.d/pgdg.list \
-  && apt-get -qq update \
-  && apt-get -qq install postgresql-16 \
-  && apt-get -qq clean \
-  && rm -f /etc/apt/sources.list.d/pgdg.list /usr/share/keyrings/postgresql-keyring.asc
-
 # Add OpenBao repo
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
     --mount=type=secret,id=mirror_token \
@@ -149,7 +138,7 @@ RUN --mount=type=bind,from=migration-cli-jar,target=/tmp/migration-cli-jar \
     && echo "$(curl -fsSL "$MIGRATION_CLI_URL.sha256" | awk '{print $1}')  $cli_jar" | sha256sum -c -; \
   fi \
   && ln -sf "$cli_jar" /var/tmp/migration-cli.jar \
-  && chmod 0755 /usr/share/xroad/scripts/sidecar/migration/orchestrator.sh \
+  && chmod 0755 /usr/share/xroad/scripts/sidecar/migration/migration_*.sh \
     /usr/share/xroad/scripts/sidecar/migration/steps/*.sh \
     /usr/share/xroad/scripts/sidecar/migration-tasks/tasks/migration/*.sh
 
