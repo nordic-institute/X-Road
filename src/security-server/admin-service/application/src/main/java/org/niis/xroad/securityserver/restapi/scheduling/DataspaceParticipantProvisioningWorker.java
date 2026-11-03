@@ -63,6 +63,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -70,9 +71,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus.ISSUED;
+import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.DRIFTED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.REJECTED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.UNBOUND;
+import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.VERSION_UNSUPPORTED;
 
 /**
  * Level-triggered provisioning worker that drives dataspace participant context provisioning and
@@ -93,6 +96,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     private static final Comparator<ParticipantContext> PROVISIONING_ORDER = Comparator
             .comparing((ParticipantContext context) -> context.kind() != ParticipantKind.SYSTEM)
             .thenComparing(ParticipantContext::participantId);
+
+    private static final List<IdentityStatus> SKIPPED_IDENTITY_STATUSES = List.of(REJECTED, DRIFTED, VERSION_UNSUPPORTED);
+    private static final int MAX_LOGGED_SKIPPED_IDS = 10;
 
     private static final Logger CYCLE_LOG =
             LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
@@ -218,9 +224,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * credential ISSUED and its identity OK — gets no identity hub
      * write, no bind and no credential request; only its Control Plane records are re-applied, because
      * the Control Plane has no status to read. A context of any kind whose hub DID differs from the
-     * bound one is never converged: it takes the ensure pass, which refuses to touch it and reports
-     * the drift instead of re-applying the stale DID. A context whose identity hub state could not be
-     * read is left for the next tick, rather than spending a second identity hub call on it.
+     * bound one is never converged: its identity is drifted, so it is dropped before the ensure pass and
+     * reported in the skipped-context warning, and the stale DID is not re-applied. A context whose
+     * identity hub state could not be read is left for the next tick, rather than spending a second identity hub call on it.
      *
      * <p>Contexts are bound first and provisioned second: no context, SYSTEM included, is provisioned
      * without an active binding row. Only the binding of unbound contexts waits until dataspace
@@ -228,8 +234,10 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * certificate, which for SYSTEM is the approval of its registration; a context that already holds an
      * active binding row is provisioned regardless, so it recovers from a lost hub or Control Plane context
      * even while the registered address is unknown. A context whose
-     * identity is drifted, unreadable or rejected is neither bound nor provisioned. A context that cannot be
-     * bound is skipped and retried on the next tick.
+     * identity is drifted, unreadable, rejected or of an unsupported scheme version is neither bound nor
+     * provisioned: such contexts are dropped before the ensure pass, and each tick logs one WARN per rejected,
+     * drifted or unsupported-version status with the count and the first participant ids. A context that cannot
+     * be bound is skipped and retried on the next tick.
      *
      * <p>The non-converged contexts, SYSTEM first and then by participant id, are split into batches of
      * the configured provisioning batch size. Each tick runs every batch; within a batch every unbound
@@ -269,6 +277,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} registeredAddressKnown={}",
                 dataspaceReady, authCertRegistered, addressKnown);
 
+        warnAboutSkippedContexts(nonConverged, statuses);
+
         int batchSize = adminServiceProperties.getDataspace().getProvisioningBatchSize();
         var ordered = nonConverged.stream().sorted(PROVISIONING_ORDER).toList();
         for (int from = 0; from < ordered.size(); from += batchSize) {
@@ -291,6 +301,20 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         ensureCredentials(ensuredContexts, statuses);
     }
 
+    private static void warnAboutSkippedContexts(List<ParticipantContext> nonConverged,
+            Map<ParticipantContext, ParticipantContextStatus> statuses) {
+        for (var identityStatus : SKIPPED_IDENTITY_STATUSES) {
+            var skipped = contextsWithIdentityStatus(nonConverged, statuses, identityStatus);
+            if (skipped.isEmpty()) {
+                continue;
+            }
+            var ids = skipped.stream().limit(MAX_LOGGED_SKIPPED_IDS).map(ParticipantContext::participantId).toList();
+            log.warn("Dataspace provisioning: skipping {} participant context(s) with identity status {}, neither bound "
+                            + "nor provisioned: {}{}",
+                    skipped.size(), identityStatus, ids, skipped.size() > ids.size() ? " and more" : "");
+        }
+    }
+
     /**
      * Returns the non-converged contexts to provision in this tick: those that hold an active binding
      * row (identity status {@code OK}). Contexts whose identity status is {@code UNBOUND} are bound
@@ -300,9 +324,6 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     private List<ParticipantContext> provisionableContexts(List<ParticipantContext> nonConverged,
             Map<ParticipantContext, ParticipantContextStatus> statuses, boolean mayBind) {
         var bound = new HashSet<>(contextsWithIdentityStatus(nonConverged, statuses, OK));
-        contextsWithIdentityStatus(nonConverged, statuses, REJECTED).forEach(context -> log.warn(
-                "Dataspace provisioning: skipping participant context {}, its identity is rejected because the "
-                        + "registered address cannot carry a DID", context.participantId()));
         var unbound = contextsWithIdentityStatus(nonConverged, statuses, UNBOUND);
         if (!unbound.isEmpty()) {
             if (mayBind) {
@@ -320,9 +341,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
                 .filter(context -> context.kind() == ParticipantKind.MEMBER)
                 .map(ParticipantContext::memberId)
                 .toList();
-        var boundMembers = unboundMembers.isEmpty()
-                ? List.<ClientId>of()
-                : participantBindingService.bindMembersIfAbsent(unboundMembers);
+        Set<ClientId> boundMembers = unboundMembers.isEmpty()
+                ? Set.of()
+                : new HashSet<>(participantBindingService.bindMembersIfAbsent(unboundMembers));
         var systemBound = unbound.stream().anyMatch(context -> context.kind() == ParticipantKind.SYSTEM)
                 && participantBindingService.bindSystemIfAbsent();
         return unbound.stream()

@@ -524,8 +524,10 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .build();
 
     /**
-     * {@code xroad.proxy-ui-api.dataspace.provisioning-batch-size}. Number of members the provisioning
-     * worker binds and provisions per batch.
+     * {@code xroad.proxy-ui-api.dataspace.provisioning-batch-size}. Number of participant contexts, the
+     * SYSTEM context and members alike, the provisioning worker binds and provisions per batch. Every pass
+     * runs all batches, so the size does not limit how much work a pass does; it shapes how binding and
+     * provisioning interleave, since a batch binds its unbound contexts before it provisions any of them.
      */
     public static final ConfigKey<Integer> DATASPACE_PROVISIONING_BATCH_SIZE = DATASPACE
             .integer("provisioning-batch-size")

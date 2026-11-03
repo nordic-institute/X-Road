@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -661,21 +662,80 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantWarnsNamingEachRejectedContextItSkips() {
+    void provisionParticipantWarnsOncePerSkippedIdentityStatusNamingCountAndIds() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
-        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
-        when(dataspaceProvisioningService.readContextStatus(any()))
-                .thenReturn(statusOf(false, CredentialStatus.ABSENT, IdentityStatus.REJECTED));
+        var rejected = memberContexts("rejected", 3);
+        var drifted = memberContexts("drifted", 2);
+        var unsupported = memberContexts("unsupported", 1);
+        stubSkippedStatuses(rejected, IdentityStatus.REJECTED);
+        stubSkippedStatuses(drifted, IdentityStatus.DRIFTED);
+        stubSkippedStatuses(unsupported, IdentityStatus.VERSION_UNSUPPORTED);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(concat(rejected, drifted, unsupported));
 
         worker.provisionParticipant();
 
-        var warnings = workerAppender.list.stream()
+        var warnings = skippedWarnings();
+        assertThat(warnings).hasSize(3);
+        assertThat(warnings.getFirst()).contains("REJECTED").contains("3 participant")
+                .contains("rejected-0", "rejected-1", "rejected-2");
+        assertThat(warnings.get(1)).contains("DRIFTED").contains("2 participant").contains("drifted-0", "drifted-1");
+        assertThat(warnings.get(2)).contains("VERSION_UNSUPPORTED").contains("1 participant").contains("unsupported-0");
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+    }
+
+    @Test
+    void provisionParticipantWarnsOncePerStatusAcrossBatches() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspace.getProvisioningBatchSize()).thenReturn(2);
+        var rejected = memberContexts("rejected", 5);
+        stubSkippedStatuses(rejected, IdentityStatus.REJECTED);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(rejected);
+
+        worker.provisionParticipant();
+
+        assertThat(skippedWarnings()).hasSize(1).first().asString().contains("5 participant");
+    }
+
+    @Test
+    void provisionParticipantListsOnlyTheCappedIdsOfManySkippedContextsWithTheTotalCount() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        var rejected = memberContexts("rejected", 25);
+        stubSkippedStatuses(rejected, IdentityStatus.REJECTED);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(rejected);
+
+        worker.provisionParticipant();
+
+        var warnings = skippedWarnings();
+        assertThat(warnings).hasSize(1);
+        var warning = warnings.getFirst();
+        assertThat(warning).contains("25 participant");
+        assertThat(warning).contains("rejected-0", "rejected-9").doesNotContain("rejected-10", "rejected-24");
+    }
+
+    private static List<ParticipantContext> memberContexts(String prefix, int count) {
+        return IntStream.range(0, count)
+                .mapToObj(i -> new ParticipantContext(prefix + "-" + i, ParticipantKind.MEMBER,
+                        ClientId.Conf.create("TEST", "COM", prefix + i)))
+                .toList();
+    }
+
+    @SafeVarargs
+    private static List<ParticipantContext> concat(List<ParticipantContext>... lists) {
+        return Arrays.stream(lists).flatMap(List::stream).toList();
+    }
+
+    private void stubSkippedStatuses(List<ParticipantContext> contexts, IdentityStatus identityStatus) {
+        contexts.forEach(context -> when(dataspaceProvisioningService.readContextStatus(context))
+                .thenReturn(statusOf(false, CredentialStatus.ABSENT, identityStatus)));
+    }
+
+    private List<String> skippedWarnings() {
+        return workerAppender.list.stream()
                 .filter(event -> event.getLevel() == Level.WARN)
                 .map(ILoggingEvent::getFormattedMessage)
                 .toList();
-        assertThat(warnings).hasSize(2);
-        assertThat(warnings.getFirst()).contains(SYSTEM_ID).contains("rejected");
-        assertThat(warnings.getLast()).contains(MEMBER_ID).contains("rejected");
     }
 
     @Test

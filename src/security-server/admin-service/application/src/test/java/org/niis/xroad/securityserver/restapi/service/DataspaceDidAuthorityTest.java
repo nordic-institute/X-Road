@@ -131,11 +131,11 @@ class DataspaceDidAuthorityTest {
     }
 
     @Test
-    void requireMintedThrowsOneValidationErrorWithoutDoubleWrappingAndKeepsTheCause() {
+    void aRejectionBecomesOneValidationErrorWithoutDoubleWrappingAndKeepsTheCause() {
         var authority = authority(new OwnAddress.Registered(SERVER_ID, "bad_host.example"), 443);
         var rejected = (Rejected) authority.mintMemberDid(MEMBER);
 
-        assertThatThrownBy(() -> authority.mintMemberDid(MEMBER).requireMinted())
+        assertThat(rejected.toException())
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
                     assertThat(e.getErrorCode()).isEqualTo(VALIDATION_ERROR.code());
                     assertThat(e.getDetails()).isEqualTo(rejected.detail());

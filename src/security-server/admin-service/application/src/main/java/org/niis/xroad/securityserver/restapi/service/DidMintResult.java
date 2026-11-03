@@ -80,15 +80,4 @@ public sealed interface DidMintResult {
     default Optional<Did> did() {
         return this instanceof Minted minted ? Optional.of(minted.value()) : Optional.empty();
     }
-
-    /**
-     * @return the minted DID
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} when the minting was rejected
-     */
-    default Did requireMinted() {
-        return switch (this) {
-            case Minted minted -> minted.value();
-            case Rejected rejected -> throw rejected.toException();
-        };
-    }
 }

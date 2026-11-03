@@ -62,6 +62,7 @@ import java.util.function.Supplier;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
@@ -78,9 +79,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} or
  *       {@link ParticipantKind#SYSTEM} context with a bound {@code ds_participant} row, the row is
  *       checked for a supported scheme version and for agreement between its columns, and its DID
- *       is used as stored; a decommissioned row counts as no row, and without a row the DID is minted and
- *       not bound. The worker provisions only contexts that hold an active binding row, so SYSTEM
- *       provisioning waits for its binding too. This service
+ *       is used as stored; a decommissioned row counts as no row, and without an active row the context
+ *       is refused before any IH or CP write. The worker provisions only contexts that hold an active
+ *       binding row, so SYSTEM provisioning waits for its binding too. This service
  *       never writes rows — {@link DataspaceParticipantBindingService} is the only writer. Reports whether it is safe to issue a membership
  *       credential for this context in the same tick — see the method's own Javadoc for the SYSTEM re-anchor case.</li>
  *   <li>{@link #ensureMembershipCredential(ParticipantContext)} — leaves an active
@@ -215,9 +216,9 @@ public class DataspaceProvisioningService {
      * <p>For a {@link ParticipantKind#MEMBER} or {@link ParticipantKind#SYSTEM} context with a bound
      * {@code ds_participant} row, the row is checked for a supported scheme version and for agreement
      * between its columns, and its DID is used as stored — the bound row is never written or overwritten
-     * here. A decommissioned row, MEMBER or SYSTEM, is treated as no row at all. Without a usable row the
-     * DID is minted and not bound;
-     * binding is {@link DataspaceParticipantBindingService}'s job.
+     * here. A decommissioned row, MEMBER or SYSTEM, is treated as no row at all. Without an active row
+     * the call fails before any identity hub or Control Plane write; binding is
+     * {@link DataspaceParticipantBindingService}'s job.
      *
      * @param context the participant context to create
      * @return whether it is safe to issue a membership credential for this context in the same tick.
@@ -229,12 +230,13 @@ public class DataspaceProvisioningService {
      *         The caller must skip the credential pass for this context and retry on the next tick;
      *         an older hub that never sets the re-anchor ack always reports {@code false} here, so
      *         SYSTEM credential issuance stays deferred until the hub is upgraded.
+     * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} when the context has no active binding row
      */
     public boolean ensureParticipantContext(ParticipantContext context) {
         var identityHubHost = didAuthority.identityHubHost();
         var participantId = context.participantId();
 
-        var did = didFor(context.kind(), context.memberId());
+        var did = boundDidOf(context);
         var existingDid = identityHubClient.contextDid(participantId);
         requireNoHubDidDrift(participantId, existingDid, did);
 
@@ -564,20 +566,14 @@ public class DataspaceProvisioningService {
         return didAuthority.isKnown();
     }
 
-    private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
-        return switch (kind) {
-            case SYSTEM -> boundOrMinted(activeSystemBinding(), didAuthority::mintSystemDid);
-            case MEMBER -> boundOrMinted(activeBinding(memberId), () -> didAuthority.mintMemberDid(memberId));
+    private Did boundDidOf(ParticipantContext context) {
+        var bound = switch (context.kind()) {
+            case SYSTEM -> activeSystemBinding();
+            case MEMBER -> activeBinding(context.memberId());
         };
-    }
-
-    /**
-     * The bound row's DID, or the DID minted now when there is no bound row. The bound row carries no member
-     * reference for SYSTEM: the SYSTEM identifier is owner-free even though the context's credential is
-     * issued to the current owner.
-     */
-    private static Did boundOrMinted(Optional<DsParticipantEntity> bound, Supplier<DidMintResult> mint) {
-        return bound.isPresent() ? boundDid(bound.get()) : mint.get().requireMinted();
+        return bound.map(DataspaceProvisioningService::boundDid)
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                        "Participant context %s has no active binding row", context.participantId()));
     }
 
     private static Did boundDid(DsParticipantEntity bound) {

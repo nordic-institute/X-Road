@@ -84,6 +84,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -530,23 +531,17 @@ class DataspaceProvisioningServiceTest {
     // --- ensureParticipantContext (MEMBER) ---
 
     @Test
-    void ensureParticipantContextDerivesUnboundDidWhenNoRowExists() {
+    void ensureParticipantContextRefusesAMemberWithNoBindingRowBeforeAnyWrite() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
-        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
-        service.ensureParticipantContext(MEMBER_CONTEXT);
-
-        var request = capturedIhCreateRequest();
-        assertThat(request.did()).isEqualTo(expectedDid);
-        assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
-        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
+        assertRefusedForMissingBinding(MEMBER_CONTEXT);
     }
 
     @Test
     void ensureParticipantContextUsesConfiguredStsAndCredentialsPorts() {
         when(dataspace.getIdentityHubStsPort()).thenReturn(8184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(8185);
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
         var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
@@ -559,20 +554,6 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
         verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
                 eq("https://ih.example.test:8184/api/sts/token"));
-    }
-
-    @Test
-    void ensureParticipantContextMintsDidUnderConfiguredDidPort() {
-        when(dataspace.getDidPort()).thenReturn(8183);
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
-        var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_ADDRESS + ":8183");
-
-        service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER));
-
-        var request = capturedIhCreateRequest();
-        assertThat(request.participantContextId()).isEqualTo(ctxId);
-        assertThat(request.did()).isEqualTo(expectedDid);
     }
 
     @Test
@@ -595,8 +576,8 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextDerivesDidFromRegisteredAddressNotIdentityHubHost() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+    void ensureParticipantContextBuildsTheCredentialServiceUrlFromTheIdentityHubHost() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
         var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
 
         service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER));
@@ -608,30 +589,13 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextRefusesToProvisionWithoutRegisteredAddress() {
-        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+    void ensureParticipantContextProvisionsABoundMemberWhileTheRegisteredAddressIsUnknown() {
+        lenient().when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
 
-        assertThatThrownBy(() -> service.ensureParticipantContext(MEMBER_CONTEXT))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.DSP_PROVISIONING_FAILED.code()));
+        service.ensureParticipantContext(MEMBER_CONTEXT);
 
-        verify(identityHubClient, never()).createParticipantContext(any());
-    }
-
-    @Test
-    void ensureParticipantContextRefusesNonAsciiRegisteredAddressBeforeAnythingIsWritten() {
-        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("b\u00fccher.example");
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.ensureParticipantContext(MEMBER_CONTEXT))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()))
-                .hasMessageContaining("'b\u00fccher.example'");
-
-        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
-        verify(identityHubClient, never()).createParticipantContext(any());
+        verify(identityHubClient).createParticipantContext(any());
     }
 
     @Test
@@ -649,7 +613,8 @@ class DataspaceProvisioningServiceTest {
     @Test
     void ensureParticipantContextReencodesPercentEscapedCtxIdInCredentialServiceUrl() {
         var memberWithPlus = ClientId.Conf.create("TEST", "ORG", "222+A");
-        when(dsParticipantRepository.findByMemberIdentifier(memberWithPlus)).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findByMemberIdentifier(memberWithPlus))
+                .thenReturn(Optional.of(boundParticipant(memberWithPlus, SS_HOST)));
         var ctxId = ParticipantIdentifierScheme.memberCtxId(memberWithPlus);
         assertThat(ctxId).isEqualTo("TEST:ORG:222%2BA");
 
@@ -879,7 +844,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextThrowsOnHubDidDrift() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         when(identityHubClient.contextDid(memberCtxId))
                 .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(MEMBER, "ih.other.test:7183")));
@@ -896,7 +861,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextProceedsWhenHubDidMatchesIntended() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
         when(identityHubClient.contextDid(memberCtxId)).thenReturn(Optional.of(expectedDid));
@@ -911,6 +876,8 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextLogsCreationWhenHubHadNoContext() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundSystemParticipant(SS_HOST)));
+
         var logs = capturedLogs(() -> service.ensureParticipantContext(SYSTEM_CONTEXT));
 
         assertThat(logs).anyMatch(line -> line.equals(
@@ -919,7 +886,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextDoesNotLogCreationWhenHubAlreadyServesTheContext() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         when(identityHubClient.contextDid(memberCtxId))
                 .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST)));
@@ -964,31 +931,19 @@ class DataspaceProvisioningServiceTest {
     // --- ensureParticipantContext (SYSTEM) ---
 
     @Test
-    void ensureParticipantContextDerivesUnboundSystemDidWhenNoRowExists() {
+    void ensureParticipantContextRefusesSystemWithNoBindingRowBeforeAnyWrite() {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
-        var expectedDid = ParticipantIdentifierScheme.systemDid(SS_HOST);
 
-        service.ensureParticipantContext(SYSTEM_CONTEXT);
-
-        var request = capturedIhCreateRequest();
-        assertThat(request.participantContextId()).isEqualTo(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        assertThat(request.did()).isEqualTo(expectedDid);
-        assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
-        assertThat(request.reanchorMemberIdOnConflict()).isTrue();
+        assertRefusedForMissingBinding(SYSTEM_CONTEXT);
     }
 
     @Test
-    void ensureParticipantContextRefusesNonAsciiRegisteredAddressForSystemContextBeforeAnythingIsWritten() {
-        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("b\u00fccher.example");
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+    void ensureParticipantContextRefusesSystemWhoseBindingRowIsDecommissionedBeforeAnyWrite() {
+        var decommissioned = boundSystemParticipant(SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(decommissioned));
 
-        assertThatThrownBy(() -> service.ensureParticipantContext(SYSTEM_CONTEXT))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()))
-                .hasMessageContaining("'b\u00fccher.example'");
-
-        verify(identityHubClient, never()).createParticipantContext(any());
+        assertRefusedForMissingBinding(SYSTEM_CONTEXT);
     }
 
     @Test
@@ -1016,7 +971,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextForSystemNeverConsultsMemberIdentifierLookup() {
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundSystemParticipant(SS_HOST)));
 
         service.ensureParticipantContext(SYSTEM_CONTEXT);
 
@@ -1028,6 +983,8 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextReportsConfirmedForMemberWhenNoReanchorRequested() {
+        when(dsParticipantRepository.findByMemberIdentifier(OWNER))
+                .thenReturn(Optional.of(boundParticipant(OWNER, SS_HOST)));
         when(identityHubClient.createParticipantContext(argThat(request ->
                 PARTICIPANT_ID.equals(request.participantContextId()) && !request.reanchorMemberIdOnConflict())))
                 .thenReturn(true);
@@ -1039,7 +996,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextReportsUnconfirmedForSystemWhenReanchorUnconfirmed() {
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundSystemParticipant(SS_HOST)));
         when(identityHubClient.createParticipantContext(argThat(request ->
                 ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(request.participantContextId())
                         && request.reanchorMemberIdOnConflict())))
@@ -1052,7 +1009,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextReportsConfirmedForSystemWhenReanchorConfirmed() {
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundSystemParticipant(SS_HOST)));
         when(identityHubClient.createParticipantContext(argThat(request ->
                 ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(request.participantContextId())
                         && request.reanchorMemberIdOnConflict())))
@@ -1281,17 +1238,21 @@ class DataspaceProvisioningServiceTest {
     // --- decommissioned bindings are treated as unbound ---
 
     @Test
-    void ensureParticipantContextDerivesUnboundDidWhenBoundRowIsDecommissioned() {
-        var decommissioned = boundParticipant(MEMBER, "ih.other.test:7183");
+    void ensureParticipantContextRefusesAMemberWhoseBindingRowIsDecommissionedBeforeAnyWrite() {
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
         decommissioned.setState(ParticipantState.DECOMMISSIONED);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
-        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
-        service.ensureParticipantContext(MEMBER_CONTEXT);
+        assertRefusedForMissingBinding(MEMBER_CONTEXT);
+    }
 
-        var request = capturedIhCreateRequest();
-        assertThat(request.did()).isEqualTo(expectedDid);
-        assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
+    private void assertRefusedForMissingBinding(ParticipantContext context) {
+        assertThatThrownBy(() -> service.ensureParticipantContext(context))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.DSP_PROVISIONING_FAILED.code()));
+
+        verifyNoInteractions(identityHubClient, controlPlaneClient);
     }
 
     @Test
