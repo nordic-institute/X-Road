@@ -217,7 +217,7 @@ class PeriodicMaterialReloaderTest {
     }
 
     @Test
-    void whilePendingTheProgressLineIsLoggedEveryTwelfthPoll() {
+    void whilePendingTheProgressLineIsLoggedEverySixtiethPoll() {
         var attempts = new AtomicInteger();
         var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
                 RETRY_DELAY,
@@ -227,11 +227,11 @@ class PeriodicMaterialReloaderTest {
                 },
                 material -> { }, monitor, null);
         try {
-            await().atMost(Duration.ofSeconds(5)).until(() -> attempts.get() >= 12);
+            await().atMost(Duration.ofSeconds(5)).until(() -> attempts.get() >= 60);
         } finally {
             reloader.close();
         }
-        verify(monitor, timeout(1000)).info("test: still waiting for material after 12 polls: slot is empty");
+        verify(monitor, timeout(1000)).info("test: still waiting for material after 60 polls: slot is empty");
         verify(monitor, times(1)).warning("test: material not available yet: slot is empty");
     }
 

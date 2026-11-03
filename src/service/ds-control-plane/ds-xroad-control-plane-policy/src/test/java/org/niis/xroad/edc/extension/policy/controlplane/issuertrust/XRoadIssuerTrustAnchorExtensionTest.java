@@ -34,6 +34,7 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.TrustedIssuer;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -60,8 +61,11 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -72,12 +76,14 @@ import static org.mockito.Mockito.when;
 class XRoadIssuerTrustAnchorExtensionTest {
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
+    private static final String EXTENSION_PREFIX = XRoadIssuerTrustAnchorExtension.EXTENSION_NAME + ": ";
     private static final String PROFILE_NAME = "test-profile";
     private static final String REGISTERED_DID = "did:web:registered.example.test%3A6183:issuer";
     private static final String DID_1 = "did:web:cs1.example.test%3A6183:issuer";
     private static final String DID_2 = "did:web:cs2.example.test%3A6183:issuer";
 
     private final GlobalConfProvider globalConfProvider = mock();
+    private final Monitor monitor = mock();
     private final DataspaceProfileContextRegistry profileRegistry = new DataspaceProfileContextRegistryImpl();
 
     private ScheduledExecutorService scheduler;
@@ -97,6 +103,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
             }
         };
         context.registerService(GlobalConfProvider.class, globalConfProvider);
+        context.registerService(Monitor.class, monitor);
         context.registerService(DataspaceProfileContextRegistry.class, profileRegistry);
         context.registerService(ExecutorInstrumentation.class, instrumentation);
         profileRegistry.registerDefault(new DataspaceProfileContext(PROFILE_NAME,
@@ -226,6 +233,35 @@ class XRoadIssuerTrustAnchorExtensionTest {
         assertThat(trustedIssuerDids()).containsExactly(REGISTERED_DID);
     }
 
+    @Test
+    void pendingPollsLogOncePerDistinctFailureMessageAndThenAProgressLineEverySixtiethPoll(ServiceExtensionContext context,
+                                                                                         ObjectFactory factory) {
+        startWithGlobalConfUnavailable(context, factory);
+        var poll = capturePendingPoll(1);
+        doThrow(new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED)).when(globalConfProvider).getInstanceIdentifier();
+        var malformedMessage = new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED).getMessage();
+        for (var i = 0; i < 59; i++) {
+            poll.run();
+        }
+        verify(monitor, times(1)).warning(startsWith(EXTENSION_PREFIX + "globalconf still not available"));
+        verify(monitor, times(1)).warning("%sglobalconf still not available: %s".formatted(EXTENSION_PREFIX, malformedMessage));
+        verify(monitor, never()).info(startsWith(EXTENSION_PREFIX + "still waiting"));
+        poll.run();
+        verify(monitor, times(1)).info("%sstill waiting for globalconf after 60 polls: %s".formatted(EXTENSION_PREFIX, malformedMessage));
+        verify(monitor, never()).debug(startsWith(EXTENSION_PREFIX));
+    }
+
+    @Test
+    void aPendingPollFailingWithTheMessageOfTheStartWarningIsNotLoggedAgain(ServiceExtensionContext context, ObjectFactory factory) {
+        startWithGlobalConfUnavailable(context, factory);
+        var poll = capturePendingPoll(1);
+        for (var i = 0; i < 5; i++) {
+            poll.run();
+        }
+        verify(monitor, times(1)).warning(anyString());
+        verify(monitor, never()).warning(startsWith(EXTENSION_PREFIX + "globalconf still not available"));
+        verify(monitor, never()).info(startsWith(EXTENSION_PREFIX + "still waiting"));
+    }
     private void startWithGlobalConfUnavailable(ServiceExtensionContext context, ObjectFactory factory) {
         scheduler = mock();
         when(globalConfProvider.getInstanceIdentifier())

@@ -42,6 +42,7 @@ import org.niis.xroad.edc.trust.DelegatingTrustManager;
 import org.niis.xroad.edc.trust.RejectAllTrustManager;
 import org.niis.xroad.edc.trust.VaultEndpointTrust;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -138,11 +139,16 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
      * has had a chance to run, both must leave the DataSpace TLS surface in the same safe place: rejecting every
      * connection rather than aborting startup (unlike the serving keystore, an empty or unreachable trust list is
      * a valid running state). When the boot load fails, the reloader polls at the pending interval until the
-     * first load succeeds and then continues at the normal interval.
+     * first load succeeds and then continues at the normal interval. Globalconf that has not been initialized yet
+     * is an expected state on a fresh Security Server, so it is logged as a warning without a stack trace.
      */
     private static InitialLoad loadInitial(ConnectorTlsCaTrustManagerLoader loader, Monitor monitor) {
         try {
             return new InitialLoad(loader.load(), null);
+        } catch (GlobalConfInitException e) {
+            monitor.warning("Globalconf is not initialized yet; rejecting all DataSpace TLS connections until the "
+                    + "DataSpace TLS CA list can be loaded: " + e.getMessage());
+            return new InitialLoad(null, String.valueOf(e.getMessage()));
         } catch (RuntimeException e) {
             monitor.severe("Failed to load the DataSpace TLS CA list from globalconf at startup; rejecting all "
                     + "DataSpace TLS connections until a poll succeeds", e);

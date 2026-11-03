@@ -50,6 +50,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
+import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -73,7 +75,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -131,6 +138,28 @@ class XRoadTlsOkHttpClientExtensionTest {
 
         assertThat(client).isNotNull();
         assertThatThrownBy(() -> get(client, wouldBeAcceptedServer)).isInstanceOf(IOException.class);
+    }
+
+    @Test
+    void globalConfThatIsNotInitializedAtBootIsWarnedAboutOnceWithoutAStackTrace() {
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED));
+        stubContextServices();
+        var extension = new XRoadTlsOkHttpClientExtension();
+        extension.okHttpClient(context);
+        extension.shutdown();
+        verify(monitor, times(1)).warning(anyString());
+        verify(monitor, never()).severe(anyString(), any(Throwable[].class));
+    }
+
+    @Test
+    void anyOtherFailureToLoadTheCaListAtBootIsStillSevereWithTheStackTrace() {
+        var failure = new IllegalStateException("malformed globalconf");
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(failure);
+        stubContextServices();
+        var extension = new XRoadTlsOkHttpClientExtension();
+        extension.okHttpClient(context);
+        extension.shutdown();
+        verify(monitor).severe(anyString(), eq(failure));
     }
 
     @Test

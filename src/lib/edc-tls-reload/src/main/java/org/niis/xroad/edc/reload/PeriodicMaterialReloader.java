@@ -58,7 +58,8 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     /** How often a reloader started without material polls for it. */
     public static final Duration DEFAULT_PENDING_INTERVAL = Duration.ofSeconds(5);
 
-    private static final int PENDING_PROGRESS_EVERY_CYCLES = 12;
+    /** How many pending polls pass between progress lines, about 5 minutes at {@link #DEFAULT_PENDING_INTERVAL}. */
+    public static final int PENDING_PROGRESS_EVERY_CYCLES = 60;
 
     private final String name;
     private final MaterialLoader<T> loader;

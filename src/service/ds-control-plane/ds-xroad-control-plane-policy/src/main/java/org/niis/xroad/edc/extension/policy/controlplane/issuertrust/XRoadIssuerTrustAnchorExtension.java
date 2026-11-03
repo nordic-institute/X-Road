@@ -91,6 +91,8 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     private DataspaceIssuerTrust issuerTrust;
     private volatile Set<String> currentDids;
     private ScheduledExecutorService scheduledExecutorService;
+    private int pendingPolls;
+    private String lastPendingFailure;
 
     @Override
     public String name() {
@@ -112,6 +114,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         try {
             applyInitialLoad();
         } catch (Exception e) {
+            lastPendingFailure = String.valueOf(e.getMessage());
             monitor.warning(("%s: globalconf is not available yet, the profile keeps its registered trusted issuers and the load "
                     + "is retried every %d s: %s").formatted(EXTENSION_NAME, PENDING_POLL_INTERVAL_SECONDS, e.getMessage()));
             schedulePendingPoll();
@@ -148,13 +151,24 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     }
 
     private void pollUntilFirstLoad() {
+        pendingPolls++;
         try {
             applyInitialLoad();
         } catch (Throwable t) {
             // an escaping exception would end the poll chain, so every failure is swallowed and the next poll is scheduled
-            monitor.debug("%s: globalconf still not available: %s".formatted(EXTENSION_NAME, t.getMessage()));
+            logPendingFailure(t);
             schedulePendingPoll();
         }
+    }
+
+    private void logPendingFailure(Throwable failure) {
+        var message = String.valueOf(failure.getMessage());
+        if (!message.equals(lastPendingFailure)) {
+            monitor.warning("%s: globalconf still not available: %s".formatted(EXTENSION_NAME, message));
+        } else if (pendingPolls % PeriodicMaterialReloader.PENDING_PROGRESS_EVERY_CYCLES == 0) {
+            monitor.info("%s: still waiting for globalconf after %d polls: %s".formatted(EXTENSION_NAME, pendingPolls, message));
+        }
+        lastPendingFailure = message;
     }
 
     private void refreshSafely() {

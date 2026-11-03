@@ -13,6 +13,17 @@ quarkus:
     category:
       "EDC-MONITOR":
         level: TRACE
+    filter:
+      "org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource":
+        if-starts-with:
+          - "Configuration source was not loaded"
+      "org.niis.xroad.globalconf.impl.RemoteGlobalConfSource":
+        if-starts-with:
+          - "Configuration source was not loaded"
+      "org.niis.xroad.globalconf.util.FSGlobalConfValidator":
+        if-starts-with:
+          - "GlobalConf at ["
+          - "Instance identifier at ["
   arc:
     unremovable-types:
       - org.niis.xroad.globalconf.GlobalConfProvider
