@@ -65,7 +65,7 @@ Common URLs after a successful start:
 
 `./start-env.sh --profile=cluster` replaces the single-node Central Server `xrd-cs` with the two-node Central Server cluster described in [`cluster/README.md`](cluster/README.md). Use it to develop and test against a Central Server on a shared, highly available database. Without `--profile`, or with `--profile=single`, nothing changes: the single-node dev env starts as before, with Jaeger off by default. The cluster profile also starts with Jaeger off.
 
-On macOS the profile needs a lima VM with 20 GiB memory; `start-env.sh` stops when the VM is smaller. Create the VM with `./scripts/setup-mac.sh --memory=20`.
+The profile needs an LXD host with at least 20 GiB memory. On macOS the LXD host is the lima VM. `start-env.sh` stops when the VM has less memory. Create it with `./scripts/setup-mac.sh --memory=20`.
 
 The profile starts the dev env as usual, without `xrd-cs`: test CA, Security Servers, Information System host `xrd-is`, hurl host and the package repository `xrd-repo`. It then runs `cluster/start-cluster.sh` for the cluster, and `setup.hurl` initialises the Central Server through node 1.
 

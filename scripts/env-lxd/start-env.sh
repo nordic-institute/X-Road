@@ -106,7 +106,7 @@ usage() {
   echo "                           described by CLUSTER_INVENTORY (default cluster/inventory.yml);"
   echo "                           on Linux use cluster/inventory.linux.sample.yml with"
   echo "                           --custom-inventory=config/custom/linux-cluster.sample.hosts"
-  echo "                           On macOS the lima VM needs at least ${CLUSTER_MIN_VM_MEMORY_GIB} GiB memory."
+  echo "                           Needs at least ${CLUSTER_MIN_VM_MEMORY_GIB} GiB memory on the LXD host (the lima VM on macOS)."
   echo " -h, --help                This help text."
   exit 1
 }
