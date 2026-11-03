@@ -28,13 +28,21 @@ package org.niis.xroad.edc.extension.jetty;
 
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
+import org.niis.xroad.edc.reload.ReadinessDetailProvider;
+
+import java.util.Map;
 
 /**
- * Reports ready only while the HTTPS connectors serve connector TLS material.
+ * Reports ready only while the HTTPS connectors serve connector TLS material. While newer material is refused
+ * the previously served certificate keeps the service ready until that certificate expires, and the refusal is
+ * published as readiness detail.
  */
-final class ConnectorTlsReadinessProvider implements ReadinessProvider {
+final class ConnectorTlsReadinessProvider implements ReadinessProvider, ReadinessDetailProvider {
 
     static final String COMPONENT = "connector-tls";
+    static final String DETAIL_SERVED_EXPIRES = COMPONENT + "-served-expires";
+    static final String DETAIL_REJECTED_SINCE = COMPONENT + "-rejected-since";
+    static final String DETAIL_REJECTED_CAUSE = COMPONENT + "-rejected-cause";
 
     private final XRoadJettyService jettyService;
 
@@ -44,9 +52,25 @@ final class ConnectorTlsReadinessProvider implements ReadinessProvider {
 
     @Override
     public HealthCheckResult get() {
-        return HealthCheckResult.Builder.newInstance()
-                .component(COMPONENT)
-                .success(jettyService.isServingConnectorTls(), "Connector TLS certificate is not served yet")
-                .build();
+        var result = HealthCheckResult.Builder.newInstance().component(COMPONENT);
+        if (!jettyService.isServingConnectorTls()) {
+            return result.failure("Connector TLS certificate is not served yet").build();
+        }
+        if (jettyService.isServedCertificateExpiredWhileRejecting()) {
+            var rejection = jettyService.rejection().orElseThrow();
+            return result.failure("Served connector TLS certificate expired at %s and newer material is rejected since %s: %s"
+                    .formatted(rejection.servedNotAfter(), rejection.since(), rejection.cause())).build();
+        }
+        return result.success().build();
+    }
+
+    @Override
+    public Map<String, String> readinessDetail() {
+        return jettyService.rejection()
+                .map(rejection -> Map.of(
+                        DETAIL_SERVED_EXPIRES, rejection.servedNotAfter().toString(),
+                        DETAIL_REJECTED_SINCE, rejection.since().toString(),
+                        DETAIL_REJECTED_CAUSE, rejection.cause()))
+                .orElse(Map.of());
     }
 }

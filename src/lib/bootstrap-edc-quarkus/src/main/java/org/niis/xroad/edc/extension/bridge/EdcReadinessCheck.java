@@ -36,7 +36,8 @@ import org.eclipse.microprofile.health.Readiness;
 
 /**
  * Exposes EDC's readiness as a SmallRye readiness check: DOWN while any registered EDC readiness provider is
- * unhealthy, UP once all are. An empty provider list is unhealthy, as EDC's own health service treats it.
+ * unhealthy, UP once all are. An empty provider list is unhealthy, as EDC's own health service treats it. An UP
+ * response carries the details a degraded component publishes; a DOWN response carries the failure messages.
  */
 @Readiness
 @ApplicationScoped
@@ -52,6 +53,7 @@ public class EdcReadinessCheck implements HealthCheck {
         var status = edcRuntime.readiness();
         HealthCheckResponseBuilder builder = HealthCheckResponse.builder().name(NAME);
         if (status.isHealthy()) {
+            edcRuntime.readinessDetail().forEach(builder::withData);
             return builder.up().build();
         }
         status.getComponentResults().stream()

@@ -255,7 +255,8 @@ class XRoadJettyExtensionTest {
         loader.serve(unusable("flaky"));
 
         await().atMost(AWAIT).until(() -> severes.size() == 2);
-        assertThat(severes).allSatisfy(message -> assertThat(message).contains("flaky"));
+        assertThat(severes.getFirst()).contains("flaky");
+        assertThat(severes.getLast()).contains("Still serving");
     }
 
     private XRoadJettyExtension newExtension(long reloadIntervalSeconds) {

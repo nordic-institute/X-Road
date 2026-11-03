@@ -33,7 +33,9 @@ import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.system.health.HealthStatus;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.reload.ReadinessDetailProvider;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,6 +62,35 @@ class EdcReadinessCheckTest {
         var check = new EdcReadinessCheck(runtimeReporting(healthy()));
 
         assertThat(check.call().getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
+    }
+
+    @Test
+    void edcReadinessUpWithDetailMapsToUpCarryingTheDetail() {
+        var check = new EdcReadinessCheck(runtimeReporting(healthy(), () -> Map.of("connector-tls-rejected-cause", "bad key")));
+
+        var response = check.call();
+
+        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
+        assertThat(response.getData()).hasValueSatisfying(data -> assertThat(data)
+                .containsEntry("connector-tls-rejected-cause", "bad key"));
+    }
+
+    @Test
+    void edcReadinessUpWithoutDetailCarriesNoData() {
+        var check = new EdcReadinessCheck(runtimeReporting(healthy(), Map::of));
+
+        assertThat(check.call().getData()).isEmpty();
+    }
+
+    @Test
+    void edcReadinessDownIgnoresDetailAndKeepsTheFailureMessages() {
+        var check = new EdcReadinessCheck(runtimeReporting(unhealthy(), () -> Map.of("connector-tls-rejected-cause", "bad key")));
+
+        var response = check.call();
+
+        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
+        assertThat(response.getData()).hasValueSatisfying(data -> assertThat(data)
+                .containsEntry(COMPONENT, "not served").doesNotContainKey("connector-tls-rejected-cause"));
     }
 
     @Test
@@ -105,10 +136,25 @@ class EdcReadinessCheckTest {
         return runtimeWith(service);
     }
 
+
+    private static EdcRuntime runtimeReporting(HealthStatus status, ReadinessDetailProvider detailProvider) {
+        var service = mock(HealthCheckService.class);
+        when(service.isReady()).thenReturn(status);
+        return runtimeWith(service, detailProvider);
+    }
+
     private static EdcRuntime runtimeWith(HealthCheckService service) {
+        return runtimeWith(service, null);
+    }
+
+    private static EdcRuntime runtimeWith(HealthCheckService service, ReadinessDetailProvider detailProvider) {
         var edcContext = mock(ServiceExtensionContext.class);
         when(edcContext.hasService(HealthCheckService.class)).thenReturn(true);
         when(edcContext.getService(HealthCheckService.class)).thenReturn(service);
+        if (detailProvider != null) {
+            when(edcContext.hasService(ReadinessDetailProvider.class)).thenReturn(true);
+            when(edcContext.getService(ReadinessDetailProvider.class)).thenReturn(detailProvider);
+        }
         return new EdcRuntime(null, null) {
             {
                 this.context = edcContext;

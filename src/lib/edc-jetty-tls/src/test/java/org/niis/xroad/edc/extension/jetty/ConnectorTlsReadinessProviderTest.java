@@ -37,11 +37,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.KeyStore;
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ConnectorTlsReadinessProviderTest {
 
+    private final MutableClock clock = new MutableClock(Instant.now());
     private XRoadJettyService jettyService;
     private ConnectorTlsReadinessProvider provider;
 
@@ -50,7 +54,7 @@ class ConnectorTlsReadinessProviderTest {
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("svc", TestPortUtils.findRandomPort(), "/api"));
         jettyService = new XRoadJettyService(new Monitor() {
-        }, registry);
+        }, registry, clock);
         provider = new ConnectorTlsReadinessProvider(jettyService);
     }
 
@@ -93,6 +97,57 @@ class ConnectorTlsReadinessProviderTest {
         assertThat(provider.get().succeeded()).isFalse();
     }
 
+    @Test
+    void staysUpWithDetailWhileNewerMaterialIsRejectedAndTheServedCertificateIsValid() throws Exception {
+        var served = TestCertUtil.getInternalKey().certChain[0];
+        clock.set(served.getNotAfter().toInstant().minus(Duration.ofDays(1)));
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        var rejectedAt = clock.instant();
+
+        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(unusableKeyStore()))
+                .isInstanceOf(ConnectorTlsMaterialRejectedException.class);
+        assertThat(provider.get().succeeded()).isTrue();
+        assertThat(provider.readinessDetail())
+                .containsEntry(ConnectorTlsReadinessProvider.DETAIL_SERVED_EXPIRES, served.getNotAfter().toInstant().toString())
+                .containsEntry(ConnectorTlsReadinessProvider.DETAIL_REJECTED_SINCE, rejectedAt.toString())
+                .hasEntrySatisfying(ConnectorTlsReadinessProvider.DETAIL_REJECTED_CAUSE, cause -> assertThat(cause).isNotBlank());
+    }
+
+    @Test
+    void goesDownOnceTheServedCertificateExpiresWhileNewerMaterialIsRejected() throws Exception {
+        var served = TestCertUtil.getInternalKey().certChain[0];
+        clock.set(served.getNotAfter().toInstant().minus(Duration.ofDays(1)));
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(unusableKeyStore()))
+                .isInstanceOf(ConnectorTlsMaterialRejectedException.class);
+        assertThat(provider.get().succeeded()).isTrue();
+
+        clock.set(served.getNotAfter().toInstant());
+
+        assertThat(provider.get().succeeded()).isFalse();
+        assertThat(provider.get().getFailureDetail()).contains("expired").contains("rejected since");
+    }
+
+    @Test
+    void reportsNoDetailWhenNothingIsRejected() throws Exception {
+        jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(provider.get().succeeded()).isTrue();
+        assertThat(provider.readinessDetail()).isEmpty();
+    }
+
+    private static KeyStore unusableKeyStore() throws Exception {
+        var credentials = TestCertUtil.getOcspSigner();
+        var keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, "not-the-keystore-password".toCharArray(),
+                credentials.certChain);
+        return keyStore;
+    }
     private static KeyStore keyStoreOf(TestCertUtil.PKCS12 credentials) throws Exception {
         var keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, null);
