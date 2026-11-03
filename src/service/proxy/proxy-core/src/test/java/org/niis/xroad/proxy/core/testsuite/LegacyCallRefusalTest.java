@@ -49,6 +49,7 @@ import org.niis.xroad.proxy.core.addon.metaservice.testcases.GetWSDLMessage;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -283,8 +284,9 @@ class LegacyCallRefusalTest {
     private void stubAssetAccess(ClientId client, ServiceId service) {
         var endpoint = "http://127.0.0.1:" + PROXY_TEST_SUITE_HELPER.proxyProperties.serverProxyPort() + "/";
         var response = new AssetAccessResponse(endpoint, mintToken(client, service), WINNER);
+        when(ctx.getConsumerSideDspProcessor().bypassesDsp(any())).thenReturn(false);
         when(ctx.getConsumerSideDspProcessor().execute(argThat(req -> service.equals(req.serviceId()))))
-                .thenReturn(response);
+                .thenReturn(new DspAcquisition(response, 1));
     }
 
     private static Map<String, String> withLocalRefusal() {

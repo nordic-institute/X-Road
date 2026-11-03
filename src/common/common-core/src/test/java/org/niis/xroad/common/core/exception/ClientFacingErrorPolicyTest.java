@@ -42,6 +42,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_F
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
@@ -66,6 +67,7 @@ class ClientFacingErrorPolicyTest {
                 Arguments.of(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
                 Arguments.of(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
                 Arguments.of(DSP_ACQUISITION_FAILED, IO_ERROR),
+                Arguments.of(DSP_DATA_PLANE_UNREACHABLE, IO_ERROR),
                 Arguments.of(DSP_PROVIDER_NOT_FOUND, UNKNOWN_MEMBER),
                 Arguments.of(DSP_DATASET_NOT_FOUND, ACCESS_DENIED),
                 Arguments.of(DSP_OFFERS_NOT_FOUND, ACCESS_DENIED),

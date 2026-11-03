@@ -71,6 +71,7 @@ class ConsumerSideDspProcessorTest {
     private static final String INSTANCE = "DEV";
     private static final String HOST_A = "xrd-ss0.lxd";
     private static final String HOST_B = "xrd-ss1.lxd";
+    private static final String HOST_C = "xrd-ss2.lxd";
     private static final String PROVIDER_MEMBER_CTX_ID = "DEV:COM:1234";
     private static final String DID_A = "did:web:xrd-ss0.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
     private static final String DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
@@ -227,9 +228,9 @@ class ConsumerSideDspProcessorTest {
 
         var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
-        assertThat(result).isSameAs(expected);
-        assertThat(result.endpoint()).isEqualTo("http://dp.example.com/endpoint");
-        assertThat(result.authorization()).isEqualTo("token-abc");
+        assertThat(result.access()).isSameAs(expected);
+        assertThat(result.access().endpoint()).isEqualTo("http://dp.example.com/endpoint");
+        assertThat(result.access().authorization()).isEqualTo("token-abc");
     }
 
     @ParameterizedTest
@@ -346,9 +347,66 @@ class ConsumerSideDspProcessorTest {
 
         var result = processor.execute(new DspRequest(serviceId, SENDER, hint, false));
 
-        assertThat(result).isSameAs(expected);
+        assertThat(result.access()).isSameAs(expected);
         verify(assetAccessAcquisitionService).acquireAssetAccess(
                 any(), eq(serviceId.asEncodedId()), eq(single(DID_A, URL_A)), any(), any());
+    }
+
+    @Test
+    void executeCountsEveryDistinctCandidate() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B),
+                        new ProviderAddress(null, HOST_C)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(3);
+    }
+
+    @Test
+    void executeCountsAForcedTargetAsOneCandidate() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-b");
+        when(providerSecurityServerResolver.resolve(serviceId, hint))
+                .thenReturn(List.of(new ProviderAddress(hint, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, hint, false));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
+    }
+
+    @Test
+    void executeCountsCandidatesOfTheSameServerOnce() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(2);
+    }
+
+    @Test
+    void executeDoesNotCountAnAddressWhoseTargetCannotBeDerived() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, BLANK_HOST),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
     }
 
     @Test

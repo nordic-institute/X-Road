@@ -42,7 +42,7 @@ import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
-import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
@@ -100,7 +100,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     @Override
     @WithSpan("dsp-execute")
     @Nonnull
-    public AssetAccessResponse execute(DspRequest request) {
+    public DspAcquisition execute(DspRequest request) {
         log.trace("execute({})", request);
 
         try {
@@ -136,7 +136,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         assetAccessAcquisitionService.reportCounterPartyFailure(counterPartyId, counterPartyAddress);
     }
 
-    private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
+    private DspAcquisition acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
         var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
 
@@ -149,8 +149,9 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         var participantContextId = ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
         var candidates = deriveCandidates(requestTargetsSystemCtx, serviceId, providerAddresses);
         try {
-            return assetAccessAcquisitionService.acquireAssetAccess(
+            var access = assetAccessAcquisitionService.acquireAssetAccess(
                     participantContextId, assetId, candidates, request.targetSecurityServer(), request.sender());
+            return new DspAcquisition(access, (int) candidates.stream().distinct().count());
         } catch (XrdRuntimeException ex) {
             throw remapRemoteNotFound(ex, serviceId);
         } catch (RuntimeException ex) {

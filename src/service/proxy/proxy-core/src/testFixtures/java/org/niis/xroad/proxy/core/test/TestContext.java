@@ -89,6 +89,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -109,9 +110,9 @@ public class TestContext {
     final AgreementTokenKeyProvider agreementTokenKeyProvider = InMemoryAgreementTokenKeyProvider.withGeneratedKey("1");
     @Getter
     final ProxyAgreementTokenProperties agreementTokenProperties = mockAgreementTokenProperties();
-    /** The consumer-side DSP dependency of the client proxy, stubbable per test case. */
+    /** The consumer-side DSP dependency of the client proxy, stubbable per test case. Requests bypass DSP unless stubbed. */
     @Getter
-    final DspRequestProcessor consumerSideDspProcessor = mock(DspRequestProcessor.class);
+    final DspRequestProcessor consumerSideDspProcessor = mockConsumerSideDspProcessor();
 
     public ServerProxy serverProxy;
     ClientProxy clientProxy;
@@ -266,6 +267,12 @@ public class TestContext {
         } catch (Exception e) {
             throw new RuntimeException("Init failed", e);
         }
+    }
+
+    private static DspRequestProcessor mockConsumerSideDspProcessor() {
+        var processor = mock(DspRequestProcessor.class);
+        when(processor.bypassesDsp(any())).thenReturn(true);
+        return processor;
     }
 
     private static ProxyAgreementTokenProperties mockAgreementTokenProperties() {

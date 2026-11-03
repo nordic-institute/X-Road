@@ -39,6 +39,7 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.test.InMemoryAgreementTokenKeyProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 
@@ -119,7 +120,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
     private static void stubAssetAccess(String token) {
         var response = new AssetAccessResponse("https://127.0.0.1:" + proxyServerPort + "/", token, WINNER);
-        when(CONSUMER_SIDE_DSP_PROCESSOR.execute(any())).thenReturn(response);
+        when(CONSUMER_SIDE_DSP_PROCESSOR.execute(any())).thenReturn(new DspAcquisition(response, 1));
     }
 
     private String mintToken() {

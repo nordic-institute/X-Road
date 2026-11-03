@@ -36,15 +36,16 @@ public interface DspRequestProcessor {
 
     /**
      * Executes DSP processing for the given request and returns the asset access details
-     * (endpoint + optional authorization) resolved from the control plane.
+     * (endpoint + optional authorization) resolved from the control plane, with the number of
+     * distinct candidate Security Servers the acquisition chose among.
      *
      * @param request the DSP request carrying the target service identifier and an optional
      *                caller-sent security-server hint
-     * @return the asset access response containing the dataplane endpoint and optional authorization;
-     *         never {@code null} — an unresolved target raises an exception instead
+     * @return the acquisition holding the asset access response with the dataplane endpoint and optional
+     *         authorization; never {@code null} — an unresolved target raises an exception instead
      */
     @Nonnull
-    AssetAccessResponse execute(DspRequest request);
+    DspAcquisition execute(DspRequest request);
 
     /**
      * Tells whether the request goes to the provider over the X-Road 7 path instead of through DSP. A request
