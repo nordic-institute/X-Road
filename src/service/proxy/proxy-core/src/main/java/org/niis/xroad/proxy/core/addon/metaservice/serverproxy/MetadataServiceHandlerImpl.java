@@ -55,6 +55,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -151,10 +152,7 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     @Override
     public boolean canHandle(ServiceId requestServiceId, ProxyMessage requestProxyMessage) {
-        return switch (requestServiceId.getServiceCode()) {
-            case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> true;
-            default -> false;
-        };
+        return BuiltinServiceCodes.SOAP_METASERVICES.contains(requestServiceId.getServiceCode());
     }
 
     @Override

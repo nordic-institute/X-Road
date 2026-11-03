@@ -47,6 +47,17 @@ public interface DspRequestProcessor {
     AssetAccessResponse execute(DspRequest request);
 
     /**
+     * Tells whether the request goes to the provider over the X-Road 7 path instead of through DSP. A request
+     * that bypasses DSP is not passed to {@link #execute}, and no agreement token is attached to it.
+     *
+     * @param request the request to route
+     * @return {@code true} when the request bypasses DSP
+     */
+    default boolean bypassesDsp(DspRequest request) {
+        return false;
+    }
+
+    /**
      * Drops the asset access held for the request's target, so that the next {@link #execute} acquires afresh.
      * Called when the provider rejected the agreement token the cached asset access carried.
      *

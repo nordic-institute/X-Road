@@ -29,6 +29,8 @@ package org.niis.xroad.common.core;
 import lombok.experimental.UtilityClass;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Service codes of the built-in services every Security Server answers itself rather than routing
@@ -57,4 +59,14 @@ public class BuiltinServiceCodes {
             ALLOWED_METHODS,
             GET_WSDL,
             GET_OPENAPI);
+
+    /** The metaservice codes the SOAP metaservice handler serves. */
+    public static final Set<String> SOAP_METASERVICES = Set.of(LIST_METHODS, ALLOWED_METHODS, GET_WSDL);
+
+    /** The metaservice codes the REST metaservice handler serves, for GET requests. */
+    public static final Set<String> REST_METASERVICES = Set.of(LIST_METHODS, ALLOWED_METHODS, GET_OPENAPI);
+
+    /** Every metaservice code a metaservice handler serves over either transport. */
+    public static final Set<String> METASERVICES = Stream.concat(SOAP_METASERVICES.stream(), REST_METASERVICES.stream())
+            .collect(Collectors.toUnmodifiableSet());
 }

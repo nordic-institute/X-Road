@@ -407,6 +407,21 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
+    void sendRequestSendsRequestThatBypassesDspWithoutNegotiatingOrTokenEvenIfLegacyCallsAreRefused() throws Exception {
+        var harness = createHarness(true, true);
+        when(harness.consumerSideDspProcessor().bypassesDsp(any())).thenReturn(true);
+        stubUnnegotiatedAddress(harness);
+        var httpSender = mock(HttpSender.class);
+
+        harness.processor().sendRequest(httpSender, null, null, restRequest(), serviceId(), "req-1", restRequestContext());
+
+        verify(harness.consumerSideDspProcessor(), never()).execute(any());
+        verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), nullable(HttpEntity.class));
+        verify(httpSender, never()).addHeader(eq(HEADER_AGREEMENT_TOKEN), any());
+        verifyNoInteractions(harness.legacyCallRefusalPolicy());
+    }
+
+    @Test
     void sendRequestSurfacesTargetResolutionErrorInsteadOfTheRefusal() throws Exception {
         var harness = createHarness(false, true);
         when(harness.clientRequestPreparationService()

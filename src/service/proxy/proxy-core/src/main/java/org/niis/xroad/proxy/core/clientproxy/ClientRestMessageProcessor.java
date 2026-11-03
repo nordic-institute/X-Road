@@ -297,15 +297,18 @@ public class ClientRestMessageProcessor {
 
         final URI[] addresses;
         AssetAccessResponse assetAccess = null;
-        if (proxyProperties.dspEnabled()) {
-            assetAccess = consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getClientId(),
-                    restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
+        var dspRequest = new DspRequest(requestServiceId, restRequest.getClientId(),
+                restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId));
+        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
+            assetAccess = consumerSideDspProcessor.execute(dspRequest);
             addresses = clientRequestPreparationService.prepareRequest(
                     httpSender, requestServiceId, URI.create(assetAccess.endpoint()), ctx, opMonitoringData, null);
         } else {
             addresses = clientRequestPreparationService.prepareRequest(
                     httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
-            checkUnnegotiatedCallAllowed(requestServiceId);
+            if (!proxyProperties.dspEnabled()) {
+                checkUnnegotiatedCallAllowed(requestServiceId);
+            }
         }
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
