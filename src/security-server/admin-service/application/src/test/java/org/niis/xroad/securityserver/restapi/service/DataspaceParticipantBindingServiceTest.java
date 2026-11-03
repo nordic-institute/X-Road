@@ -29,6 +29,12 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.apicatalog.did.Did;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,9 +48,12 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,6 +74,8 @@ class DataspaceParticipantBindingServiceTest {
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "ORG", "OTHER");
     private static final SecurityServerId SERVER_ID = SecurityServerId.Conf.create(MEMBER, "SS1");
     private static final String SS_HOST = "ss.example.test:7183";
+    private static final String OLD_SS_HOST = "old.example.test:7183";
+    private static final Did SYSTEM_DID_AT_OLD_ADDRESS = ParticipantIdentifierScheme.systemDid(OLD_SS_HOST);
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -75,6 +86,10 @@ class DataspaceParticipantBindingServiceTest {
     @Mock
     private OwnSecurityServerResolver ownSecurityServerResolver;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger serviceLogger = (Logger) LoggerFactory.getLogger(DataspaceParticipantBindingService.class);
+
+    private DataspaceDidAuthority didAuthority;
     private DataspaceParticipantBindingService service;
 
     @BeforeEach
@@ -83,15 +98,25 @@ class DataspaceParticipantBindingServiceTest {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, "ss.example.test"));
 
-        service = new DataspaceParticipantBindingService(dsParticipantRepository,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
+        didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
+        service = new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority);
+        appender.start();
+        serviceLogger.addAppender(appender);
+        serviceLogger.setLevel(Level.INFO);
+    }
+
+    @AfterEach
+    void tearDown() {
+        serviceLogger.detachAppender(appender);
+        appender.stop();
+        serviceLogger.setLevel(null);
     }
 
     @Test
     void bindsDerivedIdentifiersForEveryUnboundMember() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(MEMBER, OTHER_MEMBER);
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER, OTHER_MEMBER))).containsExactly(MEMBER, OTHER_MEMBER);
 
         verify(dsParticipantRepository).bindMemberParticipant(MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(MEMBER),
@@ -107,7 +132,7 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(boundRow));
         when(dsParticipantRepository.findByMemberIdentifier(OTHER_MEMBER)).thenReturn(Optional.empty());
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(MEMBER, OTHER_MEMBER);
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER, OTHER_MEMBER))).containsExactly(MEMBER, OTHER_MEMBER);
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(eq(MEMBER), anyString(), anyString());
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
@@ -118,7 +143,7 @@ class DataspaceParticipantBindingServiceTest {
         var boundRow = rowIn(ParticipantState.ACTIVE);
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.of(boundRow));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).containsExactly(MEMBER);
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER))).containsExactly(MEMBER);
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }
@@ -128,7 +153,7 @@ class DataspaceParticipantBindingServiceTest {
         var tombstone = rowIn(ParticipantState.DECOMMISSIONED);
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.of(tombstone));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isEmpty();
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER))).isEmpty();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }
@@ -139,7 +164,7 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.bindMemberParticipant(eq(MEMBER), anyString(), anyString()))
                 .thenThrow(new DataIntegrityViolationException("uniq_ds_participant_member_identifier"));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(OTHER_MEMBER);
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER, OTHER_MEMBER))).containsExactly(OTHER_MEMBER);
 
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
     }
@@ -149,16 +174,18 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(SERVER_ID));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isEmpty();
+        assertThat(service.bindMembersIfAbsent(Map.of(MEMBER, memberDidAtOldAddress(MEMBER)))).isEmpty();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+        assertThat(logged("could not bind participant identity for member")).hasSize(1);
+        assertThat(logged("differs from the checked DID")).isEmpty();
     }
 
     @Test
     void bindsTheDerivedSystemIdentifierWhenNoSystemRowExists() {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
 
-        assertThat(service.bindSystemIfAbsent()).isTrue();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isTrue();
 
         verify(dsParticipantRepository).bindSystemParticipant(ParticipantIdentifierScheme.SYSTEM_SEGMENT,
                 ParticipantIdentifierScheme.systemDid(SS_HOST).toString());
@@ -169,7 +196,7 @@ class DataspaceParticipantBindingServiceTest {
         var boundRow = rowIn(ParticipantState.ACTIVE);
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(boundRow));
 
-        assertThat(service.bindSystemIfAbsent()).isTrue();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isTrue();
 
         verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
     }
@@ -181,8 +208,8 @@ class DataspaceParticipantBindingServiceTest {
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(boundRow));
 
-        assertThat(service.bindSystemIfAbsent()).isTrue();
-        assertThat(service.bindSystemIfAbsent()).isTrue();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isTrue();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isTrue();
 
         verify(dsParticipantRepository, times(1)).bindSystemParticipant(anyString(), anyString());
     }
@@ -192,7 +219,7 @@ class DataspaceParticipantBindingServiceTest {
         var tombstone = rowIn(ParticipantState.DECOMMISSIONED);
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(tombstone));
 
-        assertThat(service.bindSystemIfAbsent()).isFalse();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isFalse();
 
         verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
     }
@@ -203,7 +230,7 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.bindSystemParticipant(anyString(), anyString()))
                 .thenThrow(new DataIntegrityViolationException("uniq_ds_participant_system"));
 
-        assertThat(service.bindSystemIfAbsent()).isFalse();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isFalse();
     }
 
     @Test
@@ -211,9 +238,11 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.NotRegistered(SERVER_ID));
 
-        assertThat(service.bindSystemIfAbsent()).isFalse();
+        assertThat(service.bindSystemIfAbsent(SYSTEM_DID_AT_OLD_ADDRESS)).isFalse();
 
         verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
+        assertThat(logged("could not bind participant identity for the SYSTEM context")).hasSize(1);
+        assertThat(logged("differs from the checked DID")).isEmpty();
     }
 
     @Test
@@ -221,9 +250,11 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, "b\u00fccher.example"));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).isEmpty();
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER, OTHER_MEMBER))).isEmpty();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+        assertThat(logged("no DID can be minted")).hasSize(2);
+        assertThat(logged("differs from the checked DID")).isEmpty();
     }
 
     @Test
@@ -233,10 +264,12 @@ class DataspaceParticipantBindingServiceTest {
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, host));
         when(dataspace.getDidPort()).thenReturn(443);
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).containsExactly(OTHER_MEMBER);
+        assertThat(service.bindMembersIfAbsent(checkedDids(MEMBER, OTHER_MEMBER))).containsExactly(OTHER_MEMBER);
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(eq(MEMBER), anyString(), anyString());
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
+        assertThat(logged("no DID can be minted")).hasSize(1).first().asString().contains("member " + MEMBER);
+        assertThat(logged("differs from the checked DID")).isEmpty();
     }
 
     @Test
@@ -244,9 +277,58 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
         when(ownSecurityServerResolver.address()).thenReturn(new OwnAddress.Registered(SERVER_ID, "b\u00fccher.example"));
 
-        assertThat(service.bindSystemIfAbsent()).isFalse();
+        assertThat(service.bindSystemIfAbsent(checkedSystemDid())).isFalse();
 
         verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
+        assertThat(logged("no DID can be minted")).hasSize(1);
+        assertThat(logged("differs from the checked DID")).isEmpty();
+    }
+
+    @Test
+    void bindsNoMemberWhoseFreshlyMintedDidDiffersFromTheCheckedOne() {
+        when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
+        Map<ClientId, Did> checked = new LinkedHashMap<>();
+        checked.put(MEMBER, memberDidAtOldAddress(MEMBER));
+        checked.putAll(checkedDids(OTHER_MEMBER));
+
+        assertThat(service.bindMembersIfAbsent(checked)).containsExactly(OTHER_MEMBER);
+
+        verify(dsParticipantRepository, never()).bindMemberParticipant(eq(MEMBER), anyString(), anyString());
+        verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
+        assertThat(logged("differs from the checked DID")).hasSize(1).first().asString().contains("member " + MEMBER);
+    }
+
+    @Test
+    void bindsNoSystemIdentifierWhoseFreshlyMintedDidDiffersFromTheCheckedOne() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+
+        assertThat(service.bindSystemIfAbsent(SYSTEM_DID_AT_OLD_ADDRESS)).isFalse();
+
+        verify(dsParticipantRepository, never()).bindSystemParticipant(anyString(), anyString());
+        assertThat(logged("differs from the checked DID")).hasSize(1).first().asString().contains("SYSTEM context");
+    }
+
+    private List<String> logged(String fragment) {
+        return appender.list.stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains(fragment))
+                .toList();
+    }
+
+    private static Did memberDidAtOldAddress(ClientId member) {
+        return ParticipantIdentifierScheme.memberDid(member, OLD_SS_HOST);
+    }
+
+    private Map<ClientId, Did> checkedDids(ClientId... members) {
+        Map<ClientId, Did> checked = new LinkedHashMap<>();
+        for (var member : members) {
+            checked.put(member, didAuthority.mintMemberDid(member).did().orElseGet(() -> memberDidAtOldAddress(member)));
+        }
+        return checked;
+    }
+
+    private Did checkedSystemDid() {
+        return didAuthority.mintSystemDid().did().orElse(SYSTEM_DID_AT_OLD_ADDRESS);
     }
 
     private static DsParticipantEntity rowIn(ParticipantState state) {

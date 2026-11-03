@@ -29,7 +29,9 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.apicatalog.did.Did;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -45,6 +47,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -55,10 +58,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,6 +104,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
     private static final List<IdentityStatus> SKIPPED_IDENTITY_STATUSES = List.of(REJECTED, DRIFTED, VERSION_UNSUPPORTED);
     private static final int MAX_LOGGED_SKIPPED_IDS = 10;
+    private static final Duration SKIPPED_WARNING_REMINDER = Duration.ofHours(1);
 
     private static final Logger CYCLE_LOG =
             LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
@@ -114,6 +120,10 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         return thread;
     });
     private final AtomicBoolean runQueued = new AtomicBoolean();
+    private final Map<IdentityStatus, Set<String>> warnedSkippedIds = new EnumMap<>(IdentityStatus.class);
+    private final Map<IdentityStatus, Instant> lastSkippedWarning = new EnumMap<>(IdentityStatus.class);
+    @Setter(AccessLevel.PACKAGE)
+    private Clock clock = Clock.systemUTC();
 
     /**
      * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
@@ -235,9 +245,12 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * active binding row is provisioned regardless, so it recovers from a lost hub or Control Plane context
      * even while the registered address is unknown. A context whose
      * identity is drifted, unreadable, rejected or of an unsupported scheme version is neither bound nor
-     * provisioned: such contexts are dropped before the ensure pass, and each tick logs one WARN per rejected,
-     * drifted or unsupported-version status with the count and the first participant ids. A context that cannot
-     * be bound is skipped and retried on the next tick.
+     * provisioned: such contexts are dropped before the ensure pass. Each tick logs one line per rejected, drifted
+     * or unsupported-version status with the count and the first participant ids: at WARN when a context not
+     * yet warned about enters that status, and again once an hour while any remain; at DEBUG otherwise, so a
+     * context that drops out for one tick because its hub state was unreadable is not warned about again.
+     * Unbound contexts are bound under the DID their status read checked against the identity hub. A context
+     * that cannot be bound is skipped and retried on the next tick.
      *
      * <p>The non-converged contexts, SYSTEM first and then by participant id, are split into batches of
      * the configured provisioning batch size. Each tick runs every batch; within a batch every unbound
@@ -277,7 +290,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} registeredAddressKnown={}",
                 dataspaceReady, authCertRegistered, addressKnown);
 
-        warnAboutSkippedContexts(nonConverged, statuses);
+        logSkippedContexts(nonConverged, statuses);
 
         int batchSize = adminServiceProperties.getDataspace().getProvisioningBatchSize();
         var ordered = nonConverged.stream().sorted(PROVISIONING_ORDER).toList();
@@ -301,18 +314,37 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         ensureCredentials(ensuredContexts, statuses);
     }
 
-    private static void warnAboutSkippedContexts(List<ParticipantContext> nonConverged,
+    private void logSkippedContexts(List<ParticipantContext> nonConverged,
             Map<ParticipantContext, ParticipantContextStatus> statuses) {
+        var now = clock.instant();
         for (var identityStatus : SKIPPED_IDENTITY_STATUSES) {
             var skipped = contextsWithIdentityStatus(nonConverged, statuses, identityStatus);
             if (skipped.isEmpty()) {
                 continue;
             }
-            var ids = skipped.stream().limit(MAX_LOGGED_SKIPPED_IDS).map(ParticipantContext::participantId).toList();
-            log.warn("Dataspace provisioning: skipping {} participant context(s) with identity status {}, neither bound "
-                            + "nor provisioned: {}{}",
+            var allIds = skipped.stream().map(ParticipantContext::participantId).toList();
+            var level = skippedWarningDue(identityStatus, Set.copyOf(allIds), now) ? Level.WARN : Level.DEBUG;
+            var ids = allIds.stream().limit(MAX_LOGGED_SKIPPED_IDS).toList();
+            log.atLevel(level).log("Dataspace provisioning: skipping {} participant context(s) with identity status {}, "
+                            + "neither bound nor provisioned: {}{}",
                     skipped.size(), identityStatus, ids, skipped.size() > ids.size() ? " and more" : "");
         }
+    }
+
+    private boolean skippedWarningDue(IdentityStatus identityStatus, Set<String> ids, Instant now) {
+        var warned = warnedSkippedIds.getOrDefault(identityStatus, Set.of());
+        var lastWarning = lastSkippedWarning.get(identityStatus);
+        var reminderDue = lastWarning == null || !now.isBefore(lastWarning.plus(SKIPPED_WARNING_REMINDER));
+        if (!reminderDue && warned.containsAll(ids)) {
+            return false;
+        }
+        var nowWarned = new HashSet<>(ids);
+        if (!reminderDue) {
+            nowWarned.addAll(warned);
+        }
+        warnedSkippedIds.put(identityStatus, nowWarned);
+        lastSkippedWarning.put(identityStatus, now);
+        return true;
     }
 
     /**
@@ -327,7 +359,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         var unbound = contextsWithIdentityStatus(nonConverged, statuses, UNBOUND);
         if (!unbound.isEmpty()) {
             if (mayBind) {
-                bound.addAll(bind(unbound));
+                bound.addAll(bind(unbound, statuses));
             } else {
                 log.debug("Dataspace provisioning: dataspace not ready, auth cert not registered or registered address "
                         + "not in GlobalConf yet, leaving {} context(s) unbound and unprovisioned", unbound.size());
@@ -336,17 +368,34 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         return nonConverged.stream().filter(bound::contains).toList();
     }
 
-    private List<ParticipantContext> bind(List<ParticipantContext> unbound) {
-        var unboundMembers = unbound.stream()
-                .filter(context -> context.kind() == ParticipantKind.MEMBER)
-                .map(ParticipantContext::memberId)
-                .toList();
-        Set<ClientId> boundMembers = unboundMembers.isEmpty()
+    private List<ParticipantContext> bind(List<ParticipantContext> unbound,
+            Map<ParticipantContext, ParticipantContextStatus> statuses) {
+        Map<ParticipantContext, Did> checkedDids = new LinkedHashMap<>();
+        for (var context : unbound) {
+            var intendedDid = statuses.get(context).intendedDid();
+            if (intendedDid != null) {
+                checkedDids.put(context, intendedDid);
+            }
+        }
+        if (checkedDids.size() < unbound.size()) {
+            log.debug("Dataspace provisioning: status read stated no DID for {} unbound context(s), leaving them unbound "
+                    + "until the next tick", unbound.size() - checkedDids.size());
+        }
+
+        Map<ClientId, Did> memberDids = new LinkedHashMap<>();
+        Did systemDid = null;
+        for (var entry : checkedDids.entrySet()) {
+            if (entry.getKey().kind() == ParticipantKind.SYSTEM) {
+                systemDid = entry.getValue();
+            } else {
+                memberDids.put(entry.getKey().memberId(), entry.getValue());
+            }
+        }
+        Set<ClientId> boundMembers = memberDids.isEmpty()
                 ? Set.of()
-                : new HashSet<>(participantBindingService.bindMembersIfAbsent(unboundMembers));
-        var systemBound = unbound.stream().anyMatch(context -> context.kind() == ParticipantKind.SYSTEM)
-                && participantBindingService.bindSystemIfAbsent();
-        return unbound.stream()
+                : new HashSet<>(participantBindingService.bindMembersIfAbsent(memberDids));
+        boolean systemBound = systemDid != null && participantBindingService.bindSystemIfAbsent(systemDid);
+        return checkedDids.keySet().stream()
                 .filter(context -> switch (context.kind()) {
                     case SYSTEM -> systemBound;
                     case MEMBER -> boundMembers.contains(context.memberId());

@@ -43,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
@@ -56,10 +57,15 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -131,10 +137,10 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(UNBOUND_CONTEXT);
-        when(participantBindingService.bindSystemIfAbsent()).thenReturn(true);
+        when(participantBindingService.bindSystemIfAbsent(any())).thenReturn(true);
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(participantBindingService.bindMembersIfAbsent(any()))
-                .thenAnswer(invocation -> new ArrayList<ClientId>(invocation.getArgument(0)));
+                .thenAnswer(invocation -> new ArrayList<ClientId>(invocation.<Map<ClientId, Did>>getArgument(0).keySet()));
         appender.start();
         cycleLogger.addAppender(appender);
         cycleLogger.setLevel(Level.DEBUG);
@@ -185,7 +191,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         var order = inOrder(dataspaceProvisioningService, participantBindingService);
-        order.verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
+        order.verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, HUB_DID));
         order.verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
     }
 
@@ -197,10 +203,48 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         var order = inOrder(dataspaceProvisioningService, participantBindingService);
-        order.verify(participantBindingService).bindSystemIfAbsent();
+        order.verify(participantBindingService).bindSystemIfAbsent(any());
         order.verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
         order.verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
         verify(participantBindingService, never()).bindMembersIfAbsent(any());
+    }
+
+    @Test
+    void provisionParticipantBindsEachUnboundContextUnderTheDidItsStatusReadChecked() {
+        var systemDid = ParticipantIdentifierScheme.systemDid("checked.example.test:7183");
+        var memberDid = ParticipantIdentifierScheme.memberDid(MEMBER, "checked.example.test:7183");
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
+                .thenReturn(unboundWithIntendedDid(ParticipantKind.SYSTEM, systemDid));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(unboundWithIntendedDid(ParticipantKind.MEMBER, memberDid));
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService).bindSystemIfAbsent(systemDid);
+        verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, memberDid));
+    }
+
+    @Test
+    void provisionParticipantLeavesAnUnboundContextWhoseStatusReadStatedNoDidUnboundAndUnprovisioned() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
+                .thenReturn(unboundWithIntendedDid(ParticipantKind.SYSTEM, null));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(unboundWithIntendedDid(ParticipantKind.MEMBER, null));
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
+        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+    }
+
+    private static ParticipantContextStatus unboundWithIntendedDid(ParticipantKind kind, Did intendedDid) {
+        return new ParticipantContextStatus("irrelevant", kind, null, false, intendedDid,
+                CredentialStatus.ABSENT, IdentityStatus.UNBOUND);
     }
 
     @Test
@@ -210,7 +254,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(SYSTEM_CONTEXT);
     }
@@ -223,7 +267,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(SYSTEM_CONTEXT);
     }
 
@@ -231,7 +275,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     void provisionParticipantDoesNotProvisionASystemContextThatCouldNotBeBound() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
-        when(participantBindingService.bindSystemIfAbsent()).thenReturn(false);
+        when(participantBindingService.bindSystemIfAbsent(any())).thenReturn(false);
 
         worker.provisionParticipant();
 
@@ -250,7 +294,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
     }
@@ -267,7 +311,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(any(), any());
     }
@@ -281,7 +325,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService).bindSystemIfAbsent();
+        verify(participantBindingService).bindSystemIfAbsent(any());
         verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(any(), any());
     }
@@ -310,7 +354,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
         worker.provisionParticipant();
 
-        verify(participantBindingService, times(1)).bindSystemIfAbsent();
+        verify(participantBindingService, times(1)).bindSystemIfAbsent(any());
         verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(SYSTEM_CONTEXT);
         verify(dataspaceProvisioningService, times(1)).ensureMembershipCredential(SYSTEM_CONTEXT);
     }
@@ -320,7 +364,8 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts())
                 .thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT, OTHER_MEMBER_CONTEXT));
-        when(participantBindingService.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).thenReturn(List.of(OTHER_MEMBER));
+        when(participantBindingService.bindMembersIfAbsent(Map.of(MEMBER, HUB_DID, OTHER_MEMBER, HUB_DID)))
+                .thenReturn(List.of(OTHER_MEMBER));
 
         worker.provisionParticipant();
 
@@ -339,7 +384,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
+        verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, HUB_DID));
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_CONTEXT);
     }
 
@@ -452,7 +497,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(participantBindingService, never()).bindMembersIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
@@ -471,7 +516,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
         verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(SYSTEM_CONTEXT);
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(participantBindingService, never()).bindMembersIfAbsent(any());
     }
 
@@ -654,7 +699,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindSystemIfAbsent();
+        verify(participantBindingService, never()).bindSystemIfAbsent(any());
         verify(participantBindingService, never()).bindMembersIfAbsent(any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
         verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(any(), any());
@@ -714,6 +759,76 @@ class DataspaceParticipantProvisioningWorkerTest {
         assertThat(warning).contains("rejected-0", "rejected-9").doesNotContain("rejected-10", "rejected-24");
     }
 
+    @Test
+    void provisionParticipantWarnsAboutUnchangedSkippedContextsOnlyOnTheFirstPassAndLogsTheRestAtDebug() {
+        workerLogger.setLevel(Level.DEBUG);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        var rejected = memberContexts("rejected", 2);
+        stubSkippedStatuses(rejected, IdentityStatus.REJECTED);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(rejected, rejected.reversed());
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(skippedLines(Level.WARN)).hasSize(1);
+        assertThat(skippedLines(Level.DEBUG)).hasSize(1).first().asString().contains("REJECTED").contains("2 participant");
+    }
+
+    @Test
+    void provisionParticipantWarnsAgainOnlyForTheStatusWhoseSkippedContextsChanged() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        var rejected = memberContexts("rejected", 3);
+        var drifted = memberContexts("drifted", 1);
+        stubSkippedStatuses(rejected, IdentityStatus.REJECTED);
+        stubSkippedStatuses(drifted, IdentityStatus.DRIFTED);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(concat(rejected.subList(0, 2), drifted), concat(rejected, drifted));
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        var warnings = skippedWarnings();
+        assertThat(warnings).hasSize(3);
+        assertThat(warnings.get(2)).contains("REJECTED").contains("3 participant");
+    }
+
+    @Test
+    void provisionParticipantDoesNotWarnAgainWhenASkippedContextIsUnreadableForOneTick() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        var drifted = memberContexts("drifted", 2);
+        stubSkippedStatuses(drifted, IdentityStatus.DRIFTED);
+        var driftedStatus = statusOf(false, CredentialStatus.ABSENT, IdentityStatus.DRIFTED);
+        var unreadable = new ParticipantContextStatus("irrelevant", ParticipantKind.MEMBER, null, true, HUB_DID,
+                CredentialStatus.UNKNOWN, IdentityStatus.DRIFTED);
+        when(dataspaceProvisioningService.readContextStatus(drifted.get(1))).thenReturn(driftedStatus, unreadable, driftedStatus);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(drifted);
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(skippedWarnings()).hasSize(1);
+    }
+
+    @Test
+    void provisionParticipantRemindsAboutUnchangedSkippedContextsOnceAnHour() {
+        var start = Instant.parse("2026-11-03T10:00:00Z");
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        var rejected = memberContexts("rejected", 1);
+        stubSkippedStatuses(rejected, IdentityStatus.REJECTED);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(rejected);
+
+        worker.setClock(Clock.fixed(start, ZoneOffset.UTC));
+        worker.provisionParticipant();
+        worker.setClock(Clock.fixed(start.plus(Duration.ofMinutes(59)), ZoneOffset.UTC));
+        worker.provisionParticipant();
+        worker.setClock(Clock.fixed(start.plus(Duration.ofHours(1)), ZoneOffset.UTC));
+        worker.provisionParticipant();
+
+        assertThat(skippedWarnings()).hasSize(2);
+    }
+
     private static List<ParticipantContext> memberContexts(String prefix, int count) {
         return IntStream.range(0, count)
                 .mapToObj(i -> new ParticipantContext(prefix + "-" + i, ParticipantKind.MEMBER,
@@ -732,9 +847,14 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     private List<String> skippedWarnings() {
+        return skippedLines(Level.WARN);
+    }
+
+    private List<String> skippedLines(Level level) {
         return workerAppender.list.stream()
-                .filter(event -> event.getLevel() == Level.WARN)
+                .filter(event -> event.getLevel() == level)
                 .map(ILoggingEvent::getFormattedMessage)
+                .filter(message -> message.contains("participant context(s) with identity status"))
                 .toList();
     }
 
@@ -747,7 +867,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
+        verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, HUB_DID));
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
     }
 
@@ -883,9 +1003,9 @@ class DataspaceParticipantProvisioningWorkerTest {
         givenNoSystemAndMembers(members);
         var events = new ArrayList<String>();
         doAnswer(invocation -> {
-            List<ClientId> ids = invocation.getArgument(0);
-            events.add("bind " + ids.stream().map(ClientId::getMemberCode).toList());
-            return new ArrayList<>(ids);
+            Map<ClientId, Did> ids = invocation.getArgument(0);
+            events.add("bind " + ids.keySet().stream().map(ClientId::getMemberCode).toList());
+            return new ArrayList<>(ids.keySet());
         }).when(participantBindingService).bindMembersIfAbsent(any());
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenAnswer(invocation -> {
             events.add("ensure " + ((ParticipantContext) invocation.getArgument(0)).memberId().getMemberCode());
@@ -910,10 +1030,10 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         var order = inOrder(participantBindingService);
-        order.verify(participantBindingService).bindMembersIfAbsent(List.of(members.getFirst().memberId()));
-        order.verify(participantBindingService).bindSystemIfAbsent();
+        order.verify(participantBindingService).bindMembersIfAbsent(Map.of(members.getFirst().memberId(), HUB_DID));
+        order.verify(participantBindingService).bindSystemIfAbsent(any());
         order.verify(participantBindingService)
-                .bindMembersIfAbsent(List.of(members.get(1).memberId(), members.get(2).memberId()));
+                .bindMembersIfAbsent(Map.of(members.get(1).memberId(), HUB_DID, members.get(2).memberId(), HUB_DID));
     }
 
     @Test
@@ -975,9 +1095,9 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     private List<Integer> bindBatchSizes() {
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<ClientId>> batches = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<Map<ClientId, Did>> batches = ArgumentCaptor.forClass(Map.class);
         verify(participantBindingService, atLeastOnce()).bindMembersIfAbsent(batches.capture());
-        return batches.getAllValues().stream().map(List::size).toList();
+        return batches.getAllValues().stream().map(Map::size).toList();
     }
 
     /**
@@ -990,9 +1110,9 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         private ConvergenceTracker() {
             doAnswer(invocation -> {
-                List<ClientId> ids = invocation.getArgument(0);
-                bound.addAll(ids);
-                return new ArrayList<>(ids);
+                Map<ClientId, Did> ids = invocation.getArgument(0);
+                bound.addAll(ids.keySet());
+                return new ArrayList<>(ids.keySet());
             }).when(participantBindingService).bindMembersIfAbsent(any());
             when(dataspaceProvisioningService.ensureMembershipCredential(any())).thenAnswer(invocation -> {
                 issued.add(invocation.getArgument(0));

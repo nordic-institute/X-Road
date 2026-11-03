@@ -77,19 +77,6 @@ public class DataspaceDidAuthority {
     }
 
     /**
-     * @return the authority as {@code host:port}, as embedded in derived DIDs
-     * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII or not a
-     *                             valid host name or IPv6 literal
-     */
-    public String current() {
-        return switch (resolve().orElseThrow(this::addressUnknown)) {
-            case RegisteredAddress.Valid valid -> valid.authority();
-            case RegisteredAddress.Invalid invalid -> throw invalid.rejection().toException();
-        };
-    }
-
-    /**
      * Mints the member's DID for the current authority.
      *
      * @param member the X-Road member identifier
