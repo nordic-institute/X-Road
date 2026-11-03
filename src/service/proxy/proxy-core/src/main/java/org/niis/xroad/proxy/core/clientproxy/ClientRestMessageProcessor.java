@@ -98,6 +98,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
@@ -200,20 +201,22 @@ public class ClientRestMessageProcessor {
         ProxyMessage response;
         var sentRequest = executeWithRetry(jRequest, opMonitoringData, restRequest, senderId,
                 requestServiceId, xRequestId, ctx);
-        try (var httpSender = sentRequest.httpSender()) {
+        try (var httpSender = sentRequest.getHttpSender()) {
             var hashAlgoId = ProxyMessageUtils.getHashAlgoId(httpSender);
             response = parseResponse(httpSender, opMonitoringData, requestServiceId);
-            checkConsistency(hashAlgoId, restRequest, sentRequest.restBodyDigest(), response);
+            checkConsistency(hashAlgoId, restRequest, sentRequest.getRestBodyDigest(), response);
         } catch (XrdRuntimeException e) {
-            dropAssetAccessOnTokenRejection(e, restRequest, requestServiceId);
+            dropAssetAccessOnTokenRejection(e, restRequest, requestServiceId, sentRequest.isTokenPresented());
             throw e;
         }
         logResponseMessage(restRequest, response, xRequestId);
         return response;
     }
 
-    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId) {
-        if (proxyProperties.dspEnabled() && failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)) {
+    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId,
+                                         boolean tokenPresented) {
+        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
             consumerSideDspProcessor.invalidateAssetAccess(new DspRequest(requestServiceId, restRequest.getClientId(),
                     restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
         }
@@ -240,8 +243,9 @@ public class ClientRestMessageProcessor {
                         entity = createRequestEntity(jRequest, opMonitoringData, restRequest, senderId, xRequestId,
                                 retryEnabled);
                     }
-                    sendRequest(httpSender, entity, opMonitoringData, restRequest, requestServiceId, xRequestId, ctx);
-                    return new SentRequest(httpSender, entity.getRestBodyDigest());
+                    var tokenPresented = sendRequest(httpSender, entity, opMonitoringData, restRequest, requestServiceId,
+                            xRequestId, ctx);
+                    return new SentRequest(httpSender, entity.getRestBodyDigest(), tokenPresented);
                 } catch (Exception e) {
                     var targets = httpSender.getAttribute(ID_TARGETS);
                     var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
@@ -286,7 +290,7 @@ public class ClientRestMessageProcessor {
         legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
     }
 
-    void sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
+    boolean sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
                              RestRequest restRequest, ServiceId requestServiceId, String xRequestId,
                              ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
@@ -305,7 +309,8 @@ public class ClientRestMessageProcessor {
         }
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
-        if (assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization())) {
+        var tokenPresented = assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization());
+        if (tokenPresented) {
             httpSender.addHeader(HEADER_AGREEMENT_TOKEN, assetAccess.authorization());
         }
 
@@ -318,13 +323,19 @@ public class ClientRestMessageProcessor {
         if (opMonitoringData != null) {
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         }
+        return tokenPresented;
     }
 
     /**
-     * Outcome of a successful send: the (still open) sender to parse the response from and the
-     * digest of the streamed request body.
+     * Outcome of a successful send: the (still open) sender to parse the response from, the
+     * digest of the streamed request body and whether an agreement token was sent with it.
      */
-    private record SentRequest(HttpSender httpSender, byte[] restBodyDigest) {
+    @Getter
+    @RequiredArgsConstructor
+    private static final class SentRequest {
+        private final HttpSender httpSender;
+        private final byte[] restBodyDigest;
+        private final boolean tokenPresented;
     }
 
     private ProxyMessage parseResponse(HttpSender httpSender, OpMonitoringData opMonitoringData,

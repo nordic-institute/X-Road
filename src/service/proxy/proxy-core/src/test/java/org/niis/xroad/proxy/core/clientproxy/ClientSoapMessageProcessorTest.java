@@ -222,7 +222,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest);
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest, null);
 
         verify(consumerSideDspProcessor).invalidateAssetAccess(dspRequest);
     }
@@ -233,18 +233,34 @@ class ClientSoapMessageProcessorTest {
         var processor = createProcessor(true, consumerSideDspProcessor);
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
-        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest);
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest,
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }
 
     @Test
-    void anAccessDenialKeepsTheCachedAssetAccess() {
+    void anAccessDenialOfAPresentedTokenDropsCachedAssetAccess() {
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         var processor = createProcessor(true, consumerSideDspProcessor);
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
-        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest);
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+
+        verify(consumerSideDspProcessor).invalidateAssetAccess(dspRequest);
+    }
+
+    @Test
+    void anAccessDenialWithoutAPresentedTokenKeepsTheCachedAssetAccess() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(true, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
+                new AssetAccessResponse(PROVIDER_ADDRESS, null));
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
+                null);
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }
@@ -256,7 +272,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest);
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest, null);
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }

@@ -26,6 +26,8 @@
 
 package org.niis.xroad.proxy.dataplane;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +36,14 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenGroupGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.common.agreementtoken.AgreementTokenServiceGrant;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
+import org.niis.xroad.proxy.controlplane.AgreementServiceGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.BaseEndpoint;
@@ -51,7 +56,9 @@ import java.util.Optional;
  * Resolves and mints the agreement token for a data-flow prepare/start message: looks up the grant behind the
  * agreement, which decides that the client may use the service, and mints a token whose scope is the client's
  * live ACL endpoints for that service (direct, local-group and global-group rows). For an agreement whose
- * subject is a group, it mints a group token that names the group and the service and lists no endpoints.
+ * subject is a group, it mints a group token that names the group and the service and lists no endpoints. For an
+ * agreement that restricts no subject it mints a service-only token that names the service alone, except for a
+ * built-in service, which the server proxy answers without consulting any token.
  * Never throws — every failure mode (no grant, an empty live ACL, key material unavailable, or anything else going wrong) yields an
  * empty result, so the caller always has a safe endpoint-only fallback.
  */
@@ -102,7 +109,20 @@ public class AgreementTokenIssuer {
             case AgreementGrant grant -> mintSubsystemToken(minter, agreementId, grant);
             case AgreementGroupGrant(var group, var service) ->
                     Optional.of(minter.mint(new AgreementTokenGroupGrant(agreementId, group, service)));
+            case AgreementServiceGrant(var service) -> mintServiceToken(minter, agreementId, service);
         };
+    }
+
+    private Optional<String> mintServiceToken(AgreementTokenMinter minter, String agreementId, ServiceId service) {
+        if (isBuiltinService(service)) {
+            log.debug("Agreement id '{}' is for a built-in service; not minting", agreementId);
+            return Optional.empty();
+        }
+        return Optional.of(minter.mint(new AgreementTokenServiceGrant(agreementId, service)));
+    }
+
+    private static boolean isBuiltinService(ServiceId service) {
+        return service.getSubsystemCode() == null && BuiltinServiceCodes.ALL.contains(service.getServiceCode());
     }
 
     private Optional<String> mintSubsystemToken(AgreementTokenMinter minter, String agreementId, AgreementGrant grant) {

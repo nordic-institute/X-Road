@@ -56,10 +56,13 @@ import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.enc
 
 /**
  * Mints agreement tokens: a compact, ES256-signed JWS (see {@code XRDADR-40} and the key-trust slice's
- * signing-scheme decision) stating exactly one grant, either to one subsystem or to one group, with the protocol
- * envelope (issuer, audience, expiry) derived from {@link AgreementTokenProtocolProperties} rather than hardcoded here.
+ * signing-scheme decision) stating exactly one grant, to one subsystem, to one group, or to no subject at all (a
+ * service-only token), with the protocol envelope (issuer, audience, expiry) derived from
+ * {@link AgreementTokenProtocolProperties} rather than hardcoded here.
  */
 public final class AgreementTokenMinter {
+
+    private static final String GRANT_REQUIRED = "grant must not be null";
 
     private final AgreementTokenKeyProvider keyProvider;
     private final AgreementTokenProtocolProperties properties;
@@ -80,7 +83,7 @@ public final class AgreementTokenMinter {
      * @return the compact-serialized, signed token
      */
     public String mint(AgreementTokenGrant grant) {
-        Objects.requireNonNull(grant, "grant must not be null");
+        Objects.requireNonNull(grant, GRANT_REQUIRED);
         return sign(grant.agreementId(), claims -> claims
                 .claim(CLAIM_CLIENT, encodeClient(grant.client()))
                 .claim(CLAIM_SERVICE, encodeService(grant.service()))
@@ -93,11 +96,22 @@ public final class AgreementTokenMinter {
      * @return the compact-serialized, signed group token
      */
     public String mint(AgreementTokenGroupGrant grant) {
-        Objects.requireNonNull(grant, "grant must not be null");
+        Objects.requireNonNull(grant, GRANT_REQUIRED);
         return sign(grant.agreementId(), claims -> claims
                 .claim(CLAIM_SERVICE, encodeService(grant.service()))
                 .claim(CLAIM_SERVICE_VERSION, encodeServiceVersion(grant.service()))
                 .claim(CLAIM_GROUP, encodeGroup(grant.group())));
+    }
+
+    /**
+     * @param grant the service being granted; the token carries no client, no group and no scope
+     * @return the compact-serialized, signed service-only token
+     */
+    public String mint(AgreementTokenServiceGrant grant) {
+        Objects.requireNonNull(grant, GRANT_REQUIRED);
+        return sign(grant.agreementId(), claims -> claims
+                .claim(CLAIM_SERVICE, encodeService(grant.service()))
+                .claim(CLAIM_SERVICE_VERSION, encodeServiceVersion(grant.service())));
     }
 
     private String sign(String agreementId, Consumer<JWTClaimsSet.Builder> grantClaims) {

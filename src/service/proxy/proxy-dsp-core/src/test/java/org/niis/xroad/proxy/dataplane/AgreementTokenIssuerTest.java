@@ -43,11 +43,13 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
+import org.niis.xroad.proxy.controlplane.AgreementServiceGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Endpoint;
@@ -139,6 +141,52 @@ class AgreementTokenIssuerTest {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
                 .thenReturn(Optional.of(new AgreementGroupGrant(new AgreementTokenGroup.Global(
                         GlobalGroupId.Conf.create("DEV", "consumers")), SERVICE)));
+
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
+    }
+
+    @Test
+    void mintsAServiceOnlyTokenNamingTheServiceWithoutReadingTheAcl() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(true))
+                .verify(token.get(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.ValidService.class);
+        var claims = ((AgreementTokenVerificationResult.ValidService) result).claims();
+        assertThat(claims.agreementId()).isEqualTo(AGREEMENT_ID);
+        assertThat(claims.service()).isEqualTo(SERVICE);
+        verifyNoInteractions(serverConfProvider);
+    }
+
+    @Test
+    void aServiceOnlyTokenEntitlesNobodyWhenTheLiveAclGrantsNothing() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(false))
+                .verify(token.orElseThrow(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.Rejected.class);
+    }
+
+    @Test
+    void doesNotMintForABuiltinService() {
+        for (var code : BuiltinServiceCodes.ALL) {
+            var builtin = ServiceId.Conf.create("DEV", "COM", "333", null, code);
+            when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(builtin)));
+
+            assertThat(issuer.issueToken(AGREEMENT_ID)).as(code).isEmpty();
+        }
+    }
+
+    @Test
+    void mintsAServiceOnlyTokenForASubsystemServiceThatSharesABuiltinCode() {
+        var subsystemService = ServiceId.Conf.create("DEV", "COM", "333", "PROVIDER", BuiltinServiceCodes.LIST_METHODS);
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
+                .thenReturn(Optional.of(new AgreementServiceGrant(subsystemService)));
 
         assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
     }

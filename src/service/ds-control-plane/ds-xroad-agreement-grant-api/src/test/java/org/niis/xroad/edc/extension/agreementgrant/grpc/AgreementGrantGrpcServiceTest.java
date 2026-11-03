@@ -160,6 +160,50 @@ class AgreementGrantGrpcServiceTest {
     }
 
     @Test
+    void policyWithoutPermissionsYieldsAServiceGrantNamingOnlyTheService() {
+        stubAgreement("agreement-unrestricted", Policy.Builder.newInstance().build(), SERVICE_WITH_VERSION);
+
+        var response = stub.resolveAgreementGrant(request("agreement-unrestricted"));
+
+        assertThat(response.hasServiceGrant()).isTrue();
+        assertThat(ServiceIdMapper.fromDto(response.getServiceGrant().getServiceId())).isEqualTo(SERVICE_WITH_VERSION);
+    }
+
+    @Test
+    void policyWithoutPermissionsOnAMalformedAssetIdYieldsNoGrantPolicyNotUnderstood() {
+        var agreement = ContractAgreement.Builder.newInstance()
+                .id("agreement-unrestricted-bad-asset")
+                .providerId("provider")
+                .consumerId("consumer")
+                .assetId("not-a-valid-asset-id")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+        when(contractNegotiationStore.findContractAgreement("agreement-unrestricted-bad-asset")).thenReturn(agreement);
+
+        var response = stub.resolveAgreementGrant(request("agreement-unrestricted-bad-asset"));
+
+        assertThat(response.hasNoGrant()).isTrue();
+        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+    }
+
+    @Test
+    void policyWithoutPermissionsOnAMemberLevelBuiltinAssetIdYieldsNoGrantPolicyNotUnderstood() {
+        var agreement = ContractAgreement.Builder.newInstance()
+                .id("agreement-unrestricted-builtin")
+                .providerId("provider")
+                .consumerId("consumer")
+                .assetId("DEV:COM:222:listMethods")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+        when(contractNegotiationStore.findContractAgreement("agreement-unrestricted-builtin")).thenReturn(agreement);
+
+        var response = stub.resolveAgreementGrant(request("agreement-unrestricted-builtin"));
+
+        assertThat(response.hasNoGrant()).isTrue();
+        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+    }
+
+    @Test
     void localGroupSubjectYieldsAGroupGrantNamingOwnerGroupAndService() {
         var policy = policyWithSubjectOnly(XRoadPolicyNamespace.XROAD_LOCAL_GROUP, OWNER.asEncodedId() + ";groupCode");
         stubAgreement("agreement-4", policy, SERVICE_WITH_VERSION);

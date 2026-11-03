@@ -32,7 +32,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGroupAccess;
-import org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
@@ -45,12 +44,13 @@ import java.util.function.Supplier;
 /**
  * Decides, at the exact point the server proxy would otherwise consult the ACL, what an incoming
  * {@code x-road-agreement-token} header means for the current request. A presented token is authoritative: a
- * full match ({@link Decision.Accepted}) skips the ACL (a group token's own check has already run the same ACL lookup
- * for the signature-proven caller), and anything else the verifier can pin on the token
- * itself — a malformed or expired token, any claim mismatch, an unknown key id, an unbuildable request context,
- * or an unexpected failure while verifying — is a {@link Decision.Rejected} that refuses the request outright.
- * A group token whose caller is not in the group, or is not granted the endpoint by the live ACL, is a
- * {@link Decision.Denied}: it is refused just as outright, but as the access denial the ACL itself would give.
+ * full match ({@link Decision.Accepted}) skips the ACL (a group token's or a service-only token's own check has
+ * already run the same ACL lookup for the signature-proven caller). A token that is sound but does not entitle
+ * the caller to this request (a client, service or scope mismatch, a caller outside the token's group, or an
+ * endpoint the live ACL does not grant) is a {@link Decision.Denied}: it is refused outright, as the access denial
+ * the ACL itself would give. Anything else the verifier can pin on the token itself — a malformed or expired
+ * token, an issuer or audience mismatch, an unknown key id, an unbuildable request context, or an unexpected
+ * failure while verifying — is a {@link Decision.Rejected} that refuses the request outright.
  * Only the absence of a header ({@link Decision.Absent}) or the absence of key material to judge it with
  * ({@link Decision.Unavailable}) falls back to the ACL, and only while the {@link LegacyCallRefusalPolicy} does not
  * refuse legacy calls; under refusal, or when the policy cannot be read, both become a {@link Decision.Rejected}.
@@ -90,8 +90,8 @@ public class AgreementTokenAccessCheck {
         record Accepted() implements Decision { }
 
         /**
-         * A group token was judged against the live access rights and the caller is not entitled to the request;
-         * the request must be refused as an ACL denial, never by falling back to the ACL.
+         * The token does not entitle the caller to the request; the request must be refused as an ACL denial,
+         * never by falling back to the ACL. {@code reasonClass} names why, for logs and error details.
          */
         record Denied(String reasonClass) implements Decision { }
 
@@ -153,10 +153,14 @@ public class AgreementTokenAccessCheck {
                     log.debug("group agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
                     yield ACCEPTED;
                 }
+                case AgreementTokenVerificationResult.ValidService(var claims) -> {
+                    log.debug("service-only agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
+                    yield ACCEPTED;
+                }
                 case AgreementTokenVerificationResult.Rejected rejected -> {
                     log.warn("agreement token rejected: reason={}, client={}, service={}", rejected.reason(), requestClient,
                             requestService);
-                    yield isGroupDenial(rejected.reason())
+                    yield rejected.reason().isAuthorizationFailure()
                             ? new Decision.Denied(rejected.reason().name())
                             : new Decision.Rejected(rejected.reason().name());
                 }
@@ -166,11 +170,6 @@ public class AgreementTokenAccessCheck {
                     requestClient, requestService, e);
             return new Decision.Rejected("VERIFIER_ERROR");
         }
-    }
-
-    private static boolean isGroupDenial(AgreementTokenRejectionReason reason) {
-        return reason == AgreementTokenRejectionReason.NOT_GROUP_MEMBER
-                || reason == AgreementTokenRejectionReason.ENDPOINT_NOT_ALLOWED;
     }
 
     private Decision withoutToken(ClientId requestClient, ServiceId requestService) {

@@ -324,6 +324,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     // ===== DATASPACE / DSP =====
     DSP_CATALOG_FETCH_FAILED("dsp_catalog_fetch_failed"),
     DSP_CATALOG_PARSE_FAILED("dsp_catalog_parse_failed"),
+    DSP_PROVIDER_NOT_FOUND("dsp_provider_not_found"),
     DSP_DATASET_NOT_FOUND("dsp_dataset_not_found"),
     DSP_OFFERS_NOT_FOUND("dsp_offers_not_found"),
     DSP_PULL_DISTRIBUTION_MISSING("dsp_pull_distribution_missing"),

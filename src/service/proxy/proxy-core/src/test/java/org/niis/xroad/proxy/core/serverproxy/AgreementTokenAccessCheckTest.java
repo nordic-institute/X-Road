@@ -40,6 +40,7 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.common.agreementtoken.AgreementTokenServiceGrant;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
@@ -177,6 +178,48 @@ class AgreementTokenAccessCheckTest {
     }
 
     @Test
+    void shouldAcceptAServiceOnlyTokenWhenTheLiveAclGrantsTheCallerTheEndpoint() {
+        when(groupAccess.isEndpointAllowed(CONSUMER, SERVICE, "GET", "/foo/bar")).thenReturn(true);
+
+        assertThat(accessCheck.decide(mintServiceOnly(), CONSUMER, SERVICE, "GET", "/foo/bar"))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
+        verify(groupAccess, never()).isMember(any(), any());
+    }
+
+    @Test
+    void shouldAcceptAServiceOnlyTokenOnSoapWhenTheLiveAclGrantsTheService() {
+        when(groupAccess.isEndpointAllowed(CONSUMER, SERVICE, null, null)).thenReturn(true);
+
+        assertThat(accessCheck.decide(mintServiceOnly(), CONSUMER, SERVICE))
+                .isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);
+    }
+
+    @Test
+    void shouldDenyAServiceOnlyTokenWhenTheLiveAclDoesNotGrantTheCallerTheEndpoint() {
+        when(groupAccess.isEndpointAllowed(CONSUMER, SERVICE, "GET", "/foo/bar")).thenReturn(false);
+
+        assertDenied(accessCheck.decide(mintServiceOnly(), CONSUMER, SERVICE, "GET", "/foo/bar"),
+                AgreementTokenRejectionReason.ENDPOINT_NOT_ALLOWED);
+        verifyNoInteractions(refusalPolicy);
+    }
+
+    @Test
+    void shouldDenyAServiceOnlyTokenWhenThereIsNoLiveAclAnswer() {
+        var withoutGroupAccess = new AgreementTokenAccessCheck(keyMaterial(), properties, refusalPolicy,
+                AgreementTokenGroupAccess.NONE);
+
+        assertDenied(withoutGroupAccess.decide(mintServiceOnly(), CONSUMER, SERVICE),
+                AgreementTokenRejectionReason.ENDPOINT_NOT_ALLOWED);
+    }
+
+    @Test
+    void shouldDenyAServiceOnlyTokenForAnotherService() {
+        assertDenied(accessCheck.decide(mintServiceOnly(), CONSUMER, OTHER_VERSION),
+                AgreementTokenRejectionReason.SERVICE_MISMATCH);
+        verify(groupAccess, never()).isEndpointAllowed(any(), any(), any(), any());
+    }
+
+    @Test
     void shouldReturnAbsentWhenHeaderIsAbsent() {
         assertThat(accessCheck.decide(null, CONSUMER, SERVICE)).isInstanceOf(AgreementTokenAccessCheck.Decision.Absent.class);
     }
@@ -229,38 +272,38 @@ class AgreementTokenAccessCheckTest {
     }
 
     @Test
-    void shouldRejectOnClientMismatchAcrossSubsystemsOfTheSameMember() {
+    void shouldDenyOnClientMismatchAcrossSubsystemsOfTheSameMember() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertRejected(accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE), AgreementTokenRejectionReason.CLIENT_MISMATCH);
+        assertDenied(accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE), AgreementTokenRejectionReason.CLIENT_MISMATCH);
     }
 
     @Test
-    void shouldRejectOnServiceVersionMismatch() {
+    void shouldDenyOnServiceVersionMismatch() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertRejected(accessCheck.decide(token, CONSUMER, OTHER_VERSION), AgreementTokenRejectionReason.SERVICE_MISMATCH);
+        assertDenied(accessCheck.decide(token, CONSUMER, OTHER_VERSION), AgreementTokenRejectionReason.SERVICE_MISMATCH);
     }
 
     @Test
-    void shouldRejectOnRestMethodMismatch() {
+    void shouldDenyOnRestMethodMismatch() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, "POST", "/foo/bar"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
+        assertDenied(accessCheck.decide(token, CONSUMER, SERVICE, "POST", "/foo/bar"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
     }
 
     @Test
-    void shouldRejectOnRestPathOutsidePattern() {
+    void shouldDenyOnRestPathOutsidePattern() {
         var token = mint(new AgreementTokenScope("GET", "/foo/*"));
 
-        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/other/path"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
+        assertDenied(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/other/path"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
     }
 
     @Test
-    void shouldRejectOnPathTraversalEscapingTheGrantedScope() {
+    void shouldDenyOnPathTraversalEscapingTheGrantedScope() {
         var token = mint(new AgreementTokenScope("GET", "/foo/**"));
 
-        assertRejected(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/foo/../admin"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
+        assertDenied(accessCheck.decide(token, CONSUMER, SERVICE, "GET", "/foo/../admin"), AgreementTokenRejectionReason.SCOPE_MISMATCH);
     }
 
     @Test
@@ -408,7 +451,7 @@ class AgreementTokenAccessCheckTest {
     void rejectedTokenDoesNotConsultTheRefusalPolicy() {
         var token = mint(new AgreementTokenScope("*", "**"));
 
-        assertRejected(accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE), AgreementTokenRejectionReason.CLIENT_MISMATCH);
+        assertDenied(accessCheck.decide(token, OTHER_SUBSYSTEM, SERVICE), AgreementTokenRejectionReason.CLIENT_MISMATCH);
         assertRejected(accessCheck.decide(token, null, SERVICE), CONTEXT_REASON);
         verifyNoInteractions(refusalPolicy);
     }
@@ -433,6 +476,12 @@ class AgreementTokenAccessCheckTest {
             assertThat(logRecord.getLevel()).isEqualTo(Level.WARNING);
             assertThat(logRecord.getMessage()).contains("refusing the request").doesNotContain("falling back to the ACL", token);
         });
+    }
+
+    private AgreementTokenKeyMaterial keyMaterial() {
+        var keyMaterial = mock(AgreementTokenKeyMaterial.class);
+        when(keyMaterial.provider()).thenReturn(Optional.of(keyProvider));
+        return keyMaterial;
     }
 
     private AgreementTokenAccessCheck withoutKeyMaterial() {
@@ -463,6 +512,11 @@ class AgreementTokenAccessCheckTest {
     private String mintGroup() {
         return new AgreementTokenMinter(keyProvider, properties)
                 .mint(new AgreementTokenGroupGrant("agreement-1", GROUP, SERVICE));
+    }
+
+    private String mintServiceOnly() {
+        return new AgreementTokenMinter(keyProvider, properties)
+                .mint(new AgreementTokenServiceGrant("agreement-1", SERVICE));
     }
 
     private record TestProtocolProperties(String issuer, String audience, Duration tokenTtl) implements AgreementTokenProtocolProperties {
