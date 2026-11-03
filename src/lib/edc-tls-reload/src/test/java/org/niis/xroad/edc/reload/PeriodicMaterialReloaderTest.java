@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -281,5 +282,67 @@ class PeriodicMaterialReloaderTest {
 
         verify(monitor, never()).warning("test: material not available yet: slot is empty");
         verify(monitor, times(1)).warning("test: material not available yet: no certificate yet");
+    }
+
+    @Test
+    void aRejectedMaterialIsAttemptedOncePerCycleWithoutRetriesOrLogLines() {
+        var applyAttempts = new AtomicInteger();
+        var reloader = PeriodicMaterialReloader.schedule("test", new PeriodicMaterialReloader.Loaded<>("v0", "v0"),
+                CHECK_INTERVAL, 3, RETRY_DELAY,
+                () -> new PeriodicMaterialReloader.Loaded<>("v1", "v1"),
+                material -> {
+                    applyAttempts.incrementAndGet();
+                    throw new MaterialRejectedException("rejected", null);
+                }, monitor);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> applyAttempts.get() >= 4);
+        } finally {
+            reloader.close();
+        }
+        verify(monitor, never()).warning(anyString());
+        verify(monitor, never()).severe(anyString());
+    }
+    @Test
+    void theAppliedMaterialIsOfferedAgainOnceAfterARejectionEvenWhenItsFingerprintIsUnchanged() {
+        var loads = new AtomicInteger();
+        var applied = new ConcurrentLinkedQueue<String>();
+        var reloader = PeriodicMaterialReloader.schedule("test", new PeriodicMaterialReloader.Loaded<>("a", "a"),
+                CHECK_INTERVAL, 3, RETRY_DELAY,
+                () -> {
+                    var cycle = loads.incrementAndGet();
+                    return cycle == 1 ? new PeriodicMaterialReloader.Loaded<>("b", "b")
+                            : new PeriodicMaterialReloader.Loaded<>("a", "a");
+                },
+                material -> {
+                    applied.add(material);
+                    if (material.equals("b")) {
+                        throw new MaterialRejectedException("rejected", null);
+                    }
+                }, monitor);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> loads.get() >= 5);
+        } finally {
+            reloader.close();
+        }
+        assertThat(applied).containsExactly("b", "a");
+        verify(monitor, never()).info("test: reloaded material (fingerprint changed)");
+    }
+    @Test
+    void whilePendingAnApplyFailureIsWarnedOncePerMessage() {
+        var attempts = new AtomicInteger();
+        var failures = List.of("port busy", "port busy", "keystore unusable", "keystore unusable", "port busy");
+        var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
+                RETRY_DELAY,
+                () -> new PeriodicMaterialReloader.Loaded<>("v1", "v1"),
+                material -> {
+                    throw new IllegalStateException(failures.get(Math.min(attempts.getAndIncrement(), failures.size() - 1)));
+                }, monitor);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() > failures.size());
+        } finally {
+            reloader.close();
+        }
+        verify(monitor, times(1)).warning("test: material could not be applied yet: keystore unusable");
+        verify(monitor, times(2)).warning("test: material could not be applied yet: port busy");
     }
 }

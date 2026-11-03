@@ -33,12 +33,12 @@ import org.niis.xroad.edc.reload.ReadinessDetailProvider;
 import java.util.Map;
 
 /**
- * Reports ready only while the HTTPS connectors serve connector TLS material. While newer material is refused
- * the previously served certificate keeps the service ready until that certificate expires, and the refusal is
+ * Reports ready only while the HTTPS connectors serve connector TLS material that has not expired. While
+ * connector TLS is not served the reason is the text of the failure; while newer material is refused the
+ * previously served certificate keeps the service ready until that certificate expires, and the refusal is
  * published as readiness detail.
  */
 final class ConnectorTlsReadinessProvider implements ReadinessProvider, ReadinessDetailProvider {
-
     static final String COMPONENT = "connector-tls";
     static final String DETAIL_SERVED_EXPIRES = COMPONENT + "-served-expires";
     static final String DETAIL_REJECTED_SINCE = COMPONENT + "-rejected-since";
@@ -54,16 +54,20 @@ final class ConnectorTlsReadinessProvider implements ReadinessProvider, Readines
     public HealthCheckResult get() {
         var result = HealthCheckResult.Builder.newInstance().component(COMPONENT);
         if (!jettyService.isServingConnectorTls()) {
-            return result.failure("Connector TLS certificate is not served yet").build();
+            return result.failure(jettyService.notServedCause()
+                    .map(cause -> "Connector TLS is not served: " + cause)
+                    .orElse("Connector TLS is not served yet")).build();
         }
-        if (jettyService.isServedCertificateExpiredWhileRejecting()) {
-            var rejection = jettyService.rejection().orElseThrow();
-            return result.failure("Served connector TLS certificate expired at %s and newer material is rejected since %s: %s"
-                    .formatted(rejection.servedNotAfter(), rejection.since(), rejection.cause())).build();
+        var expiredAt = jettyService.servedCertificateExpiredAt();
+        if (expiredAt.isEmpty()) {
+            return result.success().build();
         }
-        return result.success().build();
+        var text = "Served connector TLS certificate expired at " + expiredAt.get();
+        return result.failure(jettyService.rejection()
+                .map(rejection -> "%s and newer material is rejected since %s: %s"
+                        .formatted(text, rejection.since(), rejection.cause()))
+                .orElse(text)).build();
     }
-
     @Override
     public Map<String, String> readinessDetail() {
         return jettyService.rejection()

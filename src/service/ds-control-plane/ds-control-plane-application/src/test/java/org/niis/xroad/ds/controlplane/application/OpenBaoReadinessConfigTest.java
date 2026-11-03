@@ -24,17 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.jetty;
 
-import org.eclipse.edc.spi.EdcException;
+package org.niis.xroad.ds.controlplane.application;
 
-/**
- * Signals that an HTTPS connector could not be started on its port, for example because another process holds
- * it. The connector TLS certificate itself was accepted.
- */
-public class ConnectorBindException extends EdcException {
+import io.smallrye.config.SmallRyeConfig;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import io.smallrye.config.source.yaml.YamlConfigSource;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-    public ConnectorBindException(String message, Throwable cause) {
-        super(message, cause);
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class OpenBaoReadinessConfigTest {
+
+    private static final int COMMON_CONFIG_ORDINAL = 220;
+    private static final int APPLICATION_CONFIG_ORDINAL = 255;
+
+    @ParameterizedTest
+    @ValueSource(strings = {"edc.vault.hashicorp.health.check.enabled", "quarkus.vault.health.enabled"})
+    void openBaoHealthChecksStayOutOfReadinessWhateverTheSharedConfigSays(String key) throws IOException {
+        var common = getClass().getClassLoader().getResource("xroad-common.yaml");
+        var application = getClass().getClassLoader().getResource("application.yaml");
+        SmallRyeConfig config = new SmallRyeConfigBuilder()
+                .withSources(new YamlConfigSource(common, COMMON_CONFIG_ORDINAL),
+                        new YamlConfigSource(application, APPLICATION_CONFIG_ORDINAL))
+                .build();
+
+        assertThat(config.getOptionalValue(key, Boolean.class)).contains(false);
     }
 }

@@ -48,8 +48,13 @@ import java.util.function.Consumer;
  * started. It then polls at the pending interval, one attempt per cycle, and the first successful load fires
  * the change callback; from then on it polls at the normal check interval. While pending, a load failure is
  * logged when its message differs from the previous failure's, with a periodic progress line while the same
- * message persists. Material that loads but is rejected by the change callback stays pending and is retried
- * every cycle; reporting that is the callback's job.
+ * message persists. Material that loads but cannot be applied by the change callback stays pending and is retried
+ * every cycle, logged by the same rule.
+ *
+ * <p>A change callback that refuses material it has already reported throws {@link MaterialRejectedException}.
+ * The reloader then neither retries nor logs within the cycle, offers the material again on the next cycle, and
+ * also offers the currently applied material once it is back, so the callback can clear its record of the
+ * refusal.
  *
  * @param <T> the loaded material's runtime representation (e.g. a {@link java.security.KeyStore})
  */
@@ -68,6 +73,7 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     private final ScheduledExecutorService executor;
 
     private volatile String appliedFingerprint;
+    private boolean rejected;
     private int pendingCycles;
     private String lastPendingFailure;
 
@@ -166,11 +172,18 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         for (var attempt = 1; attempt <= maxAttemptsPerCycle; attempt++) {
             try {
                 var loaded = loader.load();
-                if (!Objects.equals(loaded.fingerprint(), appliedFingerprint)) {
+                var changed = !Objects.equals(loaded.fingerprint(), appliedFingerprint);
+                if (changed || rejected) {
                     onChange.accept(loaded.material());
+                    rejected = false;
                     appliedFingerprint = loaded.fingerprint();
-                    monitor.info("%s: reloaded material (fingerprint changed)".formatted(name));
+                    if (changed) {
+                        monitor.info("%s: reloaded material (fingerprint changed)".formatted(name));
+                    }
                 }
+                return;
+            } catch (MaterialRejectedException _) {
+                rejected = true;
                 return;
             } catch (Exception e) {
                 monitor.warning("%s: reload attempt %d/%d failed: %s".formatted(name, attempt, maxAttemptsPerCycle, e.getMessage()));
@@ -189,23 +202,25 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         try {
             loaded = loader.load();
         } catch (Exception e) {
-            logPendingFailure(e);
+            logPendingFailure("material not available yet", e);
             return;
         }
         try {
             onChange.accept(loaded.material());
+        } catch (MaterialRejectedException _) {
+            return;
         } catch (Exception e) {
-            monitor.debug("%s: loaded material could not be applied, still pending: %s".formatted(name, e.getMessage()));
+            logPendingFailure("material could not be applied yet", e);
             return;
         }
         appliedFingerprint = loaded.fingerprint();
         monitor.info("%s: material available after %d polls".formatted(name, pendingCycles));
     }
 
-    private void logPendingFailure(Exception failure) {
+    private void logPendingFailure(String phrase, Exception failure) {
         var message = String.valueOf(failure.getMessage());
         if (!message.equals(lastPendingFailure)) {
-            monitor.warning("%s: material not available yet: %s".formatted(name, message));
+            monitor.warning("%s: %s: %s".formatted(name, phrase, message));
         } else if (pendingCycles % PENDING_PROGRESS_EVERY_CYCLES == 0) {
             monitor.info("%s: still waiting for material after %d polls: %s".formatted(name, pendingCycles, message));
         }

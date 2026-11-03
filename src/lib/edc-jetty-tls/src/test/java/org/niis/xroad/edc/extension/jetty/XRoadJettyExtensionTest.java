@@ -169,7 +169,7 @@ class XRoadJettyExtensionTest {
     }
 
     @Test
-    void aPortThatCannotBeBoundIsReportedOnceNamingThePortNotTheCertificate() throws Exception {
+    void aPortThatCannotBeBoundIsWarnedOnceNamingThePortNotTheCertificate() throws Exception {
         loader.serve(usable("internal", TestCertUtil.getInternalKey()));
         extension = newExtension(60);
         extension.initialize(context);
@@ -178,9 +178,9 @@ class XRoadJettyExtensionTest {
             await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
         }
 
-        assertThat(severes).hasSize(1);
-        assertThat(severes.getFirst()).contains("cannot be bound").contains("port " + port).doesNotContain("unusable");
-        assertThat(warnings).isEmpty();
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst()).contains("not bindable").contains("port " + port).doesNotContain("unusable");
+        assertThat(severes).isEmpty();
     }
 
     @Test
@@ -197,7 +197,7 @@ class XRoadJettyExtensionTest {
     }
 
     @Test
-    void anSslContextThatCannotBeBuiltIsReportedOnceAsAnUnusableCertificateOrKeystore() throws Exception {
+    void anSslContextThatCannotBeBuiltIsWarnedOnce() throws Exception {
         loader.serve(unusable("broken"));
         extension = newExtension(60);
         extension.initialize(context);
@@ -205,13 +205,13 @@ class XRoadJettyExtensionTest {
 
         await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
 
-        assertThat(severes).hasSize(1);
-        assertThat(severes.getFirst()).contains("connector TLS certificate or keystore is unusable").contains("broken");
-        assertThat(warnings).isEmpty();
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst()).contains("could not be applied yet").contains("Cannot read the connector TLS entry");
+        assertThat(severes).isEmpty();
     }
 
     @Test
-    void anUnexpectedExceptionIsLoggedAsUnexpectedNotAsAnUnusableCertificate() throws Exception {
+    void anUnexpectedExceptionIsWarnedOnceWithItsMessage() throws Exception {
         loader.serve(usable("internal", TestCertUtil.getInternalKey()));
         extension = newExtension(60);
         extension.initialize(context);
@@ -222,41 +222,50 @@ class XRoadJettyExtensionTest {
 
         await().atMost(AWAIT).until(() -> loader.loads.get() >= 4);
 
-        assertThat(severes).hasSize(1);
-        assertThat(severes.getFirst()).contains("unexpected error").contains("callback exploded").doesNotContain("unusable");
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.getFirst()).contains("callback exploded");
+        assertThat(severes).isEmpty();
     }
 
     @Test
-    void twoDistinctUnusableFingerprintsAreReportedTwice() throws Exception {
+    void twoDifferentFailuresWhilePendingAreWarnedTwiceAndARepeatOfTheSameOneIsNot() throws Exception {
         loader.serve(unusable("first"));
         extension = newExtension(60);
         extension.initialize(context);
         extension.start();
-        await().atMost(AWAIT).until(() -> severes.size() == 1);
+        await().atMost(AWAIT).until(() -> warnings.size() == 1);
 
         loader.serve(unusable("second"));
+        await().atMost(AWAIT).until(() -> loader.loads.get() >= 6);
 
-        await().atMost(AWAIT).until(() -> severes.size() == 2);
-        assertThat(severes.get(0)).contains("first");
-        assertThat(severes.get(1)).contains("second");
+        assertThat(warnings).hasSize(1);
+
+        loader.serve(mismatched("third"));
+
+        await().atMost(AWAIT).until(() -> warnings.size() == 2);
+        assertThat(warnings.getFirst()).contains("Cannot read the connector TLS entry");
+        assertThat(warnings.getLast()).contains("does not match");
+        assertThat(severes).isEmpty();
     }
 
     @Test
-    void theSameFingerprintUnusableAgainAfterASuccessfulApplyIsReportedAgain() throws Exception {
+    void afterServingARejectionIsLoggedOnlyByTheServiceAsOneSevereLine() throws Exception {
         loader.serve(unusable("flaky"));
         extension = newExtension(1);
         extension.initialize(context);
         extension.start();
-        await().atMost(AWAIT).until(() -> severes.size() == 1);
+        await().atMost(AWAIT).until(() -> warnings.size() == 1);
         loader.serve(usable("good", TestCertUtil.getInternalKey()));
         var readiness = readinessProvider();
         await().atMost(AWAIT).untilAsserted(() -> assertThat(readiness.get().succeeded()).isTrue());
+        var loadsBeforeRejection = loader.loads.get();
 
         loader.serve(unusable("flaky"));
+        await().atMost(AWAIT).until(() -> loader.loads.get() >= loadsBeforeRejection + 4);
 
-        await().atMost(AWAIT).until(() -> severes.size() == 2);
-        assertThat(severes.getFirst()).contains("flaky");
-        assertThat(severes.getLast()).contains("Still serving");
+        assertThat(severes).hasSize(1);
+        assertThat(severes.getFirst()).contains("Still serving");
+        assertThat(warnings).hasSize(1);
     }
 
     private XRoadJettyExtension newExtension(long reloadIntervalSeconds) {
@@ -290,6 +299,14 @@ class XRoadJettyExtensionTest {
         var credentials = TestCertUtil.getInternalKey();
         keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, "not-the-keystore-password".toCharArray(),
                 credentials.certChain);
+        return new Loaded<>(keyStore, fingerprint);
+    }
+
+    private static Loaded<KeyStore> mismatched(String fingerprint) throws Exception {
+        var keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, TestCertUtil.getOcspSigner().key, InternalSSLKey.getKEY_PASSWORD(),
+                TestCertUtil.getInternalKey().certChain);
         return new Loaded<>(keyStore, fingerprint);
     }
 

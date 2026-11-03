@@ -100,8 +100,6 @@ public class XRoadJettyExtension implements ServiceExtension {
     private PeriodicMaterialReloader.Loaded<KeyStore> initial;
     private String initialFailure;
     private PeriodicMaterialReloader<?> reloader;
-    private String lastLoadedFingerprint;
-    private String lastReportedFailure;
 
     public XRoadJettyExtension() {
         pendingPollInterval = PENDING_POLL_INTERVAL;
@@ -147,10 +145,10 @@ public class XRoadJettyExtension implements ServiceExtension {
         reloader = initial != null && applyInitial()
                 ? PeriodicMaterialReloader.schedule(KEYSTORE_MATERIAL_NAME, initial, reloadInterval,
                         RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, this::load,
-                        this::applyConnectorTlsMaterial, monitor)
+                        jettyService::applyConnectorTlsMaterial, monitor)
                 : PeriodicMaterialReloader.scheduleUntilFirstLoad(KEYSTORE_MATERIAL_NAME, pendingPollInterval, reloadInterval,
                         RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, this::load,
-                        this::applyConnectorTlsMaterial, monitor, initialFailure);
+                        jettyService::applyConnectorTlsMaterial, monitor, initialFailure);
     }
 
     private PeriodicMaterialReloader.Loaded<KeyStore> loadInitial() {
@@ -166,39 +164,22 @@ public class XRoadJettyExtension implements ServiceExtension {
 
     private boolean applyInitial() {
         try {
-            applyConnectorTlsMaterial(initial.material());
+            jettyService.applyConnectorTlsMaterial(initial.material());
             return true;
-        } catch (RuntimeException _) {
+        } catch (RuntimeException e) {
+            initialFailure = String.valueOf(e.getMessage());
+            monitor.warning("Connector TLS material could not be applied yet, the HTTPS endpoints stay closed until it can: "
+                    + e.getMessage(), e);
             return false;
         }
     }
 
     private PeriodicMaterialReloader.Loaded<KeyStore> load() {
-        var loaded = loader.load();
-        lastLoadedFingerprint = loaded.fingerprint();
-        return loaded;
-    }
-
-    private void applyConnectorTlsMaterial(KeyStore keyStore) {
         try {
-            jettyService.applyConnectorTlsMaterial(keyStore);
+            return loader.load();
         } catch (RuntimeException e) {
-            reportApplyFailure(e);
+            jettyService.recordLoadFailure(e);
             throw e;
-        }
-        lastReportedFailure = null;
-    }
-
-    private void reportApplyFailure(RuntimeException failure) {
-        if (failure instanceof ConnectorTlsMaterialRejectedException) {
-            return;
-        }
-        var cause = ApplyFailure.of(failure);
-        var reported = cause + ":" + lastLoadedFingerprint;
-        if (!reported.equals(lastReportedFailure)) {
-            lastReportedFailure = reported;
-            monitor.severe(cause.description + " (fingerprint %s): %s".formatted(lastLoadedFingerprint, failure.getMessage()),
-                    failure);
         }
     }
 
@@ -215,25 +196,5 @@ public class XRoadJettyExtension implements ServiceExtension {
     @Provider
     public PortMappingRegistry portMappings() {
         return portMappingRegistry;
-    }
-
-    private enum ApplyFailure {
-        UNUSABLE_MATERIAL("connector TLS certificate or keystore is unusable"),
-        PORT_NOT_BINDABLE("connector HTTPS port cannot be bound"),
-        UNEXPECTED("unexpected error while applying the connector TLS certificate");
-
-        private final String description;
-
-        ApplyFailure(String description) {
-            this.description = description;
-        }
-
-        static ApplyFailure of(RuntimeException failure) {
-            return switch (failure) {
-                case ConnectorTlsKeyStoreLoadException _ -> UNUSABLE_MATERIAL;
-                case ConnectorBindException _ -> PORT_NOT_BINDABLE;
-                default -> UNEXPECTED;
-            };
-        }
     }
 }

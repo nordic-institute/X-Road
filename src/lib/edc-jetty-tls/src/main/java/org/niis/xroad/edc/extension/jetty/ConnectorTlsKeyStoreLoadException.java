@@ -29,15 +29,32 @@ package org.niis.xroad.edc.extension.jetty;
 /**
  * Signals that the connector TLS certificate could not be loaded from OpenBao into a servable keystore,
  * carrying a message that already tells the operator what to do (provision the vault slot, wait for the
- * certificate, or check vault connectivity) rather than leaving that to the caller.
+ * certificate, or check vault connectivity) rather than leaving that to the caller. The short summary is what
+ * readiness reports while connector TLS is not served.
  */
 public class ConnectorTlsKeyStoreLoadException extends RuntimeException {
-
+    private final String summary;
     public ConnectorTlsKeyStoreLoadException(String message) {
-        super(message);
+        this(message, null, null);
     }
-
     public ConnectorTlsKeyStoreLoadException(String message, Throwable cause) {
+        this(message, null, cause);
+    }
+    public ConnectorTlsKeyStoreLoadException(String message, String summary, Throwable cause) {
         super(message, cause);
+        this.summary = summary;
+    }
+    /**
+     * A one-line, key-material-free statement of what is wrong, for example {@code slot empty}.
+     */
+    public String summary() {
+        if (summary != null) {
+            return summary;
+        }
+        var root = (Throwable) this;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        return "keystore unusable: " + root.getMessage();
     }
 }

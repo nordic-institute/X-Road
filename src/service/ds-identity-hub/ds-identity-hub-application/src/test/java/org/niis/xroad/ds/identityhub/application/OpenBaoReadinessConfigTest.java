@@ -24,15 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.jetty;
 
-/**
- * Signals that new connector TLS material was refused while an earlier certificate is still being served. The
- * service has already reported the refusal, so callers must not report it again.
- */
-final class ConnectorTlsMaterialRejectedException extends ConnectorTlsKeyStoreLoadException {
+package org.niis.xroad.ds.identityhub.application;
 
-    ConnectorTlsMaterialRejectedException(String message, Throwable cause) {
-        super(message, cause);
+import io.smallrye.config.SmallRyeConfig;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import io.smallrye.config.source.yaml.YamlConfigSource;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class OpenBaoReadinessConfigTest {
+
+    private static final int COMMON_CONFIG_ORDINAL = 220;
+    private static final int APPLICATION_CONFIG_ORDINAL = 255;
+
+    @ParameterizedTest
+    @ValueSource(strings = {"edc.vault.hashicorp.health.check.enabled", "quarkus.vault.health.enabled"})
+    void openBaoHealthChecksStayOutOfReadinessWhateverTheSharedConfigSays(String key) throws IOException {
+        var common = getClass().getClassLoader().getResource("xroad-common.yaml");
+        var application = getClass().getClassLoader().getResource("application.yaml");
+        SmallRyeConfig config = new SmallRyeConfigBuilder()
+                .withSources(new YamlConfigSource(common, COMMON_CONFIG_ORDINAL),
+                        new YamlConfigSource(application, APPLICATION_CONFIG_ORDINAL))
+                .build();
+
+        assertThat(config.getOptionalValue(key, Boolean.class)).contains(false);
     }
 }

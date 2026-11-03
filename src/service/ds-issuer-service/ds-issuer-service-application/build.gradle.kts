@@ -82,4 +82,8 @@ dependencies {
 
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-customization"))
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-provisioning-api"))
+
+  testImplementation(libs.smallrye.config.yaml)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.assertj.core)
 }
