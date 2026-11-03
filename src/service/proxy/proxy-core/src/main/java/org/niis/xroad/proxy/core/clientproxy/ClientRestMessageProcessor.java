@@ -54,7 +54,6 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
-import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -102,12 +101,10 @@ import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
-import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -308,8 +305,9 @@ public class ClientRestMessageProcessor {
                 } catch (Exception failure) {
                     httpSender.close();
                     dspSendFailureHandler.handle(failure, access);
-                    if (!canFailOver(failure, attempt, acquisition.candidateCount(), retryEnabled, entity)) {
-                        throw TransportFaultClassifier.isTransportFault(failure) ? dataPlaneUnreachable(failure) : failure;
+                    if (!DspFailover.canFailOver(failure, attempt, acquisition.candidateCount(), retryEnabled,
+                            entity::isReplayable)) {
+                        throw DspFailover.translateTransportFault(failure);
                     }
                     log.warn("Sending the request over the data plane failed with a transport fault, acquiring access again"
                             + " (xRequestId: {}, attempt: {}, candidates: {})",
@@ -319,27 +317,6 @@ public class ClientRestMessageProcessor {
         } finally {
             entity.consume();
         }
-    }
-
-    /**
-     * Tells whether a failed DSP send may be resent to another Security Server: the failure must be a transport
-     * fault, fewer attempts than candidate Security Servers must have been made, request retry must be enabled
-     * and the request entity must still be replayable.
-     */
-    static boolean canFailOver(Throwable failure, int attempt, int candidateCount, boolean retryEnabled,
-                               SigningProxyMessageEntity entity) {
-        return TransportFaultClassifier.isTransportFault(failure)
-                && attempt < candidateCount
-                && retryEnabled
-                && entity.isReplayable();
-    }
-
-    private static XrdRuntimeException dataPlaneUnreachable(Throwable failure) {
-        return ClientFacingErrorPolicy.sanitizeForConsumer(XrdRuntimeException.systemException(DSP_DATA_PLANE_UNREACHABLE)
-                .origin(DATASPACE)
-                .cause(failure)
-                .details("No provider security server could be reached on the data plane")
-                .build());
     }
 
     private SigningProxyMessageEntity createRequestEntity(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
