@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.test.InMemoryAgreementTokenKeyProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
@@ -55,6 +56,9 @@ import static org.mockito.Mockito.when;
  */
 class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
 
+    private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
+            "did:web:ss-a.example%3A7183:v1:DEV:COM:222",
+            "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     private static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
 
     private static final ClientId CONSUMER = ClientId.Conf.create("EE", "BUSINESS", "consumer", "sub");
@@ -114,7 +118,7 @@ class RestProxyLegacyRefusalTest extends AbstractProxyIntegrationTest {
     }
 
     private static void stubAssetAccess(String token) {
-        var response = new AssetAccessResponse("https://127.0.0.1:" + proxyServerPort + "/", token);
+        var response = new AssetAccessResponse("https://127.0.0.1:" + proxyServerPort + "/", token, WINNER);
         when(CONSUMER_SIDE_DSP_PROCESSOR.execute(any())).thenReturn(response);
     }
 

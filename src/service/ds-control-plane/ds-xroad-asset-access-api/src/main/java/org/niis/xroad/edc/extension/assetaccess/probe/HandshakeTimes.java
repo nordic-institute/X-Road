@@ -27,7 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess.probe;
 
-import org.niis.xroad.edc.extension.assetaccess.SecurityServerAuthority;
+import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
 
 import java.time.Duration;
 import java.util.Map;
@@ -36,11 +36,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Keeps an exponentially weighted moving average (EWMA) of the connection setup time of each provider Security
- * Server, keyed by the host and port of the counter-party address, so every participant context served by one
- * Security Server shares one average. A sample is the time from the first TCP connect attempt to the end of the
- * TLS handshake. The first sample is the average; every later sample moves it by the smoothing factor of the
- * distance to the new sample, so recent samples weigh more than old ones. State is held in memory for this process
- * only.
+ * Server, keyed by {@link SecurityServerAuthority}: the lowercase {@code host:port} of the counter-party address with
+ * the scheme's default port filled in, or the exact address when it is not an HTTP(S) URL. Every participant context
+ * served by one Security Server shares one average; the same host on another port is another server. A sample is
+ * the time from the first TCP connect attempt to the end of the TLS handshake. The first sample is the average;
+ * every later sample moves it by the smoothing factor of the distance to the new sample, so recent samples weigh
+ * more than old ones. State is held in memory for this process only.
  */
 final class HandshakeTimes {
 

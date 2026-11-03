@@ -181,6 +181,13 @@ class AssetAccessRpcClientTest {
         }
     }
 
+    private static AcquireAssetAccessResp.Builder responseBuilder() {
+        return AcquireAssetAccessResp.newBuilder()
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId("provider-1")
+                        .setCounterPartyAddress("http://provider/dsp"));
+    }
+
     private void stubProtocol() {
         when(clientProperties.protocol()).thenReturn("http-dsp-profile-2025-1");
     }
@@ -188,7 +195,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessReturnsTypedEndpointAndAuthorization() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-abc-123")
                 .build();
@@ -211,7 +218,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessWithNullAuthorizationReturnsNullAuthorization() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
 
@@ -235,7 +242,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessCacheHitReturnsWithoutSecondGrpcCall() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-abc-123")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -253,7 +260,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessDifferentKeyCausesCacheMiss() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -267,7 +274,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessDifferentParticipantContextCausesCacheMiss() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -281,7 +288,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessDifferentCounterPartyAddressCausesCacheMiss() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -297,7 +304,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessWithoutExpiresAtUsesDefaultTtl() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
 
@@ -312,7 +319,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessConcurrentCallsForSameKeyCollapseToSingleGrpcRoundTrip() throws Exception {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setAuthorization("token-x")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
@@ -350,7 +357,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessCacheDisabledBypassesCache() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -378,7 +385,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessCallOptionsCarryDeadline() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .build();
 
@@ -428,7 +435,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireForwardsConsumerClientId() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
+        configuredResponse = responseBuilder().setEndpoint("http://provider/api/data").build();
 
         client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null,
                 ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT"));
@@ -440,7 +447,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireWithoutConsumerClientIdLeavesTheFieldUnset() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
+        configuredResponse = responseBuilder().setEndpoint("http://provider/api/data").build();
 
         client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
 
@@ -450,7 +457,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSuccessDifferentConsumerClientCausesCacheMiss() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -466,7 +473,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSameCandidatesInADifferentOrderHitTheCache() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -482,7 +489,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireDifferentForcedTargetCausesCacheMissAndIsForwarded() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -497,7 +504,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireSeparatelyBuiltCandidatesEqualInValueHitTheCache() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
@@ -523,7 +530,7 @@ class AssetAccessRpcClientTest {
     @Test
     void acquireCarriesTheWinnerOnAFreshAcquisitionAndOnACacheHit() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .setWinner(AssetAccessWinner.newBuilder()
@@ -536,26 +543,15 @@ class AssetAccessRpcClientTest {
 
         assertThat(requestCount.get()).isEqualTo(1);
         assertThat(List.of(fresh, cached)).allSatisfy(result -> {
-            assertThat(result.winnerCounterPartyId()).isEqualTo("provider-1");
-            assertThat(result.winnerCounterPartyAddress()).isEqualTo("https://ss-a.example:8183/dsp");
+            assertThat(result.winner().counterPartyId()).isEqualTo("provider-1");
+            assertThat(result.winner().counterPartyAddress()).isEqualTo("https://ss-a.example:8183/dsp");
         });
     }
 
     @Test
-    void acquireWithoutAWinnerCarriesNone() {
+    void invalidatingByWinnerDropsTheCachedAccessWonByTheServerAndKeepsTheSameHostOnAnotherPort() {
         stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder().setEndpoint("http://provider/api/data").build();
-
-        var result = client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
-
-        assertThat(result.winnerCounterPartyId()).isNull();
-        assertThat(result.winnerCounterPartyAddress()).isNull();
-    }
-
-    @Test
-    void invalidatingByWinnerDropsTheCachedAccessWonByTheHostWhateverThePort() {
-        stubProtocol();
-        configuredResponse = AcquireAssetAccessResp.newBuilder()
+        configuredResponse = responseBuilder()
                 .setEndpoint("http://provider/api/data")
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .setWinner(AssetAccessWinner.newBuilder()
@@ -566,7 +562,10 @@ class AssetAccessRpcClientTest {
 
         client.invalidateAssetAccessWonBy("https://ss-a.example:9999/dsp");
         client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
+        assertThat(requestCount.get()).isEqualTo(1);
 
+        client.invalidateAssetAccessWonBy("https://SS-A.example:8183/other");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", PROVIDER, null, null);
         assertThat(requestCount.get()).isEqualTo(2);
     }
 

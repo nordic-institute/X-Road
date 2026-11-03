@@ -372,6 +372,27 @@ class AssetAccessGrpcServiceTest {
         verifyNoInteractions(assetAccessOrchestrator, participantContextService);
     }
 
+    @ParameterizedTest
+    @MethodSource("candidatesWithBlankIdOrAddress")
+    void acquireWithABlankCandidateIdOrAddressIsInvalidArgumentAndReachesNoOrchestration(
+            String counterPartyId, String counterPartyAddress) {
+        var request = baseRequest().addCandidates(candidate(counterPartyId, counterPartyAddress)).build();
+
+        assertThatThrownBy(() -> stub.acquire(request))
+                .isInstanceOf(StatusRuntimeException.class)
+                .satisfies(ex -> assertThat(((StatusRuntimeException) ex).getStatus().getCode())
+                        .isEqualTo(Status.Code.INVALID_ARGUMENT));
+        verifyNoInteractions(assetAccessOrchestrator, participantContextService);
+    }
+
+    private static Stream<Arguments> candidatesWithBlankIdOrAddress() {
+        return Stream.of(
+                Arguments.of("", "http://provider/dsp"),
+                Arguments.of("  ", "http://provider/dsp"),
+                Arguments.of("provider-2", ""),
+                Arguments.of("provider-2", "  "));
+    }
+
     private AcquireAssetAccessReq.Builder baseRequest() {
         return AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId("participant-1")

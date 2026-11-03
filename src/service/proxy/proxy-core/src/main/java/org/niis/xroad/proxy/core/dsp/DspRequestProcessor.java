@@ -68,7 +68,8 @@ public interface DspRequestProcessor {
 
     /**
      * Drops every cached asset access won by the Security Server at the given address, so that the next
-     * {@link #execute} acquires afresh. Matches on the host only, whatever the port.
+     * {@link #execute} acquires afresh. Servers are compared by the lowercase {@code host:port} of the address with
+     * the scheme's default port filled in, or by the exact address when it is not an HTTP(S) URL.
      *
      * @param counterPartyAddress the counter-party address of the failed Security Server
      */

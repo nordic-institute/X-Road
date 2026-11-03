@@ -55,6 +55,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
@@ -143,7 +144,7 @@ class ClientRestMessageProcessorTest {
                 .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         when(consumerSideDspProcessor.execute(any()))
-                .thenReturn(new AssetAccessResponse("https://localhost:5500/", null));
+                .thenReturn(new AssetAccessResponse("https://localhost:5500/", null, WINNER));
 
         return new ClientRestMessageProcessor(
                 messageSigningService,
@@ -227,6 +228,9 @@ class ClientRestMessageProcessorTest {
         assertThat(dspRequest.managementSubsystem()).isFalse();
     }
 
+    private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
+            "did:web:ss-a.example%3A7183:v1:DEV:COM:222",
+            "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     private static final String PROVIDER_ADDRESS = "https://provider.example/service";
     private static final String AGREEMENT_TOKEN = "token-abc-123";
 
@@ -234,7 +238,7 @@ class ClientRestMessageProcessorTest {
     void sendRequestAddsAgreementTokenHeaderWhenAssetAccessCarriesToken() throws Exception {
         var harness = createHarness(true);
         when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
@@ -251,7 +255,7 @@ class ClientRestMessageProcessorTest {
     void sendRequestOmitsAgreementTokenHeaderWhenAssetAccessHasNoAuthorization() throws Exception {
         var harness = createHarness(true);
         when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, null));
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, null, WINNER));
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
@@ -282,7 +286,7 @@ class ClientRestMessageProcessorTest {
     void sendRequestAddsAgreementTokenHeaderOnEveryAttempt() throws Exception {
         var harness = createHarness(true);
         when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
@@ -410,7 +414,7 @@ class ClientRestMessageProcessorTest {
     void sendRequestNegotiatesAndSendsWhenDspEnabledEvenIfLegacyCallsAreRefused() throws Exception {
         var harness = createHarness(true, true);
         when(harness.consumerSideDspProcessor().execute(any()))
-                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+                .thenReturn(new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), eq(URI.create(PROVIDER_ADDRESS)), any(), any(), any()))
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
@@ -571,9 +575,9 @@ class ClientRestMessageProcessorTest {
     private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
     private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final AssetAccessResponse WON_BY_SS_A =
-            new AssetAccessResponse("https://ss-a.example:8183/data", AGREEMENT_TOKEN, SS_A_ID, SS_A_ADDRESS);
+            new AssetAccessResponse("https://ss-a.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     private static final AssetAccessResponse WON_BY_SS_B =
-            new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, SS_B_ID, SS_B_ADDRESS);
+            new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
 
     private static void stubDspAcquisition(RestHarness harness, AssetAccessResponse assetAccess) {
         when(harness.consumerSideDspProcessor().execute(any())).thenReturn(assetAccess);

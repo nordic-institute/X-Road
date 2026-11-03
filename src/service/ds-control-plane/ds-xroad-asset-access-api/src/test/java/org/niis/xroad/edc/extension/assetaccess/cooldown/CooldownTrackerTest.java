@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.assetaccess.cooldown;
 
 import com.google.common.base.Ticker;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
 
 import java.time.Duration;
 import java.util.List;
@@ -128,6 +129,29 @@ class CooldownTrackerTest {
 
         assertThat(tracker.isCoolingDown(OTHER_HOST_ADDRESS)).isFalse();
         assertThat(tracker.isCoolingDown(OTHER_PORT_ADDRESS)).isFalse();
+    }
+
+    @Test
+    void ipv6AddressIsKeyedByItsBracketedHostAndPort() {
+        tracker.markFailed("https://[2001:DB8::1]:8183/api/dsp");
+
+        assertThat(tracker.isCoolingDown("https://[2001:db8::1]:8183/other")).isTrue();
+        assertThat(tracker.isCoolingDown("https://[2001:db8::1]:9183/other")).isFalse();
+    }
+
+    @Test
+    void theCooledDownServerIsTheOneNamedByTheSharedKeyFunction() {
+        var failed = "https://SS-A.example/p";
+        var sameKey = "HTTPS://ss-a.example:443/q";
+        var otherPort = "https://ss-a.example:9999/p";
+        assertThat(SecurityServerAuthority.of(failed)).isEqualTo(SecurityServerAuthority.of(sameKey));
+        assertThat(SecurityServerAuthority.of(failed)).isNotEqualTo(SecurityServerAuthority.of(otherPort));
+
+        tracker.markFailed(failed);
+
+        assertThat(tracker.isCoolingDown(failed)).isTrue();
+        assertThat(tracker.isCoolingDown(sameKey)).isTrue();
+        assertThat(tracker.isCoolingDown(otherPort)).isFalse();
     }
 
     @Test

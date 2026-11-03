@@ -65,6 +65,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ConsumerSideDspProcessorTest {
 
+    private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
+            "did:web:ss-a.example%3A7183:v1:DEV:COM:222",
+            "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     private static final String INSTANCE = "DEV";
     private static final String HOST_A = "xrd-ss0.lxd";
     private static final String HOST_B = "xrd-ss1.lxd";
@@ -101,7 +104,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -137,7 +140,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
@@ -151,7 +154,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(nonWhitelistedService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(nonWhitelistedService, SENDER, null, true));
 
@@ -165,7 +168,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(versionedService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(versionedService, SENDER, null, true));
 
@@ -179,7 +182,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
 
@@ -193,7 +196,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
@@ -207,7 +210,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
 
@@ -219,7 +222,7 @@ class ConsumerSideDspProcessorTest {
     void executeReturnsAssetAccessResponseWithEndpointAndAuthorization() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp.example.com/endpoint", "token-abc");
+        var expected = new AssetAccessResponse("http://dp.example.com/endpoint", "token-abc", WINNER);
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any())).thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
@@ -266,7 +269,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -280,7 +283,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -293,7 +296,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -309,7 +312,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(otherSubsystemService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(otherSubsystemService, SENDER, null, false));
 
@@ -322,7 +325,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(encodedMemberService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(encodedMemberService, SENDER, null, false));
 
@@ -337,7 +340,7 @@ class ConsumerSideDspProcessorTest {
         var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-a");
         when(providerSecurityServerResolver.resolve(serviceId, hint))
                 .thenReturn(List.of(new ProviderAddress(hint, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp/e", null);
+        var expected = new AssetAccessResponse("http://dp/e", null, WINNER);
         when(assetAccessAcquisitionService.acquireAssetAccess(
                 any(), eq(serviceId.asEncodedId()), eq(single(DID_A, URL_A)), any(), any())).thenReturn(expected);
 
@@ -355,7 +358,7 @@ class ConsumerSideDspProcessorTest {
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
         verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
                 any(), any(),
@@ -374,7 +377,7 @@ class ConsumerSideDspProcessorTest {
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
         processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
         verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
                 any(), any(),
@@ -391,7 +394,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, hint))
                 .thenReturn(List.of(new ProviderAddress(hint, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
         processor.execute(new DspRequest(serviceId, SENDER, hint, false));
         verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
                 eq(SENDER_MEMBER_CTX_ID), eq(serviceId.asEncodedId()),
@@ -445,7 +448,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -459,7 +462,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(candidateServerId, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -473,7 +476,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(notBuiltin, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(notBuiltin, SENDER, null, false));
 
@@ -675,7 +678,7 @@ class ConsumerSideDspProcessorTest {
                         new ProviderAddress(null, BLANK_HOST),
                         new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
         verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
                 any(), any(), eq(single(DID_B, URL_B)), any(), any());
@@ -770,7 +773,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -784,7 +787,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 

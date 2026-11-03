@@ -71,8 +71,9 @@ public interface AssetAccessAcquisitionService {
 
     /**
      * Drops every cached asset access won by the Security Server at the given address, whatever its participant
-     * context, asset, client or candidate set. Matches on the host only, so a different port of the same host
-     * matches too. A no-op when nothing is cached, the cache is disabled or the address names no host.
+     * context, asset, client or candidate set. Servers are compared by the lowercase {@code host:port} of the
+     * address with the scheme's default port filled in, or by the exact address when it is not an HTTP(S) URL, so the
+     * same host on another port is another server. A no-op when nothing is cached or the cache is disabled.
      *
      * @param counterPartyAddress the counter-party address of the Security Server whose cached asset access is dropped
      */

@@ -46,6 +46,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.ReplaySoapProxyMessageEntity;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
@@ -92,6 +93,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 class ClientSoapMessageProcessorTest {
 
+    private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
+            "did:web:ss-a.example%3A7183:v1:DEV:COM:222",
+            "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     private static final ClientId MANAGEMENT_CLIENT =
             ClientId.Conf.create("DEV", "COM", "1234", "MANAGEMENT");
     private static final ClientId OTHER_CLIENT =
@@ -103,9 +107,9 @@ class ClientSoapMessageProcessorTest {
     private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
     private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final AssetAccessResponse WON_BY_SS_A =
-            new AssetAccessResponse("https://ss-a.example:8183/data", AGREEMENT_TOKEN, SS_A_ID, SS_A_ADDRESS);
+            new AssetAccessResponse("https://ss-a.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     private static final AssetAccessResponse WON_BY_SS_B =
-            new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, SS_B_ID, SS_B_ADDRESS);
+            new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
 
     @Test
     void isManagementRequestReturnsTrueWhenServiceIdMatchesManagementSubsystem() {
@@ -175,7 +179,7 @@ class ClientSoapMessageProcessorTest {
         var ctx = newSoapRequestContext();
         var decoder = newSoapRequestDecoder(ctx);
         var httpSender = mock(HttpSender.class);
-        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN);
+        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER);
 
         harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, assetAccess, null);
 
@@ -191,7 +195,7 @@ class ClientSoapMessageProcessorTest {
         var ctx = newSoapRequestContext();
         var decoder = newSoapRequestDecoder(ctx);
         var httpSender = mock(HttpSender.class);
-        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, null);
+        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, null, WINNER);
 
         harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, assetAccess, null);
 
@@ -224,7 +228,7 @@ class ClientSoapMessageProcessorTest {
                 .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
         var ctx = newSoapRequestContext();
         var decoder = newSoapRequestDecoder(ctx);
-        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN);
+        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER);
         var firstAttemptSender = mock(HttpSender.class);
         var replayedAttemptSender = mock(HttpSender.class);
 
@@ -257,7 +261,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest,
-                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }
@@ -269,7 +273,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
-                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER));
 
         verify(consumerSideDspProcessor).invalidateAssetAccess(dspRequest);
     }
@@ -281,7 +285,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
-                new AssetAccessResponse(PROVIDER_ADDRESS, null));
+                new AssetAccessResponse(PROVIDER_ADDRESS, null, WINNER));
         processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
                 null);
 
@@ -344,7 +348,7 @@ class ClientSoapMessageProcessorTest {
         var ctx = newSoapRequestContext();
         var decoder = newUnnegotiatedDecoder(ctx);
         var httpSender = mock(HttpSender.class);
-        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN);
+        var assetAccess = new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER);
         harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, assetAccess, null);
         verify(httpSender).doPost(eq(URI.create(PROVIDER_ADDRESS)), any(InputStream.class), eq((long) CHUNKED_LENGTH),
                 nullable(String.class));

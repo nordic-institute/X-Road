@@ -30,6 +30,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -83,6 +84,12 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     @Override
     @WithSpan("dsp-asset-acquire")
     public void acquire(AcquireAssetAccessReq request, StreamObserver<AcquireAssetAccessResp> responseObserver) {
+        if (hasCandidateWithBlankIdOrAddress(request)) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("Candidate counter-party id or address is blank")
+                    .asRuntimeException());
+            return;
+        }
         responseHandler.handleRequest(responseObserver, () -> acquireInternal(request));
     }
 
@@ -99,6 +106,11 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                     request.getCounterPartyId(), request.getCounterPartyAddress());
             return Empty.getDefaultInstance();
         });
+    }
+
+    private static boolean hasCandidateWithBlankIdOrAddress(AcquireAssetAccessReq request) {
+        return request.getCandidatesList().stream().anyMatch(candidate ->
+                StringUtils.isBlank(candidate.getCounterPartyId()) || StringUtils.isBlank(candidate.getCounterPartyAddress()));
     }
 
     private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {

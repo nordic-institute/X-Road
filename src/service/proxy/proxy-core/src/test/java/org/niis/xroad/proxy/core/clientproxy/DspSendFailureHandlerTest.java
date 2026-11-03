@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 
@@ -64,7 +65,7 @@ class DspSendFailureHandlerTest {
     private static final String WINNER_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:222";
     private static final String WINNER_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final AssetAccessResponse WON_BY_SS_A =
-            new AssetAccessResponse("https://ss-a.example:8183/data", "token", WINNER_ID, WINNER_ADDRESS);
+            new AssetAccessResponse("https://ss-a.example:8183/data", "token", new AcquisitionCandidate(WINNER_ID, WINNER_ADDRESS));
 
     @Mock
     private DspRequestProcessor dspRequestProcessor;
@@ -89,14 +90,6 @@ class DspSendFailureHandlerTest {
     @MethodSource("otherFailures")
     void aFailureThatIsNoTransportFaultChangesNothing(Throwable failure) {
         handler.handle(failure, WON_BY_SS_A);
-
-        verifyNoInteractions(dspRequestProcessor);
-    }
-
-    @Test
-    void aTransportFaultWithoutAWinnerChangesNothing() {
-        assertThatCode(() -> handler.handle(new ConnectException("refused"),
-                new AssetAccessResponse("https://ss-a.example:8183/data", "token"))).doesNotThrowAnyException();
 
         verifyNoInteractions(dspRequestProcessor);
     }

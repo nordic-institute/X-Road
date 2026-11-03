@@ -25,13 +25,15 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.assetaccess;
+package org.niis.xroad.edc.protocol.assetaccess;
 
+import jakarta.annotation.Nonnull;
 import okhttp3.HttpUrl;
 
 /**
  * Identifies a provider Security Server by the host and port of a counter-party address, so that every participant
- * context served by one Security Server shares one key.
+ * context served by one Security Server shares one key, and so that the control plane and the proxy cache agree on
+ * which address names which server.
  */
 public final class SecurityServerAuthority {
 
@@ -39,12 +41,20 @@ public final class SecurityServerAuthority {
     }
 
     /**
-     * @return {@code <host>:<port>} of the address, with the scheme's default port when the address names none, or the
-     *         address itself when it is not an HTTP(S) URL
+     * Returns the key of a counter-party address. For an HTTP(S) URL the key is the lowercase host, bracketed when it
+     * is an IPv6 literal, then {@code :} and the port, with the scheme's default port when the address names none. For
+     * any other address the key is the exact address. Never throws.
+     *
+     * @param counterPartyAddress the counter-party address
+     * @return the key of the address
      */
-    public static String of(String counterPartyAddress) {
+    @Nonnull
+    public static String of(@Nonnull String counterPartyAddress) {
         var url = HttpUrl.parse(counterPartyAddress);
-        return url == null ? counterPartyAddress : url.host() + ":" + url.port();
+        if (url == null) {
+            return counterPartyAddress;
+        }
+        var host = url.host().indexOf(':') >= 0 ? "[" + url.host() + "]" : url.host();
+        return host + ":" + url.port();
     }
 }
-

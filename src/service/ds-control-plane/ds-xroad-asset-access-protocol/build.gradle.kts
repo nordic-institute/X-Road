@@ -5,6 +5,9 @@ plugins {
 
 dependencies {
   api(project(":lib:rpc-core"))
+  implementation(libs.okhttp)
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
 }
 
 tasks.compileJava {

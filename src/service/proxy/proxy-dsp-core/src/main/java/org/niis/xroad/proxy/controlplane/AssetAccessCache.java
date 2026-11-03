@@ -30,9 +30,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import com.github.benmanes.caffeine.cache.Ticker;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import okhttp3.HttpUrl;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
+import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
@@ -62,24 +63,23 @@ class AssetAccessCache {
                     @Nullable String forcedTarget, String protocol, @Nullable String consumerClientId) { }
 
     /**
-     * @param winnerHost the host of the candidate that granted the access, derived from the response when the
-     *                   entry is created; {@code null} when the response names no winner or its address has no host
+     * @param winnerKey the {@link SecurityServerAuthority} key of the candidate that granted the access, derived
+     *                  from the response when the entry is created
      */
-    record CachedEntry(AssetAccessResponse response, @Nullable String winnerHost, long expiresAtEpochSeconds) {
+    record CachedEntry(AssetAccessResponse response, @Nonnull String winnerKey, long expiresAtEpochSeconds) {
 
         static CachedEntry from(AcquireAssetAccessResp response) {
             var expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
-            var winner = response.hasWinner() ? response.getWinner() : null;
+            var winner = response.getWinner();
             return of(new AssetAccessResponse(
                     response.getEndpoint(),
                     response.hasAuthorization() ? response.getAuthorization() : null,
-                    winner != null ? winner.getCounterPartyId() : null,
-                    winner != null ? winner.getCounterPartyAddress() : null), expiresAt);
+                    new AcquisitionCandidate(winner.getCounterPartyId(), winner.getCounterPartyAddress())), expiresAt);
         }
 
         static CachedEntry of(AssetAccessResponse response, long expiresAtEpochSeconds) {
-            var address = response.winnerCounterPartyAddress();
-            return new CachedEntry(response, address != null ? hostOf(address) : null, expiresAtEpochSeconds);
+            return new CachedEntry(response, SecurityServerAuthority.of(response.winner().counterPartyAddress()),
+                    expiresAtEpochSeconds);
         }
     }
 
@@ -162,23 +162,13 @@ class AssetAccessCache {
     }
 
     /**
-     * Drops every entry won by a Security Server with the given host, whatever its participant context, asset,
-     * client or candidate set and whatever the port. Entries without a winner are kept. The host must come from
-     * {@link #hostOf}, since entries store their host in that form and are compared exactly.
+     * Drops every entry won by the Security Server at the given address, whatever its participant context, asset,
+     * client or candidate set. Servers are compared by {@link SecurityServerAuthority}: the lowercase
+     * {@code host:port} of the address with the scheme's default port filled in, or the exact address when it is not
+     * an HTTP(S) URL, so the same host on another port is another server.
      */
-    void removeWonByHost(String host) {
-        cache.asMap().values().removeIf(entry -> host.equals(entry.winnerHost()));
-    }
-
-    /**
-     * Extracts the host that winner matching compares, ignoring scheme, port and path. Parsed like the control
-     * plane parses the address, so both sides agree on the host; okhttp lowercases it.
-     *
-     * @return the host of the counter-party address; {@code null} when it is not an http(s) URL
-     */
-    @Nullable
-    static String hostOf(String counterPartyAddress) {
-        var url = HttpUrl.parse(counterPartyAddress);
-        return url != null ? url.host() : null;
+    void removeWonBy(String counterPartyAddress) {
+        var key = SecurityServerAuthority.of(counterPartyAddress);
+        cache.asMap().values().removeIf(entry -> key.equals(entry.winnerKey()));
     }
 }
