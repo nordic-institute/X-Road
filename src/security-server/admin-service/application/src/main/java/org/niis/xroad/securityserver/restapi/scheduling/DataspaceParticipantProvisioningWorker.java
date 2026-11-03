@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
@@ -57,6 +58,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,6 +90,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
     static final int INITIAL_DELAY_MS = 30000;
     private static final long SHUTDOWN_GRACE_SECONDS = 10;
+    private static final Comparator<ParticipantContext> PROVISIONING_ORDER = Comparator
+            .comparing((ParticipantContext context) -> context.kind() != ParticipantKind.SYSTEM)
+            .thenComparing(ParticipantContext::participantId);
 
     private static final Logger CYCLE_LOG =
             LoggerFactory.getLogger(DataspaceParticipantProvisioningWorker.class.getName() + ".cycles");
@@ -95,6 +100,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceParticipantBindingService participantBindingService;
+    private final AdminServiceProperties adminServiceProperties;
 
     private final ExecutorService dispatcher = Executors.newSingleThreadExecutor(runnable -> {
         var thread = new Thread(runnable, "dataspace-provisioning");
@@ -224,6 +230,11 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * even while the registered address is unknown. A context whose
      * identity is drifted, unreadable or rejected is neither bound nor provisioned. A context that cannot be
      * bound is skipped and retried on the next tick.
+     *
+     * <p>The non-converged contexts, SYSTEM first and then by participant id, are split into batches of
+     * the configured provisioning batch size. Each tick runs every batch; within a batch every unbound
+     * context is bound before any context of that batch is provisioned. A context that fails to bind or
+     * to provision is left out without holding back the rest of its batch.
      */
     private int ensure() {
         var contexts = dataspaceProvisioningService.participantContexts();
@@ -258,17 +269,26 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         log.debug("Dataspace provisioning: dataspaceReady={} authCertRegistered={} registeredAddressKnown={}",
                 dataspaceReady, authCertRegistered, addressKnown);
 
-        var provisionable = provisionableContexts(nonConverged, statuses,
-                dataspaceReady && authCertRegistered && addressKnown);
+        int batchSize = adminServiceProperties.getDataspace().getProvisioningBatchSize();
+        var ordered = nonConverged.stream().sorted(PROVISIONING_ORDER).toList();
+        for (int from = 0; from < ordered.size(); from += batchSize) {
+            var batch = ordered.subList(from, Math.min(ordered.size(), from + batchSize));
+            provisionBatch(batch, statuses, dataspaceReady && authCertRegistered && addressKnown, authCertRegistered);
+        }
+        return contextCount;
+    }
+
+    private void provisionBatch(List<ParticipantContext> batch, Map<ParticipantContext, ParticipantContextStatus> statuses,
+            boolean mayBind, boolean authCertRegistered) {
+        var provisionable = provisionableContexts(batch, statuses, mayBind);
         var ensuredContexts = ensureContexts(provisionable);
 
         if (!authCertRegistered) {
             log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
-            return contextCount;
+            return;
         }
 
         ensureCredentials(ensuredContexts, statuses);
-        return contextCount;
     }
 
     /**

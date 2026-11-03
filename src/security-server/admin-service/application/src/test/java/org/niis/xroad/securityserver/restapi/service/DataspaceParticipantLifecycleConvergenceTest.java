@@ -127,6 +127,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + IDENTITY_HUB_HOST.split(":")[0]);
         when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
+        when(dataspace.getProvisioningBatchSize()).thenReturn(100);
         when(dataspace.getDidPort()).thenReturn(7183);
         when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
@@ -146,7 +147,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
                 controlPlaneClient, clientRepository, ownSecurityServerResolver, dsParticipantRepository,
                 globalConfProvider, didAuthority);
         worker = new DataspaceParticipantProvisioningWorker(provisioningService, readinessPredicates,
-                new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority));
+                new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority), adminServiceProperties);
     }
 
     @Test

@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
@@ -53,7 +54,8 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
                     NoopDataspaceParticipantProvisioningTrigger.class)
             .withBean(DataspaceProvisioningService.class, () -> mock(DataspaceProvisioningService.class))
             .withBean(DataspaceReadinessPredicates.class, () -> mock(DataspaceReadinessPredicates.class))
-            .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class));
+            .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class))
+            .withBean(AdminServiceProperties.class, () -> mock(AdminServiceProperties.class));
 
     @Test
     void onlyTheNoopWorkerIsActiveOnASecondaryNode() {

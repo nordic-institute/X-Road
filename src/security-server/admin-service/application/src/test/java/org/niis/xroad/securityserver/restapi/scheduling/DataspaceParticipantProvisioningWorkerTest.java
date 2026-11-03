@@ -37,11 +37,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
@@ -55,16 +57,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -96,6 +103,10 @@ class DataspaceParticipantProvisioningWorkerTest {
     private DataspaceReadinessPredicates readinessPredicates;
     @Mock
     private DataspaceParticipantBindingService participantBindingService;
+    @Mock
+    private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private AdminServiceProperties.Dataspace dataspace;
 
     private static final Did HUB_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
     private static final Did DRIFTED_INTENDED_DID = Did.parse("did:web:ss.moved.test%3A7183:xrd-ss0");
@@ -114,6 +125,8 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @BeforeEach
     void setUp() {
+        when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        when(dataspace.getProvisioningBatchSize()).thenReturn(100);
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(UNBOUND_CONTEXT);
@@ -777,6 +790,164 @@ class DataspaceParticipantProvisioningWorkerTest {
                 .map(ILoggingEvent::getFormattedMessage)
                 .filter(message -> message.contains("cycle summary"))
                 .toList();
+    }
+
+    // --- batches ---
+
+    @Test
+    void twoHundredFiftyUnboundMembersAreBoundAndProvisionedInThreeBatchesWithTheDefaultBatchSize() {
+        var members = members(250);
+        givenNoSystemAndMembers(members);
+
+        worker.provisionParticipant();
+
+        assertThat(bindBatchSizes()).containsExactly(100, 100, 50);
+        members.forEach(member -> verify(dataspaceProvisioningService).ensureParticipantContext(member));
+        members.forEach(member -> verify(dataspaceProvisioningService).ensureMembershipCredential(member));
+    }
+
+    @Test
+    void aCustomBatchSizeChangesTheBatchCount() {
+        when(dataspace.getProvisioningBatchSize()).thenReturn(50);
+        givenNoSystemAndMembers(members(250));
+
+        worker.provisionParticipant();
+
+        assertThat(bindBatchSizes()).containsExactly(50, 50, 50, 50, 50);
+    }
+
+    @Test
+    void everyMemberOfABatchIsBoundBeforeAnyMemberOfThatBatchIsProvisioned() {
+        when(dataspace.getProvisioningBatchSize()).thenReturn(2);
+        var members = members(4);
+        givenNoSystemAndMembers(members);
+        var events = new ArrayList<String>();
+        doAnswer(invocation -> {
+            List<ClientId> ids = invocation.getArgument(0);
+            events.add("bind " + ids.stream().map(ClientId::getMemberCode).toList());
+            return new ArrayList<>(ids);
+        }).when(participantBindingService).bindMembersIfAbsent(any());
+        when(dataspaceProvisioningService.ensureParticipantContext(any())).thenAnswer(invocation -> {
+            events.add("ensure " + ((ParticipantContext) invocation.getArgument(0)).memberId().getMemberCode());
+            return true;
+        });
+
+        worker.provisionParticipant();
+
+        assertThat(events).containsExactly(
+                "bind [0000, 0001]", "ensure 0000", "ensure 0001",
+                "bind [0002, 0003]", "ensure 0002", "ensure 0003");
+    }
+
+    @Test
+    void batchesHoldSystemFirstAndThenMembersInParticipantIdOrderWhateverOrderTheyAreListedIn() {
+        when(dataspace.getProvisioningBatchSize()).thenReturn(2);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        var members = members(3);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(List.of(members.get(2), members.getFirst(), SYSTEM_CONTEXT, members.get(1)));
+
+        worker.provisionParticipant();
+
+        var order = inOrder(participantBindingService);
+        order.verify(participantBindingService).bindMembersIfAbsent(List.of(members.getFirst().memberId()));
+        order.verify(participantBindingService).bindSystemIfAbsent();
+        order.verify(participantBindingService)
+                .bindMembersIfAbsent(List.of(members.get(1).memberId(), members.get(2).memberId()));
+    }
+
+    @Test
+    void aMemberWhoseProvisioningFailsIsLeftOutOfItsBatchAndProvisionedOnTheNextPass() {
+        var members = members(3);
+        var failing = members.get(1);
+        givenNoSystemAndMembers(members);
+        var tracker = new ConvergenceTracker();
+        when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
+        doThrow(new RuntimeException("identity hub unavailable")).doReturn(true)
+                .when(dataspaceProvisioningService).ensureParticipantContext(failing);
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(members.getFirst());
+        verify(dataspaceProvisioningService).ensureParticipantContext(members.get(2));
+        verify(dataspaceProvisioningService).ensureMembershipCredential(members.getFirst());
+        verify(dataspaceProvisioningService).ensureMembershipCredential(members.get(2));
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(failing);
+        assertThat(tracker.issued).containsExactlyInAnyOrder(members.getFirst(), members.get(2));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, times(2)).ensureParticipantContext(failing);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(failing);
+        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(members.getFirst());
+        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(members.get(2));
+        verify(participantBindingService, times(1)).bindMembersIfAbsent(any());
+    }
+
+    @Test
+    void aPassAfterEveryMemberConvergedBindsAndProvisionsNothing() {
+        var members = members(250);
+        givenNoSystemAndMembers(members);
+        new ConvergenceTracker();
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        assertThat(bindBatchSizes()).containsExactly(100, 100, 50);
+        members.forEach(member -> verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(member));
+        members.forEach(member -> verify(dataspaceProvisioningService, times(1)).ensureMembershipCredential(member));
+    }
+
+    private static List<ParticipantContext> members(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(index -> {
+                    var code = "%04d".formatted(index);
+                    return new ParticipantContext("TEST:COM:" + code, ParticipantKind.MEMBER,
+                            ClientId.Conf.create("TEST", "COM", code));
+                })
+                .toList();
+    }
+
+    private void givenNoSystemAndMembers(List<ParticipantContext> members) {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(members);
+    }
+
+    private List<Integer> bindBatchSizes() {
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<ClientId>> batches = ArgumentCaptor.forClass(List.class);
+        verify(participantBindingService, atLeastOnce()).bindMembersIfAbsent(batches.capture());
+        return batches.getAllValues().stream().map(List::size).toList();
+    }
+
+    /**
+     * Makes the mocked identity state follow the worker's writes: a member is bound once its bind call
+     * returned it, and issued once its credential was requested.
+     */
+    private final class ConvergenceTracker {
+        private final Set<ClientId> bound = new HashSet<>();
+        private final Set<ParticipantContext> issued = new HashSet<>();
+
+        private ConvergenceTracker() {
+            doAnswer(invocation -> {
+                List<ClientId> ids = invocation.getArgument(0);
+                bound.addAll(ids);
+                return new ArrayList<>(ids);
+            }).when(participantBindingService).bindMembersIfAbsent(any());
+            when(dataspaceProvisioningService.ensureMembershipCredential(any())).thenAnswer(invocation -> {
+                issued.add(invocation.getArgument(0));
+                return CredentialStatus.ISSUED;
+            });
+            when(dataspaceProvisioningService.readContextStatus(any())).thenAnswer(invocation -> {
+                ParticipantContext context = invocation.getArgument(0);
+                if (issued.contains(context)) {
+                    return statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK);
+                }
+                return bound.contains(context.memberId())
+                        ? statusOf(false, CredentialStatus.ABSENT, IdentityStatus.OK)
+                        : UNBOUND_CONTEXT;
+            });
+        }
     }
 
     // --- teardown ---
