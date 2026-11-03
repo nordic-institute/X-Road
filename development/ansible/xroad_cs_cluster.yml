@@ -37,6 +37,7 @@
   tags:
     - init
   vars:
+    local_packages: "{{ package_source | default('local') != 'remote' }}"
     build_dir: "{{ (playbook_dir + '/../../deployment/native-packages/build') | realpath }}"
     ubuntu_image_source:
       type: image
@@ -49,6 +50,7 @@
       stat:
         path: "{{ build_dir }}"
       register: build_dir_stat
+      when: local_packages | bool
 
     - name: Read the uid of the user Ansible connects as
       become: false
@@ -62,6 +64,7 @@
         that: build_dir_stat.stat.exists
         quiet: true
         fail_msg: "{{ build_dir }} not found; build the native packages first"
+      when: local_packages | bool
 
     - name: Create or start the package repository container with the build directory mounted
       community.general.lxd_container:
@@ -84,7 +87,9 @@
         wait_for_ipv4_addresses: true
         timeout: 600
       loop: "{{ groups['repo_servers'] }}"
-      when: (container_states.stdout_lines | select('match', '^' ~ item ~ ',RUNNING$') | list | length) == 0
+      when:
+        - local_packages | bool
+        - (container_states.stdout_lines | select('match', '^' ~ item ~ ',RUNNING$') | list | length) == 0
       register: repo_container
       retries: 3
       delay: 10
@@ -103,10 +108,17 @@
 
 - name: Prepare cluster containers
   hosts: cluster_containers
+  gather_facts: false
   strategy: free
   become: true
   tags:
     - init
+  pre_tasks:
+    - name: Skip the package repository container, which a remote package source does not create
+      meta: end_host
+      when: package_source | default('local') == 'remote' and inventory_hostname in groups['repo_servers']
+    - name: Gather facts
+      setup:
   tasks:
     - name: Force IPv4 for APT
       copy:
@@ -134,8 +146,17 @@
 
 - name: Build the package repository
   hosts: repo_servers
+  gather_facts: false
   become: true
   strategy: free
+  vars:
+    xroad_repo_index_rpm: false
+  pre_tasks:
+    - name: Skip the package repository when the package source is remote
+      meta: end_host
+      when: package_source | default('local') == 'remote'
+    - name: Gather facts
+      setup:
   roles:
     - xroad-repo
   tags:

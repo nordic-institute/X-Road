@@ -104,7 +104,7 @@ The first Central Server admin API change after a failover may need a retry. `ch
 |---|---|---|
 | `CLUSTER_INVENTORY` | `inventory.yml` next to the scripts | cluster inventory; read by every script here and by the profile of `start-env.sh`; a relative path is taken from where you start the script |
 | `--custom-inventory` | none | `start-env.sh` option: dev env host inventory for the profile |
-| `package_source` | `local` | `-e package_source=remote -e xroad_package_repo="deb ..."` takes packages from a remote repository and skips the local package check |
+| `package_source` | `local` | `-e package_source=remote -e xroad_package_repo="deb ..."` takes packages from a remote repository, skips the local package check and does not create the package repository container |
 | `cs_ds_tls_throwaway` | `true` | `-e cs_ds_tls_throwaway=false` leaves the Issuer Service TLS certificate to the caller |
 | `FAULT_STEP_TIMEOUT` | 180 | seconds each fault step waits |
 | `CHECK_PATRONI_WAIT`, `CHECK_CS_WRITE_WAIT` | 120 | seconds `check-cluster.sh` waits for Patroni to converge, and for the admin API (HA node name, then the change) |

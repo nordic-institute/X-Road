@@ -66,7 +66,9 @@
 - name: Build RPM repodata (writes repodata/ into mounted host dir)
   command: createrepo_c /srv/xroad-build/rhel/{{ rhel_releasever }}
   changed_when: false
-  when: not cache_fill_mode | default(false)
+  when:
+    - xroad_repo_index_rpm | bool
+    - not cache_fill_mode | default(false)
 
 - name: Ensure nginx running
   systemd:
