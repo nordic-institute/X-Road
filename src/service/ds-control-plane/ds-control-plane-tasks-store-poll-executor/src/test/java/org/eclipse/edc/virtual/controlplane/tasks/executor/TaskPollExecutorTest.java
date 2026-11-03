@@ -51,7 +51,6 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.inOrder;
@@ -131,7 +130,7 @@ class TaskPollExecutorTest {
         pollExecutor.start();
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
-                verify(processLock).tryLockContractNegotiation(eq("negotiation-lock-check"))
+                verify(processLock).tryLockContractNegotiation("negotiation-lock-check")
         );
     }
 
@@ -154,7 +153,7 @@ class TaskPollExecutorTest {
         pollExecutor.start();
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
-                verify(processLock).tryLockTransferProcess(eq("transfer-lock-check"))
+                verify(processLock).tryLockTransferProcess("transfer-lock-check")
         );
     }
 
@@ -172,7 +171,7 @@ class TaskPollExecutorTest {
                 verify(contractNegotiationTaskExecutor).handle(any())
         );
         var inOrder = inOrder(processLock, contractNegotiationTaskExecutor);
-        inOrder.verify(processLock).tryLockContractNegotiation(eq("negotiation-lock-order"));
+        inOrder.verify(processLock).tryLockContractNegotiation("negotiation-lock-order");
         inOrder.verify(contractNegotiationTaskExecutor).handle(any());
     }
 
@@ -575,7 +574,7 @@ class TaskPollExecutorTest {
     }
 
     @Test
-    void nWorkersRunBlockingTasksForDifferentProcessesConcurrently() throws InterruptedException {
+    void nWorkersRunBlockingTasksForDifferentProcessesConcurrently() {
         var workerCount = 3;
         pollExecutor = newPollExecutor(workerCount);
 

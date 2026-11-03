@@ -21,6 +21,8 @@ import org.eclipse.edc.controlplane.tasks.store.TaskStore;
 import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -55,13 +57,6 @@ public class TaskPollExecutor {
     private final ProcessLock processLock;
     private final AtomicBoolean active = new AtomicBoolean();
     private final List<Worker> workers;
-
-    private final QuerySpec query = QuerySpec.Builder.newInstance()
-            .sortField("at")
-            .sortOrder(SortOrder.ASC)
-            .limit(1)
-            .build();
-
 
     public TaskPollExecutor(TaskPollConfig taskPollConfig, int workerCount, ExecutorInstrumentation instrumentation,
                             ContractNegotiationTaskExecutor contractNegotiationTaskExecutor,
@@ -145,24 +140,45 @@ public class TaskPollExecutor {
             transactionContext.execute(() -> {
                 var immediateRepoll = false;
                 try {
-                    var tasks = taskStore.fetchForUpdate(query);
-                    if (!tasks.isEmpty()) {
-                        immediateRepoll = true;
-                        for (var task : tasks) {
-                            if (!executeTask(task)) {
-                                immediateRepoll = false;
-                            }
-                        }
-                    }
+                    immediateRepoll = pollAndProcessDueTasks();
                 } catch (Exception e) {
                     monitor.severe("TaskPollExecutor failed to process tasks", e);
-                    immediateRepoll = false;
                 } finally {
                     scheduleNextIterationIn(worker, immediateRepoll ? 0L : POLL_DELAY_MILLIS);
                 }
             });
 
         }
+    }
+
+    /**
+     * @return {@code true} when a non-empty fetch was returned and every task in it reached a final state
+     */
+    private boolean pollAndProcessDueTasks() {
+        var tasks = taskStore.fetchForUpdate(dueTasksQuery());
+        if (tasks.isEmpty()) {
+            return false;
+        }
+        var allTasksCompletedImmediately = true;
+        for (var task : tasks) {
+            if (!executeTask(task)) {
+                allTasksCompletedImmediately = false;
+            }
+        }
+        return allTasksCompletedImmediately;
+    }
+
+    /**
+     * Only a task whose {@code at} is not in the future is due: a re-queue that sets {@code at} to now plus the
+     * poll delay must hold other workers off until that time passes, not just sort behind not-yet-due tasks.
+     */
+    private QuerySpec dueTasksQuery() {
+        return QuerySpec.Builder.newInstance()
+                .filter(new Criterion("at", CriterionOperatorRegistry.LESS_THAN_EQUAL, clock.millis()))
+                .sortField("at")
+                .sortOrder(SortOrder.ASC)
+                .limit(1)
+                .build();
     }
 
     /**
@@ -200,7 +216,10 @@ public class TaskPollExecutor {
                 }
                 monitor.warning("Transient error processing task " + task.getId() + ": "
                         + result.getFailureDetail() + ". Will retry later.");
-                taskStore.update(task.toBuilder().at(clock.millis()).retryCount(task.getRetryCount() + 1).build());
+                taskStore.update(task.toBuilder()
+                        .at(clock.millis() + POLL_DELAY_MILLIS)
+                        .retryCount(task.getRetryCount() + 1)
+                        .build());
                 return false;
             }
         }

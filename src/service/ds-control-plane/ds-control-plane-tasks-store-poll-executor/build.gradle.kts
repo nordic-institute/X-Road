@@ -43,6 +43,7 @@ dependencies {
     testImplementation(libs.edc.sql.transfer.process)
     testImplementation(libs.edc.sql.lease)
     testImplementation(libs.edc.sql.lease.spi)
+    testImplementation(libs.edc.sql.tasks.store)
     testImplementation(libs.edc.transaction.local)
     testImplementation(testFixtures(libs.edc.sql.test.fixtures))
 }

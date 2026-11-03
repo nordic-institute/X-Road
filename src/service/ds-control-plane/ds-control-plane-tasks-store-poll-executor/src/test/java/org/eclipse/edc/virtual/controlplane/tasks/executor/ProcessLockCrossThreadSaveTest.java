@@ -48,7 +48,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -84,7 +83,7 @@ class ProcessLockCrossThreadSaveTest {
     private ExecutorService callbackThread;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) {
         this.extension = setupExtension;
         var localTransactionContext = new LocalTransactionContext(new ConsoleMonitor());
         this.transactionContext = localTransactionContext;

@@ -59,7 +59,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.util.List;
@@ -111,7 +110,7 @@ class ProcessLockPostgresTest {
     private SqlTransferProcessStore transferStore;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) {
         this.extension = setupExtension;
         var localTransactionContext = new LocalTransactionContext(new ConsoleMonitor());
         this.transactionContext = localTransactionContext;
@@ -359,7 +358,7 @@ class ProcessLockPostgresTest {
 
     private TwoWorkerOutcome runTwoWorkersOnTheSameProcess(Task task1, Task task2,
             ContractNegotiationTaskExecutor contractNegotiationTaskExecutor, TransferProcessTaskExecutor transferProcessTaskExecutor,
-            CountDownLatch loserRequeuedLatch) throws InterruptedException {
+            CountDownLatch loserRequeuedLatch) {
         var taskStore = mock(TaskStore.class);
         var remaining = new ConcurrentLinkedQueue<>(List.of(task1, task2));
         when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenAnswer(invocation -> {
@@ -445,18 +444,14 @@ class ProcessLockPostgresTest {
         void run();
     }
 
-    private static void await10sUntilEqual(AtomicInteger actual, int expected) throws InterruptedException {
-        var deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
-        while (actual.get() != expected && System.nanoTime() < deadline) {
-            Thread.sleep(10);
-        }
-        assertThat(actual.get()).isEqualTo(expected);
+    private static void await10sUntilEqual(AtomicInteger actual, int expected) {
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(actual.get()).isEqualTo(expected));
     }
 
     private static void awaitUninterruptibly(CountDownLatch latch) {
         try {
             latch.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }
