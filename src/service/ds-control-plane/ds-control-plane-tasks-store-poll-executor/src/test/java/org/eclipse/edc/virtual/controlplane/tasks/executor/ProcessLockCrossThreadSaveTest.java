@@ -38,9 +38,6 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.local.LocalDataSourceRegistry;
@@ -73,12 +70,11 @@ class ProcessLockCrossThreadSaveTest {
 
     private static final long SAVE_WAIT_SECONDS = 5;
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
     private final org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements
             negotiationStatements =
             new org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements(
-                    leaseStatements, Clock.systemUTC());
-    private final PostgresDialectStatements transferStatements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
+                    Clock.systemUTC());
+    private final PostgresDialectStatements transferStatements = new PostgresDialectStatements(Clock.systemUTC());
 
     private PostgresqlStoreSetupExtension extension;
     private TransactionContext transactionContext;
@@ -101,15 +97,11 @@ class ProcessLockCrossThreadSaveTest {
 
         var manager = new JacksonTypeManager();
 
-        var negotiationLeaseContext = SqlLeaseContextBuilderImpl.with(transactionContext, "test-connector",
-                negotiationStatements.getContractNegotiationTable(), leaseStatements, Clock.systemUTC(), queryExecutor);
         negotiationStore = new SqlContractNegotiationStore(dataSourceRegistry, extension.getDatasourceName(),
-                transactionContext, manager.getMapper(), negotiationStatements, negotiationLeaseContext, queryExecutor);
+                transactionContext, manager::getMapper, negotiationStatements, queryExecutor, "test-connector", Clock.systemUTC());
 
-        var transferLeaseContext = SqlLeaseContextBuilderImpl.with(transactionContext, "test-connector",
-                transferStatements.getTransferProcessTableName(), leaseStatements, Clock.systemUTC(), queryExecutor);
         transferStore = new SqlTransferProcessStore(dataSourceRegistry, extension.getDatasourceName(),
-                transactionContext, manager.getMapper(), transferStatements, transferLeaseContext, queryExecutor);
+                transactionContext, manager::getMapper, transferStatements, queryExecutor, "test-connector", Clock.systemUTC());
 
         processLock = new ProcessLock(dataSourceRegistry, extension.getDatasourceName());
         callbackThread = Executors.newSingleThreadExecutor(r -> new Thread(r, "OkHttp-callback-stand-in"));
@@ -121,7 +113,6 @@ class ProcessLockCrossThreadSaveTest {
         extension.runQuery("DROP TABLE " + transferStatements.getTransferProcessTableName() + " CASCADE");
         extension.runQuery("DROP TABLE " + negotiationStatements.getContractNegotiationTable() + " CASCADE");
         extension.runQuery("DROP TABLE " + negotiationStatements.getContractAgreementTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Test
@@ -132,8 +123,11 @@ class ProcessLockCrossThreadSaveTest {
 
         transactionContext.execute(() -> {
             assertThat(processLock.tryLockContractNegotiation(negotiationId)).isTrue();
-            var followUpSave = CompletableFuture.runAsync(() -> negotiationStore.save(
-                    negotiation(negotiationId, participantContextId, ContractNegotiationStates.REQUESTED)), callbackThread);
+            var followUpSave = CompletableFuture.runAsync(() -> {
+                var current = negotiationStore.findById(negotiationId);
+                current.transitionRequested();
+                negotiationStore.save(current);
+            }, callbackThread);
             assertThatCode(() -> followUpSave.get(SAVE_WAIT_SECONDS, SECONDS)).doesNotThrowAnyException();
         });
 
@@ -149,8 +143,11 @@ class ProcessLockCrossThreadSaveTest {
 
         transactionContext.execute(() -> {
             assertThat(processLock.tryLockTransferProcess(transferProcessId)).isTrue();
-            var followUpSave = CompletableFuture.runAsync(() -> transferStore.save(
-                    transferProcess(transferProcessId, participantContextId, TransferProcessStates.REQUESTED)), callbackThread);
+            var followUpSave = CompletableFuture.runAsync(() -> {
+                var current = transferStore.findById(transferProcessId);
+                current.transitionRequested();
+                transferStore.save(current);
+            }, callbackThread);
             assertThatCode(() -> followUpSave.get(SAVE_WAIT_SECONDS, SECONDS)).doesNotThrowAnyException();
         });
 
@@ -162,13 +159,14 @@ class ProcessLockCrossThreadSaveTest {
     void anInboundDspSaveOnAnotherThreadCompletesWhileTheLockIsHeldWithNoDeadlock() {
         var negotiationId = "neg-" + UUID.randomUUID();
         var participantContextId = "participant-" + UUID.randomUUID();
-        negotiationStore.save(negotiation(negotiationId, participantContextId, ContractNegotiationStates.REQUESTING));
+        negotiationStore.save(negotiation(negotiationId, participantContextId, ContractNegotiationStates.VERIFYING));
 
         transactionContext.execute(() -> {
             assertThat(processLock.tryLockContractNegotiation(negotiationId)).isTrue();
             var inboundSave = CompletableFuture.runAsync(() -> {
                 var leased = negotiationStore.findByIdAndLease(negotiationId).getContent();
-                negotiationStore.save(negotiation(leased.getId(), participantContextId, ContractNegotiationStates.VERIFIED));
+                leased.transitionVerified();
+                negotiationStore.save(leased);
             }, callbackThread);
             assertThatCode(() -> inboundSave.get(SAVE_WAIT_SECONDS, SECONDS)).doesNotThrowAnyException();
         });

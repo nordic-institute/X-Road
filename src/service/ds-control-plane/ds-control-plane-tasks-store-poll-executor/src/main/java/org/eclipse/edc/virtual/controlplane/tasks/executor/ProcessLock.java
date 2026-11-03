@@ -57,7 +57,7 @@ import static java.lang.String.format;
  *
  * <p>An advisory lock sees no rows, so it cannot tell a locked, still-existing process from a locked, deleted one.
  * A caller that must tell the two apart checks existence separately, with a plain query (no {@code FOR UPDATE})
- * against the stock EDC 1.0.0-RC4 schema: the negotiation row by {@code edc_contract_negotiation.id}, the transfer
+ * against the stock EDC schema: the negotiation row by {@code edc_contract_negotiation.id}, the transfer
  * row by {@code edc_transfer_process.transferprocess_id}.
  */
 public class ProcessLock {
