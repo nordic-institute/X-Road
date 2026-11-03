@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
+import com.google.common.base.Ticker;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,7 @@ import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.ReplaySoapProxyMessageEntity;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.SentRequest;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -61,9 +63,12 @@ import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.util.ClientSoapRequestContext;
 import org.niis.xroad.proxy.core.util.IdentifierValidationService;
 import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -75,6 +80,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +118,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
+import static org.niis.xroad.opmonitor.api.OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS;
+import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
 @Timeout(30)
 class ClientSoapMessageProcessorTest {
@@ -706,7 +714,7 @@ class ClientSoapMessageProcessorTest {
 
     @ParameterizedTest
     @MethodSource("answersFromALiveProvider")
-    void anAnswerFromALiveProviderIsNotResent(Throwable answer) throws Exception {
+    void anAnswerFromALiveProviderIsNotResentAndNeitherDropsNorReportsTheWinner(Throwable answer) throws Exception {
         var harness = createRefusalHarness(true, false);
         stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
         var request = newUnfinishedRequest();
@@ -715,6 +723,51 @@ class ClientSoapMessageProcessorTest {
         assertThatThrownBy(() -> send(harness, request)).isSameAs(answer);
 
         verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("protocolRejections")
+    void aProtocolRejectionOnTheNewAcquisitionAfterATransportFaultReachesTheCallerUnchanged(
+            XrdRuntimeException rejection) throws Exception {
+        var harness = createRefusalHarness(true, false);
+        var fault = new ConnectException("refused");
+        when(harness.consumerSideDspProcessor().execute(any()))
+                .thenReturn(new DspAcquisition(WON_BY_SS_A, 2))
+                .thenThrow(rejection);
+        stubDspEndpoint(harness, WON_BY_SS_A);
+        var request = newCompletedRequest();
+        stubSenders(harness, failingSender(fault));
+
+        assertThatThrownBy(() -> harness.processor().processRequest(request.ctx(), request.decoder(), "req-1", null))
+                .isSameAs(rejection);
+
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
+    }
+
+    @Test
+    void operationalMonitoringRecordsTheSiblingThatServedAfterAFailover() throws Exception {
+        var addressResolver = mock(ServiceAddressResolver.class);
+        when(addressResolver.resolve(any(), any(), any()))
+                .thenReturn(List.of(URI.create("https://ss-a.example:5500/"), URI.create("https://ss-b.example:5500/")));
+        var harness = createRefusalHarness(true, false, true, addressResolver);
+        stubAcquisitionResults(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var request = newCompletedRequest();
+        stubSenders(harness, failingSender(new ConnectException("refused")), mock(HttpSender.class));
+        var opMonitoringData = new OpMonitoringData(CLIENT, 100);
+
+        harness.clientRequestPreparationService().recordServiceSecurityServerAddress(
+                serviceId(), null, request.ctx(), opMonitoringData);
+        assertThat(opMonitoringData.getData()).containsEntry(SERVICE_SECURITY_SERVER_ADDRESS, "ss-a.example");
+
+        harness.processor().send(new DspRequest(serviceId(), OTHER_CLIENT, null, false),
+                request.ctx(), request.decoder(), "req-1", opMonitoringData);
+
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        assertThat(opMonitoringData.getData()).containsEntry(SERVICE_SECURITY_SERVER_ADDRESS, "ss-b.example");
     }
 
     @Test
@@ -784,7 +837,15 @@ class ClientSoapMessageProcessorTest {
         return Stream.of(
                 XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 500,
                         "Internal Server Error"),
-                XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"));
+                XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"),
+                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"),
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"));
+    }
+
+    static Stream<XrdRuntimeException> protocolRejections() {
+        return Stream.of(
+                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"),
+                XrdRuntimeException.systemException(SERVICE_FAILED, "negotiation failed"));
     }
 
     private static void stubDspEndpoint(RefusalHarness harness, AssetAccessResponse assetAccess) {
@@ -822,6 +883,13 @@ class ClientSoapMessageProcessorTest {
     }
 
     private static void stubAcquisitions(RefusalHarness harness, int candidateCount, AssetAccessResponse... accesses) {
+        stubAcquisitionResults(harness, candidateCount, accesses);
+        for (var access : accesses) {
+            stubDspEndpoint(harness, access);
+        }
+    }
+
+    private static void stubAcquisitionResults(RefusalHarness harness, int candidateCount, AssetAccessResponse... accesses) {
         var acquisitions = Stream.of(accesses)
                 .map(access -> new DspAcquisition(access, candidateCount))
                 .toArray(DspAcquisition[]::new);
@@ -829,9 +897,6 @@ class ClientSoapMessageProcessorTest {
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(acquisitions[0], remaining)
                 .thenThrow(new AssertionError("more acquisitions than the test expects"));
-        for (var access : accesses) {
-            stubDspEndpoint(harness, access);
-        }
     }
 
     private static void stubSenders(RefusalHarness harness, HttpSender first, HttpSender... rest) {
@@ -913,6 +978,12 @@ class ClientSoapMessageProcessorTest {
 
     private RefusalHarness createRefusalHarness(boolean dspEnabled, boolean legacyProtocolDisabled,
                                                 boolean requestRetryEnabled) {
+        return createRefusalHarness(dspEnabled, legacyProtocolDisabled, requestRetryEnabled, null);
+    }
+
+    private RefusalHarness createRefusalHarness(boolean dspEnabled, boolean legacyProtocolDisabled,
+                                                boolean requestRetryEnabled,
+                                                ServiceAddressResolver addressResolverOfRealPreparation) {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
                 .register(ProxyConfigKeys.instance())
@@ -921,9 +992,17 @@ class ClientSoapMessageProcessorTest {
                         "xroad.proxy.legacy-protocol-disabled", String.valueOf(legacyProtocolDisabled),
                         "xroad.proxy.client-proxy.enable-request-retry", String.valueOf(requestRetryEnabled)))
                 .build());
-        var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
-        when(clientRequestPreparationService.prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
-                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        ClientRequestPreparationService clientRequestPreparationService;
+        if (addressResolverOfRealPreparation == null) {
+            clientRequestPreparationService = mock(ClientRequestPreparationService.class);
+            when(clientRequestPreparationService.prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                    .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+        } else {
+            clientRequestPreparationService = new ClientRequestPreparationService(addressResolverOfRealPreparation, proxyProperties,
+                    new OpMonitoringDataHelper(globalConfProvider, mock(ServerConfProvider.class),
+                            mock(OwnSecurityServerResolver.class)),
+                    new UnusableAddressTracker(Duration.ofSeconds(180), Ticker.systemTicker()));
+        }
         var legacyCallRefusalPolicy = spy(new LegacyCallRefusalPolicy(proxyProperties, globalConfProvider));
         var consumerSideDspProcessor = mock(DspRequestProcessor.class);
         var dspSendFailureHandler = spy(new DspSendFailureHandler(consumerSideDspProcessor));
