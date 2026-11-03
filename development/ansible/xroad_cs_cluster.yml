@@ -50,6 +50,13 @@
         path: "{{ build_dir }}"
       register: build_dir_stat
 
+    - name: Read the uid of the user Ansible connects as
+      become: false
+      command: id -u
+      register: connecting_user_uid
+      changed_when: false
+      when: onMacOs | default(true) | bool
+
     - name: Fail when the package build directory is missing
       assert:
         that: build_dir_stat.stat.exists
@@ -65,8 +72,10 @@
         profiles: ["default"]
         config:
           # Maps the build directory owner to container root so the repository
-          # indexes can be written back into the mounted directory.
-          raw.idmap: "both {{ build_dir_stat.stat.uid }} 0"
+          # indexes can be written back into the mounted directory. On macOS the
+          # owner read through virtiofs depends on the caller, so the connecting
+          # user's uid is used.
+          raw.idmap: "both {{ connecting_user_uid.stdout if (onMacOs | default(true) | bool) else build_dir_stat.stat.uid }} 0"
         devices:
           xroad-build:
             type: disk
