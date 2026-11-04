@@ -39,15 +39,13 @@ public interface RpcProperties {
 
     interface RpcCertificateProvisioningProperties extends CertificateProvisioningProperties {
         String DEFAULT_REFRESH_INTERVAL = "5H";
-        String DEFAULT_RETRY_DELAY = "5S";
-        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
-        String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
-        String DEFAULT_RETRY_TIMEOUT = "60S";
+        String DEFAULT_WAIT_DURATION = "5S";
+        String DEFAULT_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
+        String DEFAULT_EXPONENTIAL_MAX_WAIT_DURATION = "5M";
 
         Duration refreshInterval();
-        Duration retryDelay();
-        Double retryExponentialBackoffMultiplier();
-        int retryMaxAttempts();
-        Duration retryTimeout();
+        Duration waitDuration();
+        Double exponentialBackoffMultiplier();
+        Duration exponentialMaxWaitDuration();
     }
 }
