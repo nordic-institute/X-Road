@@ -574,7 +574,7 @@
             "cache-period": "OCSP barlag netijelerini täzeden barlamanka önümçide saklanýan wagt (sekunt)."
           },
           "common-rpc": {
-            "use-tls": "Işledilen halatynda, Merkezi Serweriň bilelikde ýerleşdirilen hyzmatlary arasyndaky gRPC aragatnaşygy üçin özara TLS ulanylýar.",
+            "use-tls": "Diňe synag üçin; önümçilikde hiç wagt öçürmäň. Işledilen halatynda, Merkezi Serweriň bilelikde ýerleşdirilen hyzmatlary arasyndaky gRPC aragatnaşygy üçin özara TLS ulanylýar. Öçürilen halatynda, bu gRPC aragatnaşygy şifrlenmeýär.",
             "certificate-provisioning": {
               "refresh-interval": "Hyzmatlaryň gRPC TLS sertifikatyny täzelemek gerekdigi barlaýan ýygylygy (meselem, 5H).",
               "retry-delay": "gRPC TLS sertifikat üpjünçiligi gaýtalamalarynyň arasyndaky başlangyç gijikdirme (meselem, 5S).",

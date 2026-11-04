@@ -1388,7 +1388,7 @@
             "enabled": "Flag for enabling or disabling the AntiDOS system."
           },
           "common-rpc": {
-            "use-tls": "When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services.",
+            "use-tls": "For testing only; never turn it off in production. When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services. When disabled, all internal gRPC communication is plaintext, including the connection to the operational monitoring daemon, and the imported Operational Monitoring CA and the allowed client names are not applied.",
             "certificate-provisioning": {
               "refresh-interval": "How often services check whether their gRPC TLS certificate needs to be renewed (e.g. 5H).",
               "retry-delay": "Initial delay between gRPC TLS certificate provisioning retry attempts (e.g. 5S).",

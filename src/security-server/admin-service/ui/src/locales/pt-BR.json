@@ -1274,7 +1274,7 @@
             "enabled": "Sinalizador para habilitar ou desabilitar o sistema AntiDOS."
           },
           "common-rpc": {
-            "use-tls": "Quando habilitado, o TLS mútuo é usado para toda a comunicação gRPC entre os serviços internos do servidor de segurança.",
+            "use-tls": "Somente para testes; nunca o desative em produção. Quando habilitado, o TLS mútuo é usado para toda a comunicação gRPC entre os serviços internos do servidor de segurança. Quando desabilitado, toda a comunicação gRPC interna é em texto simples, incluindo a conexão com o daemon de monitoramento operacional, e a AC de Monitoramento Operacional importada e os nomes de cliente permitidos não são aplicados.",
             "certificate-provisioning": {
               "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
               "retry-delay": "Atraso inicial entre tentativas de provisionamento de certificado TLS gRPC (ex.: 5S).",

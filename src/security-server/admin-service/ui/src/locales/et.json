@@ -1332,7 +1332,7 @@
             "enabled": "Lipp AntiDOS süsteemi lubamiseks või keelamiseks."
           },
           "common-rpc": {
-            "use-tls": "Kui lubatud, kasutatakse kõigi turvaserveri siseteenuste vahelises gRPC suhtluses vastastikust TLS-i.",
+            "use-tls": "Ainult testimiseks; ärge lülitage seda tootmises välja. Kui lubatud, kasutatakse kõigi turvaserveri siseteenuste vahelises gRPC suhtluses vastastikust TLS-i. Kui keelatud, on kogu sisemine gRPC suhtlus krüpteerimata, sealhulgas ühendus operatsioonide monitooringu deemoniga, ning imporditud operatsioonide monitooringu CA-d ja lubatud kliendinimesid ei rakendata.",
             "certificate-provisioning": {
               "refresh-interval": "Kui tihti teenused kontrollivad, kas nende gRPC TLS-sertifikaati on vaja uuendada (nt 5H).",
               "retry-delay": "gRPC TLS-sertifikaadi proviimise taaskatsumise esialgne viivitus (nt 5S).",

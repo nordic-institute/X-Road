@@ -1195,7 +1195,7 @@
             "enabled": "AntiDOS ulgamyny işe girizmek ýa-da öçürmek üçin baýdak."
           },
           "common-rpc": {
-            "use-tls": "Işledilen halatynda, howpsuzlyk serweriň içki hyzmatlary arasynda ähli gRPC aragatnaşygy üçin özara TLS ulanylýar.",
+            "use-tls": "Diňe synag üçin; önümçilikde hiç wagt öçürmäň. Işledilen halatynda, howpsuzlyk serweriň içki hyzmatlary arasynda ähli gRPC aragatnaşygy üçin özara TLS ulanylýar. Öçürilen halatynda, ähli içki gRPC aragatnaşygy şifrlenmeýär, operasion gözegçilik demony bilen baglanyşyk hem şoňa girýär, we import edilen operasion gözegçilik CA-sy bilen rugsat berilen müşderi atlary ulanylmaýar.",
             "certificate-provisioning": {
               "refresh-interval": "Hyzmatlaryň gRPC TLS sertifikatyny täzelemek gerekdigi barlaýan ýygylygy (meselem, 5H).",
               "retry-delay": "gRPC TLS sertifikat üpjünçiligi gaýtalamalarynyň arasyndaky başlangyç gijikdirme (meselem, 5S).",

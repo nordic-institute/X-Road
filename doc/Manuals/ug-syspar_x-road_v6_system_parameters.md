@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.107
+Version: 2.108
 Doc. ID: UG-SYSPAR
 
 
@@ -114,10 +114,11 @@ Doc. ID: UG-SYSPAR
 | 18.11.2025 | 2.101   | Added parameters to `[admin-service]` to control API key and REST API IP whitelisting similar to the `[proxy-ui-api]` but for the Central Server admin service.                                                                                                                                                                                                                                                | Raido Kaju                 |
 | 22.12.2025 | 2.102   | Added timestamping and OCSP prioritization strategy parameters                                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann         |
 | 24.03.2026 | 2.103   | Added explanation of greedy refill for rate-limiting                                                                                                                                                                                                                                                                                                                                                           | Mikk-Erik Bachmann         |
-| 10.09.2026 | 2.104   | Replaced *device-configuration-file* with the `xroad.signer.modules` database property                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas          |
+| 10.09.2026 | 2.104   | Replaced *device-configuration-file* with the `xroad.signer.modules` database property                                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 | 14.09.2026 | 2.105   | Updated proxy health-check parameters and defaults                                                                                                                                                                                                                                                                                                                                                             | Eneli Reimets              |
 | 28.09.2026 | 2.106   | Added *dataspace.provisioning-enabled* parameter                                                                                                                                                                                                                                                                                                                                                               | Ovidijus Narkevicius       |
 | 21.10.2026 | 2.107   | Documented X-Road 8 per-request behaviour of *client-connector-max-idle-time*                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius       |
+| 04.11.2026 | 2.108   | Added *xroad.common-rpc.use-tls* parameter                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets              |
 
 ## Table of Contents
 
@@ -146,6 +147,7 @@ Doc. ID: UG-SYSPAR
     - [4 Central Server System Parameters](#4-central-server-system-parameters)
         - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
             - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
+                - [4.1.1.1 Internal gRPC connections: `xroad.common-rpc`](#4111-internal-grpc-connections-xroadcommon-rpc)
             - [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
             - [4.1.3 Center parameters: `[admin-service]`](#413-center-parameters-admin-service)
             - [4.1.4 Signer parameters: `[signer]`](#414-signer-parameters-signer)
@@ -188,6 +190,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 9.  <a id="Ref_PR-REST"></a>\[PR-REST\] [X-Road Message Protocol for REST v. 1.0](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 11. <a id="Ref_UG_SS" class="anchor">\[UG-SS\]</a> X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+12. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters User Guide. Document ID: [UG-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
 ## 2 Changing the System Parameter Values
 
@@ -556,6 +559,17 @@ For instructions on how to change the parameter values, see section [Changing th
 | **Server component** | **Name**        | **Default value** | **Description**                                                   |
 |----------------------|-----------------|-------------------|-------------------------------------------------------------------|
 | common               | temp-files-path | /var/tmp/xroad/   |  Absolute path to the directory where temporary files are stored. |
+
+##### 4.1.1.1 Internal gRPC connections: `xroad.common-rpc`
+
+The parameter in this section is an X-Road 8 configuration property, not an INI file parameter. Change it in the System Parameters view of the user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. All services of the server read the same value, once when they start. Services with different values cannot connect to each other, so after a change restart these services together:
+
+* Security Server: all the X-Road services (`xroad-signer`, `xroad-confclient`, `xroad-proxy`, `xroad-monitor`, `xroad-auxiliary-service`, `xroad-proxy-ui-api`, `xroad-ds-control-plane`, `xroad-ds-identity-hub`, and `xroad-opmonitor` if installed).
+* Central Server: `xroad-center`, `xroad-signer`, `xroad-confclient` and `xroad-ds-issuer-service`. The services `xroad-center-management-service` and `xroad-center-registration-service` do not use gRPC.
+
+| **Parameter**              | **Default value** | **Description** |
+|----------------------------|-------------------|-----------------|
+| `xroad.common-rpc.use-tls` | true              | For testing only; do not set to *false* in production. When enabled, mutual TLS is used for all gRPC communication between the internal services of the server. On the Security Server this includes the connection to the operational monitoring daemon. When *false*, every internal gRPC connection is unencrypted. On the Security Server, the Operational Monitoring CA and `xroad.op-monitor.rpc.allowed-client-names` \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\] are then not applied, so traffic to an external operational monitoring daemon is neither encrypted nor authenticated. |
 
 #### 4.1.2 Center parameters: `[center]`
 

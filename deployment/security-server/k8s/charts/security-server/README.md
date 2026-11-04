@@ -10,6 +10,8 @@ and additionally carries the dataspace (DSP) stack whose application
 Pods default to `replicas: 0` — no DSP Pods start unless explicitly
 enabled via per-service `replicas` overrides.
 
+Trust settings of the operational monitoring connection (`op-monitor`, disabled by default): [Security Server User Guide, section 15.2.7](../../../../../doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1527-trust-settings-of-the-operational-monitoring-connection).
+
 ## 2. Dataspace (DSP) services
 
 DSP application workloads (`ds-control-plane`, `ds-identity-hub`,
