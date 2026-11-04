@@ -59,8 +59,10 @@ import java.util.Optional;
  * subject is a group, it mints a group token that names the group and the service and lists no endpoints. For an
  * agreement that restricts no subject it mints a service-only token that names the service alone, except for a
  * built-in service, which the server proxy answers without consulting any token.
- * Never throws — every failure mode (no grant, an empty live ACL, key material unavailable, or anything else going wrong) yields an
- * empty result, so the caller always has a safe endpoint-only fallback.
+ * A grant whose live ACL lists no endpoint for the client yields {@link Outcome.Refused}: the grant exists but the
+ * server grants the client nothing, which the caller reports apart from the other no-token cases.
+ * Never throws — every other failure mode (no grant, key material unavailable, or anything else going wrong) yields
+ * {@link Outcome.NotIssued}, so the caller always has a safe endpoint-only fallback.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -73,12 +75,34 @@ public class AgreementTokenIssuer {
     private final AgreementTokenProtocolProperties protocolProperties;
 
     /**
-     * @param agreementId the negotiated agreement's id, as carried by the prepare/start message
-     * @return the minted, compact-serialized token, or empty when nothing may be minted
+     * The result of resolving a token for an agreement.
      */
-    public Optional<String> issueToken(String agreementId) {
+    public sealed interface Outcome {
+
+        /** A token was minted. */
+        record Minted(String token) implements Outcome {
+        }
+
+        /** The agreement has a grant, but the client's live ACL lists no endpoint for the service. */
+        record Refused() implements Outcome {
+        }
+
+        /** No token was minted for any other reason. */
+        record NotIssued() implements Outcome {
+        }
+
+        default Optional<String> mintedToken() {
+            return this instanceof Minted(var token) ? Optional.of(token) : Optional.empty();
+        }
+    }
+
+    /**
+     * @param agreementId the negotiated agreement's id, as carried by the prepare/start message
+     * @return the minted, compact-serialized token, or the reason nothing was minted
+     */
+    public Outcome issueToken(String agreementId) {
         if (agreementId == null || agreementId.isBlank()) {
-            return Optional.empty();
+            return new Outcome.NotIssued();
         }
         try {
             return issueTokenInternal(agreementId);
@@ -89,49 +113,49 @@ public class AgreementTokenIssuer {
             } else {
                 log.warn("Could not mint an agreement token for agreement id '{}'; falling back to endpoint-only", agreementId, e);
             }
-            return Optional.empty();
+            return new Outcome.NotIssued();
         }
     }
 
-    private Optional<String> issueTokenInternal(String agreementId) {
+    private Outcome issueTokenInternal(String agreementId) {
         var keyProviderOpt = keyMaterial.provider();
         if (keyProviderOpt.isEmpty()) {
             log.debug("Agreement-token signing key material unavailable; not minting for agreement id '{}'", agreementId);
-            return Optional.empty();
+            return new Outcome.NotIssued();
         }
 
         var grantOpt = grantRpcClient.resolveAgreementGrant(agreementId);
         if (grantOpt.isEmpty()) {
-            return Optional.empty();
+            return new Outcome.NotIssued();
         }
         var minter = new AgreementTokenMinter(keyProviderOpt.get(), protocolProperties);
         return switch (grantOpt.get()) {
             case AgreementGrant grant -> mintSubsystemToken(minter, agreementId, grant);
             case AgreementGroupGrant(var group, var service) ->
-                    Optional.of(minter.mint(new AgreementTokenGroupGrant(agreementId, group, service)));
+                    new Outcome.Minted(minter.mint(new AgreementTokenGroupGrant(agreementId, group, service)));
             case AgreementServiceGrant(var service) -> mintServiceToken(minter, agreementId, service);
         };
     }
 
-    private Optional<String> mintServiceToken(AgreementTokenMinter minter, String agreementId, ServiceId service) {
+    private Outcome mintServiceToken(AgreementTokenMinter minter, String agreementId, ServiceId service) {
         if (isBuiltinService(service)) {
             log.debug("Agreement id '{}' is for a built-in service; not minting", agreementId);
-            return Optional.empty();
+            return new Outcome.NotIssued();
         }
-        return Optional.of(minter.mint(new AgreementTokenServiceGrant(agreementId, service)));
+        return new Outcome.Minted(minter.mint(new AgreementTokenServiceGrant(agreementId, service)));
     }
 
     private static boolean isBuiltinService(ServiceId service) {
         return service.getSubsystemCode() == null && BuiltinServiceCodes.ALL.contains(service.getServiceCode());
     }
 
-    private Optional<String> mintSubsystemToken(AgreementTokenMinter minter, String agreementId, AgreementGrant grant) {
+    private Outcome mintSubsystemToken(AgreementTokenMinter minter, String agreementId, AgreementGrant grant) {
         var liveScope = liveAclScope(grant);
         if (liveScope.isEmpty()) {
-            log.info("The live ACL grants no endpoint for agreement id '{}'; not minting", agreementId);
-            return Optional.empty();
+            log.info("The live ACL grants no endpoint for agreement id '{}'; not minting, access is refused", agreementId);
+            return new Outcome.Refused();
         }
-        return Optional.of(minter.mint(new AgreementTokenGrant(agreementId, grant.client(), grant.service(), liveScope)));
+        return new Outcome.Minted(minter.mint(new AgreementTokenGrant(agreementId, grant.client(), grant.service(), liveScope)));
     }
 
     /**
