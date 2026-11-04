@@ -94,8 +94,8 @@ class LegacyConfigMigrationCLIVaultTest {
         Path stubScript = tempDir.resolve("stub-autologin.sh");
         Files.writeString(stubScript, "#!/bin/bash\n");
 
-        assertThatThrownBy(() ->
-                LegacyConfigMigrationCLI.main(new String[]{"signer-token-pins", "--node", "_bad", stubScript.toString()}))
+        String[] args = {"signer-token-pins", "--node", "_bad", stubScript.toString()};
+        assertThatThrownBy(() -> LegacyConfigMigrationCLI.main(args))
                 .isInstanceOf(MigrationException.class)
                 .hasRootCauseInstanceOf(XrdRuntimeException.class)
                 .rootCause()
@@ -132,8 +132,8 @@ class LegacyConfigMigrationCLIVaultTest {
         Path stubScript = tempDir.resolve("stub-autologin.sh");
         Files.writeString(stubScript, "#!/bin/bash\n");
 
-        assertThatThrownBy(() ->
-                LegacyConfigMigrationCLI.main(new String[]{"signer-token-pins", "--node", "node_1", stubScript.toString()}))
+        String[] args = {"signer-token-pins", "--node", "node_1", stubScript.toString()};
+        assertThatThrownBy(() -> LegacyConfigMigrationCLI.main(args))
                 .isInstanceOf(MigrationException.class)
                 .rootCause()
                 .hasMessageContaining("XROAD_SECRET_STORE_HOST");

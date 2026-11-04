@@ -49,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -70,7 +69,7 @@ class MigrationVaultClientTest {
 
         Map<String, String> expected = new HashMap<>();
         expected.put("pin", "s3cr3t");
-        verify(kvOps).put(eq("signer/token-pins/node_0/tok1"), eq(expected));
+        verify(kvOps).put("signer/token-pins/node_0/tok1", expected);
     }
 
     @Test
@@ -144,7 +143,7 @@ class MigrationVaultClientTest {
         Optional<char[]> pin = client.getTokenPin("tok1");
         client.deleteTokenPin("tok1");
 
-        verify(kvOps).put(eq("signer/token-pins/node_1/tok1"), eq(Map.of("pin", "s3cr3t")));
+        verify(kvOps).put("signer/token-pins/node_1/tok1", Map.of("pin", "s3cr3t"));
         assertThat(pin).isPresent();
         verify(kvOps).delete("signer/token-pins/node_1/tok1");
         verify(kvOps, never()).put(startsWith("signer/token-pins/node_0/"), any());
@@ -200,7 +199,7 @@ class MigrationVaultClientTest {
     void testInvalidNodeNameIsRejectedWithTheRuleAndNothingIsWritten() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
 
-        assertThatThrownBy(() -> new MigrationVaultClient(kvOps, NodeIdentity.resolve("_bad")))
+        assertThatThrownBy(() -> NodeIdentity.resolve("_bad"))
                 .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
 

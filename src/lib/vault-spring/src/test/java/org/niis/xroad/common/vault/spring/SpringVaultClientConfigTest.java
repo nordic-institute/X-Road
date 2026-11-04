@@ -65,7 +65,8 @@ class SpringVaultClientConfigTest {
         contextRunner.withUserConfiguration(SpringVaultClientConfig.class).run(context -> {
             assertThat(context).doesNotHaveBean(NodeIdentity.class);
 
-            assertThatThrownBy(() -> context.getBean(SpringVaultClient.class).getAdminServiceTlsCredentials())
+            var client = context.getBean(SpringVaultClient.class);
+            assertThatThrownBy(client::getAdminServiceTlsCredentials)
                     .isInstanceOf(XrdRuntimeException.class);
 
             verify(kvOperations).get("tls/admin-service");
@@ -77,7 +78,8 @@ class SpringVaultClientConfigTest {
         contextRunner.withUserConfiguration(SpringVaultClientConfig.class, NodeIdentityConfig.class)
                 .withPropertyValues("xroad.admin-service.ha-node-name=node_a")
                 .run(context -> {
-                    assertThatThrownBy(() -> context.getBean(SpringVaultClient.class).getAdminServiceTlsCredentials())
+                    var client = context.getBean(SpringVaultClient.class);
+                    assertThatThrownBy(client::getAdminServiceTlsCredentials)
                             .isInstanceOf(XrdRuntimeException.class);
 
                     verify(kvOperations).get("tls/admin-service/node_a");
@@ -89,7 +91,8 @@ class SpringVaultClientConfigTest {
         contextRunner.withUserConfiguration(SpringVaultClientConfig.class, NodeIdentityConfig.class)
                 .withPropertyValues("xroad.admin-service.ha-node-name=")
                 .run(context -> {
-                    assertThatThrownBy(() -> context.getBean(SpringVaultClient.class).getManagementServicesTlsCredentials())
+                    var client = context.getBean(SpringVaultClient.class);
+                    assertThatThrownBy(client::getManagementServicesTlsCredentials)
                             .isInstanceOf(XrdRuntimeException.class);
 
                     verify(kvOperations).get("tls/management-service/node_0");

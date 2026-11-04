@@ -58,8 +58,8 @@ public record NodeIdentity(String name, boolean configured) {
             "null", "Null", "NULL");
 
     private static final Pattern YAML_NON_STRING_NUMBER = Pattern.compile(
-            "^(?:0[0-9_]+|0[xX][0-9A-Fa-f_]+|0[bB][01_]+|0[oO][0-7_]+|[0-9]+_[0-9_]*|[0-9][0-9_]*[eE]-?[0-9]+"
-                    + "|[0-9]{4}-[0-9]{2}-[0-9]{2})$");
+            "^(?:0[\\d_]+|0[xX][0-9A-Fa-f_]+|0[bB][01_]+|0[oO][0-7_]+|\\d+_[\\d_]*|\\d[\\d_]*[eE]-?\\d+"
+                    + "|\\d{4}-\\d{2}-\\d{2})$");
 
     private static final String RULE = "must match " + VALID_NAME.pattern()
             + " and must not be a value that YAML reads as a non-string, such as true, on, yes, null, 0123, 1_0 or 1e3";

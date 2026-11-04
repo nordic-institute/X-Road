@@ -29,6 +29,7 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -162,6 +163,8 @@ public class SignerConfig {
         }
     }
 
+    // NodeIdentity is a final record: a normal scope would need a client proxy, which a record cannot have.
+    @Produces
     @Singleton
     @Startup
     NodeIdentity nodeIdentity(@ConfigProperty(name = NodeIdentity.PROPERTY_KEY) Optional<String> configuredNodeName) {

@@ -28,6 +28,7 @@ package org.niis.xroad.configuration.migration;
 import org.niis.xroad.common.core.node.NodeIdentity;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -50,8 +51,9 @@ record NodeOption(NodeIdentity nodeIdentity, List<String> remainingArgs) {
     static NodeOption extract(String[] args) {
         String value = null;
         List<String> remaining = new ArrayList<>();
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i];
+        Iterator<String> argIterator = List.of(args).iterator();
+        while (argIterator.hasNext()) {
+            String arg = argIterator.next();
             boolean separate = OPTION.equals(arg);
             if (!separate && !arg.startsWith(OPTION + "=")) {
                 remaining.add(arg);
@@ -61,10 +63,10 @@ record NodeOption(NodeIdentity nodeIdentity, List<String> remainingArgs) {
                 throw new IllegalArgumentException(OPTION + " may be given only once");
             }
             if (separate) {
-                if (i + 1 >= args.length) {
+                if (!argIterator.hasNext()) {
                     throw new IllegalArgumentException(OPTION + " requires a node name");
                 }
-                value = args[++i];
+                value = argIterator.next();
             } else {
                 value = arg.substring(OPTION.length() + 1);
             }

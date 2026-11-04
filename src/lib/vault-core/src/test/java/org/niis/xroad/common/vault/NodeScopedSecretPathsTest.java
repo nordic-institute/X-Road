@@ -62,7 +62,7 @@ class NodeScopedSecretPathsTest {
 
     @Test
     void shouldRejectAnInvalidNodeName() {
-        assertThatThrownBy(() -> new NodeScopedSecretPaths(NodeIdentity.resolve("../x")))
+        assertThatThrownBy(() -> NodeIdentity.resolve("../x"))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 }
