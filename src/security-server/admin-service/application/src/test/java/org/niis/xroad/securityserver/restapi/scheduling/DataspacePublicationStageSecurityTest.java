@@ -26,10 +26,13 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import com.apicatalog.did.Did;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -46,7 +49,10 @@ import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderServ
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -60,6 +66,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -74,14 +81,31 @@ class DataspacePublicationStageSecurityTest {
     private static final Did SYSTEM_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
     private static final ParticipantContext SYSTEM_CONTEXT = new ParticipantContext("xrd-ss0", ParticipantKind.SYSTEM, null);
 
+    private static final ClientId.Conf MANAGEMENT_SERVICE_ID = ClientId.Conf.create("FI", "GOV", "MGMT");
+
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(MethodSecurityConfig.class)
-            .withBean(GlobalConfProvider.class, () -> mock(GlobalConfProvider.class))
-            .withBean(CurrentSecurityServerId.class, () -> new CurrentSecurityServerId(TestUtils.OWNER_SERVER_ID))
+            .withBean(GlobalConfProvider.class, () -> {
+                var globalConfProvider = mock(GlobalConfProvider.class);
+                when(globalConfProvider.getManagementRequestService()).thenReturn(MANAGEMENT_SERVICE_ID);
+                return globalConfProvider;
+            })
+            .withBean(CurrentSecurityServerId.class, () -> mock(CurrentSecurityServerId.class, invocation -> {
+                throw new RequestScopeNotActiveException();
+            }))
+            .withBean(OwnSecurityServerResolver.class, () -> {
+                var resolver = mock(OwnSecurityServerResolver.class);
+                when(resolver.identity()).thenReturn(new OwnIdentity.Known(TestUtils.OWNER_SERVER_ID));
+                return resolver;
+            })
             .withBean(SignerRpcClient.class, () -> mock(SignerRpcClient.class))
             .withBean(SignerSignClient.class, () -> mock(SignerSignClient.class))
             .withBean(VaultKeyProvider.class, () -> mock(VaultKeyProvider.class))
-            .withBean(AdminServiceProperties.class, () -> mock(AdminServiceProperties.class))
+            .withBean(AdminServiceProperties.class, () -> {
+                var properties = mock(AdminServiceProperties.class);
+                when(properties.getAuthCertRegSignatureDigestAlgorithmId()).thenReturn("SHA-512");
+                return properties;
+            })
             .withBean(ManagementRequestSenderFactory.class)
             .withBean(DidRegistrationSender.class)
             .withBean(ManagementRequestSenderService.class)
@@ -116,6 +140,11 @@ class DataspacePublicationStageSecurityTest {
             var globalConfProvider = context.getBean(GlobalConfProvider.class);
             verify(globalConfProvider).verifyValidity();
             verify(globalConfProvider).getManagementRequestService();
+            verify(context.getBean(OwnSecurityServerResolver.class)).identity();
+            var reason = ArgumentCaptor.forClass(String.class);
+            verify(context.getBean(DsParticipantRepository.class)).transitionPublication(eq(17L),
+                    eq(PublicationState.NOT_SENT), eq(PublicationState.NOT_SENT), reason.capture());
+            assertThat(reason.getValue()).doesNotContain(RequestScopeNotActiveException.class.getSimpleName());
         });
     }
 
@@ -138,6 +167,12 @@ class DataspacePublicationStageSecurityTest {
                     .isInstanceOf(AuthenticationCredentialsNotFoundException.class);
             verify(context.getBean(GlobalConfProvider.class), never()).verifyValidity();
         });
+    }
+
+    private static final class RequestScopeNotActiveException extends IllegalStateException {
+        RequestScopeNotActiveException() {
+            super("request scope not active");
+        }
     }
 
     @Configuration

@@ -30,11 +30,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifier.BackoffClass;
 import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifier.Transition;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +57,14 @@ class PublicationOutcomeClassifierTest {
                 Arguments.of(SystemDidRegistrationSendOutcome.notResolved("DID_UNRESOLVABLE"),
                         new Transition(PublicationState.NOT_SENT, "DID_UNRESOLVABLE", BackoffClass.NOT_RESOLVED)),
                 Arguments.of(SystemDidRegistrationSendOutcome.sendFailure(new IllegalStateException("refused")),
-                        new Transition(PublicationState.NOT_SENT, "SEND_FAILURE", BackoffClass.SEND_FAILURE)));
+                        new Transition(PublicationState.NOT_SENT, "SEND_FAILURE: IllegalStateException",
+                                BackoffClass.SEND_FAILURE)),
+                Arguments.of(SystemDidRegistrationSendOutcome.sendFailure(new TimeoutException()),
+                        new Transition(PublicationState.NOT_SENT, "SEND_FAILURE: timeout", BackoffClass.SEND_FAILURE)),
+                Arguments.of(SystemDidRegistrationSendOutcome.sendFailure(
+                                XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED).build()),
+                        new Transition(PublicationState.NOT_SENT, "SEND_FAILURE: " + ErrorCode.GLOBAL_CONF_OUTDATED.code(),
+                                BackoffClass.SEND_FAILURE)));
     }
 
     @ParameterizedTest
@@ -84,6 +94,17 @@ class PublicationOutcomeClassifierTest {
         var transition = PublicationOutcomeClassifier.classify(SystemDidRegistrationSendOutcome.finalConflict(reason));
 
         assertThat(transition.reason()).isEqualTo("x".repeat(max - 1));
+    }
+
+    @Test
+    void aSendFailureReasonNeverCarriesTheExceptionMessage() {
+        var first = PublicationOutcomeClassifier.classify(
+                SystemDidRegistrationSendOutcome.sendFailure(new IllegalStateException("attempt at 10:00:01")));
+        var second = PublicationOutcomeClassifier.classify(
+                SystemDidRegistrationSendOutcome.sendFailure(new IllegalStateException("attempt at 10:00:31")));
+
+        assertThat(first.reason()).isEqualTo(second.reason());
+        assertThat(first.reason()).doesNotContain("10:00");
     }
 
     @Test

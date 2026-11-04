@@ -41,7 +41,9 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -76,12 +78,16 @@ class DidRegistrationSenderTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
+    @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
+
     private DidRegistrationSender service;
 
     @BeforeEach
     void setUp() {
-        service = new DidRegistrationSender(senderFactory, globalConfProvider, new CurrentSecurityServerId(SERVER_ID));
-        lenient().when(senderFactory.create()).thenReturn(sender);
+        service = new DidRegistrationSender(senderFactory, globalConfProvider, ownSecurityServerResolver);
+        lenient().when(ownSecurityServerResolver.identity()).thenReturn(new OwnIdentity.Known(SERVER_ID));
+        lenient().when(senderFactory.createFor(SERVER_ID.getOwner())).thenReturn(sender);
     }
 
     @Test
@@ -105,6 +111,26 @@ class DidRegistrationSenderTest {
     }
 
     @Test
+    void systemDidRegisterDoesNotSendWhenTheOwnerIsNotSet() {
+        when(ownSecurityServerResolver.identity()).thenReturn(new OwnerNotInitialised());
+
+        assertThatThrownBy(() -> service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.isCausedBy(ErrorCode.MALFORMED_SERVERCONF)).isTrue());
+        verifyNoInteractions(sender, senderFactory);
+    }
+
+    @Test
+    void memberDidRegisterDoesNotSendWhenTheOwnerIsNotSet() {
+        when(ownSecurityServerResolver.identity()).thenReturn(new OwnerNotInitialised());
+
+        assertThatThrownBy(() -> service.sendMemberDidRegisterRequest(MEMBER_DIDS))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.isCausedBy(ErrorCode.MALFORMED_SERVERCONF)).isTrue());
+        verifyNoInteractions(sender, senderFactory);
+    }
+
+    @Test
     void systemDidRegisterChecksTheGlobalConfValidityBeforeBuildingTheSender() throws Exception {
         when(sender.sendSystemDidRegRequest(SERVER_ID, SYSTEM_DID, DSP_BASE_URL, AUTH_CERT)).thenReturn(1);
 
@@ -112,7 +138,7 @@ class DidRegistrationSenderTest {
 
         var order = inOrder(globalConfProvider, senderFactory);
         order.verify(globalConfProvider).verifyValidity();
-        order.verify(senderFactory).create();
+        order.verify(senderFactory).createFor(SERVER_ID.getOwner());
     }
 
     @Test

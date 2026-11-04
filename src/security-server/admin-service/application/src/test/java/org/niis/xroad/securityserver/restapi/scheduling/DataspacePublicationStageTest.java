@@ -54,18 +54,26 @@ import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOu
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
+import org.niis.xroad.test.MutableClock;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -94,9 +102,14 @@ class DataspacePublicationStageTest {
     private DataspacePublicationStage stage;
 
     private DsParticipantEntity systemRow;
+    private MutableClock clock;
+    private PublicationBackoff backoff;
 
     @BeforeEach
     void setUp() {
+        clock = new MutableClock(Instant.parse("2026-11-04T10:00:00Z"));
+        backoff = new PublicationBackoff(clock, () -> 1.0);
+        stage.setBackoff(backoff);
         systemRow = row(null, null);
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(AUTH_CERT));
@@ -301,14 +314,14 @@ class DataspacePublicationStageTest {
     }
 
     @Test
-    void aSendFailureKeepsTheValueNotSentWithAConstantReason() {
+    void aSendFailureKeepsTheValueNotSentAndNamesItsCause() {
         when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
                 .thenThrow(new IllegalStateException("connection refused"));
 
         var logs = logsOfPass();
 
         verify(dsParticipantRepository).transitionPublication(ROW_ID, PublicationState.NOT_SENT,
-                PublicationState.NOT_SENT, "SEND_FAILURE");
+                PublicationState.NOT_SENT, "SEND_FAILURE: IllegalStateException");
         assertThat(logs).anyMatch(event -> event.getLevel() == Level.WARN && event.getThrowableProxy() != null);
     }
 
@@ -320,7 +333,7 @@ class DataspacePublicationStageTest {
         var logs = logsOfPass();
 
         verify(dsParticipantRepository).transitionPublication(ROW_ID, PublicationState.NOT_SENT,
-                PublicationState.NOT_SENT, "SEND_FAILURE");
+                PublicationState.NOT_SENT, "SEND_FAILURE: " + ErrorCode.GLOBAL_CONF_OUTDATED.code());
         assertThat(logs).noneMatch(event -> event.getLevel().isGreaterOrEqual(Level.WARN));
         assertThat(logs).anyMatch(event -> event.getLevel() == Level.DEBUG
                 && event.getFormattedMessage().contains("global configuration is outdated")
@@ -331,7 +344,7 @@ class DataspacePublicationStageTest {
 
     @Test
     void repeatingTheSameFailureWritesNothing() {
-        systemRow = row(PublicationState.NOT_SENT, "SEND_FAILURE");
+        systemRow = row(PublicationState.NOT_SENT, "SEND_FAILURE: IllegalStateException");
         when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
                 .thenThrow(new IllegalStateException("connection refused"));
 
@@ -359,5 +372,230 @@ class DataspacePublicationStageTest {
         runPass();
 
         verifyNoInteractions(didRegistrationSender);
+    }
+
+    private void failSendsWith(RuntimeException failure) {
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any())).thenThrow(failure);
+    }
+
+    private void verifySends(int count) {
+        verify(didRegistrationSender, times(count)).sendSystemDidRegisterRequest(any(), any(), any());
+    }
+
+    @Test
+    void afterASendFailureThePassesInsideThePauseSendNothingAndTheFirstPassAfterItSends() {
+        failSendsWith(new IllegalStateException("connection refused"));
+
+        runPass();
+        clock.advance(Duration.ofSeconds(29));
+        runPass();
+        verifySends(1);
+
+        clock.advance(Duration.ofSeconds(1));
+        runPass();
+        verifySends(2);
+    }
+
+    @Test
+    void thePauseGrowsWithEachFailedSend() {
+        failSendsWith(new IllegalStateException("connection refused"));
+
+        runPass();
+        clock.advance(Duration.ofSeconds(30));
+        runPass();
+        clock.advance(Duration.ofSeconds(59));
+        runPass();
+        verifySends(2);
+
+        clock.advance(Duration.ofSeconds(1));
+        runPass();
+        verifySends(3);
+    }
+
+    @Test
+    void aStoredResultEndsThePause() {
+        failSendsWith(new IllegalStateException("connection refused"));
+        runPass();
+        clock.advance(Duration.ofSeconds(30));
+        doReturn(SystemDidRegistrationSendOutcome.stored(1)).when(didRegistrationSender)
+                .sendSystemDidRegisterRequest(any(), any(), any());
+        runPass();
+
+        runPass();
+
+        verifySends(3);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = SystemDidRegistrationSendOutcome.Status.class,
+            names = {"FIXABLE_CONFLICT", "NOT_RESOLVED"})
+    void aFixableConflictAndANotResolvedResultAreRetriedAfterAPause(SystemDidRegistrationSendOutcome.Status status) {
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any())).thenReturn(
+                status == SystemDidRegistrationSendOutcome.Status.FIXABLE_CONFLICT
+                        ? SystemDidRegistrationSendOutcome.fixableConflict("ADDRESS_MISMATCH")
+                        : SystemDidRegistrationSendOutcome.notResolved("DID_UNRESOLVABLE"));
+
+        runPass();
+        clock.advance(Duration.ofSeconds(29));
+        runPass();
+        verifySends(1);
+
+        clock.advance(Duration.ofSeconds(1));
+        runPass();
+        verifySends(2);
+    }
+
+    @Test
+    void aFinalConflictIsNeverRetried() {
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
+                .thenReturn(SystemDidRegistrationSendOutcome.finalConflict("DID_TAKEN"));
+        when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any())).thenAnswer(call -> {
+            systemRow.setPublicationState(call.getArgument(2));
+            systemRow.setPublicationReason(call.getArgument(3));
+            return true;
+        });
+
+        runPass();
+        clock.advance(Duration.ofHours(1));
+        runPass();
+
+        verifySends(1);
+        assertThat(systemRow.getPublicationState()).isEqualTo(PublicationState.REJECTED);
+    }
+
+    @Test
+    void aSendFailurePausesTheRequestKindAndAConflictOnlyItsValue() {
+        var kind = PublicationBackoff.Key.ofKind(PublicationBackoff.RequestKind.SYSTEM);
+        var value = PublicationBackoff.Key.ofValue(PublicationBackoff.RequestKind.SYSTEM, SYSTEM_DID.toString());
+
+        failSendsWith(new IllegalStateException("connection refused"));
+        runPass();
+        assertThat(backoff.mayAttempt(kind)).isFalse();
+        assertThat(backoff.mayAttempt(value)).isTrue();
+
+        clock.advance(Duration.ofSeconds(30));
+        doReturn(SystemDidRegistrationSendOutcome.fixableConflict("ADDRESS_MISMATCH")).when(didRegistrationSender)
+                .sendSystemDidRegisterRequest(any(), any(), any());
+        runPass();
+        assertThat(backoff.mayAttempt(kind)).isTrue();
+        assertThat(backoff.mayAttempt(value)).isFalse();
+    }
+
+    @Test
+    void aRestartForgetsThePauseAndSendsAtOnce() {
+        failSendsWith(new IllegalStateException("connection refused"));
+        runPass();
+        verifySends(1);
+
+        var restarted = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
+                didRegistrationSender);
+        restarted.publish(Set.of(SYSTEM_CONTEXT));
+
+        verifySends(2);
+    }
+
+    @Test
+    void aSendThatHangsIsCutOffAndTheValueStaysNotSentWithATimeoutReason() throws InterruptedException {
+        var interrupted = new CountDownLatch(1);
+        var neverReleased = new CountDownLatch(1);
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any())).thenAnswer(_ -> {
+            try {
+                neverReleased.await(30, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                interrupted.countDown();
+                Thread.currentThread().interrupt();
+            }
+            return SystemDidRegistrationSendOutcome.stored(1);
+        });
+        stage.setSendTimeout(Duration.ofMillis(200));
+
+        var started = System.nanoTime();
+        runPass();
+        var elapsed = Duration.ofNanos(System.nanoTime() - started);
+
+        assertThat(elapsed).isLessThan(Duration.ofSeconds(10));
+        verify(dsParticipantRepository).transitionPublication(ROW_ID, PublicationState.NOT_SENT,
+                PublicationState.NOT_SENT, "SEND_FAILURE: timeout");
+        assertThat(interrupted.await(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(backoff.mayAttempt(PublicationBackoff.Key.ofKind(PublicationBackoff.RequestKind.SYSTEM))).isFalse();
+    }
+
+    @Test
+    void anErrorFromTheSenderFailsThePassAtOnceWithItsOwnCause() {
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
+                .thenThrow(new AssertionError("sender broke"));
+        stage.setSendTimeout(Duration.ofSeconds(5));
+
+        var started = System.nanoTime();
+        runPass();
+        var elapsed = Duration.ofNanos(System.nanoTime() - started);
+
+        assertThat(elapsed).isLessThan(Duration.ofSeconds(2));
+        verify(dsParticipantRepository).transitionPublication(ROW_ID, PublicationState.NOT_SENT,
+                PublicationState.NOT_SENT, "SEND_FAILURE: AssertionError");
+        assertThat(backoff.mayAttempt(PublicationBackoff.Key.ofKind(PublicationBackoff.RequestKind.SYSTEM))).isFalse();
+    }
+
+    @Test
+    void anInterruptOfThePassWhileItWaitsForTheSendIsNotAFailure() throws InterruptedException {
+        var sending = new CountDownLatch(1);
+        var senderInterrupted = new CountDownLatch(1);
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any())).thenAnswer(_ -> {
+            sending.countDown();
+            try {
+                new CountDownLatch(1).await(30, TimeUnit.SECONDS);
+            } catch (InterruptedException _) {
+                senderInterrupted.countDown();
+                Thread.currentThread().interrupt();
+            }
+            return SystemDidRegistrationSendOutcome.stored(1);
+        });
+        stage.setSendTimeout(Duration.ofSeconds(30));
+        var kindKey = PublicationBackoff.Key.ofKind(PublicationBackoff.RequestKind.SYSTEM);
+        var valueKey = PublicationBackoff.Key.ofValue(PublicationBackoff.RequestKind.SYSTEM, SYSTEM_DID.toString());
+        var memberKey = PublicationBackoff.Key.ofKind(PublicationBackoff.RequestKind.MEMBER);
+        backoff.recordFailure(kindKey);
+        backoff.recordFailure(valueKey);
+        clock.advance(Duration.ofSeconds(30));
+        backoff.recordFailure(memberKey);
+        var logger = (Logger) LoggerFactory.getLogger(DataspacePublicationStage.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.DEBUG);
+        var flagAfterPass = new AtomicBoolean();
+        var passDone = new CountDownLatch(1);
+        var passThread = new Thread(() -> {
+            runPass();
+            flagAfterPass.set(Thread.currentThread().isInterrupted());
+            passDone.countDown();
+        });
+        try {
+            passThread.start();
+            assertThat(sending.await(10, TimeUnit.SECONDS)).isTrue();
+
+            passThread.interrupt();
+
+            assertThat(passDone.await(10, TimeUnit.SECONDS)).isTrue();
+        } finally {
+            logger.detachAppender(appender);
+            logger.setLevel(null);
+        }
+        assertThat(flagAfterPass.get()).isTrue();
+        assertThat(senderInterrupted.await(10, TimeUnit.SECONDS)).isTrue();
+        verify(dsParticipantRepository, never()).transitionPublication(anyLong(), any(), any(), any());
+        assertThat(appender.list).noneMatch(event -> event.getLevel().isGreaterOrEqual(Level.WARN));
+
+        assertThat(backoff.mayAttempt(kindKey)).isTrue();
+        assertThat(backoff.mayAttempt(valueKey)).isTrue();
+        assertThat(backoff.mayAttempt(memberKey)).isFalse();
+        backoff.recordFailure(kindKey);
+        backoff.recordFailure(valueKey);
+        clock.advance(Duration.ofSeconds(31));
+        assertThat(backoff.mayAttempt(kindKey)).isFalse();
+        assertThat(backoff.mayAttempt(valueKey)).isFalse();
+        clock.advance(Duration.ofSeconds(29));
+        assertThat(backoff.mayAttempt(kindKey)).isTrue();
+        assertThat(backoff.mayAttempt(valueKey)).isTrue();
     }
 }

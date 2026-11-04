@@ -26,14 +26,17 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Maps the outcome of sending a value to the Central Server to the publication transition to apply.
- * Pure: no clock, no storage.
+ * Pure: no clock, no storage. A send failure carries a stable description of its cause, never the exception
+ * message, so a repeated failure yields the same reason.
  */
 public final class PublicationOutcomeClassifier {
 
@@ -83,7 +86,17 @@ public final class PublicationOutcomeClassifier {
                     new Transition(PublicationState.NOT_SENT, boundedReason(outcome.reason()), BackoffClass.FIXABLE_CONFLICT);
             case NOT_RESOLVED ->
                     new Transition(PublicationState.NOT_SENT, boundedReason(outcome.reason()), BackoffClass.NOT_RESOLVED);
-            case SEND_FAILURE -> new Transition(PublicationState.NOT_SENT, SEND_FAILURE_REASON, BackoffClass.SEND_FAILURE);
+            case SEND_FAILURE ->
+                    new Transition(PublicationState.NOT_SENT, sendFailureReason(outcome.cause()), BackoffClass.SEND_FAILURE);
+        };
+    }
+
+    private static String sendFailureReason(Throwable cause) {
+        return switch (cause) {
+            case null -> SEND_FAILURE_REASON;
+            case XrdRuntimeException xrd -> SEND_FAILURE_REASON + ": " + xrd.getCode();
+            case TimeoutException _ -> SEND_FAILURE_REASON + ": timeout";
+            default -> SEND_FAILURE_REASON + ": " + cause.getClass().getSimpleName();
         };
     }
 

@@ -113,6 +113,19 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusShowsTheLastSendFailureCauseWhileTheValueIsNotSent() {
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
+                new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.NOT_SENT,
+                        "SEND_FAILURE: timeout")));
+
+        var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
+
+        assertThat(server.getPublicationState()).isEqualTo(DataspacePublicationStateDto.NOT_SENT);
+        assertThat(server.getPublicationReason()).isEqualTo("SEND_FAILURE: timeout");
+    }
+
+    @Test
     @WithMockUser(authorities = "VIEW_AGREEMENT_TOKEN_KEY")
     void provisioningStatusNeedsTheViewDataspaceStatusPermission() {
         assertThatThrownBy(() -> dataspaceApiController.getDataspaceProvisioningStatus())

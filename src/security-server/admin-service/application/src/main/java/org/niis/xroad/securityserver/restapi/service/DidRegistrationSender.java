@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -50,7 +51,7 @@ import java.util.Map;
 public class DidRegistrationSender {
     private final ManagementRequestSenderFactory managementRequestSenderFactory;
     private final GlobalConfProvider globalConfProvider;
-    private final CurrentSecurityServerId currentSecurityServerId;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
 
     private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
 
@@ -63,13 +64,14 @@ public class DidRegistrationSender {
      * @param authCert   the authentication certificate bytes
      * @return {@code STORED} with the central server request id, the conflict or not resolved outcome with its reason,
      * or {@code SEND_FAILURE} with the cause
-     * @throws XrdRuntimeException if the global configuration is outdated or invalid, before anything is sent
+     * @throws XrdRuntimeException if the global configuration is outdated or invalid or the owner is not set, before anything is sent
      */
     public SystemDidRegistrationSendOutcome sendSystemDidRegisterRequest(String systemDid, String dspBaseUrl, byte[] authCert) {
-        ManagementRequestSender sender = createSender();
+        globalConfProvider.verifyValidity();
+        var serverId = ownSecurityServerResolver.identity().requireServerId();
+        ManagementRequestSender sender = createSender(serverId);
         try {
-            Integer requestId = sender.sendSystemDidRegRequest(currentSecurityServerId.getServerId(), systemDid, dspBaseUrl,
-                    authCert);
+            Integer requestId = sender.sendSystemDidRegRequest(serverId, systemDid, dspBaseUrl, authCert);
             if (requestId == null) {
                 var missingId = new IllegalStateException("Response carries no request id");
                 log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
@@ -94,12 +96,14 @@ public class DidRegistrationSender {
      * @return {@code ANSWERED} with the central server request id and one record per entry,
      * {@code REQUEST_TOO_LARGE} when the central server refused the whole batch as too large,
      * or {@code SEND_FAILURE} with the cause and its code when the cause carries one
-     * @throws XrdRuntimeException if the global configuration is outdated or invalid, before anything is sent
+     * @throws XrdRuntimeException if the global configuration is outdated or invalid or the owner is not set, before anything is sent
      */
     public MemberDidRegistrationSendOutcome sendMemberDidRegisterRequest(Map<ClientId.Conf, String> memberDids) {
-        ManagementRequestSender sender = createSender();
+        globalConfProvider.verifyValidity();
+        var serverId = ownSecurityServerResolver.identity().requireServerId();
+        ManagementRequestSender sender = createSender(serverId);
         try {
-            MemberDidRegResponse response = sender.sendMemberDidRegRequest(currentSecurityServerId.getServerId(), memberDids);
+            MemberDidRegResponse response = sender.sendMemberDidRegRequest(serverId, memberDids);
             if (response.requestId() == null) {
                 var missingId = new IllegalStateException("Response carries no request id");
                 log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
@@ -131,9 +135,8 @@ public class DidRegistrationSender {
         }
     }
 
-    private ManagementRequestSender createSender() {
-        globalConfProvider.verifyValidity();
-        return managementRequestSenderFactory.create();
+    private ManagementRequestSender createSender(SecurityServerId.Conf serverId) {
+        return managementRequestSenderFactory.createFor(serverId.getOwner());
     }
 
     private static String reasonOf(XrdRuntimeException fault, ErrorCode outcomeClass) {

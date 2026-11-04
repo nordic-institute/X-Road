@@ -26,25 +26,37 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.scheduling.PublicationBackoff.Key;
+import org.niis.xroad.securityserver.restapi.scheduling.PublicationBackoff.RequestKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifier;
+import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifier.BackoffClass;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Last stage of every provisioning reconciler pass: sends the SYSTEM values, the SYSTEM DID together with
@@ -55,6 +67,10 @@ import java.util.Set;
  * approved, the registered address is known and the SYSTEM binding is bound, provisioned and not sent.
  * Values already submitted or rejected are not sent again. A published value that globalconf loses is moved
  * back to not sent by the globalconf check and sent again.
+ *
+ * <p>After a failed send the stage waits, with growing pauses, before it sends again: a send failure pauses
+ * every send of its request kind, a conflict or not resolved result pauses only its value. The pauses are kept
+ * in memory. Every send is cut off after {@link #SEND_TIMEOUT}.
  */
 @Slf4j
 @Component
@@ -62,10 +78,18 @@ import java.util.Set;
 @Conditional(DataspaceParticipantProvisioningWorker.IsActive.class)
 public class DataspacePublicationStage {
 
+    static final Duration SEND_TIMEOUT = Duration.ofSeconds(60);
+
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
     private final DsParticipantRepository dsParticipantRepository;
     private final DidRegistrationSender didRegistrationSender;
+
+    @Setter(AccessLevel.PACKAGE)
+    private PublicationBackoff backoff =
+            new PublicationBackoff(Clock.systemUTC(), () -> ThreadLocalRandom.current().nextDouble());
+    @Setter(AccessLevel.PACKAGE)
+    private Duration sendTimeout = SEND_TIMEOUT;
 
     /**
      * Runs one publication step. Never throws: a failure is logged and the next pass retries.
@@ -90,6 +114,12 @@ public class DataspacePublicationStage {
         if (row.isEmpty()) {
             return;
         }
+        var kindKey = Key.ofKind(RequestKind.SYSTEM);
+        var valueKey = Key.ofValue(RequestKind.SYSTEM, row.get().getDid());
+        if (!backoff.mayAttempt(kindKey) || !backoff.mayAttempt(valueKey)) {
+            log.debug("Dataspace publication: SYSTEM values are in a backoff pause, not sending");
+            return;
+        }
         if (!readinessPredicates.isDataspaceReady()) {
             log.debug("Dataspace publication: dataspace not ready, not sending the SYSTEM values");
             return;
@@ -106,7 +136,25 @@ public class DataspacePublicationStage {
         }
 
         var outcome = send(row.get().getDid(), dspBaseUrl.get(), authCert.get());
-        apply(row.get(), PublicationOutcomeClassifier.classify(outcome));
+        if (outcome.isEmpty()) {
+            return;
+        }
+        var transition = PublicationOutcomeClassifier.classify(outcome.get());
+        recordBackoff(transition.backoff(), kindKey, valueKey);
+        apply(row.get(), transition);
+    }
+
+    private void recordBackoff(BackoffClass backoffClass, Key kindKey, Key valueKey) {
+        if (backoffClass == BackoffClass.SEND_FAILURE) {
+            backoff.recordFailure(kindKey);
+            return;
+        }
+        backoff.recordSuccess(kindKey);
+        if (backoffClass == BackoffClass.NONE) {
+            backoff.recordSuccess(valueKey);
+        } else {
+            backoff.recordFailure(valueKey);
+        }
     }
 
     private Optional<DsParticipantEntity> notSentSystemRow() {
@@ -114,16 +162,33 @@ public class DataspacePublicationStage {
                 .filter(row -> row.getPublicationState() == null || row.getPublicationState() == PublicationState.NOT_SENT);
     }
 
-    private SystemDidRegistrationSendOutcome send(String systemDid, String dspBaseUrl, byte[] authCert) {
+    private Optional<SystemDidRegistrationSendOutcome> send(String systemDid, String dspBaseUrl, byte[] authCert) {
+        var result = new CompletableFuture<SystemDidRegistrationSendOutcome>();
+        var sender = Thread.ofVirtual().name("dataspace-publication-send").start(() -> {
+            try {
+                result.complete(didRegistrationSender.sendSystemDidRegisterRequest(systemDid, dspBaseUrl, authCert));
+            } catch (Throwable t) {
+                result.completeExceptionally(t);
+            }
+        });
         try {
-            return didRegistrationSender.sendSystemDidRegisterRequest(systemDid, dspBaseUrl, authCert);
-        } catch (Exception e) {
-            logSendFailure(e);
-            return SystemDidRegistrationSendOutcome.sendFailure(e);
+            return Optional.of(result.get(sendTimeout.toMillis(), TimeUnit.MILLISECONDS));
+        } catch (TimeoutException e) {
+            sender.interrupt();
+            log.warn("Dataspace publication: sending the SYSTEM values timed out after {}", sendTimeout);
+            return Optional.of(SystemDidRegistrationSendOutcome.sendFailure(e));
+        } catch (ExecutionException e) {
+            var cause = e.getCause() == null ? e : e.getCause();
+            logSendFailure(cause);
+            return Optional.of(SystemDidRegistrationSendOutcome.sendFailure(cause));
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
+            sender.interrupt();
+            return Optional.empty();
         }
     }
 
-    private static void logSendFailure(Exception e) {
+    private static void logSendFailure(Throwable e) {
         if (e instanceof XrdRuntimeException xrd && xrd.isCausedBy(ErrorCode.GLOBAL_CONF_OUTDATED)) {
             log.debug("Dataspace publication: sending the SYSTEM values failed, global configuration is outdated: {}",
                     xrd.getMessage());
