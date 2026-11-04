@@ -385,6 +385,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
             return config.value(AdminServiceConfigKeys.DATASPACE_MAX_HOLDER_PID_SLOTS);
         }
 
+        public int getProvisioningBatchSize() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_PROVISIONING_BATCH_SIZE);
+        }
+
         public List<String> getTlsCertificateContacts() {
             return optionalList(config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_CONTACTS));
         }

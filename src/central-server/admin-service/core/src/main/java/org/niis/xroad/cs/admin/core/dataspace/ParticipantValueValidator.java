@@ -71,9 +71,6 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG
  */
 public final class ParticipantValueValidator {
 
-    /** The most characters a published DID may have. */
-    public static final int MAX_DID_LENGTH = 4000;
-
     private static final String DID_PREFIX = "did:" + ParticipantIdentifierScheme.DID_METHOD + ":";
     private static final String DSP_BASE_URL_PREFIX = "https://";
     private static final int HOST_SEGMENT_INDEX = 0;
@@ -182,7 +179,7 @@ public final class ParticipantValueValidator {
                 || !ParticipantIdentifierScheme.SCHEME_VERSION.equals(segments[VERSION_SEGMENT_INDEX])) {
             return Optional.of(WRONG_SCHEME);
         }
-        if (did.length() > MAX_DID_LENGTH) {
+        if (did.length() > ParticipantIdentifierScheme.MAX_DID_LENGTH) {
             return Optional.of(DID_TOO_LONG);
         }
         if (!DidAuthority.isAscii(segments[HOST_SEGMENT_INDEX])) {
