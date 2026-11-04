@@ -29,7 +29,9 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -38,11 +40,15 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
@@ -55,15 +61,24 @@ import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.ownserver.OwnerNotInitialised;
 import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.transaction.TestTransaction;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,6 +97,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -89,6 +105,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
+import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
 
 /**
  * Test GlobalConfChecker
@@ -115,6 +132,18 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private SecurityServerAddressChangeStatus addressChangeStatus;
     @MockitoBean
     private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
+    @MockitoBean
+    private DataspaceDidAuthority dataspaceDidAuthority;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+    @MockitoSpyBean
+    private DsParticipantRepository dsParticipantRepository;
 
     private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -131,6 +160,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private static final String CERT_NEW_OWNER_HASH = "cert-new-owner";
     private static final String KEY_AUTH_ID = "key-auth";
     private static final String CERT_AUTH_HASH = "cert-auth";
+    private static final long SYSTEM_ROW_ID = 9002L;
+    private static final String SYSTEM_DID = "did:web:ss.example.test%3A7183:system";
+    private static final String DSP_BASE_URL = "https://ss.example.test:7181/dsp";
     private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
             TestUtils.MEMBER_CLASS_PRO);
 
@@ -510,6 +542,101 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             verify(globalConfProvider).verifyValidity();
             verifyNoMoreInteractions(globalConfProvider);
         }
+    }
+
+    @Test
+    public void submittedSystemValuesBecomePublishedWhenGlobalConfCarriesThem() {
+        insertSystemRow(PublicationState.SUBMITTED);
+        carrySystemValues(SYSTEM_DID, DSP_BASE_URL);
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(PublicationState.PUBLISHED.name(), systemPublicationState());
+    }
+
+    @Test
+    public void submittedSystemValuesStaySubmittedWhenGlobalConfCarriesDifferentValues() {
+        insertSystemRow(PublicationState.SUBMITTED);
+        carrySystemValues(SYSTEM_DID, "https://old.example.test:7181/dsp");
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(PublicationState.SUBMITTED.name(), systemPublicationState());
+    }
+
+    @Test
+    public void submittedSystemValuesStaySubmittedOnSecondary() {
+        insertSystemRow(PublicationState.SUBMITTED);
+        carrySystemValues(SYSTEM_DID, DSP_BASE_URL);
+
+        try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
+            nodePropertiesMock.when(NodeProperties::getServerNodeType).thenReturn(SECONDARY);
+            globalConfChecker.checkGlobalConf();
+        }
+
+        assertEquals(PublicationState.SUBMITTED.name(), systemPublicationState());
+    }
+
+    @Test
+    public void submittedSystemValuesStaySubmittedDuringBackupRestore() {
+        insertSystemRow(PublicationState.SUBMITTED);
+        carrySystemValues(SYSTEM_DID, DSP_BASE_URL);
+
+        eventPublisher.publishEvent(BackupRestoreEvent.START);
+        try {
+            globalConfChecker.checkGlobalConf();
+            assertEquals(PublicationState.SUBMITTED.name(), systemPublicationState());
+        } finally {
+            eventPublisher.publishEvent(BackupRestoreEvent.END);
+        }
+
+        globalConfChecker.checkGlobalConf();
+        assertEquals(PublicationState.PUBLISHED.name(), systemPublicationState());
+    }
+
+    @Test
+    public void aFailingPublicationStepDoesNotMarkTheGlobalConfCheckTransactionRollbackOnly() {
+        ClientEntity subsystem = clientService.getLocalClientEntity(SUBSYSTEM);
+        when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
+        doThrow(new IllegalStateException("database unavailable")).when(dsParticipantRepository)
+                .findActiveSystemParticipant();
+
+        globalConfChecker.checkGlobalConf();
+
+        assertEquals(Client.STATUS_GLOBALERR, subsystem.getClientStatus());
+        var holder = (EntityManagerHolder) TransactionSynchronizationManager.getResource(entityManagerFactory);
+        assertFalse(holder.getEntityManager().getTransaction().getRollbackOnly());
+    }
+
+    @After
+    public void deleteSystemRow() {
+        if (TestTransaction.isActive()) {
+            TestTransaction.flagForRollback();
+            TestTransaction.end();
+        }
+        inNewTransaction(() -> jdbcTemplate.update("DELETE FROM ds_participant WHERE id = ?", SYSTEM_ROW_ID));
+    }
+
+    private void insertSystemRow(PublicationState state) {
+        inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
+                + " (id, participant_type, ctx_id, did, scheme_version, state, publication_state, created_at, updated_at)"
+                + " VALUES (?, 'SYSTEM', 'system', ?, 'v1', 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                SYSTEM_ROW_ID, SYSTEM_DID, state.name()));
+    }
+
+    private void inNewTransaction(Runnable work) {
+        new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(PROPAGATION_REQUIRES_NEW))
+                .executeWithoutResult(_ -> work.run());
+    }
+
+    private void carrySystemValues(String did, String dspBaseUrl) {
+        when(dataspaceDidAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
+        when(globalConfProvider.getServerSystemValues(SS_ID)).thenReturn(Optional.of(new ServerSystemValues(did, dspBaseUrl)));
+    }
+
+    private String systemPublicationState() {
+        return jdbcTemplate.queryForObject(
+                "SELECT publication_state FROM ds_participant WHERE participant_type = 'SYSTEM'", String.class);
     }
 
 }

@@ -128,6 +128,21 @@ public class DsParticipantDAOImplTest {
     }
 
     @Test
+    public void findActiveSystemParticipantReturnsAnActiveRow() {
+        Optional<DsParticipantEntity> loaded = inRolledBackTransactionWithSystemRow(ParticipantState.ACTIVE);
+
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantType.SYSTEM, loaded.get().getParticipantType());
+    }
+
+    @Test
+    public void findActiveSystemParticipantIsEmptyForADecommissionedRow() {
+        Optional<DsParticipantEntity> loaded = inRolledBackTransactionWithSystemRow(ParticipantState.DECOMMISSIONED);
+
+        assertFalse(loaded.isPresent());
+    }
+
+    @Test
     public void findByMemberIdentifierIsEmptyForUnprovisionedMember() {
         ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-unprovisioned");
 
@@ -434,6 +449,22 @@ public class DsParticipantDAOImplTest {
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
+    }
+
+    private Optional<DsParticipantEntity> inRolledBackTransactionWithSystemRow(ParticipantState state) {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            session.createMutationQuery("delete from DsParticipantEntity where participantType = :type")
+                    .setParameter("type", ParticipantType.SYSTEM)
+                    .executeUpdate();
+            DsParticipantEntity participant = systemParticipant();
+            participant.setState(state);
+            dao.save(session, participant);
+            session.flush();
+            return dao.findActiveSystemParticipant(session);
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
     }
 
     private void ensureSystemParticipant() {

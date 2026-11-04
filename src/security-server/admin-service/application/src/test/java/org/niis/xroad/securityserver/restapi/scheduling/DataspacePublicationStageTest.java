@@ -101,7 +101,8 @@ class DataspacePublicationStageTest {
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(AUTH_CERT));
         when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
-        when(dsParticipantRepository.findSystemParticipant()).thenAnswer(_ -> Optional.of(systemRow));
+        when(dsParticipantRepository.findActiveSystemParticipant())
+                .thenAnswer(_ -> Optional.of(systemRow).filter(row -> row.getState() == ParticipantState.ACTIVE));
         when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any())).thenReturn(true);
         when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
                 .thenReturn(SystemDidRegistrationSendOutcome.stored(1));
@@ -231,7 +232,7 @@ class DataspacePublicationStageTest {
 
     @Test
     void sendsNothingWithoutASystemRow() {
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.empty());
 
         runPass();
 

@@ -109,7 +109,7 @@ class DataspacePublicationStageSecurityTest {
             when(context.getBean(DataspaceReadinessPredicates.class).registeredAuthCertBytes())
                     .thenReturn(Optional.of(new byte[] {1}));
             when(context.getBean(DataspaceDidAuthority.class).dspBaseUrlIfValid()).thenReturn(Optional.of("https://test/dsp"));
-            when(context.getBean(DsParticipantRepository.class).findSystemParticipant()).thenReturn(Optional.of(systemRow));
+            when(context.getBean(DsParticipantRepository.class).findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
 
             context.getBean(DataspacePublicationStage.class).publish(Set.of(SYSTEM_CONTEXT));
 

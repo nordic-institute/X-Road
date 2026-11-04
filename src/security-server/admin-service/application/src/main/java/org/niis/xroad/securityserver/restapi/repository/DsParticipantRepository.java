@@ -113,6 +113,15 @@ public class DsParticipantRepository {
     }
 
     /**
+     * Finds the Security Server's SYSTEM participant row if it is active.
+     *
+     * @return the active SYSTEM row, empty when none exists or the row is decommissioned
+     */
+    public Optional<DsParticipantEntity> findActiveSystemParticipant() {
+        return dsParticipantDAO.findActiveSystemParticipant(persistenceUtils.getCurrentSession());
+    }
+
+    /**
      * Moves a row's publication state from {@code expected} to {@code next} only if the row is still in
      * the expected state; a row with no publication state counts as {@code NOT_SENT}.
      *

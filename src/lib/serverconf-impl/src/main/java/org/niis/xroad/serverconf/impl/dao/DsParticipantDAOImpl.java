@@ -84,6 +84,16 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
     }
 
     /**
+     * Finds the Security Server's SYSTEM participant row if it is {@link ParticipantState#ACTIVE}.
+     *
+     * @param session the Hibernate session
+     * @return the active SYSTEM row, empty when none exists or the row is decommissioned
+     */
+    public Optional<DsParticipantEntity> findActiveSystemParticipant(Session session) {
+        return findSystemParticipant(session).filter(row -> row.getState() == ParticipantState.ACTIVE);
+    }
+
+    /**
      * Flips the member's bound participant row to {@link ParticipantState#DECOMMISSIONED}, whatever
      * its current state — a no-op if it already is. Does nothing when the member has no bound row:
      * every bound member is provisioned with an {@code ACTIVE} row up front, so a missing row means

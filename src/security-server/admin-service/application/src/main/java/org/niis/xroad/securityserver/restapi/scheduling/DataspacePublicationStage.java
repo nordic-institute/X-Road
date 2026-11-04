@@ -39,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifier;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -54,7 +53,8 @@ import java.util.Set;
  *
  * <p>A value is sent only when the data space is ready, the authentication certificate registration is
  * approved, the registered address is known and the SYSTEM binding is bound, provisioned and not sent.
- * Values already submitted, published or rejected are never sent again.
+ * Values already submitted or rejected are not sent again. A published value that globalconf loses is moved
+ * back to not sent by the globalconf check and sent again.
  */
 @Slf4j
 @Component
@@ -110,8 +110,7 @@ public class DataspacePublicationStage {
     }
 
     private Optional<DsParticipantEntity> notSentSystemRow() {
-        return dsParticipantRepository.findSystemParticipant()
-                .filter(row -> row.getState() == ParticipantState.ACTIVE)
+        return dsParticipantRepository.findActiveSystemParticipant()
                 .filter(row -> row.getPublicationState() == null || row.getPublicationState() == PublicationState.NOT_SENT);
     }
 
