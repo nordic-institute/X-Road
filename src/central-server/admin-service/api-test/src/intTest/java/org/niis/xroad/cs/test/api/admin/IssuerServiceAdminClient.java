@@ -53,4 +53,10 @@ public class IssuerServiceAdminClient {
                 .put("/issuer-service/host")
                 .then();
     }
+
+    public ValidatableResponse startSetUp() {
+        return session.given()
+                .post("/issuer-service/set-up")
+                .then();
+    }
 }

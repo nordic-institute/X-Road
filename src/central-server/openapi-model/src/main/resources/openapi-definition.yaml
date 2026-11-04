@@ -3523,6 +3523,30 @@ paths:
       summary: set the Issuer Service host
       tags:
         - issuer-service
+  /issuer-service/set-up:
+    post:
+      description:
+        <h3>Administrator starts the one-time Issuer Service set-up.</h3>
+        <p>
+        Runs the set-up prerequisite checks and answers at once. Either accepted, with the run
+        continuing in the background, or refused with the first failing cause (issuer already set up,
+        host not set, or connector TLS certificate missing, expired or not valid for the issuer host).
+        </p>
+      operationId: startIssuerServiceSetUp
+      responses:
+        '202':
+          description: set-up accepted; the run continues in the background
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: start the Issuer Service set-up
+      tags:
+        - issuer-service
   /openapi.yaml:
     get:
       tags:

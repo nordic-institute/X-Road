@@ -27,8 +27,12 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
+import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpService;
 import org.niis.xroad.cs.openapi.IssuerServiceApi;
 import org.niis.xroad.cs.openapi.model.IssuerServiceHostDto;
 import org.niis.xroad.cs.openapi.model.IssuerServiceStateDto;
@@ -49,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class IssuerServiceApiController implements IssuerServiceApi {
 
     private final IssuerHostService issuerHostService;
+    private final IssuerSetUpService issuerSetUpService;
     private final AuditDataHelper auditDataHelper;
 
     @Override
@@ -64,6 +69,24 @@ public class IssuerServiceApiController implements IssuerServiceApi {
         auditDataHelper.put(RestApiAuditProperty.ISSUER_SERVICE_HOST, issuerServiceHost.getHost());
         var state = issuerHostService.setHost(issuerServiceHost.getHost());
         return ResponseEntity.ok(toDto(state));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SET_UP_ISSUER_SERVICE')")
+    @AuditEventMethod(event = RestApiAuditEvent.START_ISSUER_SERVICE_SET_UP)
+    public ResponseEntity<Void> startIssuerServiceSetUp() {
+        return switch (issuerSetUpService.start()) {
+            case IssuerSetUpResult.Accepted ignored -> ResponseEntity.accepted().build();
+            case IssuerSetUpResult.Refused(var cause) -> throw refusalException(cause);
+        };
+    }
+
+    private static ConflictException refusalException(IssuerSetUpResult.Cause cause) {
+        return switch (cause) {
+            case ALREADY_SET_UP -> new ConflictException(ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND.build());
+            case HOST_NOT_SET -> new ConflictException(ErrorMessage.ISSUER_SERVICE_HOST_NOT_SET.build());
+            case CERTIFICATE_NOT_READY -> new ConflictException(ErrorMessage.ISSUER_SERVICE_CERTIFICATE_NOT_READY.build());
+        };
     }
 
     private static IssuerServiceStateDto toDto(IssuerHostState state) {

@@ -32,12 +32,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
+import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpService;
 import org.niis.xroad.cs.openapi.model.IssuerServiceHostDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.springframework.http.HttpStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,6 +54,8 @@ class IssuerServiceApiControllerTest {
 
     @Mock
     private IssuerHostService issuerHostService;
+    @Mock
+    private IssuerSetUpService issuerSetUpService;
     @Mock
     private AuditDataHelper auditDataHelper;
 
@@ -107,5 +113,44 @@ class IssuerServiceApiControllerTest {
 
         verify(auditDataHelper).put(RestApiAuditProperty.ISSUER_SERVICE_HOST, "not a valid host");
         verifyNoMoreInteractions(auditDataHelper);
+    }
+
+    @Test
+    void startIssuerServiceSetUpReturnsAcceptedWhenTheServiceAccepts() {
+        when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Accepted());
+
+        var response = issuerServiceApiController.startIssuerServiceSetUp();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+    }
+
+    @Test
+    void startIssuerServiceSetUpPropagatesTheAlreadySetUpCauseAsConflict() {
+        when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP));
+
+        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND.code()));
+    }
+
+    @Test
+    void startIssuerServiceSetUpPropagatesTheHostNotSetCauseAsConflict() {
+        when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.HOST_NOT_SET));
+
+        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.ISSUER_SERVICE_HOST_NOT_SET.code()));
+    }
+
+    @Test
+    void startIssuerServiceSetUpPropagatesTheCertificateNotReadyCauseAsConflict() {
+        when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY));
+
+        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.ISSUER_SERVICE_CERTIFICATE_NOT_READY.code()));
     }
 }

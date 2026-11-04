@@ -35,6 +35,7 @@ import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.IssuerServiceAdminClient;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -131,6 +132,42 @@ class IssuerServiceApiTest extends CsApiTest {
                         .body("host", equalTo(hostBeforeRejection)));
     }
 
+    @Test
+    @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ_WRITE)
+    void startingSetUpIsRefusedWhenTheHostIsUnset(CsBaselineSeeder seeder) {
+        var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
+
+        var stateBeforeClear = given("the current issuer service state", () ->
+                issuerService.getIssuerServiceState()
+                        .statusCode(200)
+                        .extract().jsonPath());
+
+        // The host can never be unset again once bound, so on a warm stack already bound by an earlier
+        // run the host-unset path can no longer be produced.
+        assumeFalse(stateBeforeClear.getBoolean("bound"), "the issuer is already bound; the host-unset path cannot be produced");
+
+        var host = stateBeforeClear.getString("host");
+        when("the issuer service host is cleared", seeder::clearIssuerServiceHost);
+        try {
+            then("set-up is refused because the host is unset", () ->
+                    issuerService.startSetUp()
+                            .statusCode(409)
+                            .body("error.code", equalTo("issuer_service_host_not_set")));
+        } finally {
+            issuerService.setIssuerServiceHost(host).statusCode(200);
+        }
+    }
+
+    @Test
+    @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ)
+    void startingSetUpIsForbiddenWithoutThePermission(CsBaselineSeeder seeder) {
+        var issuerService = new IssuerServiceAdminClient(seeder.newManagementServiceOnlySession());
+
+        then("starting set-up is forbidden", () ->
+                issuerService.startSetUp()
+                        .statusCode(403));
+    }
+
     /**
      * Runs in the destructive phase: binding is permanent, and there is no API to undo it. The issuer
      * identity is bound here by inserting an {@code issuer_dids} row directly, because this stack has no
@@ -140,6 +177,7 @@ class IssuerServiceApiTest extends CsApiTest {
      */
     @Test
     @Tag("destructive")
+    @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ_WRITE)
     void aHostChangeIsRefusedOnceTheIssuerIdentityIsBound(CsBaselineSeeder seeder) {
         var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
 

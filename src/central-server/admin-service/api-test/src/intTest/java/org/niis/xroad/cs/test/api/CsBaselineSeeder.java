@@ -319,6 +319,28 @@ public class CsBaselineSeeder {
     }
 
     /**
+     * Deletes the stored Issuer Service host row directly, reproducing the "host unset" state of a
+     * fresh install. This stack's baseline seeding always sets a host before any test runs, and there
+     * is no API to unset it, so the caller is responsible for restoring the host afterwards through the
+     * admin API.
+     */
+    public void clearIssuerServiceHost() {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("DELETE FROM centerui.system_parameters WHERE key = ?")) {
+            stmt.setString(1, "issuerServiceHost");
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to clear the Issuer Service host from the CS DB", e);
+        }
+    }
+
+    /**
      * Seeds the bootstrap API key, initialises the CS if needed, and verifies the stack is reachable.
      * Called once per JVM before any test starts. All HTTP here is silent (no Allure attachment).
      */
