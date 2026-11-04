@@ -197,6 +197,18 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
+**TLS certificate names.** The installation does not ask for the names of the admin and management service TLS certificates. Each node's certificates carry its own host name: the common name is the fully qualified host name (the short host name when the fully qualified name is longer than 64 characters), the DNS alternative names are the fully qualified and the short host name, and the IP alternative names are the node's global-scope addresses (loopback and link-local addresses are left out).
+
+To use one shared name instead, for example a load balancer name, set the following keys in the shared configuration database. A row applies to all nodes. Use `xroad.management-service.tls.certificate-provisioning.*` for the management service certificate:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.admin-service.tls.certificate-provisioning.common-name cs.example.org --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.admin-service.tls.certificate-provisioning.alt-names cs.example.org --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names "" --yes
+```
+
+The detected host name can be wrong behind NAT or in some cloud setups; the shared row is the way to correct it.
+
 ## 5 Monitoring HA State on a Node
 
 It is possible to get HA status via a web interface, for example using curl:

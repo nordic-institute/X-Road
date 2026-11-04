@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.HostIdentity;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
@@ -46,6 +47,8 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     private static final Prefix MANAGEMENT = Prefix.of(Category.MANAGEMENT_SERVICE, "xroad.management-service");
     private static final Prefix TLS_CERT_PROVISIONING = MANAGEMENT.subPrefix("tls").subPrefix("certificate-provisioning");
     private static final Prefix HTTP_CLIENT = MANAGEMENT.subPrefix("http-client-properties");
+
+    private static final HostIdentity HOST = HostIdentity.local();
 
     private static final CsManagementServiceConfigKeys INSTANCE = new CsManagementServiceConfigKeys();
 
@@ -133,17 +136,17 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.management-service.tls.certificate-provisioning.common-name}. */
     public static final ConfigKey<String> TLS_CERT_PROVISIONING_COMMON_NAME = TLS_CERT_PROVISIONING
             .string("common-name")
-            .withDefaultValue(xroadHost("localhost"))
+            .withDefaultValue(xroadHost(HOST.commonName()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("alt-names")
-            .withDefaultValue("")
+            .withDefaultValue(String.join(",", HOST.dnsNames()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(String.join(",", HOST.ipAddresses()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.ttl}. */
     public static final ConfigKey<Duration> TLS_CERT_PROVISIONING_TTL = TLS_CERT_PROVISIONING

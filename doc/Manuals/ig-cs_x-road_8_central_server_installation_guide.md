@@ -201,22 +201,22 @@ Upon the first installation of the Central Server software, the system asks for 
 
 - Whether the database migrations should be skipped and handled manually instead. Usually automatic migrations should be used, but for legacy database support (like BDR1) it's possible to rely on manual operations instead. How to execute the database migrations manually is described in [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually).
 
-- The Common Name of the owner of the user interface self-signed TLS certificate (subjectDN attribute) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.8; 1.10). The name and IP addresses detected from the operating system are suggested as default values. 
-
-  The certificate owner’s Common Name must be entered in the format: `server.domain.tld`. 
-  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
-
-- Common name for the TLS certificate that is used for securing the HTTPS access point used for providing management services (reference data: 1.8; 1.11). The name and IP addresses detected from the operating system are suggested as default values.
-
-  ATTENTION: The Central Server IP address or DNS name that Security Servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.9).
-
-  The certificate owner’s Common Name must be entered in the format: `server.domain.tld`
-  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
-
 - Identification of the TLS certificate that is used for securing the HTTPS access point used for global configuration distribution (reference data: 1.8; 1.12). The name and IP addresses detected from the operating system are suggested as default values.
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+The installation does not ask for the names of the user interface and management services TLS certificates (reference data: 1.10; 1.11). Their names come from the host: the common name is the fully qualified host name (the short host name when the fully qualified name is longer than 64 characters), the DNS alternative names are the fully qualified and the short host name, and the IP alternative names are the server's global-scope addresses (loopback and link-local addresses are left out).
+
+ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, set the management services certificate names in the configuration database:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs.example.org --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs.example.org --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names 203.0.113.10 --yes
+```
+
+Use the `xroad.admin-service.tls.certificate-provisioning.*` keys for the user interface certificate.
 
 #### 2.6.1 Configuring TLS Certificates for global configuration distribution
 
