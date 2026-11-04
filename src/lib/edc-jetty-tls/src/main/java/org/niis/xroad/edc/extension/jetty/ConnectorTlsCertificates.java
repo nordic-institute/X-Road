@@ -84,16 +84,24 @@ final class ConnectorTlsCertificates {
     static String fingerprintOrUnknown(KeyStore keyStore) {
         try {
             return keyStore.getCertificate(InternalSSLKey.KEY_ALIAS) instanceof X509Certificate certificate
-                    ? calculateCertHexHashOrThrow(certificate)
+                    ? hashOrUnknown(certificate)
                     : UNKNOWN;
-        } catch (GeneralSecurityException | XrdRuntimeException _) {
+        } catch (GeneralSecurityException _) {
             return UNKNOWN;
         }
     }
 
     static String describe(X509Certificate certificate) {
         return "%s (SAN %s, SHA-256 %s, expires %s)".formatted(certificate.getSubjectX500Principal().getName(),
-                subjectAlternativeNames(certificate), calculateCertHexHashOrThrow(certificate), certificate.getNotAfter().toInstant());
+                subjectAlternativeNames(certificate), hashOrUnknown(certificate), certificate.getNotAfter().toInstant());
+    }
+
+    private static String hashOrUnknown(X509Certificate certificate) {
+        try {
+            return calculateCertHexHashOrThrow(certificate);
+        } catch (XrdRuntimeException _) {
+            return UNKNOWN;
+        }
     }
 
     private static String subjectAlternativeNames(X509Certificate certificate) {
@@ -108,16 +116,21 @@ final class ConnectorTlsCertificates {
         }
     }
 
-    private static boolean keyMatches(PrivateKey privateKey, PublicKey publicKey) throws GeneralSecurityException {
-        var algorithm = signatureAlgorithm(privateKey);
-        if (algorithm == null) {
-            return true;
-        }
-        var signer = Signature.getInstance(algorithm);
-        signer.initSign(privateKey);
-        signer.update(PROBE);
-        var signature = signer.sign();
+    private static boolean keyMatches(PrivateKey privateKey, PublicKey publicKey) {
+        return switch (privateKey.getAlgorithm()) {
+            case "RSA" -> signsAndVerifies("SHA256withRSA", privateKey, publicKey);
+            case "EC" -> signsAndVerifies("SHA256withECDSA", privateKey, publicKey);
+            case "Ed25519", "EdDSA" -> signsAndVerifies("EdDSA", privateKey, publicKey);
+            default -> true;
+        };
+    }
+
+    private static boolean signsAndVerifies(String algorithm, PrivateKey privateKey, PublicKey publicKey) {
         try {
+            var signer = Signature.getInstance(algorithm);
+            signer.initSign(privateKey);
+            signer.update(PROBE);
+            var signature = signer.sign();
             var verifier = Signature.getInstance(algorithm);
             verifier.initVerify(publicKey);
             verifier.update(PROBE);
@@ -125,13 +138,5 @@ final class ConnectorTlsCertificates {
         } catch (GeneralSecurityException _) {
             return false;
         }
-    }
-
-    private static String signatureAlgorithm(PrivateKey privateKey) {
-        return switch (privateKey.getAlgorithm()) {
-            case "RSA" -> "SHA256withRSA";
-            case "EC" -> "SHA256withECDSA";
-            default -> null;
-        };
     }
 }
