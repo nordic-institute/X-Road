@@ -3090,7 +3090,7 @@ Both CAs are stored in the secret store (OpenBao).
 
 #### 15.2.7 Trust Settings of the Operational Monitoring Connection
 
-This section explains how the Security Server decides whom to trust on the connection to the operational monitoring daemon, and how to configure the trust in each deployment mode. For installing and configuring an external operational monitoring daemon, see sections [15.2.4](#1524-installing-an-external-operational-monitoring-daemon) and [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server).
+This section explains how the Security Server decides whom to trust on the connection to the operational monitoring daemon, and how to configure the trust in each deployment mode. For installing an external operational monitoring daemon, see section [15.2.4](#1524-installing-an-external-operational-monitoring-daemon).
 
 **How the trust is chosen**
 
@@ -3112,7 +3112,15 @@ The certificate of the operational monitoring daemon must contain the exact host
 - If the host is a name, the certificate needs a DNS subject alternative name.
 - If the host is an IP address, the certificate needs an IP subject alternative name.
 
-By default the host and the IP subject alternative name are *127.0.0.1*. In container deployments the default host is `op-monitor`. How to give the certificate of a daemon on another host the right names is part of the external daemon procedure in section [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server).
+By default the host and the IP subject alternative name are *127.0.0.1*. In container deployments the default host is `op-monitor`.
+
+When the certificate of the daemon is issued by the secret store (OpenBao) of the Security Server, its names come from these parameters:
+
+- `xroad.common-rpc.certificate-provisioning.alt-names` – DNS subject alternative names, comma-separated (by default empty).
+- `xroad.common-rpc.certificate-provisioning.ip-subject-alt-names` – IP subject alternative names, comma-separated (by default *127.0.0.1*). A value you set replaces the default. In a package installation, keep *127.0.0.1* in the list; the other internal gRPC connections use it.
+- `xroad.common-rpc.certificate-provisioning.common-name` – common name of the certificate (by default the value of the environment variable `XROAD_HOST`, or *localhost* when it is not set).
+
+All internal gRPC components of the Security Server use these parameters, so a change applies to the certificates of all of them. The parameters are not shown in the System Parameters view. Set them with the script `/usr/share/xroad/scripts/db_property.sh` or, in the Helm chart, with the `configSeed.properties` value. The values are read when a component starts. After a change, restart the operational monitoring daemon so that it requests a certificate with the new names. Other components use the new names after their own next restart.
 
 **The allowed client names**
 
