@@ -14,7 +14,7 @@ Doc ID: UG-OPMONSYSPAR
 | 01.06.2023 | 0.6     | Update references                                                                                                       | Petteri Kivimäki   |
 | 10.07.2025 | 0.7     | Added grpc related properties                                                                                           | Mikk-Erik Bachmann |
 | 19.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
-| 03.11.2026 | 0.9     | Added trust settings of the operational monitoring connection                                                           | Eneli Reimets      |
+| 04.11.2026 | 0.9     | Added trust settings of the operational monitoring connection                                                           | Eneli Reimets      |
 
 ## Table of Contents
 

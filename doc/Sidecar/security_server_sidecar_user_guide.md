@@ -37,7 +37,7 @@ Doc. ID: UG-SS-SIDECAR
 | 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
 | 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
 | 14.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
-| 03.11.2026 | 1.30    | Link the operational monitoring connection trust settings | Eneli Reimets             |
+| 04.11.2026 | 1.30    | Link the operational monitoring connection trust settings | Eneli Reimets             |
 
 ## License
 
