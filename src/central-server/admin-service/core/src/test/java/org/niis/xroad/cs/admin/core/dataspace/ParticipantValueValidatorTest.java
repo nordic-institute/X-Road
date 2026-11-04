@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 
 import java.util.Optional;
 import java.util.Set;
@@ -117,7 +118,7 @@ class ParticipantValueValidatorTest {
 
     @Test
     void shouldCheckDidLengthCap() {
-        var code = "a".repeat(ParticipantValueValidator.MAX_DID_LENGTH - MEMBER_DID_PREFIX.length());
+        var code = "a".repeat(ParticipantIdentifierScheme.MAX_DID_LENGTH - MEMBER_DID_PREFIX.length());
         var atCap = new ParticipantValueValidator(new RegisteredServer(ADDRESS, OWNER, Set.of(member(code))));
         var didAtCap = MEMBER_DID_PREFIX + code;
         var didOverCap = didAtCap + "a";
