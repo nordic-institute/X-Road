@@ -86,7 +86,11 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
     }
 
     void reload() {
-        Duration nextDelay;
+        var nextDelay = loadKeyMaterial();
+        scheduler.schedule(this::reload, nextDelay.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private Duration loadKeyMaterial() {
         try {
             var startTime = System.currentTimeMillis();
             var result = vaultKeyClient.provisionNewCerts();
@@ -98,16 +102,17 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
             trustManager.updateTrustCredentials(result.trustCerts());
 
             consecutiveFailures = 0;
-            nextDelay = certificateProvisionProperties.refreshInterval();
+            var delay = certificateProvisionProperties.refreshInterval();
             log.info("Reloadable vault key manager loaded key material in {} ms, next reload in {}",
-                    System.currentTimeMillis() - startTime, nextDelay);
+                    System.currentTimeMillis() - startTime, delay);
+            return delay;
         } catch (Throwable e) {
             consecutiveFailures++;
-            nextDelay = Duration.ofMillis(failureBackoff.apply(consecutiveFailures));
+            var delay = Duration.ofMillis(failureBackoff.apply(consecutiveFailures));
             log.error("Failed to load key material from secret store (consecutive failures: {}), next attempt in {}",
-                    consecutiveFailures, nextDelay, e);
+                    consecutiveFailures, delay, e);
+            return delay;
         }
-        scheduler.schedule(this::reload, nextDelay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
