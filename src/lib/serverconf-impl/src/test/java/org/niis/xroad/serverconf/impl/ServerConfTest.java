@@ -356,6 +356,30 @@ public class ServerConfTest {
     }
 
     /**
+     * Tests the exact local-group membership check the ServerProxy uses for group tokens: the subsystem must
+     * be the group's member, as in the legacy ACL, and a member-level identity does not match.
+     */
+    @Test
+    public void isExactLocalGroupMember() {
+        ClientId owner = createTestClientId(client(1));
+        LocalGroupId groupId = LocalGroupId.Conf.create(CROSS_SS_GROUP_CODE);
+
+        ClientId groupMember = ClientId.Conf.create(
+                XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE, CROSS_SS_SUBSYSTEM_CODE);
+        ClientId sameMemberOtherSubsystem = ClientId.Conf.create(
+                XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE, "otherSubsystem");
+        ClientId memberLevel = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE);
+
+        assertTrue(serverConfProvider.isExactLocalGroupMember(owner, groupId, groupMember));
+        assertFalse(serverConfProvider.isExactLocalGroupMember(owner, groupId, sameMemberOtherSubsystem));
+        assertFalse(serverConfProvider.isExactLocalGroupMember(owner, groupId, memberLevel));
+        assertFalse(serverConfProvider.isExactLocalGroupMember(
+                createTestClientId(CLIENT_CODE + "Unknown"), groupId, groupMember));
+        assertFalse(serverConfProvider.isExactLocalGroupMember(
+                owner, LocalGroupId.Conf.create("noSuchGroup"), groupMember));
+    }
+
+    /**
      * Tests getting the ACL endpoint entries a client holds for a service — the same entries
      * {@link #isQueryAllowed()} matches a request against.
      */

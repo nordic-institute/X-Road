@@ -26,10 +26,25 @@
 
 package org.niis.xroad.e2e.parity.acl;
 
-/** How the consumer Security Server decides to call: the value of the {@code e2e.acl-mode} Gradle property. */
+/** How the Security Servers decide to call: the value of the {@code e2e.acl-mode} Gradle property. */
 public enum AclMode {
     /** Outgoing calls skip data space negotiation, so the provider decides by its access rights alone. */
     LEGACY,
-    /** Outgoing calls negotiate through the data space protocol; the scenarios keep their legacy verdicts. */
-    DSP
+    /** Outgoing calls negotiate through the data space protocol; the scenarios use their data space expectations. */
+    DSP,
+    /**
+     * As {@link #DSP}, and once the subsystem pool is registered the provider also refuses X-Road 7 style calls
+     * that carry no valid agreement token.
+     */
+    DSP_REFUSAL;
+
+    /** The mode the consumer Security Server itself runs in: negotiating, or not. */
+    public AclMode consumerMode() {
+        return this == LEGACY ? LEGACY : DSP;
+    }
+
+    /** Whether the provider Security Server refuses X-Road 7 style calls. */
+    public boolean refusesLegacyCalls() {
+        return this == DSP_REFUSAL;
+    }
 }

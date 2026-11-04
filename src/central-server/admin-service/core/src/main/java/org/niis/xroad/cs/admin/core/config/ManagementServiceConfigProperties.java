@@ -30,8 +30,8 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 
 /**
- * Admin-service management-request auto-approval toggles ({@code xroad.admin-service.management-requests.*}),
- * resolved through {@link XRoadConfig}.
+ * Admin-service management-request settings ({@code xroad.admin-service.management-requests.*}):
+ * auto-approval toggles and the member DID registration entry cap, resolved through {@link XRoadConfig}.
  */
 public class ManagementServiceConfigProperties {
 
@@ -51,5 +51,9 @@ public class ManagementServiceConfigProperties {
 
     public boolean isAutoApproveOwnerChangeRequests() {
         return config.value(CsAdminServiceConfigKeys.MANAGEMENT_REQUESTS_AUTO_APPROVE_OWNER_CHANGE_REQUESTS);
+    }
+
+    public int getMemberDidRegMaxEntries() {
+        return config.value(CsAdminServiceConfigKeys.MANAGEMENT_REQUESTS_MEMBER_DID_REG_MAX_ENTRIES);
     }
 }

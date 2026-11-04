@@ -37,6 +37,7 @@ import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
 import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.SystemDidRegistrationRequestDto;
 import org.springframework.security.access.PermissionEvaluator;
@@ -81,6 +82,7 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
             case OWNER_CHANGE_REQUEST -> OwnerChangeRequestDto.class;
             case ADDRESS_CHANGE_REQUEST -> AddressChangeRequestDto.class;
             case SYSTEM_DID_REGISTRATION_REQUEST -> SystemDidRegistrationRequestDto.class;
+            case MEMBER_DID_REGISTRATION_REQUEST -> MemberDidRegistrationRequestDto.class;
             case MAINTENANCE_MODE_ENABLE_REQUEST -> MaintenanceModeEnableRequestDto.class;
             case MAINTENANCE_MODE_DISABLE_REQUEST -> MaintenanceModeDisableRequestDto.class;
         };

@@ -65,6 +65,15 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
         this(id, description, fixture, checks, waitClass, phases, null);
     }
 
+    /** The same row with every check expecting the verdict the given mode gives it. */
+    public AclScenario forMode(AclMode mode) {
+        return new AclScenario(id, description, fixture, checks.stream().map(check -> check.forMode(mode)).toList(),
+                waitClass,
+                phases.stream().map(phase -> new Phase(phase.changes(),
+                        phase.checks().stream().map(check -> check.forMode(mode)).toList())).toList(),
+                adminGrant);
+    }
+
     /** Changes made while the fixture is in place, applied in order, and the checks that follow them. */
     public record Phase(List<PhaseChange> changes, List<Check> checks) {
     }
@@ -123,26 +132,57 @@ public record AclScenario(String id, String description, FixtureSpec fixture, Li
     }
 
     /**
-     * A request and the verdict it has to reach. {@link Verdict#ERROR} and {@link Verdict#INTERNAL_ERROR} are not
-     * accepted as expectations, since a failed probe or an unmapped fault would satisfy them. A request whose
-     * reply carries its own expectation cannot expect {@link Verdict#ALLOWED} without a text the reply has to carry.
+     * A request and the verdict it has to reach. {@link Verdict#ERROR}, {@link Verdict#INTERNAL_ERROR},
+     * {@link Verdict#AGREEMENT_TOKEN_REJECTED} and {@link Verdict#CONSUMER_FAILED} are not accepted as
+     * expectations, since a failed probe or an unmapped fault would satisfy them. A request whose reply carries
+     * its own expectation cannot expect {@link Verdict#ALLOWED} without a text the reply has to carry.
      *
-     * @param notice text the reply has to carry besides the verdict, or {@code null} for none
+     * @param notice      text the reply has to carry besides the verdict, or {@code null} for none
+     * @param dspExpected the verdict the request has to reach when the consumer negotiates through the data space
+     *                    protocol, where that differs from {@code expected} on purpose, or {@code null} for the
+     *                    same verdict in every mode
      */
-    public record Check(RequestSpec request, Verdict expected, String notice) {
+    public record Check(RequestSpec request, Verdict expected, String notice, Verdict dspExpected) {
 
         public Check {
-            if (expected == Verdict.ERROR || expected == Verdict.INTERNAL_ERROR) {
-                throw new IllegalArgumentException("a check cannot expect " + expected);
-            }
-            if (expected == Verdict.ALLOWED && requiresNoText(request)) {
-                throw new IllegalArgumentException(
-                        "a check that expects ALLOWED needs a text the reply carries: " + request.describe());
+            requireExpectable(request, expected);
+            if (dspExpected != null) {
+                requireExpectable(request, dspExpected);
+                if (dspExpected == expected) {
+                    throw new IllegalArgumentException(
+                            "a DSP expectation equal to the legacy one carries no information: " + request.describe());
+                }
             }
         }
 
+        public Check(RequestSpec request, Verdict expected, String notice) {
+            this(request, expected, notice, null);
+        }
+
         public Check(RequestSpec request, Verdict expected) {
-            this(request, expected, null);
+            this(request, expected, null, null);
+        }
+
+        /** The same check that, when the consumer negotiates through the data space protocol, expects the verdict. */
+        public Check inDsp(Verdict verdict) {
+            return new Check(request, expected, notice, verdict);
+        }
+
+        /** The same check with the verdict the given mode expects and no mode-specific expectation left. */
+        public Check forMode(AclMode mode) {
+            var verdict = mode.consumerMode() == AclMode.DSP && dspExpected != null ? dspExpected : expected;
+            return new Check(request, verdict, notice, null);
+        }
+
+        private static void requireExpectable(RequestSpec request, Verdict verdict) {
+            if (verdict == Verdict.ERROR || verdict == Verdict.INTERNAL_ERROR
+                    || verdict == Verdict.AGREEMENT_TOKEN_REJECTED || verdict == Verdict.CONSUMER_FAILED) {
+                throw new IllegalArgumentException("a check cannot expect " + verdict);
+            }
+            if (verdict == Verdict.ALLOWED && requiresNoText(request)) {
+                throw new IllegalArgumentException(
+                        "a check that expects ALLOWED needs a text the reply carries: " + request.describe());
+            }
         }
 
         private static boolean requiresNoText(RequestSpec request) {

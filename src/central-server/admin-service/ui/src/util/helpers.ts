@@ -103,6 +103,8 @@ export function managementTypeToIconTextColor(type: ManagementRequestType | unde
       return mrIconColorText('managementRequests.renameClient', 'edit_square', 'info');
     case ManagementRequestType.SYSTEM_DID_REGISTRATION_REQUEST:
       return mrIconColorText('managementRequests.systemDidRegistration', 'badge', 'success');
+    case ManagementRequestType.MEMBER_DID_REGISTRATION_REQUEST:
+      return mrIconColorText('managementRequests.memberDidRegistration', 'groups', 'success');
     case ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST:
       return mrIconColorText('managementRequests.maintenanceModeEnable', 'build_circle', 'success');
     case ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST:

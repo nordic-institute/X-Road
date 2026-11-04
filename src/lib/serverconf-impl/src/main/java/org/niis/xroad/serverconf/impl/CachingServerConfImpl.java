@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import com.google.common.base.Ticker;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,7 @@ import org.niis.xroad.serverconf.model.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -83,28 +85,41 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider,
                                  VaultClient vaultClient, ServerConfCommonProperties serverConfProperties) {
+        this(serverConfDatabaseCtx, globalConfProvider, vaultClient, serverConfProperties, Ticker.systemTicker());
+    }
+
+    /**
+     * Same as the public constructor, with the time source that expires cache entries supplied by the caller.
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider,
+                          VaultClient vaultClient, ServerConfCommonProperties serverConfProperties, Ticker ticker) {
         super(serverConfDatabaseCtx, globalConfProvider, vaultClient);
 
         int expireSeconds = serverConfProperties.cachePeriod();
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .build();
 
         tspCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .build();
 
         clientCache = CacheBuilder.newBuilder()
                 .maximumSize(serverConfProperties.clientCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .recordStats()
                 .build();
 
         serviceCache = CacheBuilder.newBuilder()
                 .maximumSize(serverConfProperties.serviceCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .recordStats()
                 .build();
 
@@ -112,12 +127,14 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .weigher((AclCacheKey k, List<Endpoint> v) -> v.size() + 1)
                 .maximumWeight(serverConfProperties.aclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .recordStats()
                 .build();
 
         localGroupMemberCache = CacheBuilder.newBuilder()
                 .maximumSize(serverConfProperties.aclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .recordStats()
                 .build();
 
@@ -125,6 +142,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .weigher((ServiceId k, List<ee.ria.xroad.common.metadata.Endpoint> v) -> v.size() + 1)
                 .maximumWeight(serverConfProperties.serviceEndpointsCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .recordStats()
                 .build();
 
@@ -132,6 +150,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .weigher((ServiceId k, List<AccessRight> v) -> v.size() + 1)
                 .maximumWeight(serverConfProperties.aclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .ticker(ticker)
                 .recordStats()
                 .build();
     }
@@ -286,9 +305,19 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
     @Override
     public boolean isLocalGroupMember(ClientId ownerId, LocalGroupId localGroupId, ClientId memberId) {
-        final LocalGroupMemberCacheKey key = new LocalGroupMemberCacheKey(ownerId, localGroupId, memberId);
+        return cachedLocalGroupMember(new LocalGroupMemberCacheKey(ownerId, localGroupId, memberId, false),
+                () -> super.isLocalGroupMember(ownerId, localGroupId, memberId));
+    }
+
+    @Override
+    public boolean isExactLocalGroupMember(ClientId ownerId, LocalGroupId localGroupId, ClientId clientId) {
+        return cachedLocalGroupMember(new LocalGroupMemberCacheKey(ownerId, localGroupId, clientId, true),
+                () -> super.isExactLocalGroupMember(ownerId, localGroupId, clientId));
+    }
+
+    private boolean cachedLocalGroupMember(LocalGroupMemberCacheKey key, Callable<Boolean> loader) {
         try {
-            return localGroupMemberCache.get(key, () -> super.isLocalGroupMember(ownerId, localGroupId, memberId));
+            return localGroupMemberCache.get(key, loader);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof XrdRuntimeException) {
                 throw (XrdRuntimeException) e.getCause();
@@ -358,6 +387,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
     private record AclCacheKey(ClientId clientId, ServiceId serviceId) {
     }
 
-    private record LocalGroupMemberCacheKey(ClientId ownerId, LocalGroupId localGroupId, ClientId memberId) {
+    private record LocalGroupMemberCacheKey(ClientId ownerId, LocalGroupId localGroupId, ClientId memberId, boolean exact) {
     }
 }

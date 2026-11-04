@@ -10,3 +10,33 @@ xroad_host_fqdn: "{{ inventory_hostname }}.lxd"
 # name; empty when xroad_host_fqdn already equals inventory_hostname (perftest),
 # so alt-subject strings never carry a duplicate SAN.
 xroad_host_extra_dns_san: "{{ ',DNS:' + inventory_hostname if xroad_host_fqdn != inventory_hostname else '' }}"
+
+# HA node name written to /etc/xroad/conf.d/local.yaml (xroad.admin-service.ha-node-name)
+# before the package installs. Empty leaves local.yaml untouched.
+xroad_cs_ha_node_name: ""
+
+# Issuer Service host set through the admin API after the install.
+xroad_cs_issuer_host: "{{ groups['cs_servers'] | first }}"
+
+# DNS name of the cluster the node belongs to. When set, the preseeded certificate
+# subjects carry it among their DNS alternative names. Empty leaves them unchanged.
+xroad_cs_cluster_name: ""
+xroad_cs_cluster_dns_san: "{{ ',DNS:' + xroad_cs_cluster_name if xroad_cs_cluster_name | length > 0 else '' }}"
+
+# Password of the Central Server admin user, used to log in to the admin API after the install.
+# An inventory that sets it also gets the OS user's password hash derived from it (see the
+# Central Server install play in xroad_cs_cluster.yml).
+xroad_cs_admin_password: secret123!
+
+# True on a node whose package install is expected to stop at OpenBao database creation
+# (a second node on a shared database). The stop is reported and the rest of the set-up is skipped.
+xroad_cs_openbao_db_stop_expected: false
+
+# DNS name for the Issuer Service TLS certificate. When set, a key is generated through
+# the admin API and a certificate signed by a throwaway CA is uploaded, unless one exists.
+# Empty leaves the Issuer Service TLS enrolment to the operator.
+xroad_cs_ds_tls_san: ""
+
+# Hides the admin API tasks that carry the admin password, session cookie or XSRF token from
+# the Ansible output. Set to false to see retry diagnostics of the login.
+xroad_cs_admin_api_no_log: true

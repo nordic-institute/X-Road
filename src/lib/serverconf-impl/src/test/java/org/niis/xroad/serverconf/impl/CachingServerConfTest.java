@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import com.google.common.base.Ticker;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,9 +53,11 @@ import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -508,6 +511,54 @@ public class CachingServerConfTest {
             removeMemberFromCrossSsGroup(owner, nonMember);
             serverConfProvider.clearCache();
         }
+    }
+
+    /**
+     * A removed group member keeps passing the exact membership check until the cache entry expires, and
+     * fails on the first check after it does. The cache clock is controlled by the test.
+     */
+    @Test
+    public void exactLocalGroupMembershipChangeIsSeenOnceTheCacheEntryExpires() {
+        var clock = new AtomicLong();
+        Ticker ticker = new Ticker() {
+            @Override
+            public long read() {
+                return clock.get();
+            }
+        };
+        var expiring = new CachingServerConfImpl(DATABASE_CTX, new EmptyGlobalConf(), null, serverConfProperties, ticker);
+        ClientId owner = createTestClientId(client(1));
+        LocalGroupId groupId = LocalGroupId.Conf.create(CROSS_SS_GROUP_CODE);
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "expiringMember", CROSS_SS_SUBSYSTEM_CODE);
+
+        addMemberToCrossSsGroup(owner, member);
+        try {
+            assertTrue(expiring.isExactLocalGroupMember(owner, groupId, member));
+
+            removeMemberFromCrossSsGroup(owner, member);
+            clock.addAndGet(Duration.ofSeconds(serverConfProperties.cachePeriod() - 1).toNanos());
+            assertTrue(expiring.isExactLocalGroupMember(owner, groupId, member));
+
+            clock.addAndGet(Duration.ofSeconds(2).toNanos());
+            assertFalse(expiring.isExactLocalGroupMember(owner, groupId, member));
+        } finally {
+            removeMemberFromCrossSsGroup(owner, member);
+            serverConfProvider.clearCache();
+        }
+    }
+
+    /**
+     * The exact and the member-level membership answers are cached under separate keys, so one can never
+     * serve the other.
+     */
+    @Test
+    public void exactAndMemberLevelLocalGroupMembershipAreCachedSeparately() {
+        ClientId owner = createTestClientId(client(1));
+        LocalGroupId groupId = LocalGroupId.Conf.create(CROSS_SS_GROUP_CODE);
+        ClientId memberLevel = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, CROSS_SS_MEMBER_CODE);
+
+        assertTrue(serverConfProvider.isLocalGroupMember(owner, groupId, memberLevel));
+        assertFalse(serverConfProvider.isExactLocalGroupMember(owner, groupId, memberLevel));
     }
 
     private static void addMemberToCrossSsGroup(ClientId owner, ClientId member) {

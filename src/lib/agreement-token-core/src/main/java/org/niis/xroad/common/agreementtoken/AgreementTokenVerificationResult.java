@@ -36,6 +36,12 @@ public sealed interface AgreementTokenVerificationResult {
     record Valid(AgreementTokenClaims claims) implements AgreementTokenVerificationResult {
     }
 
+    record ValidGroup(AgreementTokenGroupClaims claims) implements AgreementTokenVerificationResult {
+    }
+
+    record ValidService(AgreementTokenServiceClaims claims) implements AgreementTokenVerificationResult {
+    }
+
     record Rejected(AgreementTokenRejectionReason reason, String details) implements AgreementTokenVerificationResult {
     }
 }

@@ -91,6 +91,37 @@ class VerdictClassifierTest {
     }
 
     @Test
+    void rejectedAgreementTokenFaultIsAgreementTokenRejected() {
+        assertThat(VerdictClassifier.classify(fault("server.serverproxy.agreement_token_rejected")))
+                .isEqualTo(Verdict.AGREEMENT_TOKEN_REJECTED);
+        assertThat(VerdictClassifier.classifySoap(
+                new Reply(500, Map.of(), soapFault("server.serverproxy.agreement_token_rejected"))))
+                .isEqualTo(Verdict.AGREEMENT_TOKEN_REJECTED);
+        assertThat(meta(fault("server.serverproxy.agreement_token_rejected"), List.of(), List.of()))
+                .isEqualTo(Verdict.AGREEMENT_TOKEN_REJECTED);
+    }
+
+    @Test
+    void clientProxyAccessDeniedFaultIsAccessDenied() {
+        assertThat(VerdictClassifier.classify(fault("server.clientproxy.access_denied")))
+                .isEqualTo(Verdict.ACCESS_DENIED);
+        assertThat(VerdictClassifier.classifySoap(
+                new Reply(500, Map.of(), soapFault("server.clientproxy.access_denied"))))
+                .isEqualTo(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void clientProxyDataSpaceFailureFaultsAreConsumerFailed() {
+        assertThat(VerdictClassifier.classify(fault("server.clientproxy.io_error")))
+                .isEqualTo(Verdict.CONSUMER_FAILED);
+        assertThat(VerdictClassifier.classify(fault("server.clientproxy.service_failed")))
+                .isEqualTo(Verdict.CONSUMER_FAILED);
+        assertThat(VerdictClassifier.classifySoap(
+                new Reply(500, Map.of(), soapFault("server.clientproxy.service_failed"))))
+                .isEqualTo(Verdict.CONSUMER_FAILED);
+    }
+
+    @Test
     void badRequestWithoutAnXRoadErrorIsRejectedByTheConsumer() {
         assertThat(VerdictClassifier.classify(new Reply(400, Map.of("Content-Type", "text/html"), "<html/>")))
                 .isEqualTo(Verdict.CONSUMER_REJECTED);
@@ -197,6 +228,14 @@ class VerdictClassifierTest {
 
         assertThat(VerdictClassifier.describe(disabled)).contains("back at noon");
         assertThat(VerdictClassifier.describe(denied)).doesNotContain("back at noon");
+    }
+
+    @Test
+    void describeCarriesTheStartOfTheBodyOfARejectedAgreementToken() {
+        var rejected = new Reply(500, Map.of("X-Road-Error", "server.serverproxy.agreement_token_rejected"),
+                "{\"message\":\"AGREEMENT_TOKEN_REQUIRED\"}");
+
+        assertThat(VerdictClassifier.describe(rejected)).contains("AGREEMENT_TOKEN_REQUIRED");
     }
 
     private static final String LIST_JSON = "{\"service\":[{\"service_code\":\"p-v91\"},{\"service_code\":\"p-v91b\"}]}";
@@ -351,6 +390,16 @@ class VerdictClassifierTest {
                 "{\"code\":\"core.server.serverproxy.access_denied\"}"))).isEqualTo(Verdict.ACCESS_DENIED);
         assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(), "server.serverproxy.access_denied")))
                 .isEqualTo(Verdict.ACCESS_DENIED);
+    }
+
+    @Test
+    void managementAgreementTokenRejectedFaultCodeInTheBodyIsAgreementTokenRejected() {
+        var body = "{\"status\":500,\"error\":{\"code\":\"core.server.serverproxy.agreement_token_rejected\","
+                + "\"metadata\":[\"AGREEMENT_TOKEN_REQUIRED\"]}}";
+        assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(), body)))
+                .isEqualTo(Verdict.AGREEMENT_TOKEN_REJECTED);
+        assertThat(VerdictClassifier.classifyManagement(new Reply(500, Map.of(),
+                "core.server.serverproxy.agreement_token_rejected"))).isEqualTo(Verdict.AGREEMENT_TOKEN_REJECTED);
     }
 
     @Test

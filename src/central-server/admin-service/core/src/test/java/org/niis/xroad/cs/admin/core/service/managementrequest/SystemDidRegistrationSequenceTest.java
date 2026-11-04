@@ -53,7 +53,6 @@ import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
-import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.cs.admin.core.service.managementrequest.AuthCertServerCheck.CheckedServer;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -126,7 +125,7 @@ class SystemDidRegistrationSequenceTest {
             server.setAddress(databaseAddress);
             return null;
         }).when(entityManager).refresh(server);
-        store = new ParticipantValueStoreImpl(serverRepository, mock(MemberDidRepository.class), mock(XRoadMemberRepository.class),
+        store = new ParticipantValueStoreImpl(serverRepository, mock(MemberDidRepository.class),
                 mock(AuditEventLoggingFacade.class), entityManager);
 
         var authCertServerCheck = mock(AuthCertServerCheck.class);

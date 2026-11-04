@@ -43,6 +43,8 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -299,6 +301,72 @@ class ReusableAgreementLookupPostgresTest {
 
         assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
                 .map(ContractAgreement::getId).contains("agreement-neg-fresh");
+    }
+
+    @Test
+    void aRetiredAgreementIsSkippedByTheQuery() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-live", participantContextId, "asset-1", "provider-1", Instant.now().minusSeconds(120));
+        saveAgreement(store, "neg-retired", participantContextId, "asset-1", "provider-1", Instant.now());
+        retire(store, "neg-retired", participantContextId, "asset-1", "provider-1");
+        saveAgreement(store, "neg-retired-alone", participantContextId, "asset-2", "provider-1", Instant.now(),
+                clientPolicy("DEV:COM:222:A"));
+        retire(store, "neg-retired-alone", participantContextId, "asset-2", "provider-1");
+
+        assertThat(lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null))
+                .map(ContractAgreement::getId).contains("agreement-neg-live");
+        assertThat(lookup.find(participantContextId, "consumer", "asset-2", "provider-1", "DEV:COM:222:A")).isEmpty();
+        assertThat(lookup.find(participantContextId, "consumer", "asset-2", "provider-1", null)).isEmpty();
+    }
+
+    @Test
+    void findByIdReturnsTheAgreementOfAnyPolicy() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-group", participantContextId, "asset-1", "provider-1", Instant.now(),
+                groupPolicy("DEV:COM:222:owner;group"));
+
+        var result = lookup.findById(participantContextId, "consumer", "asset-1", "provider-1", "agreement-neg-group");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-group");
+    }
+
+    @Test
+    void findByIdSkipsARetiredAgreement() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-retired", participantContextId, "asset-1", "provider-1", Instant.now());
+        retire(store, "neg-retired", participantContextId, "asset-1", "provider-1");
+
+        assertThat(lookup.findById(participantContextId, "consumer", "asset-1", "provider-1", "agreement-neg-retired"))
+                .isEmpty();
+    }
+
+    @Test
+    void findByIdStaysWithinParticipantContextConsumerAssetAndProvider() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
+        saveAgreement(store, "neg-provider-role", participantContextId, "other-consumer", "asset-1", "provider-1",
+                ContractNegotiation.Type.PROVIDER, Instant.now());
+
+        assertThat(lookup.findById("participant-other", "consumer", "asset-1", "provider-1", "agreement-neg-1")).isEmpty();
+        assertThat(lookup.findById(participantContextId, "consumer", "other-asset", "provider-1", "agreement-neg-1")).isEmpty();
+        assertThat(lookup.findById(participantContextId, "consumer", "asset-1", "other-provider", "agreement-neg-1")).isEmpty();
+        assertThat(lookup.findById(participantContextId, "consumer", "asset-1", "provider-1", "agreement-neg-provider-role"))
+                .isEmpty();
+        assertThat(lookup.findById(participantContextId, "consumer", "asset-1", "provider-1", "agreement-unknown")).isEmpty();
+    }
+
+    private void retire(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
+                        String assetId, String providerId) {
+        var agreement = targetStore.queryAgreements(QuerySpec.Builder.newInstance()
+                        .filter(Criterion.criterion("id", "=", "agreement-" + negotiationId))
+                        .build())
+                .findFirst().orElseThrow();
+        assertThat(agreement.getParticipantContextId()).isEqualTo(participantContextId);
+        assertThat(agreement.getAssetId()).isEqualTo(assetId);
+        assertThat(agreement.getProviderId()).isEqualTo(providerId);
+        var retired = agreement.toBuilder().retired(true).build();
+        assertThat(targetStore.retireAgreement(retired).succeeded()).isTrue();
     }
 
     private ContractNegotiationStore buildStore() throws IOException {

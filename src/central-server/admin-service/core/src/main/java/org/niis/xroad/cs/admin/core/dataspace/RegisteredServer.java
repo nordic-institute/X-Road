@@ -35,7 +35,8 @@ import java.util.Set;
  *
  * @param registeredAddress the registered address, as stored: a host, optionally with a port that is ignored
  * @param owner             the owner member of the server
- * @param clientMembers     the members that have a registered client on the server, without subsystem codes
+ * @param clientMembers     the members that have a registered client on the server, without subsystem codes;
+ *                          empty when only system pairs are checked
  */
 public record RegisteredServer(String registeredAddress, ClientId owner, Set<ClientId> clientMembers) {
 }

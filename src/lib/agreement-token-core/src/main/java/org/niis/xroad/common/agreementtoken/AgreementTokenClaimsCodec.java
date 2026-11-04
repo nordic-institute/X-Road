@@ -27,6 +27,8 @@
 package org.niis.xroad.common.agreementtoken;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -49,10 +51,19 @@ final class AgreementTokenClaimsCodec {
     static final String CLAIM_AGREEMENT_ID = "agreement_id";
     static final String CLAIM_CLIENT = "client_id";
     static final String CLAIM_SERVICE = "service_id";
+    static final String CLAIM_SERVICE_VERSION = "service_version";
     static final String CLAIM_SCOPE = "scope";
+    static final String CLAIM_GROUP = "group";
 
     private static final String SCOPE_METHOD_KEY = "method";
     private static final String SCOPE_PATH_KEY = "path";
+
+    private static final String GROUP_TYPE_KEY = "type";
+    private static final String GROUP_TYPE_LOCAL = "LOCAL";
+    private static final String GROUP_TYPE_GLOBAL = "GLOBAL";
+    private static final String GROUP_OWNER_KEY = "owner";
+    private static final String GROUP_INSTANCE_KEY = "instance";
+    private static final String GROUP_CODE_KEY = "code";
 
     private static final int MEMBER_CLIENT_ID_PARTS = 3;
     private static final int SUBSYSTEM_CLIENT_ID_PARTS = 4;
@@ -74,14 +85,14 @@ final class AgreementTokenClaimsCodec {
     }
 
     static String encodeService(ServiceId service) {
-        var clientPart = service.getClientId().asEncodedId();
-        var fullServiceCode = service.getServiceVersion() == null
-                ? service.getServiceCode()
-                : service.getServiceCode() + "." + service.getServiceVersion();
-        return clientPart + XRoadId.ENCODED_ID_SEPARATOR + fullServiceCode;
+        return service.getClientId().asEncodedId() + XRoadId.ENCODED_ID_SEPARATOR + service.getServiceCode();
     }
 
-    static ServiceId decodeService(String encoded) {
+    static String encodeServiceVersion(ServiceId service) {
+        return service.getServiceVersion();
+    }
+
+    static ServiceId decodeService(String encoded, String serviceVersion) {
         if (encoded == null || encoded.isBlank()) {
             throw new IllegalArgumentException("service_id claim must not be blank");
         }
@@ -90,12 +101,18 @@ final class AgreementTokenClaimsCodec {
             throw new IllegalArgumentException("invalid service_id claim: " + encoded);
         }
         var client = decodeClient(encoded.substring(0, lastSeparator));
-        var fullServiceCode = encoded.substring(lastSeparator + 1);
-        var dotIndex = fullServiceCode.indexOf('.');
-        if (dotIndex < 0) {
-            return ServiceId.Conf.create(client, fullServiceCode);
+        return ServiceId.Conf.create(client, encoded.substring(lastSeparator + 1), serviceVersion);
+    }
+
+    static String optionalStringClaim(JWTClaimsSet claimsSet, String name) {
+        var value = claimsSet.getClaim(name);
+        if (value == null) {
+            return null;
         }
-        return ServiceId.Conf.create(client, fullServiceCode.substring(0, dotIndex), fullServiceCode.substring(dotIndex + 1));
+        if (!(value instanceof String str) || str.isBlank()) {
+            throw new IllegalArgumentException("blank or non-string claim '" + name + "'");
+        }
+        return str;
     }
 
     static List<Map<String, Object>> encodeScope(List<AgreementTokenScope> scope) {
@@ -124,6 +141,39 @@ final class AgreementTokenClaimsCodec {
         return List.copyOf(scope);
     }
 
+    static Map<String, Object> encodeGroup(AgreementTokenGroup group) {
+        return switch (group) {
+            case AgreementTokenGroup.Local(var owner, var groupId) -> Map.of(
+                    GROUP_TYPE_KEY, GROUP_TYPE_LOCAL,
+                    GROUP_OWNER_KEY, encodeClient(owner),
+                    GROUP_CODE_KEY, groupId.getGroupCode());
+            case AgreementTokenGroup.Global(var groupId) -> Map.of(
+                    GROUP_TYPE_KEY, GROUP_TYPE_GLOBAL,
+                    GROUP_INSTANCE_KEY, groupId.getXRoadInstance(),
+                    GROUP_CODE_KEY, groupId.getGroupCode());
+        };
+    }
+
+    static AgreementTokenGroup decodeGroup(JWTClaimsSet claimsSet) {
+        Map<String, Object> raw;
+        try {
+            raw = claimsSet.getJSONObjectClaim(CLAIM_GROUP);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("invalid group claim", e);
+        }
+        if (raw == null) {
+            throw new IllegalArgumentException("group claim must not be empty");
+        }
+        var code = requireString(raw, GROUP_CODE_KEY, CLAIM_GROUP);
+        return switch (requireString(raw, GROUP_TYPE_KEY, CLAIM_GROUP)) {
+            case GROUP_TYPE_LOCAL -> new AgreementTokenGroup.Local(
+                    decodeClient(requireString(raw, GROUP_OWNER_KEY, CLAIM_GROUP)), LocalGroupId.Conf.create(code));
+            case GROUP_TYPE_GLOBAL -> new AgreementTokenGroup.Global(
+                    GlobalGroupId.Conf.create(requireString(raw, GROUP_INSTANCE_KEY, CLAIM_GROUP), code));
+            default -> throw new IllegalArgumentException("unknown group type in group claim");
+        };
+    }
+
     static String requireStringClaim(JWTClaimsSet claimsSet, String name) {
         var value = claimsSet.getClaim(name);
         if (!(value instanceof String str) || str.isBlank()) {
@@ -133,9 +183,13 @@ final class AgreementTokenClaimsCodec {
     }
 
     private static String requireString(Map<?, ?> map, String key) {
+        return requireString(map, key, "scope entry");
+    }
+
+    private static String requireString(Map<?, ?> map, String key, String what) {
         var value = map.get(key);
         if (!(value instanceof String str) || str.isBlank()) {
-            throw new IllegalArgumentException("scope entry missing '" + key + "'");
+            throw new IllegalArgumentException(what + " missing '" + key + "'");
         }
         return str;
     }

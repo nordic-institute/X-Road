@@ -172,6 +172,18 @@ public interface ServerConfProvider {
     }
 
     /**
+     * The exact counterpart of {@link #isLocalGroupMember}, matching a subsystem the way the legacy ACL does.
+     *
+     * @param ownerId      the identifier of the client that owns the local group
+     * @param localGroupId the local group identifier
+     * @param clientId     the client identifier, compared exactly with the group members (subsystem included)
+     * @return true if {@code clientId} is a member of the owner's local group
+     */
+    default boolean isExactLocalGroupMember(ClientId ownerId, LocalGroupId localGroupId, ClientId clientId) {
+        return false;
+    }
+
+    /**
      * @return all members identifiers
      */
     List<ClientId.Conf> getMembers();

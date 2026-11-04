@@ -54,7 +54,7 @@ public final class AclModeProbe {
     }
 
     /**
-     * Checks that the stored value names the expected mode.
+     * Checks that the stored value names the mode the expected mode needs the consumer to run in.
      *
      * @return a line saying which mode the Security Server runs in
      * @throws IllegalStateException when the stored value names another mode
@@ -62,11 +62,24 @@ public final class AclModeProbe {
     public static String verify(AclMode expected, String storedValue) {
         var actual = modeOf(storedValue);
         var stored = storedValue == null || storedValue.isBlank() ? "none (default)" : storedValue.trim();
-        if (actual != expected) {
+        if (actual != expected.consumerMode()) {
             throw new IllegalStateException(
                     "ACL mode %s was requested but the consumer Security Server runs in %s (stored dsp-enabled: %s)"
                             .formatted(expected, actual, stored));
         }
         return "consumer Security Server runs in ACL mode %s (stored dsp-enabled: %s)".formatted(actual, stored);
+    }
+
+    /**
+     * Checks that the provider Security Server runs a stack the expected mode can be applied to: refusing legacy
+     * calls needs a proxy container of its own to restart, which the sidecar stack lacks.
+     *
+     * @throws IllegalStateException when the mode refuses legacy calls and the provider runs the sidecar stack
+     */
+    public static void verifyProviderStack(AclMode expected, boolean sidecarStack) {
+        if (expected.refusesLegacyCalls() && sidecarStack) {
+            throw new IllegalStateException(
+                    "ACL mode %s needs the default ss0 stack; drop -Pe2e.ss0-stack=sidecar".formatted(expected));
+        }
     }
 }

@@ -9,4 +9,12 @@ hurl_scenario_dir: "{{ playbook_dir }}/../hurl/scenarios"
 # them via run-hurl.sh on the hurl host).
 hurl_files:
   - setup.hurl
-hurl_env_file: "files/vars.env"
+# Path of a vars.env file to copy into the scenario directory under its basename. Empty: vars.env is
+# rendered from templates/vars.env.j2 with the variables below.
+hurl_env_file: ""
+# Central Server admin API host, Issuer Service host and the DN and SAN of the Central Server's
+# DS TLS certificate, written to vars.env. The defaults name the single-node Central Server.
+hurl_cs_host: xrd-cs.lxd
+hurl_is_host: xrd-cs
+hurl_cs_ds_tls_dn: CN=xrd-cs
+hurl_cs_ds_tls_san: DNS:xrd-cs,DNS:xrd-cs.lxd,DNS:localhost

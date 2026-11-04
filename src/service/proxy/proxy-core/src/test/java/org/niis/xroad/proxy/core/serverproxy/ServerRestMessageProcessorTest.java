@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
 class ServerRestMessageProcessorTest {
@@ -134,6 +135,23 @@ class ServerRestMessageProcessorTest {
         assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, AGREEMENT_TOKEN))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).isCausedBy(AGREEMENT_TOKEN_REJECTED)).isTrue());
+        verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRefuseWithAccessDeniedAndTheReasonWhenATokenIsDeniedEvenIfTheAclWouldAllow() {
+        when(serverConfProvider.serviceExists(SERVICE)).thenReturn(true);
+        when(agreementTokenAccessCheck.decide(AGREEMENT_TOKEN, CLIENT, SERVICE, REQUEST_METHOD, REQUEST_PATH))
+                .thenReturn(new AgreementTokenAccessCheck.Decision.Denied("ENDPOINT_NOT_ALLOWED"));
+
+        var requestMessage = requestMessageFor(CLIENT);
+
+        assertThatThrownBy(() -> processor.verifyAccess(SERVICE, requestMessage, AGREEMENT_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> {
+                    assertThat(((XrdRuntimeException) e).isCausedBy(ACCESS_DENIED)).isTrue();
+                    assertThat(((XrdRuntimeException) e).getDetails()).contains("ENDPOINT_NOT_ALLOWED");
+                });
         verify(serverConfProvider, never()).isQueryAllowed(any(), any(), any(), any());
     }
 

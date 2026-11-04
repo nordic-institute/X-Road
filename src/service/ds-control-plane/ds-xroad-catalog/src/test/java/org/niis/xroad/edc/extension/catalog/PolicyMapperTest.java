@@ -146,6 +146,18 @@ class PolicyMapperTest {
     }
 
     @Test
+    void baseEndpointGrantedNextToSpecificEndpointAllowsEveryEndpoint() {
+        var baseEp = new Endpoint("helloService", "*", "**", true);
+        var specificEp = new Endpoint("helloService", "GET", "/api/hello", false);
+
+        var result = mapper.toPolicyDefinition(POLICY_ID, SERVICE_OWNER, CLIENT_SUBJECT,
+                List.of(specificEp, baseEp), PARTICIPANT_CTX);
+
+        var clientConstraint = extractRootClientConstraint(result.getPolicy().getPermissions().getFirst().getConstraints());
+        assertThat(leftExpressionValue(clientConstraint)).isEqualTo(PolicyMapper.XROAD_CLIENT_ID_CONSTRAINT);
+    }
+
+    @Test
     void emptyEndpointListProducesClientConstraintOnly() {
         var result = mapper.toPolicyDefinition(POLICY_ID, SERVICE_OWNER, CLIENT_SUBJECT, List.of(), PARTICIPANT_CTX);
 

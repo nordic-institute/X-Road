@@ -27,9 +27,14 @@ package org.niis.xroad.e2e.container;
 
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
+import org.testcontainers.containers.output.FrameConsumerResultCallback;
+import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.io.File;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Common base for the two stack shapes a single ss0/ss1 slot in {@link E2eEnvSetup} can boot: the
@@ -38,6 +43,8 @@ import java.io.File;
  * declare {@code E2eEnvironment}/the ops interfaces and never see which shape is running.
  */
 public abstract class AbstractSsStack extends BaseComposeSetup {
+
+    private final Map<String, Slf4jLogConsumer> logConsumers = new HashMap<>();
 
     protected AbstractSsStack(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
@@ -49,7 +56,36 @@ public abstract class AbstractSsStack extends BaseComposeSetup {
     public abstract void awaitProxyReadiness();
 
     protected Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
-        return createLogConsumer("%s-%s".formatted(envName, containerName));
+        var consumer = createLogConsumer("%s-%s".formatted(envName, containerName));
+        logConsumers.put(containerName, consumer);
+        return consumer;
+    }
+
+    /** Restarts the container and streams its new output to the log consumer it had before, which a restart ends. */
+    @Override
+    public void restartService(String containerName) {
+        super.restartService(containerName);
+        var consumer = logConsumers.get(containerName);
+        if (consumer != null) {
+            followLogs(containerName, consumer);
+        }
+    }
+
+    private void followLogs(String containerName, Slf4jLogConsumer consumer) {
+        var container = env.getContainerByServiceName(containerName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + containerName));
+        var dockerClient = container.getDockerClient();
+        var startedAt = Instant.parse(dockerClient.inspectContainerCmd(container.getContainerId()).exec()
+                .getState().getStartedAt());
+        var callback = new FrameConsumerResultCallback();
+        callback.addConsumer(OutputFrame.OutputType.STDOUT, consumer);
+        callback.addConsumer(OutputFrame.OutputType.STDERR, consumer);
+        dockerClient.logContainerCmd(container.getContainerId())
+                .withFollowStream(true)
+                .withStdOut(true)
+                .withStdErr(true)
+                .withSince((int) startedAt.getEpochSecond())
+                .exec(callback);
     }
 
     protected File composeFile(String fileName) {

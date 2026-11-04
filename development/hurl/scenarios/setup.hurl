@@ -667,6 +667,9 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     },
     {
        "service_code": "maintenanceModeDisable"
+    },
+    {
+      "service_code": "memberDidReg"
     }
   ]
 }

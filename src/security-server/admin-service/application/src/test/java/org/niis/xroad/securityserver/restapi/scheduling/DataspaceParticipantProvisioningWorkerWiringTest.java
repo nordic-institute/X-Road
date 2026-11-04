@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
@@ -39,6 +40,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
 @ExtendWith(SystemStubsExtension.class)
@@ -52,7 +54,8 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
                     NoopDataspaceParticipantProvisioningTrigger.class)
             .withBean(DataspaceProvisioningService.class, () -> mock(DataspaceProvisioningService.class))
             .withBean(DataspaceReadinessPredicates.class, () -> mock(DataspaceReadinessPredicates.class))
-            .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class));
+            .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class))
+            .withBean(AdminServiceProperties.class, () -> mock(AdminServiceProperties.class));
 
     @Test
     void onlyTheNoopWorkerIsActiveOnASecondaryNode() {
@@ -62,6 +65,11 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
             assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
             assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
                     .isInstanceOf(NoopDataspaceParticipantProvisioningTrigger.class);
+            assertThat(context).doesNotHaveBean(DataspaceParticipantProvisioningWorker.class);
+
+            context.getBean(DataspaceParticipantProvisioningTrigger.class).provisionParticipantAsync();
+
+            verifyNoInteractions(context.getBean(DataspaceParticipantBindingService.class));
         });
     }
 

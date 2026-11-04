@@ -1,0 +1,120 @@
+---
+# Cluster inventory for a Linux LXD host (LXD on localhost, no lima VM). It differs from inventory.yml
+# only in the lxd_servers host and ansible_lxd_remote. Use it with
+#   CLUSTER_INVENTORY=inventory.linux.sample.yml ./start-cluster.sh
+# The user must be in the lxd group: the LXD host tasks run without sudo on Linux. If they need sudo,
+# run ./start-cluster.sh -e onMacOs=yes --ask-become-pass.
+all:
+  vars:
+    ansible_lxd_remote: local
+    disable_automatic_upgrades: true
+
+    # Package repository. Defaults to the local repository container built from the
+    # checkout; override with -e xroad_package_repo="deb ..." (add package_source=remote
+    # for a signed remote repository).
+    xroad_package_repo: "deb [trusted=yes] http://{{ groups['repo_servers'] | first }}/deb /"
+    package_source: local
+    ubuntu_apt_repo: "{{ xroad_package_repo }}"
+    ubuntu_apt_repo_with_option: "{{ xroad_package_repo }}"
+    ubuntu_apt_key: "https://artifactory.niis.org/api/gpg/key/public"
+    ubuntu_apt_key_file: "/usr/share/keyrings/xroad.gpg"
+
+    # PostgreSQL listen port on the database hosts, and the ports of the write and read-only addresses on the load balancer.
+    db_port: 5432
+    db_write_port: 5432
+    db_read_port: 5433
+    database_host: "{{ cluster_name }}:{{ db_write_port }}"
+    # Throwaway development password of the replication user; override with -e.
+    database_replication_password: xrd-replication-dev
+    # Throwaway development password of the postgres superuser; override with -e.
+    database_admin_password: xrd-dev-postgres
+
+    # DNS name of the cluster: the LXD name of the lb host, so every container resolves it. The
+    # Central Server nodes use it as the Issuer Service host and in the certificate alternative names.
+    cluster_name: xrd-cs-lb.lxd
+    xroad_cs_cluster_name: "{{ cluster_name }}"
+    xroad_cs_issuer_host: "{{ cluster_name }}"
+
+    # The Issuer Service TLS certificate comes from a throwaway CA the role creates. A dev env that
+    # issues the certificate itself sets this false (-e cs_ds_tls_throwaway=false).
+    cs_ds_tls_throwaway: true
+    xroad_cs_ds_tls_san: "{{ cluster_name if cs_ds_tls_throwaway | bool else '' }}"
+
+    # Apply the dev env configuration (Mailpit, JVM debug flags) to the Central Server nodes.
+    xroad_cs_dev_configuration: false
+
+    # Ports the lb host passes to the Central Server nodes: HTTP for challenges and the Issuer
+    # Service ports (web.http.did, web.http.issuance, web.http.statuslist in the ds-issuer-service
+    # application configuration).
+    lb_tcp_ports: [80, 6183, 6185, 6187]
+
+    # Patroni cluster name and the port of its REST API on the database hosts. haproxy asks the REST
+    # API which host leads.
+    patroni_scope: xroad-cs-db
+    patroni_restapi_port: 8008
+
+    # Database addresses on the lb host. Both database hosts are backends of both addresses; the
+    # health check of each backend decides which host receives traffic: the write address reaches the
+    # Patroni leader, the read-only address reaches a replica.
+    haproxy_extra_services:
+      - name: db_write
+        port: "{{ db_write_port }}"
+        backend_group: db_nodes
+        backend_port: "{{ db_port }}"
+        health_check_port: "{{ patroni_restapi_port }}"
+        health_check_path: /primary
+      - name: db_read
+        port: "{{ db_read_port }}"
+        backend_group: db_nodes
+        backend_port: "{{ db_port }}"
+        health_check_port: "{{ patroni_restapi_port }}"
+        health_check_path: /replica
+
+  children:
+    lxd_servers:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    repo_servers:
+      hosts:
+        xrd-repo:
+          ansible_connection: lxd
+
+    cs_nodes:
+      hosts:
+        xrd-cs1:
+          ansible_connection: lxd
+          xroad_cs_ha_node_name: node_1
+        xrd-cs2:
+          ansible_connection: lxd
+          xroad_cs_ha_node_name: node_2
+          # On a shared database the install of a second node stops at OpenBao database creation.
+          xroad_cs_openbao_db_stop_expected: true
+
+    # Hosts of the Patroni cluster. The first host listed is the first leader on a fresh build.
+    db_nodes:
+      hosts:
+        xrd-db1:
+          ansible_connection: lxd
+        xrd-db2:
+          ansible_connection: lxd
+
+    lb:
+      hosts:
+        xrd-cs-lb:
+          ansible_connection: lxd
+
+    # Members of the etcd cluster that holds the Patroni leader state. Keep an odd number of members;
+    # the member count is the number of hosts in this group.
+    etcd_nodes:
+      children:
+        db_nodes:
+        lb:
+
+    cluster_containers:
+      children:
+        repo_servers:
+        cs_nodes:
+        db_nodes:
+        lb:

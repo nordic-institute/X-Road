@@ -1,6 +1,13 @@
 name: Build and Test
 on:
   workflow_dispatch:
+    inputs:
+      acl_parity:
+        description: 'Also run the ACL parity e2e legs (dsp, dsp-refusal); they take up to 2.5 hours'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 1 * * *'
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
@@ -141,6 +148,14 @@ jobs:
           - variant: sidecar
             runs_on: xrd-runner-8c
             timeout_minutes: 90
+          - variant: compose
+            acl_mode: dsp
+            runs_on: ubuntu-24.04
+            timeout_minutes: 150
+          - variant: compose
+            acl_mode: dsp-refusal
+            runs_on: xrd-runner-8c
+            timeout_minutes: 300
     uses: ./.github/workflows/_test-e2e.yml
     secrets: inherit
     with:
@@ -149,6 +164,7 @@ jobs:
       variant: ${{ matrix.variant }}
       runs_on: ${{ matrix.runs_on }}
       timeout_minutes: ${{ matrix.timeout_minutes }}
+      acl_mode: ${{ matrix.acl_mode || '' }}
 
   test-services:
     name: service-int-tests

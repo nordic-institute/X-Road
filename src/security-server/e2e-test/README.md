@@ -173,6 +173,13 @@ cancelled `build-and-package` fails every waiting leg within minutes instead
 of idling out. The suite runs through the shadow jar, e.g.
 `java -Dtest-framework.env-mode=lxd -jar e2e-test-1.0.jar` for the lxd leg.
 
+The compose leg runs the ACL parity rows in `legacy` mode. Two more compose
+legs, `compose (acl dsp)` and `compose (acl dsp-refusal)`, run the suite in
+those modes nightly and on a manual dispatch with `acl_parity` checked. A
+mismatching row fails the leg; the job summary lists the mismatching rows, and
+the verdicts TSV is in the uploaded report. A TSV that is missing or has no
+rows also fails the leg: the parity rows never ran.
+
 To narrow the lxd leg back to manual dispatch only, change its `if:` guard in
 `.github/workflows/_test-e2e.yml`:
 

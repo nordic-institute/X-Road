@@ -219,14 +219,14 @@ public final class AclScenarioCatalogue {
             row("V123", changed(new Disable(0, null)), check(restRequest("GET", "/a"), SERVICE_DISABLED)).as("Granted service disabled, notice not supplied"),
             row("V124", changed(new Disable(0, DISABLED_NOTICE), new Enable(0)), allowed("GET", "/a")).as("Service disabled and enabled again"),
             phased("V125", restService(CONSUMER_ONLY), List.of(allowed("GET", "/a")), phase(new DeleteDescription(0), check(restRequest("GET", "/a"), UNKNOWN_SERVICE))).as("Service description deleted, its grants removed with it"),
-            row("V127", changed(new RenameService(0)), check(restRequest("GET", "/a"), UNKNOWN_SERVICE), allowed(1, "GET", "/a")).as("REST service code renamed, the old code and the new code called"),
+            row("V127", changed(new RenameService(0)), check(restRequest("GET", "/a"), UNKNOWN_SERVICE).inDsp(ACCESS_DENIED), allowed(1, "GET", "/a")).as("REST service code renamed, the old code and the new code called"),
             row("V128", wsdl(VERSIONS, List.of(CONSUMER_ONLY)), soapRequest(0, "v2"), ALLOWED).as("SOAP service in two versions, the second version called"),
             row("V129", wsdl(SINGLE, ".x", List.of(CONSUMER_ONLY)), soapRequest(0, "v1"), ALLOWED).as("SOAP service code containing a dot"),
             row("V130", provided(UNREGISTERED_PROVIDER, rest(CONSUMER_ONLY)), restRequest("GET", "/a"), UNKNOWN_MEMBER).as("Provider client registered on its Security Server only as saved"),
             row("V131", wsdl(SINGLE, List.of(CONSUMER_ONLY)), soapRequest(0, "v1", UNREGISTERED_SECURITY_SERVER), INVALID_SECURITY_SERVER).as("SOAP header naming a Security Server that does not provide the service"),
             row("V132a", wsdl(SINGLE_UNVERSIONED, List.of(CONSUMER_ONLY)), restRequest("GET", "/a"), INVALID_SERVICE_TYPE).as("REST call to a SOAP service"),
             row("V132b", restService(CONSUMER_ONLY), soapRequest(0, null), INVALID_SERVICE_TYPE).as("SOAP call to a REST service"),
-            row("V133", provided(new UndefinedService()), check(restRequest("GET", "/a"), UNKNOWN_SERVICE), check(soapRequest(0, "v1"), UNKNOWN_SERVICE)).as("Service code that no description defines, called over REST and SOAP"));
+            row("V133", provided(new UndefinedService()), check(restRequest("GET", "/a"), UNKNOWN_SERVICE).inDsp(ACCESS_DENIED), check(soapRequest(0, "v1"), UNKNOWN_SERVICE).inDsp(ACCESS_DENIED)).as("Service code that no description defines, called over REST and SOAP"));
 
     private AclScenarioCatalogue() {
     }

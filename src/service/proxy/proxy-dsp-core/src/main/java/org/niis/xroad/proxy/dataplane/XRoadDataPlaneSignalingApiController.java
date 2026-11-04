@@ -73,10 +73,10 @@ public class XRoadDataPlaneSignalingApiController {
 
     /**
      * Prepares a data flow (consumer-side provision).
-     * For Xrd-PULL, preparation is immediate — responds with the proxy endpoint address.
+     * For Xrd-PULL, preparation is immediate — responds with the state only, no data address.
      *
      * @param message plain-JSON {@code DataFlowPrepareMessage}
-     * @return {@code DataFlowStatusMessage} with {@code dataAddress.endpoint}
+     * @return {@code DataFlowStatusMessage} with the provisioned state
      */
     @POST
     @Path("/prepare")

@@ -47,3 +47,13 @@
         owner: "root"
         mode: "0644"
         directory_mode: "0755"
+      when: hurl_env_file | length > 0
+
+    - name: Render Hurl env file
+      template:
+        src: templates/vars.env.j2
+        dest: "{{ hurl_install_dir }}/scenario/vars.env"
+        group: "root"
+        owner: "root"
+        mode: "0644"
+      when: hurl_env_file | length == 0

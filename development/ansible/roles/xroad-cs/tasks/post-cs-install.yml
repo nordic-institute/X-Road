@@ -1,17 +1,16 @@
 ---
 # The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
 # and conf.d yaml are ignored — so these are seeded straight into the centerui
-# configuration_properties table. Deterministic upsert; restart xroad-center
-# because it resolved the DSL config before the rows existed.
-- name: seed dev-cadence configuration into centerui configuration_properties
+# configuration_properties table. A row is written only when its value differs, and
+# xroad-center is restarted only when a row changed, because it resolved the DSL
+# config before the rows existed.
+- name: read the dev-cadence configuration rows
   become: true
   command:
     argv:
       - /usr/share/xroad/scripts/db_property.sh
-      - set
+      - get
       - "{{ item.key }}"
-      - "{{ item.value }}"
-      - --yes
   loop:
     - key: xroad.admin-service.global-configuration-generation-rate-in-seconds
       value: "10"
@@ -23,11 +22,30 @@
       value: "5S"
   loop_control:
     label: "{{ item.key }}"
+  register: cs_property_current
+  changed_when: false
+  failed_when: cs_property_current.rc not in [0, 1]
+
+- name: seed dev-cadence configuration into centerui configuration_properties
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.item.key }}"
+      - "{{ item.item.value }}"
+      - --yes
+  loop: "{{ cs_property_current.results }}"
+  loop_control:
+    label: "{{ item.item.key }}"
+  when: item.rc == 1 or (item.stdout | trim) != item.item.value
+  register: cs_property_seeded
 
 - name: restart xroad-center to resolve the seeded configuration
   systemd:
     name: xroad-center
     state: restarted
+  when: cs_property_seeded is changed
 
 - name: wait for the Central Server admin API to accept connections
   wait_for:
@@ -38,8 +56,9 @@
 
 # The Issuer Service host is read live from the Central Server database, not from configuration
 # (XRoadConfig values are resolved once at build time), so it is set here through the admin API.
-# A 409 means an earlier run already set the host and the issuer is bound to it, which is not a
-# failure.
+# The host is written only when it differs from the stored one. A 409 means the issuer is already
+# bound to a host; that is accepted when it equals the wanted host and fails otherwise. The issuer is
+# restarted only when this call changed the host.
 - name: log in to the Central Server admin API
   uri:
     url: "https://localhost:4000/login"
@@ -47,13 +66,26 @@
     body_format: form-urlencoded
     body:
       username: "{{ xroad_ui_user }}"
-      password: secret123!
+      password: "{{ xroad_cs_admin_password }}"
     validate_certs: false
     status_code: 200
   register: cs_admin_login
   until: cs_admin_login.status == 200
   retries: 10
   delay: 5
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
+
+- name: read the Issuer Service host through the admin API
+  uri:
+    url: "https://localhost:4000/api/v1/issuer-service"
+    method: GET
+    headers:
+      X-XSRF-TOKEN: "{{ cs_admin_login.cookies['XSRF-TOKEN'] }}"
+      Cookie: "{{ cs_admin_login.cookies_string }}"
+    validate_certs: false
+    return_content: true
+  register: cs_issuer_state
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
 
 - name: set the Issuer Service host through the admin API
   uri:
@@ -64,11 +96,60 @@
       Cookie: "{{ cs_admin_login.cookies_string }}"
     body_format: json
     body:
-      host: "{{ groups['cs_servers'] | first }}"
+      host: "{{ xroad_cs_issuer_host }}"
     validate_certs: false
     status_code: [200, 409]
+  register: cs_issuer_host
+  changed_when: cs_issuer_host.status == 200
+  when: (cs_issuer_state.json.host | default('', true) | lower) != (xroad_cs_issuer_host | lower)
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
+
+- name: read the bound Issuer Service host after a 409
+  uri:
+    url: "https://localhost:4000/api/v1/issuer-service"
+    method: GET
+    headers:
+      X-XSRF-TOKEN: "{{ cs_admin_login.cookies['XSRF-TOKEN'] }}"
+      Cookie: "{{ cs_admin_login.cookies_string }}"
+    validate_certs: false
+    return_content: true
+  register: cs_issuer_bound
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
+  when: cs_issuer_host.status | default(0) == 409
+
+- name: fail when the bound Issuer Service host differs from the wanted one
+  assert:
+    that: (cs_issuer_bound.json.host | default('', true) | lower) == (xroad_cs_issuer_host | lower)
+    fail_msg: >-
+      The Issuer Service is already bound to host '{{ cs_issuer_bound.json.host | default('') }}',
+      wanted '{{ xroad_cs_issuer_host }}'.
+  when: cs_issuer_host.status | default(0) == 409
 
 - name: restart xroad-ds-issuer-service to resolve the seeded configuration
   systemd:
     name: xroad-ds-issuer-service
     state: restarted
+  when: cs_issuer_host is changed
+
+- name: provision the Issuer Service TLS certificate
+  command:
+    argv:
+      - bash
+      - -c
+      - "{{ lookup('ansible.builtin.file', 'provision-ds-tls.sh') }}"
+      - provision-ds-tls.sh
+      - "{{ xroad_cs_ds_tls_san }}"
+    stdin: "{{ xroad_cs_admin_password }}"
+  environment:
+    XROAD_ADMIN_USER: "{{ xroad_ui_user }}"
+  register: cs_ds_tls
+  no_log: "{{ xroad_cs_admin_api_no_log }}"
+  changed_when: "'provisioned' in cs_ds_tls.stdout"
+  when: xroad_cs_ds_tls_san | length > 0
+
+- name: wait for the Issuer Service to serve its TLS port
+  wait_for:
+    host: localhost
+    port: 6183
+    timeout: 240
+  when: xroad_cs_ds_tls_san | length > 0

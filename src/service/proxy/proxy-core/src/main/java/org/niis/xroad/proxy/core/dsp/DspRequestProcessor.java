@@ -28,6 +28,8 @@ package org.niis.xroad.proxy.core.dsp;
 
 import jakarta.annotation.Nonnull;
 
+import java.util.Optional;
+
 /**
  * Processes DSP (Data Space Protocol) requests within the proxy request pipeline.
  * Implementations perform asset access acquisition via the control plane.
@@ -47,11 +49,36 @@ public interface DspRequestProcessor {
     AssetAccessResponse execute(DspRequest request);
 
     /**
+     * Tells whether the request goes to the provider over the X-Road 7 path instead of through DSP. A request
+     * that bypasses DSP is not passed to {@link #execute}, and no agreement token is attached to it.
+     *
+     * @param request the request to route
+     * @return {@code true} when the request bypasses DSP
+     */
+    default boolean bypassesDsp(DspRequest request) {
+        return false;
+    }
+
+    /**
      * Drops the asset access held for the request's target, so that the next {@link #execute} acquires afresh.
      * Called when the provider rejected the agreement token the cached asset access carried.
      *
      * @param request the request whose cached asset access is to be dropped
      */
     default void invalidateAssetAccess(DspRequest request) {
+    }
+
+    /**
+     * Gives up the asset access whose provider server could not be connected to and acquires asset access
+     * from another candidate provider server. The failed server's cached asset access is dropped, so a later
+     * {@link #execute} does not reuse it.
+     *
+     * @param request the request whose data call failed to connect
+     * @param failed  the asset access the failed data call used
+     * @return the asset access of another provider server, or empty when there is none to fail over to
+     *         or none of them yields asset access
+     */
+    default Optional<AssetAccessResponse> failOver(DspRequest request, AssetAccessResponse failed) {
+        return Optional.empty();
     }
 }

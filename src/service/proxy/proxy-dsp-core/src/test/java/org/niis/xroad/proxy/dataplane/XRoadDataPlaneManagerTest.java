@@ -148,17 +148,13 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
-    void prepareAdvertisesServerproxyEndpoint() {
-        var message = DataFlowPrepareMessage.Builder.newInstance()
-                .dataFlowId("flow-4")
-                .profile("Xrd-PULL")
-                .build();
+    void prepareReturnsProvisionedStateWithoutDataAddressAndIssuesNoToken() {
+        var result = manager.prepare(buildPrepareMessage("flow-4"));
 
-        var result = manager.prepare(message);
-
-        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
-        assertThat(result.getDataAddress().getEndpointType()).isEqualTo("https");
+        assertThat(result.getDataAddress()).isNull();
         assertThat(result.getState()).isEqualTo(DataFlowLifecycleState.PROVISIONED.toString());
+        assertThat(manager.state("flow-4")).isEqualTo(DataFlowLifecycleState.PROVISIONED);
+        verifyNoInteractions(grantRpcClient);
     }
 
     @ParameterizedTest
@@ -169,16 +165,6 @@ class XRoadDataPlaneManagerTest {
         var result = manager.start(buildStartMessage("flow-fallback-start"));
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(FALLBACK_ENDPOINT);
         assertThat(result.getState()).isEqualTo(DataFlowLifecycleState.STARTED.toString());
-    }
-
-    @ParameterizedTest
-    @MethodSource("unavailableOwnAddresses")
-    void prepareAdvertisesFallbackEndpointWhenOwnAddressIsNotAvailable(OwnAddress ownAddress) {
-        when(ownSecurityServerResolver.address()).thenReturn(ownAddress);
-        when(properties.serverproxyEndpoint()).thenReturn(FALLBACK_ENDPOINT);
-        var result = manager.prepare(buildPrepareMessage("flow-fallback-prepare"));
-        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(FALLBACK_ENDPOINT);
-        assertThat(result.getState()).isEqualTo(DataFlowLifecycleState.PROVISIONED.toString());
     }
 
     @Test
@@ -308,7 +294,7 @@ class XRoadDataPlaneManagerTest {
         var retry = manager.prepare(buildPrepareMessage("flow-retry-prepare"));
 
         assertThat(retry.getState()).isEqualTo(first.getState());
-        assertThat(retry.getDataAddress().getEndpoint()).isEqualTo(first.getDataAddress().getEndpoint());
+        assertThat(retry.getDataAddress()).isNull();
         assertThat(manager.state("flow-retry-prepare")).isEqualTo(DataFlowLifecycleState.PROVISIONED);
     }
 
@@ -343,7 +329,7 @@ class XRoadDataPlaneManagerTest {
 
 
     @Test
-    void startAndPrepareCarryAuthorizationTokenWhenGrantAndLiveAclMatch() {
+    void startCarriesAuthorizationTokenWhenGrantAndLiveAclMatch() {
         var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
         when(grantRpcClient.resolveAgreementGrant("agreement-1"))
                 .thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
@@ -351,10 +337,8 @@ class XRoadDataPlaneManagerTest {
                 .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
 
         var startResult = manager.start(buildStartMessage("flow-token-start"));
-        var prepareResult = manager.prepare(buildPrepareMessage("flow-token-prepare"));
 
         assertTokenPresentAndValid(startResult.getDataAddress(), scope);
-        assertTokenPresentAndValid(prepareResult.getDataAddress(), scope);
     }
 
     @Test

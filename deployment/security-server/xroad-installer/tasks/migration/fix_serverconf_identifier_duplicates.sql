@@ -1,9 +1,13 @@
+-- The caller passes the serverconf schema: psql -v schema=<schema>. It is
+-- "serverconf" unless the database setup prefixed it.
+SET search_path TO :"schema", public;
+
 BEGIN;
 
-LOCK TABLE serverconf.identifier IN EXCLUSIVE MODE;
-LOCK TABLE serverconf.accessright IN EXCLUSIVE MODE;
-LOCK TABLE serverconf.client IN EXCLUSIVE MODE;
-LOCK TABLE serverconf.groupmember IN EXCLUSIVE MODE;
+LOCK TABLE identifier IN EXCLUSIVE MODE;
+LOCK TABLE accessright IN EXCLUSIVE MODE;
+LOCK TABLE client IN EXCLUSIVE MODE;
+LOCK TABLE groupmember IN EXCLUSIVE MODE;
 
 DO $$
 DECLARE
@@ -11,7 +15,7 @@ bad_count bigint;
 BEGIN
 SELECT COUNT(*)
 INTO bad_count
-FROM serverconf.identifier
+FROM identifier
 WHERE "type" IS NULL
    OR "type" NOT IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP', 'LOCALGROUP');
 
@@ -23,7 +27,7 @@ END IF;
 
 SELECT COUNT(*)
 INTO bad_count
-FROM serverconf.identifier
+FROM identifier
 WHERE servicecode IS NOT NULL
    OR serviceversion IS NOT NULL;
 
@@ -45,7 +49,7 @@ SELECT
     subsystemcode,
     groupcode,
     servercode
-FROM serverconf.identifier
+FROM identifier
 WHERE "type" IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP')
 GROUP BY
     "type",
@@ -62,7 +66,7 @@ CREATE TEMP TABLE tmp_identifier_dedup_map AS
 SELECT
     i.id AS dup_id,
     g.main_id
-FROM serverconf.identifier i
+FROM identifier i
          JOIN tmp_identifier_groups g
               ON i."type" = g."type"
                   AND i.xroadinstance = g.xroadinstance
@@ -74,22 +78,22 @@ FROM serverconf.identifier i
 WHERE i.id <> g.main_id
   AND i."type" IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP');
 
-UPDATE serverconf.accessright ar
+UPDATE accessright ar
 SET subjectid = m.main_id
     FROM tmp_identifier_dedup_map m
 WHERE ar.subjectid = m.dup_id;
 
-UPDATE serverconf.client c
+UPDATE client c
 SET identifier = m.main_id
     FROM tmp_identifier_dedup_map m
 WHERE c.identifier = m.dup_id;
 
-UPDATE serverconf.groupmember gm
+UPDATE groupmember gm
 SET groupmemberid = m.main_id
     FROM tmp_identifier_dedup_map m
 WHERE gm.groupmemberid = m.dup_id;
 
-DELETE FROM serverconf.identifier i
+DELETE FROM identifier i
     USING tmp_identifier_dedup_map m
 WHERE i.id = m.dup_id;
 
@@ -101,7 +105,7 @@ SELECT COUNT(*)
 INTO remaining_count
 FROM (
          SELECT 1
-         FROM serverconf.identifier
+         FROM identifier
          WHERE "type" IN ('MEMBER', 'SUBSYSTEM', 'GLOBALGROUP')
          GROUP BY
              "type",

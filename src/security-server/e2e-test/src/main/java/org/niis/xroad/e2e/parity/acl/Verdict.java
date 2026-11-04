@@ -42,5 +42,12 @@ public enum Verdict {
     INTERNAL_ERROR,
     /** The consumer's own proxy refused the request before it reached the provider. */
     CONSUMER_REJECTED,
+    /** The provider refused the call because of its agreement token, for example a missing or non-matching one. */
+    AGREEMENT_TOKEN_REJECTED,
+    /**
+     * The consumer's proxy failed to reach or serve the provider and answered with a generic fault, which is what a
+     * failed data space catalog fetch, negotiation or transfer looks like to the caller.
+     */
+    CONSUMER_FAILED,
     ERROR
 }

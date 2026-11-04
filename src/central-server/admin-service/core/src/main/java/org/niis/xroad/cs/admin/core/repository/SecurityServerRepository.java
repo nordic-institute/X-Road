@@ -29,10 +29,12 @@ package org.niis.xroad.cs.admin.core.repository;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.cs.admin.core.entity.MemberRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SecurityServerRepository extends
@@ -68,6 +70,13 @@ public interface SecurityServerRepository extends
      * @return the id of the row when it exists, locked; empty when there is no such row
      */
     Optional<Integer> lockForUpdateBy(SecurityServerId serverId);
+
+    /**
+     * Selects the row id and identifier of every member that has a client on the server, disabled clients
+     * included, in one SQL statement and without loading any entity. A member with several clients on the
+     * server appears once.
+     */
+    List<MemberRow> findServedMembers(Integer securityServerId);
 
     /**
      * Tells whether the SYSTEM DID is stored for a server other than the given one.

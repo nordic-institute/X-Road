@@ -60,6 +60,7 @@ import static java.lang.String.valueOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 
 /**
@@ -126,7 +127,7 @@ class AgreementTokenAclSkipTest {
     }
 
     @Test
-    void shouldRefuseWithTheDedicatedErrorForATokenNamingAnotherService() throws Exception {
+    void shouldRefuseWithAccessDeniedForATokenNamingAnotherService() throws Exception {
         stubAssetAccess(mintToken(OTHER_SERVICE));
 
         var testCase = new MessageTestCase() {
@@ -142,7 +143,7 @@ class AgreementTokenAclSkipTest {
 
             @Override
             protected void validateFaultResponse(Message receivedResponse) {
-                assertErrorCode(SERVER_SERVERPROXY_X, AGREEMENT_TOKEN_REJECTED.code());
+                assertErrorCode(SERVER_SERVERPROXY_X, ACCESS_DENIED.code());
             }
         };
 

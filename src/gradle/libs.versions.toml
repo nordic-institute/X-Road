@@ -320,6 +320,7 @@ edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-core = { module = "org.eclipse.edc:core-lib", version.ref = "edc" }
+edc-lib-keypair = { module = "org.eclipse.edc:keypair-lib", version.ref = "edc" }
 edc-lib-dsp = { module = "org.eclipse.edc:dsp-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }

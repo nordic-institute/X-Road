@@ -27,6 +27,8 @@
 package org.niis.xroad.proxy.dataplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,15 +36,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroup;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupAccess;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
+import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
+import org.niis.xroad.proxy.controlplane.AgreementServiceGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Endpoint;
@@ -69,6 +76,9 @@ class AgreementTokenIssuerTest {
     private static final ClientId CONSUMER = ClientId.Conf.create("DEV", "COM", "222", "TESTCLIENT");
     private static final ServiceId SERVICE = ServiceId.Conf.create("DEV", "COM", "333", "PROVIDER", "getData", "v1");
 
+    private static final AgreementTokenGroup LOCAL_GROUP = new AgreementTokenGroup.Local(
+            ClientId.Conf.create("DEV", "COM", "333", "PROVIDER"), LocalGroupId.Conf.create("readers"));
+
     private static final TestAgreementTokenProtocolProperties PROPERTIES =
             new TestAgreementTokenProtocolProperties("x-road-provider-data-plane", "x-road-server-proxy", Duration.ofSeconds(60));
 
@@ -91,12 +101,12 @@ class AgreementTokenIssuerTest {
     }
 
     @Test
-    void mintsTokenWhenGrantAndLiveAclFullyMatch() {
+    void mintsTokenOverTheLiveAclEndpoints() {
         var scope = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
         when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
                 new Endpoint("getData", "GET", "/foo/*", false),
-                new Endpoint("getData", "post", "/bar", false)));
+                new Endpoint("getData", "POST", "/bar", false)));
 
         var token = issuer.issueToken(AGREEMENT_ID);
 
@@ -106,6 +116,79 @@ class AgreementTokenIssuerTest {
         assertThat(claims.client()).isEqualTo(CONSUMER);
         assertThat(claims.service()).isEqualTo(SERVICE);
         assertThat(claims.scope()).containsExactlyInAnyOrderElementsOf(scope);
+    }
+
+    @Test
+    void mintsAGroupTokenNamingTheGroupAndTheServiceWithoutReadingTheAcl() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
+                .thenReturn(Optional.of(new AgreementGroupGrant(LOCAL_GROUP, SERVICE)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(true))
+                .verify(token.get(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.ValidGroup.class);
+        var claims = ((AgreementTokenVerificationResult.ValidGroup) result).claims();
+        assertThat(claims.agreementId()).isEqualTo(AGREEMENT_ID);
+        assertThat(claims.group()).isEqualTo(LOCAL_GROUP);
+        assertThat(claims.service()).isEqualTo(SERVICE);
+        verifyNoInteractions(serverConfProvider);
+    }
+
+    @Test
+    void mintsAGroupTokenForAGlobalGroup() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
+                .thenReturn(Optional.of(new AgreementGroupGrant(new AgreementTokenGroup.Global(
+                        GlobalGroupId.Conf.create("DEV", "consumers")), SERVICE)));
+
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
+    }
+
+    @Test
+    void mintsAServiceOnlyTokenNamingTheServiceWithoutReadingTheAcl() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(true))
+                .verify(token.get(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.ValidService.class);
+        var claims = ((AgreementTokenVerificationResult.ValidService) result).claims();
+        assertThat(claims.agreementId()).isEqualTo(AGREEMENT_ID);
+        assertThat(claims.service()).isEqualTo(SERVICE);
+        verifyNoInteractions(serverConfProvider);
+    }
+
+    @Test
+    void aServiceOnlyTokenEntitlesNobodyWhenTheLiveAclGrantsNothing() {
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(false))
+                .verify(token.orElseThrow(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.Rejected.class);
+    }
+
+    @Test
+    void doesNotMintForABuiltinService() {
+        for (var code : BuiltinServiceCodes.ALL) {
+            var builtin = ServiceId.Conf.create("DEV", "COM", "333", null, code);
+            when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(builtin)));
+
+            assertThat(issuer.issueToken(AGREEMENT_ID)).as(code).isEmpty();
+        }
+    }
+
+    @Test
+    void mintsAServiceOnlyTokenForASubsystemServiceThatSharesABuiltinCode() {
+        var subsystemService = ServiceId.Conf.create("DEV", "COM", "333", "PROVIDER", BuiltinServiceCodes.LIST_METHODS);
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
+                .thenReturn(Optional.of(new AgreementServiceGrant(subsystemService)));
+
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
     }
 
     @Test
@@ -193,25 +276,85 @@ class AgreementTokenIssuerTest {
     }
 
     @Test
-    void keepsOnlyTheScopeEntriesTheLiveAclStillGrants() {
-        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
-        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
-        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
-                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+    void listsEveryLiveAclEndpointWhenDirectAndGroupGrantsAreMixed() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/a"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
+                new Endpoint("getData", "GET", "/a", false),
+                new Endpoint("getData", "GET", "/b", false)));
 
         var token = issuer.issueToken(AGREEMENT_ID);
 
         assertThat(token).isPresent();
-        var claims = decodeAndVerify(token.get());
-        assertThat(claims.scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+        assertThat(decodeAndVerify(token.get()).scope())
+                .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/a"), new AgreementTokenScope("GET", "/b"));
     }
 
     @Test
-    void returnsEmptyWhenNoGrantedScopeEntrySurvivesTheLiveAcl() {
-        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
-        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
+    void listsAnEndpointGrantedBothDirectlyAndThroughAGroupOnce() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/a"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
+                new Endpoint("getData", "GET", "/a", false),
+                new Endpoint("getData", "GET", "/a", false)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        assertThat(decodeAndVerify(token.get()).scope()).containsExactly(new AgreementTokenScope("GET", "/a"));
+    }
+
+    @Test
+    void anAclBroadenedAfterNegotiationIsInTheNextToken() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
         when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
-                .thenReturn(List.of(new Endpoint("getData", "DELETE", "/other", false)));
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false), new Endpoint("getData", "POST", "/bar", false)));
+
+        var first = issuer.issueToken(AGREEMENT_ID);
+        var next = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(decodeAndVerify(first.orElseThrow()).scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+        assertThat(decodeAndVerify(next.orElseThrow()).scope())
+                .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+    }
+
+    @Test
+    void anAclNarrowedAfterNegotiationIsOutOfTheNextToken() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false), new Endpoint("getData", "POST", "/bar", false)))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+
+        var first = issuer.issueToken(AGREEMENT_ID);
+        var next = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(decodeAndVerify(first.orElseThrow()).scope())
+                .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
+        assertThat(decodeAndVerify(next.orElseThrow()).scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
+    }
+
+    @Test
+    void aBaseEndpointInTheUnionCollapsesTheScopeToAllEndpoints() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/a"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of(
+                new Endpoint("getData", "GET", "/a", false),
+                new Endpoint("getData", "*", "**", false)));
+
+        var token = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(token).isPresent();
+        assertThat(decodeAndVerify(token.get()).scope()).containsExactly(new AgreementTokenScope("*", "**"));
+    }
+
+    @Test
+    void returnsEmptyWhenTheLiveAclUnionIsEmpty() {
+        var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of());
 
         assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
     }
@@ -229,6 +372,20 @@ class AgreementTokenIssuerTest {
         assertThat(issuer.issueToken(" ")).isEmpty();
         assertThat(issuer.issueToken(null)).isEmpty();
         verifyNoInteractions(grantRpcClient, serverConfProvider);
+    }
+
+    private static AgreementTokenGroupAccess groupAccess(boolean allowed) {
+        return new AgreementTokenGroupAccess() {
+            @Override
+            public boolean isMember(AgreementTokenGroup group, ClientId client) {
+                return allowed;
+            }
+
+            @Override
+            public boolean isEndpointAllowed(ClientId client, ServiceId service, String requestMethod, String requestPath) {
+                return allowed;
+            }
+        };
     }
 
     private AgreementTokenClaimsView decodeAndVerify(String token) {

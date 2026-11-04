@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupAccess;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
@@ -43,9 +44,13 @@ import java.util.function.Supplier;
 /**
  * Decides, at the exact point the server proxy would otherwise consult the ACL, what an incoming
  * {@code x-road-agreement-token} header means for the current request. A presented token is authoritative: a
- * full match ({@link Decision.Accepted}) skips the ACL, and anything else the verifier can pin on the token
- * itself — a malformed or expired token, any claim mismatch, an unknown key id, an unbuildable request context,
- * or an unexpected failure while verifying — is a {@link Decision.Rejected} that refuses the request outright.
+ * full match ({@link Decision.Accepted}) skips the ACL (a group token's or a service-only token's own check has
+ * already run the same ACL lookup for the signature-proven caller). A token that is sound but does not entitle
+ * the caller to this request (a client, service or scope mismatch, a caller outside the token's group, or an
+ * endpoint the live ACL does not grant) is a {@link Decision.Denied}: it is refused outright, as the access denial
+ * the ACL itself would give. Anything else the verifier can pin on the token itself — a malformed or expired
+ * token, an issuer or audience mismatch, an unknown key id, an unbuildable request context, or an unexpected
+ * failure while verifying — is a {@link Decision.Rejected} that refuses the request outright.
  * Only the absence of a header ({@link Decision.Absent}) or the absence of key material to judge it with
  * ({@link Decision.Unavailable}) falls back to the ACL, and only while the {@link LegacyCallRefusalPolicy} does not
  * refuse legacy calls; under refusal, or when the policy cannot be read, both become a {@link Decision.Rejected}.
@@ -68,6 +73,7 @@ public class AgreementTokenAccessCheck {
     private final AgreementTokenKeyMaterial keyMaterial;
     private final ProxyAgreementTokenProperties agreementTokenProperties;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
+    private final AgreementTokenGroupAccess groupAccess;
 
     /** What a presented (or absent) agreement token means for the request at hand. */
     public sealed interface Decision {
@@ -82,6 +88,12 @@ public class AgreementTokenAccessCheck {
 
         /** The token fully matches the request; the ACL is skipped. */
         record Accepted() implements Decision { }
+
+        /**
+         * The token does not entitle the caller to the request; the request must be refused as an ACL denial,
+         * never by falling back to the ACL. {@code reasonClass} names why, for logs and error details.
+         */
+        record Denied(String reasonClass) implements Decision { }
 
         /**
          * The token was refused, or no usable token was presented while legacy calls are refused (or the refusal
@@ -131,14 +143,28 @@ public class AgreementTokenAccessCheck {
         }
 
         try {
-            var result = new AgreementTokenVerifier(provider.get(), agreementTokenProperties).verify(agreementToken, context);
-            if (result instanceof AgreementTokenVerificationResult.Valid(var claims)) {
-                log.debug("agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
-                return ACCEPTED;
-            }
-            var reason = ((AgreementTokenVerificationResult.Rejected) result).reason();
-            log.warn("agreement token rejected: reason={}, client={}, service={}", reason, requestClient, requestService);
-            return new Decision.Rejected(reason.name());
+            var verifier = new AgreementTokenVerifier(provider.get(), agreementTokenProperties, groupAccess);
+            return switch (verifier.verify(agreementToken, context)) {
+                case AgreementTokenVerificationResult.Valid(var claims) -> {
+                    log.debug("agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
+                    yield ACCEPTED;
+                }
+                case AgreementTokenVerificationResult.ValidGroup(var claims) -> {
+                    log.debug("group agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
+                    yield ACCEPTED;
+                }
+                case AgreementTokenVerificationResult.ValidService(var claims) -> {
+                    log.debug("service-only agreement token accepted, skipping ACL: agreementId={}", claims.agreementId());
+                    yield ACCEPTED;
+                }
+                case AgreementTokenVerificationResult.Rejected rejected -> {
+                    log.warn("agreement token rejected: reason={}, client={}, service={}", rejected.reason(), requestClient,
+                            requestService);
+                    yield rejected.reason().isAuthorizationFailure()
+                            ? new Decision.Denied(rejected.reason().name())
+                            : new Decision.Rejected(rejected.reason().name());
+                }
+            };
         } catch (RuntimeException e) {
             log.warn("agreement token verification failed unexpectedly; refusing the request: client={}, service={}",
                     requestClient, requestService, e);

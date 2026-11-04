@@ -33,11 +33,16 @@ import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
 import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
+import ee.ria.xroad.common.request.MemberDidRegRequestType;
+import ee.ria.xroad.common.request.MemberDidRegResultType;
 
+import jakarta.xml.bind.JAXBElement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.managementrequest.ResponsePayload;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestUtil;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.niis.xroad.cs.openapi.model.AddressChangeRequestDto;
@@ -52,11 +57,15 @@ import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationEntryDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRegistrationResultDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
@@ -70,7 +79,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final ClientIdConverter clientIdConverter;
 
     @Override
-    public Integer addManagementRequest(Object request, ManagementRequestType requestType) {
+    public ResponsePayload addManagementRequestWithPayload(Object request, ManagementRequestType requestType) {
         var dto = switch (request) {
             case AuthCertDeletionRequestType req -> new AuthenticationCertificateDeletionRequestDto()
                     .authenticationCertificate(req.getAuthCert())
@@ -86,6 +95,13 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                     .securityServerId(securityServerIdConverter.convertId(req.getServer()))
                     .clientId(clientIdConverter.convertId(req.getClient()))
                     .subsystemName(req.getSubsystemName());
+            case MemberDidRegRequestType req -> new MemberDidRegistrationRequestDto()
+                    .entries(req.getEntry().stream()
+                            .map(entry -> new MemberDidRegistrationEntryDto()
+                                    .memberId(clientIdConverter.convertId(entry.getMember()))
+                                    .did(entry.getDid()))
+                            .toList())
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
             case MaintenanceModeEnableRequestType req -> new MaintenanceModeEnableRequestDto()
                     .message(req.getMessage())
                     .securityServerId(securityServerIdConverter.convertId(req.getServer()));
@@ -118,6 +134,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             case CLIENT_DISABLE_REQUEST -> ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST;
             case CLIENT_ENABLE_REQUEST -> ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
             case CLIENT_RENAME_REQUEST -> ManagementRequestTypeDto.CLIENT_RENAME_REQUEST;
+            case MEMBER_DID_REGISTRATION_REQUEST -> ManagementRequestTypeDto.MEMBER_DID_REGISTRATION_REQUEST;
             case MAINTENANCE_MODE_ENABLE_REQUEST -> ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
             case MAINTENANCE_MODE_DISABLE_REQUEST -> ManagementRequestTypeDto.MAINTENANCE_MODE_DISABLE_REQUEST;
         });
@@ -125,15 +142,34 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         return addManagementRequestInternal(dto);
     }
 
-    private Integer addManagementRequestInternal(ManagementRequestDto managementRequest) {
+    private ResponsePayload addManagementRequestInternal(ManagementRequestDto managementRequest) {
         var result = managementRequestsApi.addManagementRequest(managementRequest);
         if (!result.hasBody()) {
             throw XrdRuntimeException.systemInternalError("Empty response");
-        } else {
-            return Optional.ofNullable(result.getBody())
-                    .map(ManagementRequestDto::getId)
-                    .orElse(null);
         }
+        var body = result.getBody();
+        var requestId = Optional.ofNullable(body).map(ManagementRequestDto::getId).orElse(null);
+        if (requestId == null) {
+            throw XrdRuntimeException.systemInternalError("Response without request id");
+        }
+        return new ResponsePayload(requestId, resultElements(body));
+    }
+
+    private List<JAXBElement<?>> resultElements(ManagementRequestDto body) {
+        if (body instanceof MemberDidRegistrationRequestDto memberDidReg) {
+            return memberDidReg.getResults().stream()
+                    .<JAXBElement<?>>map(this::toResultElement)
+                    .toList();
+        }
+        return List.of();
+    }
+
+    private JAXBElement<MemberDidRegResultType> toResultElement(MemberDidRegistrationResultDto result) {
+        var element = new MemberDidRegResultType();
+        element.setMember(clientIdConverter.convertId(result.getMemberId()));
+        element.setStatus(result.getStatus().name());
+        element.setReason(result.getReason());
+        return ManagementRequestUtil.memberDidRegResult(element);
     }
 
 }

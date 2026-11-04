@@ -172,14 +172,26 @@
   tags:
     - ubuntu-container-init
 
+- name: Read the uid of the user Ansible connects as
+  become: false
+  command: id -u
+  register: connecting_user_uid
+  changed_when: false
+  when: onMacOs | default(true) | bool
+  tags:
+    - ubuntu-container-init
+
 - name: Bind-mount host package build dir into xrd-repo
   become: "{{ onMacOs | default(true) }}"
   shell: |
     set -e
     SRC={{ (playbook_dir + '/../../deployment/native-packages/build') | realpath }}
-    HOST_UID=$(stat -c '%u' "$SRC")
-    # Map Lima-visible owner of build dir to container root so dpkg-scanpackages /
-    # createrepo_c can write Packages and repodata back to the host dir.
+    # On macOS the build dir owner read through virtiofs depends on the caller (root
+    # can see 0), so the uid of the connecting user is used. Elsewhere the owner is read.
+    HOST_UID={{ connecting_user_uid.stdout | default('') }}
+    [ -n "$HOST_UID" ] || HOST_UID=$(stat -c '%u' "$SRC")
+    # Map the uid to container root so dpkg-scanpackages / createrepo_c can write
+    # Packages and repodata back to the host dir.
     lxc config set xrd-repo raw.idmap "both $HOST_UID 0"
     lxc config device remove xrd-repo xroad-build 2>/dev/null || true
     lxc config device add xrd-repo xroad-build disk source="$SRC" path=/srv/xroad-build

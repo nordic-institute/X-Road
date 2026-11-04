@@ -26,7 +26,7 @@
     "pinia-plugin-persistedstate": "^4.7.1",
     "vee-validate": "^4.15.1",
     "vue": "^3.5.43",
-    "vue-i18n": "^11.4.12",
+    "vue-i18n": "^11.4.14",
     "vue-router": "^5.3.1",
     "vuetify": "^4.2.1"
   },

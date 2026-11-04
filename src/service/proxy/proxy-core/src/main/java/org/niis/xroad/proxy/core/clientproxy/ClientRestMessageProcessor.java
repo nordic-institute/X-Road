@@ -88,6 +88,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -98,6 +99,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPONSE;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
@@ -200,38 +202,44 @@ public class ClientRestMessageProcessor {
         ProxyMessage response;
         var sentRequest = executeWithRetry(jRequest, opMonitoringData, restRequest, senderId,
                 requestServiceId, xRequestId, ctx);
-        try (var httpSender = sentRequest.httpSender()) {
+        try (var httpSender = sentRequest.getHttpSender()) {
             var hashAlgoId = ProxyMessageUtils.getHashAlgoId(httpSender);
             response = parseResponse(httpSender, opMonitoringData, requestServiceId);
-            checkConsistency(hashAlgoId, restRequest, sentRequest.restBodyDigest(), response);
+            checkConsistency(hashAlgoId, restRequest, sentRequest.getRestBodyDigest(), response);
         } catch (XrdRuntimeException e) {
-            dropAssetAccessOnTokenRejection(e, restRequest, requestServiceId);
+            dropAssetAccessOnTokenRejection(e, restRequest, requestServiceId, sentRequest.isTokenPresented());
             throw e;
         }
         logResponseMessage(restRequest, response, xRequestId);
         return response;
     }
 
-    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId) {
-        if (proxyProperties.dspEnabled() && failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)) {
-            consumerSideDspProcessor.invalidateAssetAccess(new DspRequest(requestServiceId, restRequest.getClientId(),
-                    restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
+    void dropAssetAccessOnTokenRejection(XrdRuntimeException failure, RestRequest restRequest, ServiceId requestServiceId,
+                                         boolean tokenPresented) {
+        if (proxyProperties.dspEnabled() && (failure.isCausedBy(AGREEMENT_TOKEN_REJECTED)
+                || tokenPresented && failure.isCausedBy(ACCESS_DENIED))) {
+            consumerSideDspProcessor.invalidateAssetAccess(dspRequest(restRequest, requestServiceId));
         }
     }
 
     /**
      * Sends the request, transparently retrying towards another security server when a TLS
      * handshake failure surfaces mid-request (e.g. a TLS 1.3 server proxy rejecting the client
-     * certificate after the handshake completed). The request entity is created on the first
-     * attempt and replayed byte-identically by subsequent attempts. Returns the sender of the
+     * certificate after the handshake completed), and failing over once to another provider server
+     * when the data call could not connect to the one the held asset access points at. The request
+     * entity is created on the first attempt and replayed byte-identically by subsequent attempts;
+     * a failover happens only while the entity is still replayable. Returns the sender of the
      * successful attempt, left open so the response can be parsed from it; failed attempts'
      * senders are closed here.
      */
-    private SentRequest executeWithRetry(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
-                                         RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
-                                         String xRequestId, ProxyRequestContext ctx) throws Exception {
+    SentRequest executeWithRetry(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                                 RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
+                                 String xRequestId, ProxyRequestContext ctx) throws Exception {
         final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
+        var dspRequest = dspRequest(restRequest, requestServiceId);
         SigningProxyMessageEntity entity = null;
+        var assetAccess = new AtomicReference<AssetAccessResponse>();
+        boolean failedOver = false;
         try {
             for (int attempt = 1; ; attempt++) {
                 var httpSender = httpSenderProvider.createClientHttpSender();
@@ -240,18 +248,30 @@ public class ClientRestMessageProcessor {
                         entity = createRequestEntity(jRequest, opMonitoringData, restRequest, senderId, xRequestId,
                                 retryEnabled);
                     }
-                    sendRequest(httpSender, entity, opMonitoringData, restRequest, requestServiceId, xRequestId, ctx);
-                    return new SentRequest(httpSender, entity.getRestBodyDigest());
+                    var tokenPresented = sendRequest(httpSender, entity, opMonitoringData, dspRequest, xRequestId, ctx,
+                            assetAccess);
+                    return new SentRequest(httpSender, entity.getRestBodyDigest(), tokenPresented);
                 } catch (Exception e) {
                     var targets = httpSender.getAttribute(ID_TARGETS);
                     var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
                     httpSender.close();
-                    if (!retryEnabled || !canRetry(e, entity, targets, attempt)) {
+                    if (!retryEnabled) {
                         throw e;
                     }
-                    log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
-                                    + " (xRequestId: {}, attempt: {}, failed address: {})",
-                            xRequestId, attempt, failedAddress, e);
+                    if (canRetry(e, entity, targets, attempt)) {
+                        log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
+                                        + " (xRequestId: {}, attempt: {}, failed address: {})",
+                                xRequestId, attempt, failedAddress, e);
+                    } else if (!failedOver && entity != null && entity.isReplayable() && assetAccess.get() != null
+                            && DataCallFailover.isConnectionFailure(e)) {
+                        log.warn("Data call to {} could not connect, failing over (xRequestId: {})",
+                                assetAccess.get().endpoint(), xRequestId, e);
+                        assetAccess.set(consumerSideDspProcessor.failOver(dspRequest, assetAccess.get())
+                                .orElseThrow(() -> e));
+                        failedOver = true;
+                    } else {
+                        throw e;
+                    }
                 }
             }
         } finally {
@@ -286,26 +306,37 @@ public class ClientRestMessageProcessor {
         legacyCallRefusalPolicy.checkConsumerCallAllowed(requestServiceId);
     }
 
-    void sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
-                             RestRequest restRequest, ServiceId requestServiceId, String xRequestId,
-                             ProxyRequestContext ctx) throws Exception {
+    /**
+     * Sends the request with the asset access held in {@code assetAccessInUse}, acquiring it first when none
+     * is held, so that the caller knows which provider server a failed send went to.
+     */
+    boolean sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
+                        DspRequest dspRequest, String xRequestId, ProxyRequestContext ctx,
+                        AtomicReference<AssetAccessResponse> assetAccessInUse) throws Exception {
         log.trace("sendRequest()");
 
         final URI[] addresses;
+        final var requestServiceId = dspRequest.serviceId();
         AssetAccessResponse assetAccess = null;
-        if (proxyProperties.dspEnabled()) {
-            assetAccess = consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getClientId(),
-                    restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
+        if (proxyProperties.dspEnabled() && !consumerSideDspProcessor.bypassesDsp(dspRequest)) {
+            assetAccess = assetAccessInUse.get();
+            if (assetAccess == null) {
+                assetAccess = consumerSideDspProcessor.execute(dspRequest);
+                assetAccessInUse.set(assetAccess);
+            }
             addresses = clientRequestPreparationService.prepareRequest(
                     httpSender, requestServiceId, URI.create(assetAccess.endpoint()), ctx, opMonitoringData, null);
         } else {
             addresses = clientRequestPreparationService.prepareRequest(
-                    httpSender, requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData, null);
-            checkUnnegotiatedCallAllowed(requestServiceId);
+                    httpSender, requestServiceId, dspRequest.targetSecurityServer(), ctx, opMonitoringData, null);
+            if (!proxyProperties.dspEnabled()) {
+                checkUnnegotiatedCallAllowed(requestServiceId);
+            }
         }
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
-        if (assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization())) {
+        var tokenPresented = assetAccess != null && StringUtils.isNotBlank(assetAccess.authorization());
+        if (tokenPresented) {
             httpSender.addHeader(HEADER_AGREEMENT_TOKEN, assetAccess.authorization());
         }
 
@@ -318,13 +349,24 @@ public class ClientRestMessageProcessor {
         if (opMonitoringData != null) {
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         }
+        return tokenPresented;
+    }
+
+    private DspRequest dspRequest(RestRequest restRequest, ServiceId requestServiceId) {
+        return new DspRequest(requestServiceId, restRequest.getClientId(),
+                restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId));
     }
 
     /**
-     * Outcome of a successful send: the (still open) sender to parse the response from and the
-     * digest of the streamed request body.
+     * Outcome of a successful send: the (still open) sender to parse the response from, the
+     * digest of the streamed request body and whether an agreement token was sent with it.
      */
-    private record SentRequest(HttpSender httpSender, byte[] restBodyDigest) {
+    @Getter
+    @RequiredArgsConstructor
+    static final class SentRequest {
+        private final HttpSender httpSender;
+        private final byte[] restBodyDigest;
+        private final boolean tokenPresented;
     }
 
     private ProxyMessage parseResponse(HttpSender httpSender, OpMonitoringData opMonitoringData,

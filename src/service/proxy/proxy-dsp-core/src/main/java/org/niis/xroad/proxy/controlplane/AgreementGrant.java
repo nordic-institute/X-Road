@@ -38,5 +38,6 @@ import java.util.List;
  * subsystem, the provider service and the method/path patterns the agreement covers. Carries no agreement id
  * of its own — the caller already has it, since it is the key the lookup was made with.
  */
-public record AgreementGrant(ClientId client, ServiceId service, List<AgreementTokenScope> scope) {
+public record AgreementGrant(ClientId client, ServiceId service, List<AgreementTokenScope> scope)
+        implements ResolvedAgreementGrant {
 }

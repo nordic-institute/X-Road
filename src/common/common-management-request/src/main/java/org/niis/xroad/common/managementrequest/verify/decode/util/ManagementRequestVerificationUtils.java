@@ -26,7 +26,9 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode.util;
 
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.base.CharMatcher;
@@ -35,6 +37,7 @@ import com.google.common.net.InternetDomainName;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.net.IDN;
 import java.security.Signature;
@@ -60,6 +63,20 @@ public final class ManagementRequestVerificationUtils {
             return signature.verify(signatureData);
         } catch (Exception e) {
             throw translateException(e);
+        }
+    }
+
+    public static void verifyCertificateSubjectIsOwner(GlobalConfProvider globalConfProvider, X509Certificate cert, ClientId owner) {
+        ClientId idFromCert = globalConfProvider.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                        ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), owner.getMemberClass(), owner.getMemberCode()),
+                        ""),
+                cert);
+
+        if (!owner.equals(idFromCert)) {
+            throw XrdRuntimeException.systemException(INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match security server owner identifier (%s) in request",
+                    idFromCert, owner);
         }
     }
 

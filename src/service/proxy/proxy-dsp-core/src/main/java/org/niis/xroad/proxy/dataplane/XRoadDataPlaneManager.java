@@ -44,11 +44,10 @@ import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 /**
  * Manager for active data flows in the X-Road proxy data plane.
  * <p>
- * Encapsulates the {@code Xrd-PULL} semantics: when a {@link DataFlowStartMessage} or
- * {@link DataFlowPrepareMessage} arrives, the proxy fabricates a {@link DspDataAddress}
- * advertising the provider serverproxy endpoint and returns it wrapped in a
- * {@link DataFlowStatusMessage}. The serverproxy endpoint (mTLS) is the dataplane —
- * consumers send signed X-Road requests directly to it via the existing PKI pipeline.
+ * Encapsulates the {@code Xrd-PULL} semantics: when a {@link DataFlowStartMessage} arrives, the proxy
+ * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint and returns it wrapped
+ * in a {@link DataFlowStatusMessage}. A {@link DataFlowPrepareMessage} is answered with the state only.
+ * The serverproxy endpoint (mTLS) is the dataplane — consumers send signed X-Road requests directly to it via the existing PKI pipeline.
  * <p>
  * Flow state is tracked in the {@link DataFlowStateStore}, shared by every proxy node of a
  * clustered Security Server: a signaling call handled by any node reads and updates the same
@@ -75,16 +74,19 @@ public class XRoadDataPlaneManager {
     private final AgreementTokenIssuer agreementTokenIssuer;
 
     /**
-     * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
-     * the response is built immediately using the serverproxy endpoint.
+     * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning and the consumer
+     * has no data address to offer: DSP allows a data address in a transfer request only for push, so the
+     * response carries the state only. The provider's data address and token come with its start response.
      *
      * @param message incoming prepare message
-     * @return status message with {@code dataAddress.endpoint} set to the provider serverproxy endpoint
+     * @return status message with state {@link DataFlowLifecycleState#PROVISIONED} and no data address
      */
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
         log.info("Preparing data flow for process {}", message.getDataFlowId());
         applyTransition(message.getDataFlowId(), DataFlowTransition.PREPARE);
-        return buildStatusMessage(DataFlowLifecycleState.PROVISIONED, message.getAgreementId());
+        return DataFlowStatusMessage.Builder.newInstance()
+                .state(DataFlowLifecycleState.PROVISIONED.name())
+                .build();
     }
 
     /**
