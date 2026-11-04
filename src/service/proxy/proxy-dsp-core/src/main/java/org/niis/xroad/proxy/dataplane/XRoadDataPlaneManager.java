@@ -185,15 +185,14 @@ public class XRoadDataPlaneManager {
         var dataAddressBuilder = DspDataAddress.Builder.newInstance()
                 .endpointType(protocol)
                 .endpoint(endpoint);
-        switch (agreementTokenIssuer.issueToken(agreementId)) {
-            case AgreementTokenIssuer.Outcome.Minted(var token) -> dataAddressBuilder
+        var outcome = agreementTokenIssuer.issueToken(agreementId);
+        if (outcome instanceof AgreementTokenIssuer.Outcome.Minted(var token)) {
+            dataAddressBuilder
                     .property(AUTHORIZATION_PROPERTY, token)
                     .property(AUTH_TYPE_PROPERTY, BEARER_AUTH_TYPE);
-            case AgreementTokenIssuer.Outcome.Refused ignored -> {
-                log.info("The live ACL grants no endpoint for agreement id '{}'; marking the data address as refused", agreementId);
-                dataAddressBuilder.property(DspConventions.ACCESS_REFUSED_PROPERTY, Boolean.TRUE.toString());
-            }
-            case AgreementTokenIssuer.Outcome.NotIssued ignored -> { }
+        } else if (outcome instanceof AgreementTokenIssuer.Outcome.Refused) {
+            log.info("The live ACL grants no endpoint for agreement id '{}'; marking the data address as refused", agreementId);
+            dataAddressBuilder.property(DspConventions.ACCESS_REFUSED_PROPERTY, Boolean.TRUE.toString());
         }
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddressBuilder.build())
