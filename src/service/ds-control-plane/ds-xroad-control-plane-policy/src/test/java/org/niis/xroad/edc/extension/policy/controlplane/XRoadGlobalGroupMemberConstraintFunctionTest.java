@@ -52,6 +52,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,7 +75,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateEqOperatorWhenMemberReturnsTrue() {
-        when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
+        when(globalConfProvider.isMemberInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "CS:myGlobalGroup", permission, context);
@@ -82,8 +84,20 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
     }
 
     @Test
+    void evaluateAsksForTheCallersMemberNotForAnExactSubjectMatch() {
+        when(globalConfProvider.isMemberInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        function.evaluate(Operator.EQ, "CS:myGlobalGroup", permission, context);
+
+        verify(globalConfProvider).isMemberInGlobalGroup(ClientId.Conf.create("CS", "ORG", "1234"),
+                GlobalGroupId.Conf.create("CS", "myGlobalGroup"));
+        verify(globalConfProvider, never()).isSubjectInGlobalGroup(any(), any());
+    }
+
+    @Test
     void evaluateIsPartOfWireOperatorWhenMemberReturnsTrue() {
-        when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
+        when(globalConfProvider.isMemberInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
         var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(operatorFromWire("isPartOf"), "CS:myGlobalGroup", permission, context);
@@ -93,7 +107,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateIsPartOfWireOperatorWhenNotMemberReturnsFalse() {
-        when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(false);
+        when(globalConfProvider.isMemberInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(false);
         var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(operatorFromWire("isPartOf"), "CS:myGlobalGroup", permission, context);
@@ -103,7 +117,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateEqOperatorWhenNotMemberReturnsFalse() {
-        when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(false);
+        when(globalConfProvider.isMemberInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(false);
         var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "CS:myGlobalGroup", permission, context);

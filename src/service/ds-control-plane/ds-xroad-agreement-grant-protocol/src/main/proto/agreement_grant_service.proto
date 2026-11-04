@@ -44,6 +44,8 @@ message ResolveAgreementGrantResponse {
   oneof result {
     Grant grant = 1;
     NoGrant no_grant = 2;
+    GroupGrant group_grant = 3;
+    ServiceGrant service_grant = 4;
   }
 }
 
@@ -51,6 +53,28 @@ message Grant {
   ClientIdProto client_id = 1;
   ServiceIdProto service_id = 2;
   repeated Scope scopes = 3;
+}
+
+message ServiceGrant {
+  ServiceIdProto service_id = 1;
+}
+
+message GroupGrant {
+  ServiceIdProto service_id = 1;
+  oneof group {
+    LocalGroup local_group = 2;
+    GlobalGroup global_group = 3;
+  }
+}
+
+message LocalGroup {
+  ClientIdProto owner = 1;
+  string group_code = 2;
+}
+
+message GlobalGroup {
+  string x_road_instance = 1;
+  string group_code = 2;
 }
 
 message Scope {

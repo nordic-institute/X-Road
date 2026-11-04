@@ -16,7 +16,10 @@ require_root
 
 prepare_serverconf_db() {
   read_serverconf_pg_connection
-  log_info "PostgreSQL connection: host=${db_host} port=${db_port} user=${db_user} db=${db_database}"
+  db_schema="$(get_db_prop "$DB_PROPS" 'xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema')"
+  db_schema="${db_schema%%,*}"
+  db_schema="${db_schema:-serverconf}"
+  log_info "PostgreSQL connection: host=${db_host} port=${db_port} user=${db_user} db=${db_database} schema=${db_schema}"
 }
 
 psql_run() {
@@ -47,7 +50,7 @@ run_migration() {
     log_die "Database ${db_database} not found on this host. Cannot run serverconf.identifier deduplication."
   fi
 
-  psql_run -f "$SQL_FILE"
+  psql_run -v schema="${db_schema}" -f "$SQL_FILE"
 }
 
 main() {

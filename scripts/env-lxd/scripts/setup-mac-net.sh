@@ -23,6 +23,7 @@ RESOLVER=/etc/resolver/lxd
 SUBNET=10.10.10.0/24
 LIMA_INSTANCE="${LIMA_INSTANCE:-xroad-lxd}"
 LXD_DNS_IP=10.10.10.1
+SMOKE_HOST="${SMOKE_HOST:-xrd-cs}"
 # socket_vmnet network — packets from the mac arrive at the lima VM with
 # this saddr range. Used to punch a hole through LXD's nftables drops.
 LIMA_HOST_NET=192.168.105.0/24
@@ -74,15 +75,15 @@ function smokeTest() {
   # Direct UDP/53 query against dnsmasq, bypassing macOS resolver framework.
   # nslookup -timeout=2 -retry=0 -> bounded ~2s if dnsmasq is unreachable.
   local out smoke
-  out=$(nslookup -timeout=2 -retry=0 xrd-cs.lxd "$LXD_DNS_IP" 2>&1 || true)
+  out=$(nslookup -timeout=2 -retry=0 "$SMOKE_HOST.lxd" "$LXD_DNS_IP" 2>&1 || true)
   smoke=$(echo "$out" | awk '/^Address: 10\.10\.10\./ {print $2; exit}')
   if [[ "$smoke" =~ ^10\.10\.10\. ]]; then
-    log_info "smoke: xrd-cs.lxd -> $smoke (via $LXD_DNS_IP)"
+    log_info "smoke: $SMOKE_HOST.lxd -> $smoke (via $LXD_DNS_IP)"
     return 0
   fi
-  log_info "smoke: WARNING xrd-cs.lxd did not resolve via $LXD_DNS_IP"
+  log_info "smoke: WARNING $SMOKE_HOST.lxd did not resolve via $LXD_DNS_IP"
   log_info "  raw: $(echo "$out" | tr '\n' ' ' | head -c 200)"
-  log_info "  Debug: nslookup xrd-cs.lxd $LXD_DNS_IP   /   limactl shell $LIMA_INSTANCE sudo nft list ruleset"
+  log_info "  Debug: nslookup $SMOKE_HOST.lxd $LXD_DNS_IP   /   limactl shell $LIMA_INSTANCE sudo nft list ruleset"
   return 1
 }
 

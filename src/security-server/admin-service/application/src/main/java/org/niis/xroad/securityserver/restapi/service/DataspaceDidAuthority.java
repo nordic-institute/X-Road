@@ -35,11 +35,15 @@ import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.service.DidMintResult.Minted;
+import org.niis.xroad.securityserver.restapi.service.DidMintResult.Reason;
+import org.niis.xroad.securityserver.restapi.service.DidMintResult.Rejected;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
@@ -51,8 +55,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *
  * <p>Source: the GlobalConf-registered security server address at the stored DID port
  * ({@code xroad.dsp.did-port}), the port the identity hub listens on for DID documents. The authority
- * is part of every DID bound in {@code ds_participant}, so changing the registered address or the port
- * after a member's identity has been bound makes that row fail verification.
+ * is part of every DID minted for {@code ds_participant}; a bound DID is stored and used as is, so a later
+ * change of the registered address or the port never alters it.
  *
  * <p>Unknown until the server's owner is initialized, GlobalConf has been downloaded and the
  * server's registration has landed in it — normal states before and during registration, reported
@@ -73,36 +77,27 @@ public class DataspaceDidAuthority {
     }
 
     /**
-     * @return the authority as {@code host:port}, as embedded in derived DIDs
-     * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not a valid host
-     *                             name or IPv6 literal
-     */
-    public String current() {
-        return find().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
-                "this security server's owner or GlobalConf-registered address is not available yet; "
-                        + "cannot derive participant DIDs"));
-    }
-
-    /**
+     * Mints the member's DID for the current authority.
+     *
      * @param member the X-Road member identifier
-     * @return the member's freshly derived DID for the current authority
+     * @return the minted DID, or the rejection when the registered address is not ASCII or not a valid host
+     *         name or IPv6 literal, or the DID would be too long
      * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded, or
-     *                             the registered address is not ASCII or not a valid host name or IPv6 literal
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded
      */
-    public Did memberDid(ClientId member) {
-        return ParticipantIdentifierScheme.memberDid(member, mintAuthority());
+    public DidMintResult mintMemberDid(ClientId member) {
+        return mint(authority -> ParticipantIdentifierScheme.memberDid(member, authority));
     }
 
     /**
-     * @return the per-server SYSTEM DID freshly derived for the current authority
+     * Mints the per-server SYSTEM DID for the current authority.
+     *
+     * @return the minted DID, or the rejection when the registered address is not ASCII or not a valid host
+     *         name or IPv6 literal, or the DID would be too long
      * @throws XrdRuntimeException with {@code DSP_PROVISIONING_FAILED} while the registered address is unknown
-     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the registered address is not ASCII or not a
-     *                             valid host name or IPv6 literal
      */
-    public Did systemDid() {
-        return ParticipantIdentifierScheme.systemDid(mintAuthority());
+    public DidMintResult mintSystemDid() {
+        return mint(ParticipantIdentifierScheme::systemDid);
     }
 
     /**
@@ -128,20 +123,61 @@ public class DataspaceDidAuthority {
      */
     public Optional<String> dspBaseUrl() {
         var dspPort = adminServiceProperties.getDataspace().getDspPort();
-        return registeredAddress().map(address -> DspConventions.dspBaseUrl(address, dspPort));
+        return resolve().map(address -> switch (address) {
+            case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
+            case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
+        });
     }
 
-    private String mintAuthority() {
-        registeredAddress().ifPresent(DidAuthority::requireAscii);
-        return current();
+    private DidMintResult mint(Function<String, Did> derive) {
+        return switch (resolve().orElseThrow(this::addressUnknown)) {
+            case RegisteredAddress.Invalid(var rejection) -> rejection;
+            case RegisteredAddress.Valid(var host, var authority) -> {
+                var did = derive.apply(authority);
+                var length = did.toString().length();
+                yield length > ParticipantIdentifierScheme.MAX_DID_LENGTH
+                        ? new Rejected(Reason.DID_TOO_LONG, "DID of %d characters for host '%s' is longer than the limit of %d"
+                                .formatted(length, host, ParticipantIdentifierScheme.MAX_DID_LENGTH))
+                        : new Minted(did);
+            }
+        };
     }
 
-    private Optional<String> find() {
-        var didPort = adminServiceProperties.getDataspace().getDidPort();
-        return registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
+    private XrdRuntimeException addressUnknown() {
+        return XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                "this security server's owner or GlobalConf-registered address is not available yet; "
+                        + "cannot derive participant DIDs");
+    }
+
+    private Optional<RegisteredAddress> resolve() {
+        return registeredAddress().map(this::validate);
+    }
+
+    private RegisteredAddress validate(String address) {
+        if (!DidAuthority.isAscii(address)) {
+            return new RegisteredAddress.Invalid(new Rejected(Reason.NON_ASCII_HOST,
+                    "address '%s' must contain only ASCII characters".formatted(address)));
+        }
+        try {
+            var authority = DspConventions.didAuthority(address, adminServiceProperties.getDataspace().getDidPort());
+            return new RegisteredAddress.Valid(address, authority);
+        } catch (XrdRuntimeException e) {
+            return new RegisteredAddress.Invalid(new Rejected(Reason.INVALID_HOST, e.getDetails(), e));
+        }
     }
 
     private Optional<String> registeredAddress() {
         return ownSecurityServerResolver.address().registeredAddress();
+    }
+
+    private sealed interface RegisteredAddress {
+
+        /** An address that carries a DID: the host as registered and the DID authority derived from it. */
+        record Valid(String host, String authority) implements RegisteredAddress {
+        }
+
+        /** An address that cannot carry a DID. */
+        record Invalid(Rejected rejection) implements RegisteredAddress {
+        }
     }
 }

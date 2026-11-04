@@ -26,29 +26,41 @@
 
 package org.niis.xroad.proxy.dataplane;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.agreementtoken.AgreementTokenGrant;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroupGrant;
 import org.niis.xroad.common.agreementtoken.AgreementTokenMinter;
 import org.niis.xroad.common.agreementtoken.AgreementTokenProtocolProperties;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.common.agreementtoken.AgreementTokenServiceGrant;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
+import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
+import org.niis.xroad.proxy.controlplane.AgreementServiceGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.BaseEndpoint;
+import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Resolves, filters and mints the agreement token for a data-flow prepare/start message: looks up the grant
- * behind the agreement, keeps only the scope entries the client's live ACL still grants for the service, and
- * mints a token over what remains. Never throws — every failure mode (no grant, an ACL entry withdrawn since
- * negotiation, key material unavailable, or anything else going wrong) yields an empty result, so the caller
- * always has a safe endpoint-only fallback.
+ * Resolves and mints the agreement token for a data-flow prepare/start message: looks up the grant behind the
+ * agreement, which decides that the client may use the service, and mints a token whose scope is the client's
+ * live ACL endpoints for that service (direct, local-group and global-group rows). For an agreement whose
+ * subject is a group, it mints a group token that names the group and the service and lists no endpoints. For an
+ * agreement that restricts no subject it mints a service-only token that names the service alone, except for a
+ * built-in service, which the server proxy answers without consulting any token.
+ * Never throws — every failure mode (no grant, an empty live ACL, key material unavailable, or anything else going wrong) yields an
+ * empty result, so the caller always has a safe endpoint-only fallback.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -92,30 +104,48 @@ public class AgreementTokenIssuer {
         if (grantOpt.isEmpty()) {
             return Optional.empty();
         }
-        var grant = grantOpt.get();
+        var minter = new AgreementTokenMinter(keyProviderOpt.get(), protocolProperties);
+        return switch (grantOpt.get()) {
+            case AgreementGrant grant -> mintSubsystemToken(minter, agreementId, grant);
+            case AgreementGroupGrant(var group, var service) ->
+                    Optional.of(minter.mint(new AgreementTokenGroupGrant(agreementId, group, service)));
+            case AgreementServiceGrant(var service) -> mintServiceToken(minter, agreementId, service);
+        };
+    }
 
-        var liveScope = filterToLiveAcl(grant);
-        if (liveScope.isEmpty()) {
-            log.info("No live ACL entry backs any granted scope for agreement id '{}'; not minting", agreementId);
+    private Optional<String> mintServiceToken(AgreementTokenMinter minter, String agreementId, ServiceId service) {
+        if (isBuiltinService(service)) {
+            log.debug("Agreement id '{}' is for a built-in service; not minting", agreementId);
             return Optional.empty();
         }
+        return Optional.of(minter.mint(new AgreementTokenServiceGrant(agreementId, service)));
+    }
 
-        var minter = new AgreementTokenMinter(keyProviderOpt.get(), protocolProperties);
-        var token = minter.mint(new AgreementTokenGrant(agreementId, grant.client(), grant.service(), liveScope));
-        return Optional.of(token);
+    private static boolean isBuiltinService(ServiceId service) {
+        return service.getSubsystemCode() == null && BuiltinServiceCodes.ALL.contains(service.getServiceCode());
+    }
+
+    private Optional<String> mintSubsystemToken(AgreementTokenMinter minter, String agreementId, AgreementGrant grant) {
+        var liveScope = liveAclScope(grant);
+        if (liveScope.isEmpty()) {
+            log.info("The live ACL grants no endpoint for agreement id '{}'; not minting", agreementId);
+            return Optional.empty();
+        }
+        return Optional.of(minter.mint(new AgreementTokenGrant(agreementId, grant.client(), grant.service(), liveScope)));
     }
 
     /**
-     * Drops every granted scope entry that is not an exact match — method compared case-insensitively, path
-     * compared exactly — of one of the client's current ACL endpoint entries for the service, so a token can
-     * never restate a broader grant than the live ACL backs.
+     * The union of the client's current ACL endpoints for the service. A base endpoint in the union means every
+     * endpoint is allowed, so the scope collapses to the any-method, any-path entry.
      */
-    private List<AgreementTokenScope> filterToLiveAcl(AgreementGrant grant) {
+    private List<AgreementTokenScope> liveAclScope(AgreementGrant grant) {
         var aclEndpoints = serverConfProvider.getAclEndpoints(grant.client(), grant.service());
-        return grant.scope().stream()
-                .filter(scope -> aclEndpoints.stream()
-                        .anyMatch(endpoint -> endpoint.getMethod().equalsIgnoreCase(scope.method())
-                                && endpoint.getPath().equals(scope.path())))
+        if (aclEndpoints.stream().anyMatch(Endpoint::isBaseEndpoint)) {
+            return List.of(new AgreementTokenScope(BaseEndpoint.ANY_METHOD, BaseEndpoint.ANY_PATH));
+        }
+        return aclEndpoints.stream()
+                .map(endpoint -> new AgreementTokenScope(endpoint.getMethod(), endpoint.getPath()))
+                .distinct()
                 .toList();
     }
 }

@@ -47,6 +47,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DATABASE_ERROR("database_error"),
     INVALID_RESPONSE("invalid_response"),
     INVALID_REQUEST("invalid_request"),
+    REQUEST_TOO_LARGE("request_too_large"),
     CRYPTO_ERROR("cryptography_error"),
     // ===== VERIFICATION ERRORS =====
     CANNOT_CREATE_SIGNATURE("cannot_create_signature"),
@@ -325,6 +326,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     // ===== DATASPACE / DSP =====
     DSP_CATALOG_FETCH_FAILED("dsp_catalog_fetch_failed"),
     DSP_CATALOG_PARSE_FAILED("dsp_catalog_parse_failed"),
+    DSP_PROVIDER_NOT_FOUND("dsp_provider_not_found"),
     DSP_DATASET_NOT_FOUND("dsp_dataset_not_found"),
     DSP_OFFERS_NOT_FOUND("dsp_offers_not_found"),
     DSP_PULL_DISTRIBUTION_MISSING("dsp_pull_distribution_missing"),
@@ -335,7 +337,6 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_TRANSFER_FAILED("dsp_transfer_failed"),
     DSP_ACQUISITION_FAILED("dsp_acquisition_failed"),
     DSP_PROVISIONING_FAILED("dsp_provisioning_failed"),
-    DSP_PARTICIPANT_IDENTIFIER_MISMATCH("dsp_participant_identifier_mismatch"),
     DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED("dsp_participant_scheme_version_unsupported"),
     DSP_PARTICIPANT_DID_DRIFT("dsp_participant_did_drift"),
     SYSTEM_DID_FINAL_CONFLICT("system_did_final_conflict"),

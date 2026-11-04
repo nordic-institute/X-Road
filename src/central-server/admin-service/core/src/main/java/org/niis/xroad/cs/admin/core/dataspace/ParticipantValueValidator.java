@@ -43,15 +43,17 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
 /**
@@ -68,9 +70,6 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG
  * non-ASCII host, malformed, not canonical, host differs.
  */
 public final class ParticipantValueValidator {
-
-    /** The most characters a published DID may have. */
-    public static final int MAX_DID_LENGTH = 4000;
 
     private static final String DID_PREFIX = "did:" + ParticipantIdentifierScheme.DID_METHOD + ":";
     private static final String DSP_BASE_URL_PREFIX = "https://";
@@ -155,18 +154,16 @@ public final class ParticipantValueValidator {
         }
         var participant = decode(memberDid.did());
         if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : UNRELATED_MEMBER);
+            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : UNDECODABLE_DID);
         }
         var authority = checkAuthority(participant.get().ssHost());
         if (authority.isPresent()) {
             return authority;
         }
-        if (!(participant.get() instanceof MemberParticipant decoded)
-                || !decoded.member().equals(memberDid.member())
-                || !isOwnerOrClient(memberDid.member())) {
-            return Optional.of(UNRELATED_MEMBER);
+        if (!(participant.get() instanceof MemberParticipant decoded) || !decoded.member().equals(memberDid.member())) {
+            return Optional.of(DID_OF_OTHER_MEMBER);
         }
-        return Optional.empty();
+        return isOwnerOrClient(memberDid.member()) ? Optional.empty() : Optional.of(MEMBER_NOT_SERVED);
     }
 
     private boolean isOwnerOrClient(ClientId member) {
@@ -182,7 +179,7 @@ public final class ParticipantValueValidator {
                 || !ParticipantIdentifierScheme.SCHEME_VERSION.equals(segments[VERSION_SEGMENT_INDEX])) {
             return Optional.of(WRONG_SCHEME);
         }
-        if (did.length() > MAX_DID_LENGTH) {
+        if (did.length() > ParticipantIdentifierScheme.MAX_DID_LENGTH) {
             return Optional.of(DID_TOO_LONG);
         }
         if (!DidAuthority.isAscii(segments[HOST_SEGMENT_INDEX])) {

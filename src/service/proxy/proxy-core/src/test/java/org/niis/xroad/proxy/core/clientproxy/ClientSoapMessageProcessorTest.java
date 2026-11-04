@@ -46,6 +46,7 @@ import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
+import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
@@ -56,8 +57,13 @@ import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
@@ -67,12 +73,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.LEGACY_CALL_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
@@ -221,7 +230,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest);
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest, null);
 
         verify(consumerSideDspProcessor).invalidateAssetAccess(dspRequest);
     }
@@ -232,7 +241,34 @@ class ClientSoapMessageProcessorTest {
         var processor = createProcessor(true, consumerSideDspProcessor);
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
-        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest);
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "no such member"), dspRequest,
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+
+        verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
+    }
+
+    @Test
+    void anAccessDenialOfAPresentedTokenDropsCachedAssetAccess() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(true, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
+                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN));
+
+        verify(consumerSideDspProcessor).invalidateAssetAccess(dspRequest);
+    }
+
+    @Test
+    void anAccessDenialWithoutAPresentedTokenKeepsTheCachedAssetAccess() {
+        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
+        var processor = createProcessor(true, consumerSideDspProcessor);
+        var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
+
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
+                new AssetAccessResponse(PROVIDER_ADDRESS, null));
+        processor.dropAssetAccessOnTokenRejection(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), dspRequest,
+                null);
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }
@@ -244,7 +280,7 @@ class ClientSoapMessageProcessorTest {
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         processor.dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest);
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest, null);
 
         verify(consumerSideDspProcessor, never()).invalidateAssetAccess(any());
     }
@@ -324,6 +360,150 @@ class ClientSoapMessageProcessorTest {
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(UNKNOWN_MEMBER)).isTrue());
         verifyNoInteractions(harness.legacyCallRefusalPolicy());
         verify(httpSender, never()).doPost(any(URI.class), any(InputStream.class), anyLong(), any());
+    }
+
+    private static final AssetAccessResponse ACCESS_A = new AssetAccessResponse("https://a.example/data", "token-a", "member@a");
+    private static final AssetAccessResponse ACCESS_B = new AssetAccessResponse("https://b.example/data", "token-b", "member@b");
+
+    private record FailoverHarness(ClientSoapMessageProcessor processor, DspRequestProcessor dspProcessor,
+                                   ClientRequestPreparationService preparationService,
+                                   ClientSoapRequestContext ctx, SoapRequestDecoder decoder,
+                                   DspRequest dspRequest) {
+    }
+
+    private FailoverHarness createFailoverHarness(HttpSender... senders) throws Exception {
+        return createFailoverHarness(Map.of(), senders);
+    }
+
+    private FailoverHarness createFailoverHarness(Map<String, String> overrides, HttpSender... senders) throws Exception {
+        var properties = new HashMap<String, String>();
+        properties.put("xroad.proxy.dsp-enabled", "true");
+        properties.putAll(overrides);
+        var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(properties)
+                .build());
+        var httpSenderProvider = mock(HttpSenderProvider.class);
+        var stubbing = when(httpSenderProvider.createClientHttpSender()).thenReturn(senders[0]);
+        for (int i = 1; i < senders.length; i++) {
+            stubbing = stubbing.thenReturn(senders[i]);
+        }
+        var preparationService = mock(ClientRequestPreparationService.class);
+        when(preparationService.prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+                .thenAnswer(invocation -> new URI[]{invocation.getArgument(2, URI.class)});
+        var dspProcessor = mock(DspRequestProcessor.class);
+        var processor = new ClientSoapMessageProcessor(
+                mock(MessageSigningService.class),
+                httpSenderProvider,
+                mock(ClientVerificationService.class),
+                mock(OpMonitoringDataHelper.class),
+                mock(GlobalConfProvider.class),
+                proxyProperties,
+                new XRoadConfigCommonProperties(XRoadConfigBuilder.create().register(CommonConfigKeys.instance()).build()),
+                mock(OcspVerifierFactory.class),
+                preparationService,
+                dspProcessor,
+                mock(IdentifierValidationService.class),
+                mock(LegacyCallRefusalPolicy.class));
+        var ctx = newSoapRequestContext();
+        ctx.reqOuts().close();
+        ctx.httpSenderGate().countDown();
+        var serviceId = ServiceId.Conf.create(OTHER_CLIENT, "testService");
+        var decoder = mock(SoapRequestDecoder.class);
+        when(decoder.getServiceId()).thenReturn(serviceId);
+        when(decoder.getOutputContentType()).thenReturn("multipart/mixed; boundary=xtop");
+        var encoder = mock(ProxyMessageEncoder.class);
+        when(decoder.getEncoder()).thenReturn(encoder);
+        var dspRequest = new DspRequest(serviceId, OTHER_CLIENT, null, false);
+        return new FailoverHarness(processor, dspProcessor, preparationService, ctx, decoder, dspRequest);
+    }
+
+    private static HttpSender senderFailingToStream(Exception failure) throws Exception {
+        var sender = mock(HttpSender.class);
+        doThrow(failure).when(sender).doPost(any(URI.class), any(InputStream.class), anyLong(), any());
+        return sender;
+    }
+
+    private HttpSender executeWithRetry(FailoverHarness harness, AtomicReference<AssetAccessResponse> assetAccess)
+            throws Exception {
+        return harness.processor().executeWithRetry(harness.ctx(), harness.decoder(), "req-1", null,
+                harness.dspRequest(), assetAccess);
+    }
+
+    @Test
+    void aDataCallThatCannotConnectFailsOverToTheNextServerAndReplaysTheMessageThere() throws Exception {
+        var deadServer = senderFailingToStream(new ConnectException("Connection refused"));
+        var nextServer = mock(HttpSender.class);
+        var harness = createFailoverHarness(deadServer, nextServer);
+        when(harness.dspProcessor().failOver(harness.dspRequest(), ACCESS_A)).thenReturn(Optional.of(ACCESS_B));
+        var assetAccess = new AtomicReference<>(ACCESS_A);
+
+        var sender = executeWithRetry(harness, assetAccess);
+
+        assertThat(sender).isSameAs(nextServer);
+        assertThat(assetAccess.get()).isEqualTo(ACCESS_B);
+        verify(harness.dspProcessor(), times(1)).failOver(harness.dspRequest(), ACCESS_A);
+        verify(deadServer).addHeader(HEADER_AGREEMENT_TOKEN, "token-a");
+        verify(nextServer).addHeader(HEADER_AGREEMENT_TOKEN, "token-b");
+        verify(nextServer).doPost(eq(URI.create(ACCESS_B.endpoint())), any(ReplaySoapProxyMessageEntity.class));
+    }
+
+    @Test
+    void aFailedOverDataCallThatCannotConnectEitherIsNotFailedOverAgain() throws Exception {
+        var secondFailure = new ConnectException("Connection refused again");
+        var secondServer = mock(HttpSender.class);
+        doThrow(secondFailure).when(secondServer).doPost(any(URI.class), any(ReplaySoapProxyMessageEntity.class));
+        var harness = createFailoverHarness(senderFailingToStream(new ConnectException("Connection refused")), secondServer);
+        when(harness.dspProcessor().failOver(any(), any())).thenReturn(Optional.of(ACCESS_B));
+
+        assertThatThrownBy(() -> executeWithRetry(harness, new AtomicReference<>(ACCESS_A))).isSameAs(secondFailure);
+
+        verify(harness.dspProcessor(), times(1)).failOver(any(), any());
+    }
+
+    @Test
+    void aDataCallThatCannotConnectWithNoOtherServerFailsWithTheConnectionFailure() throws Exception {
+        var failure = new ConnectException("Connection refused");
+        var harness = createFailoverHarness(senderFailingToStream(failure));
+        when(harness.dspProcessor().failOver(any(), any())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> executeWithRetry(harness, new AtomicReference<>(ACCESS_A))).isSameAs(failure);
+    }
+
+    @Test
+    void aReadTimeoutNeitherFailsOverNorDropsTheCachedAccess() throws Exception {
+        var failure = new SocketTimeoutException("Read timed out");
+        var harness = createFailoverHarness(senderFailingToStream(failure));
+
+        assertThatThrownBy(() -> executeWithRetry(harness, new AtomicReference<>(ACCESS_A))).isSameAs(failure);
+
+        verify(harness.dspProcessor(), never()).failOver(any(), any());
+        verify(harness.dspProcessor(), never()).invalidateAssetAccess(any());
+    }
+
+    @Test
+    void aConnectionFailureOfARequestSentWithoutAssetAccessDoesNotFailOver() throws Exception {
+        var failure = new ConnectException("Connection refused");
+        var harness = createFailoverHarness(senderFailingToStream(failure));
+        var requestSoap = mock(SoapMessageImpl.class);
+        when(harness.decoder().getRequestSoap()).thenReturn(requestSoap);
+        when(harness.preparationService().prepareRequest(any(), any(), nullable(SecurityServerId.class), any(), any(), any()))
+                .thenReturn(new URI[]{URI.create(PROVIDER_ADDRESS)});
+
+        assertThatThrownBy(() -> executeWithRetry(harness, new AtomicReference<>())).isSameAs(failure);
+
+        verify(harness.dspProcessor(), never()).failOver(any(), any());
+    }
+
+    @Test
+    void aDataCallThatCannotConnectIsNotFailedOverWhenRequestRetryIsDisabled() throws Exception {
+        var failure = new ConnectException("Connection refused");
+        var harness = createFailoverHarness(Map.of("xroad.proxy.client-proxy.enable-request-retry", "false"),
+                senderFailingToStream(failure));
+
+        assertThatThrownBy(() -> executeWithRetry(harness, new AtomicReference<>(ACCESS_A))).isSameAs(failure);
+
+        verify(harness.dspProcessor(), never()).failOver(any(), any());
     }
 
     private static ClientSoapRequestContext newSoapRequestContext() throws Exception {

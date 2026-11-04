@@ -1,0 +1,2 @@
+---
+cluster_node_address: "{{ inventory_hostname }}.lxd"

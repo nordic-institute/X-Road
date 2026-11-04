@@ -4,6 +4,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 VM_NAME="xroad-lxd"
 RECREATE=false
+MEMORY_GIB=""
 LIMA_CONFIG="$PROJECT_ROOT/config/lima.yaml"
 
 function check_macos() {
@@ -38,6 +39,12 @@ function handle_existing_vm() {
       limactl delete $VM_NAME
     else
       echo "VM $VM_NAME already exists"
+      if [ -n "$MEMORY_GIB" ]; then
+        echo "--memory has no effect on an existing VM. To change its memory, run:"
+        echo "  limactl stop $VM_NAME && limactl edit $VM_NAME --memory $MEMORY_GIB && limactl start $VM_NAME"
+        echo "or recreate it (deletes all containers): $0 --recreate --memory=$MEMORY_GIB"
+        MEMORY_GIB=""
+      fi
     fi
   fi
 }
@@ -50,7 +57,11 @@ function create_and_start_vm() {
     exit 1
   fi
 
-  limactl start --name=${VM_NAME} --tty=false "$LIMA_CONFIG"
+  local memory_args=()
+  if [ -n "$MEMORY_GIB" ]; then
+    memory_args=(--memory "$MEMORY_GIB")
+  fi
+  limactl start --name=${VM_NAME} --tty=false "${memory_args[@]}" "$LIMA_CONFIG"
 
   # Check if VM exists and is running
   if ! limactl list | grep -q "$VM_NAME"; then
@@ -92,10 +103,26 @@ function setup_socket_vmnet() {
   fi
 }
 
+function usage() {
+  echo "Usage: $0 [options]"
+  echo "Options:"
+  echo " --recreate        Delete and recreate the VM $VM_NAME (deletes all containers)"
+  echo " --memory=<GiB>    VM memory in GiB when the VM is created; default is the value in config/lima.yaml"
+  echo " -h, --help        This help text."
+  exit 0
+}
 function parse_arguments() {
   while [[ "$#" -gt 0 ]]; do
     case $1 in
     --recreate) RECREATE=true ;;
+    --memory=*)
+      MEMORY_GIB="${1#*=}"
+      if [[ ! "$MEMORY_GIB" =~ ^[1-9][0-9]*$ ]]; then
+        echo "Invalid --memory value: $MEMORY_GIB (expected a whole number of GiB, for example --memory=20)"
+        exit 1
+      fi
+      ;;
+    -h | --help) usage ;;
     *)
       echo "Unknown parameter: $1"
       exit 1

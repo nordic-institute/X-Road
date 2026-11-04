@@ -76,6 +76,12 @@ public class ParticipantIdentifierScheme {
     /** The DID method every participant DID uses. */
     public static final String DID_METHOD = "web";
 
+    /**
+     * The most characters a participant DID may have: the size of the {@code did} column that stores it. A
+     * member ctx-id is a suffix of its DID, so it never exceeds this either.
+     */
+    public static final int MAX_DID_LENGTH = 4000;
+
     private static final String SEGMENT_SEPARATOR = ":";
 
     /** did:web's fixed escapes for the authority's port separator and IPv6 literal brackets. */

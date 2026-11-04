@@ -33,6 +33,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,9 +52,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,7 +110,7 @@ class ConsumerSideDspProcessorTest {
         processor.invalidateAssetAccess(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), SENDER);
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), null, SENDER);
     }
 
     @Test
@@ -125,7 +129,7 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void nonWhitelistedServiceUnderManagementSubsystemUsesMemberTargetNotSystem() {
-        var nonWhitelistedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "listMethods");
+        var nonWhitelistedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "otherService");
         when(providerSecurityServerResolver.resolve(nonWhitelistedService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
@@ -207,18 +211,36 @@ class ConsumerSideDspProcessorTest {
         assertThat(result.authorization()).isEqualTo("token-abc");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"listMethods", "allowedMethods", "getWsdl", "getOpenAPI"})
+    void subsystemAddressedMetaserviceBypassesDsp(String serviceCode) {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isTrue();
+    }
+
     @Test
-    void metadataServiceFlowsThroughDspAndReturnsNonNull() {
-        var listMethods = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "listMethods");
-        when(providerSecurityServerResolver.resolve(listMethods, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp/e", null);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any())).thenReturn(expected);
+    void subsystemAddressedMetaserviceWithAVersionBypassesDsp() {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "listMethods", "v1");
 
-        var result = processor.execute(new DspRequest(listMethods, SENDER, null, false));
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isTrue();
+    }
 
-        assertThat(result).isSameAs(expected);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), any(), any(), any());
+    @ParameterizedTest
+    @ValueSource(strings = {"listMethods", "allowedMethods", "getWsdl", "getOpenAPI"})
+    void serverLevelMetaserviceDoesNotBypassDsp(String serviceCode) {
+        var metaservice = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(metaservice, SENDER, null, false))).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"getSecurityServerMetrics", "getSecurityServerOperationalData",
+            "getSecurityServerHealthData", "testService"})
+    void subsystemAddressedNonMetaserviceDoesNotBypassDsp(String serviceCode) {
+        var service = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", serviceCode);
+
+        assertThat(processor.bypassesDsp(new DspRequest(service, SENDER, null, false))).isFalse();
     }
 
     @Test
@@ -508,7 +530,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteDatasetNotFoundFromReachedProviderMapsToUnknownMember() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToAccessDenied() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -520,11 +542,11 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+                        .isEqualTo(ErrorCode.ACCESS_DENIED.code()));
     }
 
     @Test
-    void remoteOffersNotFoundFromReachedProviderMapsToUnknownMember() {
+    void remoteOffersNotFoundFromReachedProviderMapsToAccessDenied() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -536,11 +558,11 @@ class ConsumerSideDspProcessorTest {
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+                        .isEqualTo(ErrorCode.ACCESS_DENIED.code()));
     }
 
     @Test
-    void remoteDatasetNotFoundSanitizesToGenericUnknownMemberMessage() {
+    void remoteDatasetNotFoundSanitizesToGenericAccessDeniedMessage() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -553,9 +575,9 @@ class ConsumerSideDspProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
                     assertThat(xrd.getDetails())
-                            .isEqualTo("The requested service was not found on the provider security server.")
+                            .isEqualTo("The request is not allowed by the provider security server.")
                             .doesNotContain("No catalog offer found for service")
                             .doesNotContain(serviceId.asEncodedId());
                     assertThat(xrd.getErrorCodeMetadata())
@@ -564,7 +586,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteOffersNotFoundSanitizesToGenericUnknownMemberMessage() {
+    void remoteOffersNotFoundSanitizesToGenericAccessDeniedMessage() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
@@ -577,9 +599,9 @@ class ConsumerSideDspProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
                     assertThat(xrd.getDetails())
-                            .isEqualTo("The requested service is not currently offered by the provider security server.")
+                            .isEqualTo("The request is not allowed by the provider security server.")
                             .doesNotContain("No catalog offer found for service");
                     assertThat(xrd.getErrorCodeMetadata())
                             .containsExactly("originalCode=" + ErrorCode.DSP_OFFERS_NOT_FOUND.code());
@@ -587,7 +609,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void allCandidatesHomogeneousRemoteNotFoundMapsToUnknownMember() {
+    void allCandidatesHomogeneousRemoteNotFoundMapsToAccessDenied() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
@@ -607,7 +629,7 @@ class ConsumerSideDspProcessorTest {
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.UNKNOWN_MEMBER.code());
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
                             .doesNotContainIgnoringCase("dsp_")
@@ -666,7 +688,7 @@ class ConsumerSideDspProcessorTest {
                     assertThat(xrd.isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue();
                     assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
                     assertThat(xrd.getErrorCodeMetadata().getFirst())
-                            .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_PROVIDER_NOT_FOUND.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
                             .doesNotContain(serviceId.asEncodedId())
@@ -793,5 +815,61 @@ class ConsumerSideDspProcessorTest {
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A), eq(SENDER));
+    }
+
+    @Test
+    void failOverDropsTheFailedServersAccessAndAcquiresFromTheOtherCandidateOnly() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        var fromB = new AssetAccessResponse("http://dp-b/e", "token-b", DID_B);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any())).thenReturn(fromB);
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).contains(fromB);
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), eq(DID_A), any(), any());
+        verify(assetAccessAcquisitionService, never()).invalidateAssetAccess(any(), any(), isNull(), any());
+    }
+
+    @Test
+    void failOverWithNoOtherCandidateDropsTheEntryAndReturnsNothing() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).isEmpty();
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void failOverOfAnAccessThatDoesNotIdentifyItsServerDoesNothing() {
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a");
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).isEmpty();
+        verifyNoInteractions(assetAccessAcquisitionService, providerSecurityServerResolver);
+    }
+
+    @Test
+    void failOverReturnsNothingWhenTheOtherCandidatesCannotProvideAccessEither() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), any(), any()))
+                .thenThrow(new IllegalStateException("provider b is down too"));
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).isEmpty();
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
     }
 }

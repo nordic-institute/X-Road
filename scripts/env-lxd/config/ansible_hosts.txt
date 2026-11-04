@@ -41,7 +41,7 @@ xrd-hurl ansible_connection=lxd ubuntu_releasever=noble
 xrd-repo ansible_connection=lxd
 
 [jaeger_servers]
-xrd-jaeger ansible_connection=lxd
+#xrd-jaeger ansible_connection=lxd
 
 ### vars ###
 

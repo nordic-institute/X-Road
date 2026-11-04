@@ -172,7 +172,12 @@ public enum RestApiAuditProperty {
     SYSTEM_PROPERTY_NAME,
     SYSTEM_PROPERTY_NEW_VALUE,
     SYSTEM_PROPERTY_OLD_VALUE,
-    SYSTEM_PROPERTY_SCOPE;
+    SYSTEM_PROPERTY_SCOPE,
+
+    DID_ENTRIES,
+    DID_ENTRY_COUNT,
+    DID_ENTRY_STATUS,
+    DID_ENTRY_REASON;
 
     /**
      * Gets logged property name for the enum value.

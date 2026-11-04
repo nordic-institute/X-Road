@@ -291,6 +291,17 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public boolean isExactLocalGroupMember(ClientId ownerId, LocalGroupId localGroupId, ClientId clientId) {
+        return tx(session -> {
+            ClientEntity ownerEntity = clientDao.getClient(session, ownerId);
+            if (ownerEntity == null) {
+                return false;
+            }
+            return isMemberInLocalGroup(clientId, localGroupId, ownerEntity, Object::equals);
+        });
+    }
+
+    @Override
     public List<ClientId.Conf> getMembers() {
         return tx(session -> getConf(session).getClients().stream()
                 .map(Client::getIdentifier)

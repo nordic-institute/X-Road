@@ -59,6 +59,7 @@ import org.niis.xroad.proxy.core.serverproxy.AgreementTokenAccessCheck;
 import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
+import org.niis.xroad.proxy.core.serverproxy.ServerConfGroupAccess;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
 import org.niis.xroad.proxy.core.serverproxy.ServerRestMessageProcessor;
@@ -238,7 +239,7 @@ public class TestContext {
                 var legacyCallRefusalPolicy = new LegacyCallRefusalPolicy(serverSideProperties, globalConfProvider);
 
                 var agreementTokenAccessCheck = new AgreementTokenAccessCheck(agreementTokenKeyMaterial, agreementTokenProperties,
-                        legacyCallRefusalPolicy);
+                        legacyCallRefusalPolicy, new ServerConfGroupAccess(serverConfProvider, globalConfProvider));
 
                 var serverRestMessageProcessor = new ServerRestMessageProcessor(
                         messageSigningService, clientVerificationService, opMonitoringDataHelper,

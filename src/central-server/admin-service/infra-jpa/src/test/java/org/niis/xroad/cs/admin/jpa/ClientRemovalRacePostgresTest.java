@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.memberDid;
 
 /**
@@ -105,7 +105,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
                 removal.get(WAIT_SECONDS, TimeUnit.SECONDS);
                 assertThat(write.get(WAIT_SECONDS, TimeUnit.SECONDS).values()).as("round %d write", round)
                         .singleElement()
-                        .isIn(ParticipantValueResult.STORED, ParticipantValueResult.rejected(UNRELATED_MEMBER));
+                        .isIn(ParticipantValueResult.STORED, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
 
                 assertThat(countMemberDids(fixture.server().id())).as("round %d member DID rows", round).isZero();
             }
@@ -140,7 +140,7 @@ class ClientRemovalRacePostgresTest extends AbstractCentralServerPostgresTest {
 
             holder.get(WAIT_SECONDS, TimeUnit.SECONDS);
             assertThat(write.get(WAIT_SECONDS, TimeUnit.SECONDS).values())
-                    .containsExactly(ParticipantValueResult.rejected(UNRELATED_MEMBER));
+                    .containsExactly(ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
             assertThat(countMemberDids(fixture.server().id())).isZero();
         } finally {
             release.countDown();

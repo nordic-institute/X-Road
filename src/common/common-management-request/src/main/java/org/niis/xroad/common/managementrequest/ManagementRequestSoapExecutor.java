@@ -41,9 +41,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import java.io.InputStream;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.BAD_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.REQUEST_TOO_LARGE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,15 +55,21 @@ public class ManagementRequestSoapExecutor {
 
     public ResponseEntity<String> process(String contentType, InputStream body,
                                           ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
+        return processWithPayload(contentType, body, result -> ResponsePayload.ofRequestId(onSuccess.applyAsInt(result)));
+    }
+
+    public ResponseEntity<String> processWithPayload(String contentType, InputStream body,
+                                                     Function<ManagementRequestVerifier.Result, ResponsePayload> onSuccess) {
         try (var bos = BoundedInputStream.builder()
                 .setInputStream(body)
                 .setMaxCount(MAX_REQUEST_SIZE)
                 .setOnMaxCount(this::onMaxCount).get()) {
             var verificationResult = managementRequestVerifier.readRequest(contentType, bos);
 
-            var createdRequestId = onSuccess.applyAsInt(verificationResult);
+            var payload = onSuccess.apply(verificationResult);
 
-            var responseBody = ManagementRequestUtil.toResponse(verificationResult.soapMessage(), createdRequestId).getXml();
+            var responseBody = ManagementRequestUtil.toResponse(verificationResult.soapMessage(), payload.requestId(),
+                    payload.elements()).getXml();
             return disableCache(ResponseEntity.ok())
                     .body(responseBody);
         } catch (Exception e) {
@@ -83,7 +90,7 @@ public class ManagementRequestSoapExecutor {
     }
 
     private void onMaxCount(Long max, Long read) {
-        throw XrdRuntimeException.systemException(BAD_REQUEST)
+        throw XrdRuntimeException.systemException(REQUEST_TOO_LARGE)
                 .details("Request size limit %d exceeded".formatted(max))
                 .build();
     }

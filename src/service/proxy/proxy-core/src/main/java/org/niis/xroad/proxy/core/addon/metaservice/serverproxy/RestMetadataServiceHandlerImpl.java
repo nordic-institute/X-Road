@@ -46,6 +46,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.CommonProperties;
@@ -70,7 +71,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
@@ -131,7 +131,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         if (requestProxyMessage.getRest().getVerb() != RestRequest.Verb.GET) {
             return false;
         }
-        return Arrays.asList(LIST_METHODS, ALLOWED_METHODS, GET_OPENAPI).contains(requestServiceId.getServiceCode());
+        return BuiltinServiceCodes.REST_METASERVICES.contains(requestServiceId.getServiceCode());
     }
 
     @Override

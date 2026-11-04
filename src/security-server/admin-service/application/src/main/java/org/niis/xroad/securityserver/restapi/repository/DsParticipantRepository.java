@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.restapi.util.PersistenceUtils;
@@ -126,16 +127,37 @@ public class DsParticipantRepository {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public DsParticipantEntity bindMemberParticipant(ClientId member, String ctxId, String did) {
         var session = persistenceUtils.getCurrentSession();
-        var identifier = identifierDAO.findOrCreateClientId(session, member);
+        var participant = activeParticipant(ParticipantType.MEMBER, ctxId, did);
+        participant.setMemberIdentifier(identifierDAO.findOrCreateClientId(session, member));
+        return saveAndFlush(session, participant);
+    }
 
+    /**
+     * Binds the Security Server's SYSTEM participant row, with the same rules as
+     * {@link #bindMemberParticipant}: never over an existing SYSTEM row, flushed immediately so a
+     * concurrent bind fails on the single-SYSTEM-row index here, and in its own transaction.
+     *
+     * @param ctxId the SYSTEM ctx-id
+     * @param did   the derived SYSTEM DID
+     * @return the persisted row
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public DsParticipantEntity bindSystemParticipant(String ctxId, String did) {
+        var participant = activeParticipant(ParticipantType.SYSTEM, ctxId, did);
+        return saveAndFlush(persistenceUtils.getCurrentSession(), participant);
+    }
+
+    private static DsParticipantEntity activeParticipant(ParticipantType type, String ctxId, String did) {
         var participant = new DsParticipantEntity();
-        participant.setParticipantType(ParticipantType.MEMBER);
-        participant.setMemberIdentifier(identifier);
+        participant.setParticipantType(type);
         participant.setCtxId(ctxId);
         participant.setDid(did);
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
+        return participant;
+    }
 
+    private DsParticipantEntity saveAndFlush(Session session, DsParticipantEntity participant) {
         var saved = dsParticipantDAO.save(session, participant);
         session.flush();
         return saved;

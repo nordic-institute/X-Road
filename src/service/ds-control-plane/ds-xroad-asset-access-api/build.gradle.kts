@@ -30,6 +30,7 @@ dependencies {
   testImplementation(libs.edc.sql.contract.negotiation)
   testImplementation(libs.edc.sql.transfer.process)
   testImplementation(libs.edc.core.controlplane.transfer)
+  testImplementation(libs.edc.core.controlplane.services)
   testImplementation(libs.edc.spi.core)
   testImplementation(libs.edc.transaction.local)
   testImplementation(libs.edc.sql.lease)

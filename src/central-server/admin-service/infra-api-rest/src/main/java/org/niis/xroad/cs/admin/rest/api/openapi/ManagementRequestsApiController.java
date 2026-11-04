@@ -27,9 +27,11 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SystemDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.api.service.MemberDidRegistrationService;
 import org.niis.xroad.cs.admin.api.service.SystemDidRegistrationService;
 import org.niis.xroad.cs.admin.rest.api.converter.ManagementRequestDetailedViewDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
@@ -62,6 +64,7 @@ import static java.util.Map.entry;
 public class ManagementRequestsApiController implements ManagementRequestsApi {
     private final ManagementRequestService service;
     private final SystemDidRegistrationService systemDidRegistrationService;
+    private final MemberDidRegistrationService memberDidRegistrationService;
     private final ManagementRequestDtoConverter managementRequestDtoConverter;
     private final ManagementRequestDtoConverter converter;
     private final PageRequestConverter pageRequestConverter;
@@ -96,6 +99,9 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     private Request add(Request request) {
         if (request instanceof SystemDidRegistrationRequest systemDidRegistration) {
             return systemDidRegistrationService.add(systemDidRegistration);
+        }
+        if (request instanceof MemberDidRegistrationRequest memberDidRegistration) {
+            return memberDidRegistrationService.add(memberDidRegistration);
         }
         return service.add(request);
     }

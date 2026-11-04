@@ -27,23 +27,13 @@
 
 package org.niis.xroad.edc.extension.assetaccess.policy;
 
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.Constraint;
-import org.eclipse.edc.policy.model.Expression;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.MultiplicityConstraint;
-import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Policy;
-
-import java.util.function.Predicate;
-
-import static org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace.XROAD_CLIENT_ID;
+import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyReader;
 
 /**
- * Matches an ODRL {@link Policy} against the X-Road subject it was published for, walking permission
- * constraints that may nest under {@code AndConstraint} / {@code MultiplicityConstraint}. Shared by offer
- * selection (which also falls back to a member or group subject) and agreement reuse (which matches a
- * client id or an unrestricted policy, with no member or group fallback).
+ * Matches an ODRL {@link Policy} against the X-Road subject it was published for. Shared by offer selection
+ * (which also falls back to a member or group subject) and agreement reuse (which matches a client id or an
+ * unrestricted policy, with no member or group fallback).
  */
 public final class PolicySubjectMatcher {
 
@@ -52,12 +42,17 @@ public final class PolicySubjectMatcher {
 
     /**
      * Whether any permission constraint of {@code policy} is an EQ constraint that names
-     * {@code encodedClientId} as the {@code XROAD_CLIENT_ID} subject.
+     * {@code encodedClientId} as the client id subject.
      */
     public static boolean namesClient(Policy policy, String encodedClientId) {
-        return anyConstraint(policy, atomic -> atomic.getOperator() == Operator.EQ
-                && isLiteral(atomic.getLeftExpression(), XROAD_CLIENT_ID)
-                && isLiteral(atomic.getRightExpression(), encodedClientId));
+        return XRoadPolicyReader.namesClient(policy, encodedClientId);
+    }
+
+    /**
+     * Whether any permission constraint of {@code policy} is a local or global group subject.
+     */
+    public static boolean namesGroup(Policy policy) {
+        return XRoadPolicyReader.namesGroup(policy);
     }
 
     /**
@@ -65,30 +60,6 @@ public final class PolicySubjectMatcher {
      * unrestricted-SYSTEM services. Such a policy applies to any caller.
      */
     public static boolean isUnrestricted(Policy policy) {
-        return policy.getPermissions().isEmpty();
-    }
-
-    /**
-     * Whether any permission constraint of {@code policy}, including ones nested under a
-     * {@link MultiplicityConstraint}, matches {@code matches}.
-     */
-    public static boolean anyConstraint(Policy policy, Predicate<AtomicConstraint> matches) {
-        return policy.getPermissions().stream()
-                .flatMap(permission -> permission.getConstraints().stream())
-                .anyMatch(constraint -> anyConstraint(constraint, matches));
-    }
-
-    private static boolean anyConstraint(Constraint constraint, Predicate<AtomicConstraint> matches) {
-        if (constraint instanceof AtomicConstraint atomic) {
-            return matches.test(atomic);
-        }
-        if (constraint instanceof MultiplicityConstraint multiplicity) {
-            return multiplicity.getConstraints().stream().anyMatch(child -> anyConstraint(child, matches));
-        }
-        return false;
-    }
-
-    public static boolean isLiteral(Expression expression, String value) {
-        return expression instanceof LiteralExpression literal && value.equals(literal.getValue());
+        return XRoadPolicyReader.isUnrestricted(policy);
     }
 }

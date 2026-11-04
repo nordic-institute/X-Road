@@ -1,0 +1,18 @@
+---
+# Inventory for `scripts/env-lxd/dev.sh -i scripts/env-lxd/cluster/deploy-inventory.yml -bdm <module>`:
+# redeploys a module to the Central Server nodes that have the product installed. Node 2 is
+# left out while its install stops at OpenBao database creation. The group is cs_servers because
+# the deploy playbooks target it; start-env.sh never reads this file, so xroad_dev.yml does not
+# install a single-node Central Server on these nodes.
+all:
+  vars:
+    ansible_lxd_remote: xroad-lxd
+  children:
+    cs_servers:
+      hosts:
+        xrd-cs1:
+          ansible_connection: lxd
+    compile_servers:
+      hosts:
+        localhost:
+          ansible_connection: local

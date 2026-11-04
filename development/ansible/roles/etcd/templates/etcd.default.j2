@@ -1,0 +1,10 @@
+ETCD_NAME={{ inventory_hostname }}
+ETCD_DATA_DIR={{ etcd_data_dir }}
+ETCD_LISTEN_PEER_URLS=http://0.0.0.0:{{ etcd_peer_port }}
+ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:{{ etcd_client_port }}
+ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ etcd_address }}:{{ etcd_peer_port }}
+ETCD_ADVERTISE_CLIENT_URLS=http://{{ etcd_address }}:{{ etcd_client_port }}
+ETCD_INITIAL_CLUSTER={% for member in groups[etcd_cluster_group] %}{{ member }}=http://{{ hostvars[member].cluster_node_address }}:{{ etcd_peer_port }}{{ ',' if not loop.last else '' }}{% endfor %}
+
+ETCD_INITIAL_CLUSTER_STATE=new
+ETCD_INITIAL_CLUSTER_TOKEN={{ etcd_cluster_token }}
