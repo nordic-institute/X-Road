@@ -40,6 +40,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 
 import java.io.IOException;
@@ -49,12 +50,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ManagementRequestSenderServiceTest {
+class DidRegistrationSenderTest {
 
     private static final SecurityServerId.Conf SERVER_ID = SecurityServerId.Conf.create("DEV", "COM", "222", "SS1");
     private static final String SYSTEM_DID = "did:web:ss1.example.org";
@@ -67,13 +70,49 @@ class ManagementRequestSenderServiceTest {
     @Mock
     private ManagementRequestSender sender;
 
-    private ManagementRequestSenderService service;
+    @Mock
+    private ManagementRequestSenderFactory senderFactory;
+
+    @Mock
+    private GlobalConfProvider globalConfProvider;
+
+    private DidRegistrationSender service;
 
     @BeforeEach
     void setUp() {
-        service = spy(new ManagementRequestSenderService(null, null, null, null,
-                new CurrentSecurityServerId(SERVER_ID), null, null));
-        doReturn(sender).when(service).createManagementRequestSender();
+        service = new DidRegistrationSender(senderFactory, globalConfProvider, new CurrentSecurityServerId(SERVER_ID));
+        lenient().when(senderFactory.create()).thenReturn(sender);
+    }
+
+    @Test
+    void systemDidRegisterDoesNotSendWhenGlobalConfIsOutdated() {
+        var outdated = XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED).build();
+        doThrow(outdated).when(globalConfProvider).verifyValidity();
+
+        assertThatThrownBy(() -> service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT))
+                .isSameAs(outdated);
+        verifyNoInteractions(sender, senderFactory);
+    }
+
+    @Test
+    void memberDidRegisterDoesNotSendWhenGlobalConfIsOutdated() {
+        var outdated = XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_OUTDATED).build();
+        doThrow(outdated).when(globalConfProvider).verifyValidity();
+
+        assertThatThrownBy(() -> service.sendMemberDidRegisterRequest(MEMBER_DIDS))
+                .isSameAs(outdated);
+        verifyNoInteractions(sender, senderFactory);
+    }
+
+    @Test
+    void systemDidRegisterChecksTheGlobalConfValidityBeforeBuildingTheSender() throws Exception {
+        when(sender.sendSystemDidRegRequest(SERVER_ID, SYSTEM_DID, DSP_BASE_URL, AUTH_CERT)).thenReturn(1);
+
+        service.sendSystemDidRegisterRequest(SYSTEM_DID, DSP_BASE_URL, AUTH_CERT);
+
+        var order = inOrder(globalConfProvider, senderFactory);
+        order.verify(globalConfProvider).verifyValidity();
+        order.verify(senderFactory).create();
     }
 
     @Test

@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +37,12 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
+import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.List;
 
@@ -104,5 +111,79 @@ class DataspaceReadinessPredicatesTest {
         assertThat(predicates.isDataspaceReady()).isTrue();
         assertThat(predicates.isDataspaceReady()).isFalse();
         assertThat(predicates.isDataspaceReady()).isTrue();
+    }
+
+    @Test
+    void registeredAuthCertBytesReturnsTheBytesOfTheRegisteredAuthCert() throws Exception {
+        var cert = new CertificateTestUtils.CertificateInfoBuilder().build();
+        when(signerRpcClient.getTokens()).thenReturn(List.of(tokenWith(KeyUsageInfo.AUTHENTICATION, cert)));
+
+        assertThat(predicates.registeredAuthCertBytes()).contains(CertificateTestUtils.getMockCertificate().getEncoded());
+        assertThat(predicates.hasRegisteredAuthCert()).isTrue();
+    }
+
+    @Test
+    void registeredAuthCertBytesReturnsTheCertThatExpiresLastRegardlessOfEnumerationOrder() throws Exception {
+        var older = CertificateTestUtils.getMockCertificate();
+        var newer = CertificateTestUtils.getMockAuthCertificate();
+        assertThat(newer.getNotAfter()).isAfter(older.getNotAfter());
+        when(signerRpcClient.getTokens()).thenReturn(List.of(
+                tokenWith(KeyUsageInfo.AUTHENTICATION, new CertificateTestUtils.CertificateInfoBuilder().certificate(older).build()),
+                tokenWith(KeyUsageInfo.AUTHENTICATION, new CertificateTestUtils.CertificateInfoBuilder().certificate(newer).build())));
+
+        assertThat(predicates.registeredAuthCertBytes()).contains(newer.getEncoded());
+    }
+
+    @Test
+    void anUnparseableRegisteredAuthCertSortsLastAndStillCounts() throws Exception {
+        var unparseable = CertificateTestUtils.createCertificateInfo(ClientId.Conf.create("a", "b", "c"), true, true,
+                CertificateInfo.STATUS_REGISTERED, "2", new byte[] {1, 2, 3}, null, null);
+        var valid = new CertificateTestUtils.CertificateInfoBuilder().build();
+        when(signerRpcClient.getTokens()).thenReturn(List.of(
+                tokenWith(KeyUsageInfo.AUTHENTICATION, valid), tokenWith(KeyUsageInfo.AUTHENTICATION, unparseable)));
+
+        assertThat(predicates.registeredAuthCertBytes()).contains(CertificateTestUtils.getMockCertificate().getEncoded());
+
+        when(signerRpcClient.getTokens()).thenReturn(List.of(tokenWith(KeyUsageInfo.AUTHENTICATION, unparseable)));
+
+        assertThat(predicates.hasRegisteredAuthCert()).isTrue();
+    }
+
+    @Test
+    void registeredAuthCertBytesIgnoresACertThatIsNotRegistered() {
+        var cert = new CertificateTestUtils.CertificateInfoBuilder()
+                .certificateStatus(CertificateInfo.STATUS_SAVED).build();
+        when(signerRpcClient.getTokens()).thenReturn(List.of(tokenWith(KeyUsageInfo.AUTHENTICATION, cert)));
+
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
+        assertThat(predicates.hasRegisteredAuthCert()).isFalse();
+    }
+
+    @Test
+    void registeredAuthCertBytesIgnoresASigningKeyCert() {
+        var cert = new CertificateTestUtils.CertificateInfoBuilder().build();
+        when(signerRpcClient.getTokens()).thenReturn(List.of(tokenWith(KeyUsageInfo.SIGNING, cert)));
+
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
+    }
+
+    @Test
+    void registeredAuthCertBytesIsEmptyWhenThereAreNoTokens() {
+        when(signerRpcClient.getTokens()).thenReturn(List.of());
+
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
+    }
+
+    @Test
+    void registeredAuthCertBytesIsEmptyWhenTheSignerIsUnavailable() {
+        when(signerRpcClient.getTokens()).thenThrow(new IllegalStateException("signer down"));
+
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
+        assertThat(predicates.hasRegisteredAuthCert()).isFalse();
+    }
+
+    private static TokenInfo tokenWith(KeyUsageInfo usage, CertificateInfo cert) {
+        var key = new TokenTestUtils.KeyInfoBuilder().keyUsageInfo(usage).cert(cert).build();
+        return new TokenTestUtils.TokenInfoBuilder().key(key).build();
     }
 }

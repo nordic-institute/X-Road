@@ -113,6 +113,8 @@ class DataspaceParticipantProvisioningWorkerTest {
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
+    private DataspacePublicationStage publicationStage;
+    @Mock
     private AdminServiceProperties.Dataspace dataspace;
 
     private static final Did HUB_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
@@ -166,6 +168,75 @@ class DataspaceParticipantProvisioningWorkerTest {
             IdentityStatus identityStatus) {
         return new ParticipantContextStatus("irrelevant", ParticipantKind.SYSTEM, contextCreated ? HUB_DID : null, false,
                 HUB_DID, credentialStatus, identityStatus);
+    }
+
+    @Test
+    void publicationStageRunsOnAPassWhereEveryContextConverged() {
+        var converged = statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(converged);
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(Set.of(SYSTEM_CONTEXT));
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+    }
+
+    @Test
+    void publicationStageRunsAfterBindAndProvisionWithTheEnsuredContexts() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+
+        worker.provisionParticipant();
+
+        var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
+        order.verify(participantBindingService).bindSystemIfAbsent(HUB_DID);
+        order.verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
+        order.verify(publicationStage).publish(Set.of(SYSTEM_CONTEXT));
+    }
+
+    @Test
+    void publicationStageDoesNotSeeAContextWhoseEnsureFailed() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        doThrow(new IllegalStateException("hub down")).when(dataspaceProvisioningService).ensureParticipantContext(any());
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(Set.of());
+    }
+
+    @Test
+    void publicationStageDoesNotSeeAContextWhoseAnchorIsUnconfirmed() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(Set.of());
+    }
+
+    @Test
+    void publicationStageDoesNotSeeAServedContextWhoseCredentialIsMissingAndAnchorUnconfirmed() {
+        var servedWithoutCredential = statusOf(true, CredentialStatus.ABSENT, IdentityStatus.OK);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT)).thenReturn(servedWithoutCredential);
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(Set.of());
+    }
+
+    @Test
+    void publicationStageIsSkippedWhileTheOwnerIsUnknown() {
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(PRE_OWNER_SYSTEM_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(publicationStage, never()).publish(any());
     }
 
     @Test

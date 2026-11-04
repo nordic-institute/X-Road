@@ -48,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspacePublicationStage;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
@@ -147,7 +148,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
                 controlPlaneClient, clientRepository, ownSecurityServerResolver, dsParticipantRepository,
                 globalConfProvider, didAuthority);
         worker = new DataspaceParticipantProvisioningWorker(provisioningService, readinessPredicates,
-                new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority), adminServiceProperties);
+                new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority), adminServiceProperties,
+                mock(DataspacePublicationStage.class));
     }
 
     @Test

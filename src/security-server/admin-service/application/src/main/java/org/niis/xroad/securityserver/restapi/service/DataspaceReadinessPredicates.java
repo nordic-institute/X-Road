@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,10 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.Optional;
 
 /**
  * Shared readiness predicates used by the DSP provisioning worker, the DSP status service, the catalog
@@ -60,15 +65,34 @@ public class DataspaceReadinessPredicates {
      * Treats signer unavailability as "not registered".
      */
     public boolean hasRegisteredAuthCert() {
+        return registeredAuthCertBytes().isPresent();
+    }
+
+    /**
+     * Returns the bytes of the authentication certificate in REGISTERED state that expires last, or empty when
+     * there is none. A certificate that cannot be parsed counts as the oldest and is still a registered one.
+     * Treats signer unavailability as "not registered".
+     */
+    public Optional<byte[]> registeredAuthCertBytes() {
         try {
             return signerRpcClient.getTokens().stream()
                     .flatMap(t -> t.getKeyInfo().stream())
                     .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
                     .flatMap(k -> k.getCerts().stream())
-                    .anyMatch(cert -> CertificateInfo.STATUS_REGISTERED.equals(cert.getStatus()));
+                    .filter(cert -> CertificateInfo.STATUS_REGISTERED.equals(cert.getStatus()))
+                    .map(CertificateInfo::getCertificateBytes)
+                    .max(Comparator.comparing(DataspaceReadinessPredicates::notAfter));
         } catch (RuntimeException e) {
             log.debug("Data space: could not read signer state, treating auth cert as not registered", e);
-            return false;
+            return Optional.empty();
+        }
+    }
+
+    private static Instant notAfter(byte[] certificateBytes) {
+        try {
+            return CryptoUtils.readCertificate(certificateBytes).getNotAfter().toInstant();
+        } catch (RuntimeException _) {
+            return Instant.MIN;
         }
     }
 

@@ -26,10 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,18 +43,19 @@ import java.util.List;
  * Mirrors the precondition observations of {@link DataspaceParticipantProvisioningWorker}
  * without triggering any provisioning action.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataspaceProvisioningStatusService {
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
+    private final DataspaceDidAuthority didAuthority;
+    private final DsParticipantRepository dsParticipantRepository;
 
     /**
      * Returns a snapshot of the current provisioning status. Deliberately not transactional:
-     * only the context enumeration touches the database (in its own read-only transaction),
-     * while the per-context status reads are blocking gRPC calls that must not hold a pooled
+     * only the context enumeration and the SYSTEM binding row read touch the database (each in its
+     * own transaction), while the per-context status reads are blocking gRPC calls that must not hold a pooled
      * DB connection.
      */
     public DataspaceStatus readStatus() {
@@ -59,7 +64,16 @@ public class DataspaceProvisioningStatusService {
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
 
-        return new DataspaceStatus(true, authCertRegistered, contextStatuses);
+        return new DataspaceStatus(true, authCertRegistered, readServerStatus(), contextStatuses);
+    }
+
+    private ServerStatus readServerStatus() {
+        var system = dsParticipantRepository.findSystemParticipant()
+                .filter(row -> row.getState() == ParticipantState.ACTIVE);
+        var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
+        return new ServerStatus(readinessPredicates.isDataspaceReady(), didAuthority.dspBaseUrlIfValid().orElse(null),
+                state,
+                system.map(DsParticipantEntity::getPublicationReason).orElse(null));
     }
 
     /**
@@ -67,12 +81,30 @@ public class DataspaceProvisioningStatusService {
      *
      * @param enabled             always {@code true}; kept for API backward compatibility
      * @param authCertRegistered  whether the SS auth cert is in REGISTERED state (Signer read)
+     * @param server              server-level status, including the publication of the SYSTEM values
      * @param participantContexts per-context provisioning statuses
      */
     public record DataspaceStatus(
             boolean enabled,
             boolean authCertRegistered,
+            ServerStatus server,
             List<ParticipantContextStatus> participantContexts
+    ) {
+    }
+
+    /**
+     * Server-level status.
+     *
+     * @param dataspaceReady    whether globalconf lists a credential issuer for this instance
+     * @param dspBaseUrl        the DSP base URL, {@code null} while the registered address is unknown or invalid
+     * @param publicationState  publication state of the SYSTEM values
+     * @param publicationReason reason for the publication state, {@code null} when there is none
+     */
+    public record ServerStatus(
+            boolean dataspaceReady,
+            @Nullable String dspBaseUrl,
+            PublicationState publicationState,
+            @Nullable String publicationReason
     ) {
     }
 }

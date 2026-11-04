@@ -36,10 +36,13 @@ import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyRota
 import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspacePublicationStateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceServerStatusDto;
 import org.niis.xroad.securityserver.restapi.service.AgreementTokenKeyService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.ServerStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -94,8 +97,17 @@ public class DataspaceApiController implements DataspaceApi {
         var dto = new DataspaceProvisioningStatusDto();
         dto.setEnabled(status.enabled());
         dto.setAuthCertRegistered(status.authCertRegistered());
+        dto.setServer(toServerDto(status.server()));
         dto.setParticipantContexts(toContextDtos(status.participantContexts()));
         return dto;
+    }
+
+    private DataspaceServerStatusDto toServerDto(ServerStatus server) {
+        return new DataspaceServerStatusDto()
+                .dataspaceReady(server.dataspaceReady())
+                .dspBaseUrl(server.dspBaseUrl())
+                .publicationState(DataspacePublicationStateDto.valueOf(server.publicationState().name()))
+                .publicationReason(server.publicationReason());
     }
 
     private List<DataspaceParticipantContextStatusDto> toContextDtos(List<ParticipantContextStatus> contexts) {

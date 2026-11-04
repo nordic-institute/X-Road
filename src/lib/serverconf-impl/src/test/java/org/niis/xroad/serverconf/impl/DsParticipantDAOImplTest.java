@@ -41,7 +41,9 @@ import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -296,6 +298,129 @@ public class DsParticipantDAOImplTest {
         } finally {
             DATABASE_CTX.rollbackTransaction();
         }
+    }
+
+    @Test
+    public void transitionExpectingNotSentAppliesToARowWithNoPublicationState() {
+        Long id = saveMember("participant-publication-null");
+        Instant at = Instant.parse("2026-11-03T10:15:30Z");
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, at));
+
+        assertTrue(applied);
+        var row = loadRow(id);
+        assertEquals(PublicationState.SUBMITTED, row.getPublicationState());
+        assertNull(row.getPublicationReason());
+        assertEquals(at, row.getPublicationChangedAt());
+    }
+
+    @Test
+    public void aLaterFlushOfAManagedRowKeepsAPublicationTransitionMadeByTheConditionalUpdate() {
+        Long id = saveMember("participant-publication-managed-row");
+
+        DATABASE_CTX.doInTransaction(session -> {
+            var managed = session.find(DsParticipantEntity.class, id);
+            dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                    Instant.parse("2026-11-03T10:15:30Z"));
+            managed.setState(ParticipantState.DECOMMISSIONED);
+            session.flush();
+            return null;
+        });
+
+        var row = loadRow(id);
+        assertEquals(ParticipantState.DECOMMISSIONED, row.getState());
+        assertEquals(PublicationState.SUBMITTED, row.getPublicationState());
+    }
+
+    @Test
+    public void transitionStoresTheReasonOfARejectedRow() {
+        Long id = saveMember("participant-publication-rejected");
+
+        DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN",
+                        Instant.now()));
+
+        var row = loadRow(id);
+        assertEquals(PublicationState.REJECTED, row.getPublicationState());
+        assertEquals("DID_TAKEN", row.getPublicationReason());
+    }
+
+    @Test
+    public void transitionExpectingNotSentAppliesToAStoredNotSentRow() {
+        Long id = saveMember("participant-publication-not-sent");
+        DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.NOT_SENT, "SEND_FAILURE",
+                        Instant.now()));
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                        Instant.now()));
+
+        assertTrue(applied);
+        assertEquals(PublicationState.SUBMITTED, loadRow(id).getPublicationState());
+    }
+
+    @Test
+    public void transitionChangesNothingWhenTheRowIsNoLongerInTheExpectedState() {
+        Long id = saveMember("participant-publication-lost-race");
+        Instant first = Instant.parse("2026-11-03T10:15:30Z");
+        DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null, first));
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.NOT_SENT, PublicationState.REJECTED, "DID_TAKEN",
+                        Instant.now()));
+
+        assertFalse(applied);
+        var row = loadRow(id);
+        assertEquals(PublicationState.SUBMITTED, row.getPublicationState());
+        assertNull(row.getPublicationReason());
+        assertEquals(first, row.getPublicationChangedAt());
+    }
+
+    @Test
+    public void transitionExpectingAnotherStateDoesNotMatchARowWithNoPublicationState() {
+        Long id = saveMember("participant-publication-expected-submitted");
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, id, PublicationState.SUBMITTED, PublicationState.PUBLISHED, null,
+                        Instant.now()));
+
+        assertFalse(applied);
+        assertNull(loadRow(id).getPublicationState());
+    }
+
+    @Test
+    public void transitionOfAMissingRowReportsNotApplied() {
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.transitionPublication(session, Long.MAX_VALUE, PublicationState.NOT_SENT, PublicationState.SUBMITTED, null,
+                        Instant.now()));
+
+        assertFalse(applied);
+    }
+
+    @Test
+    public void rowsWithoutPublicationColumnsSetLoadAsNotSent() {
+        Long id = saveMember("participant-publication-unset");
+
+        var row = loadRow(id);
+
+        assertNull(row.getPublicationState());
+        assertNull(row.getPublicationReason());
+        assertNull(row.getPublicationChangedAt());
+    }
+
+    private Long saveMember(String memberCode) {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode);
+        return DATABASE_CTX.doInTransaction(session -> dao.save(session, memberParticipant(session, member)).getId());
+    }
+
+    private DsParticipantEntity loadRow(Long id) {
+        return DATABASE_CTX.doInTransaction(session -> {
+            session.clear();
+            return session.find(DsParticipantEntity.class, id);
+        });
     }
 
     private DsParticipantEntity memberParticipant(Session session, ClientId member) {

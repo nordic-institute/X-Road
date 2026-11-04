@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -38,10 +39,12 @@ import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -107,6 +110,22 @@ public class DsParticipantRepository {
      */
     public Optional<DsParticipantEntity> findSystemParticipant() {
         return dsParticipantDAO.findSystemParticipant(persistenceUtils.getCurrentSession());
+    }
+
+    /**
+     * Moves a row's publication state from {@code expected} to {@code next} only if the row is still in
+     * the expected state; a row with no publication state counts as {@code NOT_SENT}.
+     *
+     * @param id       the participant row id
+     * @param expected the state the row must still be in
+     * @param next     the new state
+     * @param reason   the new reason, may be {@code null}
+     * @return {@code true} if the transition applied, {@code false} if the row was in another state or is gone
+     */
+    public boolean transitionPublication(Long id, PublicationState expected, PublicationState next,
+            @Nullable String reason) {
+        return dsParticipantDAO.transitionPublication(persistenceUtils.getCurrentSession(), id, expected, next, reason,
+                Instant.now());
     }
 
     /**

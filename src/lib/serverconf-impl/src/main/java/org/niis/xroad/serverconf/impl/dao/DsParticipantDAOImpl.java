@@ -28,6 +28,7 @@ package org.niis.xroad.serverconf.impl.dao;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
@@ -38,7 +39,9 @@ import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -125,6 +128,35 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
      */
     public boolean delete(Session session, Long id) {
         return deleteById(session, DsParticipantEntity.class, id);
+    }
+
+    /**
+     * Moves the row's publication state from {@code expected} to {@code next} only if the row is
+     * still in the expected state, in one conditional update. A row with no publication state counts
+     * as {@link PublicationState#NOT_SENT}, so expecting {@code NOT_SENT} also matches it.
+     *
+     * @param session  the Hibernate session
+     * @param id       the participant row id
+     * @param expected the state the row must still be in
+     * @param next     the new state
+     * @param reason   the new reason, may be {@code null}
+     * @param at       the time of the change
+     * @return {@code true} if the transition applied, {@code false} if the row was in another state or is gone
+     */
+    public boolean transitionPublication(Session session, Long id, PublicationState expected, PublicationState next,
+            @Nullable String reason, Instant at) {
+        String expectedMatches = expected == PublicationState.NOT_SENT
+                ? "(publicationState is null or publicationState = :expected)"
+                : "publicationState = :expected";
+        int updated = session.createMutationQuery("update DsParticipantEntity set publicationState = :next, "
+                        + "publicationReason = :reason, publicationChangedAt = :at where id = :id and " + expectedMatches)
+                .setParameter("next", next)
+                .setParameter("reason", reason)
+                .setParameter("at", at)
+                .setParameter("id", id)
+                .setParameter("expected", expected)
+                .executeUpdate();
+        return updated > 0;
     }
 
     private Optional<DsParticipantEntity> findByMemberIdentifier(Session session, ClientIdEntity identifier) {

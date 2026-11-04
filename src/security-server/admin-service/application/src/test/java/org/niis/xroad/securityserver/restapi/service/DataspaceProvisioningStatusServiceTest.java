@@ -55,6 +55,7 @@ import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +107,7 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         lenient().when(dataspace.getDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getDspPort()).thenReturn(7181);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -128,8 +130,51 @@ class DataspaceProvisioningStatusServiceTest {
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
 
-        statusService = new DataspaceProvisioningStatusService(
-                provisioningService, readinessPredicates);
+        statusService = new DataspaceProvisioningStatusService(provisioningService, readinessPredicates,
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties), dsParticipantRepository);
+    }
+
+    @Test
+    void readStatusReportsServerLevelPublicationOfTheSystemValues() {
+        var systemRow = new DsParticipantEntity();
+        systemRow.setState(ParticipantState.ACTIVE);
+        systemRow.setPublicationState(PublicationState.REJECTED);
+        systemRow.setPublicationReason("conflict-reason");
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(systemRow));
+        when(readinessPredicates.isDataspaceReady()).thenReturn(true);
+
+        var server = statusService.readStatus().server();
+
+        assertThat(server.dataspaceReady()).isTrue();
+        assertThat(server.dspBaseUrl()).contains("ss.example.test").contains("7181");
+        assertThat(server.publicationState()).isEqualTo(PublicationState.REJECTED);
+        assertThat(server.publicationReason()).isEqualTo("conflict-reason");
+    }
+
+    @Test
+    void readStatusReportsNotSentWhenTheSystemRowHasNoPublicationState() {
+        var systemRow = new DsParticipantEntity();
+        systemRow.setState(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(systemRow));
+
+        var server = statusService.readStatus().server();
+
+        assertThat(server.publicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(server.publicationReason()).isNull();
+    }
+
+    @Test
+    void readStatusIgnoresThePublicationOfADecommissionedSystemRow() {
+        var systemRow = new DsParticipantEntity();
+        systemRow.setState(ParticipantState.DECOMMISSIONED);
+        systemRow.setPublicationState(PublicationState.REJECTED);
+        systemRow.setPublicationReason("conflict-reason");
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(systemRow));
+
+        var server = statusService.readStatus().server();
+
+        assertThat(server.publicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(server.publicationReason()).isNull();
     }
 
     @Test
@@ -258,6 +303,7 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(system.intendedDid()).isNull();
         assertThat(member.identityStatus()).isEqualTo(IdentityStatus.REJECTED);
         assertThat(member.intendedDid()).isNull();
+        assertThat(status.server().dspBaseUrl()).isNull();
     }
 
     @Test

@@ -113,6 +113,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceParticipantBindingService participantBindingService;
     private final AdminServiceProperties adminServiceProperties;
+    private final DataspacePublicationStage publicationStage;
 
     private final ExecutorService dispatcher = Executors.newSingleThreadExecutor(runnable -> {
         var thread = new Thread(runnable, "dataspace-provisioning");
@@ -256,6 +257,11 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * the configured provisioning batch size. Each tick runs every batch; within a batch every unbound
      * context is bound before any context of that batch is provisioned. A context that fails to bind or
      * to provision is left out without holding back the rest of its batch.
+     *
+     * <p>The pass ends with {@link DataspacePublicationStage}, also when every context converged. It is
+     * skipped only while the owner is unknown, since the server has no identity to send under. The stage
+     * gets the contexts provisioned in this tick: those converged at its start and those whose ensure
+     * call reported the anchor confirmed.
      */
     private int ensure() {
         var contexts = dataspaceProvisioningService.participantContexts();
@@ -266,10 +272,12 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         }
 
         var statuses = statusesOf(contexts);
+        Set<ParticipantContext> provisioned = new HashSet<>();
         List<ParticipantContext> nonConverged = new ArrayList<>();
         for (var context : contexts) {
             var status = statuses.get(context);
             if (converged(status)) {
+                provisioned.add(context);
                 refreshControlPlane(context, status.contextDid());
             } else if (status.contextDidUnreadable()) {
                 log.debug("Dataspace provisioning: identity hub state of participant context {} unreadable, retrying next tick",
@@ -278,12 +286,19 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
                 nonConverged.add(context);
             }
         }
+
         if (nonConverged.isEmpty()) {
             log.debug("Dataspace provisioning: all {} participant context(s) converged, only Control Plane records re-applied",
                     contexts.size());
-            return contextCount;
+        } else {
+            provisionNonConverged(nonConverged, statuses, provisioned);
         }
+        publicationStage.publish(provisioned);
+        return contextCount;
+    }
 
+    private void provisionNonConverged(List<ParticipantContext> nonConverged,
+            Map<ParticipantContext, ParticipantContextStatus> statuses, Set<ParticipantContext> provisioned) {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         boolean dataspaceReady = readinessPredicates.isDataspaceReady();
         boolean addressKnown = dataspaceProvisioningService.registeredAddressKnown();
@@ -296,15 +311,15 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         var ordered = nonConverged.stream().sorted(PROVISIONING_ORDER).toList();
         for (int from = 0; from < ordered.size(); from += batchSize) {
             var batch = ordered.subList(from, Math.min(ordered.size(), from + batchSize));
-            provisionBatch(batch, statuses, dataspaceReady && authCertRegistered && addressKnown, authCertRegistered);
+            provisionBatch(batch, statuses, dataspaceReady && authCertRegistered && addressKnown, authCertRegistered,
+                    provisioned);
         }
-        return contextCount;
     }
 
     private void provisionBatch(List<ParticipantContext> batch, Map<ParticipantContext, ParticipantContextStatus> statuses,
-            boolean mayBind, boolean authCertRegistered) {
+            boolean mayBind, boolean authCertRegistered, Set<ParticipantContext> provisioned) {
         var provisionable = provisionableContexts(batch, statuses, mayBind);
-        var ensuredContexts = ensureContexts(provisionable);
+        var ensuredContexts = ensureContexts(provisionable, provisioned);
 
         if (!authCertRegistered) {
             log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
@@ -461,14 +476,17 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
      * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
      * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
-     * still created/updated as usual, only its credential request is deferred to a later tick.
+     * still created/updated as usual, only its credential request is deferred to a later tick. The
+     * contexts returned are also added to {@code provisioned}, so a context with an unconfirmed
+     * anchor is in neither.
      */
-    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
+    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts, Set<ParticipantContext> provisioned) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
                 boolean anchorConfirmed = dataspaceProvisioningService.ensureParticipantContext(context);
                 if (anchorConfirmed) {
+                    provisioned.add(context);
                     ensured.add(context);
                 } else {
                     log.debug("Dataspace provisioning: deferring credential issuance for participant {} until the "

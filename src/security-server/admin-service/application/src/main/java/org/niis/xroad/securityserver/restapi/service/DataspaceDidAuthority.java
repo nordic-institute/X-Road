@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.DspConventions;
@@ -63,6 +64,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * by {@link #isKnown()} rather than thrown.
  */
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class DataspaceDidAuthority {
 
@@ -127,6 +129,19 @@ public class DataspaceDidAuthority {
             case RegisteredAddress.Valid(var host, var _) -> DspConventions.dspBaseUrl(host, dspPort);
             case RegisteredAddress.Invalid(var rejection) -> throw rejection.toException();
         });
+    }
+
+    /**
+     * @return the DSP base URL like {@link #dspBaseUrl()}, but empty also while the registered address is invalid,
+     *         for callers that treat an address that cannot be used the same as an unknown one
+     */
+    public Optional<String> dspBaseUrlIfValid() {
+        try {
+            return dspBaseUrl();
+        } catch (XrdRuntimeException e) {
+            log.debug("No DSP base URL can be built from the registered address: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     private DidMintResult mint(Function<String, Did> derive) {
