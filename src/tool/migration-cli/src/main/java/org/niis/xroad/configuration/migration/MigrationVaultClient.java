@@ -90,6 +90,16 @@ public class MigrationVaultClient extends SpringVaultClient {
      * @return a preflight-checked vault client ready for use by the migrators
      */
     public static MigrationVaultClient createAndPreflight() {
+        return createAndPreflight(NodeNameResolver.DEFAULT_NODE_NAME);
+    }
+
+    /**
+     * Same as {@link #createAndPreflight()}, with the node name under which the PINs are stored.
+     *
+     * @param nodeName the node name; an invalid name fails before the secret store is contacted
+     */
+    public static MigrationVaultClient createAndPreflight(String nodeName) {
+        NodeNameResolver.resolve(nodeName);
         String host = requireEnvVar(ENV_HOST);
         String portStr = requireEnvVar(ENV_PORT);
         String scheme = requireEnvVar(ENV_SCHEME);
@@ -112,7 +122,7 @@ public class MigrationVaultClient extends SpringVaultClient {
 
         VaultKeyValueOperations kvOps = vaultTemplate.opsForKeyValue(
                 VAULT_MOUNT, VaultKeyValueOperationsSupport.KeyValueBackend.KV_1);
-        return new MigrationVaultClient(kvOps, NodeNameResolver.DEFAULT_NODE_NAME);
+        return new MigrationVaultClient(kvOps, nodeName);
     }
 
     private static String requireEnvVar(String name) {

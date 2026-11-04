@@ -86,6 +86,32 @@ class LegacyConfigMigrationCLIVaultTest {
     }
 
     @Test
+    void testSignerTokenPinsWithInvalidNodeStopsWithTheRuleBeforeTouchingVault() throws IOException {
+        Path stubScript = tempDir.resolve("stub-autologin.sh");
+        Files.writeString(stubScript, "#!/bin/bash\n");
+
+        assertThatThrownBy(() ->
+                LegacyConfigMigrationCLI.main(new String[]{"signer-token-pins", "--node", "_bad", stubScript.toString()}))
+                .isInstanceOf(MigrationException.class)
+                .hasRootCauseInstanceOf(XrdRuntimeException.class)
+                .rootCause()
+                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
+                .hasMessageNotContaining("XROAD_SECRET_STORE");
+    }
+
+    @Test
+    void testSignerTokenPinsWithValidNodeStillRequiresVaultEnvVars() throws IOException {
+        Path stubScript = tempDir.resolve("stub-autologin.sh");
+        Files.writeString(stubScript, "#!/bin/bash\n");
+
+        assertThatThrownBy(() ->
+                LegacyConfigMigrationCLI.main(new String[]{"signer-token-pins", "--node", "node_1", stubScript.toString()}))
+                .isInstanceOf(MigrationException.class)
+                .rootCause()
+                .hasMessageContaining("XROAD_SECRET_STORE_HOST");
+    }
+
+    @Test
     void testPgpKeysWithMissingEnvVarsPropagatesMigrationException() throws IOException {
         Path stubConfig = tempDir.resolve("stub-local.ini");
         Files.writeString(stubConfig, "[section]\nkey=value\n");

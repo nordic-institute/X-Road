@@ -28,17 +28,34 @@
 package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
+import org.niis.xroad.migration.tokenpin.ScriptExecutionResult;
+import org.niis.xroad.migration.tokenpin.TokenPinMigrationResult;
+import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.support.VaultResponse;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class MigrationVaultClientTest {
@@ -112,6 +129,81 @@ class MigrationVaultClientTest {
         client.deleteTokenPin("tok1");
 
         verify(kvOps).delete("signer/token-pins/node_0/tok1");
+    }
+
+    @Test
+    void testPinsAreWrittenReadAndDeletedUnderTheGivenNode() {
+        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
+        VaultResponse response = new VaultResponse();
+        response.setData(new HashMap<>(Map.of("pin", "s3cr3t")));
+        when(kvOps.get("signer/token-pins/node_1/tok1")).thenReturn(response);
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_1");
+
+        client.setTokenPin("tok1", "s3cr3t".toCharArray());
+        Optional<char[]> pin = client.getTokenPin("tok1");
+        client.deleteTokenPin("tok1");
+
+        verify(kvOps).put(eq("signer/token-pins/node_1/tok1"), eq(Map.of("pin", "s3cr3t")));
+        assertThat(pin).isPresent();
+        verify(kvOps).delete("signer/token-pins/node_1/tok1");
+        verify(kvOps, never()).put(startsWith("signer/token-pins/node_0/"), any());
+    }
+
+    @Test
+    void testMigrationStoresPinsUnderTheNodeAndASecondRunChangesNothing(@TempDir Path tempDir) throws IOException {
+        Map<String, Map<String, Object>> store = new HashMap<>();
+        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
+        doAnswer(invocation -> {
+            store.put(invocation.getArgument(0), new HashMap<>(invocation.<Map<String, Object>>getArgument(1)));
+            return null;
+        }).when(kvOps).put(anyString(), any());
+        when(kvOps.get(anyString())).thenAnswer(invocation -> {
+            Map<String, Object> data = store.get(invocation.<String>getArgument(0));
+            if (data == null) {
+                return null;
+            }
+            VaultResponse response = new VaultResponse();
+            response.setData(data);
+            return response;
+        });
+        AutoLoginScriptExecutor executor = mock(AutoLoginScriptExecutor.class);
+        when(executor.execute(any())).thenReturn(new ScriptExecutionResult(true, "0:1111\nsofttoken-1:2222\n", "", 0));
+        Path script = tempDir.resolve("fetch-pin.sh");
+        Files.writeString(script, "stub");
+        assertThat(script.toFile().setExecutable(true)).isTrue();
+        TokenPinMigrator migrator = new TokenPinMigrator(new MigrationVaultClient(kvOps, "node_1"), executor);
+
+        TokenPinMigrationResult first = migrator.migrateFromScript(script);
+        Map<String, Map<String, Object>> afterFirstRun = new HashMap<>(store);
+        TokenPinMigrationResult second = migrator.migrateFromScript(script);
+
+        assertThat(first.successfulTokens()).containsExactlyInAnyOrder("0", "softtoken-1");
+        assertThat(store.keySet()).containsExactlyInAnyOrder(
+                "signer/token-pins/node_1/0", "signer/token-pins/node_1/softtoken-1");
+        assertThat(second.skippedTokens()).containsExactlyInAnyOrder("0", "softtoken-1");
+        assertThat(second.successfulTokens()).isEmpty();
+        assertThat(store).isEqualTo(afterFirstRun);
+        verify(kvOps, times(2)).put(anyString(), any());
+    }
+
+    @Test
+    void testBlankNodeNameResolvesToDefaultNode() {
+        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
+
+        new MigrationVaultClient(kvOps, "").deleteTokenPin("tok1");
+
+        verify(kvOps).delete("signer/token-pins/node_0/tok1");
+    }
+
+    @Test
+    void testInvalidNodeNameIsRejectedWithTheRuleAndNothingIsWritten() {
+        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
+
+        assertThatThrownBy(() -> new MigrationVaultClient(kvOps, "_bad"))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
+
+        verifyNoInteractions(kvOps);
     }
 
 }
