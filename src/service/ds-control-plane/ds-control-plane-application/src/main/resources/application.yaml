@@ -13,17 +13,6 @@ quarkus:
     category:
       "EDC-MONITOR":
         level: DEBUG
-    filter:
-      "org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource":
-        if-starts-with:
-          - "Configuration source was not loaded"
-      "org.niis.xroad.globalconf.impl.RemoteGlobalConfSource":
-        if-starts-with:
-          - "Configuration source was not loaded"
-      "org.niis.xroad.globalconf.util.FSGlobalConfValidator":
-        if-starts-with:
-          - "GlobalConf at ["
-          - "Instance identifier at ["
 
 "%native":
   quarkus:
