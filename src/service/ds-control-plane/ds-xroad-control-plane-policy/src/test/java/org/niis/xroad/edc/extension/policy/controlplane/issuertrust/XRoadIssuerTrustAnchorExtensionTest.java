@@ -34,6 +34,7 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.TrustedIssuer;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
@@ -54,16 +56,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -173,9 +176,13 @@ class XRoadIssuerTrustAnchorExtensionTest {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(
                 Map.of(XRoadIssuerTrustAnchorExtension.SETTING_REFRESH_INTERVAL_SECONDS, "1")));
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        var refreshThread = new AtomicReference<Thread>();
         when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of(DID_1))
-                .thenReturn(List.of(DID_2));
+                .thenAnswer(invocation -> {
+                    refreshThread.set(Thread.currentThread());
+                    return List.of(DID_2);
+                });
 
         extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
@@ -183,6 +190,8 @@ class XRoadIssuerTrustAnchorExtensionTest {
 
         await().atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> assertThat(trustedIssuerDids()).containsExactly(DID_2));
+        assertThat(refreshThread.get().getName()).isEqualTo(XRoadIssuerTrustAnchorExtension.THREAD_NAME);
+        assertThat(refreshThread.get().isDaemon()).isTrue();
     }
 
     @ParameterizedTest
@@ -197,71 +206,94 @@ class XRoadIssuerTrustAnchorExtensionTest {
     }
 
     @Test
-    void theProfileKeepsItsRegisteredIssuersAndNothingIsRefreshedUntilTheFirstLoad(ServiceExtensionContext context,
-                                                                                    ObjectFactory factory) {
+    void theProfileKeepsItsRegisteredIssuersAndTheFirstPollIsAt5Seconds(ServiceExtensionContext context, ObjectFactory factory) {
         startWithGlobalConfUnavailable(context, factory);
 
         assertThat(trustedIssuerDids()).containsExactly(REGISTERED_DID);
         verify(scheduler).schedule(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
+        verify(scheduler, times(1)).schedule(any(Runnable.class), anyLong(), any());
         verify(scheduler, never()).scheduleAtFixedRate(any(), anyLong(), anyLong(), any());
     }
 
     @Test
-    void theFirstPollAfterGlobalConfArrivesTrustsTheDistributedIssuersAndSwitchesToTheNormalRefresh(
+    void theFirstPollAfterGlobalConfArrivesTrustsTheDistributedIssuersAndSwitchesToTheRefreshInterval(
             ServiceExtensionContext context, ObjectFactory factory) {
         startWithGlobalConfUnavailable(context, factory);
-        var poll = capturePendingPoll(1);
-        doReturn(INSTANCE_IDENTIFIER).when(globalConfProvider).getInstanceIdentifier();
-        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1));
+        var poll = captureScheduled(5L, 1);
+        globalConfReturns(DID_1);
 
         poll.run();
 
         assertThat(trustedIssuerDids()).containsExactly(DID_1);
-        verify(scheduler).scheduleAtFixedRate(any(), eq(60L), eq(60L), eq(TimeUnit.SECONDS));
-        verify(scheduler, times(1)).schedule(any(Runnable.class), anyLong(), any());
+        verify(scheduler, times(1)).schedule(any(Runnable.class), eq(60L), eq(TimeUnit.SECONDS));
+        verify(scheduler, times(1)).schedule(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
+        verify(monitor).info("%strusting 1 issuer DID(s) from globalconf".formatted(EXTENSION_PREFIX));
     }
 
     @Test
     void aPollThatStillFindsNoGlobalConfSchedulesAnother5SecondPoll(ServiceExtensionContext context, ObjectFactory factory) {
         startWithGlobalConfUnavailable(context, factory);
-        var poll = capturePendingPoll(1);
+        var poll = captureScheduled(5L, 1);
 
         poll.run();
 
         verify(scheduler, times(2)).schedule(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
-        verify(scheduler, never()).scheduleAtFixedRate(any(), anyLong(), anyLong(), any());
+        verify(scheduler, never()).schedule(any(Runnable.class), eq(60L), any());
         assertThat(trustedIssuerDids()).containsExactly(REGISTERED_DID);
     }
 
     @Test
-    void pendingPollsLogOncePerDistinctFailureMessageAndThenAProgressLineEverySixtiethPoll(ServiceExtensionContext context,
-                                                                                         ObjectFactory factory) {
+    void everyFailedAttemptLogsOneWarningWhateverTheMessage(ServiceExtensionContext context, ObjectFactory factory) {
         startWithGlobalConfUnavailable(context, factory);
-        var poll = capturePendingPoll(1);
-        doThrow(new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED)).when(globalConfProvider).getInstanceIdentifier();
+        var uninitializedMessage = new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED).getMessage();
         var malformedMessage = new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED).getMessage();
-        for (var i = 0; i < 59; i++) {
+        var poll = captureScheduled(5L, 1);
+
+        for (var i = 0; i < 4; i++) {
             poll.run();
         }
-        verify(monitor, times(1)).warning(startsWith(EXTENSION_PREFIX + "globalconf still not available"));
-        verify(monitor, times(1)).warning("%sglobalconf still not available: %s".formatted(EXTENSION_PREFIX, malformedMessage));
-        verify(monitor, never()).info(startsWith(EXTENSION_PREFIX + "still waiting"));
+        verify(monitor, times(5)).warning(failureWarning(5, uninitializedMessage));
+
+        doThrow(new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED)).when(globalConfProvider).getInstanceIdentifier();
         poll.run();
-        verify(monitor, times(1)).info("%sstill waiting for globalconf after 60 polls: %s".formatted(EXTENSION_PREFIX, malformedMessage));
-        verify(monitor, never()).debug(startsWith(EXTENSION_PREFIX));
+        poll.run();
+
+        verify(monitor, times(2)).warning(failureWarning(5, malformedMessage));
+        verify(monitor, times(7)).warning(anyString());
+        verify(monitor, never()).info(anyString());
     }
 
     @Test
-    void aPendingPollFailingWithTheMessageOfTheStartWarningIsNotLoggedAgain(ServiceExtensionContext context, ObjectFactory factory) {
-        startWithGlobalConfUnavailable(context, factory);
-        var poll = capturePendingPoll(1);
-        for (var i = 0; i < 5; i++) {
-            poll.run();
-        }
-        verify(monitor, times(1)).warning(anyString());
-        verify(monitor, never()).warning(startsWith(EXTENSION_PREFIX + "globalconf still not available"));
-        verify(monitor, never()).info(startsWith(EXTENSION_PREFIX + "still waiting"));
+    void aRefreshFailureKeepsThePreviousTrustWarnsEveryTimeAndSchedulesTheNextRefresh(ServiceExtensionContext context,
+                                                                                       ObjectFactory factory) {
+        startWithScheduler(context, factory, DID_1);
+        var refresh = captureScheduled(60L, 1);
+        doThrow(new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED)).when(globalConfProvider).getInstanceIdentifier();
+        var malformedMessage = new GlobalConfInitException(GlobalConfInitState.FAILURE_MALFORMED).getMessage();
+
+        refresh.run();
+        refresh.run();
+
+        assertThat(trustedIssuerDids()).containsExactly(DID_1);
+        verify(monitor, times(2)).warning(failureWarning(60, malformedMessage));
+        verify(monitor, times(2)).warning(anyString());
+        verify(monitor, never()).severe(anyString(), any(Throwable[].class));
+        verify(monitor, times(1)).info(anyString());
+        verify(scheduler, times(3)).schedule(any(Runnable.class), eq(60L), eq(TimeUnit.SECONDS));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "-5"})
+    void aNonPositiveRefreshIntervalFailsInitialize(String interval, ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(
+                Map.of(XRoadIssuerTrustAnchorExtension.SETTING_REFRESH_INTERVAL_SECONDS, interval)));
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
+
+        assertThatThrownBy(() -> extension.initialize(context))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(XRoadIssuerTrustAnchorExtension.SETTING_REFRESH_INTERVAL_SECONDS);
+    }
+
     private void startWithGlobalConfUnavailable(ServiceExtensionContext context, ObjectFactory factory) {
         scheduler = mock();
         when(globalConfProvider.getInstanceIdentifier())
@@ -271,10 +303,28 @@ class XRoadIssuerTrustAnchorExtensionTest {
         extension.start();
     }
 
-    private Runnable capturePendingPoll(int expectedSchedules) {
+    private void startWithScheduler(ServiceExtensionContext context, ObjectFactory factory, String... dids) {
+        scheduler = mock();
+        globalConfReturns(dids);
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
+        extension.initialize(context);
+        extension.start();
+    }
+
+    private void globalConfReturns(String... dids) {
+        doReturn(INSTANCE_IDENTIFIER).when(globalConfProvider).getInstanceIdentifier();
+        when(globalConfProvider.getCredentialIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(dids));
+    }
+
+    private Runnable captureScheduled(long delaySeconds, int expectedSchedules) {
         var captor = ArgumentCaptor.forClass(Runnable.class);
-        verify(scheduler, times(expectedSchedules)).schedule(captor.capture(), eq(5L), eq(TimeUnit.SECONDS));
+        verify(scheduler, times(expectedSchedules)).schedule(captor.capture(), eq(delaySeconds), eq(TimeUnit.SECONDS));
         return captor.getValue();
+    }
+
+    private static String failureWarning(long retrySeconds, String message) {
+        return "%scannot load the issuer trust, keeping the current trusted issuers, retrying every %d s: %s"
+                .formatted(EXTENSION_PREFIX, retrySeconds, message);
     }
 
     private List<String> trustedIssuerDids() {
