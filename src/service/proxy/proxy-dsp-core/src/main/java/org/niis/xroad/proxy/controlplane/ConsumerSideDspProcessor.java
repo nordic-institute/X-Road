@@ -98,7 +98,8 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  * <p>One acquisition runs under one time limit, {@link AssetAccessClientProperties#acquisitionDeadline()}, that all
  * candidates share: each candidate gets the lesser of the limit and an even share of the time left among the
  * candidates not yet tried, and no candidate is tried once the time has run out. The control plane is told its share
- * and the proxy waits a margin longer, so a call never lasts past the limit plus that margin. A failover
+ * and the proxy waits a margin longer, so a call that loads asset access itself never lasts past the limit plus that
+ * margin; a call that finds the same asset access already being loaded waits for that load instead. A failover
  * acquisition is a new acquisition with a limit of its own: the data call that preceded it is not part of the
  * acquisition's time, and sharing the first limit would leave a failover after a slow connect attempt without time.
  *

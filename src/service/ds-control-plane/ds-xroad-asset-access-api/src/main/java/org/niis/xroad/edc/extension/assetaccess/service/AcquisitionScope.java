@@ -32,7 +32,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The work of one acquisition, which its steps register with so that the work stops as one when the last caller
  * waiting for it gives up. Stopping cancels every registered step still pending, and any step registered
- * afterwards is cancelled on registration, so no step starts once the work has stopped.
+ * afterwards is cancelled on registration. A step that EDC starts just as the work stops is therefore cancelled only
+ * once it is registered.
  */
 public final class AcquisitionScope {
 

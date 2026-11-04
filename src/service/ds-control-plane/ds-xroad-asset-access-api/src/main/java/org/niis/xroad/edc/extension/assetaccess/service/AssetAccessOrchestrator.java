@@ -115,7 +115,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * starting. The renegotiation after a refusal runs on the same budget. The budget is the one of the caller that
  * started the work; callers that join it bring their own wait limit. A caller giving up cancels its waiter (see
  * {@link AssetAccessStateStore}), and the work stops when its last waiter has given up: pending steps are cancelled
- * and no further step starts. A negotiation or transfer already started in EDC runs on without being awaited.
+ * and a step registered afterwards is cancelled at once. A negotiation or transfer already started in EDC runs on without being awaited.
  *
  * <p>Several ds-control-plane instances may each acquire access under the same reused agreement, each starting
  * its own transfer process; the previous transfer under that agreement is not completed here, it is cleaned up
