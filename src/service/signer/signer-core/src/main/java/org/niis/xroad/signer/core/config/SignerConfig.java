@@ -29,9 +29,12 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.core.node.NodeNameResolver;
 import org.niis.xroad.common.healthcheck.HealthCheckProperties;
 import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -58,6 +61,7 @@ import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class SignerConfig {
@@ -159,9 +163,15 @@ public class SignerConfig {
         }
     }
 
+    @Singleton
+    @Startup
+    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeNameResolver.PROPERTY_KEY) Optional<String> configuredNodeName) {
+        return NodeNameResolver.resolve(configuredNodeName.orElse(null));
+    }
+
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
+        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity.name());
     }
 
     private static DeploymentMode deploymentMode() {

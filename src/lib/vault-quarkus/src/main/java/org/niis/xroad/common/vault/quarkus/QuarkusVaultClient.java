@@ -31,14 +31,15 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.client.VaultClientException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeNameResolver;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
+import org.niis.xroad.common.vault.NodeScopedSecretPaths;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.ByteArrayInputStream;
@@ -59,12 +60,21 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
-@RequiredArgsConstructor
 public class QuarkusVaultClient implements VaultClient {
 
     private static final int HTTP_NOT_FOUND = 404;
 
     private final VaultKVSecretEngine kvSecretEngine;
+    private final NodeScopedSecretPaths nodePaths;
+
+    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine) {
+        this(kvSecretEngine, NodeNameResolver.DEFAULT_NODE_NAME);
+    }
+
+    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, String nodeName) {
+        this.kvSecretEngine = kvSecretEngine;
+        this.nodePaths = new NodeScopedSecretPaths(nodeName);
+    }
 
     @Override
     public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -189,20 +199,20 @@ public class QuarkusVaultClient implements VaultClient {
     public void setTokenPin(String tokenId, char[] pin) {
         var secret = new HashMap<String, String>();
         secret.put(PIN_KEY, new String(pin));
-        String path = SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId;
+        String path = nodePaths.tokenPin(tokenId);
         kvSecretEngine.writeSecret(path, secret);
     }
 
     @Override
     public Optional<char[]> getTokenPin(String tokenId) {
-        String path = SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId;
+        String path = nodePaths.tokenPin(tokenId);
         return readSecret(path)
                 .map(secret -> secret.get(PIN_KEY).toCharArray());
     }
 
     @Override
     public void deleteTokenPin(String tokenId) {
-        String path = SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId;
+        String path = nodePaths.tokenPin(tokenId);
         kvSecretEngine.deleteSecret(path);
     }
 

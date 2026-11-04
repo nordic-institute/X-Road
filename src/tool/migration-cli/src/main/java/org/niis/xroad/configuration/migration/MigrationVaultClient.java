@@ -28,6 +28,8 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeNameResolver;
+import org.niis.xroad.common.vault.NodeScopedSecretPaths;
 import org.niis.xroad.common.vault.spring.SpringVaultClient;
 import org.springframework.vault.VaultException;
 import org.springframework.vault.authentication.TokenAuthentication;
@@ -49,7 +51,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
  * Migration-CLI subclass of {@link SpringVaultClient} that implements the three PIN methods left
  * unimplemented by the parent. Mirrors {@code QuarkusVaultClient.setTokenPin/getTokenPin/deleteTokenPin}
  * byte-for-byte so the migration writer and the runtime signer reader share the exact same
- * vault path layout ({@code signer/token-pins/{tokenId}}) and payload schema ({@code {"pin": value}}).
+ * vault path layout ({@code signer/token-pins/{node}/{tokenId}}) and payload schema ({@code {"pin": value}}).
  *
  * <p>Constructed manually (no Spring DI) by {@code MigrationVaultClient.createAndPreflight()}
  * The factory and CLI wiring live in this same package.
@@ -68,9 +70,12 @@ public class MigrationVaultClient extends SpringVaultClient {
     // SpringVaultClient.vaultClient is private final; subclass cannot inherit access. Shadow with own ref.
     private final VaultKeyValueOperations kvOps;
 
-    MigrationVaultClient(VaultKeyValueOperations kvOps) {
+    private final NodeScopedSecretPaths nodePaths;
+
+    MigrationVaultClient(VaultKeyValueOperations kvOps, String nodeName) {
         super(kvOps);
         this.kvOps = kvOps;
+        this.nodePaths = new NodeScopedSecretPaths(nodeName);
     }
 
     /**
@@ -107,7 +112,7 @@ public class MigrationVaultClient extends SpringVaultClient {
 
         VaultKeyValueOperations kvOps = vaultTemplate.opsForKeyValue(
                 VAULT_MOUNT, VaultKeyValueOperationsSupport.KeyValueBackend.KV_1);
-        return new MigrationVaultClient(kvOps);
+        return new MigrationVaultClient(kvOps, NodeNameResolver.DEFAULT_NODE_NAME);
     }
 
     private static String requireEnvVar(String name) {
@@ -147,12 +152,12 @@ public class MigrationVaultClient extends SpringVaultClient {
     public void setTokenPin(String tokenId, char[] pin) {
         var secret = new HashMap<String, String>();
         secret.put(PIN_KEY, new String(pin));
-        kvOps.put(SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId, secret);
+        kvOps.put(nodePaths.tokenPin(tokenId), secret);
     }
 
     @Override
     public Optional<char[]> getTokenPin(String tokenId) {
-        VaultResponse response = kvOps.get(SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId);
+        VaultResponse response = kvOps.get(nodePaths.tokenPin(tokenId));
         if (response == null || response.getData() == null) {
             return Optional.empty();
         }
@@ -163,7 +168,7 @@ public class MigrationVaultClient extends SpringVaultClient {
 
     @Override
     public void deleteTokenPin(String tokenId) {
-        kvOps.delete(SIGNER_TOKEN_PINS_BASE_PATH + "/" + tokenId);
+        kvOps.delete(nodePaths.tokenPin(tokenId));
     }
 
 }
