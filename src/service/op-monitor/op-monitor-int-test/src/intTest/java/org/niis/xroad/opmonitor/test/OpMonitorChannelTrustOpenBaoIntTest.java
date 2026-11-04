@@ -45,6 +45,7 @@ import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.test.TestCa;
 import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
+import org.niis.xroad.common.rpc.test.TlsTestChannels;
 import org.niis.xroad.common.rpc.test.TlsTestServer;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,8 +96,9 @@ class OpMonitorChannelTrustOpenBaoIntTest {
     private VaultClient vaultClient;
     private TestCa opMonitorCa;
     private OpMonitorChannelTrustResolver resolver;
-    private TlsTestServer securityServerCaServer;
-    private TlsTestServer opMonitorCaServer;
+    private TestCa.TestLeaf proxyIdentity;
+    private CountingServer securityServerCaServer;
+    private CountingServer opMonitorCaServer;
 
     @BeforeEach
     @SneakyThrows
@@ -107,7 +110,7 @@ class OpMonitorChannelTrustOpenBaoIntTest {
         var securityServerCa = TestCa.selfSigned("Security Server CA " + System.nanoTime());
         opMonitorCa = TestCa.selfSigned("Op-monitor CA " + System.nanoTime());
 
-        var proxyIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
+        proxyIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
         var keyProvider = new TestVaultKeyProvider(proxyIdentity, securityServerCa.certificate());
         RpcCredentialsConfigurer sharedCredentials = new TlsRpcCredentialsConfigurer(keyProvider);
         var rpcProperties = mock(RpcProperties.class);
@@ -136,7 +139,7 @@ class OpMonitorChannelTrustOpenBaoIntTest {
 
         then("the first trusts the op-monitor certificate of the imported CA", () -> assertAccepted(toOpMonitorCaServer));
         and("the second rejects the op-monitor certificate of the Security Server CA",
-                () -> assertRejected(toSecurityServerCaServer));
+                () -> assertRejected(toSecurityServerCaServer, securityServerCaServer));
     }
 
     @Test
@@ -150,7 +153,7 @@ class OpMonitorChannelTrustOpenBaoIntTest {
         then("the first trusts the op-monitor certificate of the Security Server CA",
                 () -> assertAccepted(toSecurityServerCaServer));
         and("the second rejects the op-monitor certificate of the op-monitor CA",
-                () -> assertRejected(toOpMonitorCaServer));
+                () -> assertRejected(toOpMonitorCaServer, opMonitorCaServer));
     }
 
     @Test
@@ -159,7 +162,8 @@ class OpMonitorChannelTrustOpenBaoIntTest {
         given("the op-monitor CA is imported", () -> vaultClient.createOpMonitorCa(opMonitorCa.certificate()));
         var importedChannel = when("a channel is created to the server of the Security Server CA",
                 () -> newChannel(securityServerCaServer));
-        then("it rejects the op-monitor certificate of the Security Server CA", () -> assertRejected(importedChannel));
+        then("it rejects the op-monitor certificate of the Security Server CA",
+                () -> assertRejected(importedChannel, securityServerCaServer));
 
         given("the op-monitor CA is deleted", () -> vaultClient.clearOpMonitorCa());
         var toSecurityServerCaServer = when("the channel is recreated", () -> newChannel(securityServerCaServer));
@@ -168,7 +172,8 @@ class OpMonitorChannelTrustOpenBaoIntTest {
 
         then("the recreated channel trusts the op-monitor certificate of the Security Server CA",
                 () -> assertAccepted(toSecurityServerCaServer));
-        and("a channel rejects the op-monitor certificate of the deleted CA", () -> assertRejected(toOpMonitorCaServer));
+        and("a channel rejects the op-monitor certificate of the deleted CA",
+                () -> assertRejected(toOpMonitorCaServer, opMonitorCaServer));
     }
 
     @Test
@@ -181,10 +186,11 @@ class OpMonitorChannelTrustOpenBaoIntTest {
         then("the earlier channel still trusts the Security Server CA", () -> assertAccepted(earlierChannel));
 
         var recreatedChannel = when("the channel is recreated", () -> newChannel(securityServerCaServer));
-        then("it rejects the op-monitor certificate of the Security Server CA", () -> assertRejected(recreatedChannel));
+        then("it rejects the op-monitor certificate of the Security Server CA",
+                () -> assertRejected(recreatedChannel, securityServerCaServer));
     }
 
-    private OpMonitorClient newChannel(TlsTestServer server) {
+    private OpMonitorClient newChannel(CountingServer server) {
         var client = OpMonitorClient.create(new RpcChannelFactory(mock(RpcCredentialsConfigurer.class)), config(server.port()),
                 resolver);
         closeables.add(client);
@@ -195,7 +201,9 @@ class OpMonitorChannelTrustOpenBaoIntTest {
         assertThatCode(() -> client.storeOperationalData(List.of())).doesNotThrowAnyException();
     }
 
-    private static void assertRejected(OpMonitorClient client) {
+    @SneakyThrows
+    private void assertRejected(OpMonitorClient client, CountingServer server) {
+        var callsBefore = server.service().calls();
         var failFastStub = OpMonitorServiceGrpc.newBlockingStub(client.getChannel())
                 .withDeadlineAfter(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
 
@@ -203,7 +211,25 @@ class OpMonitorChannelTrustOpenBaoIntTest {
                 .isInstanceOfSatisfying(StatusRuntimeException.class,
                         e -> assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE))
                 .satisfies(e -> assertThat(causalChain(e)).anyMatch(CertificateException.class::isInstance));
-        assertThat(client.getChannel().getState(false)).isEqualTo(ConnectivityState.TRANSIENT_FAILURE);
+        assertThat(TlsTestChannels.awaitSettledState(client.getChannel(), FAIL_FAST_DEADLINE_SECONDS))
+                .isEqualTo(ConnectivityState.TRANSIENT_FAILURE);
+        assertThat(server.service().calls()).isEqualTo(callsBefore);
+
+        assertServerAcceptsTrustedClient(server);
+        assertThat(server.service().calls()).isEqualTo(callsBefore + 1);
+    }
+
+    @SneakyThrows
+    private void assertServerAcceptsTrustedClient(CountingServer server) {
+        var control = TlsTestChannels.trustedChannel(HOST, server.port(), HOST, proxyIdentity, server.ca().certificate());
+        try {
+            var controlStub = OpMonitorServiceGrpc.newBlockingStub(control)
+                    .withDeadlineAfter(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
+            assertThatCode(() -> controlStub.storeOperationalData(StoreOperationalDataReq.getDefaultInstance()))
+                    .doesNotThrowAnyException();
+        } finally {
+            control.shutdownNow().awaitTermination(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
+        }
     }
 
     private static Stream<Throwable> causalChain(Throwable throwable) {
@@ -221,10 +247,11 @@ class OpMonitorChannelTrustOpenBaoIntTest {
     }
 
     @SneakyThrows
-    private TlsTestServer startServer(TestCa serverCa, X509Certificate clientTrustAnchor) {
+    private CountingServer startServer(TestCa serverCa, X509Certificate clientTrustAnchor) {
         var identity = serverCa.issueLeaf("op-monitor", List.of(HOST), List.of());
-        var server = TlsTestServer.start(identity, clientTrustAnchor, new StoreService());
-        closeables.add(server);
+        var service = new StoreService();
+        var server = new CountingServer(TlsTestServer.start(identity, clientTrustAnchor, service), serverCa, service);
+        closeables.add(server.tls());
         return server;
     }
 
@@ -235,10 +262,23 @@ class OpMonitorChannelTrustOpenBaoIntTest {
         }
     }
 
+    private record CountingServer(TlsTestServer tls, TestCa ca, StoreService service) {
+        int port() {
+            return tls.port();
+        }
+    }
+
     private static final class StoreService extends OpMonitorServiceGrpc.OpMonitorServiceImplBase {
+        private final AtomicInteger calls = new AtomicInteger();
+
+        int calls() {
+            return calls.get();
+        }
+
         @Override
         public void storeOperationalData(StoreOperationalDataReq request,
                                          StreamObserver<StoreOperationalDataResp> responseObserver) {
+            calls.incrementAndGet();
             responseObserver.onNext(StoreOperationalDataResp.getDefaultInstance());
             responseObserver.onCompleted();
         }

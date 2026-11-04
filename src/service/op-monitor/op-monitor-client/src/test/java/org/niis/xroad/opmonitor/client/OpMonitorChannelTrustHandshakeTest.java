@@ -40,6 +40,7 @@ import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.test.TestCa;
 import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
+import org.niis.xroad.common.rpc.test.TlsTestChannels;
 import org.niis.xroad.common.rpc.test.TlsTestServer;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
@@ -53,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +73,11 @@ class OpMonitorChannelTrustHandshakeTest {
     private TestCa untrustedCa;
     private OpMonitorChannelTrustResolver resolverWithImportedCa;
     private OpMonitorChannelTrustResolver resolverWithoutImportedCa;
+    private TestCa.TestLeaf clientIdentity;
     private TlsTestServer server;
+    private StoreService storeService;
+    private TestCa serverCa;
+    private String serverName;
     private OpMonitorClient client;
 
     @BeforeEach
@@ -80,7 +86,7 @@ class OpMonitorChannelTrustHandshakeTest {
         opMonitorCa = TestCa.selfSigned("Op-monitor CA");
         untrustedCa = TestCa.selfSigned("Untrusted CA");
 
-        var clientIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
+        clientIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
         var keyProvider = new TestVaultKeyProvider(clientIdentity, securityServerCa.certificate());
         RpcCredentialsConfigurer shared = new TlsRpcCredentialsConfigurer(keyProvider);
 
@@ -149,7 +155,8 @@ class OpMonitorChannelTrustHandshakeTest {
         assertRejectedByCertificateVerification();
     }
 
-    private void assertRejectedByCertificateVerification() {
+    private void assertRejectedByCertificateVerification() throws Exception {
+        var callsBefore = storeService.calls();
         var failFastStub = OpMonitorServiceGrpc.newBlockingStub(client.getChannel())
                 .withDeadlineAfter(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
 
@@ -157,7 +164,25 @@ class OpMonitorChannelTrustHandshakeTest {
                 .isInstanceOfSatisfying(StatusRuntimeException.class,
                         e -> assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE))
                 .satisfies(e -> assertThat(causalChain(e)).anyMatch(CertificateException.class::isInstance));
-        assertThat(client.getChannel().getState(false)).isEqualTo(ConnectivityState.TRANSIENT_FAILURE);
+        assertThat(TlsTestChannels.awaitSettledState(client.getChannel(), FAIL_FAST_DEADLINE_SECONDS))
+                .isEqualTo(ConnectivityState.TRANSIENT_FAILURE);
+        assertThat(storeService.calls()).isEqualTo(callsBefore);
+
+        assertServerAcceptsTrustedClient();
+        assertThat(storeService.calls()).isEqualTo(callsBefore + 1);
+    }
+
+    private void assertServerAcceptsTrustedClient() throws Exception {
+        var control = TlsTestChannels.trustedChannel(HOST, server.port(), serverName, clientIdentity,
+                serverCa.certificate());
+        try {
+            var controlStub = OpMonitorServiceGrpc.newBlockingStub(control)
+                    .withDeadlineAfter(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
+            assertThatCode(() -> controlStub.storeOperationalData(StoreOperationalDataReq.getDefaultInstance()))
+                    .doesNotThrowAnyException();
+        } finally {
+            control.shutdownNow().awaitTermination(FAIL_FAST_DEADLINE_SECONDS, TimeUnit.SECONDS);
+        }
     }
 
     private static OpMonitorChannelTrustResolver resolver(RpcProperties rpcProperties, Optional<X509Certificate> importedCa,
@@ -171,9 +196,12 @@ class OpMonitorChannelTrustHandshakeTest {
         return Stream.iterate(throwable, Objects::nonNull, Throwable::getCause);
     }
 
-    private void startServer(TestCa serverCa, String serverName, OpMonitorChannelTrustResolver resolver) throws Exception {
-        var serverIdentity = serverCa.issueLeaf("op-monitor", List.of(serverName), List.of());
-        server = TlsTestServer.start(serverIdentity, securityServerCa.certificate(), new StoreService());
+    private void startServer(TestCa issuer, String dnsName, OpMonitorChannelTrustResolver resolver) throws Exception {
+        var serverIdentity = issuer.issueLeaf("op-monitor", List.of(dnsName), List.of());
+        serverCa = issuer;
+        serverName = dnsName;
+        storeService = new StoreService();
+        server = TlsTestServer.start(serverIdentity, securityServerCa.certificate(), storeService);
         client = OpMonitorClient.create(new RpcChannelFactory(mock(RpcCredentialsConfigurer.class)), config(server.port()),
                 resolver);
     }
@@ -189,9 +217,16 @@ class OpMonitorChannelTrustHandshakeTest {
     }
 
     private static final class StoreService extends OpMonitorServiceGrpc.OpMonitorServiceImplBase {
+        private final AtomicInteger calls = new AtomicInteger();
+
+        int calls() {
+            return calls.get();
+        }
+
         @Override
         public void storeOperationalData(StoreOperationalDataReq request,
                                          StreamObserver<StoreOperationalDataResp> responseObserver) {
+            calls.incrementAndGet();
             responseObserver.onNext(StoreOperationalDataResp.getDefaultInstance());
             responseObserver.onCompleted();
         }
