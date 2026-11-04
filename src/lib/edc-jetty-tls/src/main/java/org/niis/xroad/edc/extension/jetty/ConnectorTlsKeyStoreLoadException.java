@@ -34,16 +34,20 @@ package org.niis.xroad.edc.extension.jetty;
  */
 public class ConnectorTlsKeyStoreLoadException extends RuntimeException {
     private final String summary;
+
     public ConnectorTlsKeyStoreLoadException(String message) {
         this(message, null, null);
     }
+
     public ConnectorTlsKeyStoreLoadException(String message, Throwable cause) {
         this(message, null, cause);
     }
+
     public ConnectorTlsKeyStoreLoadException(String message, String summary, Throwable cause) {
         super(message, cause);
         this.summary = summary;
     }
+
     /**
      * A one-line, key-material-free statement of what is wrong, for example {@code slot empty}.
      */

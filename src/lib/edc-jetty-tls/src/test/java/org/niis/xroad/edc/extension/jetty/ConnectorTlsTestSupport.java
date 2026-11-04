@@ -29,6 +29,8 @@ package org.niis.xroad.edc.extension.jetty;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.Loaded;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader.MaterialLoader;
 
@@ -44,12 +46,10 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class ConnectorTlsTestSupport {
 
     static final String WRONG_KEY_PASSWORD = "not-the-keystore-password";
-
-    private ConnectorTlsTestSupport() {
-    }
 
     static KeyStore keyStoreOf(TestCertUtil.PKCS12 credentials) throws Exception {
         return keyStoreOf(credentials, InternalSSLKey.getKEY_PASSWORD());
@@ -69,7 +69,6 @@ final class ConnectorTlsTestSupport {
     static Loaded<KeyStore> usable(String fingerprint, TestCertUtil.PKCS12 credentials) throws Exception {
         return new Loaded<>(keyStoreOf(credentials), fingerprint);
     }
-
 
     static SSLContext trustAllTlsContext() throws Exception {
         var trustAll = new X509TrustManager() {

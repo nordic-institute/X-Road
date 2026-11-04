@@ -89,6 +89,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             throw unreachable(e);
         }
     }
+
     private static ConnectorTlsKeyStoreLoadException unreachable(Exception e) {
         return new ConnectorTlsKeyStoreLoadException(
                 "Could not reach OpenBao to load the connector TLS certificate from tls/ds-https: " + e.getMessage(),

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.jetty;
 
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.ReadinessProvider;
 
@@ -33,14 +34,11 @@ import org.eclipse.edc.spi.system.health.ReadinessProvider;
  * Reports ready only while the HTTPS connectors serve connector TLS material that has not expired. While
  * connector TLS is not served the reason is the text of the failure.
  */
+@RequiredArgsConstructor
 final class ConnectorTlsReadinessProvider implements ReadinessProvider {
     static final String COMPONENT = "connector-tls";
 
     private final XRoadJettyService jettyService;
-
-    ConnectorTlsReadinessProvider(XRoadJettyService jettyService) {
-        this.jettyService = jettyService;
-    }
 
     @Override
     public HealthCheckResult get() {

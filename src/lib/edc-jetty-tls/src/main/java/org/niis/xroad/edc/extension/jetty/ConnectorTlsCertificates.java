@@ -28,6 +28,8 @@ package org.niis.xroad.edc.extension.jetty;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.nio.charset.StandardCharsets;
@@ -48,13 +50,11 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
  * certificate passes keystore construction and Jetty's own load, and then fails every handshake, so it is
  * caught here before the keystore is served.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class ConnectorTlsCertificates {
 
     private static final byte[] PROBE = "connector-tls-key-pair-probe".getBytes(StandardCharsets.UTF_8);
     private static final String UNKNOWN = "unknown";
-
-    private ConnectorTlsCertificates() {
-    }
 
     /**
      * The leaf certificate of the keystore's connector TLS entry, once its private key is proven to belong to it.
@@ -77,7 +77,6 @@ final class ConnectorTlsCertificates {
             throw new ConnectorTlsKeyStoreLoadException("Cannot read the connector TLS entry from the keystore", e);
         }
     }
-
 
     /**
      * The fingerprint of the keystore's connector TLS certificate, or {@code unknown} when it cannot be read.
