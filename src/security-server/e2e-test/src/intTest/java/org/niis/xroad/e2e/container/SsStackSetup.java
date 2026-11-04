@@ -104,10 +104,6 @@ public class SsStackSetup extends AbstractSsStack {
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
-                // No start-time waits on the ds-* services: their HTTPS endpoints stay closed
-                // while the tls/ds-https vault slot is empty, until setup.hurl provisions the
-                // certificate through the admin API, which runs after all stacks are up; the hurl
-                // scenario's DSP readiness gates assert their convergence.
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
