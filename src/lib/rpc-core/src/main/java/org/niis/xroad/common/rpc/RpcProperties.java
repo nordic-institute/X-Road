@@ -31,8 +31,6 @@ import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 import java.time.Duration;
 
 public interface RpcProperties {
-    String PREFIX = "xroad.common-rpc";
-
     boolean useTls();
     RpcCertificateProvisioningProperties certificateProvisioning();
 
