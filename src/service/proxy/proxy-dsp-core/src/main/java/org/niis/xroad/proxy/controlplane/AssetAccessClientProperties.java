@@ -31,6 +31,8 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_ACQUISITION_DEADLINE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_ACQUISITION_DEADLINE_MARGIN;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_DEFAULT_TTL;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_MARGIN;
@@ -46,6 +48,16 @@ public class AssetAccessClientProperties {
     /** @return DSP protocol identifier for negotiation */
     public String protocol() {
         return xRoadConfig.value(DSP_PROTOCOL);
+    }
+
+    /** @return the time limit for one acquisition of asset access, shared by all its steps and candidates */
+    public Duration acquisitionDeadline() {
+        return xRoadConfig.value(DSP_ACQUISITION_DEADLINE);
+    }
+
+    /** @return how long past the time handed to the control plane the proxy waits for its answer */
+    public Duration acquisitionDeadlineMargin() {
+        return xRoadConfig.value(DSP_ACQUISITION_DEADLINE_MARGIN);
     }
 
     /** @return asset access response cache configuration */

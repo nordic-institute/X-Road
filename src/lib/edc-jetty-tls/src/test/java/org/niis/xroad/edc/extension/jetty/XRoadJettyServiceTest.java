@@ -28,7 +28,6 @@ package org.niis.xroad.edc.extension.jetty;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestPortUtils;
-import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.http.HttpServlet;
@@ -42,20 +41,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.edc.extension.jetty.ConnectorTlsTestSupport.keyStoreOf;
 
 class XRoadJettyServiceTest {
 
@@ -76,9 +74,10 @@ class XRoadJettyServiceTest {
         var port = TestPortUtils.findRandomPort();
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("holder-service", port, "/served-path"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
         jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
         jettyService.registerServlet("holder-service", echoServlet("hello"));
 
@@ -90,25 +89,13 @@ class XRoadJettyServiceTest {
     void registeringAServletUnderAnUnknownAliasFails() throws Exception {
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("known-alias", TestPortUtils.findRandomPort(), "/api"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
         jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
 
         assertThatThrownBy(() -> jettyService.registerServlet("unknown-alias", echoServlet("unreachable")))
                 .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void servesTheConfiguredCertificateOverARealTlsHandshake() throws Exception {
-        var port = TestPortUtils.findRandomPort();
-        var registry = new XRoadPortMappingRegistry();
-        registry.register(new PortMapping("svc", port, "/api"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
-        disableSniHostCheck(jettyService);
-        jettyService.start();
-        jettyService.registerServlet("svc", echoServlet("ok"));
-
-        assertThat(servedCertificate(port, "/api")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
     }
 
     @Test
@@ -118,22 +105,80 @@ class XRoadJettyServiceTest {
         var registry = new XRoadPortMappingRegistry();
         registry.register(new PortMapping("external", externalPort, "/api"));
         registry.register(new PortMapping("sts", internalStsPort, "/sts"));
-        jettyService = new XRoadJettyService(keyStoreOf(TestCertUtil.getInternalKey()), MONITOR, registry);
+        jettyService = new XRoadJettyService(MONITOR, registry);
         disableSniHostCheck(jettyService);
         jettyService.start();
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
         jettyService.registerServlet("external", echoServlet("external-ok"));
         jettyService.registerServlet("sts", echoServlet("sts-ok"));
 
         assertThat(servedCertificate(externalPort, "/api")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
         assertThat(servedCertificate(internalStsPort, "/sts")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
 
-        jettyService.reload(keyStoreOf(TestCertUtil.getOcspSigner()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
 
         assertThat(servedCertificate(externalPort, "/api")).isEqualTo(TestCertUtil.getOcspSigner().certChain[0]);
         assertThat(servedCertificate(internalStsPort, "/sts")).isEqualTo(TestCertUtil.getOcspSigner().certChain[0]);
         // still serving live traffic on both connectors post-reload, without a restart
         assertThat(get(externalPort, "/api").body()).isEqualTo("external-ok");
         assertThat(get(internalStsPort, "/sts").body()).isEqualTo("sts-ok");
+    }
+
+    @Test
+    void aConnectorAddedAfterTheServerStartedCompletesATlsHandshake() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        disableSniHostCheck(jettyService);
+        jettyService.start();
+        jettyService.registerServlet("svc", echoServlet("ok"));
+
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+
+        assertThat(servedCertificate(port, "/api")).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
+        assertThat(get(port, "/api").body()).isEqualTo("ok");
+    }
+
+    @Test
+    void thePortRefusesConnectionsUntilMaterialArrives() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        jettyService.start();
+        jettyService.registerServlet("svc", echoServlet("ok"));
+
+        assertThatThrownBy(() -> new Socket("localhost", port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    @Test
+    void materialAppliedAfterShutdownIsIgnored() throws Exception {
+        var port = TestPortUtils.findRandomPort();
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("svc", port, "/api"));
+        var stoppedService = new XRoadJettyService(MONITOR, registry);
+        stoppedService.start();
+        stoppedService.shutdown();
+        stoppedService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        assertThatThrownBy(() -> new Socket("localhost", port).close()).isInstanceOf(ConnectException.class);
+    }
+
+    @Test
+    void connectorCallbacksRegisteredBeforeMaterialArrivesApplyToTheLateConnectorsOnce() throws Exception {
+        var registry = new XRoadPortMappingRegistry();
+        registry.register(new PortMapping("first", TestPortUtils.findRandomPort(), "/first"));
+        registry.register(new PortMapping("second", TestPortUtils.findRandomPort(), "/second"));
+        var configured = new ConcurrentLinkedQueue<String>();
+        jettyService = new XRoadJettyService(MONITOR, registry);
+        jettyService.addConnectorConfigurationCallback(connector -> configured.add(connector.getName()));
+        jettyService.start();
+        assertThat(configured).isEmpty();
+
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getInternalKey()));
+        jettyService.applyConnectorTlsMaterial(keyStoreOf(TestCertUtil.getOcspSigner()));
+
+        assertThat(configured).containsExactlyInAnyOrder("first", "second");
     }
 
     /**
@@ -149,13 +194,6 @@ class XRoadJettyServiceTest {
                 .map(factory -> factory.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
                 .filter(Objects::nonNull)
                 .forEach(customizer -> customizer.setSniHostCheck(false)));
-    }
-
-    private static KeyStore keyStoreOf(TestCertUtil.PKCS12 credentials) throws Exception {
-        var keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        keyStore.setKeyEntry(InternalSSLKey.KEY_ALIAS, credentials.key, InternalSSLKey.getKEY_PASSWORD(), credentials.certChain);
-        return keyStore;
     }
 
     private static Servlet echoServlet(String body) {
@@ -195,30 +233,8 @@ class XRoadJettyServiceTest {
     private static HttpsURLConnection openTrustingConnection(int port, String path) throws Exception {
         var url = URI.create("https://localhost:" + port + path).toURL();
         var connection = (HttpsURLConnection) url.openConnection();
-        connection.setSSLSocketFactory(trustAllTlsContext().getSocketFactory());
+        connection.setSSLSocketFactory(ConnectorTlsTestSupport.trustAllTlsContext().getSocketFactory());
         connection.setHostnameVerifier((hostname, session) -> true);
         return connection;
-    }
-
-    private static SSLContext trustAllTlsContext() throws Exception {
-        var trustAll = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
-                // trust-all test client: every certificate is accepted
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
-                // trust-all test client: every certificate is accepted
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        };
-        var sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[] {trustAll}, new SecureRandom());
-        return sslContext;
     }
 }

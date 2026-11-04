@@ -73,11 +73,11 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBE
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
-import static org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator.MAX_DID_LENGTH;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.dspBaseUrl;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.memberDid;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.newHost;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.systemDid;
+import static org.niis.xroad.ds.identity.ParticipantIdentifierScheme.MAX_DID_LENGTH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
 
 /**

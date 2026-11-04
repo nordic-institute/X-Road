@@ -67,6 +67,7 @@ class AssetAccessGrpcExtensionTest {
         setField(extension, "assetAccessOrchestrator", assetAccessOrchestrator);
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "acquisitionTimeoutSeconds", 60L);
+        setField(extension, "clock", java.time.Clock.systemUTC());
     }
 
     @Test

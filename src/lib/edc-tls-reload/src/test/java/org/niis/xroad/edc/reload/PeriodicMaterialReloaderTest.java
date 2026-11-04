@@ -40,6 +40,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class PeriodicMaterialReloaderTest {
@@ -88,6 +92,7 @@ class PeriodicMaterialReloaderTest {
         } finally {
             reloader.close();
         }
+
         assertThat(applied).isEmpty();
     }
 
@@ -126,5 +131,145 @@ class PeriodicMaterialReloaderTest {
         } finally {
             reloader.close();
         }
+    }
+
+    @Test
+    void withNoInitialMaterialTheFirstSuccessfulLoadFiresOnChangeOnceAndAnUnchangedFingerprintDoesNot() {
+        var loads = new AtomicInteger();
+        var applied = new ConcurrentLinkedQueue<String>();
+
+        var reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad("test", CHECK_INTERVAL, CHECK_INTERVAL, 3, RETRY_DELAY,
+                () -> {
+                    loads.incrementAndGet();
+                    return new PeriodicMaterialReloader.Loaded<>("v1", "v1");
+                },
+                applied::add, monitor, null);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> loads.get() >= 4);
+        } finally {
+            reloader.close();
+        }
+
+        assertThat(applied).containsExactly("v1");
+    }
+
+    @Test
+    void withNoInitialMaterialRepeatedLoaderFailuresKeepItPendingAndRetrying() {
+        var attempts = new AtomicInteger();
+        var applied = new ConcurrentLinkedQueue<String>();
+
+        var reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3, RETRY_DELAY,
+                () -> {
+                    if (attempts.incrementAndGet() <= 5) {
+                        throw new IllegalStateException("slot is empty");
+                    }
+                    return new PeriodicMaterialReloader.Loaded<>("v1", "v1");
+                },
+                applied::add, monitor, null);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> !applied.isEmpty());
+        } finally {
+            reloader.close();
+        }
+
+        assertThat(applied).containsExactly("v1");
+        assertThat(attempts).hasValueGreaterThan(5);
+    }
+
+    @Test
+    void afterTheFirstLoadItSwitchesFromThePendingToTheNormalInterval() throws InterruptedException {
+        var loads = new AtomicInteger();
+        var applied = new ConcurrentLinkedQueue<String>();
+
+        var reloader = PeriodicMaterialReloader.scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3, RETRY_DELAY,
+                () -> {
+                    loads.incrementAndGet();
+                    return new PeriodicMaterialReloader.Loaded<>("v1", "v1");
+                },
+                applied::add, monitor, null);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> !applied.isEmpty());
+            var loadsWhenServed = loads.get();
+            Thread.sleep(CHECK_INTERVAL.toMillis() * 5);
+            assertThat(loads).hasValue(loadsWhenServed);
+        } finally {
+            reloader.close();
+        }
+    }
+
+    @Test
+    void whilePendingAFailureIsLoggedWhenItsMessageDiffersFromThePreviousFailure() {
+        var attempts = new AtomicInteger();
+        var failures = List.of("slot is empty", "slot is empty", "no certificate yet", "no certificate yet", "slot is empty");
+        var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
+                RETRY_DELAY,
+                () -> {
+                    throw new IllegalStateException(failures.get(Math.min(attempts.getAndIncrement(), failures.size() - 1)));
+                },
+                material -> { }, monitor, null);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() > failures.size());
+        } finally {
+            reloader.close();
+        }
+        verify(monitor, times(1)).warning("test: material not available yet: no certificate yet");
+        verify(monitor, times(2)).warning("test: material not available yet: slot is empty");
+    }
+
+    @Test
+    void whilePendingTheProgressLineIsLoggedEverySixtiethPoll() {
+        var attempts = new AtomicInteger();
+        var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
+                RETRY_DELAY,
+                () -> {
+                    attempts.incrementAndGet();
+                    throw new IllegalStateException("slot is empty");
+                },
+                material -> { }, monitor, null);
+        try {
+            await().atMost(Duration.ofSeconds(5)).until(() -> attempts.get() >= 60);
+        } finally {
+            reloader.close();
+        }
+        verify(monitor, timeout(1000)).info("test: still waiting for material after 60 polls: slot is empty");
+        verify(monitor, times(1)).warning("test: material not available yet: slot is empty");
+    }
+
+    @Test
+    void aPendingFailureTheCallerAlreadyReportedIsNotLoggedAgainButADifferentOneIs() {
+        var attempts = new AtomicInteger();
+        var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
+                RETRY_DELAY,
+                () -> {
+                    throw new IllegalStateException(attempts.incrementAndGet() <= 3 ? "slot is empty" : "no certificate yet");
+                },
+                material -> { }, monitor, "slot is empty");
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() >= 5);
+        } finally {
+            reloader.close();
+        }
+
+        verify(monitor, never()).warning("test: material not available yet: slot is empty");
+        verify(monitor, times(1)).warning("test: material not available yet: no certificate yet");
+    }
+
+    @Test
+    void whilePendingAnApplyFailureIsWarnedOncePerMessage() {
+        var attempts = new AtomicInteger();
+        var failures = List.of("port busy", "port busy", "keystore unusable", "keystore unusable", "port busy");
+        var reloader = PeriodicMaterialReloader.<String>scheduleUntilFirstLoad("test", CHECK_INTERVAL, Duration.ofHours(1), 3,
+                RETRY_DELAY,
+                () -> new PeriodicMaterialReloader.Loaded<>("v1", "v1"),
+                material -> {
+                    throw new IllegalStateException(failures.get(Math.min(attempts.getAndIncrement(), failures.size() - 1)));
+                }, monitor, null);
+        try {
+            await().atMost(Duration.ofSeconds(2)).until(() -> attempts.get() > failures.size());
+        } finally {
+            reloader.close();
+        }
+        verify(monitor, times(1)).warning("test: material could not be applied yet: keystore unusable");
+        verify(monitor, times(2)).warning("test: material could not be applied yet: port busy");
     }
 }

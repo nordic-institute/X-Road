@@ -15,6 +15,7 @@ dependencies {
   testImplementation(project(":tool:liquibase-executor"))
   testImplementation(libs.liquibase.core)
   testImplementation(project(":common:common-db"))
+  testImplementation(project(":lib:ds-identity-core"))
   testImplementation(libs.postgresql)
   testImplementation(libs.hibernate.hikaricp)
   testImplementation(libs.awaitility)

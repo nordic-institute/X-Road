@@ -30,10 +30,12 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Set;
@@ -53,6 +55,11 @@ import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoad
  * needed here. Each refresh replaces the trusted issuers wholesale, so a DID dropped from globalconf (a
  * compromised issuer removed by the Central Server operator) loses trust within one refresh cycle instead of
  * surviving until process restart.
+ *
+ * <p>Globalconf may not exist yet when the runtime boots (a fresh Security Server before the anchor import, or
+ * confclient starting late). Boot then continues, the profile keeps the trusted issuers it was registered with,
+ * and the first load is retried every 5 seconds; once it succeeds the normal refresh takes over. A failed refresh
+ * keeps the previous trusted issuers.
  */
 @Extension(value = EXTENSION_NAME)
 public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
@@ -60,11 +67,13 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     public static final String EXTENSION_NAME = "X-Road Issuer Trust Anchor";
 
     static final String SETTING_REFRESH_INTERVAL_SECONDS = "xroad.dsp.issuer-trust.refresh-interval-seconds";
+    static final String THREAD_NAME = "xrd-edc-issuer-trust";
 
     private static final long DEFAULT_REFRESH_INTERVAL_SECONDS = 60L;
+    private static final long PENDING_POLL_INTERVAL_SECONDS = PeriodicMaterialReloader.DEFAULT_PENDING_INTERVAL.toSeconds();
 
     @Setting(key = SETTING_REFRESH_INTERVAL_SECONDS,
-            description = "Period (in seconds) at which the trusted issuer set is refreshed from globalconf; <= 0 disables the refresh",
+            description = "Period (in seconds) at which the trusted issuer set is refreshed from globalconf; must be positive",
             defaultValue = DEFAULT_REFRESH_INTERVAL_SECONDS + "")
     private long refreshIntervalSeconds;
 
@@ -91,25 +100,19 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        issuerTrust = new DataspaceProfileIssuerTrust(profileRegistry);
-
-        if (refreshIntervalSeconds > 0) {
-            scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), EXTENSION_NAME);
-        } else {
-            monitor.info("%s: periodic refresh is disabled (%s <= 0)".formatted(EXTENSION_NAME, SETTING_REFRESH_INTERVAL_SECONDS));
+        if (refreshIntervalSeconds <= 0) {
+            throw new EdcException("%s: %s must be positive, got %d"
+                    .formatted(EXTENSION_NAME, SETTING_REFRESH_INTERVAL_SECONDS, refreshIntervalSeconds));
         }
+        issuerTrust = new DataspaceProfileIssuerTrust(profileRegistry);
+        scheduledExecutorService = executorInstrumentation.instrument(
+                Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name(THREAD_NAME).daemon().factory()),
+                EXTENSION_NAME);
     }
 
     @Override
     public void start() {
-        currentDids = loadTrustedIssuerDids();
-        issuerTrust.trustOnly(currentDids);
-        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, currentDids.size()));
-
-        if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
-            scheduledExecutorService.scheduleAtFixedRate(this::refreshSafely, refreshIntervalSeconds, refreshIntervalSeconds,
-                    TimeUnit.SECONDS);
-        }
+        loadAndScheduleNext();
     }
 
     @Override
@@ -119,27 +122,42 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         }
     }
 
-    private void refreshSafely() {
+    private void loadAndScheduleNext() {
         try {
-            var dids = loadTrustedIssuerDids();
-            if (!dids.equals(currentDids)) {
-                issuerTrust.trustOnly(dids);
-                currentDids = dids;
-                monitor.info("%s: trusted issuer set changed, now %d DID(s)".formatted(EXTENSION_NAME, dids.size()));
-            }
-        } catch (Throwable t) {
-            // an escaping exception silently cancels all further scheduleAtFixedRate iterations, so every failure is swallowed here
-            monitor.severe("%s: refresh failed; keeping previous trusted issuer set".formatted(EXTENSION_NAME), t);
+            loadAndApply();
+        } catch (Exception e) {
+            logFailure(e);
+        } finally {
+            scheduleNext();
         }
+    }
+
+    private void loadAndApply() {
+        var dids = loadTrustedIssuerDids();
+        if (!dids.equals(currentDids)) {
+            issuerTrust.trustOnly(dids);
+            currentDids = dids;
+            monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, dids.size()));
+        }
+    }
+
+    private void scheduleNext() {
+        if (!scheduledExecutorService.isShutdown()) {
+            scheduledExecutorService.schedule(this::loadAndScheduleNext, nextDelaySeconds(), TimeUnit.SECONDS);
+        }
+    }
+
+    private long nextDelaySeconds() {
+        return currentDids == null ? PENDING_POLL_INTERVAL_SECONDS : refreshIntervalSeconds;
+    }
+
+    private void logFailure(Exception failure) {
+        monitor.warning("%s: cannot load the issuer trust, keeping the current trusted issuers, retrying every %d s: %s"
+                .formatted(EXTENSION_NAME, nextDelaySeconds(), failure.getMessage()));
     }
 
     private Set<String> loadTrustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        var dids = Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
-        if (dids.isEmpty()) {
-            monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no credentialIssuer in globalconf); "
-                    + "dataspace issuance and trust are not enabled").formatted(EXTENSION_NAME, instanceIdentifier));
-        }
-        return dids;
+        return Set.copyOf(globalConfProvider.getCredentialIssuerDids(instanceIdentifier));
     }
 }

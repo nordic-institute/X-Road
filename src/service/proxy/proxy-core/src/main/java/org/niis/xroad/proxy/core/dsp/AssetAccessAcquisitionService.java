@@ -29,6 +29,9 @@ package org.niis.xroad.proxy.core.dsp;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.annotation.Nullable;
+
+import java.time.Duration;
+
 /**
  * Acquires asset access responses from the DSP control plane.
  * <p>
@@ -45,10 +48,12 @@ public interface AssetAccessAcquisitionService {
      * @param counterPartyId       the provider participant identifier
      * @param counterPartyAddress  the provider's DSP protocol address
      * @param consumerClientId     the calling client, subsystem included; {@code null} when the request states none
+     * @param timeout              how long the control plane may spend on this acquisition
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
     AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                           String counterPartyAddress, @Nullable ClientId consumerClientId);
+                                           String counterPartyAddress, @Nullable ClientId consumerClientId,
+                                           Duration timeout);
 
     /**
      * Drops the cached asset access acquired for the given participant context, asset and calling client, so
