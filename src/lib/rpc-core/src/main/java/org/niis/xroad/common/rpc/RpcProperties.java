@@ -32,17 +32,11 @@ import java.time.Duration;
 
 public interface RpcProperties {
     String PREFIX = "xroad.common-rpc";
-    String DEFAULT_USE_TLS = "true";
 
     boolean useTls();
     RpcCertificateProvisioningProperties certificateProvisioning();
 
     interface RpcCertificateProvisioningProperties extends CertificateProvisioningProperties {
-        String DEFAULT_REFRESH_INTERVAL = "5H";
-        String DEFAULT_WAIT_DURATION = "5S";
-        String DEFAULT_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
-        String DEFAULT_EXPONENTIAL_MAX_WAIT_DURATION = "5M";
-
         Duration refreshInterval();
         Duration waitDuration();
         Double exponentialBackoffMultiplier();
