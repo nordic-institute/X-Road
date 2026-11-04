@@ -26,4 +26,5 @@ dependencies {
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.assertj.core)
+  testImplementation(libs.junit.jupiter.params)
 }

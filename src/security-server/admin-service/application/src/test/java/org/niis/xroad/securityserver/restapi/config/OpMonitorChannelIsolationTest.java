@@ -201,7 +201,7 @@ class OpMonitorChannelIsolationTest {
     }
 
     @Test
-    void trafficIntervalsCallWorksAndCreatesTheChannelOnce() throws Exception {
+    void trafficIntervalsCallWorksAndCreatesTheChannelOnce() {
         when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(opMonitorCa.certificate()));
         startApplication();
 
@@ -226,7 +226,7 @@ class OpMonitorChannelIsolationTest {
     }
 
     @Test
-    void laterCallSucceedsWithoutRestartAfterTheChannelCreationFailed() throws Exception {
+    void laterCallSucceedsWithoutRestartAfterTheChannelCreationFailed() {
         failReadsWith(() -> new IllegalStateException("permission denied"));
         startApplication();
         assertThatThrownBy(this::getTrafficIntervals).isInstanceOf(XrdRuntimeException.class);

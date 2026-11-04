@@ -26,8 +26,9 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -36,7 +37,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,16 +44,12 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OpMonitorAllowedClientNamesSaveTest {
     private static final String KEY = "xroad.op-monitor.rpc.allowed-client-names";
-    private static final List<String> MALFORMED_VALUES = List.of(
-            "*", "*.example.org", "proxy,*", "proxy,,ui", "proxy,", ",", ",,", ", ,");
-    private static final List<String> VALID_VALUES = List.of("", "   ", "proxy", "proxy, ui", "127.0.0.1");
 
     @Mock
     private ConfigurationPropertyRepository repository;
@@ -68,24 +64,23 @@ class OpMonitorAllowedClientNamesSaveTest {
         service = new ConfigurablePropertiesService(auditDataHelper, repository, new SsConfigurablePropertySource());
     }
 
-    @Test
-    void malformedValueIsRejectedWithInvalidPropertyValueAndNotStored() {
-        assertThat(MALFORMED_VALUES).allSatisfy(value ->
-                assertThatThrownBy(() -> service.updateConfigurableProperty(KEY, value))
-                        .as("value \"%s\"", value)
-                        .isInstanceOfSatisfying(BadRequestException.class, e -> assertThat(e.getErrorDeviation().code())
-                                .isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code())));
+    @ParameterizedTest
+    @ValueSource(strings = {"*", "*.example.org", "proxy,*", "proxy,,ui", "proxy,", ",", ",,", ", ,"})
+    void malformedValueIsRejectedWithInvalidPropertyValueAndNotStored(String value) {
+        assertThatThrownBy(() -> service.updateConfigurableProperty(KEY, value))
+                .isInstanceOfSatisfying(BadRequestException.class, e -> assertThat(e.getErrorDeviation().code())
+                        .isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code()));
 
         verify(repository, never()).save(any());
     }
 
-    @Test
-    void wellFormedValueIsStored() {
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "proxy", "proxy, ui", "127.0.0.1"})
+    void wellFormedValueIsStored(String value) {
         when(repository.findByPropertyKey(KEY)).thenReturn(Optional.empty());
 
-        assertThat(VALID_VALUES).allSatisfy(value ->
-                assertThatCode(() -> service.updateConfigurableProperty(KEY, value)).doesNotThrowAnyException());
+        assertThatCode(() -> service.updateConfigurableProperty(KEY, value)).doesNotThrowAnyException();
 
-        verify(repository, times(VALID_VALUES.size())).save(any());
+        verify(repository).save(any());
     }
 }

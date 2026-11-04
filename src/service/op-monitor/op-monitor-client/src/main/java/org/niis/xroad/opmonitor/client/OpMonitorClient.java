@@ -52,6 +52,7 @@ import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -61,9 +62,7 @@ public class OpMonitorClient extends AbstractRpcClient {
     private final OpMonitorRpcChannelProperties rpcChannelProperties;
     private final OpMonitorChannelTrustResolver channelTrustResolver;
 
-    private volatile ManagedChannel channel;
-    private volatile OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
-
+    private final AtomicReference<Connection> connection = new AtomicReference<>();
 
     /**
      * Creates an initialised client for the op-monitor channel configured in {@code config}.
@@ -87,7 +86,8 @@ public class OpMonitorClient extends AbstractRpcClient {
 
     @Override
     public ManagedChannel getChannel() {
-        return channel;
+        var current = connection.get();
+        return current == null ? null : current.channel();
     }
 
     /**
@@ -95,32 +95,30 @@ public class OpMonitorClient extends AbstractRpcClient {
      * creation is not remembered, so the next call tries again.
      */
     public synchronized void init() {
-        if (opMonitoringServiceBlockingStub != null) {
+        if (connection.get() != null) {
             return;
         }
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         var newChannel = rpcChannelFactory.createChannel(rpcChannelProperties, channelTrustResolver.resolve());
-        channel = newChannel;
-        opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(newChannel).withWaitForReady();
+        connection.set(new Connection(newChannel, OpMonitorServiceGrpc.newBlockingStub(newChannel).withWaitForReady()));
     }
 
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub() {
-        var stub = opMonitoringServiceBlockingStub;
-        if (stub != null) {
-            return stub;
-        }
-        synchronized (this) {
+        var current = connection.get();
+        if (current == null) {
             init();
-            return opMonitoringServiceBlockingStub;
+            current = connection.get();
         }
+        return current.stub();
     }
 
     @Override
     @PreDestroy
     public void close() {
-        if (channel != null) {
-            channel.shutdown();
+        var current = connection.get();
+        if (current != null) {
+            current.channel().shutdown();
         }
     }
 
@@ -179,5 +177,8 @@ public class OpMonitorClient extends AbstractRpcClient {
                     "Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
                             Instant.ofEpochMilli(recordsTo)), e);
         }
+    }
+
+    private record Connection(ManagedChannel channel, OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub) {
     }
 }

@@ -38,6 +38,8 @@ import io.grpc.stub.ClientCalls;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.common.rpc.credentials.ClientNameServerCredentials;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.test.TestCa;
@@ -87,11 +89,12 @@ class ClientNameServerCredentialsHandshakeTest {
         assertRejected();
     }
 
-    @Test
-    void clientWhoseCommonNameIsListedIsAccepted() throws Exception {
-        startListServer("proxy");
+    @ParameterizedTest
+    @CsvSource({"proxy,proxy", "PROXY,proxy", "127.0.0.1,127.0.0.1"})
+    void clientWhoseCommonNameMatchesTheListedNameIsAccepted(String listedName, String commonName) throws Exception {
+        startListServer(listedName);
 
-        connectWithClientCertificate(securityServerCa.issueLeaf("proxy", List.of(), List.of()));
+        connectWithClientCertificate(securityServerCa.issueLeaf(commonName, List.of(), List.of()));
 
         assertAccepted();
     }
@@ -106,30 +109,12 @@ class ClientNameServerCredentialsHandshakeTest {
     }
 
     @Test
-    void listedNameMatchesWithDifferentCase() throws Exception {
-        startListServer("PROXY");
-
-        connectWithClientCertificate(securityServerCa.issueLeaf("proxy", List.of(), List.of()));
-
-        assertAccepted();
-    }
-
-    @Test
     void clientWhoseOnlyMatchingEntryIsAnIpSubjectAlternativeNameIsRejected() throws Exception {
         startListServer("127.0.0.1");
 
         connectWithClientCertificate(securityServerCa.issueLeaf("other", List.of(), List.of("127.0.0.1")));
 
         assertRejected();
-    }
-
-    @Test
-    void ipShapedEntryAcceptsClientWhoseCommonNameEqualsIt() throws Exception {
-        startListServer("127.0.0.1");
-
-        connectWithClientCertificate(securityServerCa.issueLeaf("127.0.0.1", List.of(), List.of()));
-
-        assertAccepted();
     }
 
     @Test

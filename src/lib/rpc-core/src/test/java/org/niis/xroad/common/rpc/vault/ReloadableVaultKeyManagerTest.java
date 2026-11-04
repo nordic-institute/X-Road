@@ -293,7 +293,8 @@ class ReloadableVaultKeyManagerTest {
     private void provisionTrustCerts(X509Certificate... trustCerts) throws Exception {
         var result = mock(VaultKeyClient.VaultKeyData.class);
         when(result.identityCertChain()).thenReturn(new X509Certificate[] {mock(X509Certificate.class)});
-        when(result.identityPrivateKey()).thenReturn(mock(PrivateKey.class));
+        var privateKey = mock(PrivateKey.class);
+        when(result.identityPrivateKey()).thenReturn(privateKey);
         when(result.trustCerts()).thenReturn(trustCerts);
         when(vaultKeyClient.provisionNewCerts()).thenReturn(result);
     }

@@ -111,7 +111,9 @@ class OpMonitorServerPropertiesTest {
     @ParameterizedTest
     @ValueSource(strings = {"*", "*.example.org", "proxy,*", "proxy,,ui", "proxy,", ",", ",,", ", ,"})
     void malformedAllowedClientNamesAreRejectedNamingTheSetting(String value) {
-        assertThatThrownBy(() -> config(Map.of(ALLOWED_CLIENT_NAMES, value)))
+        var overrides = Map.of(ALLOWED_CLIENT_NAMES, value);
+
+        assertThatThrownBy(() -> config(overrides))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(ALLOWED_CLIENT_NAMES);
     }
@@ -120,14 +122,18 @@ class OpMonitorServerPropertiesTest {
     @ValueSource(strings = {"*", "*.example.org", "proxy,*"})
     void wildcardEntryIsNamedInTheError(String value) {
         var offending = value.substring(value.lastIndexOf(',') + 1);
-        assertThatThrownBy(() -> config(Map.of(ALLOWED_CLIENT_NAMES, value)))
+        var overrides = Map.of(ALLOWED_CLIENT_NAMES, value);
+
+        assertThatThrownBy(() -> config(overrides))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(offending);
     }
 
     @Test
     void emptyEntryIsLocatedInTheError() {
-        assertThatThrownBy(() -> config(Map.of(ALLOWED_CLIENT_NAMES, "proxy,,ui")))
+        var overrides = Map.of(ALLOWED_CLIENT_NAMES, "proxy,,ui");
+
+        assertThatThrownBy(() -> config(overrides))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("proxy,,ui")
                 .hasMessageContaining("entry 2");
@@ -135,11 +141,12 @@ class OpMonitorServerPropertiesTest {
 
     @Test
     void malformedAllowedClientNamesAreRejectedWhenRpcTlsIsOff() {
-        assertThatThrownBy(() -> XRoadConfigBuilder.create()
+        var builder = XRoadConfigBuilder.create()
                 .register(OpMonitorConfigKeys.instance())
                 .register(CommonRpcConfigKeys.instance())
-                .overrides(Map.of(ALLOWED_CLIENT_NAMES, "proxy,,ui", "xroad.common-rpc.use-tls", "false"))
-                .build())
+                .overrides(Map.of(ALLOWED_CLIENT_NAMES, "proxy,,ui", "xroad.common-rpc.use-tls", "false"));
+
+        assertThatThrownBy(builder::build)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(ALLOWED_CLIENT_NAMES);
     }
