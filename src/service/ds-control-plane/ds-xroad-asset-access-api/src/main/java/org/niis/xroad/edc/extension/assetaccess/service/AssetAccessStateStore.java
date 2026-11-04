@@ -44,7 +44,15 @@ import java.util.function.Function;
  */
 public class AssetAccessStateStore {
 
-    private final ConcurrentHashMap<String, InFlight> inFlightRequests = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, InFlight> inFlightRequests;
+
+    public AssetAccessStateStore() {
+        this(new ConcurrentHashMap<>());
+    }
+
+    AssetAccessStateStore(ConcurrentHashMap<String, InFlight> inFlightRequests) {
+        this.inFlightRequests = inFlightRequests;
+    }
 
     /**
      * Returns a new waiter on the in-flight work for {@code key} if there is any; otherwise claims the slot,
@@ -59,9 +67,10 @@ public class AssetAccessStateStore {
             Function<AcquisitionScope, CompletableFuture<ServiceResult<DataAddress>>> supplier) {
         while (true) {
             var claimed = new InFlight(key);
+            var firstWaiter = claimed.addWaiter();
             var existing = inFlightRequests.putIfAbsent(key, claimed);
             if (existing == null) {
-                return start(claimed, supplier);
+                return start(claimed, firstWaiter, supplier);
             }
             var waiter = existing.addWaiter();
             if (waiter != null) {
@@ -72,8 +81,8 @@ public class AssetAccessStateStore {
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> start(
-            InFlight claimed, Function<AcquisitionScope, CompletableFuture<ServiceResult<DataAddress>>> supplier) {
-        var waiter = claimed.addWaiter();
+            InFlight claimed, CompletableFuture<ServiceResult<DataAddress>> waiter,
+            Function<AcquisitionScope, CompletableFuture<ServiceResult<DataAddress>>> supplier) {
         claimed.outcome.whenComplete((result, throwable) -> inFlightRequests.remove(claimed.key, claimed));
         try {
             supplier.apply(claimed.scope).whenComplete((result, throwable) -> {
@@ -89,7 +98,7 @@ public class AssetAccessStateStore {
         return waiter;
     }
 
-    private final class InFlight {
+    final class InFlight {
         private final String key;
         private final CompletableFuture<ServiceResult<DataAddress>> outcome = new CompletableFuture<>();
         private final AcquisitionScope scope = new AcquisitionScope();

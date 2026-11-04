@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -301,6 +302,34 @@ class AssetAccessStateStoreTest {
         first.cancel(true);
 
         assertThat(second.get(2, TimeUnit.SECONDS).getContent()).isSameAs(address);
+    }
+
+    @Test
+    void aJoinerGivingUpBeforeTheStarterBeginsDoesNotFailTheStarter() {
+        var joiners = new ArrayList<CompletableFuture<ServiceResult<DataAddress>>>();
+        var inFlight = new ConcurrentHashMap<String, AssetAccessStateStore.InFlight>() {
+            @Override
+            public AssetAccessStateStore.InFlight putIfAbsent(String key, AssetAccessStateStore.InFlight value) {
+                var existing = super.putIfAbsent(key, value);
+                if (existing == null && joiners.isEmpty()) {
+                    var joiner = store.loadOrStartInFlight(key, scope -> new CompletableFuture<>());
+                    joiners.add(joiner);
+                    joiner.cancel(true);
+                }
+                return existing;
+            }
+        };
+        store = new AssetAccessStateStore(inFlight);
+        var scopes = new ArrayList<AcquisitionScope>();
+
+        var starter = store.loadOrStartInFlight("k", scope -> {
+            scopes.add(scope);
+            return new CompletableFuture<>();
+        });
+
+        assertThat(joiners.getFirst()).isCancelled();
+        assertThat(starter).isNotNull().isNotDone();
+        assertThat(scopes.getFirst().track(new CompletableFuture<>())).isNotDone();
     }
 
     private static void awaitLatch(CountDownLatch latch) {
