@@ -29,7 +29,6 @@ package org.niis.xroad.common.vault.spring;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -37,6 +36,7 @@ import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
+import org.niis.xroad.common.vault.NodeScopedSecretPaths;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultKeyValueOperations;
 
@@ -57,9 +57,31 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @Slf4j
-@RequiredArgsConstructor
 public class SpringVaultClient implements VaultClient {
     private final VaultKeyValueOperations vaultClient;
+    private final String adminServiceTlsPath;
+    private final String managementServiceTlsPath;
+
+    /**
+     * Client that keeps the admin and management service TLS keys at the plain, node-independent paths.
+     */
+    public SpringVaultClient(VaultKeyValueOperations vaultClient) {
+        this.vaultClient = vaultClient;
+        this.adminServiceTlsPath = ADMIN_SERVICE_TLS_CREDENTIALS_PATH;
+        this.managementServiceTlsPath = MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH;
+    }
+
+    /**
+     * Client that keeps the admin and management service TLS keys under the given node name.
+     *
+     * @param nodeName the node name; a blank value resolves to the default node name
+     */
+    public SpringVaultClient(VaultKeyValueOperations vaultClient, String nodeName) {
+        var nodePaths = new NodeScopedSecretPaths(nodeName);
+        this.vaultClient = vaultClient;
+        this.adminServiceTlsPath = nodePaths.adminServiceTls();
+        this.managementServiceTlsPath = nodePaths.managementServiceTls();
+    }
 
     @Override
     public InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -68,12 +90,12 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public InternalSSLKey getAdminServiceTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return getTlsCredentials(ADMIN_SERVICE_TLS_CREDENTIALS_PATH);
+        return getTlsCredentials(adminServiceTlsPath);
     }
 
     @Override
     public InternalSSLKey getManagementServicesTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return getTlsCredentials(MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH);
+        return getTlsCredentials(managementServiceTlsPath);
     }
 
     @Override
@@ -83,12 +105,12 @@ public class SpringVaultClient implements VaultClient {
 
     @Override
     public void createAdminServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
-        createTlsCredentials(ADMIN_SERVICE_TLS_CREDENTIALS_PATH, internalSSLKey);
+        createTlsCredentials(adminServiceTlsPath, internalSSLKey);
     }
 
     @Override
     public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
-        createTlsCredentials(MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH, internalSSLKey);
+        createTlsCredentials(managementServiceTlsPath, internalSSLKey);
     }
 
     @Override

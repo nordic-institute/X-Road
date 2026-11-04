@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.common.vault.spring;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
@@ -37,6 +39,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
@@ -351,6 +355,60 @@ class SpringVaultClientTest {
         assertThat(vaultClient.getOpMonitorCa()).contains(second);
     }
 
+    @Test
+    void shouldKeepAdminAndManagementTlsKeysOfTwoNodesOnSeparatePaths() throws Exception {
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, "node_a");
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, "node_b");
+        var keyA = tlsKey("CN=node-a");
+        var keyB = tlsKey("CN=node-b");
+        nodeA.createAdminServiceTlsCredentials(keyA);
+        nodeA.createManagementServiceTlsCredentials(keyA);
+        nodeB.createAdminServiceTlsCredentials(keyB);
+        nodeB.createManagementServiceTlsCredentials(keyB);
+        assertThat(secretsByPath).containsOnlyKeys(
+                "tls/admin-service/node_a", "tls/management-service/node_a",
+                "tls/admin-service/node_b", "tls/management-service/node_b");
+        assertThat(nodeA.getAdminServiceTlsCredentials().getKey()).isEqualTo(keyA.getKey());
+        assertThat(nodeA.getManagementServicesTlsCredentials().getKey()).isEqualTo(keyA.getKey());
+        assertThat(nodeB.getAdminServiceTlsCredentials().getKey()).isEqualTo(keyB.getKey());
+        assertThat(nodeB.getManagementServicesTlsCredentials().getKey()).isEqualTo(keyB.getKey());
+    }
+
+    @Test
+    void shouldNotReturnAnotherNodesTlsKey() throws Exception {
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, "node_a");
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, "node_b");
+        nodeA.createAdminServiceTlsCredentials(tlsKey("CN=node-a"));
+        nodeA.createManagementServiceTlsCredentials(tlsKey("CN=node-a"));
+        assertThatThrownBy(nodeB::getAdminServiceTlsCredentials)
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(ErrorCode.MISSING_SECRET)).isTrue());
+        assertThatThrownBy(nodeB::getManagementServicesTlsCredentials)
+                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> assertThat(e.isCausedBy(ErrorCode.MISSING_SECRET)).isTrue());
+    }
+
+    @Test
+    void shouldUseTheDefaultNodeNameForTlsPathsWhenNodeNameIsBlank() throws Exception {
+        new SpringVaultClient(vaultKeyValueOperations, "").createAdminServiceTlsCredentials(tlsKey("CN=default"));
+        assertThat(secretsByPath).containsOnlyKeys("tls/admin-service/node_0");
+    }
+
+    @Test
+    void shouldKeepAdminAndManagementTlsKeysAtPlainPathsWithoutNodeName() throws Exception {
+        var key = tlsKey("CN=plain");
+        vaultClient.createAdminServiceTlsCredentials(key);
+        vaultClient.createManagementServiceTlsCredentials(key);
+        assertThat(secretsByPath).containsOnlyKeys("tls/admin-service", "tls/management-service");
+        assertThat(vaultClient.getAdminServiceTlsCredentials().getKey()).isEqualTo(key.getKey());
+    }
+    private static InternalSSLKey tlsKey(String subjectName) throws Exception {
+        var keyPair = generateRsaKeyPair();
+        var subject = new X500Name(subjectName);
+        var builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE, Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)), subject, keyPair.getPublic());
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        var certificate = new JcaX509CertificateConverter().getCertificate(builder.build(signer));
+        return new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[] {certificate});
+    }
     private static X509Certificate selfSignedCa(String subjectName) throws Exception {
         var keyPair = generateRsaKeyPair();
         var subject = new X500Name(subjectName);

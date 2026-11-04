@@ -34,6 +34,7 @@ import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.spring.NodeIdentityConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
@@ -57,7 +58,8 @@ import org.springframework.vault.core.VaultTemplate;
         SpringOcspVerifierConfig.class,
         SpringSignerClientConfiguration.class,
         SpringRpcConfig.class,
-        SpringVaultClientConfig.class
+        SpringVaultClientConfig.class,
+        NodeIdentityConfig.class
 })
 @Configuration
 public class BootstrapConfiguration {
