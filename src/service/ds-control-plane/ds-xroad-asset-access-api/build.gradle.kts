@@ -19,6 +19,7 @@ dependencies {
   implementation(libs.edc.lib.dsp)
   implementation(libs.edc.lib.dsp.catalog.transform.v2025)
 
+  testImplementation(project(":common:common-test"))
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)
   testImplementation(libs.junit.jupiter.params)

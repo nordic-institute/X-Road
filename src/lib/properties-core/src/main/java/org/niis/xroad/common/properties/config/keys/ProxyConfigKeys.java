@@ -823,6 +823,26 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .string("serverproxy-endpoint")
             .build();
 
+    /**
+     * {@code xroad.proxy.dsp.acquisition-deadline} — the one time limit for acquiring asset access, shared by
+     * every step and every provider server candidate.
+     */
+    public static final ConfigKey<Duration> DSP_ACQUISITION_DEADLINE = DSP
+            .keyDuration("acquisition-deadline")
+            .withDefaultValue(Duration.ofSeconds(60))
+            .withValidator(positive())
+            .build();
+
+    /**
+     * {@code xroad.proxy.dsp.acquisition-deadline-margin} — how long past its share of the deadline the proxy
+     * waits for the control plane's own answer before it gives up on the call.
+     */
+    public static final ConfigKey<Duration> DSP_ACQUISITION_DEADLINE_MARGIN = DSP
+            .keyDuration("acquisition-deadline-margin")
+            .withDefaultValue(Duration.ofSeconds(5))
+            .withValidator(nonNegative())
+            .build();
+
     /** {@code xroad.proxy.dsp.cache.enabled}. */
     public static final ConfigKey<Boolean> DSP_CACHE_ENABLED = DSP_CACHE
             .bool(ENABLED)

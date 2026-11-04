@@ -37,6 +37,7 @@ import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
+import java.time.Clock;
 import java.time.Duration;
 
 /**
@@ -48,7 +49,8 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     public static final String EXTENSION_NAME = "X-Road Asset Access gRPC Extension";
 
     @Setting(key = "xroad.asset-access.acquisition.timeout-seconds",
-            description = "Overall asset acquisition deadline in seconds (gRPC await for catalog → negotiation → transfer)",
+            description = "Longest overall asset acquisition in seconds (gRPC await for catalog → negotiation → transfer); "
+                    + "a caller asking for less gets less",
             defaultValue = "60")
     private long acquisitionTimeoutSeconds;
 
@@ -62,6 +64,9 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     private GrpcServiceRegistry grpcServiceRegistry;
 
     @Inject
+    private Clock clock;
+
+    @Inject
     private Monitor monitor;
 
     @Override
@@ -73,7 +78,7 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext extensionContext) {
         var responseHandler = new RpcResponseHandler();
         var grpcService = new AssetAccessGrpcService(assetAccessOrchestrator, participantContextService, responseHandler,
-                Duration.ofSeconds(acquisitionTimeoutSeconds));
+                Duration.ofSeconds(acquisitionTimeoutSeconds), clock);
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }
