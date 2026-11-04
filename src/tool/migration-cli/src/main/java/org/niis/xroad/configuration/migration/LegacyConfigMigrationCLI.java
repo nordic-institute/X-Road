@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.acme.AcmeAccountKeyAliasResolver;
 import org.niis.xroad.migration.acme.AcmeAccountKeyMigrator;
 import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
@@ -120,7 +121,7 @@ public class LegacyConfigMigrationCLI {
             }
 
             NodeOption nodeOption = NodeOption.extract(shiftArgs(args));
-            String[] commandArgs = nodeOption.remainingArgs();
+            String[] commandArgs = nodeOption.remainingArgs().toArray(new String[0]);
 
             switch (command) {
                 case VALIDATE -> validateEnv();
@@ -130,7 +131,7 @@ public class LegacyConfigMigrationCLI {
                 case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(commandArgs);
                 case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(commandArgs);
                 case KEYCONF -> migrateKeyConf(commandArgs);
-                case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(commandArgs, nodeOption.nodeName());
+                case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(commandArgs, nodeOption.nodeIdentity());
                 case SIGNER_DEVICES -> migrateSignerDevices(commandArgs);
                 case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(commandArgs);
                 case FILE_TO_DB -> migrateFileToDb(commandArgs);
@@ -625,7 +626,7 @@ public class LegacyConfigMigrationCLI {
         new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath);
     }
 
-    private static void migrateSignerTokenPins(String[] args, String nodeName) throws IOException {
+    private static void migrateSignerTokenPins(String[] args, NodeIdentity nodeIdentity) throws IOException {
         // Determine script path
         Path scriptPath;
         if (args.length > 0) {
@@ -644,8 +645,8 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Starting signer token PIN migration for node {} from script: {}", nodeName, scriptPath);
-        var vaultClient = MigrationVaultClient.createAndPreflight(nodeName);
+        log.info("Starting signer token PIN migration for node {} from script: {}", nodeIdentity.name(), scriptPath);
+        var vaultClient = MigrationVaultClient.createAndPreflight(nodeIdentity);
         var executor = new AutoLoginScriptExecutor();
         var migrator = new TokenPinMigrator(vaultClient, executor);
         var result = migrator.migrateFromScript(scriptPath);

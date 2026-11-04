@@ -41,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
@@ -357,8 +358,8 @@ class SpringVaultClientTest {
 
     @Test
     void shouldKeepAdminAndManagementTlsKeysOfTwoNodesOnSeparatePaths() throws Exception {
-        var nodeA = new SpringVaultClient(vaultKeyValueOperations, "node_a");
-        var nodeB = new SpringVaultClient(vaultKeyValueOperations, "node_b");
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_a"));
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_b"));
         var keyA = tlsKey("CN=node-a");
         var keyB = tlsKey("CN=node-b");
         nodeA.createAdminServiceTlsCredentials(keyA);
@@ -376,8 +377,8 @@ class SpringVaultClientTest {
 
     @Test
     void shouldNotReturnAnotherNodesTlsKey() throws Exception {
-        var nodeA = new SpringVaultClient(vaultKeyValueOperations, "node_a");
-        var nodeB = new SpringVaultClient(vaultKeyValueOperations, "node_b");
+        var nodeA = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_a"));
+        var nodeB = new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("node_b"));
         nodeA.createAdminServiceTlsCredentials(tlsKey("CN=node-a"));
         nodeA.createManagementServiceTlsCredentials(tlsKey("CN=node-a"));
         assertThatThrownBy(nodeB::getAdminServiceTlsCredentials)
@@ -388,7 +389,7 @@ class SpringVaultClientTest {
 
     @Test
     void shouldUseTheDefaultNodeNameForTlsPathsWhenNodeNameIsBlank() throws Exception {
-        new SpringVaultClient(vaultKeyValueOperations, "").createAdminServiceTlsCredentials(tlsKey("CN=default"));
+        new SpringVaultClient(vaultKeyValueOperations, NodeIdentity.resolve("")).createAdminServiceTlsCredentials(tlsKey("CN=default"));
         assertThat(secretsByPath).containsOnlyKeys("tls/admin-service/node_0");
     }
 

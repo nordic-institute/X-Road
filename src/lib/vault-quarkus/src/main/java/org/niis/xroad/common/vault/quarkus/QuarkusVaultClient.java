@@ -34,7 +34,7 @@ import io.quarkus.vault.client.VaultClientException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.node.NodeNameResolver;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
@@ -68,12 +68,12 @@ public class QuarkusVaultClient implements VaultClient {
     private final NodeScopedSecretPaths nodePaths;
 
     public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine) {
-        this(kvSecretEngine, NodeNameResolver.DEFAULT_NODE_NAME);
+        this(kvSecretEngine, NodeIdentity.resolve(null));
     }
 
-    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, String nodeName) {
+    public QuarkusVaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
         this.kvSecretEngine = kvSecretEngine;
-        this.nodePaths = new NodeScopedSecretPaths(nodeName);
+        this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
     }
 
     @Override

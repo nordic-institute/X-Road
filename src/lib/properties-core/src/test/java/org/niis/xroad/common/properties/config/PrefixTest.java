@@ -30,6 +30,7 @@ package org.niis.xroad.common.properties.config;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -112,6 +113,19 @@ class PrefixTest {
         // tracking lives on the root prefix only
         assertThat(child.keys()).isEmpty();
         assertThat(root.keys()).hasSize(1);
+    }
+
+    @Test
+    void lazyDefaultValueIsComputedOnReadNotWhenTheKeyIsBuilt() {
+        var reads = new AtomicInteger();
+
+        var key = Prefix.of("xroad.svc").string("host")
+                .withLazyDefaultValue(() -> "host-" + reads.incrementAndGet())
+                .build();
+
+        assertThat(reads).hasValue(0);
+        assertThat(key.defaultValue()).isEqualTo("host-1");
+        assertThat(key.convertedDefaultValue()).isEqualTo("host-2");
     }
 
     private enum Mode { ON, OFF }

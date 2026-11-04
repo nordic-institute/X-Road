@@ -28,6 +28,7 @@ package org.niis.xroad.common.vault;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,7 +37,7 @@ class NodeScopedSecretPathsTest {
 
     @Test
     void shouldBuildAllPathsUnderTheNodeName() {
-        var paths = new NodeScopedSecretPaths("node_a");
+        var paths = new NodeScopedSecretPaths(NodeIdentity.resolve("node_a"));
 
         assertThat(paths.tokenPin("tok1")).isEqualTo("signer/token-pins/node_a/tok1");
         assertThat(paths.adminServiceTls()).isEqualTo("tls/admin-service/node_a");
@@ -45,8 +46,8 @@ class NodeScopedSecretPathsTest {
 
     @Test
     void shouldKeepTokenZeroAndNodeZeroOnDifferentPaths() {
-        var nodeZero = new NodeScopedSecretPaths("0");
-        var nodeOne = new NodeScopedSecretPaths("1");
+        var nodeZero = new NodeScopedSecretPaths(NodeIdentity.resolve("0"));
+        var nodeOne = new NodeScopedSecretPaths(NodeIdentity.resolve("1"));
 
         assertThat(nodeZero.tokenPin("0")).isEqualTo("signer/token-pins/0/0");
         assertThat(nodeZero.tokenPin("1")).isEqualTo("signer/token-pins/0/1");
@@ -55,13 +56,13 @@ class NodeScopedSecretPathsTest {
 
     @Test
     void shouldFallBackToTheDefaultNodeNameWhenBlank() {
-        assertThat(new NodeScopedSecretPaths(null).tokenPin("tok1")).isEqualTo("signer/token-pins/node_0/tok1");
-        assertThat(new NodeScopedSecretPaths(" ").adminServiceTls()).isEqualTo("tls/admin-service/node_0");
+        assertThat(new NodeScopedSecretPaths(NodeIdentity.resolve(null)).tokenPin("tok1")).isEqualTo("signer/token-pins/node_0/tok1");
+        assertThat(new NodeScopedSecretPaths(NodeIdentity.resolve(" ")).adminServiceTls()).isEqualTo("tls/admin-service/node_0");
     }
 
     @Test
     void shouldRejectAnInvalidNodeName() {
-        assertThatThrownBy(() -> new NodeScopedSecretPaths("../x"))
+        assertThatThrownBy(() -> new NodeScopedSecretPaths(NodeIdentity.resolve("../x")))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 }

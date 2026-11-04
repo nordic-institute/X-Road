@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -76,12 +77,20 @@ public record HostIdentity(String commonName, List<String> dnsNames, List<String
     }
 
     /**
-     * Detects the identity of the machine this process runs on. Detected once per process.
+     * Detects the identity of the machine this process runs on. Detected on first use, once per process.
      *
      * @return the local host identity; the host name {@code localhost} and no IP names when the host cannot be inspected
      */
     public static HostIdentity local() {
         return Local.IDENTITY;
+    }
+
+    static HostIdentity detectOrFallback(Supplier<HostIdentity> detector) {
+        try {
+            return detector.get();
+        } catch (RuntimeException _) {
+            return of(FALLBACK_HOST_NAME, FALLBACK_HOST_NAME, List.of());
+        }
     }
 
     private static boolean isGlobalScope(InetAddress address) {
@@ -97,7 +106,7 @@ public record HostIdentity(String commonName, List<String> dnsNames, List<String
     }
 
     private static final class Local {
-        static final HostIdentity IDENTITY = detect();
+        static final HostIdentity IDENTITY = detectOrFallback(Local::detect);
 
         private static HostIdentity detect() {
             var host = localHost();

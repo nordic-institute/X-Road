@@ -36,21 +36,21 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class NodeNameResolverTest {
+class NodeIdentityTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"node_1", "0", "a", "Z", "9", "cs-node-2", "A_b-c", "node_0", "0abc", "1a",
             "0bad", "0bed", "0oface", "0b2", "0o8",
             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"})
     void shouldAcceptValidNames(String name) {
-        assertThat(NodeNameResolver.resolve(name)).isEqualTo(new NodeIdentity(name, true));
+        assertThat(NodeIdentity.resolve(name)).isEqualTo(new NodeIdentity(name, true));
     }
 
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", " ", "   ", "\t"})
     void shouldResolveDefaultNameForBlankOrUnset(String value) {
-        assertThat(NodeNameResolver.resolve(value)).isEqualTo(new NodeIdentity("node_0", false));
+        assertThat(NodeIdentity.resolve(value)).isEqualTo(new NodeIdentity("node_0", false));
     }
 
     @ParameterizedTest
@@ -71,7 +71,7 @@ class NodeNameResolverTest {
 
     @Test
     void shouldNameTheRuleInTheFailureMessage() {
-        assertThatThrownBy(() -> NodeNameResolver.resolve("-bad"))
+        assertThatThrownBy(() -> NodeIdentity.resolve("-bad"))
                 .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("xroad.admin-service.ha-node-name")
                 .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
@@ -79,7 +79,7 @@ class NodeNameResolverTest {
     }
 
     private static void assertInvalid(String name) {
-        assertThatThrownBy(() -> NodeNameResolver.resolve(name))
+        assertThatThrownBy(() -> NodeIdentity.resolve(name))
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code()));
     }

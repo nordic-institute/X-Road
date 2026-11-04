@@ -80,10 +80,14 @@ class AdminServiceSslBundleRegistrarTest {
 
     @Test
     void shouldNotCreateOrReplaceTheKeyWhenTheStoreFailsForAnotherReason() throws Exception {
-        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(new IllegalStateException("store unreachable"));
+        var storeFailure = XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE)
+                .details("store unreachable").build();
+        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(storeFailure);
         stubProvisionedKey();
 
-        assertThatThrownBy(() -> registrar.registerBundles(registry)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> registrar.registerBundles(registry))
+                .isInstanceOf(IllegalStateException.class)
+                .hasCause(storeFailure);
 
         verifyNoInteractions(keyClient);
         verify(vaultClient, never()).createAdminServiceTlsCredentials(any());

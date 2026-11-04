@@ -29,6 +29,7 @@ package org.niis.xroad.common.vault;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -39,6 +40,7 @@ import java.security.cert.X509Certificate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -76,7 +78,20 @@ class TlsKeyProvisioningTest {
 
         assertThat(result.getKey()).isSameAs(provisionedKey);
         assertThat(result.getCertChain()).containsExactly(identityCert, trustCert);
-        verify(vaultClient).createAdminServiceTlsCredentials(any());
+        var stored = ArgumentCaptor.forClass(InternalSSLKey.class);
+        verify(vaultClient).createAdminServiceTlsCredentials(stored.capture());
+        assertThat(stored.getValue()).isSameAs(result);
+    }
+
+    @Test
+    void shouldPropagateAFailureToStoreTheNewKey() throws Exception {
+        when(vaultClient.getAdminServiceTlsCredentials()).thenThrow(
+                XrdRuntimeException.systemException(ErrorCode.MISSING_SECRET).details("absent").build());
+        stubProvisionedKey();
+        var writeFailure = new IOException("store rejected the write");
+        doThrow(writeFailure).when(vaultClient).createAdminServiceTlsCredentials(any());
+
+        assertThatThrownBy(this::provision).isSameAs(writeFailure);
     }
 
     @Test

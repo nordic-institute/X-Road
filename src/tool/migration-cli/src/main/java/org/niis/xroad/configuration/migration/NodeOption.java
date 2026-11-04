@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.configuration.migration;
 
-import org.niis.xroad.common.core.node.NodeNameResolver;
+import org.niis.xroad.common.core.node.NodeIdentity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +34,17 @@ import java.util.List;
  * The shared {@code --node <name>} option of migration-cli. It names the cluster node that the migrated
  * node-scoped data belongs to, and defaults to the node name of a Security Server.
  *
- * @param nodeName the validated node name
+ * @param nodeIdentity  the validated node identity
  * @param remainingArgs the arguments without the option
  */
-record NodeOption(String nodeName, String[] remainingArgs) {
+record NodeOption(NodeIdentity nodeIdentity, List<String> remainingArgs) {
 
     static final String OPTION = "--node";
 
     /**
      * Removes the option from the arguments and validates its value.
      *
-     * @throws IllegalArgumentException if the option has no value or is given more than once
+     * @throws IllegalArgumentException if the option has no value, a blank value, or is given more than once
      * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if the value breaks the node name rule
      */
     static NodeOption extract(String[] args) {
@@ -69,6 +69,9 @@ record NodeOption(String nodeName, String[] remainingArgs) {
                 value = arg.substring(OPTION.length() + 1);
             }
         }
-        return new NodeOption(NodeNameResolver.resolve(value).name(), remaining.toArray(new String[0]));
+        if (value != null && value.isBlank()) {
+            throw new IllegalArgumentException(OPTION + " requires a node name");
+        }
+        return new NodeOption(NodeIdentity.resolve(value), List.copyOf(remaining));
     }
 }

@@ -28,7 +28,7 @@ package org.niis.xroad.configuration.migration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.core.node.NodeNameResolver;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.NodeScopedSecretPaths;
 import org.niis.xroad.common.vault.spring.SpringVaultClient;
 import org.springframework.vault.VaultException;
@@ -72,10 +72,10 @@ public class MigrationVaultClient extends SpringVaultClient {
 
     private final NodeScopedSecretPaths nodePaths;
 
-    MigrationVaultClient(VaultKeyValueOperations kvOps, String nodeName) {
+    MigrationVaultClient(VaultKeyValueOperations kvOps, NodeIdentity nodeIdentity) {
         super(kvOps);
         this.kvOps = kvOps;
-        this.nodePaths = new NodeScopedSecretPaths(nodeName);
+        this.nodePaths = new NodeScopedSecretPaths(nodeIdentity);
     }
 
     /**
@@ -90,16 +90,15 @@ public class MigrationVaultClient extends SpringVaultClient {
      * @return a preflight-checked vault client ready for use by the migrators
      */
     public static MigrationVaultClient createAndPreflight() {
-        return createAndPreflight(NodeNameResolver.DEFAULT_NODE_NAME);
+        return createAndPreflight(NodeIdentity.resolve(null));
     }
 
     /**
      * Same as {@link #createAndPreflight()}, with the node name under which the PINs are stored.
      *
-     * @param nodeName the node name; an invalid name fails before the secret store is contacted
+     * @param nodeIdentity the node under which the PINs are stored
      */
-    public static MigrationVaultClient createAndPreflight(String nodeName) {
-        NodeNameResolver.resolve(nodeName);
+    public static MigrationVaultClient createAndPreflight(NodeIdentity nodeIdentity) {
         String host = requireEnvVar(ENV_HOST);
         String portStr = requireEnvVar(ENV_PORT);
         String scheme = requireEnvVar(ENV_SCHEME);
@@ -122,7 +121,7 @@ public class MigrationVaultClient extends SpringVaultClient {
 
         VaultKeyValueOperations kvOps = vaultTemplate.opsForKeyValue(
                 VAULT_MOUNT, VaultKeyValueOperationsSupport.KeyValueBackend.KV_1);
-        return new MigrationVaultClient(kvOps, nodeName);
+        return new MigrationVaultClient(kvOps, nodeIdentity);
     }
 
     private static String requireEnvVar(String name) {

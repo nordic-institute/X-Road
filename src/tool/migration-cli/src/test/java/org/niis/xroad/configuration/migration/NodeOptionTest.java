@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,7 +40,7 @@ class NodeOptionTest {
     void shouldDefaultToNodeZeroWhenOptionIsAbsent() {
         NodeOption option = NodeOption.extract(new String[]{"/some/script.sh"});
 
-        assertThat(option.nodeName()).isEqualTo("node_0");
+        assertThat(option.nodeIdentity()).isEqualTo(new NodeIdentity("node_0", false));
         assertThat(option.remainingArgs()).containsExactly("/some/script.sh");
     }
 
@@ -47,7 +48,7 @@ class NodeOptionTest {
     void shouldTakeTheNodeNameFromSeparateArgument() {
         NodeOption option = NodeOption.extract(new String[]{"--node", "node_1", "/some/script.sh"});
 
-        assertThat(option.nodeName()).isEqualTo("node_1");
+        assertThat(option.nodeIdentity()).isEqualTo(new NodeIdentity("node_1", true));
         assertThat(option.remainingArgs()).containsExactly("/some/script.sh");
     }
 
@@ -55,7 +56,7 @@ class NodeOptionTest {
     void shouldTakeTheNodeNameFromEqualsForm() {
         NodeOption option = NodeOption.extract(new String[]{"/some/script.sh", "--node=cs-2"});
 
-        assertThat(option.nodeName()).isEqualTo("cs-2");
+        assertThat(option.nodeIdentity()).isEqualTo(new NodeIdentity("cs-2", true));
         assertThat(option.remainingArgs()).containsExactly("/some/script.sh");
     }
 
@@ -71,6 +72,22 @@ class NodeOptionTest {
     @Test
     void shouldRejectOptionWithoutValue() {
         assertThatThrownBy(() -> NodeOption.extract(new String[]{"--node"}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("requires a node name");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "\t"})
+    void shouldRejectABlankValueInSeparateForm(String value) {
+        assertThatThrownBy(() -> NodeOption.extract(new String[]{"--node", value, "/some/script.sh"}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("requires a node name");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"--node=", "--node= "})
+    void shouldRejectABlankValueInEqualsForm(String arg) {
+        assertThatThrownBy(() -> NodeOption.extract(new String[]{arg, "/some/script.sh"}))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("requires a node name");
     }

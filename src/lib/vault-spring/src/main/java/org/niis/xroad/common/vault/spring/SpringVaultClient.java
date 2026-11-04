@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
@@ -74,10 +75,10 @@ public class SpringVaultClient implements VaultClient {
     /**
      * Client that keeps the admin and management service TLS keys under the given node name.
      *
-     * @param nodeName the node name; a blank value resolves to the default node name
+     * @param nodeIdentity the identity of the node
      */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient, String nodeName) {
-        var nodePaths = new NodeScopedSecretPaths(nodeName);
+    public SpringVaultClient(VaultKeyValueOperations vaultClient, NodeIdentity nodeIdentity) {
+        var nodePaths = new NodeScopedSecretPaths(nodeIdentity);
         this.vaultClient = vaultClient;
         this.adminServiceTlsPath = nodePaths.adminServiceTls();
         this.managementServiceTlsPath = nodePaths.managementServiceTls();

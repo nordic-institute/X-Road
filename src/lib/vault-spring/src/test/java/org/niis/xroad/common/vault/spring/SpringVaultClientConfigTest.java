@@ -112,6 +112,9 @@ class SpringVaultClientConfigTest {
     void shouldRejectAnInvalidNodeName() {
         contextRunner.withUserConfiguration(NodeIdentityConfig.class)
                 .withPropertyValues("xroad.admin-service.ha-node-name=true")
-                .run(context -> assertThat(context).hasFailed());
+                .run(context -> assertThat(context).hasFailed().getFailure()
+                        .rootCause()
+                        .isInstanceOf(XrdRuntimeException.class)
+                        .hasMessageContaining(NodeIdentity.PROPERTY_KEY));
     }
 }

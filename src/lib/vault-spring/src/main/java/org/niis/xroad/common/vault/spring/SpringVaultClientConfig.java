@@ -48,7 +48,7 @@ public class SpringVaultClientConfig {
                                         ObjectProvider<NodeIdentity> nodeIdentity) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
         var node = nodeIdentity.getIfAvailable();
-        return node == null ? new SpringVaultClient(vaultKvClient) : new SpringVaultClient(vaultKvClient, node.name());
+        return node == null ? new SpringVaultClient(vaultKvClient) : new SpringVaultClient(vaultKvClient, node);
     }
 
     private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {

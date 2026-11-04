@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.test;
 
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -34,9 +33,10 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.niis.xroad.test.apitest.core.junit.Step;
 import org.testcontainers.containers.Container.ExecResult;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.signer.test.container.SignerIntTestContainerSetup.SIGNER;
 
 /**
@@ -60,7 +60,8 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
     private static final String TOKEN_ID_0 = "0";
     private static final String AUTOLOGIN_PIN = "4321";
     private static final String TEMPORARY_PIN = "5678";
-    private static final int AUTOLOGIN_WAIT_SECONDS = 4;
+    private static final Duration AUTOLOGIN_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration AUTOLOGIN_POLL_INTERVAL = Duration.ofMillis(500);
 
     @Test
     @Order(1)
@@ -81,9 +82,7 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
 
         Step.given("token '0' is logged out", () -> client().deactivateToken(TOKEN_ID_0));
         Step.when("signer service is restarted", () -> containerSetup.restartContainer(SIGNER));
-        Step.and("waiting " + AUTOLOGIN_WAIT_SECONDS + " seconds for auto-login to take effect",
-                () -> sleepSeconds(AUTOLOGIN_WAIT_SECONDS));
-        Step.then("token '0' is active", () -> assertThat(client().getToken(TOKEN_ID_0).isActive()).isTrue());
+        Step.then("token '0' becomes active through auto-login", this::awaitTokenActive);
         Step.and("token pin keys and values in OpenBao are unchanged",
                 () -> assertThat(pinStoreSnapshot()).isEqualTo(pinStoreBeforeRestart));
         Step.and("the flat token pin path is not written", () -> assertThat(pinExists(FLAT_PIN_PATH)).isFalse());
@@ -102,14 +101,21 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
         Step.when("the original pin is restored and the signer restarted", this::restoreAutologinPin);
         Step.then("primary node path holds the autologin pin again",
                 () -> assertThat(readPin(PRIMARY_NODE_PIN_PATH)).isEqualTo(AUTOLOGIN_PIN));
-        Step.and("token '0' is active", () -> assertThat(client().getToken(TOKEN_ID_0).isActive()).isTrue());
+        Step.and("token '0' is active", this::awaitTokenActive);
     }
 
     private void restoreAutologinPin() {
         client().activateToken(TOKEN_ID_0, TEMPORARY_PIN.toCharArray());
         client().updateTokenPin(TOKEN_ID_0, TEMPORARY_PIN.toCharArray(), AUTOLOGIN_PIN.toCharArray());
         containerSetup.restartContainer(SIGNER);
-        sleepSeconds(AUTOLOGIN_WAIT_SECONDS);
+        awaitTokenActive();
+    }
+
+    private void awaitTokenActive() {
+        await().atMost(AUTOLOGIN_TIMEOUT)
+                .pollInterval(AUTOLOGIN_POLL_INTERVAL)
+                .ignoreExceptions()
+                .untilAsserted(() -> assertThat(client().getToken(TOKEN_ID_0).isActive()).isTrue());
     }
 
     private ExecResult bao(String... kvArguments) {
@@ -143,10 +149,5 @@ class SignerNodeScopedPinIntTest extends AbstractSignerIntTest {
         var result = bao("list", MOUNT, path);
         assertThat(result.getExitCode()).as("bao kv list %s: %s", path, result.getStderr()).isZero();
         return result.getStdout().trim();
-    }
-
-    @SneakyThrows
-    private static void sleepSeconds(int seconds) {
-        TimeUnit.SECONDS.sleep(seconds);
     }
 }

@@ -30,6 +30,7 @@ package org.niis.xroad.configuration.migration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
 import org.niis.xroad.migration.tokenpin.ScriptExecutionResult;
 import org.niis.xroad.migration.tokenpin.TokenPinMigrationResult;
@@ -63,7 +64,7 @@ class MigrationVaultClientTest {
     @Test
     void testSetTokenPinCallsCorrectVaultPath() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_0");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         client.setTokenPin("tok1", "s3cr3t".toCharArray());
 
@@ -81,7 +82,7 @@ class MigrationVaultClientTest {
         response.setData(data);
         when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(response);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_0");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
         Optional<char[]> result = client.getTokenPin("tok1");
 
         assertThat(result).isPresent();
@@ -93,7 +94,7 @@ class MigrationVaultClientTest {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
         when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(null);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_0");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
     }
@@ -104,7 +105,7 @@ class MigrationVaultClientTest {
         VaultResponse response = new VaultResponse();   // data is null by default
         when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(response);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_0");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
     }
@@ -116,7 +117,7 @@ class MigrationVaultClientTest {
         response.setData(new HashMap<>());   // no "pin" entry
         when(kvOps.get("signer/token-pins/node_0/tok1")).thenReturn(response);
 
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_0");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         assertThat(client.getTokenPin("tok1")).isEmpty();
     }
@@ -124,7 +125,7 @@ class MigrationVaultClientTest {
     @Test
     void testDeleteTokenPinCallsCorrectVaultPath() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_0");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_0"));
 
         client.deleteTokenPin("tok1");
 
@@ -137,7 +138,7 @@ class MigrationVaultClientTest {
         VaultResponse response = new VaultResponse();
         response.setData(new HashMap<>(Map.of("pin", "s3cr3t")));
         when(kvOps.get("signer/token-pins/node_1/tok1")).thenReturn(response);
-        MigrationVaultClient client = new MigrationVaultClient(kvOps, "node_1");
+        MigrationVaultClient client = new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_1"));
 
         client.setTokenPin("tok1", "s3cr3t".toCharArray());
         Optional<char[]> pin = client.getTokenPin("tok1");
@@ -171,7 +172,7 @@ class MigrationVaultClientTest {
         Path script = tempDir.resolve("fetch-pin.sh");
         Files.writeString(script, "stub");
         assertThat(script.toFile().setExecutable(true)).isTrue();
-        TokenPinMigrator migrator = new TokenPinMigrator(new MigrationVaultClient(kvOps, "node_1"), executor);
+        TokenPinMigrator migrator = new TokenPinMigrator(new MigrationVaultClient(kvOps, NodeIdentity.resolve("node_1")), executor);
 
         TokenPinMigrationResult first = migrator.migrateFromScript(script);
         Map<String, Map<String, Object>> afterFirstRun = new HashMap<>(store);
@@ -190,7 +191,7 @@ class MigrationVaultClientTest {
     void testBlankNodeNameResolvesToDefaultNode() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
 
-        new MigrationVaultClient(kvOps, "").deleteTokenPin("tok1");
+        new MigrationVaultClient(kvOps, NodeIdentity.resolve("")).deleteTokenPin("tok1");
 
         verify(kvOps).delete("signer/token-pins/node_0/tok1");
     }
@@ -199,7 +200,7 @@ class MigrationVaultClientTest {
     void testInvalidNodeNameIsRejectedWithTheRuleAndNothingIsWritten() {
         VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
 
-        assertThatThrownBy(() -> new MigrationVaultClient(kvOps, "_bad"))
+        assertThatThrownBy(() -> new MigrationVaultClient(kvOps, NodeIdentity.resolve("_bad")))
                 .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
 

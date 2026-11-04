@@ -48,8 +48,6 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     private static final Prefix TLS_CERT_PROVISIONING = MANAGEMENT.subPrefix("tls").subPrefix("certificate-provisioning");
     private static final Prefix HTTP_CLIENT = MANAGEMENT.subPrefix("http-client-properties");
 
-    private static final HostIdentity HOST = HostIdentity.local();
-
     private static final CsManagementServiceConfigKeys INSTANCE = new CsManagementServiceConfigKeys();
 
     // --- rate limiting ---
@@ -136,17 +134,17 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.management-service.tls.certificate-provisioning.common-name}. */
     public static final ConfigKey<String> TLS_CERT_PROVISIONING_COMMON_NAME = TLS_CERT_PROVISIONING
             .string("common-name")
-            .withDefaultValue(xroadHost(HOST.commonName()))
+            .withLazyDefaultValue(() -> xroadHost(HostIdentity.local().commonName()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("alt-names")
-            .withDefaultValue(String.join(",", HOST.dnsNames()))
+            .withLazyDefaultValue(() -> String.join(",", HostIdentity.local().dnsNames()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue(String.join(",", HOST.ipAddresses()))
+            .withLazyDefaultValue(() -> String.join(",", HostIdentity.local().ipAddresses()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.ttl}. */
     public static final ConfigKey<Duration> TLS_CERT_PROVISIONING_TTL = TLS_CERT_PROVISIONING

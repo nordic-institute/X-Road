@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
@@ -77,7 +78,7 @@ class QuarkusVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new QuarkusVaultClient(kvSecretEngine, "node_0");
+        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0"));
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -375,8 +376,8 @@ class QuarkusVaultClientTest {
 
     @Test
     void shouldKeepTokenPinsOfDifferentNodesSeparate() {
-        var nodeA = new QuarkusVaultClient(kvSecretEngine, "node_a");
-        var nodeZero = new QuarkusVaultClient(kvSecretEngine, "0");
+        var nodeA = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_a"));
+        var nodeZero = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("0"));
 
         nodeA.setTokenPin("0", "1111".toCharArray());
         nodeZero.setTokenPin("0", "2222".toCharArray());

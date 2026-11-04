@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.common.vault;
 
-import org.niis.xroad.common.core.node.NodeNameResolver;
+import org.niis.xroad.common.core.node.NodeIdentity;
 
 import static org.niis.xroad.common.vault.VaultClient.ADMIN_SERVICE_TLS_CREDENTIALS_PATH;
 import static org.niis.xroad.common.vault.VaultClient.MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH;
@@ -41,12 +41,8 @@ public final class NodeScopedSecretPaths {
 
     private final String nodeName;
 
-    /**
-     * @param nodeName the node name; a blank value resolves to the default node name
-     * @throws org.niis.xroad.common.core.exception.XrdRuntimeException if the name breaks the node name rule
-     */
-    public NodeScopedSecretPaths(String nodeName) {
-        this.nodeName = NodeNameResolver.resolve(nodeName).name();
+    public NodeScopedSecretPaths(NodeIdentity nodeIdentity) {
+        this.nodeName = nodeIdentity.name();
     }
 
     public String tokenPin(String tokenId) {

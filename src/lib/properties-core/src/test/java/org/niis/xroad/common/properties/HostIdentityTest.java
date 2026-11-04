@@ -105,6 +105,17 @@ class HostIdentityTest {
         assertThat(identity.ipAddresses()).noneMatch(ip -> ip.startsWith("127.") || ip.startsWith("169.254.") || ip.equals("::1"));
     }
 
+    @Test
+    void fallsBackToLocalhostWhenDetectionFailsAtRuntime() {
+        var identity = HostIdentity.detectOrFallback(() -> {
+            throw new IllegalStateException("detection failed");
+        });
+
+        assertThat(identity.commonName()).isEqualTo("localhost");
+        assertThat(identity.dnsNames()).containsExactly("localhost");
+        assertThat(identity.ipAddresses()).isEmpty();
+    }
+
     private static InetAddress address(String literal) throws UnknownHostException {
         return InetAddress.getByName(literal);
     }

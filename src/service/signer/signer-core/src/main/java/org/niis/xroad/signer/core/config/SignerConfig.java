@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.node.NodeIdentity;
-import org.niis.xroad.common.core.node.NodeNameResolver;
 import org.niis.xroad.common.healthcheck.HealthCheckProperties;
 import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -165,13 +164,13 @@ public class SignerConfig {
 
     @Singleton
     @Startup
-    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeNameResolver.PROPERTY_KEY) Optional<String> configuredNodeName) {
-        return NodeNameResolver.resolve(configuredNodeName.orElse(null));
+    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeIdentity.PROPERTY_KEY) Optional<String> configuredNodeName) {
+        return NodeIdentity.resolve(configuredNodeName.orElse(null));
     }
 
     @ApplicationScoped
     VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
-        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity.name());
+        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity);
     }
 
     private static DeploymentMode deploymentMode() {
