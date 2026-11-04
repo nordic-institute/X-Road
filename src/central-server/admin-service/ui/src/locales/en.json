@@ -493,6 +493,7 @@
         "title": "Edit Security Server address"
       }
     },
+    "declined": "Declined",
     "disabled": "Temporarily disabled",
     "maintenanceMode": "In maintenance mode",
     "ownerClass": "Owner Class",
@@ -500,6 +501,7 @@
     "ownerName": "Owner Name",
     "pending": "Pending approval",
     "registered": "Registered",
+    "revoked": "Revoked",
     "securityServer": {
       "certificationAuthority": "Certification Authority",
       "deleteSecurityServer": "Delete Security Server",

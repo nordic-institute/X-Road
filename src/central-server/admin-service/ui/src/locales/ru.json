@@ -451,12 +451,14 @@
         "title": "Изменить адрес сервера безопасности"
       }
     },
+    "declined": "Отклонено",
     "disabled": "Временно отключено",
     "ownerClass": "Класс владельца",
     "ownerCode": "Код владельца",
     "ownerName": "Имя владельца",
     "pending": "Ожидает одобрения",
     "registered": "Зарегистрировано",
+    "revoked": "Отозвано",
     "securityServer": {
       "certificationAuthority": "Сертификационный центр",
       "deleteSecurityServer": "Удалить сервер безопасности",
