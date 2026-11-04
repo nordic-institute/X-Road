@@ -503,7 +503,7 @@ XROAD_MIGRATION_SOFTTOKEN_PIN='<pin>' \
   java -jar /var/tmp/migration-cli.jar keyconf /etc/xroad/signer /etc/xroad/db.properties
 
 # Optional: only if xroad-autologin is installed
-# A Security Server uses the default node name node_0, so --node may be left out
+# A Security Server uses the default node name node_0
 java -jar /var/tmp/migration-cli.jar signer-token-pins --node node_0
 
 java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme              proxy-ui-api

@@ -2,6 +2,7 @@
 # postinst script for xroad-center
 
 . /usr/share/debconf/confmodule
+. /usr/share/xroad/scripts/_node_name.sh
 trap db_stop EXIT
 
 abort() {
@@ -165,11 +166,9 @@ EOF
 }
 
 check_configured_node_name() {
-    local value
-    value="$(/usr/share/xroad/scripts/yaml_helper.sh get-raw /etc/xroad/conf.d/local.yaml "xroad.admin-service.ha-node-name" 2>/dev/null)"
-    . /usr/share/xroad/scripts/_node_name.sh
-    check_node_name "$value" "xroad.admin-service.ha-node-name in /etc/xroad/conf.d/local.yaml" || exit 1
+    read_local_yaml_node_name /etc/xroad/conf.d/local.yaml >/dev/null || exit 1
 }
+
 case "$1" in
 configure | reconfigure)
     check_configured_node_name

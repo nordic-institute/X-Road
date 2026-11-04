@@ -178,7 +178,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster preferably before installing the X-Road software.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
 
 1.  On each node, edit file `/etc/xroad/conf.d/local.yaml`, creating it if necessary
 2.  Add the following lines
@@ -199,17 +199,17 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
-**TLS certificate names.** The installation does not ask for the names of the admin and management service TLS certificates. Each node's certificates carry its own host name: the common name is the fully qualified host name (the short host name when the fully qualified name is longer than 64 characters), the DNS alternative names are the fully qualified and the short host name, and the IP alternative names are the node's global-scope addresses (loopback and link-local addresses are left out).
+**TLS certificate names.** The installation does not ask for the names of the admin and management service TLS certificates. Each node's certificates carry its own host name.
 
-To use one shared name instead, for example a load balancer name, set the following keys in the shared configuration database. A row applies to all nodes. Use `xroad.management-service.tls.certificate-provisioning.*` for the management service certificate:
+To use one shared name instead, for example a load balancer name, change the certificate names as described in [IG-CS section 2.6.2](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface). The names are rows in the shared configuration database, so one change applies to all nodes. Delete the key of each node and restart the services of that node. For a load balancer name, the rows for the management service certificate are:
 
 ```bash
-sudo /usr/share/xroad/scripts/db_property.sh set xroad.admin-service.tls.certificate-provisioning.common-name cs.example.org --yes
-sudo /usr/share/xroad/scripts/db_property.sh set xroad.admin-service.tls.certificate-provisioning.alt-names cs.example.org --yes
-sudo /usr/share/xroad/scripts/db_property.sh set xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names "" --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs.example.org --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs.example.org --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names "" --yes
 ```
 
-The detected host name can be wrong behind NAT or in some cloud setups; the shared row is the way to correct it.
+Each node has its own management service TLS certificate. The management services' Security Server must therefore trust the certificate of every node. Add each certificate as an internal TLS certificate on that Security Server, see [UG-SS](ug-ss_x-road_6_security_server_user_guide.md) section "Managing Information System TLS Certificates".
 
 ### 4.1 Node name and renaming a node
 
@@ -224,7 +224,7 @@ The installation and the backup and restore scripts check the name with this rul
 The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `local.yaml` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
 
 1.  Take a backup of the node and of the other nodes.
-2.  Remove the node from the cluster: stop its services and uninstall the Central Server packages from it.
+2.  Stop the Central Server services on the node. Do not uninstall the packages yet. The entries of the old name must be deleted while the secret store is reachable, and the local secret store may be gone after the packages are removed.
 3.  Delete the secret store entries of the old name. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. With a remote secret store, use its address and a token that can delete secrets there. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<old_node_name>` with the old name:
     ```bash
     export BAO_ADDR=<secret store address>
@@ -235,7 +235,10 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
     bao kv delete xrd-secret/tls/management-service/<old_node_name>
     ```
     Run the second command for each token ID that the first command lists. Do not delete the entries of the other nodes.
-4.  On the node, set the new name in `/etc/xroad/conf.d/local.yaml` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
+4.  Remove the node from the cluster: uninstall the Central Server packages from it.
+5.  On the node, set the new name in `/etc/xroad/conf.d/local.yaml` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
+
+These steps do not change the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
 
 ## 5 Monitoring HA State on a Node
 

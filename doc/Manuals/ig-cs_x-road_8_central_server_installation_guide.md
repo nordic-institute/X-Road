@@ -207,17 +207,9 @@ Upon the first installation of the Central Server software, the system asks for 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-The installation does not ask for the names of the user interface and management services TLS certificates (reference data: 1.10; 1.11). Their names come from the host: the common name is the fully qualified host name (the short host name when the fully qualified name is longer than 64 characters), the DNS alternative names are the fully qualified and the short host name, and the IP alternative names are the server's global-scope addresses (loopback and link-local addresses are left out).
+The installation does not ask for the names of the user interface and management services TLS certificates (reference data: 1.10; 1.11). Their names come from the host, see [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
 
-ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, set the management services certificate names in the configuration database:
-
-```bash
-sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs.example.org --yes
-sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs.example.org --yes
-sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names 203.0.113.10 --yes
-```
-
-Use the `xroad.admin-service.tls.certificate-provisioning.*` keys for the user interface certificate.
+ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, change the certificate names after the installation. Follow the procedure in section [2.6.2](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
 
 #### 2.6.1 Configuring TLS Certificates for global configuration distribution
 
@@ -234,6 +226,54 @@ systemctl reload nginx
 #### 2.6.2 Provisioning TLS Certificates for management services and user interface
 
 TLS certificates for the user interface and management services are automatically provisioned at the applications startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).
+
+Each node has its own keys. The user interface key is stored at `xrd-secret/tls/admin-service/<node>` and the management services key at `xrd-secret/tls/management-service/<node>`. `<node>` is the node name, see [2.6.4 Node name](#264-node-name).
+
+The names in the certificates come from the host:
+
+- The common name is the fully qualified host name. It is the short host name when the fully qualified name is longer than 64 characters.
+- The DNS alternative names are the fully qualified and the short host name.
+- The IP alternative names are the server's global-scope addresses. Loopback and link-local addresses are left out.
+
+**Changing the certificate names**
+
+Change the names when Security Servers or users reach the node by another name or address, for example a NAT address or a load balancer name. A service creates its key when it starts and the key is missing. A service reads the names once, when it starts. Changing the names in the configuration database therefore has no effect on a key that already exists. To get a certificate with new names, set the names, delete the key and restart the services that use it.
+
+1. Set the names in the configuration database. For the management services certificate, use the keys `xroad.management-service.tls.certificate-provisioning.*`:
+
+   ```bash
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs.example.org --yes
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs.example.org --yes
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names 203.0.113.10 --yes
+   ```
+
+   For the user interface certificate, use the keys `xroad.admin-service.tls.certificate-provisioning.*`. The rows apply to all nodes that share the configuration database.
+
+2. Delete the key of the certificate. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
+
+   ```bash
+   export BAO_ADDR=https://127.0.0.1:8200
+   export BAO_TOKEN=$(sudo cat /etc/openbao/root-token)
+   bao kv delete xrd-secret/tls/management-service/<node>
+   ```
+
+   For the user interface certificate, delete `xrd-secret/tls/admin-service/<node>` instead.
+
+3. Restart the services that use the key. The first service in each list creates the new key, so start it first:
+
+   - Management services certificate: `xroad-center-management-service`, then `xroad-center-registration-service`. The user interface service `xroad-center` reads this key whenever it needs it and does not need a restart.
+   - User interface certificate: `xroad-center`, then `xroad-center-management-service` and `xroad-center-registration-service`. The two services connect to `xroad-center` and trust its certificate from the key.
+
+   Example for the management services certificate:
+
+   ```bash
+   sudo systemctl restart xroad-center-management-service
+   sudo systemctl restart xroad-center-registration-service
+   ```
+
+4. Check the new certificate. For the user interface certificate, open the user interface in a Web browser and view the certificate. For the management services certificate, see [UG-CS](#Ref_UG-CS) section "Registration and Management Service TLS certificate".
+
+After a new management services certificate is created, the management services' Security Server must trust it. Add it as an internal TLS certificate on that Security Server, see [UG-SS](#Ref_UG-SS) section "Managing Information System TLS Certificates".
 
 #### 2.6.3 Provisioning TLS Certificates for gRPC services
 

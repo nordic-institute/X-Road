@@ -31,10 +31,6 @@ die () {
     exit 1
 }
 
-get_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get-raw "$1" "$2" 2>/dev/null
-}
-
 check_user () {
   if [ "$(id -nu )" != "xroad" ] ; then
     echo "This script (${THIS_FILE}) must be run by the xroad user"
@@ -54,8 +50,12 @@ check_instance_id () {
 }
 
 check_central_ha_node_name () {
-  CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
-  local node_name=""
+  local node_name
+
+  # A forced restore neither forwards the node name nor checks the tarball label against it.
+  if [[ -n $FORCE_RESTORE ]] ; then
+    return 0
+  fi
   if [[ $USE_BASE_64 = true ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=$(echo "$CENTRAL_SERVER_HA_NODE_NAME" | base64 --decode)
   fi
@@ -63,21 +63,14 @@ check_central_ha_node_name () {
   if [[ -z "${CENTRAL_SERVER_HA_NODE_NAME//[[:space:]]/}" ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=""
   fi
-  if [ -f "$CONFIG_FILE" ]; then
-    node_name=$(get_prop "$CONFIG_FILE" "xroad.admin-service.ha-node-name")
-    if [[ -z $FORCE_RESTORE ]] ; then
-      check_node_name "$node_name" "xroad.admin-service.ha-node-name in $CONFIG_FILE" || exit 2
-    fi
-    if [[ -z "${node_name//[[:space:]]/}" ]] ; then
-      node_name=""
-    fi
+  node_name=$(read_local_yaml_node_name "/etc/xroad/conf.d/local.yaml") || exit 2
+  if [[ -z "${node_name//[[:space:]]/}" ]] ; then
+    node_name=""
   fi
-  if [[ -z $FORCE_RESTORE && -n $node_name ]]; then
-    if [[ "$node_name" != "$CENTRAL_SERVER_HA_NODE_NAME" ]]; then
-      echo "Expected '$node_name', but HA node name was '$CENTRAL_SERVER_HA_NODE_NAME'"
-      usage
-      exit 2
-    fi
+  if [[ -n $node_name && "$node_name" != "$CENTRAL_SERVER_HA_NODE_NAME" ]]; then
+    echo "Expected '$node_name', but HA node name was '$CENTRAL_SERVER_HA_NODE_NAME'"
+    usage
+    exit 2
   fi
 }
 

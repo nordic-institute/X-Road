@@ -401,6 +401,7 @@ class SpringVaultClientTest {
         assertThat(secretsByPath).containsOnlyKeys("tls/admin-service", "tls/management-service");
         assertThat(vaultClient.getAdminServiceTlsCredentials().getKey()).isEqualTo(key.getKey());
     }
+
     private static InternalSSLKey tlsKey(String subjectName) throws Exception {
         var keyPair = generateRsaKeyPair();
         var subject = new X500Name(subjectName);
@@ -410,6 +411,7 @@ class SpringVaultClientTest {
         var certificate = new JcaX509CertificateConverter().getCertificate(builder.build(signer));
         return new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[] {certificate});
     }
+
     private static X509Certificate selfSignedCa(String subjectName) throws Exception {
         var keyPair = generateRsaKeyPair();
         var subject = new X500Name(subjectName);

@@ -1,13 +1,19 @@
 #!/bin/bash
 # Node name check shared by the Central Server installer, backup and restore scripts.
-# The rule is the same as in the services (NodeNameResolver).
+# The rule is the same as in the services (NodeIdentity).
 #
-# Usage: source this file, then call
+# Usage: source this file once at the top of the script, then call
 #   check_node_name <value> <description of where the value comes from>
+#   read_local_yaml_node_name <local.yaml path>
 #
 # A blank value is valid and means "no node name": callers add no suffix and do
 # not substitute a default name.
-# Returns 0 for a valid or blank value. Otherwise prints the rule to stderr and returns 1.
+# check_node_name returns 0 for a valid or blank value. Otherwise it prints the rule to
+# stderr and returns 1.
+# read_local_yaml_node_name prints xroad.admin-service.ha-node-name from the file as written
+# (nothing when the file or the key is absent) and returns 0 when the value is valid or blank.
+# It returns 1 with a message on stderr for an invalid value and for a file that cannot be
+# read or parsed.
 
 NODE_NAME_RULE="must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$ and must not be a value that YAML reads as a non-string, such as true, on, yes, null, 0123, 1_0 or 1e3"
 
@@ -44,6 +50,21 @@ check_node_name () {
     return 1
   fi
   return 0
+}
+
+read_local_yaml_node_name () {
+  local file="$1"
+  local key="xroad.admin-service.ha-node-name"
+  local value=""
+
+  if [[ -e "$file" ]] ; then
+    if ! value="$(/usr/share/xroad/scripts/yaml_helper.sh get-raw "$file" "$key" 2>/dev/null)" ; then
+      echo >&2 "Cannot read ${key} from ${file}: the file is unreadable or is not valid YAML"
+      return 1
+    fi
+  fi
+  check_node_name "$value" "${key} in ${file}" || return 1
+  printf '%s\n' "$value"
 }
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh
