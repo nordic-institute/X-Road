@@ -26,9 +26,11 @@
 package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -166,9 +168,12 @@ public class SignerConfig {
     // NodeIdentity is a final record: a normal scope would need a client proxy, which a record cannot have.
     @Produces
     @Singleton
-    @Startup
     NodeIdentity nodeIdentity(@ConfigProperty(name = NodeIdentity.PROPERTY_KEY) Optional<String> configuredNodeName) {
         return NodeIdentity.resolve(configuredNodeName.orElse(null));
+    }
+
+    void onStart(@Observes StartupEvent event, NodeIdentity nodeIdentity) {
+        log.info("Signer node name '{}' ({})", nodeIdentity.name(), nodeIdentity.configured() ? "configured" : "default");
     }
 
     @ApplicationScoped
