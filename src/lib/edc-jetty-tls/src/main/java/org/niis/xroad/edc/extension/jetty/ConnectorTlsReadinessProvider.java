@@ -43,15 +43,15 @@ final class ConnectorTlsReadinessProvider implements ReadinessProvider {
     @Override
     public HealthCheckResult get() {
         var result = HealthCheckResult.Builder.newInstance().component(COMPONENT);
-        if (!jettyService.isServingConnectorTls()) {
-            return result.failure(jettyService.notServedCause()
+        var status = jettyService.connectorTlsStatus();
+        if (!status.serving()) {
+            return result.failure(status.notServedCause()
                     .map(cause -> "Connector TLS is not served: " + cause)
                     .orElse("Connector TLS is not served yet")).build();
         }
-        var expiredAt = jettyService.servedCertificateExpiredAt();
-        if (expiredAt.isEmpty()) {
+        if (status.expiredAt().isEmpty()) {
             return result.success().build();
         }
-        return result.failure("Served connector TLS certificate expired at " + expiredAt.get()).build();
+        return result.failure("Served connector TLS certificate expired at " + status.expiredAt().get()).build();
     }
 }

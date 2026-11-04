@@ -123,7 +123,8 @@ class ConnectorTlsFailedReloadTest {
         assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(material))
                 .isInstanceOf(ConnectorTlsKeyStoreLoadException.class);
         assertThat(servedCertificate()).isEqualTo(TestCertUtil.getInternalKey().certChain[0]);
-        assertThat(jettyService.isServingConnectorTls()).isTrue();
+        assertThat(jettyService.connectorTlsStatus().serving()).isTrue();
+        assertThat(jettyService.connectorTlsStatus().notServedCause()).isEmpty();
         assertThat(sharedSslContextFactory().getSslContext()).isNotNull();
     }
 
@@ -161,7 +162,8 @@ class ConnectorTlsFailedReloadTest {
                 .hasMessageContaining(ConnectorTlsCertificates.fingerprintOrUnknown(mismatched))
                 .hasMessageContaining(ConnectorTlsCertificates.describe(served));
         assertThat(servedCertificate()).isEqualTo(served);
-        assertThat(jettyService.isServingConnectorTls()).isTrue();
+        assertThat(jettyService.connectorTlsStatus().serving()).isTrue();
+        assertThat(jettyService.connectorTlsStatus().notServedCause()).isEmpty();
     }
 
     @Test
@@ -179,8 +181,9 @@ class ConnectorTlsFailedReloadTest {
         assertThatThrownBy(() -> jettyService.applyConnectorTlsMaterial(mismatched))
                 .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
                 .hasMessageContaining("does not match");
-        assertThat(jettyService.isServingConnectorTls()).isFalse();
-        assertThat(jettyService.notServedCause()).hasValueSatisfying(cause -> assertThat(cause).contains("does not match"));
+        var status = jettyService.connectorTlsStatus();
+        assertThat(status.serving()).isFalse();
+        assertThat(status.notServedCause()).hasValueSatisfying(cause -> assertThat(cause).contains("does not match"));
     }
 
     @Test

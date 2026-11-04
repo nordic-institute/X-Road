@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
  * the first call, the ports refuse connections. A keystore that cannot back an SSL context fails with
  * {@link ConnectorTlsKeyStoreLoadException}; a port that cannot be bound fails with an {@link EdcException}.
  * While connector TLS is not served, the most recent failure is kept as a sanitised one-line cause (see
- * {@link #notServedCause()}).
+ * {@link #connectorTlsStatus()}).
  *
  * <p>New material for a running factory is proven first: a throwaway factory with the same configuration must
  * load it, and its private key must match its certificate. Material that fails either check is rejected with a
@@ -153,19 +153,11 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * Records why the connector TLS material could not be loaded, for {@link #notServedCause()}. The cause is
+     * Records why the connector TLS material could not be loaded, for {@link #connectorTlsStatus()}. The cause is
      * cleared by the next successful {@link #applyConnectorTlsMaterial}.
      */
     void recordLoadFailure(RuntimeException failure) {
         notServedCause = sanitize(describeFailure(failure));
-    }
-
-    /**
-     * The sanitised cause of the most recent load or apply failure since connector TLS was last applied in full;
-     * empty before any attempt has failed.
-     */
-    Optional<String> notServedCause() {
-        return Optional.ofNullable(notServedCause);
     }
 
     private static String describeFailure(RuntimeException failure) {
@@ -246,24 +238,23 @@ public final class XRoadJettyService implements WebServer {
     }
 
     /**
-     * Whether the HTTPS connectors are open and serving connector TLS material. Reads volatile state, so a
-     * health probe never waits on a connector that is still being opened.
+     * The connector TLS serving state. Lock-free so a health probe never waits on connectors still being opened;
+     * the cause is read before the open flag because the connectors open before the cause is cleared.
      */
-    public boolean isServingConnectorTls() {
-        return connectorsOpen && !stopped;
+    ConnectorTlsStatus connectorTlsStatus() {
+        var cause = Optional.ofNullable(notServedCause);
+        if (!connectorsOpen || stopped) {
+            return new ConnectorTlsStatus(false, cause, Optional.empty());
+        }
+        var notAfter = servedCertificate.getNotAfter().toInstant();
+        var expiredAt = clock.instant().isBefore(notAfter) ? Optional.<Instant>empty() : Optional.of(notAfter);
+        return new ConnectorTlsStatus(true, Optional.empty(), expiredAt);
     }
 
     /**
-     * When the served certificate expired, once it has; empty while there is no served certificate or it is still
-     * valid.
+     * Whether connector TLS is served, why not when it is not, and when the served certificate expired once it has.
      */
-    Optional<Instant> servedCertificateExpiredAt() {
-        var certificate = servedCertificate;
-        if (certificate == null) {
-            return Optional.empty();
-        }
-        var notAfter = certificate.getNotAfter().toInstant();
-        return clock.instant().isBefore(notAfter) ? Optional.empty() : Optional.of(notAfter);
+    record ConnectorTlsStatus(boolean serving, Optional<String> notServedCause, Optional<Instant> expiredAt) {
     }
 
     public synchronized void start() {
