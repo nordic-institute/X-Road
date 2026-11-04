@@ -121,13 +121,18 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Inject
     private DataFlowController dataFlowController;
 
+    @Setting(key = "xroad.asset-access.catalog.timeout-seconds",
+            description = "Per-stage catalog fetch limit in seconds; a stage never outlasts the time left of the call",
+            defaultValue = "20")
+    private long catalogTimeoutSeconds;
+
     @Setting(key = "xroad.asset-access.negotiation.timeout-seconds",
-            description = "Per-stage contract negotiation deadline in seconds",
+            description = "Per-stage contract negotiation limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long negotiationTimeoutSeconds;
 
     @Setting(key = "xroad.asset-access.transfer.timeout-seconds",
-            description = "Per-stage transfer process deadline in seconds",
+            description = "Per-stage transfer process limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long transferTimeoutSeconds;
 
@@ -234,6 +239,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     jsonLd,
                     assetAccessTransformerRegistry,
                     monitor,
+                    Duration.ofSeconds(catalogTimeoutSeconds),
                     Duration.ofSeconds(negotiationTimeoutSeconds),
                     Duration.ofSeconds(transferTimeoutSeconds)
             );
