@@ -208,7 +208,7 @@ class IssuerSetUpServiceImplTest {
 
         assertThat(result).isEqualTo(new IssuerSetUpResult.Accepted());
         assertThat(runStarted.await(2, TimeUnit.SECONDS)).isTrue();
-        // The lease must not still be held while the run waits on the fake gRPC calls above.
+        // The lease stays held while the run waits on the fake gRPC calls above.
         verify(issuerSetUpLeaseService, never()).release(anyString());
 
         releaseRun.countDown();

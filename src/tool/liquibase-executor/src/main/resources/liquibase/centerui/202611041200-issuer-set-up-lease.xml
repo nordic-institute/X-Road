@@ -15,10 +15,10 @@
             <column name="owner_node" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="started_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+            <column name="started_at" type="TIMESTAMP(6) WITH TIME ZONE">
                 <constraints nullable="false"/>
             </column>
-            <column name="expires_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+            <column name="expires_at" type="TIMESTAMP(6) WITH TIME ZONE">
                 <constraints nullable="false"/>
             </column>
         </createTable>

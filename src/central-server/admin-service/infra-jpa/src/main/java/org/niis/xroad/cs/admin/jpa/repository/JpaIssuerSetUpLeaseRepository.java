@@ -33,30 +33,31 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
+import java.time.Duration;
 import java.util.Optional;
 
 @Repository
 public interface JpaIssuerSetUpLeaseRepository extends JpaRepository<IssuerSetUpLeaseEntity, Short>, IssuerSetUpLeaseRepository {
 
     @Override
-    default boolean tryAcquire(String node, Instant now, Instant startedAt, Instant expiresAt) {
-        return tryAcquireRow(node, now, startedAt, expiresAt) > 0;
+    default boolean tryAcquire(String node, Duration ttl) {
+        return tryAcquireRow(node, ttl.toMillis()) > 0;
     }
 
     /**
      * The conditional upsert that makes acquiring the lease atomic: it inserts the single row when none
-     * exists yet, replaces it when the existing row's {@code expires_at} is at or before {@code now}, and
-     * otherwise leaves it untouched. The affected-row count is 1 only in the first two cases.
+     * exists yet, replaces it when the existing row's {@code expires_at} is at or before the database's
+     * {@code now()}, and otherwise leaves it untouched. The affected-row count is 1 only in the first two cases.
      */
     @Modifying
     @Query(value = "INSERT INTO " + IssuerSetUpLeaseEntity.TABLE_NAME + " (id, owner_node, started_at, expires_at) "
-            + "VALUES (" + IssuerSetUpLeaseEntity.LEASE_ID + ", :node, :startedAt, :expiresAt) "
+            + "VALUES (" + IssuerSetUpLeaseEntity.LEASE_ID + ", :node, now(), "
+            + "now() + CAST(:ttlMillis AS double precision) * INTERVAL '1 millisecond') "
             + "ON CONFLICT (id) DO UPDATE SET owner_node = excluded.owner_node, started_at = excluded.started_at, "
             + "expires_at = excluded.expires_at "
-            + "WHERE " + IssuerSetUpLeaseEntity.TABLE_NAME + ".expires_at <= :now",
+            + "WHERE " + IssuerSetUpLeaseEntity.TABLE_NAME + ".expires_at <= now()",
             nativeQuery = true)
-    int tryAcquireRow(String node, Instant now, Instant startedAt, Instant expiresAt);
+    int tryAcquireRow(String node, long ttlMillis);
 
     @Override
     @Modifying
@@ -64,7 +65,7 @@ public interface JpaIssuerSetUpLeaseRepository extends JpaRepository<IssuerSetUp
     void release(String node);
 
     @Override
-    @Query(value = "SELECT owner_node FROM " + IssuerSetUpLeaseEntity.TABLE_NAME + " WHERE expires_at > :now",
+    @Query(value = "SELECT owner_node FROM " + IssuerSetUpLeaseEntity.TABLE_NAME + " WHERE expires_at > now()",
             nativeQuery = true)
-    Optional<String> findHolder(Instant now);
+    Optional<String> findHolder();
 }

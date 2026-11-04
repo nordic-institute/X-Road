@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
-import ee.ria.xroad.common.util.TimeUtils;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
@@ -50,8 +48,7 @@ public class IssuerSetUpLeaseServiceImpl implements IssuerSetUpLeaseService {
 
     @Override
     public boolean tryAcquire(String node, Duration ttl) {
-        var now = TimeUtils.now();
-        return issuerSetUpLeaseRepository.tryAcquire(node, now, now, now.plus(ttl));
+        return issuerSetUpLeaseRepository.tryAcquire(node, ttl);
     }
 
     @Override
@@ -61,6 +58,6 @@ public class IssuerSetUpLeaseServiceImpl implements IssuerSetUpLeaseService {
 
     @Override
     public Optional<String> currentHolder() {
-        return issuerSetUpLeaseRepository.findHolder(TimeUtils.now());
+        return issuerSetUpLeaseRepository.findHolder();
     }
 }

@@ -43,7 +43,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.DriverManager;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
@@ -134,23 +133,47 @@ class IssuerSetUpLeasePostgresTest {
         try {
             var repository = leaseRepository(entityManager);
 
-            // Started and expired an hour ago: already stale from the point of view of "now" below.
-            var past = Instant.now().minus(Duration.ofHours(1));
-            withTransaction(entityManager, () ->
-                    repository.tryAcquire("node-a", past, past, past.plus(TTL)));
-            assertEquals(Optional.of("node-a"), withTransaction(entityManager, () -> repository.findHolder(past)));
+            assertTrue(withTransaction(entityManager, () -> repository.tryAcquire("node-a", Duration.ZERO)));
+            assertEquals(Optional.empty(), withTransaction(entityManager, repository::findHolder));
 
-            var expiredTakeover = withTransaction(entityManager, () ->
-                    repository.tryAcquire("node-b", Instant.now(), Instant.now(), Instant.now().plus(TTL)));
+            var expiredTakeover = withTransaction(entityManager, () -> repository.tryAcquire("node-b", TTL));
             assertTrue(expiredTakeover, "an expired lease must be takeable by another node");
-            assertEquals(Optional.of("node-b"), withTransaction(entityManager, () -> repository.findHolder(Instant.now())));
+            assertEquals(Optional.of("node-b"), withTransaction(entityManager, repository::findHolder));
 
-            var unexpiredTakeover = withTransaction(entityManager, () ->
-                    repository.tryAcquire("node-a", Instant.now(), Instant.now(), Instant.now().plus(TTL)));
+            var unexpiredTakeover = withTransaction(entityManager, () -> repository.tryAcquire("node-a", TTL));
             assertFalse(unexpiredTakeover, "an unexpired lease must not be takeable by another node");
-            assertEquals(Optional.of("node-b"), withTransaction(entityManager, () -> repository.findHolder(Instant.now())));
+            assertEquals(Optional.of("node-b"), withTransaction(entityManager, repository::findHolder));
         } finally {
             entityManager.close();
+        }
+    }
+
+    @Test
+    void anUnexpiredLeaseHoldsAcrossNodesInDifferentTimeZones() {
+        var westEntityManager = sessionFactory.createEntityManager();
+        var eastEntityManager = sessionFactory.createEntityManager();
+        try {
+            var westRepository = leaseRepository(westEntityManager);
+            var eastRepository = leaseRepository(eastEntityManager);
+
+            var westAcquired = withTransaction(westEntityManager, () -> {
+                setSessionTimeZone(westEntityManager, "Etc/GMT+12");
+                return westRepository.tryAcquire("node-west", TTL);
+            });
+            assertTrue(westAcquired);
+
+            var eastTakeover = withTransaction(eastEntityManager, () -> {
+                setSessionTimeZone(eastEntityManager, "Pacific/Kiritimati");
+                return eastRepository.tryAcquire("node-east", TTL);
+            });
+            assertFalse(eastTakeover, "a node 26 hours ahead in wall-clock time must still see the lease as unexpired");
+            assertEquals(Optional.of("node-west"), withTransaction(eastEntityManager, () -> {
+                setSessionTimeZone(eastEntityManager, "Pacific/Kiritimati");
+                return eastRepository.findHolder();
+            }));
+        } finally {
+            westEntityManager.close();
+            eastEntityManager.close();
         }
     }
 
@@ -159,16 +182,15 @@ class IssuerSetUpLeasePostgresTest {
         var entityManager = sessionFactory.createEntityManager();
         try {
             var repository = leaseRepository(entityManager);
-            var now = Instant.now();
 
-            var firstAcquire = withTransaction(entityManager, () -> repository.tryAcquire("node-a", now, now, now.plus(TTL)));
+            var firstAcquire = withTransaction(entityManager, () -> repository.tryAcquire("node-a", TTL));
             assertTrue(firstAcquire);
             withTransaction(entityManager, () -> {
                 repository.release("node-a");
                 return null;
             });
 
-            var secondAcquire = withTransaction(entityManager, () -> repository.tryAcquire("node-a", now, now, now.plus(TTL)));
+            var secondAcquire = withTransaction(entityManager, () -> repository.tryAcquire("node-a", TTL));
             assertTrue(secondAcquire, "re-acquiring after release must succeed");
         } finally {
             entityManager.close();
@@ -180,10 +202,9 @@ class IssuerSetUpLeasePostgresTest {
     private static Callable<Boolean> acquire(EntityManager entityManager, JpaIssuerSetUpLeaseRepository repository, String node,
             CyclicBarrier barrier) {
         return () -> {
-            var now = Instant.now();
             entityManager.getTransaction().begin();
             barrier.await(10, TimeUnit.SECONDS);
-            var acquired = repository.tryAcquire(node, now, now, now.plus(TTL));
+            var acquired = repository.tryAcquire(node, TTL);
             entityManager.getTransaction().commit();
             return acquired;
         };
@@ -200,6 +221,10 @@ class IssuerSetUpLeasePostgresTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private static void setSessionTimeZone(EntityManager entityManager, String zone) {
+        entityManager.createNativeQuery("SET LOCAL TIME ZONE '" + zone + "'").executeUpdate();
     }
 
     private static JpaIssuerSetUpLeaseRepository leaseRepository(EntityManager entityManager) {

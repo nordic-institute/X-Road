@@ -26,18 +26,22 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
-import java.time.Instant;
+import java.time.Duration;
 import java.util.Optional;
 
+/**
+ * All times come from the database clock, so nodes with skewed clocks or different time zones agree on
+ * whether the lease has expired.
+ */
 public interface IssuerSetUpLeaseRepository {
 
     /**
-     * Atomically takes the lease for {@code node}, but only if it is currently free (no row yet) or
-     * expired as of {@code now}. A second caller racing the same moment gets zero rows taken.
+     * Atomically takes the lease for {@code node} for {@code ttl}, but only if it is currently free (no
+     * row yet) or expired. A second caller racing the same moment gets zero rows taken.
      *
      * @return true if the lease was taken
      */
-    boolean tryAcquire(String node, Instant now, Instant startedAt, Instant expiresAt);
+    boolean tryAcquire(String node, Duration ttl);
 
     /**
      * Frees the lease, but only while {@code node} is still its current holder: a node whose lease has
@@ -46,7 +50,7 @@ public interface IssuerSetUpLeaseRepository {
     void release(String node);
 
     /**
-     * @return the node holding an unexpired lease as of {@code now}, or empty if none does
+     * @return the node holding an unexpired lease, or empty if none does
      */
-    Optional<String> findHolder(Instant now);
+    Optional<String> findHolder();
 }
