@@ -1,0 +1,130 @@
+---
+# X-VIA: Configuração de banco de dados REMOTO (PostgreSQL RDS)
+
+- name: "FASE 4 (remoto) — Remove xroad-database-local if present"
+  apt:
+    name: xroad-database-local
+    state: absent
+  failed_when: false
+
+- name: Mask local PostgreSQL
+  systemd:
+    name: postgresql
+    masked: yes
+  when: mask_local_postgresql | default(true) | bool
+  failed_when: false
+
+- name: Validate remote database connection
+  shell: >
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
+    -c 'SELECT version()' 2>&1
+  register: _db_test
+  failed_when: false
+  no_log: true
+
+- name: Fail if remote database is unreachable
+  fail:
+    msg: |
+      Não foi possível conectar ao banco remoto!
+      Host: {{ _db_host }}:{{ _db_port }}
+      Usuário: {{ database_admin_user }}
+      Erro: {{ _db_test.stdout | default('') }} {{ _db_test.stderr | default('') }}
+      
+      Verifique:
+        - Security Group permite acesso na porta {{ _db_port }}
+        - Endpoint RDS está correto
+        - Senha do admin está correta
+  when: _db_test.rc != 0
+
+- name: Create remote databases
+  shell: >
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
+    -tc "SELECT 1 FROM pg_database WHERE datname='{{ item }}'" | grep -q 1 ||
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
+    -c "CREATE DATABASE \"{{ item }}\" ENCODING 'UTF8'"
+  loop:
+    - serverconf
+    - messagelog
+    - op-monitor
+  run_once: true
+  changed_when: false
+  no_log: true
+
+- name: Create remote DB users
+  shell: >
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "
+    DO \$\$ BEGIN
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='{{ item.name }}') THEN
+        CREATE ROLE {{ item.name }} LOGIN PASSWORD '{{ item.password }}';
+      ELSE
+        ALTER ROLE {{ item.name }} PASSWORD '{{ item.password }}';
+      END IF;
+    END \$\$;"
+  loop:
+    - { name: "serverconf", password: "{{ serverconf_password }}" }
+    - { name: "serverconf_admin", password: "{{ serverconf_password }}" }
+    - { name: "messagelog", password: "{{ messagelog_password }}" }
+    - { name: "messagelog_admin", password: "{{ messagelog_password }}" }
+    - { name: "opmonitor", password: "{{ opmonitor_password }}" }
+    - { name: "opmonitor_admin", password: "{{ opmonitor_password }}" }
+  run_once: true
+  changed_when: false
+  no_log: true
+
+- name: Grant remote DB permissions
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c \
+    "GRANT ALL ON DATABASE \"{{ item.db }}\" TO {{ item.admin }};
+     GRANT CONNECT ON DATABASE \"{{ item.db }}\" TO {{ item.user }};"
+
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -d "{{ item.db }}" -c \
+    "GRANT ALL ON SCHEMA public TO {{ item.admin }};
+     GRANT USAGE ON SCHEMA public TO {{ item.user }};"
+  loop:
+    - { db: "serverconf", admin: "serverconf_admin", user: "serverconf" }
+    - { db: "messagelog", admin: "messagelog_admin", user: "messagelog" }
+    - { db: "op-monitor", admin: "opmonitor_admin", user: "opmonitor" }
+  run_once: true
+  changed_when: false
+  no_log: true
+
+- name: Install hstore on remote serverconf
+  shell: >
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
+    -d serverconf -c "CREATE EXTENSION IF NOT EXISTS hstore;"
+  run_once: true
+  changed_when: false
+  no_log: true
+
+- name: Create remote schemas and grant permissions
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -d "{{ item.db }}" -c \
+    "GRANT {{ item.admin }} TO {{ database_admin_user }};"
+
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -d "{{ item.db }}" -c \
+    "CREATE SCHEMA IF NOT EXISTS {{ item.schema }} AUTHORIZATION {{ item.admin }};
+     GRANT USAGE ON SCHEMA {{ item.schema }} TO {{ item.user }};
+     GRANT ALL ON SCHEMA {{ item.schema }} TO {{ item.admin }};"
+
+    PGPASSWORD='{{ item.admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ item.admin }} -d "{{ item.db }}" -c \
+    "ALTER DEFAULT PRIVILEGES IN SCHEMA {{ item.schema }}
+       GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO {{ item.user }};
+     ALTER DEFAULT PRIVILEGES IN SCHEMA {{ item.schema }}
+       GRANT USAGE,SELECT ON SEQUENCES TO {{ item.user }};"
+  loop:
+    - { db: "serverconf", schema: "serverconf", admin: "serverconf_admin", user: "serverconf", admin_password: "{{ serverconf_password }}" }
+    - { db: "messagelog", schema: "messagelog", admin: "messagelog_admin", user: "messagelog", admin_password: "{{ messagelog_password }}" }
+    - { db: "op-monitor", schema: "opmonitor", admin: "opmonitor_admin", user: "opmonitor", admin_password: "{{ opmonitor_password }}" }
+  run_once: true
+  changed_when: false
+  no_log: true

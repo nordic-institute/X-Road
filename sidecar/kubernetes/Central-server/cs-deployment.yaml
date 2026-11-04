@@ -1,0 +1,214 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-deployment
+  namespace: sidecar
+spec:
+  selector:
+    matchLabels:
+      app: cs
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cs
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 999
+      initContainers:
+        - name: fix-permissions
+          image: 183619025107.dkr.ecr.sa-east-1.amazonaws.com/xroad-central-server:7.8.0
+          env:
+            - name: XROAD_TOKEN_PIN
+              valueFrom:
+                secretKeyRef:
+                  name: secret-sidecar-variables
+                  key: XROAD_TOKEN_PIN
+          command:
+            - sh
+            - -c
+            - |
+              chown -R 101:103 /var/lib/postgresql/16/main
+              chmod 0700 /var/lib/postgresql/16/main
+              if [ ! -f /var/lib/postgresql/16/main/PG_VERSION ]; then
+                rm -rf /var/lib/postgresql/16/main/lost+found
+                su -s /bin/sh postgres -c "/usr/lib/postgresql/16/bin/initdb -D /var/lib/postgresql/16/main"
+              fi
+              if [ ! -f /etc/xroad/VERSION ]; then
+                cp -a /root/etc/xroad/* /etc/xroad/
+              fi
+              # Ensure db.properties exists for xroad services
+              if [ ! -f /etc/xroad/db.properties ]; then
+                cat > /etc/xroad/db.properties << 'DBEOF'
+                spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/centerui_production
+                spring.datasource.username=centerui
+                spring.datasource.password=centerui
+                spring.datasource.hikari.data-source-properties.currentSchema=centerui,public
+              DBEOF
+                sed -i 's/^[[:space:]]*//' /etc/xroad/db.properties
+              fi
+              # Ensure devices.ini exists for xroad-signer
+              if [ ! -f /etc/xroad/devices.ini ]; then
+                cp /usr/share/xroad/doc/devices.ini /etc/xroad/devices.ini
+              fi
+              # Autologin para o token PIN
+              echo "$XROAD_TOKEN_PIN" > /etc/xroad/autologin
+              chmod 600 /etc/xroad/autologin
+              chown -R 999:999 /etc/xroad
+              chown -R 999:999 /home/ca
+              chown -R 998:998 /opt/openbao/data
+              # Setup database if needed
+              su -s /bin/sh postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/16/main start -w -o '-c config_file=/etc/postgresql/16/main/postgresql.conf'" 2>/dev/null
+              if ! su -s /bin/sh postgres -c "psql -lqt" | grep -q centerui_production; then
+                su -s /bin/sh postgres -c "psql -c \"CREATE USER centerui WITH PASSWORD 'centerui';\""
+                su -s /bin/sh postgres -c "psql -c \"CREATE DATABASE centerui_production OWNER centerui;\""
+                su -s /bin/sh postgres -c "psql -d centerui_production -c 'CREATE EXTENSION IF NOT EXISTS hstore;'"
+                su -s /bin/sh postgres -c "psql -d centerui_production -c 'CREATE SCHEMA IF NOT EXISTS centerui AUTHORIZATION centerui;'"
+                ADMIN_PW=$(crudini --get /etc/xroad.properties '' 'centerui.database.admin_password' 2>/dev/null || echo 'centerui')
+                su -s /bin/sh postgres -c "psql -c \"CREATE USER centerui_admin WITH SUPERUSER PASSWORD '$ADMIN_PW';\""
+                cd /usr/share/xroad/db && ./migrate.sh
+              else
+                cd /usr/share/xroad/db && ./migrate.sh
+              fi
+              su -s /bin/sh postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/16/main stop -w" 2>/dev/null
+              # Ensure hstore extension is available in centerui schema search path
+              true
+          volumeMounts:
+            - name: cs-db-volume
+              mountPath: /var/lib/postgresql/16/main
+            - name: cs-conf-volume
+              mountPath: /etc/xroad
+            - name: cs-test-ca-volume
+              mountPath: /home/ca
+            - name: openbao-data
+              mountPath: /opt/openbao/data
+            - name: supervisor-config
+              mountPath: /usr/share/xroad/scripts/secret-store-init.sh
+              subPath: secret-store-init.sh
+      containers:
+        - name: cs
+          image: 183619025107.dkr.ecr.sa-east-1.amazonaws.com/xroad-central-server:7.8.0
+          env:
+            - name: XROAD_TOKEN_PIN
+              valueFrom:
+                secretKeyRef:
+                  name: secret-sidecar-variables
+                  key: XROAD_TOKEN_PIN
+            - name: BAO_ADDR
+              value: "http://127.0.0.1:8200"
+          ports:
+            - containerPort: 4000
+              protocol: TCP
+            - containerPort: 4001
+              protocol: TCP
+            - containerPort: 4002
+              protocol: TCP
+            - containerPort: 80
+              protocol: TCP
+            - containerPort: 8899
+              protocol: TCP
+            - containerPort: 8888
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4000
+              scheme: HTTPS
+            initialDelaySeconds: 180
+            periodSeconds: 30
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4000
+              scheme: HTTPS
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            failureThreshold: 20
+          volumeMounts:
+            - name: cs-db-volume
+              mountPath: /var/lib/postgresql/16/main
+            - name: cs-conf-volume
+              mountPath: /etc/xroad
+            - name: cs-test-ca-volume
+              mountPath: /home/ca
+            - name: supervisor-config
+              mountPath: /etc/supervisor/conf.d/xroad.conf
+              subPath: xroad.conf
+            - name: supervisor-config
+              mountPath: /usr/share/xroad/scripts/secret-store-init.sh
+              subPath: secret-store-init.sh
+            - name: supervisor-config
+              mountPath: /etc/openbao/openbao.hcl
+              subPath: openbao.hcl
+            - name: supervisor-config
+              mountPath: /usr/share/xroad/scripts/init-signing-keys.sh
+              subPath: init-signing-keys.sh
+            - name: supervisor-config
+              mountPath: /usr/share/xroad/autologin/autologin.sh
+              subPath: autologin.sh
+            - name: openbao-data
+              mountPath: /opt/openbao/data
+      volumes:
+        - name: cs-db-volume
+          persistentVolumeClaim:
+            claimName: cs-db-pvc
+        - name: cs-conf-volume
+          persistentVolumeClaim:
+            claimName: cs-conf-pvc
+        - name: cs-test-ca-volume
+          persistentVolumeClaim:
+            claimName: cs-test-ca-pvc
+        - name: supervisor-config
+          configMap:
+            name: cs-supervisor-config
+            defaultMode: 0755
+        - name: openbao-data
+          persistentVolumeClaim:
+            claimName: openbao-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cs-service
+  namespace: sidecar
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+spec:
+  type: LoadBalancer
+  selector:
+    app: cs
+  ports:
+    - port: 4000
+      targetPort: 4000
+      protocol: TCP
+      name: admin-ui
+    - port: 4001
+      targetPort: 4001
+      protocol: TCP
+      name: management
+    - port: 4002
+      targetPort: 4002
+      protocol: TCP
+      name: registration
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP
+      name: ca
+    - port: 8899
+      targetPort: 8899
+      protocol: TCP
+      name: tsa
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http

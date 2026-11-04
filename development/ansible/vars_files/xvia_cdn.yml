@@ -1,0 +1,66 @@
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Origem dos pacotes .deb
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Modos suportados:
+#   cdn    → Download via CloudFront (requer internet)
+#   s3     → Download direto do S3 (requer AWS CLI + credenciais)
+#   local  → Pacotes já copiados manualmente no servidor (on-premises sem internet)
+#
+# Para ambientes ON-PREMISES SEM INTERNET:
+#   1. Copie o tarball para o servidor antes de rodar o playbook:
+#      scp xroad-7.8.0-ubuntu24.04.tar.gz ubuntu@servidor:/opt/xvia-packages/
+#   2. Defina:
+#      xvia_package_source: "local"
+#      xvia_local_tarball_path: "/opt/xvia-packages/xroad-7.8.0-ubuntu24.04.tar.gz"
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Modo de obtenção dos pacotes: "cdn", "s3", ou "local"
+xvia_package_source: "cdn"
+
+# ─── CDN (CloudFront) ─────────────────────────────────────────────────────────
+xvia_cdn_base_url: "https://d35jgvswdswkzm.cloudfront.net"
+
+# ─── S3 (download direto) ────────────────────────────────────────────────────
+xvia_s3_bucket: "xvia-packages"
+xvia_s3_region: "sa-east-1"
+xvia_s3_profile: "demo"  # Profile AWS CLI (deixe vazio para usar default/instance role)
+
+# ─── Versão e distribuição ────────────────────────────────────────────────────
+xvia_version: "7.8.0"
+xvia_ubuntu_version: "ubuntu24.04"
+
+# ─── URLs derivadas (CDN) ─────────────────────────────────────────────────────
+xvia_ss_tarball_url: "{{ xvia_cdn_base_url }}/{{ xvia_ubuntu_version }}/xroad-{{ xvia_version }}-{{ xvia_ubuntu_version }}.tar.gz"
+xvia_cs_tarball_url: "{{ xvia_cdn_base_url }}/central-server/{{ xvia_ubuntu_version }}/xroad-{{ xvia_version }}-{{ xvia_ubuntu_version }}.tar.gz"
+
+# ─── Paths S3 ─────────────────────────────────────────────────────────────────
+xvia_s3_ss_prefix: "{{ xvia_ubuntu_version }}/"
+xvia_s3_cs_prefix: "central-server/{{ xvia_ubuntu_version }}/"
+
+# ─── Local (pacotes já no servidor) ──────────────────────────────────────────
+xvia_local_tarball_path: "/opt/xvia-packages/xroad-{{ xvia_version }}-{{ xvia_ubuntu_version }}.tar.gz"
+xvia_local_cs_debs_path: "/opt/xvia-packages/central-server"
+
+# ─── Diretórios de trabalho ──────────────────────────────────────────────────
+xvia_debs_dir: "/opt/xvia-packages/{{ xvia_ubuntu_version }}"
+xvia_cs_debs_dir: "/opt/xvia-packages/central-server/{{ xvia_ubuntu_version }}"
+xvia_apt_repo_dir: "/xroad"
+
+# ─── Pacotes a instalar ──────────────────────────────────────────────────────
+xvia_ss_packages:
+  - xroad-securityserver
+
+xvia_cs_packages:
+  - xroad-centralserver
+
+# ─── Configurações de instalação ─────────────────────────────────────────────
+# Memória do proxy (MB) — "d" = default do pacote
+xvia_proxy_memory: "1024"
+
+# Habilitar messagelog no Security Server
+xvia_enable_messagelog: true
+
+# Habilitar opmonitoring no Security Server
+xvia_enable_opmonitoring: true
