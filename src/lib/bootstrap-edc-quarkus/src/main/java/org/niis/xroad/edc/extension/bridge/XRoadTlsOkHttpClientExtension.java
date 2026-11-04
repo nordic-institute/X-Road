@@ -42,6 +42,7 @@ import org.niis.xroad.edc.trust.DelegatingTrustManager;
 import org.niis.xroad.edc.trust.RejectAllTrustManager;
 import org.niis.xroad.edc.trust.VaultEndpointTrust;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -67,6 +68,8 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
 
     static final String NAME = "X-Road TLS OkHttpClient";
 
+    private static final String TRUST_MATERIAL_NAME = "ds-tls-ca-trust";
+
     private static final String VAULT_URL_SETTING = "edc.vault.hashicorp.url";
     private static final String VAULT_CA_CERT_ENV = "QUARKUS_VAULT_TLS_CA_CERT";
 
@@ -80,7 +83,17 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     @SuppressWarnings("unused")
     private RetryPolicy<?> retryPolicy;
 
+    private final Duration pendingPollInterval;
+
     private PeriodicMaterialReloader<?> reloader;
+
+    public XRoadTlsOkHttpClientExtension() {
+        this(PeriodicMaterialReloader.DEFAULT_PENDING_INTERVAL);
+    }
+
+    XRoadTlsOkHttpClientExtension(Duration pendingPollInterval) {
+        this.pendingPollInterval = pendingPollInterval;
+    }
 
     @Override
     public String name() {
@@ -92,9 +105,10 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var globalConfProvider = context.getService(GlobalConfProvider.class);
         var loader = new ConnectorTlsCaTrustManagerLoader(globalConfProvider);
-        var initial = loadOrRejectAll(loader, monitor);
+        var initial = loadInitial(loader, monitor);
 
-        var listTrustManager = new DelegatingTrustManager(initial.material());
+        var listTrustManager = new DelegatingTrustManager(
+                initial.loaded() != null ? initial.loaded().material() : RejectAllTrustManager.INSTANCE);
         var vaultTrust = VaultEndpointTrust.from(
                 context.getSetting(VAULT_URL_SETTING, null),
                 System.getenv(VAULT_CA_CERT_ENV),
@@ -102,8 +116,12 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
         var trustManager = new ConnectorTlsCompositeTrustManager(vaultTrust.orElse(null), listTrustManager);
 
         var reloadInterval = Duration.ofSeconds(context.getSetting(RELOAD_INTERVAL_SETTING, DEFAULT_RELOAD_INTERVAL_SECONDS));
-        reloader = PeriodicMaterialReloader.schedule("ds-tls-ca-trust", initial, reloadInterval,
-                RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor);
+        reloader = initial.loaded() != null
+                ? PeriodicMaterialReloader.schedule(TRUST_MATERIAL_NAME, initial.loaded(), reloadInterval,
+                        RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor)
+                : PeriodicMaterialReloader.scheduleUntilFirstLoad(TRUST_MATERIAL_NAME, pendingPollInterval, reloadInterval,
+                        RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor,
+                        initial.failure());
 
         return buildClient(trustManager);
     }
@@ -120,17 +138,21 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
      * different outcomes everywhere else in this class's collaborators — but at boot, before any reload cycle
      * has had a chance to run, both must leave the DataSpace TLS surface in the same safe place: rejecting every
      * connection rather than aborting startup (unlike the serving keystore, an empty or unreachable trust list is
-     * a valid running state). The periodic reloader takes over from here and keeps retrying on its own schedule.
+     * a valid running state). When the boot load fails, the reloader polls at the pending interval until the
+     * first load succeeds and then continues at the normal interval. Globalconf that has not been initialized yet
+     * is an expected state on a fresh Security Server, so it is logged as a warning without a stack trace.
      */
-    private static PeriodicMaterialReloader.Loaded<X509ExtendedTrustManager> loadOrRejectAll(
-            ConnectorTlsCaTrustManagerLoader loader, Monitor monitor) {
+    private static InitialLoad loadInitial(ConnectorTlsCaTrustManagerLoader loader, Monitor monitor) {
         try {
-            return loader.load();
+            return new InitialLoad(loader.load(), null);
+        } catch (GlobalConfInitException e) {
+            monitor.warning("Globalconf is not initialized yet; rejecting all DataSpace TLS connections until the "
+                    + "DataSpace TLS CA list can be loaded: " + e.getMessage());
+            return new InitialLoad(null, String.valueOf(e.getMessage()));
         } catch (RuntimeException e) {
             monitor.severe("Failed to load the DataSpace TLS CA list from globalconf at startup; rejecting all "
-                    + "DataSpace TLS connections until a scheduled refresh succeeds", e);
-            return new PeriodicMaterialReloader.Loaded<>(RejectAllTrustManager.INSTANCE,
-                    ConnectorTlsCaTrustManagerLoader.REJECT_ALL_FINGERPRINT);
+                    + "DataSpace TLS connections until a poll succeeds", e);
+            return new InitialLoad(null, String.valueOf(e.getMessage()));
         }
     }
 
@@ -144,5 +166,8 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
         } catch (GeneralSecurityException e) {
             throw new EdcException("Failed to initialize the DataSpace outbound TLS trust context", e);
         }
+    }
+
+    private record InitialLoad(PeriodicMaterialReloader.Loaded<X509ExtendedTrustManager> loaded, String failure) {
     }
 }

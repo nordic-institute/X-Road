@@ -8,11 +8,13 @@ dependencies {
     implementation(libs.edc.spi.dsp.v2025)
     implementation(libs.edc.lib.core)
 
+    implementation(project(":lib:edc-tls-reload"))
     implementation(project(":lib:globalconf-core"))
     implementation(project(":lib:serverconf-core"))
     implementation(project(":common:common-domain"))
 
     testImplementation(libs.assertj.core)
+    testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.boot)

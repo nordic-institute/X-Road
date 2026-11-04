@@ -1,4 +1,7 @@
 quarkus:
+  vault:
+    health:
+      enabled: false
   application:
     name: ds-control-plane
   config:
@@ -92,6 +95,9 @@ edc:
       # New mount xrd-ds-secret/ is provisioned as KV v2 by secret-store-init.sh,
       # separate from the KV v1 xrd-secret/ mount used by Quarkus services.
       folder: ds
+      health:
+        check:
+          enabled: false
       api:
         secret:
           path: /v1/xrd-ds-secret

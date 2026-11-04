@@ -1,4 +1,7 @@
 quarkus:
+  vault:
+    health:
+      enabled: false
   application:
     name: ds-identity-hub
   arc:
@@ -73,8 +76,7 @@ edc:
       folder: ds
       health:
         check:
-          standby:
-            ok: true
+          enabled: false
       api:
         secret:
           path: /v1/xrd-ds-secret

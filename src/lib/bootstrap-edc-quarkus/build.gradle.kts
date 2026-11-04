@@ -12,6 +12,7 @@ dependencies {
   implementation(libs.edc.lib.core)
   implementation(libs.edc.spi.core)
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.quarkus.health)
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.bouncyCastle.bcpkix)
