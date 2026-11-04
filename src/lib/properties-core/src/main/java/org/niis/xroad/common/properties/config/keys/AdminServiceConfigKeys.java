@@ -42,6 +42,7 @@ import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROX
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
+import static org.niis.xroad.common.properties.config.Validator.positiveInt;
 
 /**
  * Security Server admin-service keys ({@code xroad.proxy-ui-api.*}, incl. {@code .tls} and the
@@ -520,6 +521,18 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .integer("provisioning-tick-ms")
             .withDefaultValue(30000)
             .publishedToFramework()
+            .build();
+
+    /**
+     * {@code xroad.proxy-ui-api.dataspace.provisioning-batch-size}. Number of participant contexts, the
+     * SYSTEM context and members alike, the provisioning worker binds and provisions per batch. Every pass
+     * runs all batches, so the size does not limit how much work a pass does; it shapes how binding and
+     * provisioning interleave, since a batch binds its unbound contexts before it provisions any of them.
+     */
+    public static final ConfigKey<Integer> DATASPACE_PROVISIONING_BATCH_SIZE = DATASPACE
+            .integer("provisioning-batch-size")
+            .withDefaultValue(100)
+            .withValidator(positiveInt())
             .build();
 
     /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */

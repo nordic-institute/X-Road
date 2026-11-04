@@ -41,67 +41,27 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 class ParticipantBindingCheckTest {
 
     private static final String SS_HOST = "ss0.example.org";
     private static final ClientId MEMBER = ClientId.Conf.create("DEV", "COM", "222");
+    private static final ClientId OTHER_MEMBER = ClientId.Conf.create("DEV", "COM", "333");
 
     @Test
-    void verifyPassesWhenMemberDerivationMatchesBoundRow() {
+    void verifyPassesForMemberRowBoundUnderSupportedVersion() {
         DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
 
-        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound, SS_HOST));
+        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound));
     }
 
     @Test
-    void verifyPassesWhenSystemDerivationMatchesBoundRow() {
+    void verifyPassesForSystemRowBoundUnderSupportedVersion() {
         DsParticipantEntity bound = systemParticipant(SS_HOST);
 
-        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound, SS_HOST));
-    }
-
-    @Test
-    void verifyThrowsWithBothValuesWhenMemberHostChanged() {
-        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
-        String newHost = "ss1.example.org";
-
-        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantBindingCheck.verify(bound, newHost));
-
-        assertEquals(DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code(), ex.getCode());
-        assertEquals(List.of(
-                        bound.getCtxId(),
-                        bound.getDid(),
-                        ParticipantIdentifierScheme.memberCtxId(MEMBER),
-                        ParticipantIdentifierScheme.memberDid(MEMBER, newHost).toString()),
-                ex.getErrorCodeMetadata());
-
-        // the bound row itself is never mutated by a failed check
-        assertEquals(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST).toString(), bound.getDid());
-        assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), bound.getCtxId());
-    }
-
-    @Test
-    void verifyThrowsWithBothValuesWhenSystemHostChanged() {
-        DsParticipantEntity bound = systemParticipant(SS_HOST);
-        String newHost = "ss1.example.org";
-
-        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantBindingCheck.verify(bound, newHost));
-
-        assertEquals(DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code(), ex.getCode());
-        assertEquals(List.of(
-                        ParticipantIdentifierScheme.SYSTEM_SEGMENT,
-                        ParticipantIdentifierScheme.systemDid(SS_HOST).toString(),
-                        ParticipantIdentifierScheme.SYSTEM_SEGMENT,
-                        ParticipantIdentifierScheme.systemDid(newHost).toString()),
-                ex.getErrorCodeMetadata());
-
-        // the bound row itself is never mutated by a failed check
-        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST).toString(), bound.getDid());
+        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound));
     }
 
     @Test
@@ -110,7 +70,7 @@ class ParticipantBindingCheckTest {
         bound.setSchemeVersion("v2");
 
         XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantBindingCheck.verify(bound, SS_HOST));
+                () -> ParticipantBindingCheck.verify(bound));
 
         assertEquals(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code(), ex.getCode());
         assertEquals(List.of("v2", ParticipantIdentifierScheme.SCHEME_VERSION), ex.getErrorCodeMetadata());
@@ -121,14 +81,60 @@ class ParticipantBindingCheckTest {
     }
 
     @Test
-    void verifyThrowsVersionErrorNotMismatchWhenVersionAndIdentifiersBothDiffer() {
+    void verifyPassesWhenTheDidHostAndPortDifferFromAnyCurrentAddress() {
+        DsParticipantEntity bound = memberParticipant(MEMBER, "moved.example.org:7183");
+
+        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound));
+    }
+
+    @Test
+    void verifyThrowsWhenTheMemberDidEncodesAnotherMember() {
         DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
-        bound.setSchemeVersion("v2");
+        bound.setDid(ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, SS_HOST).toString());
 
-        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantBindingCheck.verify(bound, "ss1.example.org"));
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> ParticipantBindingCheck.verify(bound));
 
-        assertEquals(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code(), ex.getCode());
+        assertEquals(VALIDATION_ERROR.code(), ex.getCode());
+    }
+
+    @Test
+    void verifyThrowsWhenTheCtxIdDiffersFromTheMemberIdentifier() {
+        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
+        bound.setCtxId(ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER));
+
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> ParticipantBindingCheck.verify(bound));
+
+        assertEquals(VALIDATION_ERROR.code(), ex.getCode());
+    }
+
+    @Test
+    void verifyThrowsWhenTheMemberRowHoldsTheSystemDid() {
+        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
+        bound.setDid(ParticipantIdentifierScheme.systemDid(SS_HOST).toString());
+
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> ParticipantBindingCheck.verify(bound));
+
+        assertEquals(VALIDATION_ERROR.code(), ex.getCode());
+    }
+
+    @Test
+    void verifyThrowsWhenTheSystemRowHoldsAMemberDid() {
+        DsParticipantEntity bound = systemParticipant(SS_HOST);
+        bound.setDid(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST).toString());
+
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> ParticipantBindingCheck.verify(bound));
+
+        assertEquals(VALIDATION_ERROR.code(), ex.getCode());
+    }
+
+    @Test
+    void verifyThrowsWhenTheSystemRowCtxIdIsNotTheSystemSegment() {
+        DsParticipantEntity bound = systemParticipant(SS_HOST);
+        bound.setCtxId(ParticipantIdentifierScheme.memberCtxId(MEMBER));
+
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> ParticipantBindingCheck.verify(bound));
+
+        assertEquals(VALIDATION_ERROR.code(), ex.getCode());
     }
 
     private static DsParticipantEntity memberParticipant(ClientId member, String ssHost) {
