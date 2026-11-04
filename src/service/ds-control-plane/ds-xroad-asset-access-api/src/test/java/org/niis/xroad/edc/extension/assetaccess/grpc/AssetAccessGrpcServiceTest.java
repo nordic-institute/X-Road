@@ -246,6 +246,7 @@ class AssetAccessGrpcServiceTest {
                 Arguments.of(ErrorCode.DSP_DATAADDRESS_INVALID),
                 Arguments.of(ErrorCode.DSP_NEGOTIATION_FAILED),
                 Arguments.of(ErrorCode.DSP_TRANSFER_FAILED),
+                Arguments.of(ErrorCode.DSP_ACCESS_REFUSED),
                 Arguments.of(ErrorCode.DSP_ACQUISITION_FAILED),
                 Arguments.of(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED)
         );

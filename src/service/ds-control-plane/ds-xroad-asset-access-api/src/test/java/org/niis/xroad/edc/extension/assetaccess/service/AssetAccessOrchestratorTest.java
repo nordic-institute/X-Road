@@ -78,6 +78,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.time.CallBudget;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
@@ -369,6 +370,13 @@ class AssetAccessOrchestratorTest {
         when(transferProcessStore.findAll(specWithId(transferProcessId))).thenAnswer(invocation ->
                 Stream.of(startedTransfer(transferProcessId, address)));
         return address;
+    }
+
+    private void refusedAddress(String transferProcessId) {
+        var address = DataAddress.Builder.newInstance().type("HttpData").property("endpoint", "http://provider/data-" + transferProcessId)
+                .property(DspConventions.ACCESS_REFUSED_PROPERTY, "true").build();
+        when(transferProcessStore.findAll(specWithId(transferProcessId))).thenAnswer(invocation ->
+                Stream.of(startedTransfer(transferProcessId, address)));
     }
 
     private void pollUntilDone(CompletableFuture<?> future) {
@@ -1019,6 +1027,10 @@ class AssetAccessOrchestratorTest {
         assertThat(((XrdRuntimeException) failure).getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
     }
 
+    private static void assertAccessRefused(Throwable failure) {
+        assertThat(((XrdRuntimeException) failure).getErrorCode()).isEqualTo("dataspace.dsp_access_refused");
+    }
+
     private AgreementReuseNote.Key noteKey(String clientId) {
         return new AgreementReuseNote.Key("participant1", "participant1", "provider-1", "asset-1", clientId);
     }
@@ -1150,6 +1162,59 @@ class AssetAccessOrchestratorTest {
         acquireExpectingFailure(GROUP_CLIENT_A);
 
         verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).isEmpty();
+    }
+
+    @Test
+    void aRefusedDataAddressOnAReusedAgreementDropsTheEntryAndRenegotiatesOnce() throws Exception {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
+        stubFindById(buildAgreement("agreement-1"));
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-2");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+        refusedAddress("tp-1");
+        startedAddress("tp-2", "http://provider/data-tp-2");
+
+        var result = acquire(GROUP_CLIENT_A);
+
+        assertThat(result.getContent().getStringProperty("endpoint")).isEqualTo("http://provider/data-tp-2");
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).contains("agreement-2");
+    }
+
+    @Test
+    void aRefusedDataAddressAfterTheRenegotiationFailsTheAcquisitionWithoutLoopingOrNoting() {
+        reuseNote.remember(noteKey(GROUP_CLIENT_A), "agreement-1");
+        stubFindById(buildAgreement("agreement-1"));
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-2");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-2").build()));
+        refusedAddress("tp-1");
+        refusedAddress("tp-2");
+
+        assertAccessRefused(acquireExpectingFailure(GROUP_CLIENT_A));
+
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(transferProcessService, times(2)).initiateTransfer(any(), any());
+        assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).isEmpty();
+    }
+
+    @Test
+    void aRefusedDataAddressAfterAFreshNegotiationFailsAtOnceAndNotesNothing() {
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-group", groupPolicy("DEV:COM:222:owner;group"))));
+        stubNegotiatedAgreements("agreement-1");
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(TransferProcess.Builder.newInstance().id("tp-1").build()));
+        refusedAddress("tp-1");
+
+        assertAccessRefused(acquireExpectingFailure(GROUP_CLIENT_A));
+
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
         assertThat(reuseNote.find(noteKey(GROUP_CLIENT_A))).isEmpty();
     }
 
