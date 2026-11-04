@@ -296,7 +296,7 @@ for node in $nodes; do
     fail "$node database host is '$configured_host', expected the write address $db_host"
   fi
 
-  configured_name=$(host_exec "$node" sed -n 's/^ *ha-node-name: *//p' /etc/xroad/conf.d/local.yaml 2>/dev/null)
+  configured_name=$(host_exec "$node" /usr/share/xroad/scripts/yaml_helper.sh get-raw /etc/xroad/conf.d/local.yaml xroad.admin-service.ha-node-name 2>/dev/null)
   node_names+=("$configured_name")
   if [[ -n "$expected_name" && "$configured_name" == "$expected_name" ]]; then
     pass "$node local.yaml carries HA node name $configured_name"

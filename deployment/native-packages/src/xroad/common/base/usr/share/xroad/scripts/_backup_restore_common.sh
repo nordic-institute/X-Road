@@ -17,6 +17,9 @@ OPENBAO_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_openbao_db.sh"
 OPENBAO_DATABASE_RESTORE_SCRIPT="/usr/share/xroad/scripts/restore_openbao_db.sh"
 COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
+# shellcheck source=/dev/null
+source /usr/share/xroad/scripts/_node_name.sh
+
 # The value in this file must be increased when we introduce changes that make earlier
 # backup files incompatible with the current system. BackupMetadataService (Java) reads
 # the same file to determine backup compatibility for the admin UI, so this is the
@@ -29,7 +32,7 @@ die () {
 }
 
 get_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+  /usr/share/xroad/scripts/yaml_helper.sh get-raw "$1" "$2" 2>/dev/null
 }
 
 check_user () {
@@ -53,11 +56,21 @@ check_instance_id () {
 check_central_ha_node_name () {
   CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
   local node_name=""
-  if [ -f "$CONFIG_FILE" ]; then
-    node_name=$(get_prop "$CONFIG_FILE" "xroad.admin-service.ha-node-name")
-  fi
   if [[ $USE_BASE_64 = true ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=$(echo "$CENTRAL_SERVER_HA_NODE_NAME" | base64 --decode)
+  fi
+  check_node_name "$CENTRAL_SERVER_HA_NODE_NAME" "the -n option" || exit 2
+  if [[ -z "${CENTRAL_SERVER_HA_NODE_NAME//[[:space:]]/}" ]] ; then
+    CENTRAL_SERVER_HA_NODE_NAME=""
+  fi
+  if [ -f "$CONFIG_FILE" ]; then
+    node_name=$(get_prop "$CONFIG_FILE" "xroad.admin-service.ha-node-name")
+    if [[ -z $FORCE_RESTORE ]] ; then
+      check_node_name "$node_name" "xroad.admin-service.ha-node-name in $CONFIG_FILE" || exit 2
+    fi
+    if [[ -z "${node_name//[[:space:]]/}" ]] ; then
+      node_name=""
+    fi
   fi
   if [[ -z $FORCE_RESTORE && -n $node_name ]]; then
     if [[ "$node_name" != "$CENTRAL_SERVER_HA_NODE_NAME" ]]; then

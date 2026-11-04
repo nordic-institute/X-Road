@@ -32,6 +32,7 @@ Doc. ID: IG-CS-8
     - [2.6.1 Configuring TLS Certificates](#261-configuring-tls-certificates-for-global-configuration-distribution)
     - [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface)
     - [2.6.3 Provisioning TLS Certificates for gRPC services](#263-provisioning-tls-certificates-for-grpc-services)
+    - [2.6.4 Node name](#264-node-name)
   - [2.7 Pre-configuration for Registration Web Service](#27-pre-configuration-for-registration-web-service)
   - [2.8 Pre-configuration for Management Web Service](#28-pre-configuration-for-management-web-service)
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
@@ -237,6 +238,30 @@ TLS certificates for the user interface and management services are automaticall
 #### 2.6.3 Provisioning TLS Certificates for gRPC services
 
 TLS certificates for gRPC services are provisioned and rotated automatically, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).
+
+#### 2.6.4 Node name
+
+The node name tells Central Server nodes apart when they share one secret store. The Central Server uses it in secret store paths and, when it is set, in the names of backup archives.
+
+A standalone Central Server does not need a node name. Set one on every node of a high availability cluster, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md).
+
+- Where to set it:
+  - Native packages: the key `xroad.admin-service.ha-node-name` in `/etc/xroad/conf.d/local.yaml`. Set it before installing the packages.
+    ```yaml
+    xroad:
+      admin-service:
+        ha-node-name: node_1
+    ```
+  - Containers: the environment variable `XROAD_ADMIN_SERVICE_HA_NODE_NAME`.
+- The rule:
+  - Use 1 to 63 characters: letters, digits, `_` and `-`.
+  - The first character must be a letter or a digit.
+  - Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected with or without quotes. An unquoted `null` or `~` means that the name is not set.
+- If the name is not set:
+  - The services use the name `node_0` in secret store paths.
+  - Backup archive names have no node name suffix.
+- The installer and the backup and restore scripts check the name with the same rule as the services. The installation stops with a message that names the rule when the name is not valid.
+- Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node.
 
 ### 2.7 Pre-configuration for Registration Web Service
 
