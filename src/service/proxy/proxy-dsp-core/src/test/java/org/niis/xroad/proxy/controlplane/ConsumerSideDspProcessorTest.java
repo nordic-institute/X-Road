@@ -52,9 +52,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,7 +110,7 @@ class ConsumerSideDspProcessorTest {
         processor.invalidateAssetAccess(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), SENDER);
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), null, SENDER);
     }
 
     @Test
@@ -813,5 +815,61 @@ class ConsumerSideDspProcessorTest {
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A), eq(SENDER));
+    }
+
+    @Test
+    void failOverDropsTheFailedServersAccessAndAcquiresFromTheOtherCandidateOnly() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        var fromB = new AssetAccessResponse("http://dp-b/e", "token-b", DID_B);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any())).thenReturn(fromB);
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).contains(fromB);
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), eq(DID_A), any(), any());
+        verify(assetAccessAcquisitionService, never()).invalidateAssetAccess(any(), any(), isNull(), any());
+    }
+
+    @Test
+    void failOverWithNoOtherCandidateDropsTheEntryAndReturnsNothing() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).isEmpty();
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void failOverOfAnAccessThatDoesNotIdentifyItsServerDoesNothing() {
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a");
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).isEmpty();
+        verifyNoInteractions(assetAccessAcquisitionService, providerSecurityServerResolver);
+    }
+
+    @Test
+    void failOverReturnsNothingWhenTheOtherCandidatesCannotProvideAccessEither() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), any(), any()))
+                .thenThrow(new IllegalStateException("provider b is down too"));
+        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
+
+        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
+
+        assertThat(result).isEmpty();
+        verify(assetAccessAcquisitionService)
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
     }
 }

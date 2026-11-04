@@ -36,6 +36,7 @@ import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -48,10 +49,10 @@ import java.util.function.Predicate;
  * <p>The provider publishes one offer per ACL subject, so an agreement negotiated on a subsystem's
  * behalf carries a policy naming only that subsystem. For an <b>Asset access acquisition</b> with a
  * client id, this lookup honours the same subsystem scoping: among the agreements matching participant
- * context, consumer, asset and provider, it returns the newest one whose policy names that client, else
- * the newest unrestricted one (no permissions at all, negotiated from the offer the provider publishes
- * for builtin and unrestricted-SYSTEM services), else empty. An unrestricted agreement applies to any
- * caller, so reusing it isolates nothing less than negotiating a fresh one. There is no fallback to an
+ * context, consumer, asset and provider that EDC has not retired, it returns the newest one whose policy
+ * names that client, else the newest unrestricted one (no permissions at all, negotiated from the offer the
+ * provider publishes for builtin and unrestricted-SYSTEM services), else empty. An unrestricted agreement
+ * applies to any caller, so reusing it isolates nothing less than negotiating a fresh one. There is no fallback to an
  * agreement applying to the member as a whole or to a group here; that fallback exists only in offer
  * selection, because the consumer cannot verify a subsystem's grant on such an agreement and a request
  * under it fails the provider's own check. With a null client id (the caller states none),
@@ -92,28 +93,51 @@ public class ReusableAgreementLookup {
      */
     public Optional<ContractAgreement> find(String participantContextId, String consumerId, String assetId,
                                             String providerId, @Nullable String clientId) {
-        var query = QuerySpec.Builder.newInstance()
-                .filter(List.of(
-                        Criterion.criterion("participantContextId", "=", participantContextId),
-                        Criterion.criterion("consumerId", "=", consumerId),
-                        Criterion.criterion("assetId", "=", assetId),
-                        Criterion.criterion("providerId", "=", providerId)))
-                .sortField("contractSigningDate")
-                .sortOrder(SortOrder.DESC)
-                .limit(MAX_CANDIDATES)
-                .build();
-
-        var candidates = transactionContext.execute(() -> {
-            try (var agreements = negotiationStore.queryAgreements(query)) {
-                return agreements.toList();
-            }
-        });
+        var candidates = queryAgreements(candidateCriteria(participantContextId, consumerId, assetId, providerId),
+                MAX_CANDIDATES);
 
         if (clientId == null) {
             return candidates.stream().findFirst();
         }
         return firstMatching(candidates, agreement -> PolicySubjectMatcher.namesClient(agreement.getPolicy(), clientId))
                 .or(() -> firstMatching(candidates, agreement -> PolicySubjectMatcher.isUnrestricted(agreement.getPolicy())));
+    }
+
+    /**
+     * Returns the agreement with the given id if it still qualifies as one this participant context
+     * negotiated as consumer for the given asset and provider: it exists and is not retired. The policy is not
+     * inspected; the caller vouches that the agreement worked for its calling subsystem.
+     */
+    public Optional<ContractAgreement> findById(String participantContextId, String consumerId, String assetId,
+                                                String providerId, String agreementId) {
+        var criteria = new ArrayList<>(candidateCriteria(participantContextId, consumerId, assetId, providerId));
+        criteria.add(Criterion.criterion("id", "=", agreementId));
+        return queryAgreements(criteria, 1).stream().findFirst();
+    }
+
+    private static List<Criterion> candidateCriteria(String participantContextId, String consumerId, String assetId,
+                                                     String providerId) {
+        return List.of(
+                Criterion.criterion("participantContextId", "=", participantContextId),
+                Criterion.criterion("consumerId", "=", consumerId),
+                Criterion.criterion("assetId", "=", assetId),
+                Criterion.criterion("providerId", "=", providerId),
+                Criterion.criterion("retired", "=", false));
+    }
+
+    private List<ContractAgreement> queryAgreements(List<Criterion> criteria, int limit) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(criteria)
+                .sortField("contractSigningDate")
+                .sortOrder(SortOrder.DESC)
+                .limit(limit)
+                .build();
+
+        return transactionContext.execute(() -> {
+            try (var agreements = negotiationStore.queryAgreements(query)) {
+                return agreements.toList();
+            }
+        });
     }
 
     private static Optional<ContractAgreement> firstMatching(List<ContractAgreement> candidates,

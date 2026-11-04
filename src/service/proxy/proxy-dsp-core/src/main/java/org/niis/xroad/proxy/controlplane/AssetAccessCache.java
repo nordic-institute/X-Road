@@ -125,12 +125,14 @@ class AssetAccessCache {
     }
 
     /**
-     * Drops every entry acquired for the given participant context, asset and calling client, whichever
-     * provider candidate it was acquired from.
+     * Drops the entries acquired for the given participant context, asset and calling client: those of one
+     * provider candidate, or of every candidate when {@code counterPartyId} is {@code null}.
      */
-    void invalidate(String participantContextId, String assetId, @Nullable String consumerClientId) {
+    void invalidate(String participantContextId, String assetId, @Nullable String counterPartyId,
+                    @Nullable String consumerClientId) {
         cache.asMap().keySet().removeIf(key -> key.participantContextId().equals(participantContextId)
                 && key.assetId().equals(assetId)
+                && (counterPartyId == null || key.counterPartyId().equals(counterPartyId))
                 && Objects.equals(key.consumerClientId(), consumerClientId));
     }
 }
