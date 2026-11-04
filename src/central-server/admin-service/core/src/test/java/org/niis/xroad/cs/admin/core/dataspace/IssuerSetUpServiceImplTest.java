@@ -29,26 +29,36 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
 import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,6 +68,8 @@ class IssuerSetUpServiceImplTest {
 
     private static final String HOST = "issuer.example.org";
     private static final int GENERAL_NAME_DNS = 2;
+    private static final String NODE = "node-a";
+    private static final int DEADLINE_AFTER_MS = 60000;
 
     @Mock
     private IssuerHostService issuerHostService;
@@ -65,13 +77,26 @@ class IssuerSetUpServiceImplTest {
     private DsTlsCertificateService dsTlsCertificateService;
     @Mock
     private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
+    @Mock
+    private IssuerSetUpLeaseService issuerSetUpLeaseService;
+    @Mock
+    private IssuerProvisioningRpcChannelProperties issuerProvisioningRpcChannelProperties;
 
     private IssuerSetUpServiceImpl issuerSetUpService;
 
     @BeforeEach
     void setUp() {
-        issuerSetUpService =
-                new IssuerSetUpServiceImpl(issuerHostService, dsTlsCertificateService, dataspaceIssuerProvisioningService);
+        issuerSetUpService = new IssuerSetUpServiceImpl(issuerHostService, dsTlsCertificateService,
+                dataspaceIssuerProvisioningService, issuerSetUpLeaseService, issuerProvisioningRpcChannelProperties,
+                new HAConfigStatus(NODE, true));
+    }
+
+    /** Stubs every check before the lease so a test can start at "no run in progress". */
+    private void givenEveryPrerequisiteCheckPasses() throws CertificateParsingException {
+        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
+        var certificate = mock(X509Certificate.class);
+        lenient().when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, HOST)));
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
     }
 
     @Test
@@ -134,6 +159,29 @@ class IssuerSetUpServiceImplTest {
         verifyNoInteractions(dataspaceIssuerProvisioningService);
     }
 
+    @Test
+    void refusesAlreadyRunningWhenAnotherNodeHoldsTheLease() throws Exception {
+        givenEveryPrerequisiteCheckPasses();
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.of("node-b"));
+
+        var result = issuerSetUpService.start();
+
+        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
+        verifyNoInteractions(dataspaceIssuerProvisioningService);
+    }
+
+    @Test
+    void refusesAlreadyRunningWhenAcquiringTheFreeLeaseRacesAnotherNode() throws Exception {
+        givenEveryPrerequisiteCheckPasses();
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(false);
+
+        var result = issuerSetUpService.start();
+
+        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
+        verifyNoInteractions(dataspaceIssuerProvisioningService);
+    }
+
     /**
      * The fake run blocks until released, so {@code start()} returning "accepted" is only possible if
      * the provisioning sequence genuinely runs on a background thread rather than inline: an inline
@@ -141,10 +189,10 @@ class IssuerSetUpServiceImplTest {
      */
     @Test
     void acceptsAndRunsTodaysProvisioningSequenceInTheBackgroundWhenEveryCheckPasses() throws Exception {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
-        var certificate = mock(X509Certificate.class);
-        when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, HOST)));
-        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+        givenEveryPrerequisiteCheckPasses();
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
+        when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
 
         var runStarted = new CountDownLatch(1);
         var releaseRun = new CountDownLatch(1);
@@ -160,10 +208,68 @@ class IssuerSetUpServiceImplTest {
 
         assertThat(result).isEqualTo(new IssuerSetUpResult.Accepted());
         assertThat(runStarted.await(2, TimeUnit.SECONDS)).isTrue();
+        // The lease must not still be held while the run waits on the fake gRPC calls above.
+        verify(issuerSetUpLeaseService, never()).release(anyString());
 
         releaseRun.countDown();
 
         assertThat(runFinished.await(2, TimeUnit.SECONDS)).isTrue();
         verify(dataspaceIssuerProvisioningService).provisionIssuer();
+        verify(issuerSetUpLeaseService).release(NODE);
+
+        var ttlCaptor = ArgumentCaptor.forClass(Duration.class);
+        verify(issuerSetUpLeaseService).tryAcquire(eq(NODE), ttlCaptor.capture());
+        assertThat(ttlCaptor.getValue()).isGreaterThan(Duration.ofMillis(DEADLINE_AFTER_MS).multipliedBy(3));
+    }
+
+    /**
+     * Mutant to kill: dropping the {@code finally} around {@code release(node)} in
+     * {@code IssuerSetUpServiceImpl.runProvisioning} would leave this lease held forever once a run
+     * throws, so a later call would wrongly stay refused with "already running".
+     */
+    @Test
+    void releasesTheLeaseAfterAFailingRun() throws Exception {
+        givenEveryPrerequisiteCheckPasses();
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
+        when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
+
+        var runFailed = new CountDownLatch(1);
+        doThrow(new IllegalStateException("provisioning failed")).when(dataspaceIssuerProvisioningService).provisionIssuer();
+        doAnswer(invocation -> {
+            runFailed.countDown();
+            return null;
+        }).when(issuerSetUpLeaseService).release(NODE);
+
+        var result = issuerSetUpService.start();
+
+        assertThat(result).isEqualTo(new IssuerSetUpResult.Accepted());
+        assertThat(runFailed.await(2, TimeUnit.SECONDS)).isTrue();
+        verify(issuerSetUpLeaseService).release(NODE);
+    }
+
+    /**
+     * Two calls at once: the first takes the free lease and is accepted; the second sees the lease
+     * already held and is refused. Mutant to kill: skipping the "no run in progress" check (or the
+     * acquire) in {@code start()} would let the second call through as "accepted" too.
+     */
+    @Test
+    void secondConcurrentCallIsRefusedAlreadyRunningWhileTheFirstIsStillAccepted() throws Exception {
+        givenEveryPrerequisiteCheckPasses();
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty(), Optional.of(NODE));
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
+        when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
+        var runFinished = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            runFinished.countDown();
+            return null;
+        }).when(dataspaceIssuerProvisioningService).provisionIssuer();
+
+        var firstResult = issuerSetUpService.start();
+        var secondResult = issuerSetUpService.start();
+
+        assertThat(firstResult).isEqualTo(new IssuerSetUpResult.Accepted());
+        assertThat(secondResult).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
+        assertThat(runFinished.await(2, TimeUnit.SECONDS)).isTrue();
     }
 }

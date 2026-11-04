@@ -86,6 +86,7 @@ public class IssuerServiceApiController implements IssuerServiceApi {
             case ALREADY_SET_UP -> new ConflictException(ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND.build());
             case HOST_NOT_SET -> new ConflictException(ErrorMessage.ISSUER_SERVICE_HOST_NOT_SET.build());
             case CERTIFICATE_NOT_READY -> new ConflictException(ErrorMessage.ISSUER_SERVICE_CERTIFICATE_NOT_READY.build());
+            case ALREADY_RUNNING -> new ConflictException(ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING.build());
         };
     }
 

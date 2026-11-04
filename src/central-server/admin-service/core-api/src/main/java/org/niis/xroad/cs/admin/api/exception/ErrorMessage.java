@@ -115,6 +115,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     ISSUER_SERVICE_ALREADY_BOUND("issuer_service_already_bound"),
     ISSUER_SERVICE_HOST_NOT_SET("issuer_service_host_not_set"),
     ISSUER_SERVICE_CERTIFICATE_NOT_READY("issuer_service_certificate_not_ready"),
+    ISSUER_SERVICE_ALREADY_RUNNING("issuer_service_already_running"),
     CONFIGURATION_NOT_FOUND("configuration_not_found"),
     CONFIGURATION_PART_FILE_NOT_FOUND("configuration_part_file_not_found"),
     CONFIGURATION_PART_VALIDATOR_NOT_FOUND("configuration_part_validator_not_found"),

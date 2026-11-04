@@ -44,6 +44,7 @@ public sealed interface IssuerSetUpResult {
     enum Cause {
         ALREADY_SET_UP,
         HOST_NOT_SET,
-        CERTIFICATE_NOT_READY
+        CERTIFICATE_NOT_READY,
+        ALREADY_RUNNING
     }
 }

@@ -30,9 +30,11 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
+import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpService;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
@@ -41,6 +43,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -58,9 +61,18 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
     /** {@code GeneralName} tag for a DNS subject alternative name entry (RFC 5280). */
     private static final int GENERAL_NAME_DNS = 2;
 
+    /** The provisioning run makes this many sequential gRPC calls, each bounded by the RPC deadline. */
+    private static final int PROVISIONING_RPC_CALLS = 3;
+
+    /** Extra headroom on top of the worst-case RPC time, included in the lease TTL. */
+    private static final Duration LEASE_TTL_MARGIN = Duration.ofSeconds(30);
+
     private final IssuerHostService issuerHostService;
     private final DsTlsCertificateService dsTlsCertificateService;
     private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
+    private final IssuerSetUpLeaseService issuerSetUpLeaseService;
+    private final IssuerProvisioningRpcChannelProperties issuerProvisioningRpcChannelProperties;
+    private final HAConfigStatus haConfigStatus;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor(Thread.ofVirtual().name("issuer-set-up-", 0).factory());
 
@@ -77,17 +89,38 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
         if (!connectorCertificateReadyFor(state.host())) {
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY);
         }
+        if (issuerSetUpLeaseService.currentHolder().isPresent()) {
+            return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING);
+        }
 
-        executor.execute(this::runProvisioning);
+        var node = haConfigStatus.getCurrentHaNodeName();
+        if (!issuerSetUpLeaseService.tryAcquire(node, leaseTtl())) {
+            return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING);
+        }
+
+        executor.execute(() -> runProvisioning(node));
         return new IssuerSetUpResult.Accepted();
     }
 
-    private void runProvisioning() {
+    /**
+     * Longer than the provisioning run could ever take, so a node that crashes mid-run never blocks the
+     * cluster past this point: every RPC call the run makes carries the same deadline, and a margin is
+     * added on top of the worst case of all of them running back to back.
+     */
+    private Duration leaseTtl() {
+        return Duration.ofMillis(issuerProvisioningRpcChannelProperties.deadlineAfter())
+                .multipliedBy(PROVISIONING_RPC_CALLS)
+                .plus(LEASE_TTL_MARGIN);
+    }
+
+    private void runProvisioning(String node) {
         try {
             dataspaceIssuerProvisioningService.provisionIssuer();
             log.info("Issuer Service set-up finished");
         } catch (Exception e) {
             log.warn("Issuer Service set-up failed: {}", e.getMessage(), e);
+        } finally {
+            issuerSetUpLeaseService.release(node);
         }
     }
 

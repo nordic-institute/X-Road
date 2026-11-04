@@ -153,4 +153,14 @@ class IssuerServiceApiControllerTest {
                 .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
                         .isEqualTo(ErrorMessage.ISSUER_SERVICE_CERTIFICATE_NOT_READY.code()));
     }
+
+    @Test
+    void startIssuerServiceSetUpPropagatesTheAlreadyRunningCauseAsConflict() {
+        when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
+
+        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING.code()));
+    }
 }
