@@ -64,7 +64,9 @@ public class TaskPollExecutorExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var processLock = new ProcessLock(dataSourceRegistry, taskDataSourceName);
-        executor = new TaskPollExecutor(taskPollConfig, resolveWorkerCount(context, monitor), executorInstrumentation,
+        int workers = resolveWorkerCount(context, monitor);
+        logPoolSize(context, monitor, workers);
+        executor = new TaskPollExecutor(taskPollConfig, workers, executorInstrumentation,
                 contractNegotiationTaskExecutor, transferProcessTaskExecutor,
                 taskStore, transactionContext, monitor, clock, processLock);
     }
@@ -89,6 +91,23 @@ public class TaskPollExecutorExtension implements ServiceExtension {
             return defaultWorkers;
         }
         return configuredWorkers;
+    }
+
+    static void logPoolSize(ServiceExtensionContext context, Monitor monitor, int workers) {
+        var maxTotalKey = DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL;
+        var maxIdleKey = DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE;
+        int maxTotal = context.getSetting(maxTotalKey.key(), maxTotalKey.convertedDefaultValue());
+        int maxIdle = context.getSetting(maxIdleKey.key(), maxIdleKey.convertedDefaultValue());
+
+        monitor.info("TaskPollExecutorExtension: datasource pool max-total=%d, max-idle=%d, workers=%d"
+                .formatted(maxTotal, maxIdle, workers));
+
+        int recommendedMinimum = 2 * workers + 2;
+        if (maxTotal < recommendedMinimum) {
+            monitor.warning(("TaskPollExecutorExtension: %s=%d is below 2 * workers + 2 (%d) for %d workers; "
+                    + "raise %s and set %s to match")
+                    .formatted(maxTotalKey.key(), maxTotal, recommendedMinimum, workers, maxTotalKey.key(), maxIdleKey.key()));
+        }
     }
 
 }

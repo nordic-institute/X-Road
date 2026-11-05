@@ -33,11 +33,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -70,5 +72,37 @@ class TaskPollExecutorExtensionTest {
 
         assertThat(TaskPollExecutorExtension.resolveWorkerCount(context, monitor)).isEqualTo(DEFAULT_WORKERS);
         verify(monitor).warning(contains(KEY));
+    }
+
+    @Test
+    void aPoolSizeAtTheRecommendedMinimumLogsInfoOnlyWithoutAWarning() {
+        int workers = 4;
+        when(context.getSetting(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.key(),
+                DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.convertedDefaultValue())).thenReturn(10);
+        when(context.getSetting(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.key(),
+                DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.convertedDefaultValue())).thenReturn(10);
+
+        TaskPollExecutorExtension.logPoolSize(context, monitor, workers);
+
+        verify(monitor).info(contains("max-total=10"));
+        verify(monitor, never()).warning(anyString());
+    }
+
+    @Test
+    void aPoolSizeBelowTheRecommendedMinimumLogsAWarningNamingBothSettings() {
+        int workers = 4;
+        when(context.getSetting(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.key(),
+                DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.convertedDefaultValue())).thenReturn(9);
+        when(context.getSetting(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.key(),
+                DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.convertedDefaultValue())).thenReturn(9);
+
+        TaskPollExecutorExtension.logPoolSize(context, monitor, workers);
+
+        verify(monitor).info(contains("max-total=9"));
+        var warningMessage = ArgumentCaptor.forClass(String.class);
+        verify(monitor).warning(warningMessage.capture());
+        assertThat(warningMessage.getValue())
+                .contains(DspConfigKeys.CONTROL_PLANE_POOL_MAX_TOTAL.key())
+                .contains(DspConfigKeys.CONTROL_PLANE_POOL_MAX_IDLE.key());
     }
 }
