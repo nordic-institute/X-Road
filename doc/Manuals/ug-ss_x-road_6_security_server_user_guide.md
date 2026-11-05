@@ -144,6 +144,7 @@ Doc. ID: UG-SS
 | 19.10.2026 | 2.113   | Updated the Diagnostics traffic limits and the operational monitoring daemon endpoint parameters for gRPC                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 | 19.10.2026 | 2.114   | Added chapter [26](#26-managing-the-agreement-token-signing-key) on viewing and rotating the agreement token signing key                                                                                                                                                                                                                                                                                   | Andres Rosenthal     |
 | 20.10.2026 | 2.115   | Added automatic rotation, key retention and the remote secret store requirements to chapter [26](#26-managing-the-agreement-token-signing-key)                                                                                                                                                                                                                                                             | Andres Rosenthal     |
+| 05.11.2026 | 2.116   | Added section [7.4](#74-access-rights-over-the-dataspace-protocol) on when local group membership changes take effect over the dataspace protocol                                                                                                                                                                                                                                                          | Andres Rosenthal     |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -221,6 +222,7 @@ Doc. ID: UG-SS
   - [7.1 Changing the Access Rights of a Service](#71-changing-the-access-rights-of-a-service)
   - [7.2 Adding a Service Client](#72-adding-a-service-client)
   - [7.3 Changing the Access Rights of a Service Client](#73-changing-the-access-rights-of-a-service-client)
+  - [7.4 Access Rights over the Dataspace Protocol](#74-access-rights-over-the-dataspace-protocol)
 - [8 Local Access Right Groups](#8-local-access-right-groups)
   - [8.1 Adding a Local Group](#81-adding-a-local-group)
   - [8.2 Displaying and Changing the Members of a Local Group](#82-displaying-and-changing-the-members-of-a-local-group)
@@ -1623,6 +1625,13 @@ To change the service client's access rights, follow these steps.
     - To remove all access rights to a service from the service client click **REMOVE ALL** and click **YES** in the confirmation dialog.
 
     - Removing service level access rights from the service client also removes all REST API endpoint level access rights to the endpoints of the service. In other words, removing access rights from the service client removes all access rights to a service and its endpoints.
+
+
+### 7.4 Access Rights over the Dataspace Protocol
+
+When the dataspace protocol is enabled on the Security Server, the access rights granted to subsystems and to local and global groups also apply to data exchange in a dataspace. The Security Server keeps the service catalog and the group memberships it publishes in a cache. A change to the access rights or to the members of a local group is therefore not visible in a dataspace immediately.
+
+Adding or removing a member of a local group (see section [8.2](#82-displaying-and-changing-the-members-of-a-local-group)) clears these caches on the control plane instance that the Security Server administration service is connected to, and the change takes effect at once on that instance. Other control plane instances and the proxy do not receive the signal and refresh their caches when the cache period expires. The worst-case time until a removal of a local group member takes effect on every instance is about 120 seconds (the membership cache period plus the service catalog cache period, 60 seconds each by default).
 
 
 ## 8 Local Access Right Groups
