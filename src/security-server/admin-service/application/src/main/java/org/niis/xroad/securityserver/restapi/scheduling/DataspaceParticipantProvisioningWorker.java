@@ -74,6 +74,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus.ISSUED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.DRIFTED;
@@ -293,7 +294,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         } else {
             provisionNonConverged(nonConverged, statuses, provisioned);
         }
-        publicationStage.publish(provisioned);
+        publicationStage.publish(provisioned, credentialIssued(statuses));
         return contextCount;
     }
 
@@ -459,6 +460,13 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             log.error("Dataspace provisioning: failed to re-apply Control Plane records of participant context {}, "
                     + "continuing with the rest", context.participantId(), e);
         }
+    }
+
+    private static Set<ParticipantContext> credentialIssued(Map<ParticipantContext, ParticipantContextStatus> statuses) {
+        return statuses.entrySet().stream()
+                .filter(entry -> entry.getValue().credentialStatus() == ISSUED)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 
     private static boolean converged(ParticipantContextStatus status) {

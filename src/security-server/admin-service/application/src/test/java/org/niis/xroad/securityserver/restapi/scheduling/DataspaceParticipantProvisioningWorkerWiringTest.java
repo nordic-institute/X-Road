@@ -36,6 +36,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBinding
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -61,6 +62,7 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
             .withBean(DataspaceProvisioningService.class, () -> mock(DataspaceProvisioningService.class))
             .withBean(DataspaceReadinessPredicates.class, () -> mock(DataspaceReadinessPredicates.class))
             .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class))
+            .withBean(OwnSecurityServerResolver.class, () -> mock(OwnSecurityServerResolver.class))
             .withBean(AdminServiceProperties.class, () -> mock(AdminServiceProperties.class));
 
     @Test

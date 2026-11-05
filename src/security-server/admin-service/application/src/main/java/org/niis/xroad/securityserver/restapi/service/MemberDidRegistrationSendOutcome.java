@@ -43,7 +43,7 @@ import java.util.List;
  * @param causeCode code of the failure's cause when it is an XrdRuntimeException, whether a fault the Central Server
  *                  answered with or a local failure before any request was sent; null for other causes
  */
-public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries, Exception cause,
+public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries, Throwable cause,
                                                String causeCode) {
 
     public MemberDidRegistrationSendOutcome {
@@ -74,7 +74,7 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
         return new MemberDidRegistrationSendOutcome(Status.REQUEST_TOO_LARGE, null, List.of(), null, null);
     }
 
-    public static MemberDidRegistrationSendOutcome sendFailure(Exception cause) {
+    public static MemberDidRegistrationSendOutcome sendFailure(Throwable cause) {
         var causeCode = cause instanceof XrdRuntimeException fault ? fault.getCode() : null;
         return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause, causeCode);
     }

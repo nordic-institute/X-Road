@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -113,6 +115,52 @@ class PublicationOutcomeClassifierTest {
                 .distinct().toList();
 
         assertThat(classified).containsExactlyInAnyOrder(SystemDidRegistrationSendOutcome.Status.values());
+    }
+
+    static Stream<Arguments> memberEntries() {
+        return Stream.of(
+                Arguments.of("STORED", null,
+                        new Transition(PublicationState.SUBMITTED, null, BackoffClass.NONE)),
+                Arguments.of("FINAL_CONFLICT", "DID_TAKEN",
+                        new Transition(PublicationState.REJECTED, "DID_TAKEN", BackoffClass.NONE)),
+                Arguments.of("FIXABLE_CONFLICT", "ADDRESS_MISMATCH",
+                        new Transition(PublicationState.NOT_SENT, "ADDRESS_MISMATCH", BackoffClass.FIXABLE_CONFLICT)),
+                Arguments.of("NOT_RESOLVED", "DID_UNRESOLVABLE",
+                        new Transition(PublicationState.NOT_SENT, "DID_UNRESOLVABLE", BackoffClass.NOT_RESOLVED)),
+                Arguments.of("SOMETHING_NEW", "ignored",
+                        new Transition(PublicationState.NOT_SENT, "SOMETHING_NEW", BackoffClass.SEND_FAILURE)),
+                Arguments.of(null, null,
+                        new Transition(PublicationState.NOT_SENT, "MISSING_STATUS", BackoffClass.SEND_FAILURE)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("memberEntries")
+    void mapsEachMemberEntryResultToItsOwnTransition(String status, String reason, Transition expected) {
+        var entry = new MemberDidRegistrationSendOutcome.Entry(
+                ClientId.Conf.create("DEV", "COM", "222"), status, reason);
+
+        assertThat(PublicationOutcomeClassifier.classify(entry)).isEqualTo(expected);
+    }
+
+    @Test
+    void anUnknownMemberStatusReasonIsCutToTheStoredColumnLength() {
+        var status = "X".repeat(DsParticipantEntity.PUBLICATION_REASON_MAX_LENGTH + 5);
+        var entry = new MemberDidRegistrationSendOutcome.Entry(
+                ClientId.Conf.create("DEV", "COM", "222"), status, null);
+
+        assertThat(PublicationOutcomeClassifier.classify(entry).reason())
+                .hasSize(DsParticipantEntity.PUBLICATION_REASON_MAX_LENGTH);
+    }
+
+    @Test
+    void aFailedMemberRequestIsNotSentUnderTheSendFailureBackoff() {
+        var failed = MemberDidRegistrationSendOutcome.sendFailure(new IllegalStateException("refused"));
+        var tooLarge = MemberDidRegistrationSendOutcome.requestTooLarge();
+
+        assertThat(PublicationOutcomeClassifier.classifyFailedRequest(failed)).isEqualTo(
+                new Transition(PublicationState.NOT_SENT, "SEND_FAILURE: IllegalStateException", BackoffClass.SEND_FAILURE));
+        assertThat(PublicationOutcomeClassifier.classifyFailedRequest(tooLarge)).isEqualTo(
+                new Transition(PublicationState.NOT_SENT, "REQUEST_TOO_LARGE", BackoffClass.SEND_FAILURE));
     }
 
     @Test

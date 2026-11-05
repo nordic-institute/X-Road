@@ -59,6 +59,7 @@ import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -175,6 +176,52 @@ class DataspaceProvisioningStatusServiceTest {
 
         assertThat(server.publicationState()).isEqualTo(PublicationState.NOT_SENT);
         assertThat(server.publicationReason()).isNull();
+    }
+
+    @Test
+    void readStatusReportsThePublicationOfAMemberRowAndNoneForTheSystemContext() {
+        var memberRow = new DsParticipantEntity();
+        memberRow.setState(ParticipantState.ACTIVE);
+        memberRow.setPublicationState(PublicationState.REJECTED);
+        memberRow.setPublicationReason("conflict-reason");
+        when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.of(memberRow));
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+
+        var status = statusService.readStatus();
+
+        assertThat(status.memberPublications()).containsOnlyKeys(OWNER_CTX_ID);
+        var publication = status.memberPublications().get(OWNER_CTX_ID);
+        assertThat(publication.publicationState()).isEqualTo(PublicationState.REJECTED);
+        assertThat(publication.publicationReason()).isEqualTo("conflict-reason");
+    }
+
+    @Test
+    void readStatusIgnoresThePublicationOfADecommissionedMemberRow() {
+        var activeRow = new DsParticipantEntity();
+        activeRow.setState(ParticipantState.ACTIVE);
+        var decommissionedRow = new DsParticipantEntity();
+        decommissionedRow.setState(ParticipantState.DECOMMISSIONED);
+        decommissionedRow.setPublicationState(PublicationState.REJECTED);
+        decommissionedRow.setPublicationReason("conflict-reason");
+        var reads = new AtomicInteger();
+        when(dsParticipantRepository.findByMemberIdentifier(OWNER))
+                .thenAnswer(_ -> Optional.of(reads.getAndIncrement() == 0 ? activeRow : decommissionedRow));
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+
+        var publication = statusService.readStatus().memberPublications().get(OWNER_CTX_ID);
+
+        assertThat(publication.publicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(publication.publicationReason()).isNull();
+    }
+
+    @Test
+    void readStatusReportsNotSentForAMemberWithoutAPublicationStateOrRow() {
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+
+        var publication = statusService.readStatus().memberPublications().get(OWNER_CTX_ID);
+
+        assertThat(publication.publicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(publication.publicationReason()).isNull();
     }
 
     @Test

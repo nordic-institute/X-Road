@@ -178,7 +178,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(Set.of(SYSTEM_CONTEXT));
+        verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), any());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
     }
 
@@ -192,7 +192,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
         order.verify(participantBindingService).bindSystemIfAbsent(HUB_DID);
         order.verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
-        order.verify(publicationStage).publish(Set.of(SYSTEM_CONTEXT));
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), any());
     }
 
     @Test
@@ -203,7 +203,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(Set.of());
+        verify(publicationStage).publish(eq(Set.of()), any());
     }
 
     @Test
@@ -214,7 +214,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(Set.of());
+        verify(publicationStage).publish(eq(Set.of()), any());
     }
 
     @Test
@@ -227,7 +227,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(Set.of());
+        verify(publicationStage).publish(eq(Set.of()), any());
     }
 
     @Test
@@ -236,7 +236,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage, never()).publish(any());
+        verify(publicationStage, never()).publish(any(), any());
     }
 
     @Test
@@ -251,6 +251,32 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.participantContexts()).thenThrow(new RuntimeException("boom"));
 
         assertThatCode(() -> worker.provisionParticipantBestEffort()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void publicationStageRunsAfterAMemberIsBoundAndProvisioned() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+
+        worker.provisionParticipant();
+
+        var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
+        order.verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, HUB_DID));
+        order.verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT, MEMBER_CONTEXT)), any());
+    }
+
+    @Test
+    void publicationStageGetsOnlyTheContextsWhoseCredentialIsIssued() {
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.PENDING, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(any(), eq(Set.of(SYSTEM_CONTEXT)));
     }
 
     @Test

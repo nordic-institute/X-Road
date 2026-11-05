@@ -39,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -47,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -126,7 +128,7 @@ class DataspacePublicationWritersTest {
         });
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender);
+                didRegistrationSender, mock(OwnSecurityServerResolver.class), mock(AdminServiceProperties.class));
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, globalConfProvider,
                 readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
     }
@@ -142,7 +144,7 @@ class DataspacePublicationWritersTest {
     }
 
     private void reconcilerPass() {
-        stage.publish(Set.of(SYSTEM_CONTEXT));
+        stage.publish(Set.of(SYSTEM_CONTEXT), Set.of());
     }
 
     private void globalconfCheck() {

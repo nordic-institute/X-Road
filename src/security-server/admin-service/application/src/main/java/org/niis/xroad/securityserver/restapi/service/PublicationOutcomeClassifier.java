@@ -41,6 +41,8 @@ import java.util.concurrent.TimeoutException;
 public final class PublicationOutcomeClassifier {
 
     static final String SEND_FAILURE_REASON = "SEND_FAILURE";
+    static final String REQUEST_TOO_LARGE_REASON = "REQUEST_TOO_LARGE";
+    static final String MISSING_STATUS_REASON = "MISSING_STATUS";
 
     private PublicationOutcomeClassifier() {
     }
@@ -89,6 +91,40 @@ public final class PublicationOutcomeClassifier {
             case SEND_FAILURE ->
                     new Transition(PublicationState.NOT_SENT, sendFailureReason(outcome.cause()), BackoffClass.SEND_FAILURE);
         };
+    }
+
+    /**
+     * @param entry the result of one member in an answered member DID registration request
+     * @return the transition to apply to that member's row; an unknown status string leaves the value not sent,
+     * with the status as its reason, and a missing status with {@link #MISSING_STATUS_REASON}, under the send
+     * failure backoff
+     */
+    public static Transition classify(MemberDidRegistrationSendOutcome.Entry entry) {
+        if (entry.status() == null) {
+            return new Transition(PublicationState.NOT_SENT, MISSING_STATUS_REASON, BackoffClass.SEND_FAILURE);
+        }
+        return switch (entry.status()) {
+            case "STORED" -> new Transition(PublicationState.SUBMITTED, null, BackoffClass.NONE);
+            case "FINAL_CONFLICT" ->
+                    new Transition(PublicationState.REJECTED, boundedReason(entry.reason()), BackoffClass.NONE);
+            case "FIXABLE_CONFLICT" ->
+                    new Transition(PublicationState.NOT_SENT, boundedReason(entry.reason()), BackoffClass.FIXABLE_CONFLICT);
+            case "NOT_RESOLVED" ->
+                    new Transition(PublicationState.NOT_SENT, boundedReason(entry.reason()), BackoffClass.NOT_RESOLVED);
+            default -> new Transition(PublicationState.NOT_SENT, boundedReason(entry.status()), BackoffClass.SEND_FAILURE);
+        };
+    }
+
+    /**
+     * @param outcome a member DID registration outcome that was not answered
+     * @return the transition to apply to every member of the failed request: not sent, under the send failure
+     * backoff
+     */
+    public static Transition classifyFailedRequest(MemberDidRegistrationSendOutcome outcome) {
+        var reason = outcome.status() == MemberDidRegistrationSendOutcome.Status.REQUEST_TOO_LARGE
+                ? REQUEST_TOO_LARGE_REASON
+                : sendFailureReason(outcome.cause());
+        return new Transition(PublicationState.NOT_SENT, reason, BackoffClass.SEND_FAILURE);
     }
 
     private static String sendFailureReason(Throwable cause) {

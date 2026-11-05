@@ -122,14 +122,24 @@ public class DsParticipantRepository {
     }
 
     /**
-     * Moves a row's publication state from {@code expected} to {@code next} only if the row is still in
-     * the expected state; a row with no publication state counts as {@code NOT_SENT}.
+     * Finds every active MEMBER row that is not sent: its publication state is {@code NOT_SENT} or missing.
+     *
+     * @return the active member rows not yet sent
+     */
+    public List<DsParticipantEntity> findActiveNotSentMembers() {
+        return dsParticipantDAO.findActiveNotSentMembers(persistenceUtils.getCurrentSession());
+    }
+
+    /**
+     * Moves a row's publication state from {@code expected} to {@code next} only if the row is still active
+     * and in the expected state; a row with no publication state counts as {@code NOT_SENT}.
      *
      * @param id       the participant row id
      * @param expected the state the row must still be in
      * @param next     the new state
      * @param reason   the new reason, may be {@code null}
-     * @return {@code true} if the transition applied, {@code false} if the row was in another state or is gone
+     * @return {@code true} if the transition applied, {@code false} if the row is gone, no longer active or
+     *         in another state
      */
     public boolean transitionPublication(Long id, PublicationState expected, PublicationState next,
             @Nullable String reason) {

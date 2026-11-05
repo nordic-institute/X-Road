@@ -8879,6 +8879,12 @@ components:
             - REJECTED
             - DRIFTED
             - UNKNOWN
+        publication_state:
+          $ref: '#/components/schemas/DataspacePublicationState'
+        publication_reason:
+          type: string
+          readOnly: true
+          description: reason for the publication state of a MEMBER context; absent for SYSTEM contexts
     AgreementTokenKeyStatus:
       type: object
       description: status of the agreement token signing key of the connected proxy

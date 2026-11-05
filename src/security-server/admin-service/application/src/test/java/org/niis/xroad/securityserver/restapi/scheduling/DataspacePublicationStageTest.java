@@ -44,6 +44,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -52,6 +53,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.test.MutableClock;
@@ -97,6 +99,10 @@ class DataspacePublicationStageTest {
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private DidRegistrationSender didRegistrationSender;
+    @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
+    @Mock
+    private AdminServiceProperties adminServiceProperties;
 
     @InjectMocks
     private DataspacePublicationStage stage;
@@ -132,7 +138,7 @@ class DataspacePublicationStageTest {
     }
 
     private void runPass() {
-        stage.publish(Set.of(SYSTEM_CONTEXT));
+        stage.publish(Set.of(SYSTEM_CONTEXT), Set.of());
     }
 
     private List<ILoggingEvent> logsOfPass() {
@@ -219,7 +225,7 @@ class DataspacePublicationStageTest {
 
     @Test
     void sendsNothingWhileTheSystemContextIsNotProvisioned() {
-        stage.publish(Set.of());
+        stage.publish(Set.of(), Set.of());
 
         verifyNothingSent();
     }
@@ -488,8 +494,8 @@ class DataspacePublicationStageTest {
         verifySends(1);
 
         var restarted = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender);
-        restarted.publish(Set.of(SYSTEM_CONTEXT));
+                didRegistrationSender, ownSecurityServerResolver, adminServiceProperties);
+        restarted.publish(Set.of(SYSTEM_CONTEXT), Set.of());
 
         verifySends(2);
     }

@@ -135,7 +135,7 @@ class DataspacePublicationStageSecurityTest {
             when(context.getBean(DataspaceDidAuthority.class).dspBaseUrlIfValid()).thenReturn(Optional.of("https://test/dsp"));
             when(context.getBean(DsParticipantRepository.class).findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
 
-            context.getBean(DataspacePublicationStage.class).publish(Set.of(SYSTEM_CONTEXT));
+            context.getBean(DataspacePublicationStage.class).publish(Set.of(SYSTEM_CONTEXT), Set.of());
 
             var globalConfProvider = context.getBean(GlobalConfProvider.class);
             verify(globalConfProvider).verifyValidity();

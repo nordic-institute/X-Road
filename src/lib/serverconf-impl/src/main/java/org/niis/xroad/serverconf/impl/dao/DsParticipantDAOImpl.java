@@ -94,6 +94,27 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
     }
 
     /**
+     * Finds every {@link ParticipantType#MEMBER} row that is {@link ParticipantState#ACTIVE} and not sent: its
+     * publication state is {@link PublicationState#NOT_SENT} or missing.
+     *
+     * @param session the Hibernate session
+     * @return the active member rows not yet sent, in no particular order
+     */
+    public List<DsParticipantEntity> findActiveNotSentMembers(Session session) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+
+        query.select(root).where(
+                cb.equal(root.get("participantType"), ParticipantType.MEMBER),
+                cb.equal(root.get("state"), ParticipantState.ACTIVE),
+                cb.or(cb.isNull(root.get("publicationState")),
+                        cb.equal(root.get("publicationState"), PublicationState.NOT_SENT)));
+
+        return session.createQuery(query).list();
+    }
+
+    /**
      * Flips the member's bound participant row to {@link ParticipantState#DECOMMISSIONED}, whatever
      * its current state — a no-op if it already is. Does nothing when the member has no bound row:
      * every bound member is provisioned with an {@code ACTIVE} row up front, so a missing row means
@@ -142,8 +163,9 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
 
     /**
      * Moves the row's publication state from {@code expected} to {@code next} only if the row is
-     * still in the expected state, in one conditional update. A row with no publication state counts
-     * as {@link PublicationState#NOT_SENT}, so expecting {@code NOT_SENT} also matches it.
+     * still {@link ParticipantState#ACTIVE} and in the expected state, in one conditional
+     * update. A row with no publication state counts as {@link PublicationState#NOT_SENT}, so expecting
+     * {@code NOT_SENT} also matches it.
      *
      * @param session  the Hibernate session
      * @param id       the participant row id
@@ -151,7 +173,8 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
      * @param next     the new state
      * @param reason   the new reason, may be {@code null}
      * @param at       the time of the change
-     * @return {@code true} if the transition applied, {@code false} if the row was in another state or is gone
+     * @return {@code true} if the transition applied, {@code false} if the row was in another state, is not active
+     * or is gone
      */
     public boolean transitionPublication(Session session, Long id, PublicationState expected, PublicationState next,
             @Nullable String reason, Instant at) {
@@ -159,11 +182,13 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
                 ? "(publicationState is null or publicationState = :expected)"
                 : "publicationState = :expected";
         int updated = session.createMutationQuery("update DsParticipantEntity set publicationState = :next, "
-                        + "publicationReason = :reason, publicationChangedAt = :at where id = :id and " + expectedMatches)
+                        + "publicationReason = :reason, publicationChangedAt = :at where id = :id and state = :active and "
+                        + expectedMatches)
                 .setParameter("next", next)
                 .setParameter("reason", reason)
                 .setParameter("at", at)
                 .setParameter("id", id)
+                .setParameter("active", ParticipantState.ACTIVE)
                 .setParameter("expected", expected)
                 .executeUpdate();
         return updated > 0;
