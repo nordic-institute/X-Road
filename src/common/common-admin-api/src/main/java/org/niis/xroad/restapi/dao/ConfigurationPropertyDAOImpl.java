@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.dao;
 
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 
@@ -35,14 +36,15 @@ public class ConfigurationPropertyDAOImpl {
 
     public List<ConfigurationPropertyEntity> findAll(Session session, Class<ConfigurationPropertyEntity> clazz) {
         final CriteriaQuery<ConfigurationPropertyEntity> q = session.getCriteriaBuilder().createQuery(clazz);
-        q.select(q.from(clazz));
+        final Root<ConfigurationPropertyEntity> root = q.from(clazz);
+        q.select(root).where(session.getCriteriaBuilder().isNull(root.get("haNodeName")));
         return session.createQuery(q).getResultList();
     }
 
 
     public ConfigurationPropertyEntity findByPropertyKey(Session session, String propertyKey) {
         return session.createQuery(
-                        "FROM ConfigurationPropertyEntity WHERE propertyKey = :propertyKey",
+                        "FROM ConfigurationPropertyEntity WHERE propertyKey = :propertyKey AND haNodeName IS NULL",
                         ConfigurationPropertyEntity.class)
                 .setParameter("propertyKey", propertyKey)
                 .uniqueResult();
