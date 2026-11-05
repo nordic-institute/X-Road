@@ -49,7 +49,15 @@ class ManagementServicesApiTest extends CsApiTest {
 
     private static final String VAULT_ISSUE_MOCK_TEMPLATE = """
             {
-              "httpRequest": {"method": "POST", "path": "/v1/xrd-pki/issue/xrd-internal"},
+              "httpRequest": {
+                "method": "POST",
+                "path": "/v1/xrd-pki/issue/xrd-internal",
+                "body": {
+                  "type": "JSON",
+                  "json": {"common_name": "management-service.api-test.example"},
+                  "matchType": "ONLY_MATCHING_FIELDS"
+                }
+              },
               "httpResponse": {
                 "statusCode": 200,
                 "headers": {"Content-Type": ["application/json"]},

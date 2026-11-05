@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
@@ -63,6 +64,7 @@ public class XRoadConfigBeanConfiguration {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(CsAdminServiceConfigKeys.instance())
+                .register(CsManagementServiceConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
                 .register(DataspaceConfigKeys.instance())

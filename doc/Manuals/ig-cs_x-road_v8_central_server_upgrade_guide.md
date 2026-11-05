@@ -181,6 +181,8 @@ The output must now begin with `8.`.
 
 The Security Server wizard script `migrate_tls_to_secret_store.sh` shows the same request format, but it writes to the Security Server paths `tls/admin-service` and `tls/management-service`. Do not copy its paths: the Central Server reads `tls/admin-service/<node>` and `tls/management-service/<node>`.
 
+The migrated user interface and management services certificates keep their X-Road 7 names. To get certificates with the names derived from the host or set in the configuration database, delete the key and restart the services as described in [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2. After the management services certificate is replaced, the management Security Server must trust the new certificate.
+
 **10. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server — each sub-command skips cleanly when its source file is absent, so the operator's job is simply to run the full sequence in order. For a Central Server, the following sub-commands are the relevant ones:
 
 ```bash

@@ -502,7 +502,7 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 
 **ATTENTION!**
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
-- The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
+- The running management services keep serving the old certificate until they are restarted. Restart `xroad-center-management-service`, then `xroad-center-registration-service`, in this order. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
 ### 4.5 Configuring the Issuer Service Host
 
