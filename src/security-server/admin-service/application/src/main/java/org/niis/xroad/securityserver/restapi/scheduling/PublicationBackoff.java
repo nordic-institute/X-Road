@@ -29,14 +29,20 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 
 /**
  * In-memory exponential backoff for publication attempts. The pause after the n-th consecutive failure of a
  * key doubles from {@link #INITIAL_DELAY} up to {@link #MAX_DELAY}, shortened by a random factor so that servers
- * do not retry in step. Nothing is persisted: a restart forgets every pause and costs at most one early retry.
+ * do not retry in step. It also remembers which request kinds must send a one-entry probe next, and the smallest
+ * size of a request of a kind that the Central Server accepted after refusing a larger one. Nothing is
+ * persisted: a restart forgets every pause, probe and size, so the next pass may retry early and halve an
+ * oversized request again.
  */
 public final class PublicationBackoff {
 
@@ -76,6 +82,8 @@ public final class PublicationBackoff {
     private final Clock clock;
     private final DoubleSupplier jitter;
     private final Map<Key, Entry> entries = new HashMap<>();
+    private final Set<RequestKind> probing = EnumSet.noneOf(RequestKind.class);
+    private final Map<RequestKind, Integer> acceptedSizes = new EnumMap<>(RequestKind.class);
 
     /**
      * @param clock  the time source
@@ -104,10 +112,51 @@ public final class PublicationBackoff {
     }
 
     /**
+     * Starts a pause of the longest length, {@link #MAX_DELAY}, before jitter.
+     */
+    public synchronized void recordMaximumFailure(Key key) {
+        var failures = MAX_DOUBLINGS + 1;
+        entries.put(key, new Entry(failures, clock.instant().plus(delayAfter(failures))));
+    }
+
+    /**
      * Ends the pause of the key and resets its growth.
      */
     public synchronized void recordSuccess(Key key) {
         entries.remove(key);
+    }
+
+    /**
+     * Makes the next request of the kind a one-entry probe.
+     */
+    public synchronized void requireProbe(RequestKind kind) {
+        probing.add(kind);
+    }
+
+    /**
+     * Ends the probe of the kind: its requests have normal size again.
+     */
+    public synchronized void clearProbe(RequestKind kind) {
+        probing.remove(kind);
+    }
+
+    /**
+     * Remembers the size of a request that the Central Server accepted after refusing a larger one. Later
+     * requests of the kind start no larger than it; the size never drops below one and never grows back.
+     */
+    public synchronized void rememberAcceptedSize(RequestKind kind, int size) {
+        acceptedSizes.merge(kind, Math.max(1, size), Math::min);
+    }
+
+    /**
+     * @return one during a probe, else the configured batch size or the remembered accepted size when that is
+     * smaller
+     */
+    public synchronized int batchSize(RequestKind kind, int configured) {
+        if (probing.contains(kind)) {
+            return 1;
+        }
+        return Math.min(configured, acceptedSizes.getOrDefault(kind, Integer.MAX_VALUE));
     }
 
     private Duration delayAfter(int failures) {

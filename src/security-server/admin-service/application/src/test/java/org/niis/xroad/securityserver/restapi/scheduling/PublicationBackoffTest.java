@@ -141,4 +141,56 @@ class PublicationBackoffTest {
         assertThat(backoff.mayAttempt(first)).isTrue();
         assertThat(backoff.mayAttempt(MEMBER)).isFalse();
     }
+
+    @Test
+    void aMaximumFailureStartsTheLongestPauseAtOnce() {
+        backoff.recordMaximumFailure(SYSTEM);
+
+        clock.advance(PublicationBackoff.MAX_DELAY.minusSeconds(1));
+        assertThat(backoff.mayAttempt(SYSTEM)).isFalse();
+
+        clock.advance(Duration.ofSeconds(1));
+        assertThat(backoff.mayAttempt(SYSTEM)).isTrue();
+    }
+
+    @Test
+    void aProbeLimitsTheBatchSizeToOneUntilItIsClearedAndIsKeptPerRequestKind() {
+        backoff.rememberAcceptedSize(RequestKind.MEMBER, 25);
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(25);
+
+        backoff.requireProbe(RequestKind.MEMBER);
+
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(1);
+        assertThat(backoff.batchSize(RequestKind.SYSTEM, 100)).isEqualTo(100);
+
+        backoff.clearProbe(RequestKind.MEMBER);
+
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(25);
+    }
+
+    @Test
+    void theBatchSizeIsLimitedByTheRememberedAcceptedSizeOfItsRequestKindOnly() {
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(100);
+
+        backoff.rememberAcceptedSize(RequestKind.MEMBER, 25);
+
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(25);
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 10)).isEqualTo(10);
+        assertThat(backoff.batchSize(RequestKind.SYSTEM, 100)).isEqualTo(100);
+    }
+
+    @Test
+    void theRememberedAcceptedSizeNeverGrowsBack() {
+        backoff.rememberAcceptedSize(RequestKind.MEMBER, 25);
+        backoff.rememberAcceptedSize(RequestKind.MEMBER, 50);
+
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(25);
+    }
+
+    @Test
+    void theRememberedAcceptedSizeNeverDropsBelowOne() {
+        backoff.rememberAcceptedSize(RequestKind.MEMBER, 0);
+
+        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(1);
+    }
 }

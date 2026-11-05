@@ -113,6 +113,8 @@ class DataspaceMemberPublicationTest {
     private final Set<ParticipantContext> issued = new HashSet<>();
     private final List<List<String>> requests = new ArrayList<>();
     private MemberDidRegistrationSendOutcome nextOutcome;
+    private int maxEntries = Integer.MAX_VALUE;
+    private Set<String> unresolvedCodes = Set.of();
     private int batchSize = 100;
 
     @BeforeEach
@@ -144,7 +146,10 @@ class DataspaceMemberPublicationTest {
         when(didRegistrationSender.sendMemberDidRegisterRequest(any())).thenAnswer(call -> {
             Map<ClientId.Conf, String> request = call.getArgument(0);
             requests.add(request.keySet().stream().map(ClientId::getMemberCode).toList());
-            return nextOutcome != null ? nextOutcome : allStored(request);
+            if (request.size() > maxEntries) {
+                return MemberDidRegistrationSendOutcome.requestTooLarge();
+            }
+            return nextOutcome != null ? nextOutcome : answeredFor(request);
         });
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
@@ -406,6 +411,214 @@ class DataspaceMemberPublicationTest {
         order.verify(didRegistrationSender).sendMemberDidRegisterRequest(any());
     }
 
+    @Test
+    void aRequestTooLargeForHundredEntriesIsResentWithFiftyAndTwentyFiveInTheSamePass() {
+        maxEntries = 25;
+        addMembers(100);
+
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50, 25);
+        assertThat(memberRows.subList(0, 25)).allMatch(row -> row.getPublicationState() == PublicationState.SUBMITTED);
+        assertThat(memberRows.subList(25, 100)).allMatch(row -> row.getPublicationState() == null);
+    }
+
+    @Test
+    void theEntriesOfAResentRequestThatWasRefusedKeepTheirStateAndReason() {
+        maxEntries = 50;
+        addMembers(100);
+
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50);
+        assertThat(memberRows.subList(50, 100))
+                .allMatch(row -> row.getPublicationState() == null && row.getPublicationReason() == null);
+    }
+
+    @Test
+    void halvedResendsAreNoEntryFailuresSoTheNextPassSendsTheRestAtOnce() {
+        maxEntries = 50;
+        addMembers(100);
+
+        pass();
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50, 50);
+        assertThat(memberRows).allMatch(row -> row.getPublicationState() == PublicationState.SUBMITTED);
+    }
+
+    @Test
+    void halvingSendsEachDepthOnceAndStopsAtOneEntry() {
+        maxEntries = 0;
+        addMembers(100);
+
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50, 25, 12, 6, 3, 1);
+    }
+
+    @Test
+    void aBatchSizeAboveTheCentralServerLimitShrinksOnceAndLaterPassesSendOneAcceptedRequestEach() {
+        batchSize = 100;
+        maxEntries = 40;
+        addMembers(250);
+
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50, 25);
+        IntStream.range(0, 9).forEach(_ -> {
+            var before = requests.size();
+            pass();
+            assertThat(requests).hasSize(before + 1);
+            assertThat(requests.getLast()).hasSize(25);
+        });
+        assertThat(memberRows).allMatch(row -> row.getPublicationState() == PublicationState.SUBMITTED);
+    }
+
+    @Test
+    void aSendFailureOfAResentRequestPausesTheMemberKindForOneStepAndLeavesTheRestUntouched() {
+        maxEntries = 50;
+        addMembers(100);
+        nextOutcome = MemberDidRegistrationSendOutcome.sendFailure(new IllegalStateException("refused"));
+
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50);
+        assertThat(memberRows.subList(0, 50)).allMatch(row -> row.getPublicationState() == PublicationState.NOT_SENT
+                && "SEND_FAILURE: IllegalStateException".equals(row.getPublicationReason()));
+        assertThat(memberRows.subList(50, 100)).allMatch(row -> row.getPublicationState() == null);
+
+        clock.advance(Duration.ofSeconds(30));
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(100, 50, 100, 50);
+    }
+
+    @Test
+    void aSingleEntryStillTooLargeStaysNotSentForFiveMinutes() {
+        maxEntries = 0;
+        var member = addMember("A01");
+
+        pass();
+
+        assertThat(requests).hasSize(1);
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(member.getPublicationReason()).isEqualTo("REQUEST_TOO_LARGE");
+
+        clock.advance(Duration.ofSeconds(299));
+        pass();
+        assertThat(requests).hasSize(1);
+
+        clock.advance(Duration.ofSeconds(1));
+        pass();
+        assertThat(requests).hasSize(2);
+    }
+
+    @Test
+    void aSingleEntryStillTooLargeHoldsBackTheOtherMemberDidsOnlyForTheKindPause() {
+        maxEntries = 0;
+        addMember("A01");
+        pass();
+        maxEntries = Integer.MAX_VALUE;
+        var other = addMember("A02");
+
+        clock.advance(Duration.ofSeconds(29));
+        pass();
+        assertThat(requests).hasSize(1);
+
+        clock.advance(Duration.ofSeconds(1));
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(1, 1);
+        assertThat(other.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+    }
+
+    @Test
+    void aCentralServerThatRefusesEvenOneEntryGetsOneHalvingChainPerKindPause() {
+        maxEntries = 0;
+        addMembers(3);
+
+        pass();
+        assertThat(requests).extracting(List::size).containsExactly(3, 1);
+
+        for (var seconds : List.of(10, 10, 9)) {
+            clock.advance(Duration.ofSeconds(seconds));
+            pass();
+        }
+        assertThat(requests).hasSize(2);
+
+        clock.advance(Duration.ofSeconds(1));
+        pass();
+        assertThat(requests).extracting(List::size).containsExactly(3, 1, 2, 1);
+    }
+
+    @Test
+    void afterABatchWithNothingResolvedTheNextBatchHasOneEntryAndFullSizeReturnsOnceItResolves() {
+        batchSize = 3;
+        addMembers(6);
+        unresolvedCodes = Set.of("M000", "M001", "M002");
+
+        pass();
+        unresolvedCodes = Set.of();
+        clock.advance(Duration.ofSeconds(31));
+        pass();
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(3, 1, 3);
+        assertThat(requests.get(1)).containsExactly("M000");
+        assertThat(requests.get(2)).containsExactly("M001", "M002", "M003");
+    }
+
+    @Test
+    void aProbeThatDoesNotResolveKeepsTheNextBatchAtOneEntryWhileTheRestGoOut() {
+        batchSize = 3;
+        addMembers(6);
+        unresolvedCodes = Set.of("M000", "M001", "M002", "M003", "M004", "M005");
+
+        pass();
+        clock.advance(Duration.ofSeconds(31));
+        unresolvedCodes = Set.of("M000");
+        pass();
+        clock.advance(Duration.ofSeconds(31));
+        unresolvedCodes = Set.of();
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(3, 1, 1);
+        assertThat(requests.get(2)).containsExactly("M001");
+    }
+
+    @Test
+    void aProbeEntryWithAnUnknownStatusKeepsTheNextBatchAtOneEntry() {
+        batchSize = 3;
+        addMembers(6);
+        unresolvedCodes = Set.of("M000", "M001", "M002", "M003", "M004", "M005");
+        pass();
+        clock.advance(Duration.ofSeconds(31));
+        unresolvedCodes = Set.of();
+        nextOutcome = MemberDidRegistrationSendOutcome.answered(1, List.of(entry("M000", "SOMETHING_NEW", null)));
+        pass();
+        nextOutcome = null;
+        clock.advance(Duration.ofSeconds(31));
+
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(3, 1, 1);
+        assertThat(requests.get(2)).containsExactly("M001");
+    }
+
+    @Test
+    void aBatchWithOneResolvedEntryDoesNotStartAProbe() {
+        batchSize = 3;
+        addMembers(6);
+        unresolvedCodes = Set.of("M000", "M001");
+
+        pass();
+        clock.advance(Duration.ofSeconds(31));
+        pass();
+
+        assertThat(requests).extracting(List::size).containsExactly(3, 3);
+    }
+
     private void pass() {
         stage.publish(Set.copyOf(provisioned), Set.copyOf(issued));
     }
@@ -419,6 +632,10 @@ class DataspaceMemberPublicationTest {
     private static ParticipantContext memberContext(String memberCode) {
         return new ParticipantContext("xrd-ss0-" + memberCode.toLowerCase(), ParticipantKind.MEMBER,
                 ClientId.Conf.create("DEV", "COM", memberCode));
+    }
+
+    private void addMembers(int count) {
+        IntStream.range(0, count).forEach(i -> addMember(String.format("M%03d", i)));
     }
 
     private DsParticipantEntity addMember(String memberCode) {
@@ -449,9 +666,11 @@ class DataspaceMemberPublicationTest {
         return new Entry(ClientId.Conf.create("DEV", "COM", memberCode), status, reason);
     }
 
-    private static MemberDidRegistrationSendOutcome allStored(Map<ClientId.Conf, String> request) {
+    private MemberDidRegistrationSendOutcome answeredFor(Map<ClientId.Conf, String> request) {
         return MemberDidRegistrationSendOutcome.answered(1, request.keySet().stream()
-                .map(member -> new Entry(member, "STORED", null))
+                .map(member -> unresolvedCodes.contains(member.getMemberCode())
+                        ? new Entry(member, "NOT_RESOLVED", "DID_UNRESOLVABLE")
+                        : new Entry(member, "STORED", null))
                 .toList());
     }
 }

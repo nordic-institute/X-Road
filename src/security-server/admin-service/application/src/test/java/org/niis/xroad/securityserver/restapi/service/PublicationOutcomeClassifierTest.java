@@ -153,14 +153,14 @@ class PublicationOutcomeClassifierTest {
     }
 
     @Test
-    void aFailedMemberRequestIsNotSentUnderTheSendFailureBackoff() {
+    void aFailedMemberRequestIsNotSentUnderItsOwnBackoffClass() {
         var failed = MemberDidRegistrationSendOutcome.sendFailure(new IllegalStateException("refused"));
         var tooLarge = MemberDidRegistrationSendOutcome.requestTooLarge();
 
         assertThat(PublicationOutcomeClassifier.classifyFailedRequest(failed)).isEqualTo(
                 new Transition(PublicationState.NOT_SENT, "SEND_FAILURE: IllegalStateException", BackoffClass.SEND_FAILURE));
         assertThat(PublicationOutcomeClassifier.classifyFailedRequest(tooLarge)).isEqualTo(
-                new Transition(PublicationState.NOT_SENT, "REQUEST_TOO_LARGE", BackoffClass.SEND_FAILURE));
+                new Transition(PublicationState.NOT_SENT, "REQUEST_TOO_LARGE", BackoffClass.REQUEST_TOO_LARGE));
     }
 
     @Test

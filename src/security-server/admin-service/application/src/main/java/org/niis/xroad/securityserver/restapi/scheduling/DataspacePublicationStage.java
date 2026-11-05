@@ -87,8 +87,11 @@ import java.util.function.Supplier;
  *
  * <p>Member DIDs are sent only after the SYSTEM values are submitted or published, and while the owner member
  * context holds an issued credential. A member is hosted when it has a provisioned member context. A pass sends
- * at most one request of at most the provisioning batch size, so the Central Server request limit that all
- * requests of the instance share holds. Values left over join the next pass.
+ * one request of at most the provisioning batch size, plus the resends after a too-large refusal. Values left
+ * over join the next pass. A request the Central Server refuses as too large is resent in the same pass with the
+ * first half of its entries, until it is accepted or one entry is left; later passes start no larger than the
+ * smallest size accepted after a refusal. A single entry that is still too large stays not sent for the longest
+ * pause and pauses the member kind. After a request in which no entry resolved, the next request has one entry.
  */
 @Slf4j
 @Component
@@ -283,34 +286,56 @@ public class DataspacePublicationStage {
 
         var batch = allowed.stream()
                 .sorted(Comparator.comparing((DsParticipantEntity row) -> row.getMemberIdentifier().asEncodedId()))
-                .limit(adminServiceProperties.getDataspace().getProvisioningBatchSize())
+                .limit(backoff.batchSize(RequestKind.MEMBER,
+                        adminServiceProperties.getDataspace().getProvisioningBatchSize()))
                 .toList();
-        Map<ClientId.Conf, String> request = new LinkedHashMap<>();
-        batch.forEach(row -> request.put(ClientId.Conf.ensure(row.getMemberIdentifier()), row.getDid()));
+        sendMemberBatch(batch, kindKey);
+    }
 
-        var outcome = sendWithTimeout("member DIDs", () -> didRegistrationSender.sendMemberDidRegisterRequest(request),
-                MemberDidRegistrationSendOutcome::sendFailure);
+    private void sendMemberBatch(List<DsParticipantEntity> batch, Key kindKey) {
+        var sent = batch;
+        var outcome = sendMembers(sent);
+        while (outcome.isPresent() && isTooLarge(outcome.get()) && sent.size() > 1) {
+            var half = sent.size() / 2;
+            log.debug("Dataspace publication: {} member DIDs are too large for one request, resending {}",
+                    sent.size(), half);
+            sent = sent.subList(0, half);
+            outcome = sendMembers(sent);
+        }
         if (outcome.isEmpty()) {
             return;
         }
         if (outcome.get().status() == MemberDidRegistrationSendOutcome.Status.ANSWERED) {
-            applyAnswered(batch, outcome.get(), kindKey);
+            if (sent.size() < batch.size()) {
+                backoff.rememberAcceptedSize(RequestKind.MEMBER, sent.size());
+            }
+            applyAnswered(sent, outcome.get(), kindKey);
         } else {
-            applyFailedRequest(batch, outcome.get(), kindKey);
+            applyFailedRequest(sent, outcome.get(), kindKey);
         }
+    }
+
+    private Optional<MemberDidRegistrationSendOutcome> sendMembers(List<DsParticipantEntity> batch) {
+        Map<ClientId.Conf, String> request = new LinkedHashMap<>();
+        batch.forEach(row -> request.put(ClientId.Conf.ensure(row.getMemberIdentifier()), row.getDid()));
+        return sendWithTimeout("member DIDs", () -> didRegistrationSender.sendMemberDidRegisterRequest(request),
+                MemberDidRegistrationSendOutcome::sendFailure);
+    }
+
+    private static boolean isTooLarge(MemberDidRegistrationSendOutcome outcome) {
+        return outcome.status() == MemberDidRegistrationSendOutcome.Status.REQUEST_TOO_LARGE;
     }
 
     private void applyAnswered(List<DsParticipantEntity> batch, MemberDidRegistrationSendOutcome outcome, Key kindKey) {
         Map<String, DsParticipantEntity> rows = new LinkedHashMap<>();
         batch.forEach(row -> rows.put(row.getMemberIdentifier().asEncodedId(), row));
         boolean sendFailure = false;
+        boolean resolved = false;
         for (var entry : outcome.entries()) {
             var row = rows.get(entry.member().asEncodedId());
-            if (row == null) {
-                continue;
-            }
             var transition = PublicationOutcomeClassifier.classify(entry);
             sendFailure |= transition.backoff() == BackoffClass.SEND_FAILURE;
+            resolved |= isCentralServerVerdict(transition.backoff());
             recordValueBackoff(transition.backoff(), memberValueKey(row));
             applyMember(row, transition);
         }
@@ -319,13 +344,32 @@ public class DataspacePublicationStage {
         } else {
             backoff.recordSuccess(kindKey);
         }
+        if (resolved) {
+            backoff.clearProbe(RequestKind.MEMBER);
+        } else {
+            backoff.requireProbe(RequestKind.MEMBER);
+        }
+    }
+
+    private static boolean isCentralServerVerdict(BackoffClass backoffClass) {
+        return backoffClass == BackoffClass.NONE || backoffClass == BackoffClass.FIXABLE_CONFLICT;
     }
 
     private void applyFailedRequest(List<DsParticipantEntity> batch, MemberDidRegistrationSendOutcome outcome,
             Key kindKey) {
         backoff.recordFailure(kindKey);
         var transition = PublicationOutcomeClassifier.classifyFailedRequest(outcome);
-        batch.forEach(row -> applyMember(row, transition));
+        var tooLarge = isTooLarge(outcome);
+        if (tooLarge) {
+            log.warn("Dataspace publication: the Central Server refuses even one member DID as too large, "
+                    + "check its request limits");
+        }
+        batch.forEach(row -> {
+            if (tooLarge) {
+                backoff.recordMaximumFailure(memberValueKey(row));
+            }
+            applyMember(row, transition);
+        });
     }
 
     private void applyMember(DsParticipantEntity row, PublicationOutcomeClassifier.Transition transition) {

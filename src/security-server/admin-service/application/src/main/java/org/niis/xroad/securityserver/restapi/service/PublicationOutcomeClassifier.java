@@ -54,7 +54,8 @@ public final class PublicationOutcomeClassifier {
         NONE,
         SEND_FAILURE,
         FIXABLE_CONFLICT,
-        NOT_RESOLVED
+        NOT_RESOLVED,
+        REQUEST_TOO_LARGE
     }
 
     /**
@@ -118,13 +119,13 @@ public final class PublicationOutcomeClassifier {
     /**
      * @param outcome a member DID registration outcome that was not answered
      * @return the transition to apply to every member of the failed request: not sent, under the send failure
-     * backoff
+     * backoff, or, for a request refused as too large, under the {@link BackoffClass#REQUEST_TOO_LARGE} backoff
      */
     public static Transition classifyFailedRequest(MemberDidRegistrationSendOutcome outcome) {
-        var reason = outcome.status() == MemberDidRegistrationSendOutcome.Status.REQUEST_TOO_LARGE
-                ? REQUEST_TOO_LARGE_REASON
-                : sendFailureReason(outcome.cause());
-        return new Transition(PublicationState.NOT_SENT, reason, BackoffClass.SEND_FAILURE);
+        if (outcome.status() == MemberDidRegistrationSendOutcome.Status.REQUEST_TOO_LARGE) {
+            return new Transition(PublicationState.NOT_SENT, REQUEST_TOO_LARGE_REASON, BackoffClass.REQUEST_TOO_LARGE);
+        }
+        return new Transition(PublicationState.NOT_SENT, sendFailureReason(outcome.cause()), BackoffClass.SEND_FAILURE);
     }
 
     private static String sendFailureReason(Throwable cause) {
