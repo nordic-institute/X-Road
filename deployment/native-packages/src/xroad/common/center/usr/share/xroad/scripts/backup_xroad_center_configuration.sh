@@ -39,9 +39,9 @@ read_backup_encryption_settings () {
   local psql_q=(psql -v ON_ERROR_STOP=1 -qAt -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -U "$db_user" -d "$db_database")
 
   ENCRYPT_BACKUP=$("${psql_q[@]}" -v k="xroad.backups.backup-encryption-enabled" \
-    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k';")
+    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;")
   GPG_KEYIDS=$("${psql_q[@]}" -v k="xroad.backups.backup-encryption-keyids" \
-    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k';")
+    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;")
 }
 
 execute_backup () {

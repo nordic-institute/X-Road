@@ -82,7 +82,7 @@ SQL
   psql_serverconf -v k="$key" -v v="$value" <<'SQL'
 INSERT INTO configuration_properties (property_key, property_value)
 VALUES (:'k', :'v')
-ON CONFLICT (property_key) DO NOTHING;
+ON CONFLICT (property_key, ha_node_name) DO NOTHING;
 SQL
 }
 

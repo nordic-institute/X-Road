@@ -118,7 +118,7 @@ psql_q() {
 row_exists() {
   local out
   out=$(psql_q -v k="$KEY" <<'SQL'
-SELECT 1 FROM configuration_properties WHERE property_key = :'k' LIMIT 1;
+SELECT 1 FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL LIMIT 1;
 SQL
   ) || die "Database query failed for '${KEY}'"
   [[ -n "$out" ]]
@@ -150,7 +150,7 @@ cmd_get() {
   fi
 
   psql_q -v k="$KEY" <<'SQL' || die "Database query failed for '${KEY}'"
-SELECT property_value FROM configuration_properties WHERE property_key = :'k';
+SELECT property_value FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;
 SQL
 }
 
@@ -178,7 +178,7 @@ cmd_set() {
   psql_q -v k="$KEY" -v v="$VALUE" <<SQL
 INSERT INTO configuration_properties (property_key, property_value)
 VALUES (:'k', :'v')
-ON CONFLICT (property_key)
+ON CONFLICT (property_key, ha_node_name)
 ${conflict_action};
 SQL
 
@@ -204,7 +204,7 @@ cmd_remove() {
   fi
 
   psql_q -v k="$KEY" <<'SQL'
-DELETE FROM configuration_properties WHERE property_key = :'k';
+DELETE FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;
 SQL
 
   log "Removed: ${KEY}"
