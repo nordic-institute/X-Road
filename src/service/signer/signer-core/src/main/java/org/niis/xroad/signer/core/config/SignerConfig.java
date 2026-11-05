@@ -66,8 +66,6 @@ public class SignerConfig {
 
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
-                            @ConfigProperty(name = NodeNameProvider.NODE_AWARE_PROPERTY_KEY,
-                                    defaultValue = "false") boolean nodeAware,
                             @ConfigProperty(name = NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY)
                             Optional<String> nodeName) {
         return XRoadConfigBuilder.create()
@@ -79,7 +77,7 @@ public class SignerConfig {
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .overrides(profileOverrides())
-                .dbOverrides(appName, NodeNameProvider.of(nodeAware, nodeName.orElse(null)))
+                .dbOverrides(appName, NodeNameProvider.of(nodeName.orElse(null)))
                 .build();
     }
 

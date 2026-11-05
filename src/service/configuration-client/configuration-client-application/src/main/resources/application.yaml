@@ -39,11 +39,6 @@ quarkus:
         enabled: true
         path: /var/log/xroad/configuration_client.log
 
-"%cs":
-  xroad:
-    config:
-      node-aware: true
-
 "%cli":
   xroad:
     configuration-client:

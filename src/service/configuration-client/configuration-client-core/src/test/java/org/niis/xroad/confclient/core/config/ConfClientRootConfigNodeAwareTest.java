@@ -34,15 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ConfClientRootConfigNodeAwareTest {
 
     private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("confclientnodeaware",
-            (nodeAware, nodeName) -> new ConfClientRootConfig().xRoadConfig("configuration-client", nodeAware, nodeName));
+            nodeName -> new ConfClientRootConfig().xRoadConfig("configuration-client", nodeName));
 
     @Test
-    void optedInWithANodeNameResolvesTheNodeValue() throws Exception {
-        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveOptedIn());
+    void aConfiguredNodeNameResolvesTheNodeValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveWithNodeName());
     }
 
     @Test
-    void notOptedInResolvesTheSharedValue() throws Exception {
-        assertEquals(NodeAwareProducerFixture.SHARED_VALUE, FIXTURE.resolveNotOptedIn());
+    void noNodeNameResolvesTheNodeZeroValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.DEFAULT_NODE_VALUE, FIXTURE.resolveWithoutNodeName());
     }
 }

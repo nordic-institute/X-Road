@@ -34,15 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SignerConfigNodeAwareTest {
 
     private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("signernodeaware",
-            (nodeAware, nodeName) -> new SignerConfig().xRoadConfig("signer", nodeAware, nodeName));
+            nodeName -> new SignerConfig().xRoadConfig("signer", nodeName));
 
     @Test
-    void optedInWithANodeNameResolvesTheNodeValue() throws Exception {
-        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveOptedIn());
+    void aConfiguredNodeNameResolvesTheNodeValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveWithNodeName());
     }
 
     @Test
-    void notOptedInResolvesTheSharedValue() throws Exception {
-        assertEquals(NodeAwareProducerFixture.SHARED_VALUE, FIXTURE.resolveNotOptedIn());
+    void noNodeNameResolvesTheNodeZeroValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.DEFAULT_NODE_VALUE, FIXTURE.resolveWithoutNodeName());
     }
 }

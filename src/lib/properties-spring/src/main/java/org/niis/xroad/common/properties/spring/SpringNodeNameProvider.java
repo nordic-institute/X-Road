@@ -32,28 +32,19 @@ import org.springframework.core.env.Environment;
 /**
  * Builds the {@link NodeNameProvider} of a Spring application from its {@code Environment}, which holds
  * {@code local.yaml} (via {@code spring.config.import}) and the {@code XROAD_ADMIN_SERVICE_HA_NODE_NAME}
- * environment variable (relaxed binding), following {@link NodeNameProvider#of(boolean, String)}.
- *
- * <p>Only applications that set {@link #NODE_AWARE_PROPERTY} to {@code true} get a node; every other
- * Spring application, the Security Server ones included, loads shared rows only. The opt-in is never
- * inferred from the presence of the node name.
+ * environment variable (relaxed binding), following {@link NodeNameProvider#of(String)}. An application
+ * without a node name resolves to {@link NodeNameProvider#DEFAULT_NODE_NAME}.
  */
 public final class SpringNodeNameProvider {
-
-    /** Application property that opts a Spring application into node-aware loading. */
-    public static final String NODE_AWARE_PROPERTY = NodeNameProvider.NODE_AWARE_PROPERTY_KEY;
 
     private SpringNodeNameProvider() {
     }
 
     /**
      * @param environment the application's environment
-     * @return the Central Server provider when the application opted in, otherwise
-     *         {@link NodeNameProvider#shared()}
+     * @return the provider of the node name configured in the environment
      */
     public static NodeNameProvider forEnvironment(Environment environment) {
-        return NodeNameProvider.of(
-                environment.getProperty(NODE_AWARE_PROPERTY, Boolean.class, false),
-                environment.getProperty(NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY));
+        return NodeNameProvider.of(environment.getProperty(NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY));
     }
 }

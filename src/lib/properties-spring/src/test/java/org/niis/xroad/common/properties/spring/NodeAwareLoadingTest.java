@@ -67,6 +67,7 @@ class NodeAwareLoadingTest {
     static void createTable() throws SQLException {
         databaseEnvironment = NodeConfigTestTable.create("springnodeaware", List.of(
                 new Row(KEY, "20MB", null),
+                new Row(KEY, "10MB", "node_0"),
                 new Row(KEY, "30MB", "node_1"),
                 new Row(KEY, "40MB", "node_2")));
     }
@@ -77,8 +78,8 @@ class NodeAwareLoadingTest {
     }
 
     @Test
-    void optedInAppResolvesTheNodeValueInAllThreeLoadPoints() {
-        var environment = environment(true);
+    void configuredNodeNameResolvesTheNodeValueInAllThreeLoadPoints() {
+        var environment = environment("node_1");
 
         assertThat(publishedValue(environment)).isEqualTo("30MB");
         assertThat(conditionValue(environment)).isEqualTo("30MB");
@@ -86,20 +87,19 @@ class NodeAwareLoadingTest {
     }
 
     @Test
-    void appThatDidNotOptInGetsTheSharedValueInAllThreeLoadPoints() {
-        var environment = environment(false);
+    void missingNodeNameResolvesTheNodeZeroValueInAllThreeLoadPoints() {
+        var environment = environment(null);
 
-        assertThat(publishedValue(environment)).isEqualTo("20MB");
-        assertThat(conditionValue(environment)).isEqualTo("20MB");
-        assertThat(beanValue(environment)).isEqualTo("20MB");
+        assertThat(publishedValue(environment)).isEqualTo("10MB");
+        assertThat(conditionValue(environment)).isEqualTo("10MB");
+        assertThat(beanValue(environment)).isEqualTo("10MB");
     }
 
-    private static StandardEnvironment environment(boolean optedIn) {
+    private static StandardEnvironment environment(String nodeName) {
         var properties = new HashMap<String, Object>();
         properties.put("spring.application.name", "admin-service");
-        properties.put("xroad.admin-service.ha-node-name", "node_1");
-        if (optedIn) {
-            properties.put(SpringNodeNameProvider.NODE_AWARE_PROPERTY, "true");
+        if (nodeName != null) {
+            properties.put("xroad.admin-service.ha-node-name", nodeName);
         }
         var environment = new StandardEnvironment();
         environment.getPropertySources().addFirst(new MapPropertySource("test", properties));

@@ -40,9 +40,6 @@ public interface NodeNameProvider {
     /** Configuration key that holds the HA node name of a Central Server node. */
     String HA_NODE_NAME_PROPERTY_KEY = "xroad.admin-service.ha-node-name";
 
-    /** Configuration key that opts an application into node-aware loading. */
-    String NODE_AWARE_PROPERTY_KEY = "xroad.config.node-aware";
-
     /** Node name used when {@link #HA_NODE_NAME_PROPERTY_KEY} is blank or missing. */
     String DEFAULT_NODE_NAME = "node_0";
 
@@ -55,16 +52,11 @@ public interface NodeNameProvider {
     }
 
     /**
-     * The one rule that turns an application's settings into a provider.
-     * @param nodeAware whether the application opted into node-aware loading
+     * The one rule that turns the configured node name into a provider.
      * @param configuredName the configured node name, may be {@code null} or blank
-     * @return {@link #shared()} when not opted in; otherwise the trimmed name, or
-     *         {@link #DEFAULT_NODE_NAME} when the name is blank or missing
+     * @return a provider of the trimmed name, or of {@link #DEFAULT_NODE_NAME} when the name is blank or missing
      */
-    static NodeNameProvider of(boolean nodeAware, String configuredName) {
-        if (!nodeAware) {
-            return shared();
-        }
+    static NodeNameProvider of(String configuredName) {
         var name = configuredName == null || configuredName.isBlank() ? DEFAULT_NODE_NAME : configuredName.trim();
         return () -> Optional.of(name);
     }

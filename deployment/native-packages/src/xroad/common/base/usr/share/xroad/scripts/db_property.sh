@@ -16,12 +16,14 @@
 # prompting; the value is inserted only when the key has no row yet.
 # For `remove`, an existing row triggers a delete prompt unless --yes is given;
 # if no matching row exists, the command is a no-op success.
-# A node name must match the X-Road node name rule; an invalid one exits with status 2 before
-# the database is touched.
+# --node is for a Central Server only; on any other host it exits with status 2 before the
+# database is touched. A node name must match the X-Road node name rule; an invalid one exits
+# with status 2 the same way.
 
 set -euo pipefail
 
 readonly LOG_TAG="db_property"
+readonly CS_MARKER="/etc/xroad/services/centralserver-admin-service.conf"
 
 log()       { echo "$(date -Iseconds) ${LOG_TAG}: $*" >&2; }
 log_error() { echo "$(date -Iseconds) ${LOG_TAG} ERROR: $*" >&2; }
@@ -43,9 +45,9 @@ Commands:
          Delete a row from configuration_properties. No-op if absent.
 
 Common options:
-  -n, --node <name>  Act on the row of this Central Server node (for example node_1)
-                     instead of the shared row. The name must match
-                     ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$
+  -n, --node <name>  Central Server only. Act on the row of this Central Server node
+                     (for example node_1) instead of the shared row. The name must
+                     match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$
   -y, --yes          Skip interactive confirmation prompt
   -h, --help         Show this help
 
@@ -91,8 +93,13 @@ parse_args() {
   done
 }
 
+is_central_server() {
+  [ -f "$CS_MARKER" ]
+}
+
 validate_node() {
   (( NODE_GIVEN == 1 )) || return 0
+  is_central_server || die "--node is supported on a Central Server only"
   local LC_ALL=C
   [[ "$NODE" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$ ]] \
     || die "Invalid node name; it must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$"
@@ -107,7 +114,7 @@ load_db_properties() {
   # /etc/xroad/services/global.conf — Central Server is identified by the
   # centralserver-admin-service.conf marker, Configuration Proxy by the
   # confproxy-cli.conf marker; otherwise treat as Security Server.
-  if [ -f /etc/xroad/services/centralserver-admin-service.conf ]; then
+  if is_central_server; then
     [ -f "$cs_helper" ] || die "Central Server detected but $cs_helper not found"
     # shellcheck source=/dev/null
     source "$cs_helper"

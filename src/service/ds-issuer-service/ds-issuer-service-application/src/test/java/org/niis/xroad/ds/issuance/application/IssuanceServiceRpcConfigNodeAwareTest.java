@@ -34,15 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class IssuanceServiceRpcConfigNodeAwareTest {
 
     private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("issuernodeaware",
-            (nodeAware, nodeName) -> new IssuanceServiceRpcConfig().xRoadConfig("ds-issuer-service", nodeAware, nodeName));
+            nodeName -> new IssuanceServiceRpcConfig().xRoadConfig("ds-issuer-service", nodeName));
 
     @Test
-    void optedInWithANodeNameResolvesTheNodeValue() throws Exception {
-        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveOptedIn());
+    void aConfiguredNodeNameResolvesTheNodeValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveWithNodeName());
     }
 
     @Test
-    void notOptedInResolvesTheSharedValue() throws Exception {
-        assertEquals(NodeAwareProducerFixture.SHARED_VALUE, FIXTURE.resolveNotOptedIn());
+    void noNodeNameResolvesTheNodeZeroValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.DEFAULT_NODE_VALUE, FIXTURE.resolveWithoutNodeName());
     }
 }

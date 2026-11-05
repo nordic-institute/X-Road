@@ -41,21 +41,21 @@ class SpringNodeNameProviderTest {
 
     @Test
     void returnsTheConfiguredName() {
-        var environment = optedIn().withProperty(NODE_NAME_KEY, "node_1");
+        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "node_1");
 
         assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_1");
     }
 
     @Test
     void blankNameMapsToNodeZero() {
-        var environment = optedIn().withProperty(NODE_NAME_KEY, "  ");
+        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "  ");
 
         assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_0");
     }
 
     @Test
     void missingNameMapsToNodeZero() {
-        assertThat(SpringNodeNameProvider.forEnvironment(optedIn()).nodeName()).contains("node_0");
+        assertThat(SpringNodeNameProvider.forEnvironment(new MockEnvironment()).nodeName()).contains("node_0");
     }
 
     @Test
@@ -63,28 +63,8 @@ class SpringNodeNameProviderTest {
         var environment = new StandardEnvironment();
         environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
                 new SystemEnvironmentPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                        Map.of("XROAD_CONFIG_NODE_AWARE", "true", "XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_2")));
+                        Map.of("XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_2")));
 
         assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_2");
-    }
-
-    @Test
-    void applicationThatDidNotOptInStaysSharedEvenWhenANodeNameIsConfigured() {
-        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "node_1");
-
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).isEmpty();
-    }
-
-    @Test
-    void explicitOptOutStaysShared() {
-        var environment = new MockEnvironment()
-                .withProperty(SpringNodeNameProvider.NODE_AWARE_PROPERTY, "false")
-                .withProperty(NODE_NAME_KEY, "node_1");
-
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).isEmpty();
-    }
-
-    private static MockEnvironment optedIn() {
-        return new MockEnvironment().withProperty(SpringNodeNameProvider.NODE_AWARE_PROPERTY, "true");
     }
 }

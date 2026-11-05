@@ -36,24 +36,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NodeNameProviderTest {
 
     @Test
-    void notOptedInIsSharedEvenWhenANameIsConfigured() {
-        assertThat(NodeNameProvider.of(false, "node_1").nodeName()).isEmpty();
+    void sharedHasNoNode() {
+        assertThat(NodeNameProvider.shared().nodeName()).isEmpty();
     }
 
     @Test
-    void notOptedInWithoutANameIsShared() {
-        assertThat(NodeNameProvider.of(false, null).nodeName()).isEmpty();
-    }
-
-    @Test
-    void optedInWithANameUsesTheTrimmedName() {
-        assertThat(NodeNameProvider.of(true, " node_1 ").nodeName()).contains("node_1");
+    void aNameUsesTheTrimmedName() {
+        assertThat(NodeNameProvider.of(" node_1 ").nodeName()).contains("node_1");
     }
 
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "   "})
-    void optedInWithBlankOrMissingNameUsesNodeZero(String configuredName) {
-        assertThat(NodeNameProvider.of(true, configuredName).nodeName()).contains("node_0");
+    void blankOrMissingNameUsesNodeZero(String configuredName) {
+        assertThat(NodeNameProvider.of(configuredName).nodeName()).contains("node_0");
     }
 }

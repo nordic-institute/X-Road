@@ -31,17 +31,19 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Resolves one key, stored as a shared row and as a {@code node_1} row, through the {@link XRoadConfig}
- * producer of an application, with and without node-aware loading.
+ * Resolves one key, stored as a shared row, a {@code node_0} row and a {@code node_1} row, through the
+ * {@link XRoadConfig} producer of an application, with and without a configured node name.
  */
 public final class NodeAwareProducerFixture {
 
     public static final String SHARED_VALUE = "shared.example.test";
     public static final String NODE_VALUE = "node-1.example.test";
+    public static final String DEFAULT_NODE_VALUE = "node-0.example.test";
 
     private static final String KEY = CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME.key();
 
@@ -55,7 +57,10 @@ public final class NodeAwareProducerFixture {
      */
     public NodeAwareProducerFixture(String databaseName, Producer producer) {
         try {
-            this.databaseEnvironment = NodeConfigTestTable.create(databaseName, KEY, SHARED_VALUE, NODE_VALUE);
+            this.databaseEnvironment = NodeConfigTestTable.create(databaseName, List.of(
+                    new NodeConfigTestTable.Row(KEY, SHARED_VALUE, null),
+                    new NodeConfigTestTable.Row(KEY, DEFAULT_NODE_VALUE, NodeNameProvider.DEFAULT_NODE_NAME),
+                    new NodeConfigTestTable.Row(KEY, NODE_VALUE, NodeConfigTestTable.NODE_NAME)));
         } catch (SQLException e) {
             throw new IllegalStateException("Cannot create the configuration table", e);
         }
@@ -63,30 +68,29 @@ public final class NodeAwareProducerFixture {
     }
 
     /**
-     * @return the value the producer resolves when the application opted in and has a node name
+     * @return the value the producer resolves when the application has a configured node name
      * @throws Exception when the producer fails
      */
-    public String resolveOptedIn() throws Exception {
-        return resolve(true);
+    public String resolveWithNodeName() throws Exception {
+        return resolve(Optional.of(NodeConfigTestTable.NODE_NAME));
     }
 
     /**
-     * @return the value the producer resolves when the application did not opt in
+     * @return the value the producer resolves when the application has no configured node name
      * @throws Exception when the producer fails
      */
-    public String resolveNotOptedIn() throws Exception {
-        return resolve(false);
+    public String resolveWithoutNodeName() throws Exception {
+        return resolve(Optional.empty());
     }
 
-    private String resolve(boolean nodeAware) throws Exception {
+    private String resolve(Optional<String> nodeName) throws Exception {
         return new EnvironmentVariables(databaseEnvironment).execute(
-                () -> producer.create(nodeAware, Optional.of(NodeConfigTestTable.NODE_NAME))
-                        .value(CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME));
+                () -> producer.create(nodeName).value(CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME));
     }
 
     /** The {@code xRoadConfig} producer method of an application. */
     @FunctionalInterface
     public interface Producer {
-        XRoadConfig create(boolean nodeAware, Optional<String> nodeName);
+        XRoadConfig create(Optional<String> nodeName);
     }
 }

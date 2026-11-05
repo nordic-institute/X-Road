@@ -34,11 +34,6 @@ quarkus:
         enabled: true
         path: /var/log/xroad/ds-issuer-service.log
 
-"%cs":
-  xroad:
-    config:
-      node-aware: true
-
 xroad:
   edc:
     boot:
