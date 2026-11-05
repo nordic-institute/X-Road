@@ -190,9 +190,9 @@ public class ClientRestMessageProcessor {
         identifierValidationService.checkIdentifier(restRequest.getTargetSecurityServer());
     }
 
-    private ProxyMessage processRequest(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
-                                        RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
-                                        String xRequestId, ProxyRequestContext ctx) throws Exception {
+    ProxyMessage processRequest(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                                RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
+                                String xRequestId, ProxyRequestContext ctx) throws Exception {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }

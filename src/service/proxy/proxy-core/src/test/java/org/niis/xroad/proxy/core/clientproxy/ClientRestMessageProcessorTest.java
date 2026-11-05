@@ -51,6 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -589,6 +590,47 @@ class ClientRestMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
     }
 
+    @ParameterizedTest
+    @MethodSource("answersFromALiveProvider")
+    void anAnswerFromALiveProviderOnTheLegacySendReachesTheCallerAndStaysOutOfTheDspPath(Throwable answer) throws Exception {
+        var harness = createHarness(false);
+        stubUnnegotiatedAddress(harness);
+        var httpSender = mock(HttpSender.class);
+        when(httpSender.getResponseHeaders()).thenThrow(answer);
+        stubSenders(harness, httpSender);
+        var restRequest = restRequest();
+
+        assertThatThrownBy(() -> harness.processor().processRequest(mock(RequestWrapper.class), null, restRequest,
+                restRequest.getClientId(), serviceId(), "req-1", restRequestContext())).isSameAs(answer);
+
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(httpSender).close();
+        verifyNoInteractions(harness.dspSendFailureHandler());
+        verifyNoInteractions(harness.consumerSideDspProcessor());
+    }
+
+    @ParameterizedTest
+    @MethodSource("answersParsedFromTheFirstResponse")
+    void aProviderFaultParsedFromTheFirstResponseEndsTheCallWithoutFailoverOrReport(
+            XrdRuntimeException answer, boolean dropsCachedAssetAccess) throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var httpSender = mock(HttpSender.class);
+        when(httpSender.getResponseHeaders()).thenThrow(answer);
+        stubSenders(harness, httpSender);
+        var restRequest = restRequest();
+
+        assertThatThrownBy(() -> harness.processor().processRequest(mock(RequestWrapper.class), null, restRequest,
+                restRequest.getClientId(), serviceId(), "req-1", restRequestContext())).isSameAs(answer);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(httpSender).close();
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+        verify(harness.consumerSideDspProcessor(), times(dropsCachedAssetAccess ? 1 : 0)).invalidateAssetAccess(any(DspRequest.class));
+    }
+
     @Test
     void aSendThatCompletesDoesNotReachTheFailureHandler() throws Exception {
         var harness = createHarness(true);
@@ -980,6 +1022,15 @@ class ClientRestMessageProcessorTest {
                 XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"),
                 XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"),
                 XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"));
+    }
+
+    static Stream<Arguments> answersParsedFromTheFirstResponse() {
+        return Stream.of(
+                Arguments.of(XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"), false),
+                Arguments.of(XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 500,
+                        "Internal Server Error"), false),
+                Arguments.of(XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), true),
+                Arguments.of(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), true));
     }
 
     static Stream<XrdRuntimeException> protocolRejections() {

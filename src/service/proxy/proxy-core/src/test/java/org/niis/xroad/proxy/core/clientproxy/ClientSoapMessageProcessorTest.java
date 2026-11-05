@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -728,6 +729,45 @@ class ClientSoapMessageProcessorTest {
     }
 
     @ParameterizedTest
+    @MethodSource("answersFromALiveProvider")
+    void anAnswerFromALiveProviderOnTheLegacySendReachesTheCallerAndStaysOutOfTheDspPath(Throwable answer) throws Exception {
+        var harness = createRefusalHarness(false, false);
+        var request = newUnfinishedRequest();
+        var httpSender = failingSender(answer);
+        stubSenders(harness, httpSender);
+
+        assertThatThrownBy(() -> harness.processor().processRequest(request.ctx(), request.decoder(), "req-1", null))
+                .isSameAs(answer);
+
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(httpSender).close();
+        verifyNoInteractions(harness.dspSendFailureHandler());
+        verifyNoInteractions(harness.consumerSideDspProcessor());
+    }
+
+    @ParameterizedTest
+    @MethodSource("answersParsedFromTheFirstResponse")
+    void aProviderFaultParsedFromTheFirstResponseEndsTheCallWithoutFailoverOrReport(
+            XrdRuntimeException answer, boolean dropsCachedAssetAccess) throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var request = newCompletedRequest();
+        var httpSender = mock(HttpSender.class);
+        when(httpSender.getResponseHeaders()).thenThrow(answer);
+        stubSenders(harness, httpSender);
+
+        assertThatThrownBy(() -> harness.processor().processRequest(request.ctx(), request.decoder(), "req-1", null))
+                .isSameAs(answer);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(httpSender).close();
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+        verify(harness.consumerSideDspProcessor(), times(dropsCachedAssetAccess ? 1 : 0)).invalidateAssetAccess(any(DspRequest.class));
+    }
+
+    @ParameterizedTest
     @MethodSource("protocolRejections")
     void aProtocolRejectionOnTheNewAcquisitionAfterATransportFaultReachesTheCallerUnchanged(
             XrdRuntimeException rejection) throws Exception {
@@ -840,6 +880,15 @@ class ClientSoapMessageProcessorTest {
                 XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"),
                 XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"),
                 XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"));
+    }
+
+    static Stream<Arguments> answersParsedFromTheFirstResponse() {
+        return Stream.of(
+                Arguments.of(XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"), false),
+                Arguments.of(XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 500,
+                        "Internal Server Error"), false),
+                Arguments.of(XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), true),
+                Arguments.of(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), true));
     }
 
     static Stream<XrdRuntimeException> protocolRejections() {
