@@ -67,7 +67,8 @@ public interface ParticipantValueStore {
     SystemPairCheck checkSystemPair(int securityServerId, String systemDid, String dspBaseUrl);
 
     /**
-     * Replaces the stored SYSTEM pair of a server. A server without a stored pair is left without one.
+     * Replaces the stored SYSTEM pair of a server. A server without a stored pair is left without one and
+     * the pair is refused as {@code NO_STORED_VALUE}.
      *
      * @param securityServerId the id of the server row
      * @param systemDid        the new SYSTEM DID

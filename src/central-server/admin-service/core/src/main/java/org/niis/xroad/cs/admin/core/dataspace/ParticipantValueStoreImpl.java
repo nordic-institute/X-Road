@@ -58,6 +58,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -155,13 +156,16 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
     private ParticipantValueResult storeSystemPair(int securityServerId, SystemPair pair, Mode mode) {
         var server = lockAndLoad(securityServerId);
+        if (mode == Mode.ADMIN_REPLACE && server.getSystemDid() == null) {
+            return ParticipantValueResult.rejected(NO_STORED_VALUE);
+        }
         var check = verdictOf(server, validatorFor(server), pair);
 
         var verdict = check.verdict();
         if (verdict == Verdict.REJECTED) {
             return ParticipantValueResult.rejected(check.rejection());
         }
-        if (verdict == Verdict.EQUAL || (verdict == Verdict.ABSENT && mode == Mode.ADMIN_REPLACE)) {
+        if (verdict == Verdict.EQUAL) {
             return ParticipantValueResult.UNCHANGED;
         }
         if (verdict == Verdict.VALUE_DIFFERS && mode == Mode.WRITE_ONCE) {

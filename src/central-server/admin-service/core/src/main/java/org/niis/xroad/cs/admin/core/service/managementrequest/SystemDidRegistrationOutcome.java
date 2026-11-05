@@ -69,6 +69,7 @@ record SystemDidRegistrationOutcome(OutcomeClass outcomeClass, String reason) {
             case HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS, DID_HELD_BY_ANOTHER_SERVER, MEMBER_NOT_SERVED ->
                     OutcomeClass.FIXABLE_CONFLICT;
             case NON_ASCII_HOST -> isNonAscii(registeredAddress) ? OutcomeClass.FIXABLE_CONFLICT : OutcomeClass.FINAL_CONFLICT;
+            case NO_STORED_VALUE -> throw new IllegalStateException("A registration cannot be refused as " + rejection);
         };
         return new SystemDidRegistrationOutcome(outcomeClass, rejection.name());
     }

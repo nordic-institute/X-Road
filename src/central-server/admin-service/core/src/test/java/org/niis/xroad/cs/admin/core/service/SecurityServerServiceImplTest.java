@@ -34,6 +34,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -75,6 +77,7 @@ import org.niis.xroad.cs.admin.core.repository.paging.PageDto;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 
 import java.util.HashSet;
@@ -282,7 +285,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
             when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerEntity.getId()).thenReturn(5);
-            when(securityServerEntity.getSystemDid()).thenReturn("did:web:old");
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.STORED);
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
@@ -300,7 +302,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
             when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerEntity.getId()).thenReturn(5);
-            when(securityServerEntity.getSystemDid()).thenReturn(PAIR.systemDid());
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.UNCHANGED);
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
@@ -308,30 +309,68 @@ class SecurityServerServiceImplTest implements WithInOrder {
             assertThat(securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR)).isPresent();
         }
 
-        @Test
-        void shouldFailWhenTheStoreRefusesThePair() {
+        @ParameterizedTest
+        @CsvSource({
+                "NO_STORED_VALUE, system_pair_not_stored",
+                "WRONG_SCHEME, system_pair_wrong_scheme",
+                "DID_TOO_LONG, system_pair_did_too_long",
+                "NOT_CANONICAL, system_pair_not_canonical",
+                "HOST_DIFFERS, system_pair_host_differs",
+                "UNPARSEABLE_REGISTERED_ADDRESS, system_pair_unparseable_address",
+                "NON_ASCII_HOST, system_pair_non_ascii_host",
+                "DSP_BASE_URL_NOT_HTTPS, system_pair_dsp_base_url_not_https",
+                "MALFORMED_DSP_BASE_URL, system_pair_malformed_dsp_base_url",
+                "FOREIGN_SYSTEM_DID, system_pair_foreign_did",
+                "DID_HELD_BY_ANOTHER_SERVER, system_pair_did_held_by_another_server"})
+        void shouldFailWithTheCodeOfTheReasonTheStoreRefusesThePair(ParticipantValueRejection rejection, String code) {
             when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerEntity.getId()).thenReturn(5);
-            when(securityServerEntity.getSystemDid()).thenReturn("did:web:old");
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
-                    .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.HOST_DIFFERS));
+                    .thenReturn(ParticipantValueResult.rejected(rejection));
 
             assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("system_pair_rejected");
+                    .hasMessageContaining(code);
             verifyNoInteractions(securityServerMapper);
         }
 
         @Test
-        void shouldFailWhenThePairIsGivenForAServerWithNoStoredPair() {
+        void shouldFailAsHeldByAnotherServerWhenTheDatabaseRefusesTheSameDidOnTwoServers() {
             when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getSystemDid()).thenReturn(null);
+            when(securityServerEntity.getId()).thenReturn(5);
+            when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
+                    .thenThrow(new DataIntegrityViolationException("security_servers_system_did_excl"));
 
             assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
-                    .isInstanceOf(BadRequestException.class);
-            verifyNoInteractions(participantValueStore);
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("system_pair_did_held_by_another_server");
+            verifyNoInteractions(securityServerMapper);
+        }
+
+        @Test
+        void shouldRethrowADatabaseRefusalOfAnotherConstraint() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            when(securityServerEntity.getId()).thenReturn(5);
+            var failure = new DataIntegrityViolationException("security_servers_system_values_check");
+            when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl())).thenThrow(failure);
+
+            assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
+                    .isSameAs(failure);
+        }
+
+        @Test
+        void shouldFailWhenAReasonThatAPairReplacementCannotHitIsReturned() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            when(securityServerEntity.getId()).thenReturn(5);
+            when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
+                    .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.MEMBER_NOT_SERVED));
+
+            assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
+                    .isInstanceOf(IllegalStateException.class);
         }
 
         @Test

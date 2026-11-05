@@ -60,7 +60,7 @@ import java.util.List;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_REJECTED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_INCOMPLETE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER;
@@ -164,8 +164,12 @@ public class SecurityServersApiController implements SecurityServersApi {
         auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
         auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
         auditDataHelper.put(ADDRESS, securityServerEdit.getServerAddress());
-        auditDataHelper.put(SYSTEM_DID, securityServerEdit.getSystemDid());
-        auditDataHelper.put(DSP_BASE_URL, securityServerEdit.getDspBaseUrl());
+        if (securityServerEdit.getSystemDid() != null) {
+            auditDataHelper.put(SYSTEM_DID, securityServerEdit.getSystemDid());
+        }
+        if (securityServerEdit.getDspBaseUrl() != null) {
+            auditDataHelper.put(DSP_BASE_URL, securityServerEdit.getDspBaseUrl());
+        }
 
         return securityServerService.editSecurityServer(securityServerId, securityServerEdit.getServerAddress(),
                         toSystemPairEdit(securityServerEdit))
@@ -179,7 +183,7 @@ public class SecurityServersApiController implements SecurityServersApi {
             return null;
         }
         if (edit.getSystemDid() == null || edit.getDspBaseUrl() == null) {
-            throw new BadRequestException(SYSTEM_PAIR_REJECTED.build());
+            throw new BadRequestException(SYSTEM_PAIR_INCOMPLETE.build());
         }
         return new SystemPairEdit(edit.getSystemDid(), edit.getDspBaseUrl());
     }

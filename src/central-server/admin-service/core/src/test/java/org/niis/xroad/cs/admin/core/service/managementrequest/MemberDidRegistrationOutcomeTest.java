@@ -55,6 +55,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFO
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
@@ -72,10 +73,12 @@ class MemberDidRegistrationOutcomeTest {
     private static final Set<ParticipantValueRejection> ADDRESS_DEPENDENT_REASONS = EnumSet.of(NON_ASCII_HOST);
     private static final Set<ParticipantValueRejection> UNREACHABLE_REASONS =
             EnumSet.of(DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, FOREIGN_SYSTEM_DID);
+    private static final Set<ParticipantValueRejection> ADMIN_REPLACE_ONLY_REASONS = EnumSet.of(NO_STORED_VALUE);
 
     @Test
     void everyRejectionIsInExactlyOneGroup() {
-        var groups = List.of(FINAL_REASONS, FIXABLE_REASONS, ADDRESS_DEPENDENT_REASONS, UNREACHABLE_REASONS);
+        var groups = List.of(FINAL_REASONS, FIXABLE_REASONS, ADDRESS_DEPENDENT_REASONS, UNREACHABLE_REASONS,
+                ADMIN_REPLACE_ONLY_REASONS);
 
         var seen = EnumSet.noneOf(ParticipantValueRejection.class);
         for (var group : groups) {
@@ -96,6 +99,9 @@ class MemberDidRegistrationOutcomeTest {
         if (UNREACHABLE_REASONS.contains(rejection)) {
             assertThatThrownBy(() -> MemberDidRegistrationOutcome.rejected(MEMBER, rejection, ADDRESS))
                     .isInstanceOf(IllegalArgumentException.class);
+        } else if (ADMIN_REPLACE_ONLY_REASONS.contains(rejection)) {
+            assertThatThrownBy(() -> MemberDidRegistrationOutcome.rejected(MEMBER, rejection, ADDRESS))
+                    .isInstanceOf(IllegalStateException.class);
         } else if (ADDRESS_DEPENDENT_REASONS.contains(rejection)) {
             assertThat(MemberDidRegistrationOutcome.rejected(MEMBER, rejection, ADDRESS))
                     .isEqualTo(new Result(MEMBER, Status.FINAL_CONFLICT, rejection.name()));

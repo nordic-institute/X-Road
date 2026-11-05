@@ -82,6 +82,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_H
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REJECT_CONNECTOR_PUBLISHED_VALUE;
@@ -407,12 +408,33 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
-    void shouldNotAddSystemPairOnAdminReplace() {
+    void shouldLeaveAnEqualSystemPairAsItIsOnAdminReplace() {
+        server.setSystemDid(SYSTEM_DID);
+        server.setDspBaseUrl(DSP_URL);
+
         var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
 
         assertThat(result).isEqualTo(ParticipantValueResult.UNCHANGED);
+        assertThat(server.getSystemDid()).isEqualTo(SYSTEM_DID);
+        assertThat(server.getDspBaseUrl()).isEqualTo(DSP_URL);
+        verify(securityServerRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldRefuseToAddSystemPairOnAdminReplace() {
+        var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(NO_STORED_VALUE));
         assertThat(server.getSystemDid()).isNull();
         assertThat(server.getDspBaseUrl()).isNull();
+        verify(securityServerRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void shouldRefuseToAddAnInvalidSystemPairOnAdminReplaceAsNotStored() {
+        var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, "http://ss0.example.org/api/dsp");
+
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(NO_STORED_VALUE));
         verify(securityServerRepository, never()).saveAndFlush(any());
     }
 

@@ -38,6 +38,7 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
@@ -117,10 +118,36 @@ class SecurityServersApiControllerTest {
     void halfAPairIsRefusedAfterItIsAudited() {
         assertThatThrownBy(() -> controller.updateSecurityServer(ID,
                 new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).systemDid(DID)))
-                .isInstanceOf(BadRequestException.class);
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("system_pair_incomplete");
 
         verifyAudit(DID, null);
         verifyNoInteractions(securityServerService);
+    }
+
+    @Test
+    void onlyTheDspBaseUrlIsRefusedAsAnIncompletePair() {
+        assertThatThrownBy(() -> controller.updateSecurityServer(ID,
+                new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).dspBaseUrl(URL)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("system_pair_incomplete");
+
+        verifyAudit(null, URL);
+        verifyNoInteractions(securityServerService);
+    }
+
+    @Test
+    void aRefusedPairIsAuditedWithTheRequestsPropertiesBeforeTheFailure() {
+        var pair = new SystemPairEdit(DID, URL);
+        when(securityServerService.editSecurityServer(serverId, ADDRESS_VALUE, pair))
+                .thenThrow(new BadRequestException(ErrorMessage.SYSTEM_PAIR_HOST_DIFFERS.build()));
+
+        assertThatThrownBy(() -> controller.updateSecurityServer(ID,
+                new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).systemDid(DID).dspBaseUrl(URL)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("system_pair_host_differs");
+
+        verifyAudit(DID, URL);
     }
 
     @Test
@@ -149,8 +176,12 @@ class SecurityServersApiControllerTest {
         verify(auditDataHelper).put(OWNER_CODE, "1234");
         verify(auditDataHelper).put(OWNER_CLASS, "COM");
         verify(auditDataHelper).put(ADDRESS, ADDRESS_VALUE);
-        verify(auditDataHelper).put(SYSTEM_DID, systemDid);
-        verify(auditDataHelper).put(DSP_BASE_URL, dspBaseUrl);
+        if (systemDid != null) {
+            verify(auditDataHelper).put(SYSTEM_DID, systemDid);
+        }
+        if (dspBaseUrl != null) {
+            verify(auditDataHelper).put(DSP_BASE_URL, dspBaseUrl);
+        }
         verifyNoMoreInteractions(auditDataHelper);
     }
 }

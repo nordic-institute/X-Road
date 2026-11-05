@@ -175,7 +175,7 @@ class SystemDidRegistrationRequestHandlerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ParticipantValueRejection.class)
+    @EnumSource(value = ParticipantValueRejection.class, mode = EnumSource.Mode.EXCLUDE, names = "NO_STORED_VALUE")
     void addMapsEveryStoreRejectionThroughTheOutcomeTableAndSavesNoRow(ParticipantValueRejection rejection) {
         when(authCertServerCheck.requireServer(securityServerId, CERTIFICATE)).thenReturn(checkedServer());
         when(participantValueStore.writeSystemPairOnce(SERVER_ROW_ID, SYSTEM_DID, DSP_BASE_URL))
@@ -219,6 +219,7 @@ class SystemDidRegistrationRequestHandlerTest {
                     MR_DID_FINAL_CONFLICT.build(rejection.name());
             case HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS, DID_HELD_BY_ANOTHER_SERVER, MEMBER_NOT_SERVED ->
                     MR_DID_FIXABLE_CONFLICT.build(rejection.name());
+            case NO_STORED_VALUE -> throw new IllegalArgumentException("not a registration rejection: " + rejection);
         };
     }
 }

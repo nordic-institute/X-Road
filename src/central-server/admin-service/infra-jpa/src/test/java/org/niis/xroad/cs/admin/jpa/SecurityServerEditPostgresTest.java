@@ -50,6 +50,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -145,6 +150,53 @@ class SecurityServerEditPostgresTest extends AbstractCentralServerPostgresTest {
 
         assertThat(second).isPresent();
         assertThat(stored(server.id())).isEqualTo(afterFirst);
+    }
+
+    @Test
+    void sameDidPutOnTwoServersConcurrentlyRefusesTheLoserAsHeldByAnotherServerAndStoresNothingForIt() throws Exception {
+        var sharedHost = newHost();
+        var winner = serverWithStoredPairAt(sharedHost, 7183);
+        var loser = serverWithStoredPairAt(sharedHost, 7184);
+        var loserBefore = stored(loser.id());
+        var contested = pairFor(sharedHost, 7190);
+        var locked = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var holder = executor.submit(() -> transactions.execute(status -> {
+                service.editSecurityServer(winner.identifier(), sharedHost, contested);
+                locked.countDown();
+                await(release);
+                return null;
+            }));
+            awaitHolding(locked, holder);
+            var racingPid = new AtomicInteger();
+            var racing = executor.submit(inTransaction(racingPid,
+                    () -> service.editSecurityServer(loser.identifier(), sharedHost, contested)));
+            awaitLockedSession(racingPid);
+            assertThat(racing.isDone()).isFalse();
+
+            release.countDown();
+
+            holder.get(WAIT_SECONDS, TimeUnit.SECONDS);
+            assertThatThrownBy(() -> racing.get(WAIT_SECONDS, TimeUnit.SECONDS))
+                    .isInstanceOf(ExecutionException.class)
+                    .hasCauseInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("system_pair_did_held_by_another_server");
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            executor.close();
+        }
+        assertThat(stored(winner.id())).isEqualTo(row(sharedHost, contested));
+        assertThat(stored(loser.id())).isEqualTo(loserBefore);
+    }
+
+    private CentralServerSeed.Server serverWithStoredPairAt(String host, int port) {
+        var server = seed.server(seed.member(), host);
+        jdbc.update("update security_servers set system_did = ?, dsp_base_url = ? where id = ?",
+                systemDid(host, port), dspBaseUrl(host), server.id());
+        return server;
     }
 
     private CentralServerSeed.Server serverWithStoredPair() {

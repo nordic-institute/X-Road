@@ -58,5 +58,7 @@ public enum ParticipantValueRejection {
     /** The stored value is current for the registered address and differs from the published one. */
     VALUE_DIFFERS,
     /** The DID is stored for another Security Server. */
-    DID_HELD_BY_ANOTHER_SERVER
+    DID_HELD_BY_ANOTHER_SERVER,
+    /** An administrator replacement found no stored value to replace. */
+    NO_STORED_VALUE
 }

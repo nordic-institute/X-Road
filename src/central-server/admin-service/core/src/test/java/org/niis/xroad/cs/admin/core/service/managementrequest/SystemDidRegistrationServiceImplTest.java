@@ -71,6 +71,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFO
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
@@ -184,7 +185,15 @@ class SystemDidRegistrationServiceImplTest {
     void everyStoreRejectionHasARow() {
         var covered = rejectionRows().map(row -> row.get()[0]).toList();
 
-        assertThat(covered).containsAll(List.of(ParticipantValueRejection.values()));
+        assertThat(covered).containsAll(Stream.of(ParticipantValueRejection.values())
+                .filter(rejection -> rejection != NO_STORED_VALUE)
+                .toList());
+    }
+
+    @Test
+    void noStoredValueIsNotARegistrationRejection() {
+        assertThatThrownBy(() -> SystemDidRegistrationOutcome.of(NO_STORED_VALUE, ADDRESS))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
