@@ -57,6 +57,7 @@ import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -167,6 +168,22 @@ class DataspaceParticipantLifecycleConvergenceTest {
         assertThat(controlPlaneClient.hasContext(MEMBER_CTX_ID)).isFalse();
         assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isFalse();
         assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+    }
+
+    @Test
+    void lastClientRemovalDeletesThePublicationStateTogetherWithTheBindingRow() {
+        bindingTable.seedActive(MEMBER);
+        bindingTable.markPublished(MEMBER);
+        givenMemberHasRegisteredClient(MEMBER);
+        worker.provisionParticipant();
+        assertThat(bindingTable.publicationStateOf(MEMBER)).contains(PublicationState.PUBLISHED);
+
+        givenMemberHasNoClients();
+        bindingTable.decommission(MEMBER);
+        worker.provisionParticipant();
+
+        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+        assertThat(bindingTable.publicationStateOf(MEMBER)).isEmpty();
     }
 
     @Test
@@ -639,6 +656,14 @@ class DataspaceParticipantLifecycleConvergenceTest {
 
         void seedActive(ClientId member) {
             seed(member, ParticipantState.ACTIVE);
+        }
+
+        void markPublished(ClientId member) {
+            rowsById.get(idByMember.get(member)).setPublicationState(PublicationState.PUBLISHED);
+        }
+
+        Optional<PublicationState> publicationStateOf(ClientId member) {
+            return Optional.ofNullable(idByMember.get(member)).map(rowsById::get).map(DsParticipantEntity::getPublicationState);
         }
 
         void seedDecommissioned(ClientId member) {

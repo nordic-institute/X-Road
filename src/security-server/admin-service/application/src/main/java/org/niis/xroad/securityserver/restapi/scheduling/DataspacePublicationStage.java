@@ -267,7 +267,7 @@ public class DataspacePublicationStage {
         if (!systemValuesSent()) {
             return;
         }
-        var candidates = dsParticipantRepository.findActiveNotSentMembers().stream()
+        var candidates = dsParticipantRepository.findActiveMembers(Set.of(PublicationState.NOT_SENT)).stream()
                 .filter(row -> hostedMembers.contains(row.getMemberIdentifier().asEncodedId()))
                 .toList();
         if (candidates.isEmpty()) {

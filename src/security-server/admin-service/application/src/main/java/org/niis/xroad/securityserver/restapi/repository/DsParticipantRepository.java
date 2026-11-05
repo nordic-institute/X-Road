@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Repository for the {@code ds_participant} table, per XRDADR-41's derive-then-bind decision.
@@ -122,12 +123,14 @@ public class DsParticipantRepository {
     }
 
     /**
-     * Finds every active MEMBER row that is not sent: its publication state is {@code NOT_SENT} or missing.
+     * Finds every active MEMBER row whose publication state is one of the given states; a row with no publication
+     * state counts as {@code NOT_SENT}.
      *
-     * @return the active member rows not yet sent
+     * @param states the publication states to match
+     * @return the matching active member rows
      */
-    public List<DsParticipantEntity> findActiveNotSentMembers() {
-        return dsParticipantDAO.findActiveNotSentMembers(persistenceUtils.getCurrentSession());
+    public List<DsParticipantEntity> findActiveMembers(Set<PublicationState> states) {
+        return dsParticipantDAO.findActiveMembers(persistenceUtils.getCurrentSession(), states);
     }
 
     /**

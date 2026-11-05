@@ -40,6 +40,7 @@ import org.mockito.quality.Strictness;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -129,8 +130,8 @@ class DataspacePublicationWritersTest {
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
                 didRegistrationSender, mock(OwnSecurityServerResolver.class), mock(AdminServiceProperties.class));
-        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, globalConfProvider,
-                readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
+        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
+                globalConfProvider, readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
     }
 
     private DsParticipantEntity snapshot() {

@@ -45,32 +45,6 @@ public final class SystemPublicationCheck {
     }
 
     /**
-     * The transition of the SYSTEM row; {@link #NONE} has no states.
-     */
-    public enum Action {
-        NONE(null, null),
-        PUBLISH(PublicationState.SUBMITTED, PublicationState.PUBLISHED),
-        /** Moves the row back to not sent, so that the next reconciler pass sends again. */
-        RESEND(PublicationState.PUBLISHED, PublicationState.NOT_SENT);
-
-        private final PublicationState expected;
-        private final PublicationState next;
-
-        Action(@Nullable PublicationState expected, @Nullable PublicationState next) {
-            this.expected = expected;
-            this.next = next;
-        }
-
-        public PublicationState expected() {
-            return expected;
-        }
-
-        public PublicationState next() {
-            return next;
-        }
-    }
-
-    /**
      * @param storedState        the stored publication state of the SYSTEM row; {@code null} counts as not sent
      * @param ownDid             the SYSTEM DID of the row
      * @param expectedDspBaseUrl the DSP base URL built for this server, {@code null} while it cannot be built;
@@ -80,7 +54,7 @@ public final class SystemPublicationCheck {
      *                           can change the decision
      * @return the transition to apply to the row
      */
-    public static Action decide(@Nullable PublicationState storedState, String ownDid,
+    public static PublicationCheckAction decide(@Nullable PublicationState storedState, String ownDid,
             Supplier<String> expectedDspBaseUrl, @Nullable ServerSystemValues carried,
             BooleanSupplier authCertRegistered) {
         var state = storedState == null ? PublicationState.NOT_SENT : storedState;
@@ -88,8 +62,9 @@ public final class SystemPublicationCheck {
             var publish = state == PublicationState.SUBMITTED
                     && ownDid.equals(carried.systemDid())
                     && carried.dspBaseUrl().equals(expectedDspBaseUrl.get());
-            return publish ? Action.PUBLISH : Action.NONE;
+            return publish ? PublicationCheckAction.PUBLISH : PublicationCheckAction.NONE;
         }
-        return state == PublicationState.PUBLISHED && authCertRegistered.getAsBoolean() ? Action.RESEND : Action.NONE;
+        return state == PublicationState.PUBLISHED && authCertRegistered.getAsBoolean()
+                ? PublicationCheckAction.RESEND : PublicationCheckAction.NONE;
     }
 }

@@ -44,6 +44,7 @@ import org.niis.xroad.serverconf.model.PublicationState;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Data access object implementation for bound dataspace participants.
@@ -94,22 +95,28 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
     }
 
     /**
-     * Finds every {@link ParticipantType#MEMBER} row that is {@link ParticipantState#ACTIVE} and not sent: its
-     * publication state is {@link PublicationState#NOT_SENT} or missing.
+     * Finds every {@link ParticipantType#MEMBER} row that is {@link ParticipantState#ACTIVE} and whose publication
+     * state is one of the given states. A row without a publication state counts as {@link PublicationState#NOT_SENT}.
+     * The member identifier is fetched together with the row.
      *
      * @param session the Hibernate session
-     * @return the active member rows not yet sent, in no particular order
+     * @param states  the publication states to match
+     * @return the matching active member rows, in no particular order
      */
-    public List<DsParticipantEntity> findActiveNotSentMembers(Session session) {
+    public List<DsParticipantEntity> findActiveMembers(Session session, Set<PublicationState> states) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+        root.fetch("memberIdentifier");
 
+        var publicationState = root.<PublicationState>get("publicationState");
+        var matches = states.contains(PublicationState.NOT_SENT)
+                ? cb.or(publicationState.isNull(), publicationState.in(states))
+                : publicationState.in(states);
         query.select(root).where(
                 cb.equal(root.get("participantType"), ParticipantType.MEMBER),
                 cb.equal(root.get("state"), ParticipantState.ACTIVE),
-                cb.or(cb.isNull(root.get("publicationState")),
-                        cb.equal(root.get("publicationState"), PublicationState.NOT_SENT)));
+                matches);
 
         return session.createQuery(query).list();
     }

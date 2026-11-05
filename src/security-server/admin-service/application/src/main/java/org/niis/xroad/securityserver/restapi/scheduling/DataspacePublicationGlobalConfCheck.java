@@ -30,9 +30,13 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.niis.xroad.securityserver.restapi.service.HostedMembers;
+import org.niis.xroad.securityserver.restapi.service.MemberPublicationCheck;
+import org.niis.xroad.securityserver.restapi.service.PublicationCheckAction;
 import org.niis.xroad.securityserver.restapi.service.SystemPublicationCheck;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.PublicationState;
@@ -41,30 +45,39 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Set;
+
 /**
- * Step of the globalconf check that compares the SYSTEM values on the SYSTEM binding row with what the reloaded
- * globalconf carries. A submitted value that globalconf carries becomes published. A published value that globalconf
- * no longer carries while the authentication certificate is registered goes back to not sent, so the next reconciler
- * pass sends it again.
+ * Step of the globalconf check that compares the SYSTEM values and the member DIDs on the binding rows with what the
+ * reloaded globalconf carries. A submitted value that globalconf carries becomes published. A published SYSTEM value
+ * that globalconf no longer carries while the authentication certificate is registered, and a published member DID
+ * that globalconf no longer carries while the member is hosted on this server, go back to not sent, so the next
+ * reconciler pass sends them again. The SYSTEM values and the member DIDs are checked independently.
  *
- * <p>Runs inside the globalconf check, which skips secondary nodes and backup restores. Never throws: a failure is
- * logged and the next check retries. The repository reads and the transition run in their own transaction, so a
- * failure does not mark the transaction of the globalconf check rollback-only.
+ * <p>Runs after the transaction of the globalconf check has committed, so the members hosted here are read from the
+ * committed serverconf, including the client statuses of that check. A globalconf check that rolls back publishes
+ * nothing. The globalconf check skips secondary nodes and backup restores. Never throws: a failure is logged and the
+ * next check retries. Each step reads and transitions in its own transaction.
  */
 @Slf4j
 @Component
 public class DataspacePublicationGlobalConfCheck {
 
+    private static final Set<PublicationState> SENT = Set.of(PublicationState.SUBMITTED, PublicationState.PUBLISHED);
+
     private final DsParticipantRepository dsParticipantRepository;
+    private final ClientRepository clientRepository;
     private final GlobalConfProvider globalConfProvider;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
     private final TransactionTemplate transactionTemplate;
 
     public DataspacePublicationGlobalConfCheck(DsParticipantRepository dsParticipantRepository,
-            GlobalConfProvider globalConfProvider, DataspaceReadinessPredicates readinessPredicates,
-            DataspaceDidAuthority didAuthority, PlatformTransactionManager transactionManager) {
+            ClientRepository clientRepository, GlobalConfProvider globalConfProvider,
+            DataspaceReadinessPredicates readinessPredicates, DataspaceDidAuthority didAuthority,
+            PlatformTransactionManager transactionManager) {
         this.dsParticipantRepository = dsParticipantRepository;
+        this.clientRepository = clientRepository;
         this.globalConfProvider = globalConfProvider;
         this.readinessPredicates = readinessPredicates;
         this.didAuthority = didAuthority;
@@ -78,10 +91,15 @@ public class DataspacePublicationGlobalConfCheck {
      * @param securityServerId the identifier of this Security Server
      */
     public void check(SecurityServerId securityServerId) {
+        runStep("SYSTEM values", () -> checkSystemValues(securityServerId));
+        runStep("member DIDs", () -> checkMemberDids(securityServerId));
+    }
+
+    private void runStep(String subject, Runnable step) {
         try {
-            transactionTemplate.executeWithoutResult(_ -> checkSystemValues(securityServerId));
+            transactionTemplate.executeWithoutResult(_ -> step.run());
         } catch (Exception e) {
-            log.error("Dataspace publication: globalconf check of the SYSTEM values failed, the next check retries", e);
+            log.error("Dataspace publication: globalconf check of the {} failed, the next check retries", subject, e);
         }
     }
 
@@ -91,17 +109,33 @@ public class DataspacePublicationGlobalConfCheck {
                     () -> didAuthority.dspBaseUrlIfValid().orElse(null),
                     globalConfProvider.getServerSystemValues(securityServerId).orElse(null),
                     readinessPredicates::hasRegisteredAuthCert);
-            if (action != SystemPublicationCheck.Action.NONE) {
-                transition(system, action.expected(), action.next());
+            if (action != PublicationCheckAction.NONE) {
+                transition(system, "SYSTEM values", action.expected(), action.next());
             }
         });
     }
 
-    private void transition(DsParticipantEntity row, PublicationState expected, PublicationState next) {
+    private void checkMemberDids(SecurityServerId securityServerId) {
+        var hostedMembers = HostedMembers.of(clientRepository.getAllLocalClients());
+        if (hostedMembers.isEmpty()) {
+            return;
+        }
+        for (var row : dsParticipantRepository.findActiveMembers(SENT)) {
+            var member = row.getMemberIdentifier();
+            var action = MemberPublicationCheck.decide(row.getPublicationState(), row.getDid(),
+                    globalConfProvider.getMemberDid(member, securityServerId).orElse(null),
+                    hostedMembers.contains(member));
+            if (action != PublicationCheckAction.NONE) {
+                transition(row, "member DID of " + member.asEncodedId(), action.expected(), action.next());
+            }
+        }
+    }
+
+    private void transition(DsParticipantEntity row, String subject, PublicationState expected, PublicationState next) {
         if (dsParticipantRepository.transitionPublication(row.getId(), expected, next, null)) {
-            log.info("Dataspace publication: SYSTEM values moved from {} to {} by the globalconf check", expected, next);
+            log.info("Dataspace publication: {} moved from {} to {} by the globalconf check", subject, expected, next);
         } else {
-            log.debug("Dataspace publication: SYSTEM values changed concurrently, globalconf check result not applied");
+            log.debug("Dataspace publication: {} changed concurrently, globalconf check result not applied", subject);
         }
     }
 }

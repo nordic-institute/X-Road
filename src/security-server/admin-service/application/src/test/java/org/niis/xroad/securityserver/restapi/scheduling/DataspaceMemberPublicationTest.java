@@ -40,7 +40,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -50,12 +52,15 @@ import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome.Entry;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.test.MutableClock;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -73,6 +78,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,6 +103,8 @@ class DataspaceMemberPublicationTest {
     @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
+    private ClientRepository clientRepository;
+    @Mock
     private DidRegistrationSender didRegistrationSender;
     @Mock
     private OwnSecurityServerResolver ownSecurityServerResolver;
@@ -104,8 +112,11 @@ class DataspaceMemberPublicationTest {
     private AdminServiceProperties adminServiceProperties;
     @Mock
     private AdminServiceProperties.Dataspace dataspaceProperties;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private DataspacePublicationStage stage;
+    private DataspacePublicationGlobalConfCheck check;
     private MutableClock clock;
     private DsParticipantEntity systemRow;
     private final List<DsParticipantEntity> memberRows = new ArrayList<>();
@@ -128,9 +139,18 @@ class DataspaceMemberPublicationTest {
         when(adminServiceProperties.getDataspace()).thenReturn(dataspaceProperties);
         when(dataspaceProperties.getProvisioningBatchSize()).thenAnswer(_ -> batchSize);
         when(dsParticipantRepository.findActiveSystemParticipant()).thenAnswer(_ -> Optional.of(systemRow));
-        when(dsParticipantRepository.findActiveNotSentMembers()).thenAnswer(_ -> memberRows.stream()
-                .filter(row -> row.getPublicationState() == null || row.getPublicationState() == PublicationState.NOT_SENT)
+        when(dsParticipantRepository.findActiveMembers(any())).thenAnswer(call -> {
+            Set<PublicationState> states = call.getArgument(0);
+            return memberRows.stream()
+                    .filter(row -> states.contains(row.getPublicationState() == null
+                            ? PublicationState.NOT_SENT : row.getPublicationState()))
+                    .toList();
+        });
+        when(clientRepository.getAllLocalClients()).thenAnswer(_ -> provisioned.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .map(context -> registeredClient(context.memberId()))
                 .toList());
+        when(globalConfProvider.getMemberDid(any(), any())).thenReturn(Optional.empty());
         when(dsParticipantRepository.transitionPublication(anyLong(), any(), any(), any())).thenAnswer(call -> {
             var row = systemRow.getId().equals(call.getArgument(0)) ? systemRow
                     : memberRows.stream().filter(r -> r.getId().equals(call.getArgument(0))).findFirst().orElseThrow();
@@ -155,6 +175,8 @@ class DataspaceMemberPublicationTest {
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
                 didRegistrationSender, ownSecurityServerResolver, adminServiceProperties);
         stage.setBackoff(new PublicationBackoff(clock, () -> 1.0));
+        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository, globalConfProvider,
+                readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
         provisioned.add(SYSTEM_CONTEXT);
         issued.add(SYSTEM_CONTEXT);
         host(OWNER.getMemberCode());
@@ -194,6 +216,78 @@ class DataspaceMemberPublicationTest {
     }
 
     @Test
+    void aSubmittedMemberDidThatGlobalconfCarriesBecomesPublished() {
+        var member = addMember("A01");
+        pass();
+        carryDid(member);
+
+        globalconfCheck();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+        assertThat(requests).hasSize(1);
+    }
+
+    @Test
+    void aPublishedMemberDidMissingFromGlobalconfIsResetOnceAndSentAgainByTheNextPass() {
+        var member = addMember("A01");
+        member.setPublicationState(PublicationState.PUBLISHED);
+
+        globalconfCheck();
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        pass();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        assertThat(requests).containsExactly(List.of("A01"));
+    }
+
+    @Test
+    void aPublishedMemberDidIsNotResetWhenTheMemberIsNoLongerHostedHere() {
+        var member = addUnhostedMember("A01");
+        member.setPublicationState(PublicationState.PUBLISHED);
+
+        globalconfCheck();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+    }
+
+    @Test
+    void aDifferentMemberDidInGlobalconfChangesNothing() {
+        var submitted = addMember("A01");
+        submitted.setPublicationState(PublicationState.SUBMITTED);
+        var published = addMember("A02");
+        published.setPublicationState(PublicationState.PUBLISHED);
+        when(globalConfProvider.getMemberDid(any(), any())).thenReturn(Optional.of("did:web:other.example.test"));
+
+        globalconfCheck();
+        globalconfCheck();
+
+        assertThat(submitted.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
+        assertThat(published.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+    }
+
+    @Test
+    void aFailingSystemValuesCheckDoesNotStopTheMemberDidCheck() {
+        var member = addMember("A01");
+        member.setPublicationState(PublicationState.PUBLISHED);
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenThrow(new IllegalStateException("database unavailable"));
+
+        globalconfCheck();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+    }
+
+    @Test
+    void aMemberCheckThatReadsNoHostedMemberTouchesNoBindingRow() {
+        var member = addUnhostedMember("A01");
+        member.setPublicationState(PublicationState.PUBLISHED);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+
+        globalconfCheck();
+
+        verify(dsParticipantRepository, never()).findActiveMembers(any());
+    }
+
+    @Test
     void nothingIsSentForAMemberNotHostedOnThisServer() {
         var hosted = addMember("A01");
         var notHosted = addUnhostedMember("B01");
@@ -224,7 +318,7 @@ class DataspaceMemberPublicationTest {
         pass();
 
         verify(dsParticipantRepository, never()).findActiveSystemParticipant();
-        verify(dsParticipantRepository, never()).findActiveNotSentMembers();
+        verify(dsParticipantRepository, never()).findActiveMembers(any());
     }
 
     @Test
@@ -238,7 +332,7 @@ class DataspaceMemberPublicationTest {
         pass();
 
         verify(dsParticipantRepository, never()).findActiveSystemParticipant();
-        verify(dsParticipantRepository, never()).findActiveNotSentMembers();
+        verify(dsParticipantRepository, never()).findActiveMembers(any());
     }
 
     @Test
@@ -621,6 +715,22 @@ class DataspaceMemberPublicationTest {
 
     private void pass() {
         stage.publish(Set.copyOf(provisioned), Set.copyOf(issued));
+    }
+
+    private void globalconfCheck() {
+        check.check(SERVER_ID);
+    }
+
+    private static ClientEntity registeredClient(ClientId memberId) {
+        var client = new ClientEntity();
+        client.setClientStatus(Client.STATUS_REGISTERED);
+        client.setIdentifier(MemberIdEntity.create(memberId.getXRoadInstance(), memberId.getMemberClass(),
+                memberId.getMemberCode()));
+        return client;
+    }
+
+    private void carryDid(DsParticipantEntity member) {
+        when(globalConfProvider.getMemberDid(member.getMemberIdentifier(), SERVER_ID)).thenReturn(Optional.of(member.getDid()));
     }
 
     private void host(String memberCode) {

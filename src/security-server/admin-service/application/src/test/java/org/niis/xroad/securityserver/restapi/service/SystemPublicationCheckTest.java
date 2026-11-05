@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
-import org.niis.xroad.securityserver.restapi.service.SystemPublicationCheck.Action;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.Arrays;
@@ -38,6 +37,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.NONE;
+import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.PUBLISH;
+import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.RESEND;
 
 class SystemPublicationCheckTest {
 
@@ -52,66 +54,66 @@ class SystemPublicationCheckTest {
     private static final BooleanSupplier REGISTERED = () -> true;
     private static final BooleanSupplier NOT_REGISTERED = () -> false;
 
-    private static Action decide(PublicationState state, ServerSystemValues carried, BooleanSupplier authCert) {
+    private static PublicationCheckAction decide(PublicationState state, ServerSystemValues carried, BooleanSupplier authCert) {
         return SystemPublicationCheck.decide(state, DID, () -> DSP_BASE_URL, carried, authCert);
     }
 
     @Test
     void aSubmittedValueThatGlobalconfCarriesUnchangedIsPublished() {
-        assertThat(decide(PublicationState.SUBMITTED, EQUAL, REGISTERED)).isEqualTo(Action.PUBLISH);
+        assertThat(decide(PublicationState.SUBMITTED, EQUAL, REGISTERED)).isEqualTo(PUBLISH);
     }
 
     @Test
     void aSubmittedValueIsNotPublishedWhileTheDspBaseUrlCannotBeBuilt() {
         var action = SystemPublicationCheck.decide(PublicationState.SUBMITTED, DID, () -> null, EQUAL, REGISTERED);
 
-        assertThat(action).isEqualTo(Action.NONE);
+        assertThat(action).isEqualTo(NONE);
     }
 
     @Test
     void aPublishedValueMissingFromGlobalconfIsSentAgain() {
-        assertThat(decide(PublicationState.PUBLISHED, MISSING, REGISTERED)).isEqualTo(Action.RESEND);
+        assertThat(decide(PublicationState.PUBLISHED, MISSING, REGISTERED)).isEqualTo(RESEND);
     }
 
     @Test
     void aPublishedValueIsNeverResetWhileTheAuthCertIsNotRegistered() {
-        assertThat(decide(PublicationState.PUBLISHED, MISSING, NOT_REGISTERED)).isEqualTo(Action.NONE);
+        assertThat(decide(PublicationState.PUBLISHED, MISSING, NOT_REGISTERED)).isEqualTo(NONE);
     }
 
     @Test
     void aPublishedValueThatGlobalconfCarriesUnchangedIsLeftAlone() {
-        assertThat(decide(PublicationState.PUBLISHED, EQUAL, REGISTERED)).isEqualTo(Action.NONE);
+        assertThat(decide(PublicationState.PUBLISHED, EQUAL, REGISTERED)).isEqualTo(NONE);
     }
 
     @Test
     void aDifferentValueIsNeverTreatedAsMissing() {
-        assertThat(decide(PublicationState.PUBLISHED, OTHER_DID, REGISTERED)).isEqualTo(Action.NONE);
-        assertThat(decide(PublicationState.PUBLISHED, OTHER_URL, REGISTERED)).isEqualTo(Action.NONE);
+        assertThat(decide(PublicationState.PUBLISHED, OTHER_DID, REGISTERED)).isEqualTo(NONE);
+        assertThat(decide(PublicationState.PUBLISHED, OTHER_URL, REGISTERED)).isEqualTo(NONE);
     }
 
     @Test
     void aDifferentValueNeverPublishesASubmittedValue() {
-        assertThat(decide(PublicationState.SUBMITTED, OTHER_DID, REGISTERED)).isEqualTo(Action.NONE);
-        assertThat(decide(PublicationState.SUBMITTED, OTHER_URL, REGISTERED)).isEqualTo(Action.NONE);
+        assertThat(decide(PublicationState.SUBMITTED, OTHER_DID, REGISTERED)).isEqualTo(NONE);
+        assertThat(decide(PublicationState.SUBMITTED, OTHER_URL, REGISTERED)).isEqualTo(NONE);
     }
 
     @Test
     void aSubmittedValueThatGlobalconfDoesNotCarryIsLeftAlone() {
-        assertThat(decide(PublicationState.SUBMITTED, MISSING, REGISTERED)).isEqualTo(Action.NONE);
+        assertThat(decide(PublicationState.SUBMITTED, MISSING, REGISTERED)).isEqualTo(NONE);
     }
 
     @ParameterizedTest
     @EnumSource(value = PublicationState.class, names = {"NOT_SENT", "REJECTED"})
     void aNotSentOrRejectedValueIsNeverTouched(PublicationState state) {
         for (var carried : Arrays.asList(EQUAL, OTHER_DID, MISSING)) {
-            assertThat(decide(state, carried, REGISTERED)).isEqualTo(Action.NONE);
+            assertThat(decide(state, carried, REGISTERED)).isEqualTo(NONE);
         }
     }
 
     @Test
     void aValueWithNoStoredStateIsNotSentAndNeverTouched() {
-        assertThat(decide(null, EQUAL, REGISTERED)).isEqualTo(Action.NONE);
-        assertThat(decide(null, MISSING, REGISTERED)).isEqualTo(Action.NONE);
+        assertThat(decide(null, EQUAL, REGISTERED)).isEqualTo(NONE);
+        assertThat(decide(null, MISSING, REGISTERED)).isEqualTo(NONE);
     }
 
     @Test
