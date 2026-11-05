@@ -124,7 +124,9 @@ public final class XRoadConfigBuilder {
             var merged = new java.util.LinkedHashMap<>(overrides);
             merged.putAll(dbProps);
             this.overrides = Map.copyOf(merged);
-            log.info("Loaded {} config override(s) from DB for '{}'", dbProps.size(), appName);
+            var nodeName = dbSourceConfig.getNodeName();
+            log.info("Loaded {} config override(s) from DB for '{}' ({})", dbProps.size(), appName,
+                    nodeName == null ? "shared rows only" : "shared rows and rows of node '" + nodeName + "'");
         } else {
             log.info("DB config source disabled; '{}' uses packaged defaults only", appName);
         }

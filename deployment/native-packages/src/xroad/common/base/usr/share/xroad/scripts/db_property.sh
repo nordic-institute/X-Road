@@ -152,7 +152,7 @@ SQL
 # A third positional used to be the scope. Fail loudly rather than ignore it: the row it would have
 # written is no longer distinguishable from the unscoped one.
 reject_scope_argument() {
-  die "This version keys rows by property_key alone; drop the '$1' scope argument (see --help)."
+  die "This version keys rows by (property_key, ha_node_name); drop the '$1' scope argument, or use --node <name> for a node row (see --help)."
 }
 
 confirm() {

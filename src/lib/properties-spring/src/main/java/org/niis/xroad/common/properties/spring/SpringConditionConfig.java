@@ -38,7 +38,9 @@ import org.springframework.core.env.Environment;
  * application bean uses — DB overrides (shared rows, plus the node's rows for an application that opted
  * into node-aware loading), then container or native defaults — so a bean-registration decision
  * can never disagree with the value the running application reads. The {@code Environment} is consulted only
- * for framework metadata (application name and the active profile), never for {@code xroad.*} values. The
+ * for framework metadata (application name and the active profile) and for the node-aware opt-in and the
+ * node name ({@code xroad.config.node-aware}, {@code xroad.admin-service.ha-node-name}); every other
+ * {@code xroad.*} value comes from the layers above. The
  * underlying DB connection pool is opened and closed within the single read (see
  * {@code CachedDbConfigSource}), so the throwaway config leaks nothing.
  */

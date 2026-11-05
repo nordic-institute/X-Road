@@ -61,7 +61,6 @@ public class CachedDbConfigSourceTest {
         try (var connection = ds.getConnection();
              var statement = connection.createStatement()) {
 
-            // property_key is unique here; node rows are covered by NodeAwareDbSourceTest
             statement.execute(
                     "CREATE TABLE config ( "
                             + " id bigint PRIMARY KEY, "

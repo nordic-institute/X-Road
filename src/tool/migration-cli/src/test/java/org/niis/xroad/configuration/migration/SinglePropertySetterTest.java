@@ -61,7 +61,7 @@ class SinglePropertySetterTest {
             var exception = assertThrows(IllegalArgumentException.class,
                     () -> SinglePropertySetter.main(new String[]{"/etc/xroad/db.properties", "only-two"}));
 
-            assertEquals("Invalid number of arguments provided. Rows are keyed by property_key alone; "
+            assertEquals("Invalid number of arguments provided. Rows are keyed by (property_key, ha_node_name); "
                     + "a scope argument is no longer accepted.", exception.getMessage());
         }
 
