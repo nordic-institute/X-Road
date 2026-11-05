@@ -4,7 +4,7 @@
 #
 # Usage: source this file once at the top of the script, then call
 #   check_node_name <value> <description of where the value comes from>
-#   read_local_yaml_node_name <local.yaml path>
+#   read_local_yaml_node_name [local.yaml path, default /etc/xroad/conf.d/local.yaml]
 #
 # A blank value is valid and means "no node name": callers add no suffix and do
 # not substitute a default name.
@@ -53,7 +53,7 @@ check_node_name () {
 }
 
 read_local_yaml_node_name () {
-  local file="$1"
+  local file="${1:-/etc/xroad/conf.d/local.yaml}"
   local key="xroad.admin-service.ha-node-name"
   local value=""
 

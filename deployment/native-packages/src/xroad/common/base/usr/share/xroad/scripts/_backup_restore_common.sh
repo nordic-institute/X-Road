@@ -63,7 +63,7 @@ check_central_ha_node_name () {
   if [[ -z "${CENTRAL_SERVER_HA_NODE_NAME//[[:space:]]/}" ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=""
   fi
-  node_name=$(read_local_yaml_node_name "/etc/xroad/conf.d/local.yaml") || exit 2
+  node_name=$(read_local_yaml_node_name) || exit 2
   if [[ -z "${node_name//[[:space:]]/}" ]] ; then
     node_name=""
   fi
