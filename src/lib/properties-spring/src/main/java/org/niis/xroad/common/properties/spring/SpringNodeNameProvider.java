@@ -28,28 +28,22 @@ package org.niis.xroad.common.properties.spring;
 
 import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
-
-import java.util.Optional;
 
 /**
- * Central Server node name read from the Spring {@code Environment}, which holds {@code local.yaml}
- * (via {@code spring.config.import}) and the {@code XROAD_ADMIN_SERVICE_HA_NODE_NAME} environment variable
- * (relaxed binding). A blank or missing value maps to {@link NodeNameProvider#DEFAULT_NODE_NAME}.
+ * Builds the {@link NodeNameProvider} of a Spring application from its {@code Environment}, which holds
+ * {@code local.yaml} (via {@code spring.config.import}) and the {@code XROAD_ADMIN_SERVICE_HA_NODE_NAME}
+ * environment variable (relaxed binding), following {@link NodeNameProvider#of(boolean, String)}.
  *
- * <p>Only applications that set {@link #NODE_AWARE_PROPERTY} to {@code true} use it; every other
+ * <p>Only applications that set {@link #NODE_AWARE_PROPERTY} to {@code true} get a node; every other
  * Spring application, the Security Server ones included, loads shared rows only. The opt-in is never
  * inferred from the presence of the node name.
  */
-public final class SpringNodeNameProvider implements NodeNameProvider {
+public final class SpringNodeNameProvider {
 
     /** Application property that opts a Spring application into node-aware loading. */
-    public static final String NODE_AWARE_PROPERTY = "xroad.config.node-aware";
+    public static final String NODE_AWARE_PROPERTY = NodeNameProvider.NODE_AWARE_PROPERTY_KEY;
 
-    private final Environment environment;
-
-    SpringNodeNameProvider(Environment environment) {
-        this.environment = environment;
+    private SpringNodeNameProvider() {
     }
 
     /**
@@ -58,14 +52,8 @@ public final class SpringNodeNameProvider implements NodeNameProvider {
      *         {@link NodeNameProvider#shared()}
      */
     public static NodeNameProvider forEnvironment(Environment environment) {
-        return environment.getProperty(NODE_AWARE_PROPERTY, Boolean.class, false)
-                ? new SpringNodeNameProvider(environment)
-                : NodeNameProvider.shared();
-    }
-
-    @Override
-    public Optional<String> nodeName() {
-        var configured = environment.getProperty(HA_NODE_NAME_PROPERTY_KEY);
-        return Optional.of(StringUtils.hasText(configured) ? configured.trim() : DEFAULT_NODE_NAME);
+        return NodeNameProvider.of(
+                environment.getProperty(NODE_AWARE_PROPERTY, Boolean.class, false),
+                environment.getProperty(NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY));
     }
 }

@@ -20,4 +20,5 @@ dependencies {
   testImplementation(libs.junit.jupiter.params)
 
   testFixturesImplementation(libs.smallrye.config.core)
+  testFixturesImplementation(libs.h2database)
 }

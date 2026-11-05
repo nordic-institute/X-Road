@@ -41,6 +41,7 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
@@ -58,12 +59,17 @@ import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class SignerConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
+                            @ConfigProperty(name = NodeNameProvider.NODE_AWARE_PROPERTY_KEY,
+                                    defaultValue = "false") boolean nodeAware,
+                            @ConfigProperty(name = NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY)
+                            Optional<String> nodeName) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(SignerConfigKeys.instance())
@@ -73,7 +79,7 @@ public class SignerConfig {
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .overrides(profileOverrides())
-                .dbOverrides(appName)
+                .dbOverrides(appName, NodeNameProvider.of(nodeAware, nodeName.orElse(null)))
                 .build();
     }
 

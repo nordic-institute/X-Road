@@ -32,6 +32,11 @@ quarkus:
         enabled: true
         path: /var/log/xroad/signer.log
 
+"%cs":
+  xroad:
+    config:
+      node-aware: true
+
 "%ss":
   xroad:
     db:
