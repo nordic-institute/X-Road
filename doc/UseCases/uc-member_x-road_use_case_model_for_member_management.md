@@ -1,8 +1,8 @@
 # X-Road: Use Case Model for Member Management
 **Analysis**
 
-Version: 1.9  
-25.08.2021
+Version: 1.10  
+05.11.2026
 <!--  63 pages -->
 Doc. ID: UC-MEMBER
 
@@ -27,6 +27,7 @@ Doc. ID: UC-MEMBER
  06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
  06.02.2019 | 1.8     | Minor update to [UC_MEMBER\_48](#245-uc-member_48-register-a-security-server-client) | Petteri Kivimäki
  25.08.2021 | 1.9     | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 05.11.2026 | 1.10    | [UC MEMBER\_22](#2320-uc-member_22-edit-the-address-of-a-security-server) logs the events Edit security server and Edit security server failed | Justas Samuolis
 
 ## Table of Contents
 
@@ -1393,7 +1394,7 @@ Figure 1. Use case diagram for member management
 
 5.  System saves the inserted value.
 
-6.  System logs the event “Edit security server address” to the audit log.
+6.  System logs the event “Edit security server” to the audit log.
 
 **Extensions**:
 
@@ -1401,7 +1402,7 @@ Figure 1. Use case diagram for member management
 
   - 3a.1. System displays the termination message of the parsing process.
 
-  - 3a.2. System logs the event “Edit central server address failed” to the audit log.
+  - 3a.2. System logs the event “Edit security server failed” to the audit log.
 
   - 3a.3. CS administrator selects to reinsert the address. Use case continues from step 3.
 
@@ -1411,7 +1412,7 @@ Figure 1. Use case diagram for member management
 
   - 4a.1. System displays the error message “Central server address must be DNS name or IP address”.
 
-  - 4a.2. System logs the event “Edit central server address failed” to the audit log.
+  - 4a.2. System logs the event “Edit security server failed” to the audit log.
 
   - 4a.3. CS administrator selects to reinsert the address. Use case continues from step 3.
 

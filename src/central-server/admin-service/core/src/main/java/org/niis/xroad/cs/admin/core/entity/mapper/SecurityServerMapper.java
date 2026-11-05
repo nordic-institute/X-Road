@@ -27,12 +27,31 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
+import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+
+import java.util.Set;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {SecurityServerClientMapper.class})
 public interface SecurityServerMapper extends GenericUniDirectionalMapper<SecurityServerEntity, SecurityServer> {
+
+    @Override
+    @Mapping(target = "systemPairStale", source = ".", qualifiedByName = "systemPairStale")
+    SecurityServer toTarget(SecurityServerEntity source);
+
+    @Named("systemPairStale")
+    default Boolean systemPairStale(SecurityServerEntity server) {
+        if (server.getSystemDid() == null) {
+            return null;
+        }
+        var registered = new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), Set.of());
+        return new ParticipantValueValidator(registered).isSystemPairStale(server.getSystemDid(), server.getDspBaseUrl());
+    }
 }

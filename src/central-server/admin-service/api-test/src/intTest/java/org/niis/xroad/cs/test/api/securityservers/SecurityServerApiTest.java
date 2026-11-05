@@ -237,7 +237,8 @@ class SecurityServerApiTest extends CsApiTest {
                 client.getSecurityServer(serverId)
                         .statusCode(200)
                         .body("$", not(hasKey("system_did")))
-                        .body("$", not(hasKey("dsp_base_url"))));
+                        .body("$", not(hasKey("dsp_base_url")))
+                        .body("$", not(hasKey("system_pair_stale"))));
     }
 
     @Test
@@ -264,7 +265,8 @@ class SecurityServerApiTest extends CsApiTest {
                         .statusCode(200)
                         .body("server_address", equalTo("new-addr-0810"))
                         .body("system_did", equalTo(systemDid("new-addr-0810")))
-                        .body("dsp_base_url", equalTo(dspBaseUrl("new-addr-0810"))));
+                        .body("dsp_base_url", equalTo(dspBaseUrl("new-addr-0810")))
+                        .body("system_pair_stale", equalTo(false)));
     }
 
     @Test
@@ -286,7 +288,8 @@ class SecurityServerApiTest extends CsApiTest {
                         .statusCode(200)
                         .body("server_address", equalTo("new-addr-0811"))
                         .body("system_did", equalTo(systemDid("ss-addr-0811")))
-                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0811"))));
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0811")))
+                        .body("system_pair_stale", equalTo(true)));
     }
 
     @Test

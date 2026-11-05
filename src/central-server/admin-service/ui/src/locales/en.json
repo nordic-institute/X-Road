@@ -506,6 +506,7 @@
       }
     },
     "disabled": "Temporarily disabled",
+    "dspBaseUrl": "DSP base URL",
     "maintenanceMode": "In maintenance mode",
     "ownerClass": "Owner Class",
     "ownerCode": "Owner Code",
@@ -535,6 +536,8 @@
       }
     },
     "serverCode": "Server Code",
+    "staleValuesWarning": "The SYSTEM DID or DSP base URL does not match the Security Server address. Other servers use the old values to reach this server.",
+    "systemDid": "SYSTEM DID",
     "unregistered": "Unregistered"
   },
   "status": {

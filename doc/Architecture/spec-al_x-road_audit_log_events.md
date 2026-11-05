@@ -1,6 +1,6 @@
 # Audit log events
 
-Version: 1.17
+Version: 1.18
 
 Doc. ID: SPEC-AL
 
@@ -29,6 +29,7 @@ Doc. ID: SPEC-AL
 | 28.10.2025 | 1.15    | Added cost type to tsa and ocsp responders                                                                                                                | Mikk-Erik Bachmann |
 | 06.11.2025 | 1.16    | Added default CSR format to certification services                                                                                                        | Mikk-Erik Bachmann |
 | 19.10.2026 | 1.17    | Added the event Rotate agreement token signing key                                                                                                        | Andres Rosenthal   |
+| 05.11.2026 | 1.18    | Renamed the Central Server event Edit security server address to Edit security server and added systemDid and dspBaseUrl; added the Security Server event Edit security server address | Justas Samuolis    |
 
 ## Table of Contents
 
@@ -223,7 +224,7 @@ The audit log events related to configuration of the X-Road security servers.
 
 | Event                                                | Data fields                                                                                                                                                                                                                                                                                                                                                                                                               |
 |------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Edit security server address                         | <ul><li>serverCode - the server code of the edited security server</li><li>ownerCode - the owner code of the edited security server</li><li>ownerClass - the owner class of the edited security server</li><li>address - the new address of the edited security server</li></ul>                                                                                                                                          |
+| Edit security server                                 | <ul><li>serverCode - the server code of the edited security server</li><li>ownerCode - the owner code of the edited security server</li><li>ownerClass - the owner class of the edited security server</li><li>address - the new address of the edited security server</li><li>systemDid - the new SYSTEM DID of the edited security server, present only when the request sets it</li><li>dspBaseUrl - the new DSP base URL of the edited security server, present only when the request sets it</li></ul>|
 | Delete security server                               | <ul><li>serverCode - the server code of the deleted security server</li><li>ownerCode - the owner code of the deleted security server</li><li>ownerClass - the owner class of the deleted security server</li></ul>                                                                                                                                                                                                       |
 | Delete authentication certificate of security server | <ul><li>serverCode - the server code of the selected security server</li><li>ownerCode - the owner code of the selected security server</li><li>ownerClass - the owner class of the selected security server</li><li>certHash - the hash of the deleted authentication certificate of the selected security server</li><li>certHashAlgorithm - the hash algorithm used to calculate value of the field certHash</li></ul> |
 
@@ -388,6 +389,7 @@ The audit log events related to the system parameters.
 | Upload configuration anchor                   | <ul><li>anchorFileHash - the hash of the uploaded anchor file</li><li>anchorFileHashAlgorithm - the hash algorithm used to calculate value of the field anchorFileHash</li><li>generatedAt - the UTC time when the anchor file was generated</li></ul> |
 | Add timestamping service                      | <ul><li>tspName - the name of the added timestamping service</li><li>tspUrl - the URL of the added timestamping service</li><li>tspCostType - the cost type (free or paid) of the added timestamping service</li></ul>                                 |  
 | Delete timestamping service                   | <ul><li>tspName - the name of the deleted timestamping service</li><li>tspUrl - the URL of the deleted timestamping service</li></ul>                                                                                                                  |
+| Edit security server address                  | <ul><li>address - the requested new address of the security server, sent to the central server as an address change request</li></ul>                                                                                                                  |
 | Generate new internal TLS key and certificate | <ul><li>certHash - the hash of the generated internal TLS certificate</li><li>certHashAlgorithm - the hash algorithm used to calculate value of the field certHash</li></ul>                                                                           |
 | Rotate agreement token signing key            | <ul><li>keyId - the identifier of the newly generated agreement token signing key</li></ul>                                                                                                                                                            |
 

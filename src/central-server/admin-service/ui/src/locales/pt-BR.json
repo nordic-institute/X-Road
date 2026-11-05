@@ -479,6 +479,7 @@
       }
     },
     "disabled": "Temporariamente desativado",
+    "dspBaseUrl": "URL base do DSP",
     "maintenanceMode": "Em modo de manutenção",
     "ownerClass": "Classe do Proprietário",
     "ownerCode": "Código do Proprietário",
@@ -508,6 +509,8 @@
       }
     },
     "serverCode": "Código do Servidor",
+    "staleValuesWarning": "O SYSTEM DID ou a URL base do DSP não corresponde ao endereço do servidor seguro. Outros servidores usam os valores antigos para alcançar este servidor.",
+    "systemDid": "SYSTEM DID",
     "unregistered": "Não registrado"
   },
   "status": {

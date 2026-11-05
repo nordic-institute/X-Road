@@ -129,6 +129,22 @@ class SecurityServerDtoConverterTest extends AbstractDtoConverterTest implements
             assertNull(result.getDspBaseUrl());
         }
 
+        @Test
+        void shouldMapTheStaleFlag() {
+            stubRequiredFields();
+            doReturn(true).when(securityServer).getSystemPairStale();
+
+            assertEquals(true, converter.toDto(securityServer).getSystemPairStale());
+        }
+
+        @Test
+        void shouldLeaveTheStaleFlagAbsentWhenNoPairIsStored() {
+            stubRequiredFields();
+            doReturn(null).when(securityServer).getSystemPairStale();
+
+            assertNull(converter.toDto(securityServer).getSystemPairStale());
+        }
+
         private void stubRequiredFields() {
             doReturn(securityServerId).when(securityServer).getServerId();
             doReturn(securityServerIdDto).when(securityServerIdDtoConverter).toDto(securityServerId);

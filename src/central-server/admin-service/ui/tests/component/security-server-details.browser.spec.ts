@@ -93,6 +93,55 @@ describe('1000 — CS Security Server Details — detail fields render (Browser 
   });
 });
 
+describe('1000 — CS Security Server Details — SYSTEM pair and stale warning (Browser Mode)', () => {
+  const SYSTEM_DID = 'did:web:security-server-address-e2e-ss1%3A7183:v1:system';
+  const DSP_BASE_URL = 'https://security-server-address-e2e-ss1:8183/api/dsp';
+
+  async function renderDetails(fixture: SecurityServer) {
+    await renderRoute(`/security-servers/${encodeURIComponent(SERVER_ID)}/details`, {
+      permissions: detailsPermissions,
+      msw: baseHandlers(fixture),
+    });
+    await expect.element(page.getByTestId('security-server-details-view')).toBeVisible();
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(fixture.server_address);
+  }
+
+  it('shows both values and no warning when the hosts match the address', async () => {
+    await renderDetails({
+      ...serverFixture,
+      system_did: SYSTEM_DID,
+      dsp_base_url: DSP_BASE_URL,
+      system_pair_stale: false,
+    } as SecurityServer);
+
+    await expect.element(page.getByTestId('security-server-system-did')).toMatchTextContent(SYSTEM_DID);
+    await expect.element(page.getByTestId('security-server-dsp-base-url')).toMatchTextContent(DSP_BASE_URL);
+    await expect.element(page.getByTestId('security-server-stale-values-warning')).not.toBeInTheDocument();
+  });
+
+  it('shows both values and the warning when the server flags the pair as stale', async () => {
+    await renderDetails({
+      ...serverFixture,
+      server_address: 'new-address.example.org',
+      system_did: SYSTEM_DID,
+      dsp_base_url: DSP_BASE_URL,
+      system_pair_stale: true,
+    } as SecurityServer);
+
+    await expect.element(page.getByTestId('security-server-system-did')).toMatchTextContent(SYSTEM_DID);
+    await expect.element(page.getByTestId('security-server-dsp-base-url')).toMatchTextContent(DSP_BASE_URL);
+    await expect.element(page.getByTestId('security-server-stale-values-warning')).toBeVisible();
+  });
+
+  it('shows neither values nor warning for a server without a pair', async () => {
+    await renderDetails(serverFixture);
+
+    await expect.element(page.getByTestId('security-server-system-did')).not.toBeInTheDocument();
+    await expect.element(page.getByTestId('security-server-dsp-base-url')).not.toBeInTheDocument();
+    await expect.element(page.getByTestId('security-server-stale-values-warning')).not.toBeInTheDocument();
+  });
+});
+
 describe('1000 — CS Security Server Details — edit address dialog cancel and save (Browser Mode)', () => {
   it('cancel keeps the old address; save updates the rendered address', async () => {
     const updatedAddress = 'security-server-address-E2E-SS1-updated';

@@ -54,6 +54,7 @@ public class SecurityServerDtoConverter extends UniDirectionalDtoConverter<Secur
                 .maintenanceModeMessage(source.getMaintenanceModeMessage())
                 .systemDid(source.getSystemDid())
                 .dspBaseUrl(source.getDspBaseUrl())
+                .systemPairStale(source.getSystemPairStale())
                 .createdAt(source.getCreatedAt().atOffset(dtoZoneOffset))
                 .updatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
     }

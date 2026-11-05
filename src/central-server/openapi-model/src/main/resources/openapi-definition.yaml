@@ -4869,6 +4869,10 @@ components:
           description: stored DSP base URL of the security server, absent when none is stored
           type: string
           readOnly: true
+        system_pair_stale:
+          description: whether the host of the stored SYSTEM DID or DSP base URL differs from the server address, absent when no pair is stored
+          type: boolean
+          readOnly: true
       required:
         - server_id
         - in_maintenance_mode

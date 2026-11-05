@@ -464,6 +464,7 @@
       }
     },
     "disabled": "Wagtlaýynça öçürilen",
+    "dspBaseUrl": "DSP esasy URL-i",
     "ownerClass": "Eýesiniň klassy",
     "ownerCode": "Eýesiniň kody",
     "ownerName": "Eýesiniň kody",
@@ -492,6 +493,8 @@
       }
     },
     "serverCode": "Serweriň kody",
+    "staleValuesWarning": "SYSTEM DID ýa-da DSP esasy URL-i howpsuzlyk serweriniň salgysy bilen gabat gelmeýär. Beýleki serwerler bu serwere ýetmek üçin köne bahalary ulanýar.",
+    "systemDid": "SYSTEM DID",
     "unregistered": "Hasaba alynmadyk"
   },
   "status": {
