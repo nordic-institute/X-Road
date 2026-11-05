@@ -35,6 +35,7 @@ service IssuerProvisioningService {
   rpc CreateAttestationDefinition(CreateAttestationDefinitionReq) returns (CreateAttestationDefinitionResp);
   rpc CreateCredentialDefinition(CreateCredentialDefinitionReq) returns (CreateCredentialDefinitionResp);
   rpc RevokeCredential(RevokeCredentialReq) returns (RevokeCredentialResp);
+  rpc CanSign(CanSignReq) returns (CanSignResp);
 }
 
 message CreateParticipantContextReq {
@@ -86,4 +87,27 @@ message RevokeCredentialReq {
 
 message RevokeCredentialResp {
   int32 revoked_count = 1;
+}
+
+message CanSignReq {
+  string participant_context_id = 1;
+}
+
+message CanSignResp {
+  CanSignOutcome outcome = 1;
+  string did = 2;
+  CanSignCause cause = 3;
+}
+
+enum CanSignOutcome {
+  CAN_SIGN_OUTCOME_UNSPECIFIED = 0;
+  ABSENT = 1;
+  CAN_SIGN = 2;
+  CANNOT_SIGN = 3;
+}
+
+enum CanSignCause {
+  CAN_SIGN_CAUSE_NONE = 0;
+  NO_ACTIVE_KEY = 1;
+  DID_NOT_PUBLISHED = 2;
 }

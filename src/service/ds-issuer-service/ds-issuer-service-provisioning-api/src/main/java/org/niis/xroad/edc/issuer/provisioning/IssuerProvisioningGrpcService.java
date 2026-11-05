@@ -29,8 +29,12 @@ package org.niis.xroad.edc.issuer.provisioning;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.iam.did.spi.document.Service;
+import org.eclipse.edc.identityhub.spi.did.DidDocumentService;
+import org.eclipse.edc.identityhub.spi.did.model.DidState;
+import org.eclipse.edc.identityhub.spi.keypair.KeyPairService;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyPairUsage;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
@@ -44,6 +48,10 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionReq;
@@ -89,6 +97,8 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private final AttestationDefinitionService attestationDefinitionService;
     private final CredentialDefinitionService credentialDefinitionService;
     private final CredentialStatusService credentialStatusService;
+    private final KeyPairService keyPairService;
+    private final DidDocumentService didDocumentService;
     private final RpcResponseHandler responseHandler;
     private final Monitor monitor;
 
@@ -113,6 +123,11 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     @Override
     public void revokeCredential(RevokeCredentialReq request, StreamObserver<RevokeCredentialResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> revokeCredentialInternal(request));
+    }
+
+    @Override
+    public void canSign(CanSignReq request, StreamObserver<CanSignResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> canSignInternal(request));
     }
 
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
@@ -202,6 +217,31 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         }
 
         return RevokeCredentialResp.newBuilder().setRevokedCount(credentialIds.size()).build();
+    }
+
+    private CanSignResp canSignInternal(CanSignReq request) {
+        var participantContextId = request.getParticipantContextId();
+        var contextResult = participantContextService.getParticipantContext(participantContextId);
+        if (contextResult.failed()) {
+            return CanSignResp.newBuilder().setOutcome(CanSignOutcome.ABSENT).build();
+        }
+
+        var keyResult = keyPairService.getActiveKeyPairForUsage(participantContextId, KeyPairUsage.CREDENTIAL_SIGNING);
+        if (keyResult.failed()) {
+            return cannotSign(CanSignCause.NO_ACTIVE_KEY);
+        }
+
+        var did = contextResult.getContent().getDid();
+        var didResource = didDocumentService.findById(did);
+        if (didResource == null || didResource.getStateAsEnum() != DidState.PUBLISHED) {
+            return cannotSign(CanSignCause.DID_NOT_PUBLISHED);
+        }
+
+        return CanSignResp.newBuilder().setOutcome(CanSignOutcome.CAN_SIGN).setDid(did).build();
+    }
+
+    private static CanSignResp cannotSign(CanSignCause cause) {
+        return CanSignResp.newBuilder().setOutcome(CanSignOutcome.CANNOT_SIGN).setCause(cause).build();
     }
 
     private QuerySpec hostCredentialQuery(RevokeCredentialReq request) {

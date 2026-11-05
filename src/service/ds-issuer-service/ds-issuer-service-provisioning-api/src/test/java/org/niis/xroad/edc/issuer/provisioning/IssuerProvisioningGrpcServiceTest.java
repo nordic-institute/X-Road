@@ -33,8 +33,16 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
+import org.eclipse.edc.identityhub.spi.did.DidDocumentService;
+import org.eclipse.edc.identityhub.spi.did.model.DidResource;
+import org.eclipse.edc.identityhub.spi.did.model.DidState;
+import org.eclipse.edc.identityhub.spi.keypair.KeyPairService;
+import org.eclipse.edc.identityhub.spi.keypair.model.KeyPairResource;
+import org.eclipse.edc.identityhub.spi.keypair.model.KeyPairState;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.CreateParticipantContextResponse;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyPairUsage;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
@@ -54,6 +62,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
@@ -84,11 +96,17 @@ class IssuerProvisioningGrpcServiceTest {
     @Mock
     private CredentialStatusService credentialStatusService;
     @Mock
+    private KeyPairService keyPairService;
+    @Mock
+    private DidDocumentService didDocumentService;
+    @Mock
     private Monitor monitor;
     @Mock
     private StreamObserver<CreateParticipantContextResp> participantContextResponseObserver;
     @Mock
     private StreamObserver<RevokeCredentialResp> revokeResponseObserver;
+    @Mock
+    private StreamObserver<CanSignResp> canSignResponseObserver;
     @Captor
     private ArgumentCaptor<QuerySpec> querySpecCaptor;
     @Captor
@@ -99,7 +117,8 @@ class IssuerProvisioningGrpcServiceTest {
     @BeforeEach
     void setUp() {
         service = new IssuerProvisioningGrpcService(participantContextService, attestationDefinitionService,
-                credentialDefinitionService, credentialStatusService, new RpcResponseHandler(), monitor);
+                credentialDefinitionService, credentialStatusService, keyPairService, didDocumentService,
+                new RpcResponseHandler(), monitor);
     }
 
     @ParameterizedTest
@@ -293,6 +312,126 @@ class IssuerProvisioningGrpcServiceTest {
 
         verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
         verify(credentialStatusService, never()).queryCredentials(any());
+    }
+
+    @Test
+    void canSignReturnsAbsentWhenNoParticipantContext() {
+        when(participantContextService.getParticipantContext("issuer"))
+                .thenReturn(ServiceResult.notFound("not found"));
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder().setOutcome(CanSignOutcome.ABSENT).build());
+        verify(canSignResponseObserver).onCompleted();
+    }
+
+    @Test
+    void canSignReturnsCanSignWithDidWhenActiveKeyAndPublishedDidExist() {
+        stubParticipantContext("issuer", "did:web:issuer.example.com");
+        when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
+                .thenReturn(ServiceResult.success(activeSigningKey("did:web:issuer.example.com#key-1")));
+        when(didDocumentService.findById("did:web:issuer.example.com"))
+                .thenReturn(publishedDid("did:web:issuer.example.com"));
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder()
+                .setOutcome(CanSignOutcome.CAN_SIGN)
+                .setDid("did:web:issuer.example.com")
+                .build());
+        verify(canSignResponseObserver).onCompleted();
+    }
+
+    @Test
+    void canSignPassesForSigningKeyOtherThanKeyOne() {
+        stubParticipantContext("issuer", "did:web:issuer.example.com");
+        when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
+                .thenReturn(ServiceResult.success(activeSigningKey("did:web:issuer.example.com#key-7")));
+        when(didDocumentService.findById("did:web:issuer.example.com"))
+                .thenReturn(publishedDid("did:web:issuer.example.com"));
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder()
+                .setOutcome(CanSignOutcome.CAN_SIGN)
+                .setDid("did:web:issuer.example.com")
+                .build());
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithNoActiveKeyCauseWhenNoActiveSigningKey() {
+        stubParticipantContext("issuer", "did:web:issuer.example.com");
+        when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
+                .thenReturn(ServiceResult.notFound("no active key"));
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder()
+                .setOutcome(CanSignOutcome.CANNOT_SIGN)
+                .setCause(CanSignCause.NO_ACTIVE_KEY)
+                .build());
+        verify(didDocumentService, never()).findById(any());
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithDidNotPublishedCauseWhenDidResourceNotPublished() {
+        stubParticipantContext("issuer", "did:web:issuer.example.com");
+        when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
+                .thenReturn(ServiceResult.success(activeSigningKey("did:web:issuer.example.com#key-1")));
+        when(didDocumentService.findById("did:web:issuer.example.com"))
+                .thenReturn(DidResource.Builder.newInstance()
+                        .did("did:web:issuer.example.com")
+                        .state(DidState.GENERATED)
+                        .build());
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder()
+                .setOutcome(CanSignOutcome.CANNOT_SIGN)
+                .setCause(CanSignCause.DID_NOT_PUBLISHED)
+                .build());
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithDidNotPublishedCauseWhenDidResourceMissing() {
+        stubParticipantContext("issuer", "did:web:issuer.example.com");
+        when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
+                .thenReturn(ServiceResult.success(activeSigningKey("did:web:issuer.example.com#key-1")));
+        when(didDocumentService.findById("did:web:issuer.example.com")).thenReturn(null);
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder()
+                .setOutcome(CanSignOutcome.CANNOT_SIGN)
+                .setCause(CanSignCause.DID_NOT_PUBLISHED)
+                .build());
+    }
+
+    private CanSignReq canSignReq(String participantContextId) {
+        return CanSignReq.newBuilder().setParticipantContextId(participantContextId).build();
+    }
+
+    private void stubParticipantContext(String participantContextId, String did) {
+        var context = IdentityHubParticipantContext.Builder.newInstance()
+                .id(participantContextId)
+                .did(did)
+                .apiTokenAlias(participantContextId + "-api-token-alias")
+                .build();
+        when(participantContextService.getParticipantContext(participantContextId))
+                .thenReturn(ServiceResult.success(context));
+    }
+
+    private KeyPairResource activeSigningKey(String keyId) {
+        return KeyPairResource.Builder.newInstance()
+                .id(keyId)
+                .keyId(keyId)
+                .usage(KeyPairUsage.CREDENTIAL_SIGNING)
+                .state(KeyPairState.ACTIVATED)
+                .build();
+    }
+
+    private DidResource publishedDid(String did) {
+        return DidResource.Builder.newInstance().did(did).state(DidState.PUBLISHED).build();
     }
 
     private void stubStore(VerifiableCredentialResource... seed) {
