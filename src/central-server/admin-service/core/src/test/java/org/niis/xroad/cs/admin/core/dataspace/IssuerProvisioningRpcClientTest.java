@@ -38,6 +38,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.cs.admin.api.domain.CanSignCause;
+import org.niis.xroad.cs.admin.api.domain.CanSignResult;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.IssuerProvisioningServiceGrpc;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
@@ -62,6 +66,10 @@ class IssuerProvisioningRpcClientTest {
     private RevokeCredentialResp configuredRevokeResp;
     private final AtomicReference<RevokeCredentialReq> capturedRevokeReq = new AtomicReference<>();
 
+    private CanSignResp configuredCanSignResp;
+    private final AtomicReference<CanSignReq> capturedCanSignReq = new AtomicReference<>();
+    private long canSignDelayMillis;
+
     @BeforeEach
     void setUp() throws Exception {
         var mockService = new IssuerProvisioningServiceGrpc.IssuerProvisioningServiceImplBase() {
@@ -69,6 +77,21 @@ class IssuerProvisioningRpcClientTest {
             public void revokeCredential(RevokeCredentialReq request, StreamObserver<RevokeCredentialResp> responseObserver) {
                 capturedRevokeReq.set(request);
                 responseObserver.onNext(configuredRevokeResp);
+                responseObserver.onCompleted();
+            }
+
+            @Override
+            public void canSign(CanSignReq request, StreamObserver<CanSignResp> responseObserver) {
+                capturedCanSignReq.set(request);
+                if (canSignDelayMillis > 0) {
+                    try {
+                        Thread.sleep(canSignDelayMillis);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+                responseObserver.onNext(configuredCanSignResp);
                 responseObserver.onCompleted();
             }
         };
@@ -112,5 +135,66 @@ class IssuerProvisioningRpcClientTest {
         var revokedCount = client.revokeCredential("ctx-id", "did:web:ss1.example.com", 1_700_000_000_000L);
 
         assertThat(revokedCount).isZero();
+    }
+
+    @Test
+    void canSignReturnsAbsentWhenParticipantContextIsMissing() {
+        configuredCanSignResp = CanSignResp.newBuilder()
+                .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.ABSENT)
+                .build();
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.absent());
+        assertThat(capturedCanSignReq.get().getParticipantContextId()).isEqualTo("ctx-id");
+    }
+
+    @Test
+    void canSignReturnsCanSignWithDidWhenIssuerCanSign() {
+        configuredCanSignResp = CanSignResp.newBuilder()
+                .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.CAN_SIGN)
+                .setDid("did:web:issuer.example.com")
+                .build();
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.canSign("did:web:issuer.example.com"));
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithNoActiveKeyCause() {
+        configuredCanSignResp = CanSignResp.newBuilder()
+                .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.CANNOT_SIGN)
+                .setCause(org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause.NO_ACTIVE_KEY)
+                .build();
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.NO_ACTIVE_KEY));
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithDidNotPublishedCause() {
+        configuredCanSignResp = CanSignResp.newBuilder()
+                .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.CANNOT_SIGN)
+                .setCause(org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause.DID_NOT_PUBLISHED)
+                .build();
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithTimeoutCauseOnDeadlineOverrun() {
+        configuredCanSignResp = CanSignResp.newBuilder()
+                .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.CAN_SIGN)
+                .setDid("did:web:issuer.example.com")
+                .build();
+        canSignDelayMillis = 4_000;
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.TIMEOUT));
     }
 }

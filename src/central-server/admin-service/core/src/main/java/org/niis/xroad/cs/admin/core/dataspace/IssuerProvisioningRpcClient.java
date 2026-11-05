@@ -27,11 +27,18 @@
 package org.niis.xroad.cs.admin.core.dataspace;
 
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.cs.admin.api.domain.CanSignCause;
+import org.niis.xroad.cs.admin.api.domain.CanSignResult;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
@@ -43,12 +50,22 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+
 /**
  * gRPC transport client for the issuer provisioning service.
  */
 @Slf4j
 @RequiredArgsConstructor
 public class IssuerProvisioningRpcClient extends AbstractRpcClient implements InitializingBean, DisposableBean {
+
+    /**
+     * Deadline for {@link #canSign(String)} alone. Set-up and the status check call it while a human waits, so it
+     * must fail fast when the Issuer Service is down rather than block for the channel's default deadline; a few
+     * seconds is enough for a healthy, collocated Issuer Service to answer.
+     */
+    private static final long CAN_SIGN_DEADLINE_MILLIS = 3_000;
 
     private final RpcChannelFactory rpcChannelFactory;
     private final IssuerProvisioningRpcChannelProperties channelProperties;
@@ -134,5 +151,46 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
                 .setIssuedBefore(issuedBefore)
                 .build()));
         return response.getRevokedCount();
+    }
+
+    /**
+     * Checks whether the issuer can sign credentials for the given participant context, under
+     * {@link #CAN_SIGN_DEADLINE_MILLIS} instead of the channel's own deadline. A deadline overrun comes back as
+     * {@link CanSignCause#TIMEOUT}, not an exception; every other gRPC failure goes through the usual mapping.
+     */
+    public CanSignResult canSign(String participantContextId) {
+        try {
+            var response = stub.withDeadlineAfter(CAN_SIGN_DEADLINE_MILLIS, MILLISECONDS)
+                    .canSign(CanSignReq.newBuilder().setParticipantContextId(participantContextId).build());
+            return toDomain(response);
+        } catch (StatusRuntimeException error) {
+            if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                return CanSignResult.cannotSign(CanSignCause.TIMEOUT);
+            }
+            throw mapFailedStatus(error);
+        }
+    }
+
+    private static CanSignResult toDomain(CanSignResp response) {
+        return switch (response.getOutcome()) {
+            case ABSENT -> CanSignResult.absent();
+            case CAN_SIGN -> CanSignResult.canSign(response.getDid());
+            case CANNOT_SIGN -> CanSignResult.cannotSign(toDomain(response.getCause()));
+            default -> throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                    .origin(ErrorOrigin.DS_ISSUER_SERVICE)
+                    .details("Can-sign check returned an unknown outcome: " + response.getOutcome())
+                    .build();
+        };
+    }
+
+    private static CanSignCause toDomain(org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause cause) {
+        return switch (cause) {
+            case NO_ACTIVE_KEY -> CanSignCause.NO_ACTIVE_KEY;
+            case DID_NOT_PUBLISHED -> CanSignCause.DID_NOT_PUBLISHED;
+            default -> throw XrdRuntimeException.systemException(INTERNAL_ERROR)
+                    .origin(ErrorOrigin.DS_ISSUER_SERVICE)
+                    .details("Can-sign check returned an unknown cause: " + cause)
+                    .build();
+        };
     }
 }
