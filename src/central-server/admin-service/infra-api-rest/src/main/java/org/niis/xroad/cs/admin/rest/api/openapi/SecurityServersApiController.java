@@ -29,7 +29,9 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
@@ -41,9 +43,10 @@ import org.niis.xroad.cs.openapi.SecurityServersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -57,9 +60,16 @@ import java.util.List;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_REJECTED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DSP_BASE_URL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_DID;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -77,6 +87,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     private final SecurityServerService securityServerService;
     private final SecurityServerIdConverter securityServerIdConverter;
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
+    private final AuditDataHelper auditDataHelper;
 
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
@@ -146,12 +157,30 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
-    @AuditEventMethod(event = EDIT_SECURITY_SERVER_ADDRESS)
-    public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(String id, SecurityServerAddressDto securityServerAddress) {
+    @AuditEventMethod(event = EDIT_SECURITY_SERVER)
+    public ResponseEntity<SecurityServerDto> updateSecurityServer(String id, SecurityServerEditDto securityServerEdit) {
         var securityServerId = securityServerIdConverter.convertId(id);
-        return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
+        auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
+        auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditDataHelper.put(ADDRESS, securityServerEdit.getServerAddress());
+        auditDataHelper.put(SYSTEM_DID, securityServerEdit.getSystemDid());
+        auditDataHelper.put(DSP_BASE_URL, securityServerEdit.getDspBaseUrl());
+
+        return securityServerService.editSecurityServer(securityServerId, securityServerEdit.getServerAddress(),
+                        toSystemPairEdit(securityServerEdit))
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new SecurityServerNotFoundException(securityServerId));
+    }
+
+    private static SystemPairEdit toSystemPairEdit(SecurityServerEditDto edit) {
+        if (edit.getSystemDid() == null && edit.getDspBaseUrl() == null) {
+            return null;
+        }
+        if (edit.getSystemDid() == null || edit.getDspBaseUrl() == null) {
+            throw new BadRequestException(SYSTEM_PAIR_REJECTED.build());
+        }
+        return new SystemPairEdit(edit.getSystemDid(), edit.getDspBaseUrl());
     }
 }

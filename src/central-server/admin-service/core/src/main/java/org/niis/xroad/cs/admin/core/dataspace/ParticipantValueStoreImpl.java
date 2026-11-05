@@ -168,7 +168,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
             return ParticipantValueResult.rejected(VALUE_DIFFERS);
         }
         if (isHeldByAnotherServer(server, pair)) {
-            return heldByAnotherServer(server, null);
+            return heldByAnotherServer(server, null, mode);
         }
 
         server.setSystemDid(pair.did());
@@ -222,7 +222,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
         var results = new LinkedHashMap<ClientId, ParticipantValueResult>();
         memberDids.forEach((member, did) -> results.put(member,
-                decideMemberDid(server, didsHeldElsewhere, member, did, plans.get(member), effect)));
+                decideMemberDid(server, didsHeldElsewhere, member, did, plans.get(member), mode, effect)));
         return results;
     }
 
@@ -255,18 +255,20 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     }
 
     private ParticipantValueResult decideMemberDid(SecurityServerEntity server, Set<String> didsHeldElsewhere,
-                                                   ClientId member, String did, MemberDidPlan plan, Effect effect) {
+                                                   ClientId member, String did, MemberDidPlan plan, Mode mode,
+                                                   Effect effect) {
         return switch (plan) {
             case MemberDidPlan.Settled(var result) -> result;
-            case MemberDidPlan.Writable writable -> decideWrite(server, didsHeldElsewhere, member, did, writable, effect);
+            case MemberDidPlan.Writable writable -> decideWrite(server, didsHeldElsewhere, member, did, writable, mode, effect);
         };
     }
 
     private ParticipantValueResult decideWrite(SecurityServerEntity server, Set<String> didsHeldElsewhere,
-                                               ClientId member, String did, MemberDidPlan.Writable plan, Effect effect) {
+                                               ClientId member, String did, MemberDidPlan.Writable plan, Mode mode,
+                                               Effect effect) {
         if (didsHeldElsewhere.contains(did)) {
             return effect == Effect.APPLY
-                    ? heldByAnotherServer(server, member)
+                    ? heldByAnotherServer(server, member, mode)
                     : ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
         }
         if (effect == Effect.APPLY) {
@@ -326,7 +328,10 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                 new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers));
     }
 
-    private ParticipantValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member) {
+    private ParticipantValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member, Mode mode) {
+        if (mode == Mode.ADMIN_REPLACE) {
+            return ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER);
+        }
         var data = new LinkedHashMap<RestApiAuditProperty, Object>();
         data.put(SERVER_CODE, server.getServerCode());
         data.put(OWNER_CLASS, server.getOwner().getIdentifier().getMemberClass());

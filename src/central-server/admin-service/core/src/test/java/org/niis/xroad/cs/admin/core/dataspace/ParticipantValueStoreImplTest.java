@@ -445,6 +445,20 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
+    void shouldRejectSystemPairHeldByAnotherServerOnAdminReplaceWithoutConnectorAudit() {
+        server.setSystemDid(OTHER_SYSTEM_DID);
+        server.setDspBaseUrl(OTHER_DSP_URL);
+        when(securityServerRepository.existsBySystemDidAndIdNot(SYSTEM_DID, SERVER_ID)).thenReturn(true);
+
+        var result = store.replaceSystemPair(SERVER_ID, SYSTEM_DID, DSP_URL);
+
+        assertThat(result).isEqualTo(ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(server.getSystemDid()).isEqualTo(OTHER_SYSTEM_DID);
+        verify(securityServerRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(auditLogging);
+    }
+
+    @Test
     void shouldPropagateRepositoryExceptionOnSystemPairWrite() {
         var failure = new DataIntegrityViolationException("duplicate");
         doThrow(failure).when(securityServerRepository).saveAndFlush(server);
@@ -561,6 +575,18 @@ class ParticipantValueStoreImplTest {
                 OWNER_CODE, "222",
                 MEMBER_CLASS, "COM",
                 MEMBER_CODE, "333"));
+    }
+
+    @Test
+    void shouldRejectMemberDidHeldByAnotherServerOnAdminReplaceWithoutConnectorAudit() {
+        storedRows.put(2L, new MemberDidEntity(server, clientEntity, OTHER_CLIENT_DID));
+        didsOfOtherServers.add(CLIENT_DID);
+
+        var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
+
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(storedRows.get(2L).getDid()).isEqualTo(OTHER_CLIENT_DID);
+        verifyNoInteractions(auditLogging);
     }
 
     @Test

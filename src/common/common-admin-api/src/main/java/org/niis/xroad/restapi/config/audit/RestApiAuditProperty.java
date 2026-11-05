@@ -122,6 +122,8 @@ public enum RestApiAuditProperty {
     OWNER_CLASS,
     OWNER_CODE,
     SERVER_CODE,
+    SYSTEM_DID,
+    DSP_BASE_URL,
 
     API_KEY_ID,
     API_KEY_ROLES,

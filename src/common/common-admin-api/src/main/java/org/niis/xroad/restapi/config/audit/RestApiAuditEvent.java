@@ -157,6 +157,7 @@ public enum RestApiAuditEvent {
 
     DELETE_SECURITY_SERVER("Delete security server"),
     EDIT_SECURITY_SERVER_ADDRESS("Edit security server address"),
+    EDIT_SECURITY_SERVER("Edit security server"),
 
     ADD_CERTIFICATION_SERVICE("Add certification service"),
     DELETE_CERTIFICATION_SERVICE("Delete certification service"),

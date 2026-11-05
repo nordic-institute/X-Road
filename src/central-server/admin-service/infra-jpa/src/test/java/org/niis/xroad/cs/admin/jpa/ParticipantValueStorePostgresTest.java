@@ -122,6 +122,29 @@ class ParticipantValueStorePostgresTest extends AbstractCentralServerPostgresTes
     }
 
     @Test
+    void replaceSystemPairValidatesAgainstTheAddressPersistedEarlierInTheTransaction() {
+        var server = seed.server(seed.member());
+        var oldPair = systemDid(server.address(), 7183);
+        jdbc.update("update security_servers set system_did = ?, dsp_base_url = ? where id = ?",
+                oldPair, dspBaseUrl(server.address()), server.id());
+        var newAddress = newHost();
+        var newPairDid = systemDid(newAddress, 7184);
+        var newPairUrl = dspBaseUrl(newAddress);
+
+        var result = transactions.execute(status -> {
+            var entity = servers.findById(server.id()).orElseThrow();
+            entity.setAddress(newAddress);
+            return store.replaceSystemPair(server.id(), newPairDid, newPairUrl);
+        });
+
+        assertThat(result).isEqualTo(ParticipantValueResult.STORED);
+        assertThat(jdbc.queryForMap("select address, system_did, dsp_base_url from security_servers where id = ?", server.id()))
+                .containsEntry("address", newAddress)
+                .containsEntry("system_did", newPairDid)
+                .containsEntry("dsp_base_url", newPairUrl);
+    }
+
+    @Test
     void lockForUpdateByRunsAndWaitsForTheHolderOfTheServerRow() throws Exception {
         var server = seed.server(seed.member());
         var locked = new CountDownLatch(1);

@@ -85,6 +85,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     CANNOT_ADD_MEMBER_TO_OWNERS_GROUP("cannot_add_member_to_owners_group"),
     GLOBAL_GROUP_EXISTS("global_group_exists"),
     SECURITY_SERVER_NOT_FOUND("security_server_not_found"),
+    SYSTEM_PAIR_REJECTED("system_pair_rejected"),
     CERTIFICATION_SERVICE_NOT_FOUND("certification_service_not_found"),
     INTERMEDIATE_CA_NOT_FOUND("intermediate_ca_not_found"),
     DS_TLS_CERTIFICATION_AUTHORITY_NOT_FOUND("ds_tls_certification_authority_not_found"),

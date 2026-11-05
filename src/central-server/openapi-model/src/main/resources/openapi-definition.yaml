@@ -2641,14 +2641,16 @@ paths:
       tags:
         - security-servers
     patch:
-      description: <h3>CS administrator changes the address of a security server.</h3>
-      operationId: updateSecurityServerAddress
+      description: >
+        <h3>CS administrator changes the address of a security server and, optionally, replaces its stored
+        SYSTEM DID and DSP base URL.</h3>
+      operationId: updateSecurityServer
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SecurityServerAddress'
-        description: security server address
+              $ref: '#/components/schemas/SecurityServerEdit'
+        description: new security server address and, optionally, the new SYSTEM DID and DSP base URL
         required: true
       responses:
         '200':
@@ -2667,7 +2669,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: update the security server's address
+      summary: update the security server's address and published values
       tags:
         - security-servers
   /security-servers/{server_id}/authentication-certificates:
@@ -4823,6 +4825,14 @@ components:
           description: optional message of maintenance mode
           type: string
           readOnly: true
+        system_did:
+          description: stored SYSTEM DID of the security server, absent when none is stored
+          type: string
+          readOnly: true
+        dsp_base_url:
+          description: stored DSP base URL of the security server, absent when none is stored
+          type: string
+          readOnly: true
       required:
         - server_id
         - in_maintenance_mode
@@ -4958,6 +4968,18 @@ components:
           type: string
       required:
         - server_address
+      type: object
+    SecurityServerEdit:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServerAddress'
+      description: new address of a security server and, optionally, its new SYSTEM DID and DSP base URL
+      properties:
+        system_did:
+          description: new SYSTEM DID, replaces the stored one
+          type: string
+        dsp_base_url:
+          description: new DSP base URL, replaces the stored one
+          type: string
       type: object
     ServiceProviderId:
       properties:

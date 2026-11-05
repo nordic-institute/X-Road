@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { PagedSecurityServers, PagingMetadata, SecurityServer, SecurityServerAddress } from '@/openapi-types';
+import { PagedSecurityServers, PagingMetadata, SecurityServer, SecurityServerEdit } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataQuery } from '@/ui-types';
 import { WithCurrentItem } from '@niis/shared-ui';
@@ -78,12 +78,12 @@ export const useSecurityServer = defineStore('securityServer', {
         .finally(() => (this.loadingCurrent = false));
     },
     async updateAddress(securityServerId: string, address: string) {
-      const securityServerAddress: SecurityServerAddress = {
+      const securityServerEdit: SecurityServerEdit = {
         server_address: address,
       };
       this.loadingCurrent = true;
       return axios
-        .patch<SecurityServer>(`/security-servers/${securityServerId}`, securityServerAddress)
+        .patch<SecurityServer>(`/security-servers/${securityServerId}`, securityServerEdit)
         .then((resp) => {
           this.current = resp.data;
         })

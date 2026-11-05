@@ -47,6 +47,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,6 +105,38 @@ class SecurityServerDtoConverterTest extends AbstractDtoConverterTest implements
                 inOrder.verify(securityServer).getCreatedAt();
                 inOrder.verify(securityServer).getUpdatedAt();
             });
+        }
+
+        @Test
+        void shouldMapTheStoredSystemDidAndDspBaseUrl() {
+            stubRequiredFields();
+            doReturn("did:web:ss.example.org%3A7183").when(securityServer).getSystemDid();
+            doReturn("https://ss.example.org:7185/dsp").when(securityServer).getDspBaseUrl();
+
+            SecurityServerDto result = converter.toDto(securityServer);
+
+            assertEquals("did:web:ss.example.org%3A7183", result.getSystemDid());
+            assertEquals("https://ss.example.org:7185/dsp", result.getDspBaseUrl());
+        }
+
+        @Test
+        void shouldLeaveTheSystemDidAndDspBaseUrlAbsentWhenNoPairIsStored() {
+            stubRequiredFields();
+
+            SecurityServerDto result = converter.toDto(securityServer);
+
+            assertNull(result.getSystemDid());
+            assertNull(result.getDspBaseUrl());
+        }
+
+        private void stubRequiredFields() {
+            doReturn(securityServerId).when(securityServer).getServerId();
+            doReturn(securityServerIdDto).when(securityServerIdDtoConverter).toDto(securityServerId);
+            doReturn(xRoadMember).when(securityServer).getOwner();
+            doReturn(MEMBER_NAME).when(xRoadMember).getName();
+            doReturn(SERVER_ADDRESS).when(securityServer).getAddress();
+            doReturn(createdAtInstance).when(securityServer).getCreatedAt();
+            doReturn(updatedAtInstance).when(securityServer).getUpdatedAt();
         }
     }
 }

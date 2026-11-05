@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.paging.Page;
@@ -57,7 +58,17 @@ public interface SecurityServerService {
 
     Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id);
 
-    Optional<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
+    /**
+     * Changes the address of a server and, when a pair is given, replaces its stored SYSTEM DID and DSP base URL,
+     * all in one transaction. The request fails and nothing is stored when the pair is refused or the server has
+     * no stored pair to replace.
+     *
+     * @param serverId   the identifier of the server
+     * @param newAddress the new address
+     * @param pair       the new SYSTEM DID and DSP base URL, or {@code null} to leave the stored pair as it is
+     * @return the updated server, empty when there is no such server
+     */
+    Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress, SystemPairEdit pair);
 
     void delete(SecurityServerId serverId);
 

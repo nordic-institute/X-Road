@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.ManagementRequestsAdminClient;
@@ -44,7 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.niis.xroad.cs.test.api.CsBaselineSeeder.BASELINE_MEMBER_CLASS;
 import static org.niis.xroad.cs.test.api.CsBaselineSeeder.INSTANCE_IDENTIFIER;
@@ -221,6 +224,77 @@ class SecurityServerApiTest extends CsApiTest {
                 client.updateSecurityServerAddress(
                         INSTANCE_IDENTIFIER + ":NONEXIST:nonexist:nonexist", "any-addr")
                         .statusCode(404));
+    }
+
+    @Test
+    void serverWithoutStoredPairShowsNeitherSystemDidNorDspBaseUrl(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0809", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0809", memberId));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.then("server details carry no SYSTEM pair", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("$", not(hasKey("system_did")))
+                        .body("$", not(hasKey("dsp_base_url"))));
+    }
+
+    @Test
+    void modifySecurityServerAddressAndSystemPair(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0810", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0810", memberId));
+        Step.and("old SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0810"), dspBaseUrl("ss-addr-0810")));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("address and a pair at the new address are saved", () ->
+                client.updateSecurityServer(serverId, new SecurityServerEditDto()
+                                .serverAddress("new-addr-0810")
+                                .systemDid(systemDid("new-addr-0810"))
+                                .dspBaseUrl(dspBaseUrl("new-addr-0810")))
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0810"))
+                        .body("system_did", equalTo(systemDid("new-addr-0810")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("new-addr-0810"))));
+
+        Step.then("server details return the new address and pair", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0810"))
+                        .body("system_did", equalTo(systemDid("new-addr-0810")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("new-addr-0810"))));
+    }
+
+    @Test
+    void addressOnlyEditKeepsTheStoredSystemPair(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0811", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0811", memberId));
+        Step.and("SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0811"), dspBaseUrl("ss-addr-0811")));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("only the address is saved", () ->
+                client.updateSecurityServerAddress(serverId, "new-addr-0811")
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0811")));
+
+        Step.then("the stored pair is unchanged", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("new-addr-0811"))
+                        .body("system_did", equalTo(systemDid("ss-addr-0811")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0811"))));
+    }
+
+    private static String systemDid(String host) {
+        return "did:web:" + host + "%3A7183:v1:system";
+    }
+
+    private static String dspBaseUrl(String host) {
+        return "https://" + host + ":8183/api/dsp";
     }
 
     @Test

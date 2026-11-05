@@ -39,6 +39,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
@@ -49,13 +50,17 @@ import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
@@ -86,6 +91,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -122,6 +128,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
     private AuditDataHelper auditDataHelper;
     @Mock
     private SecurityServerMapper securityServerMapper;
+    @Mock
+    private ParticipantValueStore participantValueStore;
 
     @InjectMocks
     private SecurityServerServiceImpl securityServerService;
@@ -248,43 +256,92 @@ class SecurityServerServiceImplTest implements WithInOrder {
     }
 
     @Nested
-    class UpdateSecurityServerAddress {
+    class EditSecurityServer {
 
-        MemberId ownerId = MemberId.create("UNIT_TEST", "MOCK", "test123");
+        private static final String NEW_ADDRESS = "http://localhost:443";
+        private static final SystemPairEdit PAIR = new SystemPairEdit("did:web:localhost%3A7184", "https://localhost:7185/dsp");
 
         @Test
-        void shouldUpdateSecurityServerAddress() {
-            String newAddress = "http://localhost:443";
-            when(serverId.getOwner()).thenReturn(ownerId);
+        void shouldChangeTheAddressAndLeaveTheStoredPairAloneWhenNoPairIsGiven() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
-            when(securityServer.getAddress()).thenReturn(newAddress);
 
-            var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
+            var result = securityServerService.editSecurityServer(serverId, NEW_ADDRESS, null);
 
-            assertThat(result.get().getAddress()).isEqualTo(newAddress);
-            verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());
-            verify(auditDataHelper).put(OWNER_CODE, ownerId.getMemberCode());
-            verify(auditDataHelper).put(OWNER_CLASS, ownerId.getMemberClass());
-            verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, newAddress);
-            verifyNoMoreInteractions(auditDataHelper);
+            assertThat(result).containsSame(securityServer);
+            var inOrder = inOrder(securityServerRepository, securityServerEntity);
+            inOrder.verify(securityServerRepository).lockForUpdateBy(serverId);
+            inOrder.verify(securityServerEntity).setAddress(NEW_ADDRESS);
+            inOrder.verify(securityServerRepository).saveAndFlush(securityServerEntity);
+            verifyNoInteractions(participantValueStore);
+        }
+
+        @Test
+        void shouldReplaceThePairAfterTheAddressIsFlushed() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            when(securityServerEntity.getId()).thenReturn(5);
+            when(securityServerEntity.getSystemDid()).thenReturn("did:web:old");
+            when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
+                    .thenReturn(ParticipantValueResult.STORED);
+            when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
+
+            var result = securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR);
+
+            assertThat(result).containsSame(securityServer);
+            var inOrder = inOrder(securityServerRepository, participantValueStore);
+            inOrder.verify(securityServerRepository).saveAndFlush(securityServerEntity);
+            inOrder.verify(participantValueStore).replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl());
+        }
+
+        @Test
+        void shouldAcceptAPairEqualToTheStoredOne() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            when(securityServerEntity.getId()).thenReturn(5);
+            when(securityServerEntity.getSystemDid()).thenReturn(PAIR.systemDid());
+            when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
+                    .thenReturn(ParticipantValueResult.UNCHANGED);
+            when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
+
+            assertThat(securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR)).isPresent();
+        }
+
+        @Test
+        void shouldFailWhenTheStoreRefusesThePair() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            when(securityServerEntity.getId()).thenReturn(5);
+            when(securityServerEntity.getSystemDid()).thenReturn("did:web:old");
+            when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
+                    .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.HOST_DIFFERS));
+
+            assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("system_pair_rejected");
+            verifyNoInteractions(securityServerMapper);
+        }
+
+        @Test
+        void shouldFailWhenThePairIsGivenForAServerWithNoStoredPair() {
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            when(securityServerEntity.getSystemDid()).thenReturn(null);
+
+            assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
+                    .isInstanceOf(BadRequestException.class);
+            verifyNoInteractions(participantValueStore);
         }
 
         @Test
         void securityServerNotFound() {
-            String newAddress = "http://localhost:443";
-            when(serverId.getOwner()).thenReturn(ownerId);
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
+            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.empty());
 
-            var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
+            var result = securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR);
 
-            assertThat(result.isEmpty()).isTrue();
-            verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());
-            verify(auditDataHelper).put(OWNER_CODE, ownerId.getMemberCode());
-            verify(auditDataHelper).put(OWNER_CLASS, ownerId.getMemberClass());
-            verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, newAddress);
-            verifyNoMoreInteractions(auditDataHelper);
-            verifyNoInteractions(securityServerMapper);
+            assertThat(result).isEmpty();
+            verifyNoInteractions(securityServerMapper, participantValueStore);
         }
     }
 
