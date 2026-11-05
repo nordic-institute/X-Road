@@ -32,6 +32,12 @@ import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 
 import java.util.List;
 
+/**
+ * Reads only the shared rows of {@code configuration_properties} ({@code ha_node_name IS NULL}), so the admin
+ * API lists and updates the value that applies to all nodes. Rows of a single Central Server node are not exposed
+ * through the admin API; they are managed with {@code db_property.sh --node}. The admin API does not support
+ * per-node values yet.
+ */
 public class ConfigurationPropertyDAOImpl {
 
     public List<ConfigurationPropertyEntity> findAll(Session session, Class<ConfigurationPropertyEntity> clazz) {
