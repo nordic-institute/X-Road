@@ -2,12 +2,13 @@
 # Manage rows in the X-Road configuration_properties table.
 #
 # Usage:
-#   db_property.sh get    <key>
-#   db_property.sh set    <key> <value> [--yes|-y] [--if-absent]
-#   db_property.sh remove <key>         [--yes|-y]
+#   db_property.sh get    <key>         [--node <name>]
+#   db_property.sh set    <key> <value> [--node <name>] [--yes|-y] [--if-absent]
+#   db_property.sh remove <key>         [--node <name>] [--yes|-y]
 #
-# Rows are keyed by property_key alone. Every process reads every row: the former per-application
-# `scope` column was dropped once the config source stopped filtering by it.
+# Rows are keyed by (property_key, ha_node_name). Without --node a command acts on the shared row
+# (ha_node_name is NULL) only; with --node it acts on that node's row only. The former
+# per-application `scope` column was dropped once the config source stopped filtering by it.
 # For `get`, the value is printed to stdout and the exit code is 0 if the row exists, 1 if it
 # does not, and 2 on any operational error (unreachable database, missing helper, bad usage).
 # For `set`, an existing row triggers an overwrite prompt unless --yes is given.
@@ -15,6 +16,8 @@
 # prompting; the value is inserted only when the key has no row yet.
 # For `remove`, an existing row triggers a delete prompt unless --yes is given;
 # if no matching row exists, the command is a no-op success.
+# A node name must match the X-Road node name rule; an invalid one exits with status 2 before
+# the database is touched.
 
 set -euo pipefail
 
@@ -29,39 +32,53 @@ usage() {
 Usage: $(basename "$0") <command> [options]
 
 Commands:
-  get    <key>
+  get    <key>         [--node <name>]
          Print the value of a row from configuration_properties.
          Exit status 1 if the row does not exist, 2 on operational error.
 
-  set    <key> <value> [--yes|-y] [--if-absent]
+  set    <key> <value> [--node <name>] [--yes|-y] [--if-absent]
          Insert or update a row in configuration_properties.
 
-  remove <key>         [--yes|-y]
+  remove <key>         [--node <name>] [--yes|-y]
          Delete a row from configuration_properties. No-op if absent.
 
 Common options:
-  -y, --yes   Skip interactive confirmation prompt
-  -h, --help  Show this help
+  -n, --node <name>  Act on the row of this Central Server node (for example node_1)
+                     instead of the shared row. The name must match
+                     ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$
+  -y, --yes          Skip interactive confirmation prompt
+  -h, --help         Show this help
 
 Options for set:
       --if-absent  Insert only when the key has no row yet; an existing row is
                    left untouched and the command succeeds. Never prompts.
 
-Rows are keyed by property_key alone; there is no per-application scope.
+Without --node, a command acts on the shared row only; node rows are never touched.
+With --node, a command acts on that node's row only; the shared row is never touched.
+There is no per-application scope.
+
+Example:
+  $(basename "$0") set --yes --node node_1 -- <key> <value>
 EOF
   exit 64
 }
 
-# Splits "$@" into ASSUME_YES / IF_ABSENT (flags) and POS (positional args).
+# Splits "$@" into ASSUME_YES / IF_ABSENT / NODE (flags) and POS (positional args).
+# NODE is empty for the shared row; NODE_GIVEN records that --node was passed, so an empty value
+# is rejected rather than treated as the shared row.
 # Subcommand callers validate POS arity themselves, and reject flags they do not support.
 parse_args() {
   ASSUME_YES=0
   IF_ABSENT=0
+  NODE=""
+  NODE_GIVEN=0
   declare -ga POS=()
   while (($#)); do
     case "$1" in
       -y|--yes)    ASSUME_YES=1 ;;
       --if-absent) IF_ABSENT=1 ;;
+      -n|--node)   (($# >= 2)) || die "Option $1 requires a node name"
+                   NODE="$2"; NODE_GIVEN=1; shift ;;
       -h|--help)   usage ;;
       --)          shift; POS+=("$@"); break ;;
       -*)          die "Unknown option: $1" ;;
@@ -69,6 +86,13 @@ parse_args() {
     esac
     shift
   done
+}
+
+validate_node() {
+  (( NODE_GIVEN == 1 )) || return 0
+  local LC_ALL=C
+  [[ "$NODE" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$ ]] \
+    || die "Invalid node name; it must match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$"
 }
 
 load_db_properties() {
@@ -117,8 +141,9 @@ psql_q() {
 # error can never masquerade as an absent (or present) row.
 row_exists() {
   local out
-  out=$(psql_q -v k="$KEY" <<'SQL'
-SELECT 1 FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL LIMIT 1;
+  out=$(psql_q -v k="$KEY" -v n="$NODE" <<'SQL'
+SELECT 1 FROM configuration_properties
+WHERE property_key = :'k' AND ha_node_name IS NOT DISTINCT FROM NULLIF(:'n', '') LIMIT 1;
 SQL
   ) || die "Database query failed for '${KEY}'"
   [[ -n "$out" ]]
@@ -142,6 +167,7 @@ cmd_get() {
   parse_args "$@"
   (( ${#POS[@]} == 1 )) || usage
   KEY="${POS[0]}"
+  validate_node
 
   load_db_properties
 
@@ -149,8 +175,9 @@ cmd_get() {
     exit 1
   fi
 
-  psql_q -v k="$KEY" <<'SQL' || die "Database query failed for '${KEY}'"
-SELECT property_value FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;
+  psql_q -v k="$KEY" -v n="$NODE" <<'SQL' || die "Database query failed for '${KEY}'"
+SELECT property_value FROM configuration_properties
+WHERE property_key = :'k' AND ha_node_name IS NOT DISTINCT FROM NULLIF(:'n', '');
 SQL
 }
 
@@ -160,6 +187,7 @@ cmd_set() {
   (( ${#POS[@]} == 2 )) || usage
   KEY="${POS[0]}"
   VALUE="${POS[1]}"
+  validate_node
 
   load_db_properties
 
@@ -175,9 +203,9 @@ cmd_set() {
   local conflict_action="DO UPDATE SET property_value = EXCLUDED.property_value"
   (( IF_ABSENT == 1 )) && conflict_action="DO NOTHING"
 
-  psql_q -v k="$KEY" -v v="$VALUE" <<SQL
-INSERT INTO configuration_properties (property_key, property_value)
-VALUES (:'k', :'v')
+  psql_q -v k="$KEY" -v v="$VALUE" -v n="$NODE" <<SQL
+INSERT INTO configuration_properties (property_key, property_value, ha_node_name)
+VALUES (:'k', :'v', NULLIF(:'n', ''))
 ON CONFLICT (property_key, ha_node_name)
 ${conflict_action};
 SQL
@@ -191,6 +219,7 @@ cmd_remove() {
   (( ${#POS[@]} == 2 )) && reject_scope_argument "${POS[1]}"
   (( ${#POS[@]} == 1 )) || usage
   KEY="${POS[0]}"
+  validate_node
 
   load_db_properties
 
@@ -203,8 +232,9 @@ cmd_remove() {
     confirm "Delete property '${KEY}'?"
   fi
 
-  psql_q -v k="$KEY" <<'SQL'
-DELETE FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;
+  psql_q -v k="$KEY" -v n="$NODE" <<'SQL'
+DELETE FROM configuration_properties
+WHERE property_key = :'k' AND ha_node_name IS NOT DISTINCT FROM NULLIF(:'n', '');
 SQL
 
   log "Removed: ${KEY}"
