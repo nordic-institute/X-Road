@@ -91,7 +91,7 @@ def set_value(data, keys, value):
     current[keys[-1]] = value
 
 
-def load_yaml(file_path, loader=yaml.SafeLoader):
+def load_yaml(file_path, loader=RawLoader):
     """Load YAML file, returns empty dict if file doesn't exist or is empty."""
     path = Path(file_path)
     if not path.exists() or path.stat().st_size == 0:
@@ -111,16 +111,16 @@ def save_yaml(file_path, data):
         yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
 
-def cmd_get(args, command='get', loader=yaml.SafeLoader):
+def cmd_get(args):
     """Get a value from YAML file."""
     if len(args) < 2:
-        print(f"Usage: yaml_helper.py {command} <file> <path>", file=sys.stderr)
+        print("Usage: yaml_helper.py get <file> <path>", file=sys.stderr)
         sys.exit(1)
 
     file_path = args[0]
     path = args[1]
 
-    data = load_yaml(file_path, loader)
+    data = load_yaml(file_path)
     keys = parse_path(path)
     value = get_value(data, keys)
     
@@ -162,8 +162,8 @@ def cmd_set(args):
     file_path = args[0]
     path = args[1]
     value = args[2]
-    
-    data = load_yaml(file_path)
+
+    data = load_yaml(file_path, yaml.SafeLoader)
     keys = parse_path(path)
     set_value(data, keys, value)
     save_yaml(file_path, data)
@@ -174,8 +174,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: yaml_helper.py <command> [args...]", file=sys.stderr)
         print("Commands:", file=sys.stderr)
-        print("  get <file> <path>        - Get value at path", file=sys.stderr)
-        print("  get-raw <file> <path>    - Get value at path as written, without number or boolean conversion",
+        print("  get <file> <path>        - Get value at path as written, without number or boolean conversion",
               file=sys.stderr)
         print("  exists <file> <path>     - Check if path exists (exit code)", file=sys.stderr)
         print("  set <file> <path> <value> - Set value at path", file=sys.stderr)
@@ -186,8 +185,6 @@ def main():
     
     if command == 'get':
         cmd_get(args)
-    elif command == 'get-raw':
-        cmd_get(args, 'get-raw', RawLoader)
     elif command == 'exists':
         cmd_exists(args)
     elif command == 'set':

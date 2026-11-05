@@ -58,7 +58,7 @@ read_local_yaml_node_name () {
   local value=""
 
   if [[ -e "$file" ]] ; then
-    if ! value="$(/usr/share/xroad/scripts/yaml_helper.sh get-raw "$file" "$key" 2>/dev/null)" ; then
+    if ! value="$(/usr/share/xroad/scripts/yaml_helper.sh get "$file" "$key" 2>/dev/null)" ; then
       echo >&2 "Cannot read ${key} from ${file}: the file is unreadable or is not valid YAML"
       return 1
     fi

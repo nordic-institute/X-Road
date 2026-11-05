@@ -5,7 +5,6 @@
 #
 # Usage:
 #   yaml_helper.sh get <file> <path>
-#   yaml_helper.sh get-raw <file> <path>
 #   yaml_helper.sh set <file> <path> <value>
 #   yaml_helper.sh exists <file> <path>
 #
