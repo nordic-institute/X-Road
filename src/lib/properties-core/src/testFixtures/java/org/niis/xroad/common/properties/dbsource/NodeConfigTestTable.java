@@ -30,11 +30,12 @@ import lombok.experimental.UtilityClass;
 import org.h2.jdbcx.JdbcDataSource;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 /**
- * An in-memory configuration table holding a shared row and a {@code node_1} row for one key, together with
- * the environment variables that point {@link DbSourceConfig} at it.
+ * An in-memory configuration table, together with the environment variables that point
+ * {@link DbSourceConfig} at it.
  */
 @UtilityClass
 public class NodeConfigTestTable {
@@ -44,7 +45,16 @@ public class NodeConfigTestTable {
     private static final String TABLE_NAME = "node_config_test";
 
     /**
-     * Creates the table in a new in-memory database.
+     * A row of the table.
+     * @param key the property key
+     * @param value the property value
+     * @param node the node name, or {@code null} for a shared row
+     */
+    public record Row(String key, String value, String node) {
+    }
+
+    /**
+     * Creates the table in a new in-memory database with a shared row and a {@code node_1} row for one key.
      * @param databaseName name of the in-memory database, unique per test class
      * @param key the property key stored twice
      * @param sharedValue the value of the shared row
@@ -54,6 +64,18 @@ public class NodeConfigTestTable {
      */
     public static Map<String, String> create(String databaseName, String key, String sharedValue, String nodeValue)
             throws SQLException {
+        return create(databaseName, List.of(new Row(key, sharedValue, null), new Row(key, nodeValue, NODE_NAME)));
+    }
+
+    /**
+     * Creates the table in a new in-memory database.
+     * @param databaseName name of the in-memory database, unique per test class
+     * @param rows the rows to store
+     * @return the environment variables that make {@link DbSourceConfig} read the table
+     * @throws SQLException when the table cannot be created
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static Map<String, String> create(String databaseName, List<Row> rows) throws SQLException {
         var url = "jdbc:h2:mem:%s;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1".formatted(databaseName);
         var dataSource = new JdbcDataSource();
         dataSource.setUrl(url);
@@ -67,9 +89,16 @@ public class NodeConfigTestTable {
                     + " property_key VARCHAR(512) NOT NULL, "
                     + " property_value VARCHAR(512) NOT NULL, "
                     + " ha_node_name VARCHAR(255))");
-            statement.execute("INSERT INTO %s VALUES (1, '%s', '%s', null)".formatted(TABLE_NAME, key, sharedValue));
-            statement.execute("INSERT INTO %s VALUES (2, '%s', '%s', '%s')"
-                    .formatted(TABLE_NAME, key, nodeValue, NODE_NAME));
+            try (var insert = connection.prepareStatement("INSERT INTO " + TABLE_NAME + " VALUES (?, ?, ?, ?)")) {
+                var id = 1;
+                for (var row : rows) {
+                    insert.setLong(1, id++);
+                    insert.setString(2, row.key());
+                    insert.setString(3, row.value());
+                    insert.setString(4, row.node());
+                    insert.executeUpdate();
+                }
+            }
         }
 
         return Map.of("DB_CONFIG_SOURCE_URL", url,

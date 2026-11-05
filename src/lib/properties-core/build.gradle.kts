@@ -21,4 +21,6 @@ dependencies {
 
   testFixturesImplementation(libs.smallrye.config.core)
   testFixturesImplementation(libs.h2database)
+  testFixturesImplementation(libs.mockito.core)
+  testFixturesImplementation(libs.systemStubs)
 }

@@ -26,55 +26,23 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
-
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.Optional;
+import org.niis.xroad.common.properties.dbsource.NodeAwareProducerFixture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(SystemStubsExtension.class)
 class ConfClientRootConfigNodeAwareTest {
 
-    private static final String SHARED_VALUE = "shared.example.test";
-    private static final String NODE_VALUE = "node-1.example.test";
+    private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("confclientnodeaware",
+            (nodeAware, nodeName) -> new ConfClientRootConfig().xRoadConfig("configuration-client", nodeAware, nodeName));
 
-    private static Map<String, String> databaseEnvironment;
-
-    @SystemStub
-    private final EnvironmentVariables variables = new EnvironmentVariables();
-
-    @BeforeAll
-    static void createTable() throws SQLException {
-        databaseEnvironment = NodeConfigTestTable.create("confclientnodeaware",
-                CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME.key(), SHARED_VALUE, NODE_VALUE);
-    }
-
-    @BeforeEach
-    void pointAtTheDatabase() {
-        databaseEnvironment.forEach(variables::set);
+    @Test
+    void optedInWithANodeNameResolvesTheNodeValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.NODE_VALUE, FIXTURE.resolveOptedIn());
     }
 
     @Test
-    void optedInWithANodeNameResolvesTheNodeValue() {
-        var config = new ConfClientRootConfig().xRoadConfig("configuration-client", true, Optional.of(NodeConfigTestTable.NODE_NAME));
-
-        assertEquals(NODE_VALUE, config.value(CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME));
-    }
-
-    @Test
-    void notOptedInResolvesTheSharedValue() {
-        var config = new ConfClientRootConfig().xRoadConfig("configuration-client", false, Optional.of(NodeConfigTestTable.NODE_NAME));
-
-        assertEquals(SHARED_VALUE, config.value(CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME));
+    void notOptedInResolvesTheSharedValue() throws Exception {
+        assertEquals(NodeAwareProducerFixture.SHARED_VALUE, FIXTURE.resolveNotOptedIn());
     }
 }

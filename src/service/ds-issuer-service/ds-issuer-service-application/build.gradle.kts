@@ -84,5 +84,4 @@ dependencies {
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-provisioning-api"))
 
   testImplementation(testFixtures(project(":lib:properties-core")))
-  testImplementation(libs.systemStubs)
 }

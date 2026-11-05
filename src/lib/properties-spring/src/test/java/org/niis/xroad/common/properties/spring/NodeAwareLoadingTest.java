@@ -26,13 +26,14 @@
  */
 package org.niis.xroad.common.properties.spring;
 
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable;
+import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable.Row;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -42,6 +43,8 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,39 +55,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SystemStubsExtension.class)
 class NodeAwareLoadingTest {
 
-    private static final String JDBC_URL =
-            "jdbc:h2:mem:springnodeaware;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
     private static final String KEY = AdminServiceConfigKeys.REQUEST_SIZE_LIMIT_BINARY_UPLOAD.key();
     private static final String SOURCE_NAME = "xroad-framework-source";
+
+    private static Map<String, String> databaseEnvironment;
 
     @SystemStub
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @BeforeAll
     static void createTable() throws SQLException {
-        var ds = new JdbcDataSource();
-        ds.setUrl(JDBC_URL);
-        ds.setUser("sa");
-        ds.setPassword("");
-
-        try (var connection = ds.getConnection();
-             var statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE spring_node_config ( "
-                    + " id bigint PRIMARY KEY, "
-                    + " property_key VARCHAR(512) NOT NULL, "
-                    + " property_value VARCHAR(512) NOT NULL, "
-                    + " ha_node_name VARCHAR(255))");
-            statement.execute("insert into spring_node_config values (1, '" + KEY + "', '20MB', null)");
-            statement.execute("insert into spring_node_config values (2, '" + KEY + "', '30MB', 'node_1')");
-            statement.execute("insert into spring_node_config values (3, '" + KEY + "', '40MB', 'node_2')");
-        }
+        databaseEnvironment = NodeConfigTestTable.create("springnodeaware", List.of(
+                new Row(KEY, "20MB", null),
+                new Row(KEY, "30MB", "node_1"),
+                new Row(KEY, "40MB", "node_2")));
     }
 
     @BeforeEach
     void pointAtTheDatabase() {
-        variables.set("DB_CONFIG_SOURCE_URL", JDBC_URL)
-                .set("DB_CONFIG_SOURCE_USERNAME", "sa")
-                .set("DB_CONFIG_SOURCE_TABLE_NAME", "spring_node_config");
+        databaseEnvironment.forEach(variables::set);
     }
 
     @Test

@@ -19,5 +19,4 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:properties-core")))
-  testImplementation(libs.systemStubs)
 }

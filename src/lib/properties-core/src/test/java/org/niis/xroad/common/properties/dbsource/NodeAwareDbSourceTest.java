@@ -27,11 +27,12 @@
 
 package org.niis.xroad.common.properties.dbsource;
 
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable.Row;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,33 +42,19 @@ import static org.mockito.Mockito.when;
 
 class NodeAwareDbSourceTest {
 
-    private static final String JDBC_URL =
-            "jdbc:h2:mem:nodeaware;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1";
+    private static Map<String, String> databaseEnvironment;
 
     @BeforeAll
     static void createTable() throws SQLException {
-        var ds = new JdbcDataSource();
-        ds.setUrl(JDBC_URL);
-        ds.setUser("sa");
-        ds.setPassword("");
-
-        try (var connection = ds.getConnection();
-             var statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE node_config ( "
-                    + " id bigint PRIMARY KEY, "
-                    + " property_key VARCHAR(512) NOT NULL, "
-                    + " property_value VARCHAR(512) NOT NULL, "
-                    + " ha_node_name VARCHAR(255))");
-
-            statement.execute("insert into node_config values (1, 'both.key', 'shared value', null)");
-            statement.execute("insert into node_config values (2, 'both.key', 'node_1 value', 'node_1')");
-            statement.execute("insert into node_config values (3, 'both.key', 'node_2 value', 'node_2')");
-            statement.execute("insert into node_config values (4, 'shared.only.key', 'shared only value', null)");
-            statement.execute("insert into node_config values (5, 'node_2.only.key', 'node_2 only value', 'node_2')");
-            statement.execute("insert into node_config values (6, 'node_1.only.key', 'node_1 only value', 'node_1')");
-            statement.execute("insert into node_config values (7, 'quoted.key', 'shared quoted value', null)");
-            statement.execute("insert into node_config values (8, 'quoted.key', 'quoted node value', 'node''x')");
-        }
+        databaseEnvironment = NodeConfigTestTable.create("nodeaware", List.of(
+                new Row("both.key", "shared value", null),
+                new Row("both.key", "node_1 value", "node_1"),
+                new Row("both.key", "node_2 value", "node_2"),
+                new Row("shared.only.key", "shared only value", null),
+                new Row("node_2.only.key", "node_2 only value", "node_2"),
+                new Row("node_1.only.key", "node_1 only value", "node_1"),
+                new Row("quoted.key", "shared quoted value", null),
+                new Row("quoted.key", "quoted node value", "node'x")));
     }
 
     @Test
@@ -122,10 +109,10 @@ class NodeAwareDbSourceTest {
 
     private static Map<String, String> load(String nodeName) {
         DbSourceConfig config = mock(DbSourceConfig.class);
-        when(config.getUrl()).thenReturn(JDBC_URL);
-        when(config.getUsername()).thenReturn("sa");
+        when(config.getUrl()).thenReturn(databaseEnvironment.get("DB_CONFIG_SOURCE_URL"));
+        when(config.getUsername()).thenReturn(databaseEnvironment.get("DB_CONFIG_SOURCE_USERNAME"));
         when(config.getAppName()).thenReturn("test-app");
-        when(config.getTableName()).thenReturn("node_config");
+        when(config.getTableName()).thenReturn(databaseEnvironment.get("DB_CONFIG_SOURCE_TABLE_NAME"));
         when(config.getNodeName()).thenReturn(nodeName);
 
         return new CachedDbConfigSource(config).getProperties();
