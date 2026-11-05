@@ -31,9 +31,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.SystemDidCheckService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.SecurityServerConverter;
@@ -46,6 +49,11 @@ import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckStatusDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRefusalReasonDto;
+import org.niis.xroad.cs.openapi.model.SystemDidResolutionReasonDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -85,6 +93,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
 
     private final SecurityServerService securityServerService;
+    private final SystemDidCheckService systemDidCheckService;
     private final SecurityServerIdConverter securityServerIdConverter;
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
     private final AuditDataHelper auditDataHelper;
@@ -176,6 +185,39 @@ public class SecurityServersApiController implements SecurityServersApi {
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new SecurityServerNotFoundException(securityServerId));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
+    public ResponseEntity<SystemDidCheckDto> checkSystemDid(String id, SystemDidCheckRequestDto request) {
+        var check = systemDidCheckService.check(securityServerIdConverter.convertId(id),
+                request.getServerAddress(), request.getSystemDid());
+        return ok(toDto(check));
+    }
+
+    private static SystemDidCheckDto toDto(SystemDidCheck check) {
+        return new SystemDidCheckDto()
+                .status(SystemDidCheckStatusDto.valueOf(check.status().name()))
+                .refusalReason(check.refusal() == null ? null : toDto(check.refusal()))
+                .resolutionReason(check.resolutionReason() == null
+                        ? null
+                        : SystemDidResolutionReasonDto.valueOf(check.resolutionReason().name()));
+    }
+
+    private static SystemDidRefusalReasonDto toDto(ParticipantValueRejection refusal) {
+        return switch (refusal) {
+            case WRONG_SCHEME -> SystemDidRefusalReasonDto.WRONG_SCHEME;
+            case DID_TOO_LONG -> SystemDidRefusalReasonDto.DID_TOO_LONG;
+            case NOT_CANONICAL -> SystemDidRefusalReasonDto.NOT_CANONICAL;
+            case HOST_DIFFERS -> SystemDidRefusalReasonDto.HOST_DIFFERS;
+            case UNPARSEABLE_REGISTERED_ADDRESS -> SystemDidRefusalReasonDto.UNPARSEABLE_REGISTERED_ADDRESS;
+            case NON_ASCII_HOST -> SystemDidRefusalReasonDto.NON_ASCII_HOST;
+            case FOREIGN_SYSTEM_DID -> SystemDidRefusalReasonDto.FOREIGN_SYSTEM_DID;
+            case DID_HELD_BY_ANOTHER_SERVER -> SystemDidRefusalReasonDto.DID_HELD_BY_ANOTHER_SERVER;
+            case NO_STORED_VALUE -> SystemDidRefusalReasonDto.NO_STORED_VALUE;
+            case DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, UNDECODABLE_DID, DID_OF_OTHER_MEMBER, MEMBER_NOT_SERVED,
+                 VALUE_DIFFERS -> throw new IllegalStateException("A SYSTEM DID check cannot be refused as " + refusal);
+        };
     }
 
     private static SystemPairEdit toSystemPairEdit(SecurityServerEditDto edit) {

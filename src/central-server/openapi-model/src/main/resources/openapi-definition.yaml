@@ -2672,6 +2672,42 @@ paths:
       summary: update the security server's address and published values
       tags:
         - security-servers
+  /security-servers/{server_id}/system-did-check:
+    parameters:
+      - $ref: '#/components/parameters/ServerIdParam'
+    post:
+      description: >
+        <h3>CS administrator checks whether a proposed SYSTEM DID is valid for a proposed address of the
+        security server and can be resolved. Nothing is stored. A refused or unresolved DID is answered in the
+        response body.</h3>
+      operationId: checkSystemDid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemDidCheckRequest'
+        description: the proposed address and SYSTEM DID
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemDidCheck'
+          description: the result of the check
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: check whether a proposed SYSTEM DID resolves
+      tags:
+        - security-servers
   /security-servers/{server_id}/authentication-certificates:
     get:
       description: <h3>CS administrator views a Security Server's authentication certificates.</h3>
@@ -4981,6 +5017,63 @@ components:
           description: new DSP base URL, replaces the stored one
           type: string
       type: object
+    SystemDidCheckRequest:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServerAddress'
+      description: proposed address of a security server and the SYSTEM DID to check against it
+      properties:
+        system_did:
+          description: the proposed SYSTEM DID
+          type: string
+      required:
+        - system_did
+      type: object
+    SystemDidCheck:
+      description: >
+        result of checking a proposed SYSTEM DID. refusal_reason is set only with REFUSED and
+        resolution_reason only with NOT_RESOLVED.
+      properties:
+        status:
+          $ref: '#/components/schemas/SystemDidCheckStatus'
+        refusal_reason:
+          $ref: '#/components/schemas/SystemDidRefusalReason'
+        resolution_reason:
+          $ref: '#/components/schemas/SystemDidResolutionReason'
+      required:
+        - status
+      type: object
+    SystemDidCheckStatus:
+      description: >
+        REFUSED: the DID is not valid for the address and was not resolved. RESOLVED: the DID resolves.
+        NOT_RESOLVED: the DID is valid but does not resolve. RESOLVER_UNAVAILABLE: the DID is valid but could
+        not be resolved because the resolver could not be reached.
+      enum:
+        - REFUSED
+        - RESOLVED
+        - NOT_RESOLVED
+        - RESOLVER_UNAVAILABLE
+      type: string
+    SystemDidRefusalReason:
+      description: why a proposed SYSTEM DID is refused
+      enum:
+        - WRONG_SCHEME
+        - DID_TOO_LONG
+        - NOT_CANONICAL
+        - HOST_DIFFERS
+        - UNPARSEABLE_REGISTERED_ADDRESS
+        - NON_ASCII_HOST
+        - FOREIGN_SYSTEM_DID
+        - DID_HELD_BY_ANOTHER_SERVER
+        - NO_STORED_VALUE
+      type: string
+    SystemDidResolutionReason:
+      description: why a valid SYSTEM DID did not resolve
+      enum:
+        - MALFORMED_DID
+        - NO_DOCUMENT
+        - ID_MISMATCH
+        - FETCH_FAILURE
+      type: string
     ServiceProviderId:
       properties:
         service_provider_id:

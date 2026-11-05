@@ -128,23 +128,38 @@ public final class ParticipantValueValidator {
         return !didHostMatches(storedDid) || !dspBaseUrlHostMatches(storedDspBaseUrl);
     }
 
+    /**
+     * Checks a SYSTEM DID alone, with the rules {@link #validate} applies to the DID of a SYSTEM pair.
+     *
+     * @param did the SYSTEM DID to publish
+     * @return the reason it is refused, or empty when it is accepted
+     */
+    public Optional<ParticipantValueRejection> validateSystemDid(String did) {
+        if (registeredAddressRejection != null) {
+            return Optional.of(registeredAddressRejection);
+        }
+        return checkSystemDid(did);
+    }
+
     private Optional<ParticipantValueRejection> validateSystemPair(SystemPair pair) {
-        var shape = checkShape(pair.did());
+        var did = checkSystemDid(pair.did());
+        return did.isPresent() ? did : checkDspBaseUrl(pair.dspBaseUrl());
+    }
+
+    private Optional<ParticipantValueRejection> checkSystemDid(String did) {
+        var shape = checkShape(did);
         if (shape.isPresent()) {
             return shape;
         }
-        var participant = decode(pair.did());
+        var participant = decode(did);
         if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(pair.did()) ? NOT_CANONICAL : FOREIGN_SYSTEM_DID);
+            return Optional.of(isDecodableWithCanonicalEncoding(did) ? NOT_CANONICAL : FOREIGN_SYSTEM_DID);
         }
         var authority = checkAuthority(participant.get().ssHost());
         if (authority.isPresent()) {
             return authority;
         }
-        if (!(participant.get() instanceof SystemParticipant)) {
-            return Optional.of(FOREIGN_SYSTEM_DID);
-        }
-        return checkDspBaseUrl(pair.dspBaseUrl());
+        return participant.get() instanceof SystemParticipant ? Optional.empty() : Optional.of(FOREIGN_SYSTEM_DID);
     }
 
     private Optional<ParticipantValueRejection> validateMemberDid(MemberDid memberDid) {

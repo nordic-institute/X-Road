@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.api.admin;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
 
 import java.util.Map;
 
@@ -78,6 +79,17 @@ public class SecurityServersAdminClient {
                 .contentType(ContentType.JSON)
                 .body(edit)
                 .patch("/security-servers/{server_id}", serverId)
+                .then();
+    }
+
+    /**
+     * Checks a proposed SYSTEM DID against a proposed address (POST /security-servers/{server_id}/system-did-check).
+     */
+    public ValidatableResponse checkSystemDid(String serverId, String serverAddress, String systemDid) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body(new SystemDidCheckRequestDto().serverAddress(serverAddress).systemDid(systemDid))
+                .post("/security-servers/{server_id}/system-did-check", serverId)
                 .then();
     }
 

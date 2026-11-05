@@ -229,8 +229,8 @@ class SecurityServerApiTest extends CsApiTest {
     @Test
     void serverWithoutStoredPairShowsNeitherSystemDidNorDspBaseUrl(CsBaselineSeeder seeder) {
         var session = Step.given("admin session opened", seeder::newSession);
-        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0809", BASELINE_MEMBER_CLASS));
-        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0809", memberId));
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0818", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0818", memberId));
         var client = new SecurityServersAdminClient(session);
 
         Step.then("server details carry no SYSTEM pair", () ->
@@ -411,6 +411,62 @@ class SecurityServerApiTest extends CsApiTest {
                         .body("server_address", equalTo("ss-addr-0815"))
                         .body("$", not(hasKey("system_did")))
                         .body("$", not(hasKey("dsp_base_url"))));
+    }
+
+    @Test
+    void systemDidCheckAnswersWithoutStoringAnything(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0816", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0816", memberId));
+        Step.and("SYSTEM pair stored", () ->
+                seeder.seedSystemPair(serverId, systemDid("ss-addr-0816"), dspBaseUrl("ss-addr-0816")));
+        var client = new SecurityServersAdminClient(session);
+        var proposedAddress = "new-addr-0816";
+        var memberDid = "did:web:" + proposedAddress + "%3A7183:v1:" + INSTANCE_IDENTIFIER + ":" + BASELINE_MEMBER_CLASS
+                + ":member0816";
+
+        Step.when("a valid DID at the proposed address is checked with no Issuer Service", () ->
+                client.checkSystemDid(serverId, proposedAddress, systemDid(proposedAddress))
+                        .statusCode(200)
+                        .body("status", equalTo("RESOLVER_UNAVAILABLE"))
+                        .body("$", not(hasKey("refusal_reason")))
+                        .body("$", not(hasKey("resolution_reason"))));
+
+        Step.and("a DID whose host differs from the proposed address is refused", () ->
+                client.checkSystemDid(serverId, proposedAddress, systemDid("other-addr-0816"))
+                        .statusCode(200)
+                        .body("status", equalTo("REFUSED"))
+                        .body("refusal_reason", equalTo("HOST_DIFFERS")));
+
+        Step.and("a member DID is refused as foreign", () ->
+                client.checkSystemDid(serverId, proposedAddress, memberDid)
+                        .statusCode(200)
+                        .body("status", equalTo("REFUSED"))
+                        .body("refusal_reason", equalTo("FOREIGN_SYSTEM_DID")));
+
+        Step.and("an unknown server returns 404", () ->
+                client.checkSystemDid(INSTANCE_IDENTIFIER + ":NONEXIST:nonexist:nonexist", proposedAddress,
+                                systemDid(proposedAddress))
+                        .statusCode(404));
+
+        Step.then("the address and the SYSTEM pair are unchanged", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0816"))
+                        .body("system_did", equalTo(systemDid("ss-addr-0816")))
+                        .body("dsp_base_url", equalTo(dspBaseUrl("ss-addr-0816"))));
+    }
+
+    @Test
+    void systemDidCheckForbiddenWithoutTheEditAddressPermission(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0817", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0817", memberId));
+        var securityOfficerClient = new SecurityServersAdminClient(seeder.newSecurityOfficerSession());
+
+        Step.then("the check as SECURITY_OFFICER returns 403", () ->
+                securityOfficerClient.checkSystemDid(serverId, "ss-addr-0817", systemDid("ss-addr-0817"))
+                        .statusCode(403));
     }
 
     private static String systemDid(String host) {

@@ -36,18 +36,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.domain.DidResolutionReason;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.SystemDidCheckService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
+import org.niis.xroad.cs.openapi.model.SystemDidCheckStatusDto;
+import org.niis.xroad.cs.openapi.model.SystemDidRefusalReasonDto;
+import org.niis.xroad.cs.openapi.model.SystemDidResolutionReasonDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,6 +87,8 @@ class SecurityServersApiControllerTest {
 
     @Mock
     private SecurityServerService securityServerService;
+    @Mock
+    private SystemDidCheckService systemDidCheckService;
     @Mock
     private SecurityServerIdConverter securityServerIdConverter;
     @Mock
@@ -163,6 +175,84 @@ class SecurityServersApiControllerTest {
         var method = SecurityServersApiController.class.getMethod("updateSecurityServer", String.class, SecurityServerEditDto.class);
 
         assertThat(method.getAnnotation(AuditEventMethod.class).event()).isEqualTo(RestApiAuditEvent.EDIT_SECURITY_SERVER);
+    }
+
+    @Test
+    void systemDidCheckPassesTheProposedAddressAndDidAndAnswersResolved() {
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.RESOLVED);
+
+        var body = controller.checkSystemDid(ID, checkRequest()).getBody();
+
+        assertThat(body).isNotNull();
+        assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.RESOLVED);
+        assertThat(body.getRefusalReason()).isNull();
+        assertThat(body.getResolutionReason()).isNull();
+        verify(systemDidCheckService).check(serverId, ADDRESS_VALUE, DID);
+        verifyNoInteractions(auditDataHelper);
+    }
+
+    @Test
+    void systemDidCheckMapsARefusalToItsReason() {
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID))
+                .thenReturn(SystemDidCheck.refused(ParticipantValueRejection.HOST_DIFFERS));
+
+        var body = controller.checkSystemDid(ID, checkRequest()).getBody();
+
+        assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.REFUSED);
+        assertThat(body.getRefusalReason()).isEqualTo(SystemDidRefusalReasonDto.HOST_DIFFERS);
+        assertThat(body.getResolutionReason()).isNull();
+    }
+
+    @Test
+    void systemDidCheckMapsEveryRefusalReasonTheCheckCanGive() {
+        var reasons = List.of(ParticipantValueRejection.WRONG_SCHEME, ParticipantValueRejection.DID_TOO_LONG,
+                ParticipantValueRejection.NOT_CANONICAL, ParticipantValueRejection.HOST_DIFFERS,
+                ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS, ParticipantValueRejection.NON_ASCII_HOST,
+                ParticipantValueRejection.FOREIGN_SYSTEM_DID);
+        for (var reason : reasons) {
+            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.refused(reason));
+
+            var body = controller.checkSystemDid(ID, checkRequest()).getBody();
+
+            assertThat(body.getRefusalReason()).hasToString(reason.name());
+        }
+    }
+
+    @Test
+    void systemDidCheckMapsEveryResolutionReason() {
+        for (var reason : DidResolutionReason.values()) {
+            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.notResolved(reason));
+
+            var body = controller.checkSystemDid(ID, checkRequest()).getBody();
+
+            assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.NOT_RESOLVED);
+            assertThat(body.getRefusalReason()).isNull();
+            assertThat(body.getResolutionReason()).isEqualTo(SystemDidResolutionReasonDto.valueOf(reason.name()));
+        }
+    }
+
+    @Test
+    void systemDidCheckMapsAnUnavailableResolver() {
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.RESOLVER_UNAVAILABLE);
+
+        var body = controller.checkSystemDid(ID, checkRequest()).getBody();
+
+        assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.RESOLVER_UNAVAILABLE);
+        assertThat(body.getRefusalReason()).isNull();
+        assertThat(body.getResolutionReason()).isNull();
+    }
+
+    @Test
+    void systemDidCheckNeedsTheEditAddressPermission() throws NoSuchMethodException {
+        var method = SecurityServersApiController.class.getMethod("checkSystemDid", String.class, SystemDidCheckRequestDto.class);
+
+        assertThat(method.getAnnotation(PreAuthorize.class).value())
+                .isEqualTo("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')");
+        assertThat(method.getAnnotation(AuditEventMethod.class)).isNull();
+    }
+
+    private SystemDidCheckRequestDto checkRequest() {
+        return new SystemDidCheckRequestDto().serverAddress(ADDRESS_VALUE).systemDid(DID);
     }
 
     private void stubUpdate(SystemPairEdit pair) {

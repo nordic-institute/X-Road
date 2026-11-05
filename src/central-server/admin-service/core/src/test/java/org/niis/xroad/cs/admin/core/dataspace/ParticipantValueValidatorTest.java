@@ -165,6 +165,24 @@ class ParticipantValueValidatorTest {
         assertThat(validator.validate(new SystemPair(did, dspBaseUrl))).isEqualTo(Optional.ofNullable(expected));
     }
 
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+            SYSTEM_DID + "|",
+            "did:web:ss0.example.org%3A7183:v2:system|WRONG_SCHEME",
+            "did:web:SS0.example.org%3A7183:v1:system|NOT_CANONICAL",
+            "did:web:ss1.example.org%3A7183:v1:system|HOST_DIFFERS",
+            OWNER_DID + "|FOREIGN_SYSTEM_DID",
+            "did:web:bücher.example%3A7183:v1:system|NON_ASCII_HOST"
+    })
+    void shouldValidateSystemDidAlone(String did, ParticipantValueRejection expected) {
+        assertThat(validator.validateSystemDid(did)).isEqualTo(Optional.ofNullable(expected));
+    }
+
+    @Test
+    void shouldRefuseSystemDidWhenRegisteredAddressIsUnusable() {
+        assertThat(validatorFor(null).validateSystemDid(SYSTEM_DID)).contains(UNPARSEABLE_REGISTERED_ADDRESS);
+    }
+
     @Test
     void shouldRejectSystemPairWithoutDspBaseUrl() {
         assertThat(validator.validate(new SystemPair(SYSTEM_DID, null))).contains(DSP_BASE_URL_NOT_HTTPS);
