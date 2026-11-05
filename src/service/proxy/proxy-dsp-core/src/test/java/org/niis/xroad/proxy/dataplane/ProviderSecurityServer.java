@@ -30,7 +30,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.common.agreementtoken.AgreementTokenGroupAccess;
+import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
+import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
+import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
@@ -63,10 +66,14 @@ final class ProviderSecurityServer {
     private static final Duration TOKEN_TTL = Duration.ofSeconds(60);
 
     private final AgreementGrantRpcClient grantRpcClient = mock(AgreementGrantRpcClient.class);
+    private final ProxyAgreementTokenProperties properties = mock(ProxyAgreementTokenProperties.class);
+    private final TestAgreementTokenKeyProvider keys;
     private final AgreementTokenIssuer issuer;
     private final AgreementTokenAccessCheck accessCheck;
 
-    private ProviderSecurityServer(Acl acl, TestAgreementTokenKeyProvider keys) {
+    private ProviderSecurityServer(Acl acl, TestAgreementTokenKeyProvider keys, Mode mode) {
+        this.keys = keys;
+
         var serverConfProvider = mock(ServerConfProvider.class);
         acl.endpointsByCaller.forEach((caller, endpoints) ->
                 when(serverConfProvider.getAclEndpoints(caller.client(), caller.service())).thenReturn(endpoints));
@@ -74,22 +81,28 @@ final class ProviderSecurityServer {
         var keyMaterial = mock(AgreementTokenKeyMaterial.class);
         when(keyMaterial.provider()).thenReturn(Optional.of(keys));
 
-        var properties = mock(ProxyAgreementTokenProperties.class);
         when(properties.issuer()).thenReturn(ISSUER);
         when(properties.audience()).thenReturn(AUDIENCE);
         when(properties.tokenTtl()).thenReturn(TOKEN_TTL);
         when(properties.expiryLeeway()).thenReturn(Duration.ZERO);
 
         var legacyCallRefusalPolicy = mock(LegacyCallRefusalPolicy.class);
-        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(false);
+        when(legacyCallRefusalPolicy.refusedAsProvider()).thenReturn(mode == Mode.DSP_REFUSAL);
 
         issuer = new AgreementTokenIssuer(grantRpcClient, serverConfProvider, keyMaterial, properties);
         accessCheck = new AgreementTokenAccessCheck(keyMaterial, properties, legacyCallRefusalPolicy,
                 AgreementTokenGroupAccess.NONE);
     }
 
+    /**
+     * @return a server in {@link Mode#DSP}
+     */
     static ProviderSecurityServer create(Acl acl, TestAgreementTokenKeyProvider keys) {
-        return new ProviderSecurityServer(acl, keys);
+        return create(acl, keys, Mode.DSP);
+    }
+
+    static ProviderSecurityServer create(Acl acl, TestAgreementTokenKeyProvider keys, Mode mode) {
+        return new ProviderSecurityServer(acl, keys, mode);
     }
 
     /**
@@ -109,6 +122,29 @@ final class ProviderSecurityServer {
      */
     AgreementTokenAccessCheck.Decision checkToken(String token, ClientId client, ServiceId service, String method, String path) {
         return accessCheck.decide(token, client, service, method, path);
+    }
+
+    /**
+     * Decodes a token this server issued with this server's own keys, through the real
+     * {@link AgreementTokenVerifier}.
+     *
+     * @return the scope the token carries for the given client and service
+     */
+    List<AgreementTokenScope> tokenScope(String token, ClientId client, ServiceId service) {
+        var result = new AgreementTokenVerifier(keys, properties)
+                .verify(token, AgreementTokenRequestContext.forSoap(client, service));
+        return ((AgreementTokenVerificationResult.Valid) result).claims().scope();
+    }
+
+    /**
+     * How a provider Security Server treats a call that carries no agreement token, named after the provider
+     * modes of the end-to-end ACL parity run.
+     */
+    enum Mode {
+        /** Legacy calls are allowed: a call without a token falls back to the ACL. */
+        DSP,
+        /** Legacy calls are refused: a call without a token is rejected. */
+        DSP_REFUSAL
     }
 
     /**
