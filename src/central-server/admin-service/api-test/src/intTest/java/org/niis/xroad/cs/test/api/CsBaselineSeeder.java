@@ -254,9 +254,8 @@ public class CsBaselineSeeder {
 
     /**
      * Inserts a row into {@code issuer_dids} directly, binding the issuer identity. Idempotent: does
-     * nothing if a row is already present. This stack has no reachable Issuer Service, so the
-     * provisioning worker cannot bind and destructive tests that need a bound issuer seed the row
-     * directly.
+     * nothing if a row is already present. This stack has no reachable Issuer Service to run set-up
+     * against, so destructive tests that need a bound issuer seed the row directly.
      */
     public void bindIssuerIdentity() {
         var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);

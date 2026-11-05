@@ -222,11 +222,6 @@ class IssuerSetUpServiceImplTest {
         assertThat(ttlCaptor.getValue()).isGreaterThan(Duration.ofMillis(DEADLINE_AFTER_MS).multipliedBy(3));
     }
 
-    /**
-     * Mutant to kill: dropping the {@code finally} around {@code release(node)} in
-     * {@code IssuerSetUpServiceImpl.runProvisioning} would leave this lease held forever once a run
-     * throws, so a later call would wrongly stay refused with "already running".
-     */
     @Test
     void releasesTheLeaseAfterAFailingRun() throws Exception {
         givenEveryPrerequisiteCheckPasses();
@@ -250,8 +245,7 @@ class IssuerSetUpServiceImplTest {
 
     /**
      * Two calls at once: the first takes the free lease and is accepted; the second sees the lease
-     * already held and is refused. Mutant to kill: skipping the "no run in progress" check (or the
-     * acquire) in {@code start()} would let the second call through as "accepted" too.
+     * already held and is refused.
      */
     @Test
     void secondConcurrentCallIsRefusedAlreadyRunningWhileTheFirstIsStillAccepted() throws Exception {

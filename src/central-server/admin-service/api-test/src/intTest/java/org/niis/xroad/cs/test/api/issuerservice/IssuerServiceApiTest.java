@@ -171,9 +171,9 @@ class IssuerServiceApiTest extends CsApiTest {
     /**
      * Runs in the destructive phase: binding is permanent, and there is no API to undo it. The issuer
      * identity is bound here by inserting an {@code issuer_dids} row directly, because this stack has no
-     * reachable Issuer Service for the provisioning worker to bind against. Idempotent across reruns on a
-     * warm stack: if the issuer identity is already bound from an earlier run, the already-bound host is
-     * used instead of setting a new one.
+     * reachable Issuer Service to run set-up against. Idempotent across reruns on a warm stack: if the
+     * issuer identity is already bound from an earlier run, the already-bound host is used instead of
+     * setting a new one.
      */
     @Test
     @Tag("destructive")
