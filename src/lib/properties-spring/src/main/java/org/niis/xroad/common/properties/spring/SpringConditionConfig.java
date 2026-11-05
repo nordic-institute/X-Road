@@ -35,7 +35,8 @@ import org.springframework.core.env.Environment;
 /**
  * Builds a standalone {@link XRoadConfig} for Spring {@code Condition} evaluation, which happens before any
  * bean (including the application's {@code XRoadConfig}) exists. Resolves through exactly the layers the
- * application bean uses — DB overrides, then container or native defaults — so a bean-registration decision
+ * application bean uses — DB overrides (shared rows, plus the node's rows for an application that opted
+ * into node-aware loading), then container or native defaults — so a bean-registration decision
  * can never disagree with the value the running application reads. The {@code Environment} is consulted only
  * for framework metadata (application name and the active profile), never for {@code xroad.*} values. The
  * underlying DB connection pool is opened and closed within the single read (see
@@ -59,6 +60,8 @@ public final class SpringConditionConfig {
         for (var provider : providers) {
             builder.register(provider);
         }
-        return builder.deploymentMode(deploymentMode).dbOverrides(appName).build();
+        return builder.deploymentMode(deploymentMode)
+                .dbOverrides(appName, SpringNodeNameProvider.forEnvironment(environment))
+                .build();
     }
 }

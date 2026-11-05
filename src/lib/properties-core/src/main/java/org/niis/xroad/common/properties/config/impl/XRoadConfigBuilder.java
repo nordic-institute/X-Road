@@ -37,6 +37,7 @@ import org.niis.xroad.common.properties.config.Value;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -106,7 +107,18 @@ public final class XRoadConfigBuilder {
      * @return this builder
      */
     public XRoadConfigBuilder dbOverrides(String appName) {
-        var dbSourceConfig = DbSourceConfig.loadValues(appName);
+        return dbOverrides(appName, NodeNameProvider.shared());
+    }
+
+    /**
+     * Same as {@link #dbOverrides(String)}, additionally loading the rows stored for the node the provider
+     * names; a node row wins over the shared row of the same key.
+     * @param appName application name (drives the read-pool name)
+     * @param nodeNameProvider supplies the node whose rows are loaded
+     * @return this builder
+     */
+    public XRoadConfigBuilder dbOverrides(String appName, NodeNameProvider nodeNameProvider) {
+        var dbSourceConfig = DbSourceConfig.loadValues(appName, nodeNameProvider);
         if (dbSourceConfig.getUrl() != null) {
             var dbProps = new CachedDbConfigSource(dbSourceConfig).getProperties();
             var merged = new java.util.LinkedHashMap<>(overrides);

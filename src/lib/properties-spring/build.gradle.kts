@@ -9,4 +9,6 @@ dependencies {
   implementation(libs.springBoot.starter)
 
   testImplementation(libs.springBoot.starterTest)
+  testImplementation(libs.h2database)
+  testImplementation(libs.systemStubs)
 }

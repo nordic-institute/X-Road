@@ -34,6 +34,8 @@ server:
   address: 0.0.0.0
 
 xroad:
+  config:
+    node-aware: true
   registration-service:
     rate-limit-enabled: true
     rate-limit-requests-per-second: -1

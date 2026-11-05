@@ -39,6 +39,8 @@ server:
   address: 0.0.0.0
 
 xroad:
+  config:
+    node-aware: true
   management-service:
     rate-limit-enabled: true
     rate-limit-requests-per-second: -1

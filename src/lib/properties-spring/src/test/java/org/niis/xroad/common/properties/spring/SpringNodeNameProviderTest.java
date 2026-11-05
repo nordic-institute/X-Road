@@ -1,0 +1,90 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.common.properties.spring;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.env.SystemEnvironmentPropertySource;
+import org.springframework.mock.env.MockEnvironment;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class SpringNodeNameProviderTest {
+
+    private static final String NODE_NAME_KEY = "xroad.admin-service.ha-node-name";
+
+    @Test
+    void returnsTheConfiguredName() {
+        var environment = optedIn().withProperty(NODE_NAME_KEY, "node_1");
+
+        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_1");
+    }
+
+    @Test
+    void blankNameMapsToNodeZero() {
+        var environment = optedIn().withProperty(NODE_NAME_KEY, "  ");
+
+        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_0");
+    }
+
+    @Test
+    void missingNameMapsToNodeZero() {
+        assertThat(SpringNodeNameProvider.forEnvironment(optedIn()).nodeName()).contains("node_0");
+    }
+
+    @Test
+    void readsTheNameFromTheEnvironmentVariable() {
+        var environment = new StandardEnvironment();
+        environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                new SystemEnvironmentPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                        Map.of("XROAD_CONFIG_NODE_AWARE", "true", "XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_2")));
+
+        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_2");
+    }
+
+    @Test
+    void applicationThatDidNotOptInStaysSharedEvenWhenANodeNameIsConfigured() {
+        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "node_1");
+
+        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).isEmpty();
+    }
+
+    @Test
+    void explicitOptOutStaysShared() {
+        var environment = new MockEnvironment()
+                .withProperty(SpringNodeNameProvider.NODE_AWARE_PROPERTY, "false")
+                .withProperty(NODE_NAME_KEY, "node_1");
+
+        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).isEmpty();
+    }
+
+    private static MockEnvironment optedIn() {
+        return new MockEnvironment().withProperty(SpringNodeNameProvider.NODE_AWARE_PROPERTY, "true");
+    }
+}
