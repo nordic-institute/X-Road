@@ -57,8 +57,11 @@ Without --node, a command acts on the shared row only; node rows are never touch
 With --node, a command acts on that node's row only; the shared row is never touched.
 There is no per-application scope.
 
-Example:
+Examples:
+  $(basename "$0") set --yes -- <key> <value>
+         Shared row, used by every node without an own row.
   $(basename "$0") set --yes --node node_1 -- <key> <value>
+         Row of node_1 only.
 EOF
   exit 64
 }
