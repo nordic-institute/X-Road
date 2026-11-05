@@ -39,6 +39,7 @@ import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,8 +52,9 @@ import static org.mockito.Mockito.when;
 class DataspaceIssuerProvisioningServiceImplTest {
 
     private static final String HOST = "issuer.example.test";
-    private static final int DID_PORT = 6183;
-    private static final int ISSUANCE_PORT = 6185;
+    private static final int DID_PORT = 7183;
+    private static final int ISSUANCE_PORT = 7185;
+    private static final int STATUSLIST_PORT = 7187;
     private static final String SCHEMA_URL = "https://example.com/schema/XRoadMembershipCredential.json";
 
     @Mock
@@ -69,6 +71,7 @@ class DataspaceIssuerProvisioningServiceImplTest {
         when(properties.getHost()).thenReturn(HOST);
         when(properties.getDidPort()).thenReturn(DID_PORT);
         when(properties.getIssuancePort()).thenReturn(ISSUANCE_PORT);
+        when(properties.getStatuslistPort()).thenReturn(STATUSLIST_PORT);
         when(properties.getCredentialJsonSchemaUrl()).thenReturn(SCHEMA_URL);
         service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService);
     }
@@ -158,13 +161,25 @@ class DataspaceIssuerProvisioningServiceImplTest {
     void provisionIssuerRegistersItsDidAfterProvisioningSucceeds() {
         service.provisionIssuer();
 
-        verify(dataspaceIssuerDidService).register("did:web:" + HOST + "%3A" + DID_PORT + ":issuer");
+        String expectedDid = "did:web:" + HOST + "%3A" + DID_PORT + ":issuer";
+        String expectedIssuanceUrl = "https://" + HOST + ":" + ISSUANCE_PORT + "/api/issuance/v1/participants/issuer";
+        verify(dataspaceIssuerDidService).register(eq(expectedDid), eq(HOST), eq(DID_PORT), eq(expectedIssuanceUrl), anyString());
 
         InOrder order = inOrder(rpcClient, dataspaceIssuerDidService);
         order.verify(rpcClient).createCredentialDefinition(
                 anyString(), anyString(), anyString(), anyString(), anyString(), anyString(),
                 anyLong(), anyList(), anyList());
-        order.verify(dataspaceIssuerDidService).register(anyString());
+        order.verify(dataspaceIssuerDidService).register(anyString(), anyString(), eq(DID_PORT), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerBuildsStatuslistBaseUrlFromHostAndStatuslistPort() {
+        service.provisionIssuer();
+
+        ArgumentCaptor<String> statuslistBaseUrlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(dataspaceIssuerDidService).register(anyString(), anyString(), anyInt(), anyString(), statuslistBaseUrlCaptor.capture());
+
+        assertThat(statuslistBaseUrlCaptor.getValue()).isEqualTo("https://" + HOST + ":" + STATUSLIST_PORT + "/statuslist");
     }
 
 }

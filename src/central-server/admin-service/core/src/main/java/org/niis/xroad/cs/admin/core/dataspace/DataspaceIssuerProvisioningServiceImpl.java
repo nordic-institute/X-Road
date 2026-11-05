@@ -58,9 +58,11 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
 
     @Override
     public void provisionIssuer() {
-        String did = "did:web:" + properties.getHost() + "%3A" + properties.getDidPort() + ":issuer";
+        String host = properties.getHost();
+        String did = "did:web:" + host + "%3A" + properties.getDidPort() + ":issuer";
         String issuerServiceUrl = "https://%s:%d/api/issuance/v1/participants/issuer"
-                .formatted(properties.getHost(), properties.getIssuancePort());
+                .formatted(host, properties.getIssuancePort());
+        String statuslistBaseUrl = "https://%s:%d/statuslist".formatted(host, properties.getStatuslistPort());
         String keyId = did + "#key-1";
 
         rpcClient.createParticipantContext(ISSUER_PARTICIPANT_ID, did, issuerServiceUrl, keyId, ISSUER_KEY_ALIAS);
@@ -69,7 +71,7 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
                 CREDENTIAL_FORMAT, CREDENTIAL_JSON_SCHEMA, properties.getCredentialJsonSchemaUrl(),
                 CREDENTIAL_VALIDITY_SECONDS, List.of(ATTESTATION_DEFINITION_ID), membershipMappings());
 
-        dataspaceIssuerDidService.register(did);
+        dataspaceIssuerDidService.register(did, host, properties.getDidPort(), issuerServiceUrl, statuslistBaseUrl);
     }
 
     private List<CredentialMapping> membershipMappings() {

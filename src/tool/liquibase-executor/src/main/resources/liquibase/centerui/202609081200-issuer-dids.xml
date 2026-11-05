@@ -6,7 +6,7 @@
                    logicalFilePath="centerui/202609081200-issuer-dids.xml">
 
     <changeSet author="niis" id="202609081200-issuer-dids">
-        <comment>Central Server node Issuer DID registry (globalconf dataspaceParameters/issuerDid), one row per node.</comment>
+        <comment>Central Server data space Issuer identity binding (globalconf dataspaceParameters/issuerDid).</comment>
 
         <createTable tableName="issuer_dids">
             <column name="id" autoIncrement="true" type="SERIAL">
@@ -14,6 +14,18 @@
             </column>
             <column name="did" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true" uniqueConstraintName="issuer_dids_did_key"/>
+            </column>
+            <column name="host" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="did_port" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="issuance_url" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="statuslist_base_url" type="TEXT">
+                <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
                 <constraints nullable="false"/>

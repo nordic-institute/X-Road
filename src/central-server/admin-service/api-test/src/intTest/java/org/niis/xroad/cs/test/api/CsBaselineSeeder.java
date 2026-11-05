@@ -267,11 +267,15 @@ public class CsBaselineSeeder {
 
         try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
                 var stmt = conn.prepareStatement("""
-                        INSERT INTO centerui.issuer_dids (did, created_at, updated_at)
-                        SELECT ?, now(), now()
+                        INSERT INTO centerui.issuer_dids (did, host, did_port, issuance_url, statuslist_base_url, created_at, updated_at)
+                        SELECT ?, ?, ?, ?, ?, now(), now()
                         WHERE NOT EXISTS (SELECT 1 FROM centerui.issuer_dids)
                         """)) {
             stmt.setString(1, "did:web:issuer-service-api-test-binding");
+            stmt.setString(2, "issuer-service-api-test-binding");
+            stmt.setInt(3, 6183);
+            stmt.setString(4, "https://issuer-service-api-test-binding:6185/api/issuance/v1/participants/issuer");
+            stmt.setString(5, "https://issuer-service-api-test-binding:6187/statuslist");
             stmt.execute();
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to seed issuer_dids binding into CS DB", e);
