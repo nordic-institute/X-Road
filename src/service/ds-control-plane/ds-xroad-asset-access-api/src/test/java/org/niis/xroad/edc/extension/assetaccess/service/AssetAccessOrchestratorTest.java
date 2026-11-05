@@ -27,30 +27,19 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
-import com.google.common.base.Ticker;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.http.spi.EdcHttpClientException;
-import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
@@ -58,48 +47,28 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.system.ExecutorInstrumentation;
-import org.eclipse.edc.transaction.spi.NoopTransactionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
-import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
-import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.failure.FailureKind;
 import org.niis.xroad.edc.extension.assetaccess.failure.StageOutcome;
-import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
-import org.niis.xroad.edc.extension.assetaccess.probe.CandidateHandshakeRace;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -114,7 +83,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
@@ -127,70 +95,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-class AssetAccessOrchestratorTest {
-
-    private static final Duration COOLDOWN_PERIOD = Duration.ofSeconds(180);
-    private static final Duration CANDIDATE_TIMEOUT = Duration.ofSeconds(20);
-
-    @Mock
-    CatalogService catalogService;
-    @Mock
-    ContractNegotiationService contractNegotiationService;
-    @Mock
-    TransferProcessService transferProcessService;
-    @Mock
-    ContractNegotiationStore negotiationStore;
-    @Mock
-    TransferProcessStore transferProcessStore;
-    @Mock
-    DataAddressStore dataAddressStore;
-    @Mock
-    ReusableAgreementLookup reusableAgreementLookup;
-    @Mock
-    CandidateHandshakeRace candidateHandshakeRace;
-    @Mock
-    JsonLd jsonLd;
-    @Mock
-    TypeTransformerRegistry transformerRegistry;
-    @Mock
-    Monitor monitor;
-
-    AssetAccessCompletionPoller completionPoller;
-
-    AssetAccessOrchestrator orchestrator;
-
-    private final FakeTicker ticker = new FakeTicker();
-    private final MutableClock clock = new MutableClock();
-    private final CooldownTracker cooldownTracker = new CooldownTracker(COOLDOWN_PERIOD, ticker);
-
-    private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(reusableAgreementLookup.find(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
-        lenient().when(candidateHandshakeRace.order(any()))
-                .thenAnswer(invocation -> CompletableFuture.completedFuture(invocation.getArgument(0)));
-        lenient().when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> Stream.empty());
-        lenient().when(transferProcessStore.findAll(any())).thenAnswer(invocation -> Stream.empty());
-        lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
-            TransferProcess transferProcess = invocation.getArgument(0);
-            var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
-            return address != null ? StoreResult.success(address) : StoreResult.notFound("no data address stored");
-        });
-        completionPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
-                new NoopTransactionContext(), ExecutorInstrumentation.noop(), clock, monitor, Duration.ofMillis(250));
-        orchestrator = new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
-                catalogService, contractNegotiationService, transferProcessService, completionPoller, cooldownTracker,
-                candidateHandshakeRace,
-                jsonLd, transformerRegistry, monitor,
-                Duration.ofSeconds(60), Duration.ofSeconds(60), CANDIDATE_TIMEOUT);
-    }
-
-    @AfterEach
-    void tearDown() {
-        completionPoller.stop();
-    }
+class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
 
     @Test
     void acquireAssetAccessReuseHitSkipsCatalogAndNegotiationAndUsesPullTransferType() throws Exception {
@@ -453,20 +358,6 @@ class AssetAccessOrchestratorTest {
     private void stubReusableAgreement(String agreementId) {
         when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
                 .thenReturn(Optional.of(buildAgreement(agreementId)));
-    }
-
-    private DataAddress startedAddress(String transferProcessId, String endpoint) {
-        var address = DataAddress.Builder.newInstance().type("HttpData").property("endpoint", endpoint).build();
-        when(transferProcessStore.findAll(specWithId(transferProcessId))).thenAnswer(invocation ->
-                Stream.of(startedTransfer(transferProcessId, address)));
-        return address;
-    }
-
-    private void pollUntilDone(CompletableFuture<?> future) {
-        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-            completionPoller.poll();
-            assertThat(future).isDone();
-        });
     }
 
     private void finishDispatchedCompletions() {
@@ -1557,12 +1448,6 @@ class AssetAccessOrchestratorTest {
         assertThat(cooldownTracker.isCoolingDown("http://provider-1.example.org/dsp")).isTrue();
     }
 
-    private AssetAccessResult acquireAndAwait(AssetAccessRequest request) throws Exception {
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
-        pollUntilDone(future);
-        return future.get(5, TimeUnit.SECONDS);
-    }
-
     private void stubAgreementAt(String counterPartyId, String agreementId, long signingDate) {
         when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", counterPartyId, null))
                 .thenReturn(Optional.of(buildAgreement(agreementId, counterPartyId, signingDate)));
@@ -1579,14 +1464,6 @@ class AssetAccessOrchestratorTest {
                 Stream.of(finalizedNegotiation("neg-1", buildAgreement("agreement-negotiated"))));
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-2"));
         return startedAddress("tp-2", "http://%s.example.org/data".formatted(counterPartyId));
-    }
-
-    private static ServiceResult<TransferProcess> successfulTransferInitiation(String transferProcessId) {
-        return ServiceResult.success(TransferProcess.Builder.newInstance().id(transferProcessId).build());
-    }
-
-    private TransferProcess transportFaultTransfer(String transferProcessId) {
-        return terminatedTransfer(transferProcessId, EdcHttpClientException.class.getName() + ": Failed to connect to provider");
     }
 
     private void stubTransportFaultAtCatalog(String counterPartyId) {
@@ -1641,39 +1518,6 @@ class AssetAccessOrchestratorTest {
                 List.of(new AssetAccessRequest.Candidate("provider-1", "http://provider/dsp")), null, clientId, null);
     }
 
-    private ParticipantContext buildParticipantContext() {
-        return ParticipantContext.Builder.newInstance()
-                .participantContextId("participant1")
-                .identity("participant1")
-                .build();
-    }
-
-    private ContractAgreement buildAgreement(String agreementId) {
-        return buildAgreement(agreementId, "provider-1", System.currentTimeMillis());
-    }
-
-    private ContractAgreement buildAgreement(String agreementId, String providerId, long signingDate) {
-        return ContractAgreement.Builder.newInstance()
-                .id(agreementId)
-                .providerId(providerId)
-                .consumerId("participant1")
-                .contractSigningDate(signingDate)
-                .assetId("asset-1")
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
-
-    private ContractNegotiation finalizedNegotiation(String id, ContractAgreement agreement) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(id)
-                .protocol("http-dsp-profile-2025-1")
-                .counterPartyId("provider-1")
-                .counterPartyAddress("http://provider/dsp")
-                .state(ContractNegotiationStates.FINALIZED.code())
-                .contractAgreement(agreement)
-                .build();
-    }
-
     private ContractNegotiation terminatedNegotiation(String id, String errorDetail) {
         return ContractNegotiation.Builder.newInstance()
                 .id(id)
@@ -1681,22 +1525,6 @@ class AssetAccessOrchestratorTest {
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .state(ContractNegotiationStates.TERMINATED.code())
-                .errorDetail(errorDetail)
-                .build();
-    }
-
-    private TransferProcess startedTransfer(String id, DataAddress dataAddress) {
-        resolvableAddresses.put(id, dataAddress);
-        return TransferProcess.Builder.newInstance()
-                .id(id)
-                .state(TransferProcessStates.STARTED.code())
-                .build();
-    }
-
-    private TransferProcess terminatedTransfer(String id, String errorDetail) {
-        return TransferProcess.Builder.newInstance()
-                .id(id)
-                .state(TransferProcessStates.TERMINATED.code())
                 .errorDetail(errorDetail)
                 .build();
     }
@@ -1716,16 +1544,6 @@ class AssetAccessOrchestratorTest {
         var dataset = Dataset.Builder.newInstance()
                 .id(assetId)
                 .offer(offerId, Policy.Builder.newInstance().build())
-                .distribution(distribution)
-                .build();
-        return Catalog.Builder.newInstance().dataset(dataset).build();
-    }
-
-    private Catalog buildCatalogWithNoOffers(String assetId) {
-        var dataService = DataService.Builder.newInstance().build();
-        var distribution = Distribution.Builder.newInstance().format(XRoadTransferType.PULL.wireValue()).dataService(dataService).build();
-        var dataset = Dataset.Builder.newInstance()
-                .id(assetId)
                 .distribution(distribution)
                 .build();
         return Catalog.Builder.newInstance().dataset(dataset).build();
@@ -1875,18 +1693,6 @@ class AssetAccessOrchestratorTest {
         assertThat(clientIdCaptor.getAllValues()).containsExactly(clientWithAgreement, clientWithoutAgreement);
     }
 
-    private static QuerySpec specWithId(String id) {
-        return argThat(spec -> spec != null && idsOf(spec).contains(id));
-    }
-
-    private static Collection<?> idsOf(QuerySpec spec) {
-        return spec.getFilterExpression().stream()
-                .filter(criterion -> "id".equals(criterion.getOperandLeft()))
-                .map(criterion -> (Collection<?>) criterion.getOperandRight())
-                .findFirst()
-                .orElseThrow();
-    }
-
     private String acquireAndCaptureOfferId(Map<String, Policy> offers, String clientId) {
         stubCatalog(buildCatalogWithOffers("asset-1", offers));
         var requestCaptor = ArgumentCaptor.forClass(ContractRequest.class);
@@ -1911,35 +1717,6 @@ class AssetAccessOrchestratorTest {
         when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
     }
 
-    private static ContractNegotiation buildNegotiation() {
-        return ContractNegotiation.Builder.newInstance()
-                .id("neg-1")
-                .protocol("http-dsp-profile-2025-1")
-                .counterPartyId("provider-1")
-                .counterPartyAddress("http://provider/dsp")
-                .build();
-    }
-
-    private static Policy clientPolicy(String encodedClientId) {
-        var clientConstraint = AtomicConstraint.Builder.newInstance()
-                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_CLIENT_ID))
-                .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression(encodedClientId))
-                .build();
-        var pathConstraint = AtomicConstraint.Builder.newInstance()
-                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_DATAPATH))
-                .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression("GET /pets"))
-                .build();
-        return Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .constraint(AndConstraint.Builder.newInstance()
-                                .constraints(List.of(clientConstraint, pathConstraint))
-                                .build())
-                        .build())
-                .build();
-    }
-
     private static Policy groupPolicy(String encodedGroupId) {
         var groupConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP))
@@ -1955,46 +1732,4 @@ class AssetAccessOrchestratorTest {
         return Policy.Builder.newInstance().build();
     }
 
-    private static Catalog buildCatalogWithOffers(String assetId, Map<String, Policy> offers) {
-        var dataService = DataService.Builder.newInstance().build();
-        var distribution = Distribution.Builder.newInstance()
-                .format(XRoadTransferType.PULL.wireValue()).dataService(dataService).build();
-        var dataset = Dataset.Builder.newInstance().id(assetId).distribution(distribution);
-        offers.forEach(dataset::offer);
-        return Catalog.Builder.newInstance().dataset(dataset.build()).build();
-    }
-
-    private static final class MutableClock extends Clock {
-        private Instant instant = Instant.parse("2026-01-01T00:00:00Z");
-
-        private void advance(Duration duration) {
-            instant = instant.plus(duration);
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneOffset.UTC;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return this;
-        }
-
-        @Override
-        public Instant instant() {
-            return instant;
-        }
-    }
-
-    private static final class FakeTicker extends Ticker {
-        private long ticks;
-        @Override
-        public long read() {
-            return ticks;
-        }
-        private void advance(Duration duration) {
-            ticks += duration.toNanos();
-        }
-    }
 }
