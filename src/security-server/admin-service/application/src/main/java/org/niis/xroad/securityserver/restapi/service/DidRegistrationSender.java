@@ -38,6 +38,7 @@ import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
+import org.springframework.util.function.ThrowingBiFunction;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -106,12 +107,13 @@ public class DidRegistrationSender {
         }, fault -> memberDidFaultOutcome(fault, memberDids.size()), MemberDidRegistrationSendOutcome::sendFailure);
     }
 
-    private <T> T send(SenderCall<T> call, Function<XrdRuntimeException, T> faultOutcome, Function<Throwable, T> failure) {
+    private <T> T send(ThrowingBiFunction<ManagementRequestSender, SecurityServerId.Conf, T> call,
+                       Function<XrdRuntimeException, T> faultOutcome, Function<Throwable, T> failure) {
         globalConfProvider.verifyValidity();
         var serverId = ownSecurityServerResolver.identity().requireServerId();
         ManagementRequestSender sender = managementRequestSenderFactory.createFor(serverId.getOwner());
         try {
-            return call.send(sender, serverId);
+            return call.applyWithException(sender, serverId);
         } catch (XrdRuntimeException e) {
             return faultOutcome.apply(e);
         } catch (RuntimeException e) {
@@ -136,11 +138,6 @@ public class DidRegistrationSender {
         }
         log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, fault);
         return MemberDidRegistrationSendOutcome.sendFailure(fault);
-    }
-
-    @FunctionalInterface
-    private interface SenderCall<T> {
-        T send(ManagementRequestSender sender, SecurityServerId.Conf serverId) throws Exception;
     }
 
     private static String reasonOf(XrdRuntimeException fault, ErrorCode outcomeClass) {
