@@ -44,6 +44,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.scheduling.PublicationBackoff.RequestKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
@@ -71,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,6 +120,7 @@ class DataspaceMemberPublicationTest {
     private DataspacePublicationStage stage;
     private DataspacePublicationGlobalConfCheck check;
     private MutableClock clock;
+    private PublicationBackoff backoff;
     private DsParticipantEntity systemRow;
     private final List<DsParticipantEntity> memberRows = new ArrayList<>();
     private final Set<ParticipantContext> provisioned = new HashSet<>();
@@ -174,7 +177,8 @@ class DataspaceMemberPublicationTest {
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
                 didRegistrationSender, ownSecurityServerResolver, adminServiceProperties);
-        stage.setBackoff(new PublicationBackoff(clock, () -> 1.0));
+        backoff = new PublicationBackoff(clock, () -> 1.0);
+        stage.setBackoff(backoff);
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository, globalConfProvider,
                 readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
         provisioned.add(SYSTEM_CONTEXT);
@@ -679,6 +683,84 @@ class DataspaceMemberPublicationTest {
 
         assertThat(requests).extracting(List::size).containsExactly(3, 1, 1);
         assertThat(requests.get(2)).containsExactly("M001");
+    }
+
+    @Test
+    void aProbeReachesAHealthyMemberWhenMoreMembersKeepFailingThanProbeSlotsFitInTheMaximumPause() {
+        batchSize = 5;
+        addMembers(12);
+        unresolvedCodes = IntStream.range(0, 10).mapToObj(i -> String.format("M%03d", i)).collect(Collectors.toSet());
+
+        pass();
+        for (int i = 0; i < 12; i++) {
+            clock.advance(Duration.ofSeconds(30));
+            pass();
+        }
+
+        assertThat(requests.subList(1, 12)).extracting(request -> request.getFirst())
+                .containsExactly("M000", "M001", "M002", "M003", "M004", "M005", "M006", "M007", "M008", "M009", "M010");
+        assertThat(requests.subList(1, 12)).allMatch(request -> request.size() == 1);
+    }
+
+    @Test
+    void aProbeWrapsBackToTheFirstMemberAfterTheLast() {
+        batchSize = 3;
+        addMembers(3);
+        unresolvedCodes = Set.of("M000", "M001", "M002");
+
+        pass();
+        for (int i = 0; i < 4; i++) {
+            clock.advance(Duration.ofSeconds(30));
+            pass();
+        }
+
+        assertThat(requests).containsExactly(List.of("M000", "M001", "M002"), List.of("M000"), List.of("M001"),
+                List.of("M002"), List.of("M000"));
+    }
+
+    @Test
+    void aSecondProbeEpisodeContinuesAfterTheMemberProbedLastInTheFirst() {
+        batchSize = 5;
+        addMembers(12);
+        unresolvedCodes = IntStream.range(0, 10).mapToObj(i -> String.format("M%03d", i)).collect(Collectors.toSet());
+
+        pass();
+        for (int i = 0; i < 13; i++) {
+            clock.advance(Duration.ofSeconds(30));
+            pass();
+        }
+
+        assertThat(requests.get(12)).containsExactly("M000", "M001", "M002", "M003", "M004");
+        assertThat(requests.get(13)).containsExactly("M011");
+    }
+
+    @Test
+    void aProbeThatFailsWhileItsAnswerIsAppliedStillMovesTheNextProbeOn() {
+        batchSize = 3;
+        addMembers(6);
+        unresolvedCodes = Set.of("M000", "M001", "M002");
+        pass();
+        clock.advance(Duration.ofSeconds(30));
+        nextOutcome = MemberDidRegistrationSendOutcome.answered(1, List.of(entry("M999", "STORED", null)));
+        pass();
+        nextOutcome = null;
+        clock.advance(Duration.ofSeconds(30));
+
+        pass();
+
+        assertThat(requests).containsExactly(List.of("M000", "M001", "M002"), List.of("M000"), List.of("M001"));
+    }
+
+    @Test
+    void aConfiguredBatchSizeOfOneSendsLowestIdFirstWithoutProbingOrRememberingAProbedMember() {
+        batchSize = 1;
+        addMembers(3);
+
+        pass();
+        pass();
+
+        assertThat(requests).containsExactly(List.of("M000"), List.of("M001"));
+        assertThat(backoff.lastProbedMember(RequestKind.MEMBER)).isEmpty();
     }
 
     @Test

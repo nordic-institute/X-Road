@@ -91,7 +91,8 @@ import java.util.function.Supplier;
  * over join the next pass. A request the Central Server refuses as too large is resent in the same pass with the
  * first half of its entries, until it is accepted or one entry is left; later passes start no larger than the
  * smallest size accepted after a refusal. A single entry that is still too large stays not sent for the longest
- * pause and pauses the member kind. After a request in which no entry resolved, the next request has one entry.
+ * pause and pauses the member kind. After a request in which no entry resolved, the next request has one entry:
+ * the member after the one probed last by encoded member id, wrapping to the first.
  */
 @Slf4j
 @Component
@@ -268,7 +269,7 @@ public class DataspacePublicationStage {
             return;
         }
         var candidates = dsParticipantRepository.findActiveMembers(Set.of(PublicationState.NOT_SENT)).stream()
-                .filter(row -> hostedMembers.contains(row.getMemberIdentifier().asEncodedId()))
+                .filter(row -> hostedMembers.contains(encodedMemberId(row)))
                 .toList();
         if (candidates.isEmpty()) {
             return;
@@ -284,12 +285,28 @@ public class DataspacePublicationStage {
             return;
         }
 
-        var batch = allowed.stream()
-                .sorted(Comparator.comparing((DsParticipantEntity row) -> row.getMemberIdentifier().asEncodedId()))
-                .limit(backoff.batchSize(RequestKind.MEMBER,
-                        adminServiceProperties.getDataspace().getProvisioningBatchSize()))
+        var ordered = allowed.stream()
+                .sorted(Comparator.comparing(DataspacePublicationStage::encodedMemberId))
                 .toList();
-        sendMemberBatch(batch, kindKey);
+        if (backoff.isProbing(RequestKind.MEMBER)) {
+            var probed = nextProbed(ordered);
+            backoff.rememberProbedMember(RequestKind.MEMBER, encodedMemberId(probed));
+            sendMemberBatch(List.of(probed), kindKey);
+        } else {
+            var size = backoff.batchSize(RequestKind.MEMBER,
+                    adminServiceProperties.getDataspace().getProvisioningBatchSize());
+            sendMemberBatch(ordered.stream().limit(size).toList(), kindKey);
+        }
+    }
+
+    private DsParticipantEntity nextProbed(List<DsParticipantEntity> ordered) {
+        var last = backoff.lastProbedMember(RequestKind.MEMBER);
+        return last.flatMap(id -> ordered.stream().filter(row -> encodedMemberId(row).compareTo(id) > 0).findFirst())
+                .orElse(ordered.getFirst());
+    }
+
+    private static String encodedMemberId(DsParticipantEntity row) {
+        return row.getMemberIdentifier().asEncodedId();
     }
 
     private void sendMemberBatch(List<DsParticipantEntity> batch, Key kindKey) {
@@ -328,7 +345,7 @@ public class DataspacePublicationStage {
 
     private void applyAnswered(List<DsParticipantEntity> batch, MemberDidRegistrationSendOutcome outcome, Key kindKey) {
         Map<String, DsParticipantEntity> rows = new LinkedHashMap<>();
-        batch.forEach(row -> rows.put(row.getMemberIdentifier().asEncodedId(), row));
+        batch.forEach(row -> rows.put(encodedMemberId(row), row));
         boolean sendFailure = false;
         boolean resolved = false;
         for (var entry : outcome.entries()) {

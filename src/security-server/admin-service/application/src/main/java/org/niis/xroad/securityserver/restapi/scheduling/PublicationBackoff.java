@@ -33,16 +33,17 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
 /**
  * In-memory exponential backoff for publication attempts. The pause after the n-th consecutive failure of a
  * key doubles from {@link #INITIAL_DELAY} up to {@link #MAX_DELAY}, shortened by a random factor so that servers
- * do not retry in step. It also remembers which request kinds must send a one-entry probe next, and the smallest
- * size of a request of a kind that the Central Server accepted after refusing a larger one. Nothing is
- * persisted: a restart forgets every pause, probe and size, so the next pass may retry early and halve an
- * oversized request again.
+ * do not retry in step. It also remembers which request kinds must send a one-entry probe next, the encoded id of the
+ * member probed last for each kind, and the smallest size of a request of a kind that the Central Server accepted after
+ * refusing a larger one. Nothing is persisted: a restart forgets every pause, probe, probed member and size, so
+ * the next pass may retry early and halve an oversized request again.
  */
 public final class PublicationBackoff {
 
@@ -84,6 +85,7 @@ public final class PublicationBackoff {
     private final Map<Key, Entry> entries = new HashMap<>();
     private final Set<RequestKind> probing = EnumSet.noneOf(RequestKind.class);
     private final Map<RequestKind, Integer> acceptedSizes = new EnumMap<>(RequestKind.class);
+    private final Map<RequestKind, String> lastProbedMembers = new EnumMap<>(RequestKind.class);
 
     /**
      * @param clock  the time source
@@ -138,6 +140,28 @@ public final class PublicationBackoff {
      */
     public synchronized void clearProbe(RequestKind kind) {
         probing.remove(kind);
+    }
+
+    /**
+     * @return whether the next request of the kind is a one-entry probe
+     */
+    public synchronized boolean isProbing(RequestKind kind) {
+        return probing.contains(kind);
+    }
+
+    /**
+     * Remembers the encoded id of the member a one-entry probe of the kind is sending. Ending the probe does
+     * not forget it.
+     */
+    public synchronized void rememberProbedMember(RequestKind kind, String encodedMemberId) {
+        lastProbedMembers.put(kind, encodedMemberId);
+    }
+
+    /**
+     * @return the encoded id of the member a one-entry probe of the kind sent last, empty when none was sent yet
+     */
+    public synchronized Optional<String> lastProbedMember(RequestKind kind) {
+        return Optional.ofNullable(lastProbedMembers.get(kind));
     }
 
     /**

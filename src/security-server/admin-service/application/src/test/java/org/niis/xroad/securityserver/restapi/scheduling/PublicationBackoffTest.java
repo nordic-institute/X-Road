@@ -193,4 +193,16 @@ class PublicationBackoffTest {
 
         assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(1);
     }
+
+    @Test
+    void theLastProbedMemberIsEmptyUntilOneIsRememberedAndSurvivesEndingTheProbe() {
+        assertThat(backoff.lastProbedMember(RequestKind.MEMBER)).isEmpty();
+
+        backoff.requireProbe(RequestKind.MEMBER);
+        backoff.rememberProbedMember(RequestKind.MEMBER, "M001");
+        backoff.clearProbe(RequestKind.MEMBER);
+
+        assertThat(backoff.lastProbedMember(RequestKind.MEMBER)).contains("M001");
+        assertThat(backoff.lastProbedMember(RequestKind.SYSTEM)).isEmpty();
+    }
 }
