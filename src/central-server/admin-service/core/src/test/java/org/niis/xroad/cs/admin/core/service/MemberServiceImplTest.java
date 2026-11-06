@@ -35,6 +35,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -76,6 +79,7 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -86,6 +90,7 @@ import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -444,9 +449,14 @@ class MemberServiceImplTest {
         private final SecurityServerId serverId = SecurityServerId.Conf.create("TEST", MEMBER_CLASS, "OWNER", "server");
 
         private void givenServerRow() {
+            givenMember();
             var server = mock(SecurityServerEntity.class);
             when(server.getId()).thenReturn(SERVER_ROW_ID);
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(server));
+        }
+
+        private void givenMember() {
+            when(xRoadMemberRepository.count(clientId)).thenReturn(1L);
         }
 
         @Test
@@ -484,13 +494,15 @@ class MemberServiceImplTest {
             when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
                     .thenReturn(Map.of(clientId, ParticipantValueResult.UNCHANGED));
 
-            memberService.editMemberDid(serverId, clientId, NEW_DID);
+            assertDoesNotThrow(() -> memberService.editMemberDid(serverId, clientId, NEW_DID));
 
             verify(participantValueStore).replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID));
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
         }
 
         @Test
         void shouldFailWhenTheServerDoesNotExist() {
+            givenMember();
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
 
             assertThrows(SecurityServerNotFoundException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
@@ -499,14 +511,72 @@ class MemberServiceImplTest {
         }
 
         @Test
-        void shouldFailWhenTheStoreRefusesTheDidAfterPuttingAuditData() {
+        void shouldFailAsMemberNotFoundWhenTheMemberDoesNotExist() {
+            when(xRoadMemberRepository.count(clientId)).thenReturn(0L);
+
+            var failure = assertThrows(NotFoundException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertEquals(ErrorMessage.MEMBER_NOT_FOUND.code(), failure.getErrorDeviation().code());
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+            verify(participantValueStore, never()).replaceMemberDids(anyInt(), any());
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "NO_STORED_VALUE, member_did_not_stored",
+                "WRONG_SCHEME, member_did_wrong_scheme",
+                "DID_TOO_LONG, member_did_too_long",
+                "NON_ASCII_HOST, member_did_non_ascii_host",
+                "UNDECODABLE_DID, member_did_undecodable",
+                "NOT_CANONICAL, member_did_not_canonical",
+                "HOST_DIFFERS, member_did_host_differs",
+                "DID_OF_OTHER_MEMBER, member_did_of_other_member",
+                "MEMBER_NOT_SERVED, member_did_member_not_served",
+                "UNPARSEABLE_REGISTERED_ADDRESS, member_did_unparseable_address",
+                "DID_HELD_BY_ANOTHER_SERVER, member_did_held_by_another_server"})
+        void shouldFailWithTheCodeOfTheReasonTheStoreRefusesTheDid(ParticipantValueRejection rejection, String code) {
             givenServerRow();
             when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
-                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(ParticipantValueRejection.HOST_DIFFERS)));
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(rejection)));
 
-            assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+            var failure = assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
 
+            assertEquals(code, failure.getErrorDeviation().code());
             verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = ParticipantValueRejection.class, names = {
+                "DSP_BASE_URL_NOT_HTTPS", "MALFORMED_DSP_BASE_URL", "FOREIGN_SYSTEM_DID", "VALUE_DIFFERS"})
+        void shouldFailLoudlyForAReasonThatAMemberEditCannotProduce(ParticipantValueRejection rejection) {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(rejection)));
+
+            assertThrows(IllegalStateException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+        }
+
+        @Test
+        void shouldFailAsHeldByAnotherServerWhenTheDatabaseRefusesTheSameDidOnTwoServers() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenThrow(new DataIntegrityViolationException("member_dids_did_excl"));
+
+            var failure = assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertEquals("member_did_held_by_another_server", failure.getErrorDeviation().code());
+        }
+
+        @Test
+        void shouldRethrowADatabaseRefusalOfAnotherConstraint() {
+            givenServerRow();
+            var failure = new DataIntegrityViolationException("member_dids_member_id_fk");
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID))).thenThrow(failure);
+
+            var thrown = assertThrows(DataIntegrityViolationException.class,
+                    () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            assertThat(thrown).isSameAs(failure);
         }
     }
 }

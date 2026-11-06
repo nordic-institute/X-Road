@@ -348,6 +348,23 @@ class SharedParametersLoaderTest {
     }
 
     @Test
+    void loadReadsTheNewMemberDidAfterTheStoredDidIsReplaced() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+        var replacedDid = "did:web:security-server-address%3A7184:v1:XRD:CLASS:M2";
+        var member = ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2");
+        when(dataspaceMemberDidService.findAll())
+                .thenReturn(List.of(new StoredMemberDid(SECURITY_SERVER_ID, member, CLIENT_DID)))
+                .thenReturn(List.of(new StoredMemberDid(SECURITY_SERVER_ID, member, replacedDid)));
+
+        var before = sharedParametersLoader.loadWithMemberDids();
+        var after = sharedParametersLoader.loadWithMemberDids();
+
+        assertThat(didsByMember(before)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, CLIENT_DID)));
+        assertThat(didsByMember(after)).containsOnly(Map.entry("M2", Map.of(SERVER_1_ID, replacedDid)));
+    }
+
+    @Test
     void loadLeavesMemberDidsOutAndNeverReadsThem() {
         stubDependencies();
         when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());

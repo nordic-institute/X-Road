@@ -26,10 +26,18 @@
  */
 package org.niis.xroad.cs.admin.jpa;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
+import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
@@ -39,18 +47,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.memberDid;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.newHost;
+import static org.niis.xroad.ds.identity.ParticipantIdentifierScheme.MAX_DID_LENGTH;
 
 /**
  * The Central Server edit of a member DID against Postgres: the stored DID is replaced or left as it was.
  */
 @Import(MemberServiceImpl.class)
 class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
+
+    private record Served(CentralServerSeed.Server server, CentralServerSeed.ClientRef client, String storedDid) {
+    }
 
     @MockitoBean
     private GlobalGroupMemberService globalGroupMemberService;
@@ -65,63 +88,283 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
 
     @Autowired
     private MemberService service;
+    @Autowired
+    private ParticipantValueStore store;
 
     @Test
     void replacesTheStoredDidAndLeavesNoOldOne() {
-        var owner = seed.member();
-        var server = seed.server(owner);
-        var client = seed.member();
-        seed.addClient(server, client);
-        insertMemberDid(server.id(), client.id(), memberDid(server.address(), client.identifier()));
-        var newDid = memberDid(server.address(), client.identifier()).replace("%3A7183", "%3A7184");
+        var served = servedClientWithStoredDid();
+        var newDid = otherPort(served.storedDid());
 
-        service.editMemberDid(server.identifier(), client.identifier(), newDid);
+        edit(served, newDid);
 
-        assertThat(storedDids(server.id())).containsExactly(newDid);
+        assertThat(storedDids(served.server().id())).containsExactly(newDid);
     }
 
     @Test
-    void refusedDidStoresNothing() {
-        var owner = seed.member();
-        var server = seed.server(owner);
-        var client = seed.member();
-        seed.addClient(server, client);
-        var storedDid = memberDid(server.address(), client.identifier());
-        insertMemberDid(server.id(), client.id(), storedDid);
-        var didOfAnotherHost = memberDid(newHost(), client.identifier());
+    void refusesADidOfAnotherSchemeVersionAndStoresNothing() {
+        var served = servedClientWithStoredDid();
 
-        assertThatThrownBy(() -> service.editMemberDid(server.identifier(), client.identifier(), didOfAnotherHost))
-                .isInstanceOf(BadRequestException.class);
-
-        assertThat(storedDids(server.id())).containsExactly(storedDid);
+        assertRefused(served, served.storedDid().replace(":v1:", ":v2:"), ErrorMessage.MEMBER_DID_WRONG_SCHEME);
     }
 
     @Test
-    void memberWithNoStoredDidStaysWithoutOne() {
+    void refusesAValueThatIsNotADidAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+
+        assertRefused(served, "not-a-did", ErrorMessage.MEMBER_DID_WRONG_SCHEME);
+    }
+
+    @Test
+    void refusesADidThatIsTooLongAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+
+        assertRefused(served, served.storedDid() + "a".repeat(MAX_DID_LENGTH), ErrorMessage.MEMBER_DID_TOO_LONG);
+    }
+
+    @Test
+    void refusesADidWithANonAsciiHostAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+
+        assertRefused(served, memberDid("bücher.example", served.client().identifier()), ErrorMessage.MEMBER_DID_NON_ASCII_HOST);
+    }
+
+    @Test
+    void refusesADidThatCannotBeDecodedAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+
+        assertRefused(served, served.storedDid() + "%2", ErrorMessage.MEMBER_DID_UNDECODABLE);
+    }
+
+    @Test
+    void refusesADidThatIsNotCanonicalAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+        var upperCaseHost = memberDid(served.server().address().toUpperCase(Locale.ROOT), served.client().identifier());
+
+        assertRefused(served, upperCaseHost, ErrorMessage.MEMBER_DID_NOT_CANONICAL);
+    }
+
+    @Test
+    void refusesADidOfAnotherHostAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+
+        assertRefused(served, memberDid(newHost(), served.client().identifier()), ErrorMessage.MEMBER_DID_HOST_DIFFERS);
+    }
+
+    @Test
+    void refusesTheDidOfAnotherMemberAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+        var ownersDid = memberDid(served.server().address(), served.server().owner().identifier());
+
+        assertRefused(served, ownersDid, ErrorMessage.MEMBER_DID_OF_OTHER_MEMBER);
+    }
+
+    @Test
+    void refusesAMemberThatIsNotAClientOfTheServerAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+        var outsider = seed.member();
+
+        assertThatThrownBy(() -> service.editMemberDid(served.server().identifier(), outsider.identifier(),
+                memberDid(served.server().address(), outsider.identifier())))
+                .isInstanceOfSatisfying(BadRequestException.class,
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.MEMBER_DID_MEMBER_NOT_SERVED.code()));
+
+        assertThat(storedDids(served.server().id())).containsExactly(served.storedDid());
+    }
+
+    @Test
+    void refusesAnEditWhenTheRegisteredAddressCannotBeParsedAndStoresNothing() {
+        var served = servedClientWithStoredDid();
+        jdbc.update("update security_servers set address = 'a/b' where id = ?", served.server().id());
+
+        assertRefused(served, otherPort(served.storedDid()), ErrorMessage.MEMBER_DID_UNPARSEABLE_ADDRESS);
+    }
+
+    @Test
+    void refusesADidStoredOnAnotherServerAndChangesNeitherServer() {
+        var served = servedClientWithStoredDid();
+        var otherServer = seed.server(seed.member(), served.server().address());
+        seed.addClient(otherServer, served.client());
+        var heldElsewhere = otherPort(served.storedDid());
+        insertMemberDid(otherServer.id(), served.client().id(), heldElsewhere);
+
+        assertRefused(served, heldElsewhere, ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER);
+
+        assertThat(storedDids(otherServer.id())).containsExactly(heldElsewhere);
+    }
+
+    @Test
+    void refusesAMemberWithNoStoredDidAndStoresNothing() {
         var server = seed.server(seed.member());
         var client = seed.member();
         seed.addClient(server, client);
 
         assertThatThrownBy(() -> service.editMemberDid(
                 server.identifier(), client.identifier(), memberDid(server.address(), client.identifier())))
-                .isInstanceOf(BadRequestException.class);
+                .isInstanceOfSatisfying(BadRequestException.class,
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.MEMBER_DID_NOT_STORED.code()));
 
         assertThat(storedDids(server.id())).isEmpty();
     }
 
     @Test
+    void unknownMemberIsNotFound() {
+        var served = servedClientWithStoredDid();
+        var unknown = ClientId.Conf.create("DEV", "COM", "222");
+
+        assertThatThrownBy(() -> service.editMemberDid(served.server().identifier(), unknown,
+                memberDid(served.server().address(), unknown)))
+                .isInstanceOfSatisfying(NotFoundException.class,
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.MEMBER_NOT_FOUND.code()));
+
+        assertThat(storedDids(served.server().id())).containsExactly(served.storedDid());
+    }
+
+    @Test
+    void equalDidSucceedsAndChangesNothing() {
+        var served = servedClientWithStoredDid();
+        var before = jdbc.queryForList("select * from member_dids where security_server_id = ?", served.server().id());
+
+        assertThatCode(() -> edit(served, served.storedDid())).doesNotThrowAnyException();
+
+        assertThat(jdbc.queryForList("select * from member_dids where security_server_id = ?", served.server().id()))
+                .isEqualTo(before);
+    }
+
+    @Test
     void repeatingTheSameEditLeavesTheSameStateAndSucceeds() {
-        var server = seed.server(seed.member());
+        var served = servedClientWithStoredDid();
+        var newDid = otherPort(served.storedDid());
+
+        edit(served, newDid);
+        var afterFirst = storedDids(served.server().id());
+        edit(served, newDid);
+
+        assertThat(storedDids(served.server().id())).isEqualTo(afterFirst).containsExactly(newDid);
+    }
+
+    @Test
+    void sameDidPutOnTwoServersConcurrentlyRefusesTheLoserAsHeldByAnotherServerAndStoresNothingForIt() throws Exception {
+        var sharedHost = newHost();
         var client = seed.member();
+        var winner = serverServing(client, sharedHost, 7183);
+        var loser = serverServing(client, sharedHost, 7184);
+        var contested = memberDid(sharedHost, client.identifier()).replace("%3A7183", "%3A7190");
+        var loserBefore = storedDids(loser.server().id());
+        var locked = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var started = System.nanoTime();
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var holder = executor.submit(() -> transactions.execute(status -> {
+                service.editMemberDid(winner.server().identifier(), client.identifier(), contested);
+                locked.countDown();
+                await(release);
+                return null;
+            }));
+            awaitHolding(locked, holder);
+            var racingPid = new AtomicInteger();
+            var racing = executor.submit(inTransaction(racingPid,
+                    () -> editReturningNothing(loser.server(), client, contested)));
+            awaitLockedSession(racingPid);
+            assertThat(racing.isDone()).isFalse();
+
+            release.countDown();
+
+            holder.get(WAIT_SECONDS, TimeUnit.SECONDS);
+            assertThatThrownBy(() -> racing.get(WAIT_SECONDS, TimeUnit.SECONDS))
+                    .isInstanceOf(ExecutionException.class)
+                    .cause()
+                    .isInstanceOfSatisfying(BadRequestException.class, e -> assertThat(e.getErrorDeviation().code())
+                            .isEqualTo(ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER.code()));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            executor.close();
+        }
+        assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(WAIT_SECONDS));
+        assertThat(storedDids(winner.server().id())).containsExactly(contested);
+        assertThat(storedDids(loser.server().id())).isEqualTo(loserBefore);
+    }
+
+    @Test
+    void adminReplaceThenTheServersOwnSendOfThatDidIsAcceptedAsEqual() {
+        var served = servedClientWithStoredDid();
+        var newDid = otherPort(served.storedDid());
+        edit(served, newDid);
+
+        var results = store.writeMemberDidsOnce(served.server().id(), Map.of(served.client().identifier(), newDid));
+
+        assertThat(results).containsEntry(served.client().identifier(), ParticipantValueResult.UNCHANGED);
+        assertThat(storedDids(served.server().id())).containsExactly(newDid);
+    }
+
+    @Test
+    void adminReplaceOfADidThatIsNotStaleThenTheServersResendOfItsOldDidIsRefused() {
+        var served = servedClientWithStoredDid();
+        var newDid = otherPort(served.storedDid());
+        edit(served, newDid);
+
+        var results = store.writeMemberDidsOnce(served.server().id(), Map.of(served.client().identifier(), served.storedDid()));
+
+        assertThat(results).containsEntry(served.client().identifier(), ParticipantValueResult.rejected(VALUE_DIFFERS));
+        assertThat(storedDids(served.server().id())).containsExactly(newDid);
+    }
+
+    @Test
+    void addressChangeMakesTheStoredDidStaleAndAReplaceAtTheNewAddressClearsIt() {
+        var served = servedClientWithStoredDid();
+        assertThat(validatorAt(served, served.server().address()).isMemberDidStale(served.storedDid())).isFalse();
+        var newAddress = newHost();
+        jdbc.update("update security_servers set address = ? where id = ?", newAddress, served.server().id());
+        assertThat(validatorAt(served, newAddress).isMemberDidStale(served.storedDid())).isTrue();
+        var replacement = memberDid(newAddress, served.client().identifier());
+
+        service.editMemberDid(served.server().identifier(), served.client().identifier(), replacement);
+
+        assertThat(storedDids(served.server().id())).containsExactly(replacement);
+        assertThat(validatorAt(served, newAddress).isMemberDidStale(replacement)).isFalse();
+    }
+
+    private Served servedClientWithStoredDid() {
+        var server = seed.server(seed.member());
+        return servedBy(server, seed.member(), server.address(), 7183);
+    }
+
+    private Served serverServing(CentralServerSeed.ClientRef client, String host, int port) {
+        return servedBy(seed.server(seed.member(), host), client, host, port);
+    }
+
+    private Served servedBy(CentralServerSeed.Server server, CentralServerSeed.ClientRef client, String host, int port) {
         seed.addClient(server, client);
-        insertMemberDid(server.id(), client.id(), memberDid(server.address(), client.identifier()));
-        var newDid = memberDid(server.address(), client.identifier()).replace("%3A7183", "%3A7184");
+        var did = memberDid(host, client.identifier()).replace("%3A7183", "%3A" + port);
+        insertMemberDid(server.id(), client.id(), did);
+        return new Served(server, client, did);
+    }
 
-        service.editMemberDid(server.identifier(), client.identifier(), newDid);
-        var afterFirst = storedDids(server.id());
-        service.editMemberDid(server.identifier(), client.identifier(), newDid);
+    private void edit(Served served, String did) {
+        service.editMemberDid(served.server().identifier(), served.client().identifier(), did);
+    }
 
-        assertThat(storedDids(server.id())).isEqualTo(afterFirst).containsExactly(newDid);
+    private Object editReturningNothing(CentralServerSeed.Server server, CentralServerSeed.ClientRef client, String did) {
+        service.editMemberDid(server.identifier(), client.identifier(), did);
+        return null;
+    }
+
+    private void assertRefused(Served served, String did, ErrorMessage expected) {
+        assertThatThrownBy(() -> edit(served, did))
+                .isInstanceOfSatisfying(BadRequestException.class,
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(expected.code()));
+
+        assertThat(storedDids(served.server().id())).containsExactly(served.storedDid());
+    }
+
+    private static ParticipantValueValidator validatorAt(Served served, String address) {
+        return new ParticipantValueValidator(new RegisteredServer(address, served.server().owner().identifier(), Set.of()));
+    }
+
+    private static String otherPort(String did) {
+        return did.replace("%3A7183", "%3A7184");
     }
 
     private List<String> storedDids(int serverId) {

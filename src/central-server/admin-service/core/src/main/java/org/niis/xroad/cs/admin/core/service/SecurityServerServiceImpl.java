@@ -230,7 +230,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         try {
             result = participantValueStore.replaceSystemPair(server.getId(), pair.systemDid(), pair.dspBaseUrl());
         } catch (DataIntegrityViolationException e) {
-            if (!violates(e, SYSTEM_DID_EXCLUSION_CONSTRAINT)) {
+            if (!ConstraintViolations.violates(e, SYSTEM_DID_EXCLUSION_CONSTRAINT)) {
                 throw e;
             }
             throw new BadRequestException(systemPairError(DID_HELD_BY_ANOTHER_SERVER).build());
@@ -238,11 +238,6 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
             throw new BadRequestException(systemPairError(result.rejection()).build());
         }
-    }
-
-    private static boolean violates(DataIntegrityViolationException e, String constraint) {
-        var cause = e.getMostSpecificCause().getMessage();
-        return cause != null && cause.contains(constraint);
     }
 
     private static ErrorMessage systemPairError(ParticipantValueRejection rejection) {

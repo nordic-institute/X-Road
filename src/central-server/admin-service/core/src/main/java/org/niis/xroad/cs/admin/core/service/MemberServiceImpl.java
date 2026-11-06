@@ -37,10 +37,12 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
@@ -57,6 +59,7 @@ import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -68,7 +71,17 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_REJECTED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_MEMBER_NOT_SERVED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_NOT_STORED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_OF_OTHER_MEMBER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_UNDECODABLE;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_UNPARSEABLE_ADDRESS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_WRONG_SCHEME;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
@@ -83,6 +96,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 @Transactional
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
+
+    private static final String MEMBER_DID_EXCLUSION_CONSTRAINT = "member_dids_did_excl";
 
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
@@ -217,13 +232,42 @@ public class MemberServiceImpl implements MemberService {
         auditData.put(OWNER_CODE, serverId.getOwner().getMemberCode());
         auditData.put(MEMBER_DID, memberDid);
 
+        if (xRoadMemberRepository.count(memberId) == 0) {
+            throw new NotFoundException(MEMBER_NOT_FOUND.build());
+        }
         var serverRowId = securityServerRepository.findBy(serverId)
                 .map(SecurityServerEntity::getId)
                 .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
-        var result = participantValueStore.replaceMemberDids(serverRowId, Map.of(memberId, memberDid)).get(memberId);
-        if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
-            throw new BadRequestException(MEMBER_DID_REJECTED.build(result.rejection().name()));
+        ParticipantValueResult result;
+        try {
+            result = participantValueStore.replaceMemberDids(serverRowId, Map.of(memberId, memberDid)).get(memberId);
+        } catch (DataIntegrityViolationException e) {
+            if (!ConstraintViolations.violates(e, MEMBER_DID_EXCLUSION_CONSTRAINT)) {
+                throw e;
+            }
+            throw new BadRequestException(MEMBER_DID_HELD_BY_ANOTHER_SERVER.build());
         }
+        if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
+            throw new BadRequestException(memberDidError(result.rejection()).build());
+        }
+    }
+
+    private static ErrorMessage memberDidError(ParticipantValueRejection rejection) {
+        return switch (rejection) {
+            case NO_STORED_VALUE -> MEMBER_DID_NOT_STORED;
+            case WRONG_SCHEME -> MEMBER_DID_WRONG_SCHEME;
+            case DID_TOO_LONG -> MEMBER_DID_TOO_LONG;
+            case NON_ASCII_HOST -> MEMBER_DID_NON_ASCII_HOST;
+            case UNDECODABLE_DID -> MEMBER_DID_UNDECODABLE;
+            case NOT_CANONICAL -> MEMBER_DID_NOT_CANONICAL;
+            case HOST_DIFFERS -> MEMBER_DID_HOST_DIFFERS;
+            case DID_OF_OTHER_MEMBER -> MEMBER_DID_OF_OTHER_MEMBER;
+            case MEMBER_NOT_SERVED -> MEMBER_DID_MEMBER_NOT_SERVED;
+            case UNPARSEABLE_REGISTERED_ADDRESS -> MEMBER_DID_UNPARSEABLE_ADDRESS;
+            case DID_HELD_BY_ANOTHER_SERVER -> MEMBER_DID_HELD_BY_ANOTHER_SERVER;
+            case DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, FOREIGN_SYSTEM_DID, VALUE_DIFFERS ->
+                    throw new IllegalStateException("A member DID replacement cannot be refused as " + rejection);
+        };
     }
 }
