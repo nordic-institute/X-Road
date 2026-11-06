@@ -78,6 +78,7 @@ const msrAliases: IconAliases = {
   plus: '...',
   minus: '...',
   calendar: 'event',
+  clock: 'schedule',
   treeviewCollapse: '...',
   treeviewExpand: '...',
   eyeDropper: '...',
