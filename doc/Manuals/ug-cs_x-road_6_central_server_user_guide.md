@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.53  
+Version: 2.54  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -79,6 +79,7 @@ Doc. ID: UG-CS
 | 20.10.2025 | 2.51    | Add information about paid and free tsp and ocsp responders                                                                                                                                                                                                                                                                                                                                                                             | Mikk-Erik Bachmann   |
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
+| 06.11.2026 | 2.54    | Added the member DID column, the stale DID warning and the member DID edit and check (Section 7.2.1)                                                                                                                                                                                                                                                                                                                                    | Justas Samuolis      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -133,6 +134,7 @@ Doc. ID: UG-CS
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
   - [7.2 Viewing the Member Details](#72-viewing-the-member-details)
+    - [7.2.1 Viewing and Correcting the Member DID](#721-viewing-and-correcting-the-member-did)
   - [7.3 Adding a Subsystem to an X-Road Member](#73-adding-a-subsystem-to-an-x-road-member)
   - [7.4 Registering a Member's Security Server](#74-registering-a-members-security-server)
   - [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
@@ -801,9 +803,50 @@ The view consists of five sections and a tab Subsystems.
 1. "Member name"
 2. "Member class"
 3. "Member code"
-4. "Owned Servers" – displays the codes of servers owned by this member.
+4. "Owned Servers" – displays the codes of servers owned by this member and the member's DID on each server (see [7.2.1](#721-viewing-and-correcting-the-member-did)).
 5. "Global Groups" – displays information about the group membership of the member or its subsystems.
 6. "Subsystems" tab – displays a list of member's subsystems. If a subsystem is not a client of any Security Servers, then subsystem status is UNREGISTERED.
+
+#### 7.2.1 Viewing and Correcting the Member DID
+
+Access rights: Registration Officer
+
+The "Owned Servers" and "Used Servers" lists have a "Member DID" column. The column shows the DID that the global configuration announces for the member on that Security Server. Other Security Servers use this DID to reach the member. If the member has no DID on the Security Server, the column shows "-".
+
+If the host of the DID does not match the address of the Security Server, for example after the address of the Security Server was changed, a warning is shown below the DID. The warning means that other Security Servers still use the old DID to reach the member.
+
+To correct the DID of the member on a Security Server, follow these steps.
+1. In the "Owned Servers" or "Used Servers" list, click Edit next to the DID. The button is disabled where the member has no DID.
+2. In the window that opens, change the DID.
+3. Optionally, click Check DID. The Central Server asks the Issuer Service to resolve the DID, that is, to fetch the DID document from the host that the DID names. The window shows one of these results:
+   - the DID resolves;
+   - the DID does not resolve, with the reason: its DID document is malformed, no DID document was found, the DID document belongs to another DID, or the DID document could not be fetched;
+   - the DID could not be checked because the Issuer Service is unreachable;
+   - the DID is refused, with the reason from the table below.
+
+   The result of the check does not prevent saving the DID.
+4. Click Save. The Central Server replaces the stored DID, and the next global configuration contains the new DID. The "Owned Servers" and "Used Servers" lists are reloaded.
+5. Inform the Security Server operator about the change, for example by email. The Central Server shows a reminder after saving. The Security Server keeps its own values until the operator re-identifies it.
+
+If the new DID is the same as the stored DID, saving changes nothing. This works only while the DID is valid for the address of the Security Server. If the stored DID is stale, or the address cannot be read as a host, the Central Server refuses it like any other DID.
+
+The Central Server refuses a DID that does not meet the rules below. The window stays open, shows the message of the reason, and the stored DID does not change.
+
+| Reason | Message shown |
+|--------|---------------|
+| The DID is not a did:web DID of version v1 | The member DID must be a did:web DID of version v1 |
+| The DID is too long | The member DID is too long |
+| The host of the DID or the address of the Security Server contains non-ASCII characters | The host of the member DID and the security server address must be ASCII |
+| The DID cannot be decoded | The member DID cannot be decoded |
+| The DID is not in its canonical form | The member DID is not in its canonical form |
+| The host of the DID does not match the address of the Security Server | The host of the member DID must match the security server address |
+| The DID is the DID of another member | The member DID is the DID of another member |
+| The Security Server does not serve the member | The security server does not serve this member |
+| The address of the Security Server cannot be read as a host | The security server address cannot be read as a host |
+| Another Security Server already uses the DID, including when another administrator saved it at the same time | The member DID is already used by another security server |
+| The member has no stored DID on the Security Server, so there is nothing to replace | The security server has no stored DID for this member to replace |
+
+The Central Server writes the events "Edit member DID" and "Check member DID" to the audit log (see [Chapter 13](#13-audit-log) and [SPEC-AL](#13-references)).
 
 ### 7.3 Adding a Subsystem to an X-Road Member
 
