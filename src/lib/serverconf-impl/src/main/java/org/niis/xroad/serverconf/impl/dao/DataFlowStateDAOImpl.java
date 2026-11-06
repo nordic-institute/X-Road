@@ -33,6 +33,8 @@ import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,6 +42,9 @@ import java.util.Optional;
  * decides which state follows which.
  */
 public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
+
+    private static final List<String> FINISHED_STATES = List.of(
+            DataFlowLifecycleState.COMPLETED.name(), DataFlowLifecycleState.TERMINATED.name());
 
     /**
      * Finds the current state row for a flow.
@@ -81,6 +86,30 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
         entity.setState(state);
         session.persist(entity);
         return entity;
+    }
+
+    /**
+     * Deletes the rows of flows that finished ({@code COMPLETED} or {@code TERMINATED}) and were last updated
+     * longer ago than {@code age}. The age is measured on the database clock against {@code updated_at}, so it
+     * does not depend on the caller's clock. Rows locked by a concurrent transition or a concurrent caller are
+     * skipped, so each row is deleted by exactly one caller. PostgreSQL only.
+     *
+     * @param session the Hibernate session
+     * @param age     how long a finished flow's row is kept
+     * @return the number of rows deleted
+     */
+    public int deleteFinishedOlderThan(Session session, Duration age) {
+        return session.createNativeMutationQuery("""
+                        DELETE FROM dataflow_state WHERE id IN (
+                            SELECT id FROM dataflow_state
+                            WHERE state IN (:finishedStates)
+                              AND updated_at < CURRENT_TIMESTAMP - CAST(:ageSeconds AS bigint) * INTERVAL '1 second'
+                            ORDER BY id
+                            FOR UPDATE SKIP LOCKED)
+                        """)
+                .setParameterList("finishedStates", FINISHED_STATES)
+                .setParameter("ageSeconds", age.toSeconds())
+                .executeUpdate();
     }
 
     private Query<DataFlowStateEntity> queryByFlowId(Session session, String flowId) {
