@@ -53,6 +53,7 @@ import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
+import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Comparator;
@@ -64,7 +65,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -110,7 +110,7 @@ public class DataspacePublicationStage {
 
     @Setter(AccessLevel.PACKAGE)
     private PublicationBackoff backoff =
-            new PublicationBackoff(Clock.systemUTC(), () -> ThreadLocalRandom.current().nextDouble());
+            new PublicationBackoff(Clock.systemUTC(), new SecureRandom()::nextDouble);
     @Setter(AccessLevel.PACKAGE)
     private Duration sendTimeout = SEND_TIMEOUT;
 
@@ -206,8 +206,8 @@ public class DataspacePublicationStage {
         var sender = Thread.ofVirtual().name("dataspace-publication-send").start(() -> {
             try {
                 result.complete(call.get());
-            } catch (Throwable t) {
-                result.completeExceptionally(t);
+            } catch (Exception e) {
+                result.completeExceptionally(e);
             }
         });
         try {

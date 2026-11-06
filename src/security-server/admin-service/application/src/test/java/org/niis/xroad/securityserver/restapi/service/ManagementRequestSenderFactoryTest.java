@@ -57,7 +57,8 @@ class ManagementRequestSenderFactoryTest {
     void setUp() {
         var adminServiceProperties = mock(AdminServiceProperties.class);
         var vaultKeyProvider = mock(VaultKeyProvider.class);
-        when(vaultKeyProvider.getKeyManager()).thenReturn(mock(KeyManager.class));
+        var keyManager = mock(KeyManager.class);
+        when(vaultKeyProvider.getKeyManager()).thenReturn(keyManager);
         when(adminServiceProperties.getAuthCertRegSignatureDigestAlgorithmId()).thenReturn("SHA-256");
         when(globalConfProvider.getManagementRequestService()).thenReturn(TestUtils.OWNER_SERVER_ID.getOwner());
         factory = new ManagementRequestSenderFactory(null, null, globalConfProvider,

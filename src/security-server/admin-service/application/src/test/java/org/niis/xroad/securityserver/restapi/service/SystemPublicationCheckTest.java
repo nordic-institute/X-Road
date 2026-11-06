@@ -122,9 +122,9 @@ class SystemPublicationCheckTest {
             throw new AssertionError("the auth cert must not be asked");
         };
 
-        decide(PublicationState.PUBLISHED, EQUAL, mustNotBeAsked);
-        decide(PublicationState.SUBMITTED, MISSING, mustNotBeAsked);
-        decide(PublicationState.NOT_SENT, MISSING, mustNotBeAsked);
+        assertThat(decide(PublicationState.PUBLISHED, EQUAL, mustNotBeAsked)).isEqualTo(NONE);
+        assertThat(decide(PublicationState.SUBMITTED, MISSING, mustNotBeAsked)).isEqualTo(NONE);
+        assertThat(decide(PublicationState.NOT_SENT, MISSING, mustNotBeAsked)).isEqualTo(NONE);
     }
 
     @ParameterizedTest
@@ -134,9 +134,12 @@ class SystemPublicationCheckTest {
             throw new AssertionError("the DSP base URL must not be built");
         };
 
-        for (var carried : Arrays.asList(EQUAL, OTHER_DID, MISSING)) {
-            SystemPublicationCheck.decide(state, DID, mustNotBeAsked, carried, REGISTERED);
+        for (var carried : Arrays.asList(EQUAL, OTHER_DID)) {
+            assertThat(SystemPublicationCheck.decide(state, DID, mustNotBeAsked, carried, REGISTERED)).isEqualTo(NONE);
         }
-        SystemPublicationCheck.decide(PublicationState.SUBMITTED, DID, mustNotBeAsked, MISSING, REGISTERED);
+        var carriedNothing = SystemPublicationCheck.decide(state, DID, mustNotBeAsked, MISSING, REGISTERED);
+        assertThat(carriedNothing).isEqualTo(state == PublicationState.PUBLISHED ? RESEND : NONE);
+        assertThat(SystemPublicationCheck.decide(PublicationState.SUBMITTED, DID, mustNotBeAsked, MISSING, REGISTERED))
+                .isEqualTo(NONE);
     }
 }
