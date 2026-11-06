@@ -83,8 +83,6 @@ public interface VaultClient {
 
     String MLOG_DB_ENCRYPTION_SECRET_KEYS_BASE_PATH = "message-log/database-encryption/keys";
 
-    String SIGNER_TOKEN_PINS_BASE_PATH = "signer/token-pins";
-
     String ACME_ACCOUNT_KEYS_BASE_PATH = "acme/account-keys";
 
     String AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH = "agreement-token/signing-keys";

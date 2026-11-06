@@ -175,9 +175,13 @@ dpkg-query -W -f='${Version}\n' xroad-center
 
 The output must now begin with `8.`.
 
-**9. Migrate TLS material to the local secret store.** Source `/etc/xroad/services/secret-store-local.conf` to get `XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`, then for each existing pair `/etc/xroad/ssl/{internal,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (for `center-admin-service`), or `management-service`.
+**9. Migrate TLS material to the local secret store.** Source `/etc/xroad/services/secret-store-local.conf` to get `XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`, then for each existing pair `/etc/xroad/ssl/{internal,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service/<node>` (for `center-admin-service`), or `management-service/<node>`.
 
-The pattern matches what the Security Server wizard does in `migrate_tls_to_secret_store.sh`; if you want a working reference, read that script.
+`<node>` is the name of this Central Server node. Read it from `xroad.admin-service.ha-node-name` in `/etc/xroad/conf.d/local.yaml`. If the property is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long. For example, the node name `node_1` gives the admin service key path `tls/admin-service/node_1`.
+
+The Security Server wizard script `migrate_tls_to_secret_store.sh` shows the same request format, but it writes to the Security Server paths `tls/admin-service` and `tls/management-service`. Do not copy its paths: the Central Server reads `tls/admin-service/<node>` and `tls/management-service/<node>`.
+
+The migrated user interface and management services certificates keep their X-Road 7 names. To get certificates with the names derived from the host or set in the configuration database, delete the key and restart the services as described in [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2. After the management services certificate is replaced, the management Security Server must trust the new certificate.
 
 **10. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server — each sub-command skips cleanly when its source file is absent, so the operator's job is simply to run the full sequence in order. For a Central Server, the following sub-commands are the relevant ones:
 
@@ -198,11 +202,14 @@ XROAD_MIGRATION_SOFTTOKEN_PIN='<pin>' \
   java -jar /var/tmp/migration-cli.jar keyconf /etc/xroad/signer /etc/xroad/db.properties
 
 # signer-token-pins — only if xroad-autologin is installed
+# <node> is the node name from step 9; --node may be left out only for node_0
 if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
    || [ -f /usr/share/xroad/autologin/default-fetch-pin.sh ]; then
-  java -jar /var/tmp/migration-cli.jar signer-token-pins
+  java -jar /var/tmp/migration-cli.jar signer-token-pins --node <node>
 fi
 ```
+
+With `--node <node>`, the PINs are stored in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 
 **Treat any Java stack trace as a failure even if the process exits 0** — do not proceed if a step printed an exception. The migration-CLI scans for `Error `, `Caused by:`, `Exception in `, and `<Class>Exception:` patterns when run from the Security Server wizard, so the same patterns are reliable signals here.
 

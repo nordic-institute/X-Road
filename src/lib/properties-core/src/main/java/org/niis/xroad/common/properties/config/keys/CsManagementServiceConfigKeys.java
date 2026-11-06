@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.HostIdentity;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
@@ -133,17 +134,17 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.management-service.tls.certificate-provisioning.common-name}. */
     public static final ConfigKey<String> TLS_CERT_PROVISIONING_COMMON_NAME = TLS_CERT_PROVISIONING
             .string("common-name")
-            .withDefaultValue(xroadHost("localhost"))
+            .withLazyDefaultValue(() -> xroadHost(HostIdentity.local().commonName()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("alt-names")
-            .withDefaultValue("")
+            .withLazyDefaultValue(() -> String.join(",", HostIdentity.local().dnsNames()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue("127.0.0.1")
+            .withLazyDefaultValue(() -> String.join(",", HostIdentity.local().ipAddresses()))
             .build();
     /** {@code xroad.management-service.tls.certificate-provisioning.ttl}. */
     public static final ConfigKey<Duration> TLS_CERT_PROVISIONING_TTL = TLS_CERT_PROVISIONING

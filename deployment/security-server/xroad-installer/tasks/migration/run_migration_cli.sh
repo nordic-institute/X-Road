@@ -267,7 +267,8 @@ main() {
   local autologin_default="/usr/share/xroad/autologin/default-fetch-pin.sh"
   if [[ -f "$autologin_custom" || -f "$autologin_default" ]]; then
     run_migration_step "signer-token-pins" \
-      --description "Migrate signer token PINs\n  from: xroad-autologin fetch-pin scripts\n  into: OpenBao secret store"
+      --description "Migrate signer token PINs\n  from: xroad-autologin fetch-pin scripts\n  into: OpenBao secret store, node ${SECRET_STORE_NODE_NAME}" \
+      --node "$SECRET_STORE_NODE_NAME"
   else
     log_info "xroad-autologin not installed — skipping signer-token-pins migration"
   fi

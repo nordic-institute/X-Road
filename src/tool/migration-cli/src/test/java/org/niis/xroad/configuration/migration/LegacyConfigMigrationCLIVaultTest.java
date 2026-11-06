@@ -29,6 +29,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.migration.tokenpin.TokenPinMigrationResult;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -38,6 +41,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -83,6 +87,56 @@ class LegacyConfigMigrationCLIVaultTest {
                 .isInstanceOf(MigrationException.class)
                 .hasMessageContaining("Migration failed")
                 .hasRootCauseInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void testSignerTokenPinsWithInvalidNodeStopsWithTheRuleBeforeTouchingVault() throws IOException {
+        Path stubScript = tempDir.resolve("stub-autologin.sh");
+        Files.writeString(stubScript, "#!/bin/bash\n");
+
+        String[] args = {"signer-token-pins", "--node", "_bad", stubScript.toString()};
+        assertThatThrownBy(() -> LegacyConfigMigrationCLI.main(args))
+                .isInstanceOf(MigrationException.class)
+                .hasRootCauseInstanceOf(XrdRuntimeException.class)
+                .rootCause()
+                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
+                .hasMessageNotContaining("XROAD_SECRET_STORE");
+    }
+
+    @ParameterizedTest
+    @MethodSource("blankNodeArgs")
+    void testSignerTokenPinsWithBlankNodeStopsBeforeTouchingTheEnvironment(String[] nodeArgs) throws IOException {
+        Path stubScript = tempDir.resolve("stub-autologin.sh");
+        Files.writeString(stubScript, "#!/bin/bash\n");
+
+        String[] args = Stream.concat(Stream.concat(Stream.of("signer-token-pins"), Stream.of(nodeArgs)),
+                Stream.of(stubScript.toString())).toArray(String[]::new);
+
+        assertThatThrownBy(() -> LegacyConfigMigrationCLI.main(args))
+                .isInstanceOf(MigrationException.class)
+                .hasRootCauseInstanceOf(IllegalArgumentException.class)
+                .rootCause()
+                .hasMessageContaining("requires a node name")
+                .hasMessageNotContaining("XROAD_SECRET_STORE");
+    }
+
+    static Stream<Arguments> blankNodeArgs() {
+        return Stream.of(
+                Arguments.of((Object) new String[]{"--node", ""}),
+                Arguments.of((Object) new String[]{"--node="}),
+                Arguments.of((Object) new String[]{"--node", " "}));
+    }
+
+    @Test
+    void testSignerTokenPinsWithValidNodeStillRequiresVaultEnvVars() throws IOException {
+        Path stubScript = tempDir.resolve("stub-autologin.sh");
+        Files.writeString(stubScript, "#!/bin/bash\n");
+
+        String[] args = {"signer-token-pins", "--node", "node_1", stubScript.toString()};
+        assertThatThrownBy(() -> LegacyConfigMigrationCLI.main(args))
+                .isInstanceOf(MigrationException.class)
+                .rootCause()
+                .hasMessageContaining("XROAD_SECRET_STORE_HOST");
     }
 
     @Test

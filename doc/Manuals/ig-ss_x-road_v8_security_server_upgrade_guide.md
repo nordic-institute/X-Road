@@ -232,7 +232,7 @@ Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-
 | `ini-to-db` (per file)                    | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database.                                                                                                                                            |
 | `properties-to-db` (ssl)                  | The SSL properties file (path from `local.ini` `proxy-ui-api.ssl-properties`, default `/etc/xroad/ssl.properties`) under the proxy-ui-api scope.                                                                                             |
 | `keyconf`                                 | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set.                    |
-| `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed.                                                                                                       |
+| `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store, under `signer/token-pins/node_0/<tokenId>`. The wizard passes `--node node_0`. Skipped if `xroad-autologin` is not installed.                                                                                                       |
 | `file-to-db` (acme)                       | The contents of `/etc/xroad/conf.d/acme.yml` into the configuration database under key `xroad.acme` (proxy-ui-api scope), with the `account-keystore-password` line stripped first.                                                         |
 | `acme-account-keys`                       | Every alias in the X-Road 7 ACME account keystore (`acme.p12`) into the OpenBao secret store: the key pair plus the alias's existing certificate expiry, carried forward as the rotation-due timestamp. The certificate itself is discarded. PKCS12 lowercases aliases at write time, so the original case is recovered by matching client identifiers configured in the configuration database; an alias with no matching client is skipped (logged), the rest of the batch still migrates. |
 | `file-to-db` (mail)                       | The contents of `/etc/xroad/conf.d/mail.yml` into the configuration database under key `xroad.mail-notification` (proxy-ui-api scope).                                                                                                       |
@@ -503,7 +503,8 @@ XROAD_MIGRATION_SOFTTOKEN_PIN='<pin>' \
   java -jar /var/tmp/migration-cli.jar keyconf /etc/xroad/signer /etc/xroad/db.properties
 
 # Optional: only if xroad-autologin is installed
-java -jar /var/tmp/migration-cli.jar signer-token-pins
+# A Security Server uses the default node name node_0
+java -jar /var/tmp/migration-cli.jar signer-token-pins --node node_0
 
 java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme              proxy-ui-api
 java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/mail.yml /etc/xroad/db.properties xroad.mail-notification proxy-ui-api

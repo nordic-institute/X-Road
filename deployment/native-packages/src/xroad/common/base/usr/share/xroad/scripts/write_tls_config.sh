@@ -88,7 +88,7 @@ extract_cn() {
 # Store the TLS identity rows of a module in the configuration database without the package
 # guards; the caller decides whether this host should write.
 # Arguments:
-#   $1 - module name (e.g., admin-service, management-service)
+#   $1 - module name (e.g., proxy, op-monitor, proxy-ui-api)
 #   $2 - subject answer (bare host, /CN=host or full distinguished name)
 #   $3 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
 #   $4 - optional db_property.sh write flag: --yes overwrites, --if-absent keeps existing

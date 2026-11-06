@@ -11,4 +11,5 @@ dependencies {
   implementation(libs.microprofile.config.api)
 
   testImplementation(libs.assertj.core)
+  testImplementation(libs.springBoot.starterTest)
 }

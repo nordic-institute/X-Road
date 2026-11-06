@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -175,6 +176,7 @@ public abstract sealed class Prefix {
         private final String key;
         private final Class<T> type;
         private final String defaultValue;
+        private final Supplier<String> lazyDefaultValue;
         private final String containerDefaultValue;
         private final Function<String, T> converter;
         private final Validator<T> validator;
@@ -184,6 +186,7 @@ public abstract sealed class Prefix {
                                  boolean publishedToFramework,
                                  String key, Class<T> type,
                                  String defaultValue,
+                                 Supplier<String> lazyDefaultValue,
                                  String containerDefaultValue,
                                  Function<String, T> converter,
                                  Validator<T> validator) {
@@ -204,6 +207,7 @@ public abstract sealed class Prefix {
             this.key = key;
             this.type = type;
             this.defaultValue = defaultValue;
+            this.lazyDefaultValue = lazyDefaultValue;
             this.containerDefaultValue = containerDefaultValue;
             this.converter = converter;
             this.validator = validator;
@@ -242,12 +246,13 @@ public abstract sealed class Prefix {
 
         @Override
         public String defaultValue() {
-            return defaultValue;
+            return lazyDefaultValue == null ? defaultValue : lazyDefaultValue.get();
         }
 
         @Override
         public T convertedDefaultValue() {
-            return defaultValue == null ? null : convert(defaultValue);
+            var raw = defaultValue();
+            return raw == null ? null : convert(raw);
         }
 
         @Override
@@ -301,6 +306,7 @@ public abstract sealed class Prefix {
         protected Validator<T> validator = Validator.none();
         protected Function<String, T> converter;
         protected String defaultValue;
+        protected Supplier<String> lazyDefaultValue;
         protected String containerDefaultValue;
         protected boolean exposedInUi;
         protected boolean publishedToFramework;
@@ -336,6 +342,16 @@ public abstract sealed class Prefix {
             return (KB) this;
         }
 
+        /**
+         * Default that is computed on each read instead of when the key is declared, for values that need
+         * a costly or fallible lookup. The supplier must return a valid value and should cache it.
+         */
+        @SuppressWarnings("unchecked")
+        public KB withLazyDefaultValue(Supplier<String> defValueSupplier) {
+            this.lazyDefaultValue = defValueSupplier;
+            return (KB) this;
+        }
+
         /** Container-mode default; resolvers in {@code CONTAINERIZED} mode prefer this over the regular default. */
         @SuppressWarnings("unchecked")
         public KB withContainerDefaultValue(String defValue) {
@@ -347,7 +363,7 @@ public abstract sealed class Prefix {
             var key = prefix.rootPath() + "." + shortKey;
 
             var configKey = new DefaultConfigKey<>(prefix.category(), exposedInUi, publishedToFramework, key, type,
-                    defaultValue, containerDefaultValue, converter, validator);
+                    defaultValue, lazyDefaultValue, containerDefaultValue, converter, validator);
 
             if (defaultValue != null) {
                 var result = validator.validate(converter.apply(defaultValue));

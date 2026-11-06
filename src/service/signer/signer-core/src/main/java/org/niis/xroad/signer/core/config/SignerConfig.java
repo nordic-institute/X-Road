@@ -26,12 +26,17 @@
 package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.healthcheck.HealthCheckProperties;
 import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
@@ -163,9 +168,20 @@ public class SignerConfig {
         }
     }
 
+    // NodeIdentity is a final record: a normal scope would need a client proxy, which a record cannot have.
+    @Produces
+    @Singleton
+    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeIdentity.PROPERTY_KEY) Optional<String> configuredNodeName) {
+        return NodeIdentity.resolve(configuredNodeName.orElse(null));
+    }
+
+    void onStart(@Observes StartupEvent event, NodeIdentity nodeIdentity) {
+        log.info("Signer node name '{}' ({})", nodeIdentity.name(), nodeIdentity.configured() ? "configured" : "default");
+    }
+
     @ApplicationScoped
-    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
-        return new QuarkusVaultClient(kvSecretEngine);
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine, NodeIdentity nodeIdentity) {
+        return new QuarkusVaultClient(kvSecretEngine, nodeIdentity);
     }
 
     private static DeploymentMode deploymentMode() {

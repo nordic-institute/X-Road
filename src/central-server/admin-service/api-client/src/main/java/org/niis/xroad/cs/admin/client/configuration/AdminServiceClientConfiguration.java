@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.NodeIdentityConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.cs.admin.client.AuthFeignClientInterceptor;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
@@ -66,7 +67,7 @@ import java.security.KeyStore;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 
 
-@Import({FeignClientsConfiguration.class, SpringVaultClientConfig.class})
+@Import({FeignClientsConfiguration.class, SpringVaultClientConfig.class, NodeIdentityConfig.class})
 @Configuration
 public class AdminServiceClientConfiguration {
 
