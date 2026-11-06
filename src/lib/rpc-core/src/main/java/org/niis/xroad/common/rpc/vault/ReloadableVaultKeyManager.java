@@ -26,11 +26,7 @@
  */
 package org.niis.xroad.common.rpc.vault;
 
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
-import io.github.resilience4j.timelimiter.TimeLimiter;
-import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import io.github.resilience4j.core.IntervalFunction;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.extern.slf4j.Slf4j;
@@ -46,30 +42,29 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
-
 /**
- * TODO XRDDEV-2880 refresh could still fail, even after retries. This should be handled with service health checks.
+ * Loads the gRPC TLS key and trust material from the secret store. Every reload makes one load attempt.
+ * After a success the next reload runs after the refresh interval. After a failure it runs after an exponentially
+ * growing, capped delay, and the previously loaded material stays in place.
  */
 @Slf4j
 public class ReloadableVaultKeyManager implements VaultKeyProvider {
-    private static final String RETRY_INSTANCE_NAME = "vaultReloadRetry";
 
     private final RpcProperties.RpcCertificateProvisioningProperties certificateProvisionProperties;
     private final ScheduledExecutorService scheduler;
     private final VaultKeyClient vaultKeyClient;
     private final AdvancedTlsX509TrustManager trustManager;
     private final AdvancedTlsX509KeyManager keyManager;
+    private final IntervalFunction failureBackoff;
 
-    private final Retry retryInstance;
-    private final TimeLimiter timeLimiter;
+    private int consecutiveFailures;
 
     private final Object trustLock = new Object();
     private final List<AdvancedTlsX509TrustManager> verifyingTrustManagers = new ArrayList<>();
@@ -77,23 +72,22 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
 
     public ReloadableVaultKeyManager(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties,
                                      VaultKeyClient vaultKeyClient, AdvancedTlsX509TrustManager trustManager,
-                                     AdvancedTlsX509KeyManager keyManager, ScheduledExecutorService scheduler,
-                                     Retry retryInstance, TimeLimiter timeLimiter) {
+                                     AdvancedTlsX509KeyManager keyManager, ScheduledExecutorService scheduler) {
         this.certificateProvisionProperties = certificateProvisioningProperties;
         this.vaultKeyClient = vaultKeyClient;
         this.trustManager = trustManager;
         this.keyManager = keyManager;
         this.scheduler = scheduler;
-        this.retryInstance = retryInstance;
-        this.timeLimiter = timeLimiter;
+        this.failureBackoff = IntervalFunction.ofExponentialBackoff(
+                certificateProvisioningProperties.waitDuration(),
+                certificateProvisioningProperties.exponentialBackoffMultiplier(),
+                certificateProvisioningProperties.exponentialMaxWaitDuration());
     }
 
     @Override
     public void init() {
-        var startTime = System.currentTimeMillis();
         log.info("Initializing reloadable vault key manager..");
         reload();
-        log.info("Reloadable vault key manager initialized in {} ms", System.currentTimeMillis() - startTime);
     }
 
     @Override
@@ -102,28 +96,32 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
     }
 
     void reload() {
+        var nextDelay = loadKeyMaterial();
+        scheduler.schedule(this::reload, nextDelay.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private Duration loadKeyMaterial() {
         try {
-            var retrySupplier = Retry.decorateSupplier(retryInstance, () -> {
-                try {
-                    var result = vaultKeyClient.provisionNewCerts();
+            var startTime = System.currentTimeMillis();
+            var result = vaultKeyClient.provisionNewCerts();
 
-                    keyManager.updateIdentityCredentials(
-                            result.identityCertChain(),
-                            result.identityPrivateKey());
+            keyManager.updateIdentityCredentials(
+                    result.identityCertChain(),
+                    result.identityPrivateKey());
 
-                    updateTrustCredentials(result.trustCerts());
-                    return null;
-                } catch (Exception e) {
-                    throw XrdRuntimeException.systemInternalError("Failed to provision certificates", e);
-                }
-            });
+            updateTrustCredentials(result.trustCerts());
 
-            timeLimiter.executeFutureSupplier(() -> CompletableFuture.supplyAsync(retrySupplier));
-        } catch (Exception e) {
-            log.error("Error while reloading vault key manager", e);
-        } finally {
-            log.debug("Scheduling next reload in {}", certificateProvisionProperties.refreshInterval());
-            scheduler.schedule(this::reload, certificateProvisionProperties.refreshInterval().toSeconds(), TimeUnit.SECONDS);
+            consecutiveFailures = 0;
+            var delay = certificateProvisionProperties.refreshInterval();
+            log.info("Reloadable vault key manager loaded key material in {} ms, next reload in {}",
+                    System.currentTimeMillis() - startTime, delay);
+            return delay;
+        } catch (Throwable e) {
+            consecutiveFailures++;
+            var delay = Duration.ofMillis(failureBackoff.apply(consecutiveFailures));
+            log.error("Failed to load key material from secret store (consecutive failures: {}), next attempt in {}",
+                    consecutiveFailures, delay, e);
+            return delay;
         }
     }
 
@@ -167,30 +165,6 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
         return trustManager;
     }
 
-    static Retry createRetryInstance(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties) {
-        var retryInterval = ofExponentialBackoff(certificateProvisioningProperties.retryDelay(),
-                certificateProvisioningProperties.retryExponentialBackoffMultiplier());
-
-        RetryConfig retryConfig = RetryConfig.custom()
-                .maxAttempts(certificateProvisioningProperties.retryMaxAttempts() + 1)
-                .intervalFunction(retryInterval)
-                .retryExceptions(Exception.class)
-                .failAfterMaxAttempts(true)
-                .build();
-        var retryRegistry = RetryRegistry.of(retryConfig);
-
-        return retryRegistry.retry(RETRY_INSTANCE_NAME, retryConfig);
-    }
-
-    static TimeLimiter createTimeLimiter(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties) {
-        TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom()
-                .timeoutDuration(certificateProvisioningProperties.retryTimeout())
-                .cancelRunningFuture(true)
-                .build();
-
-        return TimeLimiter.of("vaultReloadTimeLimiter", timeLimiterConfig);
-    }
-
     public static ReloadableVaultKeyManager withDefaults(
             RpcProperties.RpcCertificateProvisioningProperties certificateProvisionProperties,
             VaultKeyClient vaultKeyClient) throws CertificateException {
@@ -201,15 +175,7 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
 
         var scheduler = Executors.newScheduledThreadPool(1, Thread.ofVirtual().factory());
 
-        var retryInstance = createRetryInstance(certificateProvisionProperties);
-        retryInstance.getEventPublisher().onRetry(event ->
-                log.warn("Retrying provision certificates from secret store. Event: {}", event));
-
-        var timeLimiter = createTimeLimiter(certificateProvisionProperties);
-        timeLimiter.getEventPublisher().onTimeout(event ->
-                log.error("Certificate provisioning timed out. Event: {}", event));
-
         return new ReloadableVaultKeyManager(certificateProvisionProperties, vaultKeyClient,
-                trustStore, keyManager, scheduler, retryInstance, timeLimiter);
+                trustStore, keyManager, scheduler);
     }
 }

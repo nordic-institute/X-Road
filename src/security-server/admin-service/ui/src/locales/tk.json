@@ -1198,10 +1198,9 @@
             "use-tls": "Diňe synag üçin; önümçilikde hiç wagt öçürmäň. Işledilen halatynda, howpsuzlyk serweriň içki hyzmatlary arasynda ähli gRPC aragatnaşygy üçin özara TLS ulanylýar. Öçürilen halatynda, ähli içki gRPC aragatnaşygy şifrlenmeýär, operasion gözegçilik demony bilen baglanyşyk hem şoňa girýär, we import edilen operasion gözegçilik CA-sy bilen rugsat berilen müşderi atlary ulanylmaýar.",
             "certificate-provisioning": {
               "refresh-interval": "Hyzmatlaryň gRPC TLS sertifikatyny täzelemek gerekdigi barlaýan ýygylygy (meselem, 5H).",
-              "retry-delay": "gRPC TLS sertifikat üpjünçiligi gaýtalamalarynyň arasyndaky başlangyç gijikdirme (meselem, 5S).",
-              "retry-exponential-backoff-multiplier": "Sertifikat üpjünçiliginiň her soňraky synanyşygynda gaýtalamalaryň gijikdirme köpeýjisi.",
-              "retry-max-attempts": "gRPC TLS sertifikat üpjünçiliginiň iň köp synanyşyk sany.",
-              "retry-timeout": "gRPC TLS sertifikat üpjünçiliginiň ähli synanyşyklary üçin umumy wagt çägi (meselem, 60S)."
+              "wait-duration": "Gizlin ammardan gRPC TLS sertifikatyny ýüklemek şowsuz bolandan soň ilkinji gaýtadan synanyşykdan öňki gijikdirme (meselem, 5S).",
+              "exponential-backoff-multiplier": "gRPC TLS sertifikatyny yzygiderli her şowsuz ýüklemeden soň gaýtadan synanyşyk gijikdirmesine ulanylýan köpeldiji.",
+              "exponential-max-wait-duration": "gRPC TLS sertifikatyny şowsuz ýüklemelerden soň gaýtadan synanyşyk gijikdirmesiniň ýokarky çägi (meselem, 5M)."
             },
             "channel": {
               "proxy": {

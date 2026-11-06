@@ -28,10 +28,10 @@
     wait: false
     values: "{{ lookup('template', 'security-server-values.yaml.j2') | from_yaml }}"
 
-# ds-* Deployments are excluded: they block at startup on the empty tls/ds-https
-# vault slot until the e2e-fixtures hurl bootstrap — which runs after every chart
-# is deployed — provisions the certificate through the admin API, so they cannot
-# become Available before then. The hurl scenario's own DSP readiness gates
+# ds-* Deployments are excluded: they boot with the tls/ds-https vault slot empty
+# but stay not ready until the e2e-fixtures hurl bootstrap — which runs after every
+# chart is deployed — provisions the certificate through the admin API, so they
+# cannot become Available before then. The hurl scenario's own DSP readiness gates
 # assert their convergence.
 - name: Wait for Security Server Deployments (excluding ds-*) to become Available
   kubernetes.core.k8s_info:

@@ -81,6 +81,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * a future or runs a caller continuation directly, and never holds a transaction while resolving a
  * data address.
  *
+ * <p>A waiter whose future the caller cancels is dropped, so a given-up wait is not polled any longer.
+ *
  * <p>A waiter's deadline is enforced independently of the database: a batch read that throws is
  * logged once and every waiter in it is treated the same as a read that returned nothing, falling
  * through to the deadline check; if the pass's transaction itself fails, a deadline-only sweep over
@@ -171,7 +173,13 @@ public class AssetAccessCompletionPoller {
             return CompletableFuture.failedFuture(acquisitionStoppedFailure(id));
         }
         var future = new CompletableFuture<T>();
-        waiters.put(id, new Waiter<>(future, clock.instant().plus(timeout)));
+        var waiter = new Waiter<>(future, clock.instant().plus(timeout));
+        waiters.put(id, waiter);
+        future.whenComplete((value, failure) -> {
+            if (future.isCancelled()) {
+                waiters.remove(id, waiter);
+            }
+        });
         return future;
     }
 

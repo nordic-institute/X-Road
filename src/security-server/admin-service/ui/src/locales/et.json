@@ -1335,10 +1335,9 @@
             "use-tls": "Ainult testimiseks; ärge lülitage seda tootmises välja. Kui lubatud, kasutatakse kõigi turvaserveri siseteenuste vahelises gRPC suhtluses vastastikust TLS-i. Kui keelatud, on kogu sisemine gRPC suhtlus krüpteerimata, sealhulgas ühendus operatsioonide monitooringu deemoniga, ning imporditud operatsioonide monitooringu CA-d ja lubatud kliendinimesid ei rakendata.",
             "certificate-provisioning": {
               "refresh-interval": "Kui tihti teenused kontrollivad, kas nende gRPC TLS-sertifikaati on vaja uuendada (nt 5H).",
-              "retry-delay": "gRPC TLS-sertifikaadi proviimise taaskatsumise esialgne viivitus (nt 5S).",
-              "retry-exponential-backoff-multiplier": "Iga järgneva sertifikaadi proviimise katse puhul taaskatsumisviivitusele rakendatav kordaja.",
-              "retry-max-attempts": "gRPC TLS-sertifikaadi proviimise maksimaalne katsete arv.",
-              "retry-timeout": "Kogu ajaraam kõigi gRPC TLS-sertifikaadi proviimise katsete jaoks (nt 60S)."
+              "wait-duration": "Viivitus enne esimest taaskatset pärast gRPC TLS-sertifikaadi ebaõnnestunud laadimist saladuste hoidlast (nt 5S).",
+              "exponential-backoff-multiplier": "Taaskatsumisviivitusele rakendatav kordaja pärast iga järjestikust gRPC TLS-sertifikaadi ebaõnnestunud laadimist.",
+              "exponential-max-wait-duration": "Taaskatsumisviivituse ülempiir gRPC TLS-sertifikaadi ebaõnnestunud laadimiste järel (nt 5M)."
             },
             "channel": {
               "proxy": {

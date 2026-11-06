@@ -582,10 +582,9 @@
             "use-tls": "Solo para pruebas; nunca lo desactive en producción. Cuando está habilitado, se utiliza TLS mutuo para la comunicación gRPC entre los servicios colocalizados del Servidor Central. Cuando está deshabilitado, esta comunicación gRPC va en texto plano.",
             "certificate-provisioning": {
               "refresh-interval": "Con qué frecuencia los servicios verifican si su certificado TLS de gRPC necesita renovarse (p. ej. 5H).",
-              "retry-delay": "Retraso inicial entre intentos de aprovisionamiento de certificados TLS de gRPC (p. ej. 5S).",
-              "retry-exponential-backoff-multiplier": "Multiplicador aplicado al retraso de reintento en cada intento de aprovisionamiento de certificado posterior.",
-              "retry-max-attempts": "Número máximo de intentos de aprovisionamiento de certificados TLS de gRPC.",
-              "retry-timeout": "Límite de tiempo total para todos los intentos de aprovisionamiento de certificados TLS de gRPC (p. ej. 60S)."
+              "wait-duration": "Retraso antes del primer reintento tras una carga fallida del certificado TLS de gRPC desde el almacén de secretos (p. ej. 5S).",
+              "exponential-backoff-multiplier": "Multiplicador aplicado al retraso de reintento después de cada carga fallida consecutiva del certificado TLS de gRPC.",
+              "exponential-max-wait-duration": "Límite superior del retraso de reintento tras cargas fallidas del certificado TLS de gRPC (p. ej. 5M)."
             },
             "channel": {
               "op-monitor": {

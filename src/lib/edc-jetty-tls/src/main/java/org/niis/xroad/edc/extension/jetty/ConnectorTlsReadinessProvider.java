@@ -24,9 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.quarkus;
+package org.niis.xroad.edc.extension.jetty;
 
-import org.niis.xroad.common.rpc.RpcProperties;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.edc.spi.system.health.HealthCheckResult;
+import org.eclipse.edc.spi.system.health.ReadinessProvider;
 
-public interface QuarkusRpcProperties extends RpcProperties {
+/**
+ * Reports ready only while the HTTPS connectors serve connector TLS material that has not expired. While
+ * connector TLS is not served the reason is the text of the failure.
+ */
+@RequiredArgsConstructor
+final class ConnectorTlsReadinessProvider implements ReadinessProvider {
+    static final String COMPONENT = "connector-tls";
+
+    private final XRoadJettyService jettyService;
+
+    @Override
+    public HealthCheckResult get() {
+        var result = HealthCheckResult.Builder.newInstance().component(COMPONENT);
+        var status = jettyService.connectorTlsStatus();
+        if (!status.serving()) {
+            return result.failure(status.notServedCause()
+                    .map(cause -> "Connector TLS is not served: " + cause)
+                    .orElse("Connector TLS is not served yet")).build();
+        }
+        if (status.expiredAt().isEmpty()) {
+            return result.success().build();
+        }
+        return result.failure("Served connector TLS certificate expired at " + status.expiredAt().get()).build();
+    }
 }

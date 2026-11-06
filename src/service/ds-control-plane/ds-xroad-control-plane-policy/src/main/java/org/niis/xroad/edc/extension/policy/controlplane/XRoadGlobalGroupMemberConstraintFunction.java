@@ -81,6 +81,10 @@ public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgent
                         log.debug("evaluate: no memberId in context -> false");
                         return false;
                     });
+        } catch (RuntimeException e) {
+            monitor.warning("XRoadGlobalGroupMemberConstraintFunction failed for value '" + rightValue
+                    + "', treating it as no match", e);
+            return false;
         } finally {
             monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }
