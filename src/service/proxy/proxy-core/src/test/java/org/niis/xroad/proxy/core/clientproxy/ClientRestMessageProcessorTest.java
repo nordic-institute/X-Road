@@ -54,6 +54,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
@@ -356,18 +357,19 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void sendAddsAgreementTokenHeaderOnEveryAttempt() throws Exception {
+    void afterAFailoverTheSiblingIsSentItsOwnAgreementTokenAndTheFailedServersTokenIsNotSentAgain() throws Exception {
         var harness = createHarness(true);
-        stubAcquisitions(harness, 2,
-                new AssetAccessResponse(PROVIDER_ADDRESS, AGREEMENT_TOKEN, WINNER), WON_BY_SS_B);
-        var refusedAttemptSender = failingSender(new ConnectException("refused"));
-        var servedAttemptSender = mock(HttpSender.class);
-        stubSenders(harness, refusedAttemptSender, servedAttemptSender);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var failedSsA = failingSender(new ConnectException("refused"));
+        var servedBySsB = mock(HttpSender.class);
+        stubSenders(harness, failedSsA, servedBySsB);
 
         send(harness);
 
-        verify(refusedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
-        verify(servedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+        verify(failedSsA).addHeader(HEADER_AGREEMENT_TOKEN, SS_A_TOKEN);
+        verify(failedSsA, never()).addHeader(HEADER_AGREEMENT_TOKEN, SS_B_TOKEN);
+        verify(servedBySsB).addHeader(HEADER_AGREEMENT_TOKEN, SS_B_TOKEN);
+        verify(servedBySsB, never()).addHeader(HEADER_AGREEMENT_TOKEN, SS_A_TOKEN);
     }
 
     @Test
@@ -801,10 +803,10 @@ class ClientRestMessageProcessorTest {
 
     @ParameterizedTest
     @MethodSource("protocolRejections")
-    void aProtocolRejectionOnTheNewAcquisitionAfterATransportFaultReachesTheCallerUnchanged(
-            XrdRuntimeException rejection) throws Exception {
+    void aProtocolRejectionOnTheNewAcquisitionAfterATransportFaultReachesTheCallerWithItsCode(ErrorCode code) throws Exception {
         var harness = createHarness(true);
         var fault = new ConnectException("refused");
+        var rejection = XrdRuntimeException.systemException(code, "refused by sibling");
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(new DspAcquisition(WON_BY_SS_A, 2))
                 .thenThrow(rejection);
@@ -813,11 +815,28 @@ class ClientRestMessageProcessorTest {
                 .thenReturn(new URI[]{URI.create(WON_BY_SS_A.endpoint())});
         stubSenders(harness, failingSender(fault));
 
-        assertThatThrownBy(() -> send(harness)).isSameAs(rejection);
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertRefusalWithCode(thrown, code, rejection));
 
         verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
         verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
         verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
+    }
+
+    @ParameterizedTest
+    @MethodSource("protocolRejections")
+    void aRefusalFromTheSiblingAfterATransportFaultReachesTheCallerWithItsCode(ErrorCode code) throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var refusal = XrdRuntimeException.systemException(code, "refused by sibling");
+        var failedSsA = failingSender(new ConnectException("refused"));
+        var refusingSsB = failingSender(refusal);
+        stubSenders(harness, failedSsA, refusingSsB);
+
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertRefusalWithCode(thrown, code, refusal));
+
+        verify(refusingSsB).addHeader(HEADER_AGREEMENT_TOKEN, SS_B_TOKEN);
+        verify(refusingSsB, never()).addHeader(HEADER_AGREEMENT_TOKEN, SS_A_TOKEN);
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
     }
 
     @Test
@@ -1033,20 +1052,20 @@ class ClientRestMessageProcessorTest {
                 Arguments.of(XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"), true));
     }
 
-    static Stream<XrdRuntimeException> protocolRejections() {
-        return Stream.of(
-                XrdRuntimeException.systemException(ACCESS_DENIED, "not allowed"),
-                XrdRuntimeException.systemException(SERVICE_FAILED, "negotiation failed"));
+    static Stream<ErrorCode> protocolRejections() {
+        return Stream.of(ACCESS_DENIED, SERVICE_FAILED, AGREEMENT_TOKEN_REJECTED);
     }
 
     private static final String SS_A_ID = "did:web:ss-a.example%3A7183:v1:DEV:COM:222";
     private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
     private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS_A_TOKEN = "token-issued-by-ss-a";
+    private static final String SS_B_TOKEN = "token-issued-by-ss-b";
     private static final AssetAccessResponse WON_BY_SS_A =
-            new AssetAccessResponse("https://ss-a.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
+            new AssetAccessResponse("https://ss-a.example:8183/data", SS_A_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     private static final AssetAccessResponse WON_BY_SS_B =
-            new AssetAccessResponse("https://ss-b.example:8183/data", AGREEMENT_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
+            new AssetAccessResponse("https://ss-b.example:8183/data", SS_B_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
 
     /**
      * Makes {@code execute} return the given accesses in order, each reporting {@code candidateCount} candidates,
@@ -1100,6 +1119,14 @@ class ClientRestMessageProcessorTest {
             assertThat(e.isCausedBy(IO_ERROR)).isTrue();
             assertThat(e.getErrorCodeMetadata()).contains("originalCode=" + DSP_DATA_PLANE_UNREACHABLE.code());
             assertThat(e.getCause()).isSameAs(cause);
+        });
+    }
+
+    private static void assertRefusalWithCode(Throwable thrown, ErrorCode code, XrdRuntimeException refusal) {
+        assertThat(thrown).isSameAs(refusal);
+        assertThat(thrown).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+            assertThat(e.isCausedBy(code)).isTrue();
+            assertThat(e.isCausedBy(IO_ERROR)).isFalse();
         });
     }
 
