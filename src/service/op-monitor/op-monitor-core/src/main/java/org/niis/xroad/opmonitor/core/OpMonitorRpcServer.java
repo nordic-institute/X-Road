@@ -32,6 +32,10 @@ import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
 import org.niis.xroad.opmonitor.core.config.OpMonitorServerProperties;
@@ -39,13 +43,20 @@ import org.niis.xroad.opmonitor.core.config.OpMonitorServerProperties;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Startup
 @Singleton
 public class OpMonitorRpcServer extends ManagedRpcServer {
+
     public OpMonitorRpcServer(@All List<BindableService> services,
                               OpMonitorServerProperties rpcServerProperties,
-                              RpcCredentialsConfigurer rpcCredentialsConfigurer) {
-        super(services, rpcServerProperties, rpcCredentialsConfigurer);
+                              RpcCredentialsConfigurer rpcCredentialsConfigurer,
+                              RpcProperties rpcProperties) {
+        super(services, rpcServerProperties, rpcCredentialsConfigurer, rpcServerProperties.allowedClientNames());
+        if (!rpcServerProperties.allowedClientNames().isEmpty() && !rpcProperties.useTls()) {
+            log.warn("{} is set but {} is false: the op-monitor RPC server runs without TLS and does not enforce the list",
+                    OpMonitorConfigKeys.RPC_ALLOWED_CLIENT_NAMES.key(), CommonRpcConfigKeys.USE_TLS.key());
+        }
     }
 
     @Override
