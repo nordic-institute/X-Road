@@ -84,7 +84,7 @@ describe('1100 — CS Backup and Restore — download trigger + upload updates c
 
     // Download trigger
     await page.getByTestId('backup-download').first().click();
-    expect(downloadSpy).toHaveBeenCalled();
+    await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
 
     // Upload a new backup via the hidden file input (XrdFileUpload)
     await page.getByTestId('backup-upload').click();
