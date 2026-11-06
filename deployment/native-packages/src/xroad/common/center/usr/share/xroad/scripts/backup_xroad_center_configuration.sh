@@ -23,25 +23,23 @@ OPTIONS:
 EOF
 }
 
+read_backup_property () {
+  local value status=0
+  value=$(/usr/share/xroad/scripts/db_property.sh get "$1") || status=$?
+  case $status in
+    0) ;;
+    1) value="" ;;
+    *)
+      echo "Failed to read the backup setting $1 from the database" >&2
+      return 1
+      ;;
+  esac
+  printf '%s\n' "$value"
+}
+
 read_backup_encryption_settings () {
-  # shellcheck source=/dev/null
-  source /usr/share/xroad/scripts/_read_cs_db_properties.sh
-  prepare_db_props
-
-  if [ -f /etc/xroad/db_libpq.env ]; then
-    # shellcheck source=/dev/null
-    source /etc/xroad/db_libpq.env
-  fi
-
-  export PGPASSWORD="$db_password"
-  export PGOPTIONS="-c client-min-messages=warning -c search_path=${db_schema},public ${PGOPTIONS_EXTRA:-}"
-
-  local psql_q=(psql -v ON_ERROR_STOP=1 -qAt -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -U "$db_user" -d "$db_database")
-
-  ENCRYPT_BACKUP=$("${psql_q[@]}" -v k="xroad.backups.backup-encryption-enabled" \
-    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;")
-  GPG_KEYIDS=$("${psql_q[@]}" -v k="xroad.backups.backup-encryption-keyids" \
-    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k' AND ha_node_name IS NULL;")
+  ENCRYPT_BACKUP=$(read_backup_property "xroad.backups.backup-encryption-enabled") || exit 1
+  GPG_KEYIDS=$(read_backup_property "xroad.backups.backup-encryption-keyids") || exit 1
 }
 
 execute_backup () {
