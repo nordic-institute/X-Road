@@ -49,7 +49,18 @@
       </template>
       <template #[`item.member_did`]="{ item }">
         <div :data-test="`member-did-${item.server_id.server_code}`">
-          <span :data-test="item.member_did ? 'member-did' : 'member-did-missing'" class="text-break">{{ item.member_did || '-' }}</span>
+          <div class="d-flex align-center justify-space-between ga-4">
+            <span :data-test="item.member_did ? 'member-did' : 'member-did-missing'" class="text-break">{{ item.member_did || '-' }}</span>
+            <XrdBtn
+              v-if="allowEditMemberDid"
+              variant="text"
+              color="tertiary"
+              text="action.edit"
+              :data-test="`member-did-edit-${item.server_id.server_code}`"
+              :disabled="!item.member_did"
+              @click="emit('edit-member-did', item)"
+            />
+          </div>
           <v-alert
             v-if="item.member_did_stale"
             data-test="member-did-stale-warning"
@@ -69,7 +80,7 @@
   </XrdCard>
 </template>
 <script setup lang="ts">
-import { XrdCard } from '@niis/shared-ui';
+import { XrdBtn, XrdCard } from '@niis/shared-ui';
 import { ref } from 'vue';
 import { MemberServer } from '@/openapi-types';
 import { RouteName } from '@/global';
@@ -90,7 +101,13 @@ defineProps({
     type: String,
     required: true,
   },
+  allowEditMemberDid: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits<{ 'edit-member-did': [server: MemberServer] }>();
 
 const { t } = useI18n();
 const router = useRouter();

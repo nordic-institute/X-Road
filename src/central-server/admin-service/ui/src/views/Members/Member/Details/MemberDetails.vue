@@ -53,7 +53,9 @@
         title-key="members.member.details.ownedServers"
         :loading="loadingOwnedServers"
         :servers="ownedServers"
+        :allow-edit-member-did="allowEditMemberDid"
         data-test="owned-servers-table"
+        @edit-member-did="editDidServer = $event"
       />
     </div>
 
@@ -63,7 +65,9 @@
         title-key="members.member.details.usedServers"
         :loading="loadingUsedServers"
         :servers="usedServers"
+        :allow-edit-member-did="allowEditMemberDid"
         data-test="used-servers-table"
+        @edit-member-did="editDidServer = $event"
       >
         <template #actions="{ server }">
           <XrdBtn
@@ -89,6 +93,14 @@
         "
       />
     </div>
+
+    <EditMemberDidDialog
+      v-if="allowEditMemberDid && editDidServer && memberStore.current"
+      :member="memberStore.current"
+      :server="editDidServer"
+      @cancel="editDidServer = null"
+      @save="memberDidChanged"
+    />
 
     <!-- Global Groups -->
     <div id="global-groups" class="mt-4">
@@ -144,6 +156,7 @@ import { MemberGlobalGroup, MemberServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 import { useUser } from '@/store/modules/user';
 
+import EditMemberDidDialog from './EditMemberDidDialog.vue';
 import EditMemberNameDialog from './EditMemberNameDialog.vue';
 import ServersList from './ServersList.vue';
 import UnregisterMemberDialog from './UnregisterMemberDialog.vue';
@@ -160,6 +173,7 @@ export default defineComponent({
   components: {
     ServersList,
     XrdDateTime,
+    EditMemberDidDialog,
     EditMemberNameDialog,
     UnregisterMemberDialog,
     XrdBtn,
@@ -188,6 +202,7 @@ export default defineComponent({
       loadingUsedServers: false,
       usedServers: [] as MemberServer[],
       unregisterFromServer: null as MemberServer | null,
+      editDidServer: null as MemberServer | null,
 
       loadingGroups: false,
       searchGroups: '',
@@ -217,6 +232,9 @@ export default defineComponent({
     allowMemberRename(): boolean {
       return this.hasPermission(Permissions.EDIT_MEMBER_NAME);
     },
+    allowEditMemberDid(): boolean {
+      return this.hasPermission(Permissions.EDIT_MEMBER_DID);
+    },
     allowUnregisterMember(): boolean {
       return this.hasPermission(Permissions.UNREGISTER_MEMBER);
     },
@@ -238,13 +256,7 @@ export default defineComponent({
             this.loadingGroups = false;
           });
 
-        this.loadingOwnedServers = true;
-        this.memberStore
-          .getMemberOwnedServers(memberId)
-          .then((resp) => (this.ownedServers = resp))
-          .catch((error) => this.addError(error))
-          .finally(() => (this.loadingOwnedServers = false));
-
+        this.loadOwnedServers();
         this.loadClientServers();
       },
     },
@@ -255,6 +267,19 @@ export default defineComponent({
     },
     memberNameChanged() {
       this.showEditNameDialog = false;
+    },
+    memberDidChanged() {
+      this.editDidServer = null;
+      this.loadOwnedServers();
+      this.loadClientServers();
+    },
+    loadOwnedServers() {
+      this.loadingOwnedServers = true;
+      this.memberStore
+        .getMemberOwnedServers(this.memberId)
+        .then((resp) => (this.ownedServers = resp))
+        .catch((error) => this.addError(error))
+        .finally(() => (this.loadingOwnedServers = false));
     },
     loadClientServers() {
       this.loadingUsedServers = true;

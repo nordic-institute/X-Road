@@ -24,12 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { page } from 'vitest/browser';
+import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
+import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
-import type { Client, SecurityServer } from '@/openapi-types';
+import type { RequestHandler } from 'msw';
+import type { Client, MemberDidCheck, SecurityServer } from '@/openapi-types';
 
 const MEMBER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem';
 const SERVER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1';
@@ -224,5 +227,293 @@ describe('CS Member Details — member DID column on owned and used servers (Bro
     await expect.element(used.getByTestId('member-did-stale-warning')).toBeVisible();
     await expect.element(used.getByTestId(`server-${SERVER_CODE}`)).toBeVisible();
     await expect.element(used.getByTestId(`unregister-${SERVER_CODE}`)).toBeVisible();
+  });
+});
+
+describe('CS Member Details — edit member DID (Browser Mode)', () => {
+  const CURRENT_DID = 'did:web:security-server-address-E2E-SS1%3A7183:v1:E2E-TC1:e2e-tc1-member-subsystem';
+  const NEW_DID = 'did:web:new-address%3A7183:v1:E2E-TC1:e2e-tc1-member-subsystem';
+  const NOTIFY_TEXT =
+    'Inform the Security Server operator about this change, for example by email. The Security Server keeps its own values until the operator re-identifies it.';
+  const editPermissions = [...navPermissions, Permissions.EDIT_MEMBER_DID];
+  const withDid = { ...serverFixture, member_did: CURRENT_DID, member_did_stale: false };
+  const withoutDid = {
+    ...serverFixture,
+    server_id: { ...serverFixture.server_id, server_code: 'E2E-SS2', encoded_id: `${MEMBER_ID}:E2E-SS2` },
+  };
+
+  async function renderWith(owned: object[], used: object[], extra: RequestHandler[] = [], permissions = editPermissions) {
+    await renderRoute(`/members/${encodeURIComponent(MEMBER_ID)}/details`, {
+      permissions,
+      msw: [
+        ...extra,
+        specHttp.get('/members/{member_id}', ({ response }) => response(200).json(memberFixture as never)),
+        specHttp.get('/members/{member_id}/owned-servers', ({ response }) => response(200).json(owned as never)),
+        specHttp.get('/members/{member_id}/used-servers', ({ response }) => response(200).json(used as never)),
+        specHttp.get('/members/{member_id}/global-groups', ({ response }) => response(200).json([] as never)),
+      ],
+    });
+  }
+
+  async function openDialog(extra: RequestHandler[] = []) {
+    await renderWith([withDid], [], extra);
+    await page.getByTestId(`member-did-edit-${SERVER_CODE}`).click();
+    const dialog = page.getByTestId('member-did-edit-dialog');
+    await expect.element(dialog).toBeVisible();
+    return dialog;
+  }
+
+  const didField = (dialog: ReturnType<typeof page.getByTestId>) => dialog.getByTestId('member-did-edit-field').getByRole('textbox');
+
+  describe('edit button', () => {
+    it('is shown with the permission in both lists, and disabled for a server without a member DID', async () => {
+      await renderWith([withDid, withoutDid], [withDid, withoutDid]);
+
+      for (const table of ['owned-servers-table', 'used-servers-table']) {
+        const list = page.getByTestId(table);
+        await expect.element(list.getByTestId(`member-did-edit-${SERVER_CODE}`)).toBeVisible();
+        await expect.element(list.getByTestId(`member-did-edit-${SERVER_CODE}`)).not.toBeDisabled();
+        await expect.element(list.getByTestId('member-did-edit-E2E-SS2')).toBeDisabled();
+      }
+    });
+
+    it('is hidden without the permission', async () => {
+      await renderWith([withDid], [withDid], [], navPermissions);
+
+      await expect.element(page.getByTestId('owned-servers-table').getByTestId('member-did')).toBeVisible();
+      await expect.element(page.getByTestId(`member-did-edit-${SERVER_CODE}`)).not.toBeInTheDocument();
+    });
+
+    it('keeps the server code link and the unregister action working', async () => {
+      await renderWith([], [withDid], [], [...editPermissions, Permissions.UNREGISTER_MEMBER]);
+
+      const used = page.getByTestId('used-servers-table');
+      await expect.element(used.getByTestId(`server-${SERVER_CODE}`)).toBeVisible();
+      await expect.element(used.getByTestId(`unregister-${SERVER_CODE}`)).toBeVisible();
+      await expect.element(used.getByTestId(`member-did-edit-${SERVER_CODE}`)).toBeVisible();
+    });
+  });
+
+  describe('dialog', () => {
+    it('opens prefilled and cancel closes it without a request', async () => {
+      const patchSpy = vi.fn();
+      const dialog = await openDialog([
+        specHttp.patch('/members/{member_id}/servers/{server_id}', ({ response }) => {
+          patchSpy();
+          return response(204).empty();
+        }),
+      ]);
+
+      await expect.element(didField(dialog)).toHaveValue(CURRENT_DID);
+      await page.getByTestId('dialog-cancel-button').click();
+
+      await expect.element(page.getByTestId('member-did-edit-dialog')).not.toBeInTheDocument();
+      expect(patchSpy).not.toHaveBeenCalled();
+    });
+
+    it('saves through the PATCH, closes, reloads both lists and shows the notify banner', async () => {
+      const patchSpy = vi.fn();
+      let ownedCalls = 0;
+      let usedCalls = 0;
+      await renderWith(
+        [],
+        [],
+        [
+          specHttp.get('/members/{member_id}/owned-servers', ({ response }) => {
+            ownedCalls += 1;
+            return response(200).json((ownedCalls === 1 ? [withDid] : [{ ...withDid, member_did: NEW_DID }]) as never);
+          }),
+          specHttp.get('/members/{member_id}/used-servers', ({ response }) => {
+            usedCalls += 1;
+            return response(200).json((usedCalls === 1 ? [withDid] : [{ ...withDid, member_did: NEW_DID }]) as never);
+          }),
+          specHttp.patch('/members/{member_id}/servers/{server_id}', async ({ request, response }) => {
+            patchSpy(await request.json());
+            return response(204).empty();
+          }),
+        ],
+      );
+      await page.getByTestId('owned-servers-table').getByTestId(`member-did-edit-${SERVER_CODE}`).click();
+      const dialog = page.getByTestId('member-did-edit-dialog');
+
+      await didField(dialog).fill(NEW_DID);
+      submitDialogForm();
+
+      await expect.element(page.getByTestId('member-did-edit-dialog')).not.toBeInTheDocument();
+      expect(patchSpy).toHaveBeenCalledWith({ member_did: NEW_DID });
+      await expect.element(page.getByTestId('owned-servers-table').getByTestId('member-did')).toMatchTextContent(NEW_DID);
+      await expect.element(page.getByTestId('used-servers-table').getByTestId('member-did')).toMatchTextContent(NEW_DID);
+      expect(ownedCalls).toBe(2);
+      expect(usedCalls).toBe(2);
+      await expect.element(page.getByTestId('success-snackbar')).toMatchTextContent('Member DID successfully updated');
+      const banner = page.getByTestId('contextual-alert');
+      await expect.element(banner).toMatchTextContent(NOTIFY_TEXT);
+      expect(banner.element().classList).toContain('border-warning');
+    });
+
+    const refusalCases: [code: string, text: string][] = [
+      ['member_did_host_differs', 'The host of the member DID must match the security server address'],
+      ['member_did_held_by_another_server', 'The member DID is already used by another security server'],
+      ['member_did_not_stored', 'The security server has no stored DID for this member to replace'],
+    ];
+    it.each(refusalCases)('shows the refusal %s inside the dialog, keeps it open and shows no notify banner', async (code, text) => {
+      let usedCalls = 0;
+      const dialog = await openDialog([
+        specHttp.get('/members/{member_id}/used-servers', ({ response }) => {
+          usedCalls += 1;
+          return response(200).json([] as never);
+        }),
+        specHttp.untyped.patch('/api/v1/members/:member_id/servers/:server_id', () =>
+          HttpResponse.json({ status: 400, error: { code } }, { status: 400 }),
+        ),
+      ]);
+
+      await didField(dialog).fill(NEW_DID);
+      submitDialogForm();
+
+      await expect.element(dialog.getByTestId('contextual-alert')).toMatchTextContent(text);
+      await expect.element(dialog).toBeVisible();
+      await expect.element(didField(dialog)).toHaveValue(NEW_DID);
+      await expect.element(page.getByText(NOTIFY_TEXT)).not.toBeInTheDocument();
+      await expect.element(page.getByTestId('success-snackbar')).not.toBeInTheDocument();
+      expect(usedCalls).toBe(1);
+    });
+  });
+
+  describe('check DID button', () => {
+    type CheckCase = [name: string, answer: MemberDidCheck, text: string, icon: string, color: string];
+    const SUCCESS: [string, string] = ['check_circle', 'success'];
+    const WARNING: [string, string] = ['warning', 'warning'];
+    const ERROR: [string, string] = ['error', 'error'];
+    const FETCH_TEXT = 'The member DID does not resolve: its DID document could not be fetched. You can still save.';
+    const checkCases: CheckCase[] = [
+      ['RESOLVED', { status: 'RESOLVED' }, 'The member DID resolves.', ...SUCCESS],
+      [
+        'NOT_RESOLVED MALFORMED_DID',
+        { status: 'NOT_RESOLVED', resolution_reason: 'MALFORMED_DID' },
+        'The member DID does not resolve: its DID document is malformed. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'NOT_RESOLVED NO_DOCUMENT',
+        { status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' },
+        'The member DID does not resolve: no DID document was found. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'NOT_RESOLVED ID_MISMATCH',
+        { status: 'NOT_RESOLVED', resolution_reason: 'ID_MISMATCH' },
+        'The member DID does not resolve: the DID document belongs to another DID. You can still save.',
+        ...WARNING,
+      ],
+      ['NOT_RESOLVED FETCH_FAILURE', { status: 'NOT_RESOLVED', resolution_reason: 'FETCH_FAILURE' }, FETCH_TEXT, ...WARNING],
+      ['NOT_RESOLVED without a reason', { status: 'NOT_RESOLVED' }, FETCH_TEXT, ...WARNING],
+      [
+        'RESOLVER_UNAVAILABLE',
+        { status: 'RESOLVER_UNAVAILABLE' },
+        'The member DID could not be checked because the Issuer Service is unreachable. You can still save.',
+        ...WARNING,
+      ],
+      ['REFUSED without a reason', { status: 'REFUSED' }, 'Internal error. See server logs for more details', ...ERROR],
+      [
+        'REFUSED WRONG_SCHEME',
+        { status: 'REFUSED', refusal_reason: 'WRONG_SCHEME' },
+        'The member DID must be a did:web DID of version v1',
+        ...ERROR,
+      ],
+      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The member DID is too long', ...ERROR],
+      [
+        'REFUSED NON_ASCII_HOST',
+        { status: 'REFUSED', refusal_reason: 'NON_ASCII_HOST' },
+        'The host of the member DID and the security server address must be ASCII',
+        ...ERROR,
+      ],
+      [
+        'REFUSED UNDECODABLE_DID',
+        { status: 'REFUSED', refusal_reason: 'UNDECODABLE_DID' },
+        'The member DID cannot be decoded',
+        ...ERROR,
+      ],
+      [
+        'REFUSED NOT_CANONICAL',
+        { status: 'REFUSED', refusal_reason: 'NOT_CANONICAL' },
+        'The member DID is not in its canonical form',
+        ...ERROR,
+      ],
+      [
+        'REFUSED HOST_DIFFERS',
+        { status: 'REFUSED', refusal_reason: 'HOST_DIFFERS' },
+        'The host of the member DID must match the security server address',
+        ...ERROR,
+      ],
+      [
+        'REFUSED DID_OF_OTHER_MEMBER',
+        { status: 'REFUSED', refusal_reason: 'DID_OF_OTHER_MEMBER' },
+        'The member DID is the DID of another member',
+        ...ERROR,
+      ],
+      [
+        'REFUSED MEMBER_NOT_SERVED',
+        { status: 'REFUSED', refusal_reason: 'MEMBER_NOT_SERVED' },
+        'The security server does not serve this member',
+        ...ERROR,
+      ],
+      [
+        'REFUSED UNPARSEABLE_REGISTERED_ADDRESS',
+        { status: 'REFUSED', refusal_reason: 'UNPARSEABLE_REGISTERED_ADDRESS' },
+        'The security server address cannot be read as a host',
+        ...ERROR,
+      ],
+      [
+        'REFUSED DID_HELD_BY_ANOTHER_SERVER',
+        { status: 'REFUSED', refusal_reason: 'DID_HELD_BY_ANOTHER_SERVER' },
+        'The member DID is already used by another security server',
+        ...ERROR,
+      ],
+      [
+        'REFUSED NO_STORED_VALUE',
+        { status: 'REFUSED', refusal_reason: 'NO_STORED_VALUE' },
+        'The security server has no stored DID for this member to replace',
+        ...ERROR,
+      ],
+    ];
+
+    it.each(checkCases)('shows the answer %s', async (_name, answer, text, iconName, iconColor) => {
+      const checkSpy = vi.fn();
+      const dialog = await openDialog([
+        specHttp.post('/members/{member_id}/servers/{server_id}/member-did-check', async ({ request, response }) => {
+          checkSpy(await request.json());
+          return response(200).json(answer as never);
+        }),
+      ]);
+
+      await didField(dialog).fill(NEW_DID);
+      await dialog.getByTestId('member-did-check-button').click();
+
+      const result = dialog.getByTestId('member-did-check-result');
+      await expect.element(result).toMatchTextContent(text);
+      const icon = result.element().querySelector('.v-icon');
+      expect(icon?.textContent?.trim()).toBe(iconName);
+      expect(icon?.classList).toContain(`text-${iconColor}`);
+      expect(checkSpy).toHaveBeenCalledWith({ member_did: NEW_DID });
+    });
+
+    it('is disabled with an empty DID and clears the result when the DID changes', async () => {
+      const dialog = await openDialog([
+        specHttp.post('/members/{member_id}/servers/{server_id}/member-did-check', ({ response }) =>
+          response(200).json({ status: 'RESOLVED' } as never),
+        ),
+      ]);
+
+      await expect.element(dialog.getByTestId('member-did-check-button')).not.toBeDisabled();
+      await dialog.getByTestId('member-did-check-button').click();
+      await expect.element(dialog.getByTestId('member-did-check-result')).toBeVisible();
+
+      await didField(dialog).fill(NEW_DID);
+      await expect.element(dialog.getByTestId('member-did-check-result')).not.toBeInTheDocument();
+
+      await didField(dialog).fill('');
+      await expect.element(dialog.getByTestId('member-did-check-button')).toBeDisabled();
+    });
   });
 });
