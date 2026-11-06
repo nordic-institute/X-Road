@@ -377,6 +377,7 @@
     "clientEnable": "Müşderini işe giriz",
     "dialog": {
       "approve": {
+        "addressChangedNotify": "{serverId} howpsuzlyk serweriniň salgysy üýtgedildi: {address}. Operator serweri täzeden kesgitläp bilmegi üçin, howpsuzlyk serweriniň operatoryna, meselem, e-poçta arkaly habar beriň.",
         "bodyMessage": "Siz dogurdanam {serverId} serwerden gelen {id} ID-li dolandyryş talaby tassyklamak isleýärsiňizmi?",
         "newMemberWarning": "Görkezilen agza häzirki wagtda ýok. Bu talap tassyklanwagtynda agza awtomatiki usulda dörediler.",
         "successMessage": "{serverId} -dan {id} ID-li dolandyryş talap tassyklandy",

@@ -52,8 +52,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, type PropType } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { ManagementRequestType, SecurityServer } from '@/openapi-types';
 import { useManagementRequests } from '@/store/modules/management-requests';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 /**
@@ -73,11 +76,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  requestType: {
+    type: String as PropType<ManagementRequestType>,
+    default: undefined,
+  },
+  requestedAddress: {
+    type: String,
+    default: undefined,
+  },
 });
 const emits = defineEmits(['approve', 'cancel']);
 
 const { approve: approveManagementRequest } = useManagementRequests();
+const { fetchById } = useSecurityServer();
 const { addSuccessMessage, addError } = useNotifications();
+const { t } = useI18n();
 
 const messageData = computed(() => ({
   id: props.requestId,
@@ -86,13 +99,31 @@ const messageData = computed(() => ({
 
 const loading = ref(false);
 
+function findServerBeforeApproval(): Promise<SecurityServer | undefined> {
+  if (props.requestType !== ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST || !props.requestedAddress) {
+    return Promise.resolve(undefined);
+  }
+  return fetchById(props.securityServerId).catch(() => undefined);
+}
+
 function approve() {
   loading.value = true;
-  approveManagementRequest(props.requestId)
-    .then(() => {
-      addSuccessMessage('managementRequests.dialog.approve.successMessage', messageData.value);
-      emits('approve');
-    })
+  findServerBeforeApproval()
+    .then((existingServer) =>
+      approveManagementRequest(props.requestId).then(() => {
+        addSuccessMessage('managementRequests.dialog.approve.successMessage', messageData.value);
+        if (existingServer && existingServer.server_address !== props.requestedAddress) {
+          addError(
+            t('managementRequests.dialog.approve.addressChangedNotify', {
+              serverId: props.securityServerId,
+              address: props.requestedAddress,
+            }),
+            { warning: true },
+          );
+        }
+        emits('approve');
+      }),
+    )
     .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }

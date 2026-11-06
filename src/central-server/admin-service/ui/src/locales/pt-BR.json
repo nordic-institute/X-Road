@@ -382,6 +382,7 @@
     "clientEnable": "Ativar cliente",
     "dialog": {
       "approve": {
+        "addressChangedNotify": "O endereço do servidor seguro {serverId} foi alterado para {address}. Informe o operador do servidor seguro, por exemplo por e-mail, para que ele possa identificar o servidor novamente.",
         "bodyMessage": "Deseja realmente aprovar a solicitação de gerenciamento ID {id} do servidor {serverId}?",
         "newMemberWarning": "O membro especificado ainda não existe. Ele será criado automaticamente ao aprovar esta solicitação.",
         "successMessage": "Solicitação de gerenciamento ID {id} do servidor {serverId} aprovada",

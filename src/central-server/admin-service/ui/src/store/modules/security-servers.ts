@@ -84,6 +84,9 @@ export const useSecurityServer = defineStore('securityServer', {
         })
         .finally(() => (this.loadingCurrent = false));
     },
+    async fetchById(securityServerId: string) {
+      return axios.get<SecurityServer>(`/security-servers/${securityServerId}`).then((resp) => resp.data);
+    },
     async updateAddress(securityServerId: string, address: string, systemPair?: { system_did: string; dsp_base_url: string }) {
       const securityServerEdit: SecurityServerEdit = {
         server_address: address,

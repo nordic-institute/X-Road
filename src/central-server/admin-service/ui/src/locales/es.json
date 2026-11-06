@@ -378,6 +378,7 @@
     "clientEnable": "Habilitar el cliente",
     "dialog": {
       "approve": {
+        "addressChangedNotify": "La dirección del servidor de seguridad {serverId} cambió a {address}. Informe al operador del servidor de seguridad, por ejemplo por correo electrónico, para que pueda volver a identificar el servidor.",
         "bodyMessage": "¿Está seguro de que desea aprobar la solicitud de administración ID {ID} del Server {ServerId}?",
         "newMemberWarning": "El miembro especificado no existe actualmente. Se creará automáticamente cuando se apruebe esta solicitud.",
         "successMessage": "ID de solicitud de administración {id} del {serverId} aprobada",
