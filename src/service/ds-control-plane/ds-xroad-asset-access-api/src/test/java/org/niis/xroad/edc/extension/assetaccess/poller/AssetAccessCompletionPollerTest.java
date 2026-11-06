@@ -215,6 +215,26 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
+    void aCancelledNegotiationWaiterIsNoLongerPolled() {
+        var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+
+        future.cancel(true);
+        poller.poll();
+
+        verify(negotiationStore, never()).queryNegotiations(any());
+    }
+
+    @Test
+    void aCancelledTransferWaiterIsNoLongerPolled() {
+        var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+
+        future.cancel(true);
+        poller.poll();
+
+        verify(transferProcessStore, never()).findAll(any());
+    }
+
+    @Test
     void awaitNegotiationFailsWithTimeoutWhenDeadlinePasses() {
         var future = poller.awaitNegotiation("neg-1", Duration.ofMillis(10));
         clock.advanceTo(clock.instant().plusMillis(20));

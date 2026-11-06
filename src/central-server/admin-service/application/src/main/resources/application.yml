@@ -117,6 +117,7 @@ xroad:
       auto-approve-owner-change-requests: false
       auto-approve-client-reg-requests: false
       auto-approve-auth-cert-reg-requests: false
+      member-did-reg-max-entries: 100
     trusted-anchors-allowed: true
     authentication-provider: PAM
     global-configuration-generation-rate-in-seconds: 60

@@ -96,6 +96,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
+    private final AssetAccessClientProperties clientProperties;
 
     @Override
     @WithSpan("dsp-execute")
@@ -150,7 +151,8 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         var candidates = deriveCandidates(requestTargetsSystemCtx, serviceId, providerAddresses);
         try {
             var access = assetAccessAcquisitionService.acquireAssetAccess(
-                    participantContextId, assetId, candidates, request.targetSecurityServer(), request.sender());
+                    participantContextId, assetId, candidates, request.targetSecurityServer(), request.sender(),
+                    clientProperties.acquisitionDeadline());
             return new DspAcquisition(access, (int) candidates.stream().distinct().count());
         } catch (XrdRuntimeException ex) {
             throw remapRemoteNotFound(ex, serviceId);

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.request.MemberDidRegResponseType;
 import ee.ria.xroad.common.util.HttpSender;
 
 import jakarta.xml.soap.SOAPException;
@@ -51,7 +52,11 @@ import org.niis.xroad.common.managementrequest.model.ClientRenameRequest;
 import org.niis.xroad.common.managementrequest.model.MaintenanceModeDisableRequest;
 import org.niis.xroad.common.managementrequest.model.MaintenanceModeEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.model.MemberDidRegRequest;
+import org.niis.xroad.common.managementrequest.model.MemberDidRegResponse;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -63,6 +68,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
@@ -167,6 +173,24 @@ public final class ManagementRequestSender {
                     authCert, securityServer.getOwner(),
                     builder.buildSystemDidRegRequest(securityServer, systemDid, dspBaseUrl),
                     signatureDigestAlgorithm));
+        }
+    }
+
+    /**
+     * Sends the member DID registration request as a normal X-Road message, signed by the owner of the security server.
+     *
+     * @param securityServer the security server id
+     * @param memberDids     the DID of each served member, in the order the results are expected
+     * @return the response with one result per entry
+     * @throws Exception if an error occurs
+     */
+    public MemberDidRegResponse sendMemberDidRegRequest(SecurityServerId.Conf securityServer,
+                                                        Map<ClientId.Conf, String> memberDids) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            var responseMessage = sendForResponse(sender, getManagementProxyServerUrl(),
+                    new MemberDidRegRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
+                            builder.buildMemberDidRegRequest(securityServer, memberDids), signatureDigestAlgorithm));
+            return toMemberDidRegResponse(responseMessage);
         }
     }
 
@@ -320,6 +344,24 @@ public final class ManagementRequestSender {
 
     private static Integer send(HttpSender sender, URI address, ManagementRequest req)
             throws Exception {
+        Integer requestId = getRequestId(sendForResponse(sender, address, req));
+
+        log.trace("Request ID in the central server database: {}", requestId);
+
+        return requestId;
+    }
+
+    static MemberDidRegResponse toMemberDidRegResponse(SoapMessageImpl responseMessage) throws SOAPException {
+        MemberDidRegResponseType response = ManagementRequestParser.parse(responseMessage,
+                ManagementRequestType.MEMBER_DID_REGISTRATION_REQUEST.getServiceCode() + "Response");
+        var results = response.getResult().stream()
+                .map(r -> new MemberDidRegResponse.Result(r.getMember(), r.getStatus(), r.getReason()))
+                .toList();
+        return new MemberDidRegResponse(response.getRequestId() == null ? null : response.getRequestId().intValue(), results);
+    }
+
+    private static SoapMessageImpl sendForResponse(HttpSender sender, URI address, ManagementRequest req)
+            throws Exception {
         sender.doPost(address, req.getRequestContent(), CHUNKED_LENGTH, req.getRequestContentType());
 
         SoapMessageImpl requestMessage = req.getRequestMessage();
@@ -336,11 +378,7 @@ public final class ManagementRequestSender {
 
         SoapUtils.checkConsistency(requestMessage, responseMessage);
 
-        Integer requestId = getRequestId(responseMessage);
-
-        log.trace("Request ID in the central server database: {}", requestId);
-
-        return requestId;
+        return responseMessage;
     }
 
     static Integer getRequestId(

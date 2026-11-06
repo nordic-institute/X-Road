@@ -1,0 +1,60 @@
+scope: {{ patroni_scope }}
+namespace: /xroad/
+name: {{ inventory_hostname }}
+
+etcd3:
+  hosts:
+{% for member in groups[patroni_etcd_group] %}
+    - {{ hostvars[member].cluster_node_address }}:{{ patroni_etcd_client_port }}
+{% endfor %}
+
+restapi:
+  listen: 0.0.0.0:{{ patroni_restapi_port }}
+  connect_address: {{ patroni_address }}:{{ patroni_restapi_port }}
+
+bootstrap:
+  dcs:
+    ttl: {{ patroni_ttl }}
+    loop_wait: {{ patroni_loop_wait }}
+    retry_timeout: {{ patroni_retry_timeout }}
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_log_hints: "on"
+        password_encryption: scram-sha-256
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+
+postgresql:
+  listen: 0.0.0.0:{{ patroni_postgresql_port }}
+  connect_address: {{ patroni_address }}:{{ patroni_postgresql_port }}
+  data_dir: {{ patroni_data_dir }}
+  pg_hba:
+    - local all all peer
+    - host all all 127.0.0.1/32 scram-sha-256
+    - host replication {{ patroni_replication_user }} 127.0.0.1/32 scram-sha-256
+{% for cidr in patroni_client_cidrs %}
+    - host replication {{ patroni_replication_user }} {{ cidr }} scram-sha-256
+    - host all all {{ cidr }} scram-sha-256
+{% endfor %}
+  bin_dir: {{ patroni_bin_dir }}
+  authentication:
+    superuser:
+      username: postgres
+      password: {{ patroni_postgres_password | to_json }}
+    replication:
+      username: {{ patroni_replication_user | to_json }}
+      password: {{ patroni_replication_password | to_json }}
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

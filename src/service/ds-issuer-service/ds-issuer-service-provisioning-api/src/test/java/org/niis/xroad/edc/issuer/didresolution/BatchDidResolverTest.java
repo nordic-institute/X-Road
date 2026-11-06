@@ -144,12 +144,9 @@ class BatchDidResolverTest {
             var document = DidStubServer.respond(200, DidStubServer.minimalDocument(did));
             ss1.route(pathOf(code), exchange -> {
                 peak.accumulateAndGet(inFlight.incrementAndGet(), Math::max);
-                try {
-                    sleep(IN_FLIGHT_MILLIS);
-                    document.handle(exchange);
-                } finally {
-                    inFlight.decrementAndGet();
-                }
+                sleep(IN_FLIGHT_MILLIS);
+                inFlight.decrementAndGet();
+                document.handle(exchange);
             });
         }
 

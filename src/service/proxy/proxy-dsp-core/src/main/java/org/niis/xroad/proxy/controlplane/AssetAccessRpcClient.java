@@ -119,7 +119,8 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
                                                   List<AcquisitionCandidate> candidates,
                                                   @Nullable SecurityServerId forcedTarget,
-                                                  @Nullable ClientId consumerClientId) {
+                                                  @Nullable ClientId consumerClientId,
+                                                  Duration timeout) {
         var cacheKey = new AssetAccessCache.CacheKey(
                 participantContextId,
                 assetId,
@@ -128,9 +129,9 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 clientProperties.protocol(),
                 consumerClientId != null ? consumerClientId.asEncodedId() : null);
         if (cache == null) {
-            return loadAssetAccess(cacheKey, candidates).response();
+            return loadAssetAccess(cacheKey, candidates, timeout).response();
         }
-        return cache.get(cacheKey, key -> loadAssetAccess(key, candidates)).response();
+        return cache.get(cacheKey, key -> loadAssetAccess(key, candidates, timeout)).response();
     }
 
     @Override
@@ -163,11 +164,13 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     }
 
     private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey,
-                                                         List<AcquisitionCandidate> candidates) {
+                                                         List<AcquisitionCandidate> candidates,
+                                                         Duration timeout) {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())
                 .setAssetId(cacheKey.assetId())
-                .setProtocol(cacheKey.protocol());
+                .setProtocol(cacheKey.protocol())
+                .setTimeoutMillis(timeout.toMillis());
         candidates.forEach(candidate -> request.addCandidates(
                 AssetAccessCandidate.newBuilder()
                         .setCounterPartyId(candidate.counterPartyId())
@@ -178,7 +181,10 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
         if (cacheKey.consumerClientId() != null) {
             request.setClientId(cacheKey.consumerClientId());
         }
-        return AssetAccessCache.CachedEntry.from(exec(() -> accessServiceBlockingStub.acquire(request.build())));
+        var waitMillis = timeout.plus(clientProperties.acquisitionDeadlineMargin()).toMillis();
+        return AssetAccessCache.CachedEntry.from(exec(() -> accessServiceBlockingStub
+                .withDeadlineAfter(waitMillis, TimeUnit.MILLISECONDS)
+                .acquire(request.build())));
     }
 
     private record FailureReportObserver(String counterPartyId, String counterPartyAddress) implements StreamObserver<Empty> {

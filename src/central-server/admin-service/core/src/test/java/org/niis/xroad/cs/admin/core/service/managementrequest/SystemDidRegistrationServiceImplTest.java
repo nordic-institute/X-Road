@@ -62,15 +62,17 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNRELATED_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_DID_FINAL_CONFLICT;
@@ -285,7 +287,9 @@ class SystemDidRegistrationServiceImplTest {
                 row(DSP_BASE_URL_NOT_HTTPS, ADDRESS, finalCode),
                 row(MALFORMED_DSP_BASE_URL, ADDRESS, finalCode),
                 row(FOREIGN_SYSTEM_DID, ADDRESS, finalCode),
-                row(UNRELATED_MEMBER, ADDRESS, finalCode),
+                row(UNDECODABLE_DID, ADDRESS, finalCode),
+                row(DID_OF_OTHER_MEMBER, ADDRESS, finalCode),
+                row(MEMBER_NOT_SERVED, ADDRESS, fixableCode),
                 row(NON_ASCII_HOST, ADDRESS, finalCode),
                 row(HOST_DIFFERS, ADDRESS, fixableCode),
                 row(UNPARSEABLE_REGISTERED_ADDRESS, ADDRESS, fixableCode),

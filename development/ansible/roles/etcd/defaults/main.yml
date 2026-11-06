@@ -1,0 +1,12 @@
+---
+# Inventory group whose hosts are the members of one etcd cluster. A member is reached at its
+# cluster_node_address host variable (default <inventory name>.lxd, see group_vars/all/cluster.yml).
+etcd_cluster_group: etcd_nodes
+
+etcd_client_port: 2379
+etcd_peer_port: 2380
+
+# Data directory of the cluster member. The packaged single-member instance keeps its own
+# directory and is never reused.
+etcd_data_dir: /var/lib/etcd/xroad
+etcd_cluster_token: xroad-cs-etcd

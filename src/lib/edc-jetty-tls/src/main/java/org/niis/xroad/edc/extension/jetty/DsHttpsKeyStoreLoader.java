@@ -43,7 +43,7 @@ import java.security.cert.X509Certificate;
 import java.util.HexFormat;
 
 /**
- * Builds the DataSpace TLS keystore from the credentials OpenBao holds at {@code tls/ds-https}: a PKCS12
+ * Builds the connector TLS keystore from the credentials OpenBao holds at {@code tls/ds-https}: a PKCS12
  * keystore with one entry, so it plugs directly into Jetty's {@code SslContextFactory}. The fingerprint used
  * to detect rotation is a hash of the certificate chain bytes — the manual CSR flow and ACME renewal both
  * always pair a certificate change with the key that was current when it was requested, so the chain alone
@@ -65,9 +65,10 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         var credentials = readCredentials();
         if (credentials.getCertChain().length == 0) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "DataSpace TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
+                    "Connector TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
                             + "(certificate pending). Complete ACME enrollment or upload the signed certificate "
-                            + "chain through the admin API.");
+                            + "chain through the admin API.",
+                    "slot holds a key but no certificate yet", null);
         }
         var keyStore = buildKeyStore(credentials);
         return new PeriodicMaterialReloader.Loaded<>(keyStore, fingerprint(credentials.getCertChain()));
@@ -79,15 +80,20 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(ErrorCode.MISSING_SECRET)) {
                 throw new ConnectorTlsKeyStoreLoadException(
-                        "No DataSpace TLS certificate found in OpenBao at tls/ds-https. Enable DataSpace TLS "
-                                + "enrollment or complete the manual CSR upload through the admin API.", e);
+                        "No connector TLS certificate found in OpenBao at tls/ds-https. Enable ACME enrollment for the "
+                                + "connector TLS certificate or complete the manual CSR upload through the admin API.",
+                        "slot empty", e);
             }
-            throw new ConnectorTlsKeyStoreLoadException(
-                    "Could not reach OpenBao to load the DataSpace TLS certificate from tls/ds-https: " + e.getMessage(), e);
+            throw unreachable(e);
         } catch (Exception e) {
-            throw new ConnectorTlsKeyStoreLoadException(
-                    "Could not reach OpenBao to load the DataSpace TLS certificate from tls/ds-https: " + e.getMessage(), e);
+            throw unreachable(e);
         }
+    }
+
+    private static ConnectorTlsKeyStoreLoadException unreachable(Exception e) {
+        return new ConnectorTlsKeyStoreLoadException(
+                "Could not reach OpenBao to load the connector TLS certificate from tls/ds-https: " + e.getMessage(),
+                "OpenBao unreachable: " + e.getMessage(), e);
     }
 
     private static KeyStore buildKeyStore(InternalSSLKey credentials) {
@@ -99,7 +105,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             return keyStore;
         } catch (GeneralSecurityException | IOException e) {
             throw new ConnectorTlsKeyStoreLoadException(
-                    "Failed to build the DataSpace TLS keystore from the certificate stored in OpenBao", e);
+                    "Failed to build the connector TLS keystore from the certificate stored in OpenBao", e);
         }
     }
 
@@ -111,7 +117,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException | CertificateEncodingException e) {
-            throw new ConnectorTlsKeyStoreLoadException("Failed to fingerprint the DataSpace TLS certificate chain", e);
+            throw new ConnectorTlsKeyStoreLoadException("Failed to fingerprint the connector TLS certificate chain", e);
         }
     }
 }

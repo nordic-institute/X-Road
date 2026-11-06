@@ -1,0 +1,46 @@
+---
+- name: install etcd
+  apt:
+    name: [etcd-server, etcd-client]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    install_recommends: false
+    lock_timeout: 120
+
+- name: resolve the address of this etcd member
+  set_fact:
+    etcd_address: "{{ cluster_node_address }}"
+
+- name: configure the etcd cluster member
+  template:
+    src: etcd.default.j2
+    dest: /etc/default/etcd
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: check whether the cluster member data directory exists
+  stat:
+    path: "{{ etcd_data_dir }}"
+  register: etcd_data_directory
+
+- name: replace the packaged single-member instance with the cluster member
+  command: systemctl restart --no-block etcd.service
+  when: not etcd_data_directory.stat.exists
+  changed_when: true
+
+- name: ensure etcd is running
+  systemd:
+    name: etcd
+    state: started
+    enabled: true
+    no_block: true
+
+- name: wait until every etcd member is healthy
+  command: etcdctl --endpoints=http://127.0.0.1:{{ etcd_client_port }} endpoint health --cluster
+  register: etcd_health
+  until: etcd_health.rc == 0
+  retries: 150
+  delay: 2
+  changed_when: false

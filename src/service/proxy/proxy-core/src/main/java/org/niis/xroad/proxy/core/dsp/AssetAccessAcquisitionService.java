@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -51,12 +52,14 @@ public interface AssetAccessAcquisitionService {
      * @param forcedTarget         the Security Server the caller forced the target to, which {@code candidates}
      *                             is then narrowed to; {@code null} when the caller states none
      * @param consumerClientId     the calling client, subsystem included; {@code null} when the request states none
+     * @param timeout              how long the control plane may spend on this acquisition
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
     AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
                                            List<AcquisitionCandidate> candidates,
                                            @Nullable SecurityServerId forcedTarget,
-                                           @Nullable ClientId consumerClientId);
+                                           @Nullable ClientId consumerClientId,
+                                           Duration timeout);
 
     /**
      * Drops any cached asset access acquired for the given participant context, asset and calling client,

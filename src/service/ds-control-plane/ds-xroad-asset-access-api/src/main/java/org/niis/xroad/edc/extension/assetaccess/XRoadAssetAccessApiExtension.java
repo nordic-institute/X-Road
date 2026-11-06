@@ -56,6 +56,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.listener.ConsumerDataFlowCompletionListener;
@@ -74,6 +75,8 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Asset Access Api Extension";
     private static final long MAX_HANDSHAKE_RACE_DEADLINE_MILLIS = 5000;
+
+    private static final int AGREEMENT_REUSE_NOTE_CAPACITY = 10_000;
 
     @Inject
     private CatalogService catalogService;
@@ -125,14 +128,18 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     @Inject
     private OkHttpClient okHttpClient;
+    @Setting(key = "xroad.asset-access.catalog.timeout-seconds",
+            description = "Per-stage catalog fetch limit in seconds; a stage never outlasts the time left of the call",
+            defaultValue = "20")
+    private long catalogTimeoutSeconds;
 
     @Setting(key = "xroad.asset-access.negotiation.timeout-seconds",
-            description = "Per-stage contract negotiation deadline in seconds",
+            description = "Per-stage contract negotiation limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long negotiationTimeoutSeconds;
 
     @Setting(key = "xroad.asset-access.transfer.timeout-seconds",
-            description = "Per-stage transfer process deadline in seconds",
+            description = "Per-stage transfer process limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long transferTimeoutSeconds;
 
@@ -141,9 +148,10 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     + "negotiation and transfer. A candidate that exceeds it is abandoned, counted as a transport fault "
                     + "and put in cooldown, and the next candidate is tried. A typical acquisition has two candidates "
                     + "(a failed server and a sibling), so the default of 20 times 2 stays below "
-                    + "xroad.asset-access.acquisition.timeout-seconds (60), which stays below the proxy-to-control-plane "
-                    + "gRPC deadline (xroad.common-rpc.channel.control-plane.deadline-after, 65000 ms). With three or more "
-                    + "hanging candidates the acquisition times out first.",
+                    + "xroad.asset-access.acquisition.timeout-seconds (60). The proxy's per-call gRPC deadline is the "
+                    + "acquisition time it asked for plus xroad.proxy.dsp.acquisition-deadline-margin, so the aggregated "
+                    + "failure reaches the proxy first. With three or more hanging candidates the acquisition times out "
+                    + "first.",
             defaultValue = "20")
     private long candidateTimeoutSeconds;
 
@@ -214,6 +222,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     private ReusableAgreementLookup reusableAgreementLookup;
     private CooldownTracker cooldownTracker;
     private CandidateHandshakeRace candidateHandshakeRace;
+    private AgreementReuseNote agreementReuseNote;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
 
     @Override
@@ -248,6 +257,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                 Duration.ofSeconds(expiredTransferSweepUntokenedLifetimeSeconds));
 
         reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
+        agreementReuseNote = new AgreementReuseNote(AGREEMENT_REUSE_NOTE_CAPACITY);
 
         cooldownTracker = new CooldownTracker(Duration.ofSeconds(cooldownPeriodSeconds));
         candidateHandshakeRace = new CandidateHandshakeRace(
@@ -313,6 +323,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             assetAccessOrchestrator = new AssetAccessOrchestrator(
                     new AssetAccessStateStore(),
                     reusableAgreementLookup,
+                    agreementReuseNote,
                     catalogService,
                     contractNegotiationService,
                     transferProcessService,
@@ -322,6 +333,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     jsonLd,
                     assetAccessTransformerRegistry,
                     monitor,
+                    Duration.ofSeconds(catalogTimeoutSeconds),
                     Duration.ofSeconds(negotiationTimeoutSeconds),
                     Duration.ofSeconds(transferTimeoutSeconds),
                     Duration.ofSeconds(candidateTimeoutSeconds)

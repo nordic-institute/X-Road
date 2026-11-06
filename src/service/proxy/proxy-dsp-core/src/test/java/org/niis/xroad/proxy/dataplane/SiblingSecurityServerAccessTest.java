@@ -68,8 +68,8 @@ class SiblingSecurityServerAccessTest {
         var securityServer = ProviderSecurityServer.create(GET_PETS_ACL, keysWithId("1"));
         var siblingSecurityServer = ProviderSecurityServer.create(GET_PETS_ACL, keysWithId("1"));
 
-        var token = securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).orElseThrow();
-        var siblingToken = siblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).orElseThrow();
+        var token = securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).mintedToken().orElseThrow();
+        var siblingToken = siblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).mintedToken().orElseThrow();
 
         var expectedScope = new AgreementTokenScope(GET, "/pets/*");
         assertThat(securityServer.tokenScope(token, CLIENT, SERVICE)).containsExactly(expectedScope);
@@ -85,8 +85,8 @@ class SiblingSecurityServerAccessTest {
         var securityServer = ProviderSecurityServer.create(SERVICE_LEVEL_ACL, keysWithId("1"));
         var siblingSecurityServer = ProviderSecurityServer.create(SERVICE_LEVEL_ACL, keysWithId("1"));
 
-        var token = securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).orElseThrow();
-        var siblingToken = siblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).orElseThrow();
+        var token = securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).mintedToken().orElseThrow();
+        var siblingToken = siblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).mintedToken().orElseThrow();
 
         var expectedScope = new AgreementTokenScope(BaseEndpoint.ANY_METHOD, BaseEndpoint.ANY_PATH);
         assertThat(securityServer.tokenScope(token, CLIENT, SERVICE)).containsExactly(expectedScope);
@@ -100,8 +100,8 @@ class SiblingSecurityServerAccessTest {
         var securityServer = ProviderSecurityServer.create(GET_AND_POST_PETS_ACL, keysWithId("1"));
         var narrowerSiblingSecurityServer = ProviderSecurityServer.create(GET_PETS_ACL, keysWithId("1"));
 
-        var token = securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).orElseThrow();
-        var siblingToken = narrowerSiblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).orElseThrow();
+        var token = securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).mintedToken().orElseThrow();
+        var siblingToken = narrowerSiblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH).mintedToken().orElseThrow();
 
         var scope = securityServer.tokenScope(token, CLIENT, SERVICE);
         var siblingScope = narrowerSiblingSecurityServer.tokenScope(siblingToken, CLIENT, SERVICE);
@@ -121,8 +121,9 @@ class SiblingSecurityServerAccessTest {
         var securityServer = ProviderSecurityServer.create(GET_PETS_ACL, keysWithId("1"));
         var emptyAclSiblingSecurityServer = ProviderSecurityServer.create(ProviderSecurityServer.Acl.empty(), keysWithId("1"));
 
-        assertThat(securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH)).isPresent();
-        assertThat(emptyAclSiblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH)).isEmpty();
+        assertThat(securityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH)).isInstanceOf(AgreementTokenIssuer.Outcome.Minted.class);
+        assertThat(emptyAclSiblingSecurityServer.issueToken(CLIENT, SERVICE, GET, PET_PATH))
+                .isInstanceOf(AgreementTokenIssuer.Outcome.Refused.class);
     }
 
     /**

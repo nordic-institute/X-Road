@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACCESS_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
@@ -46,7 +47,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAI
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVIDER_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
@@ -74,6 +74,8 @@ public final class ClientFacingErrorPolicy {
     private static final ClientFacingRule FALLBACK_RULE =
             new ClientFacingRule(IO_ERROR, "The dataspace request could not be completed.");
 
+    private static final String NOT_ALLOWED_BY_PROVIDER = "The request is not allowed by the provider security server.";
+
     private static final Map<ErrorCode, ClientFacingRule> RULES = new EnumMap<>(ErrorCode.class);
 
     static {
@@ -83,16 +85,15 @@ public final class ClientFacingErrorPolicy {
         rule(DSP_ACQUISITION_FAILED, IO_ERROR, "Failed to establish a connection to the provider security server.");
         rule(DSP_DATA_PLANE_UNREACHABLE, IO_ERROR, "No provider security server could be reached to send the request.");
         rule(DSP_PROVIDER_NOT_FOUND, UNKNOWN_MEMBER, "No provider security server was found for the requested service.");
-        rule(DSP_DATASET_NOT_FOUND, ACCESS_DENIED, "The request is not allowed by the provider security server.");
-        rule(DSP_OFFERS_NOT_FOUND, ACCESS_DENIED, "The request is not allowed by the provider security server.");
+        rule(DSP_DATASET_NOT_FOUND, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
+        rule(DSP_OFFERS_NOT_FOUND, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
+        rule(DSP_ACCESS_REFUSED, ACCESS_DENIED, NOT_ALLOWED_BY_PROVIDER);
         rule(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED, "The provider security server did not return a valid service access method.");
         rule(DSP_DATAADDRESS_INVALID, SERVICE_FAILED, "The provider security server returned an invalid service access address.");
         rule(DSP_NEGOTIATION_FAILED, SERVICE_FAILED, "Failed to negotiate access terms with the provider security server.");
         rule(DSP_TRANSFER_FAILED, SERVICE_FAILED, "Failed to obtain service access authorization from the provider security server.");
         rule(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR, "Failed to resolve the participant context for the requested service.");
         rule(DSP_PROVISIONING_FAILED, INTERNAL_ERROR, "Failed to provision access for the requested service.");
-        rule(DSP_PARTICIPANT_IDENTIFIER_MISMATCH, INTERNAL_ERROR,
-                "The participant identity configured on the security server is inconsistent.");
         rule(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED, INTERNAL_ERROR,
                 "The participant identity configured on the security server uses an unsupported identifier scheme version.");
         rule(DSP_PARTICIPANT_DID_DRIFT, INTERNAL_ERROR,

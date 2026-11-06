@@ -26,75 +26,65 @@
  */
 package org.niis.xroad.serverconf.impl.participant;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
-import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DecodedParticipant;
+import org.niis.xroad.ds.identity.MemberParticipant;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.SystemParticipant;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
- * Verifies a bound {@code ds_participant} row against a fresh re-derivation, per XRDADR-41's
- * derive-then-bind decision: the bound row is authoritative, and a difference from a fresh
- * derivation must never be resolved by silently overwriting it.
+ * Checks that a bound {@code ds_participant} row was bound under an identifier scheme version this
+ * server implements and that its stored columns agree with each other. The bound row is authoritative:
+ * its identifiers are used as stored and never re-minted from the current registered address, so the DID's
+ * host and port are not compared with anything.
  */
 @UtilityClass
 public class ParticipantBindingCheck {
 
     /**
-     * Re-derives the bound participant's ctx-id and DID and compares them to the bound row.
-     * Never mutates {@code bound}.
+     * Checks the scheme version of the bound row, then that the member and context segments of its DID
+     * match the row's participant type, member identifier and ctx-id. Never mutates {@code bound}.
      *
      * @param bound the previously bound participant row
-     * @param ssHost the Security Server's current public address, as {@code host} or {@code host:port}
      * @throws XrdRuntimeException with {@code DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED} and metadata
      *         {@code [boundSchemeVersion, supportedSchemeVersion]} if the row was bound under a scheme
-     *         version this check does not implement, or with {@code DSP_PARTICIPANT_IDENTIFIER_MISMATCH}
-     *         and metadata {@code [boundCtxId, boundDid, derivedCtxId, derivedDid]} if the re-derived
-     *         ctx-id or DID differs from the bound row
+     *         version this check does not implement; with {@code VALIDATION_ERROR} if the DID encodes another
+     *         participant than the row's member identifier or ctx-id; with {@code INVALID_ENCODED_ID} if the
+     *         DID cannot be decoded
      */
-    public static void verify(DsParticipantEntity bound, String ssHost) {
+    public static void verify(DsParticipantEntity bound) {
         if (!ParticipantIdentifierScheme.SCHEME_VERSION.equals(bound.getSchemeVersion())) {
             throw XrdRuntimeException.systemException(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED)
                     .metadataItems(bound.getSchemeVersion(), ParticipantIdentifierScheme.SCHEME_VERSION)
                     .details(("participant '%s' was bound under scheme version '%s', but only '%s' is supported; "
-                            + "the bound identifiers cannot be verified against the '%s' derivation")
+                            + "the bound identifiers use an unsupported scheme version")
                             .formatted(bound.getCtxId(), bound.getSchemeVersion(),
-                                    ParticipantIdentifierScheme.SCHEME_VERSION, ParticipantIdentifierScheme.SCHEME_VERSION))
+                                    ParticipantIdentifierScheme.SCHEME_VERSION))
                     .build();
         }
 
-        Derived derived = derive(bound, ssHost);
-
-        if (!bound.getCtxId().equals(derived.ctxId()) || !bound.getDid().equals(derived.did().toString())) {
-            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_IDENTIFIER_MISMATCH)
-                    .metadataItems(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did().toString())
-                    .details(("bound participant identifier no longer matches derivation: "
-                            + "bound ctx-id='%s' did='%s', derived ctx-id='%s' did='%s'")
-                            .formatted(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did()))
-                    .build();
-        }
-    }
-
-    private static Derived derive(DsParticipantEntity bound, String ssHost) {
-        return switch (bound.getParticipantType()) {
-            case MEMBER -> {
-                ClientId member = bound.getMemberIdentifier();
-                yield new Derived(
-                        ParticipantIdentifierScheme.memberCtxId(member),
-                        ParticipantIdentifierScheme.memberDid(member, ssHost));
-            }
-            case SYSTEM -> new Derived(
-                    ParticipantIdentifierScheme.SYSTEM_SEGMENT,
-                    ParticipantIdentifierScheme.systemDid(ssHost));
+        var expectedCtxId = switch (bound.getParticipantType()) {
+            case MEMBER -> ParticipantIdentifierScheme.memberCtxId(bound.getMemberIdentifier());
+            case SYSTEM -> ParticipantIdentifierScheme.SYSTEM_SEGMENT;
         };
+        if (!expectedCtxId.equals(bound.getCtxId()) || !expectedCtxId.equals(ctxIdOf(bound))) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "bound participant is inconsistent: %s participant has ctx-id '%s' and did '%s', expected ctx-id '%s'",
+                    bound.getParticipantType(), bound.getCtxId(), bound.getDid(), expectedCtxId);
+        }
     }
 
-    private record Derived(String ctxId, Did did) {
+    private static String ctxIdOf(DsParticipantEntity bound) {
+        DecodedParticipant decoded = ParticipantIdentifierScheme.decodeDid(bound.getDid());
+        return switch (decoded) {
+            case MemberParticipant member -> ParticipantIdentifierScheme.memberCtxId(member.member());
+            case SystemParticipant _ -> ParticipantIdentifierScheme.SYSTEM_SEGMENT;
+        };
     }
 
 }

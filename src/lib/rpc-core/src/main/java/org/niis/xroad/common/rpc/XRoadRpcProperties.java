@@ -101,23 +101,18 @@ public class XRoadRpcProperties implements RpcProperties {
         }
 
         @Override
-        public Duration retryDelay() {
-            return config.value(CommonRpcConfigKeys.CERT_PROVISIONING_RETRY_DELAY);
+        public Duration waitDuration() {
+            return config.value(CommonRpcConfigKeys.CERT_PROVISIONING_WAIT_DURATION);
         }
 
         @Override
-        public Double retryExponentialBackoffMultiplier() {
-            return Double.parseDouble(config.value(CommonRpcConfigKeys.CERT_PROVISIONING_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER));
+        public Double exponentialBackoffMultiplier() {
+            return Double.parseDouble(config.value(CommonRpcConfigKeys.CERT_PROVISIONING_EXPONENTIAL_BACKOFF_MULTIPLIER));
         }
 
         @Override
-        public int retryMaxAttempts() {
-            return config.value(CommonRpcConfigKeys.CERT_PROVISIONING_RETRY_MAX_ATTEMPTS);
-        }
-
-        @Override
-        public Duration retryTimeout() {
-            return config.value(CommonRpcConfigKeys.CERT_PROVISIONING_RETRY_TIMEOUT);
+        public Duration exponentialMaxWaitDuration() {
+            return config.value(CommonRpcConfigKeys.CERT_PROVISIONING_EXPONENTIAL_MAX_WAIT_DURATION);
         }
     }
 }

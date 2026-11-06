@@ -100,7 +100,7 @@ class DsHttpsKeyStoreLoaderTest {
 
         assertThatThrownBy(() -> new DsHttpsKeyStoreLoader(vaultClient).load())
                 .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
-                .hasMessageContaining("No DataSpace TLS certificate found");
+                .hasMessageContaining("No connector TLS certificate found");
     }
 
     @Test
@@ -110,7 +110,7 @@ class DsHttpsKeyStoreLoaderTest {
         assertThatThrownBy(() -> new DsHttpsKeyStoreLoader(vaultClient).load())
                 .isInstanceOf(ConnectorTlsKeyStoreLoadException.class)
                 .hasMessageContaining("Could not reach OpenBao")
-                .hasMessageNotContaining("No DataSpace TLS certificate found");
+                .hasMessageNotContaining("No connector TLS certificate found");
     }
 
     private static XrdRuntimeException missingSecret() {

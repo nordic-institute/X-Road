@@ -71,6 +71,10 @@ public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentP
                             yield false;
                         }
                     }).orElse(false);
+        } catch (RuntimeException e) {
+            monitor.warning("XRoadLocalGroupMemberConstraintFunction failed for value '" + rightValue
+                    + "', treating it as no match", e);
+            return false;
         } finally {
             monitor.debug("XRoadLocalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }

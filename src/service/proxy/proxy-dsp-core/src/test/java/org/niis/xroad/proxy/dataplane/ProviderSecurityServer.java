@@ -109,9 +109,9 @@ final class ProviderSecurityServer {
      * Mints a token for an agreement negotiated for the given client, service, method and path. The scope of the
      * token comes from this server's live ACL, not from the negotiated method and path.
      *
-     * @return the token, or empty when this server's ACL grants the client nothing for the service
+     * @return the issuer's outcome: minted, or refused when this server's ACL grants the client nothing for the service
      */
-    Optional<String> issueToken(ClientId client, ServiceId service, String method, String path) {
+    AgreementTokenIssuer.Outcome issueToken(ClientId client, ServiceId service, String method, String path) {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
                 .thenReturn(Optional.of(new AgreementGrant(client, service, List.of(new AgreementTokenScope(method, path)))));
         return issuer.issueToken(AGREEMENT_ID);

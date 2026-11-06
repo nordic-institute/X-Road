@@ -108,7 +108,7 @@ class AgreementTokenIssuerTest {
                 new Endpoint("getData", "GET", "/foo/*", false),
                 new Endpoint("getData", "POST", "/bar", false)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(token).isPresent();
         var claims = decodeAndVerify(token.get());
@@ -123,7 +123,7 @@ class AgreementTokenIssuerTest {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
                 .thenReturn(Optional.of(new AgreementGroupGrant(LOCAL_GROUP, SERVICE)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(token).isPresent();
         var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(true))
@@ -142,14 +142,14 @@ class AgreementTokenIssuerTest {
                 .thenReturn(Optional.of(new AgreementGroupGrant(new AgreementTokenGroup.Global(
                         GlobalGroupId.Conf.create("DEV", "consumers")), SERVICE)));
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
+        assertThat(issuer.issueToken(AGREEMENT_ID).mintedToken()).isPresent();
     }
 
     @Test
     void mintsAServiceOnlyTokenNamingTheServiceWithoutReadingTheAcl() {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(token).isPresent();
         var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(true))
@@ -165,7 +165,7 @@ class AgreementTokenIssuerTest {
     void aServiceOnlyTokenEntitlesNobodyWhenTheLiveAclGrantsNothing() {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         var result = new AgreementTokenVerifier(keyProvider, PROPERTIES, groupAccess(false))
                 .verify(token.orElseThrow(), AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/bar"));
@@ -178,7 +178,7 @@ class AgreementTokenIssuerTest {
             var builtin = ServiceId.Conf.create("DEV", "COM", "333", null, code);
             when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementServiceGrant(builtin)));
 
-            assertThat(issuer.issueToken(AGREEMENT_ID)).as(code).isEmpty();
+            assertThat(issuer.issueToken(AGREEMENT_ID)).as(code).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
         }
     }
 
@@ -188,14 +188,14 @@ class AgreementTokenIssuerTest {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID))
                 .thenReturn(Optional.of(new AgreementServiceGrant(subsystemService)));
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isPresent();
+        assertThat(issuer.issueToken(AGREEMENT_ID).mintedToken()).isPresent();
     }
 
     @Test
     void returnsEmptyWhenNoGrant() {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.empty());
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
         verifyNoInteractions(serverConfProvider);
     }
 
@@ -203,7 +203,7 @@ class AgreementTokenIssuerTest {
     void returnsEmptyWhenGrantLookupThrows() {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenThrow(new RuntimeException("boom"));
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
     }
 
     @Test
@@ -212,7 +212,7 @@ class AgreementTokenIssuerTest {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
         when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenThrow(new RuntimeException("boom"));
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
     }
 
     @Test
@@ -225,7 +225,7 @@ class AgreementTokenIssuerTest {
         when(throwingKeyProvider.activeKey()).thenThrow(new RuntimeException("boom"));
         when(keyMaterial.provider()).thenReturn(Optional.of(throwingKeyProvider));
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
     }
 
     @Test
@@ -261,7 +261,7 @@ class AgreementTokenIssuerTest {
         issuerLogger.setLevel(Level.ALL);
         try {
             for (var attempt = 0; attempt < 3; attempt++) {
-                assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+                assertThat(issuer.issueToken(AGREEMENT_ID)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
             }
         } finally {
             issuerLogger.removeHandler(handler);
@@ -283,7 +283,7 @@ class AgreementTokenIssuerTest {
                 new Endpoint("getData", "GET", "/a", false),
                 new Endpoint("getData", "GET", "/b", false)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(token).isPresent();
         assertThat(decodeAndVerify(token.get()).scope())
@@ -298,7 +298,7 @@ class AgreementTokenIssuerTest {
                 new Endpoint("getData", "GET", "/a", false),
                 new Endpoint("getData", "GET", "/a", false)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(token).isPresent();
         assertThat(decodeAndVerify(token.get()).scope()).containsExactly(new AgreementTokenScope("GET", "/a"));
@@ -312,8 +312,8 @@ class AgreementTokenIssuerTest {
                 .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)))
                 .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false), new Endpoint("getData", "POST", "/bar", false)));
 
-        var first = issuer.issueToken(AGREEMENT_ID);
-        var next = issuer.issueToken(AGREEMENT_ID);
+        var first = issuer.issueToken(AGREEMENT_ID).mintedToken();
+        var next = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(decodeAndVerify(first.orElseThrow()).scope()).containsExactly(new AgreementTokenScope("GET", "/foo/*"));
         assertThat(decodeAndVerify(next.orElseThrow()).scope())
@@ -328,8 +328,8 @@ class AgreementTokenIssuerTest {
                 .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false), new Endpoint("getData", "POST", "/bar", false)))
                 .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
 
-        var first = issuer.issueToken(AGREEMENT_ID);
-        var next = issuer.issueToken(AGREEMENT_ID);
+        var first = issuer.issueToken(AGREEMENT_ID).mintedToken();
+        var next = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(decodeAndVerify(first.orElseThrow()).scope())
                 .containsExactlyInAnyOrder(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
@@ -344,33 +344,36 @@ class AgreementTokenIssuerTest {
                 new Endpoint("getData", "GET", "/a", false),
                 new Endpoint("getData", "*", "**", false)));
 
-        var token = issuer.issueToken(AGREEMENT_ID);
+        var token = issuer.issueToken(AGREEMENT_ID).mintedToken();
 
         assertThat(token).isPresent();
         assertThat(decodeAndVerify(token.get()).scope()).containsExactly(new AgreementTokenScope("*", "**"));
     }
 
     @Test
-    void returnsEmptyWhenTheLiveAclUnionIsEmpty() {
+    void refusesWhenTheLiveAclUnionIsEmpty() {
         var agreed = List.of(new AgreementTokenScope("GET", "/foo/*"));
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, agreed)));
         when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenReturn(List.of());
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+        var outcome = issuer.issueToken(AGREEMENT_ID);
+
+        assertThat(outcome).isInstanceOf(AgreementTokenIssuer.Outcome.Refused.class);
+        assertThat(outcome.mintedToken()).isEmpty();
     }
 
     @Test
     void returnsEmptyWhenKeyMaterialUnavailableAndNeverCallsTheGrantLookup() {
         when(keyMaterial.provider()).thenReturn(Optional.empty());
 
-        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
         verifyNoInteractions(grantRpcClient);
     }
 
     @Test
     void returnsEmptyForBlankAgreementIdWithoutCallingAnyCollaborator() {
-        assertThat(issuer.issueToken(" ")).isEmpty();
-        assertThat(issuer.issueToken(null)).isEmpty();
+        assertThat(issuer.issueToken(" ")).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
+        assertThat(issuer.issueToken(null)).isInstanceOf(AgreementTokenIssuer.Outcome.NotIssued.class);
         verifyNoInteractions(grantRpcClient, serverConfProvider);
     }
 

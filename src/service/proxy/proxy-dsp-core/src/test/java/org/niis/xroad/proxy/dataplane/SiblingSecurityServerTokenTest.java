@@ -51,7 +51,7 @@ class SiblingSecurityServerTokenTest {
         var issuingSecurityServer = ProviderSecurityServer.create(ACL, keysWithId("1"));
         var siblingSecurityServer = ProviderSecurityServer.create(ACL, keysWithId("1"));
 
-        var token = issuingSecurityServer.issueToken(CLIENT, SERVICE, METHOD, PATH).orElseThrow();
+        var token = issuingSecurityServer.issueToken(CLIENT, SERVICE, METHOD, PATH).mintedToken().orElseThrow();
 
         assertThat(issuingSecurityServer.checkToken(token, CLIENT, SERVICE, METHOD, PATH))
                 .isInstanceOf(AgreementTokenAccessCheck.Decision.Accepted.class);

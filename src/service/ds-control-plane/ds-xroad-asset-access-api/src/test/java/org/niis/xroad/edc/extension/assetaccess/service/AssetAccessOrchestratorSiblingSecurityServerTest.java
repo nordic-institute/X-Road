@@ -76,7 +76,7 @@ class AssetAccessOrchestratorSiblingSecurityServerTest extends AssetAccessOrches
         stubTransportFaultAtCatalog(SECURITY_SERVER.counterPartyId());
         stubCatalogAt(SIBLING_SECURITY_SERVER.counterPartyId(), buildCatalogWithNoOffers(PETSTORE_ASSET_ID));
 
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), petstoreRequestForTestClient());
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), petstoreRequestForTestClient(), defaultBudget());
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)

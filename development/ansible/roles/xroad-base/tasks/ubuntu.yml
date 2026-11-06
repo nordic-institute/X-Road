@@ -8,10 +8,17 @@
   delay: 2
   until: apt_lock_check.rc == 0
 
+- name: Read the current X-Road apt repo config
+  slurp:
+    src: /etc/apt/sources.list.d/xroad.list
+  register: xroad_apt_list
+  failed_when: false
+
 - name: Remove old repo config
   file:
     path: /etc/apt/sources.list.d/xroad.list
     state: absent
+  when: xroad_apt_list.content is defined and (xroad_apt_list.content | b64decode | trim) != (ubuntu_apt_repo_with_option | trim)
 
 - name: Install required packages
   apt:
@@ -30,10 +37,17 @@
       - software-properties-common
       - postgresql-common
 
+- name: Look for the PostgreSQL PGDG apt repository
+  find:
+    paths: /etc/apt/sources.list.d
+    patterns:
+      - pgdg.list
+      - pgdg.sources
+  register: pgdg_repo
+
 - name: Configure PostgreSQL PGDG apt repository
   command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
-  args:
-    creates: /etc/apt/sources.list.d/pgdg.list
+  when: pgdg_repo.matched == 0
 
 - name: Disable automatic upgrades
   copy:
@@ -43,13 +57,55 @@
     group: root
   when: disable_automatic_upgrades | default(false) | bool
 
-- name: Add X-Road apt repo key
-  shell: "curl -sL {{ ubuntu_apt_key }} | sudo gpg --dearmor --batch --yes -o {{ ubuntu_apt_key_file }}"
+- name: Download the X-Road apt repo key
+  get_url:
+    url: "{{ ubuntu_apt_key }}"
+    dest: "{{ ubuntu_apt_key_file }}.asc"
+    mode: "0644"
+    force: true
+  register: xroad_apt_key_download
   when: package_source == "remote" and (ansible_facts['distribution'] == "Ubuntu")
+
+- name: Look at the installed X-Road apt repo key
+  stat:
+    path: "{{ ubuntu_apt_key_file }}"
+  register: xroad_apt_key_file
+  when: package_source == "remote" and (ansible_facts['distribution'] == "Ubuntu")
+
+- name: Convert the X-Road apt repo key
+  command: gpg --dearmor --batch --yes -o "{{ ubuntu_apt_key_file }}" "{{ ubuntu_apt_key_file }}.asc"
+  when:
+    - package_source == "remote" and (ansible_facts['distribution'] == "Ubuntu")
+    - xroad_apt_key_download is changed or not xroad_apt_key_file.stat.exists or xroad_apt_key_file.stat.size == 0
+
+- name: Look at the converted X-Road apt repo key
+  stat:
+    path: "{{ ubuntu_apt_key_file }}"
+  register: xroad_apt_key_converted
+  when: package_source == "remote" and (ansible_facts['distribution'] == "Ubuntu")
+
+- name: Require a non-empty X-Road apt repo key
+  assert:
+    that: xroad_apt_key_converted.stat.exists and xroad_apt_key_converted.stat.size > 0
+    fail_msg: "The X-Road apt repo key {{ ubuntu_apt_key_file }} is missing or empty."
+  when: package_source == "remote" and (ansible_facts['distribution'] == "Ubuntu")
+
+- name: Fingerprint the OpenBao apt repository files
+  shell: cat /etc/apt/sources.list.d/openbao.list /usr/share/keyrings/openbao-keyring.asc 2>/dev/null | sha256sum
+  register: openbao_apt_before
+  changed_when: false
+  check_mode: false
 
 - name: Configure OpenBao apt repository
   script:
     cmd: "{{ role_path }}/../../../../deployment/.scripts/configure-mirror-openbao-deb.sh"
+  changed_when: false
+
+- name: Report a change of the OpenBao apt repository files
+  shell: cat /etc/apt/sources.list.d/openbao.list /usr/share/keyrings/openbao-keyring.asc 2>/dev/null | sha256sum
+  register: openbao_apt_after
+  changed_when: openbao_apt_after.stdout != openbao_apt_before.stdout
+  check_mode: false
 
 - name: xroad apt repository
   apt_repository:

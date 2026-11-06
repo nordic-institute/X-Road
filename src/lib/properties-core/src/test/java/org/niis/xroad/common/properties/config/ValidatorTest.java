@@ -79,6 +79,28 @@ class ValidatorTest {
     }
 
     @Test
+    void positiveIntAcceptsPositiveValue() {
+        assertThat(Validator.positiveInt().validate(1).valid()).isTrue();
+        assertThat(Validator.positiveInt().validate(Integer.MAX_VALUE).valid()).isTrue();
+    }
+
+    @Test
+    void positiveIntRejectsZeroNegativeAndNull() {
+        var positive = Validator.positiveInt();
+
+        assertThat(positive.validate(0).valid()).isFalse();
+        assertThat(positive.validate(-1).valid()).isFalse();
+        assertThat(positive.validate(null).valid()).isFalse();
+    }
+
+    @Test
+    void positiveIntRejectionCarriesMessage() {
+        var result = Validator.positiveInt().validate(0);
+
+        assertThat(result.message()).isEqualTo("must be a positive number");
+    }
+
+    @Test
     void positiveLongAcceptsPositiveValue() {
         assertThat(Validator.positiveLong().validate(1L).valid()).isTrue();
     }
@@ -148,6 +170,7 @@ class ValidatorTest {
         assertThat(Validator.positive().describe()).contains("positive duration");
         assertThat(Validator.nonNegative().describe()).contains("non-negative duration");
         assertThat(Validator.positiveLong().describe()).contains("positive number");
+        assertThat(Validator.positiveInt().describe()).contains("positive number");
     }
 
     @Test

@@ -42,6 +42,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRenameRequest;
 import org.niis.xroad.cs.admin.api.domain.MaintenanceModeDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.MaintenanceModeEnableRequest;
+import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
@@ -56,6 +57,7 @@ import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRenameRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.MaintenanceModeDisableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.MaintenanceModeEnableRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberDidRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
@@ -73,6 +75,7 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
             case ClientDeletionRequestEntity entity -> toDto(entity);
             case AddressChangeRequestEntity entity -> toDto(entity);
             case SystemDidRegistrationRequestEntity entity -> toDto(entity);
+            case MemberDidRegistrationRequestEntity entity -> toDto(entity);
             case RequestWithProcessingEntity entity -> toTarget(entity);
             default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
         };
@@ -108,6 +111,11 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
     @Mapping(target = "dspBaseUrl", ignore = true)
     @Mapping(target = "certificate", ignore = true)
     SystemDidRegistrationRequest toDto(SystemDidRegistrationRequestEntity source);
+
+    @Mapping(target = "entries", ignore = true)
+    @Mapping(target = "settledResults", ignore = true)
+    @Mapping(target = "results", ignore = true)
+    MemberDidRegistrationRequest toDto(MemberDidRegistrationRequestEntity source);
 
     ClientDisableRequest toDto(ClientDisableRequestEntity source);
 

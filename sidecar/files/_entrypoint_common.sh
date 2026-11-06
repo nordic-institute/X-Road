@@ -181,6 +181,13 @@ create_backup_dir_if_not_exists() {
   fi
 }
 
+# Migration mode (X-Road 7.8 volumes) runs in two phases around the
+# provisioning below; a failed phase stops the container.
+run_migration_phase() {
+  [ "${XROAD_MIGRATION_MODE:-}" = "true" ] || return 0
+  "/usr/share/xroad/scripts/sidecar/migration/migration_$1.sh" || exit $?
+}
+
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
 
@@ -233,6 +240,8 @@ XROAD_ADMIN_USER=
 XROAD_ADMIN_PASSWORD=
 XROAD_ADMIN_PWD_HASH=
 
+run_migration_phase start
+
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
   if [ -f /etc/xroad/VERSION ]; then
     CONFIG_VERSION="$(cat /etc/xroad/VERSION)"
@@ -244,7 +253,19 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     # ensure that the updated stock configuration is present in /etc/xroad
     # handles also the case where configuration is missing (e.g. config volume not automatically populated)
     log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
+    # migration mode: the packaged local.ini is empty, but the migration CLI
+    # still has to read the operator's settings from the copied 7.8 one
+    MIGRATION_LOCAL_INI=
+    if [ "${XROAD_MIGRATION_MODE:-}" = "true" ] && [ -f /etc/xroad/conf.d/local.ini ]; then
+      MIGRATION_LOCAL_INI="$(mktemp -d)" && cp -a /etc/xroad/conf.d/local.ini "$MIGRATION_LOCAL_INI/" \
+        || { warn "Cannot preserve the 7.8 conf.d/local.ini for migration"; exit 1; }
+    fi
     cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
+    if [ -n "$MIGRATION_LOCAL_INI" ]; then
+      cp -a "$MIGRATION_LOCAL_INI/local.ini" /etc/xroad/conf.d/ \
+        || { warn "Cannot restore the 7.8 conf.d/local.ini for migration"; exit 1; }
+      rm -rf "$MIGRATION_LOCAL_INI"
+    fi
     # copy if not exists
     cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
     # packages need to be reconfigured (runs possible db and config migrations)
@@ -358,6 +379,13 @@ configure_opmonitor_metaspace
 configure_secret_store
 configure_secret_store_trust_env
 create_backup_dir_if_not_exists
+
+if [[ "${XROAD_MIGRATION_MODE:-}" == "true" && "$RECONFIG_REQUIRED" == "true" && "$RECONFIGURED" != "true" ]]; then
+  warn "Package reconfiguration failed, migration not finished"
+  exit 1
+fi
+run_migration_phase finish
+unset XROAD_MIGRATION_SOFTTOKEN_PIN
 
 # The configuration is only recorded as provisioned once the operator's hooks
 # have succeeded too, so a hook that fails leaves the container retryable: the

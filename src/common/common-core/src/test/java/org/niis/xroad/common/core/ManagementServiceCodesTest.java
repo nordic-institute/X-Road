@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ManagementServiceCodesTest {
 
@@ -53,5 +54,11 @@ class ManagementServiceCodesTest {
         assertFalse(ManagementServiceCodes.DSP_NEGOTIATED.contains(ManagementServiceCodes.AUTH_CERT_REG));
         assertFalse(ManagementServiceCodes.DSP_NEGOTIATED.contains(ManagementServiceCodes.SYSTEM_DID_REG));
         assertEquals(ManagementServiceCodes.ALL.size() - 2, ManagementServiceCodes.DSP_NEGOTIATED.size());
+    }
+
+    @Test
+    void dspNegotiatedShouldContainMemberDidReg() {
+        assertTrue(ManagementServiceCodes.ALL.contains(ManagementServiceCodes.MEMBER_DID_REG));
+        assertTrue(ManagementServiceCodes.DSP_NEGOTIATED.contains(ManagementServiceCodes.MEMBER_DID_REG));
     }
 }

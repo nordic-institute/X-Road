@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
+import org.niis.xroad.common.managementrequest.ResponsePayload;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.springframework.http.HttpHeaders;
@@ -54,16 +55,16 @@ public class ManagementRequestController {
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE, MediaType.TEXT_XML_VALUE + ";charset=UTF-8"})
     public ResponseEntity<String> addManagementRequest(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
-        return managementRequestSoapExecutor.process(contentType, body, this::process);
+        return managementRequestSoapExecutor.processWithPayload(contentType, body, this::process);
     }
 
-    private Integer process(ManagementRequestVerifier.Result result) {
-        var requestId = result.getRequest()
-                .map(request -> managementRequestService.addManagementRequest(request, result.requestType()))
+    private ResponsePayload process(ManagementRequestVerifier.Result result) {
+        var payload = result.getRequest()
+                .map(request -> managementRequestService.addManagementRequestWithPayload(request, result.requestType()))
                 .orElseThrow(() -> XrdRuntimeException.systemException(INVALID_REQUEST,
                         "Request of type: %s is missing".formatted(result.requestType())));
 
-        log.info("Added new management request with id {}", requestId);
-        return requestId;
+        log.info("Added new management request with id {}", payload.requestId());
+        return payload;
     }
 }

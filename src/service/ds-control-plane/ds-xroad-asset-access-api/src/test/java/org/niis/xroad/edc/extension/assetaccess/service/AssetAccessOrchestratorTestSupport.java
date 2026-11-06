@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.assetaccess.service;
 
 import com.google.common.base.Ticker;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
@@ -55,6 +56,8 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -65,8 +68,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.time.CallBudget;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
+import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.cooldown.CooldownTracker;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
@@ -85,14 +91,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -100,6 +110,11 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     static final Duration COOLDOWN_PERIOD = Duration.ofSeconds(180);
     static final Duration CANDIDATE_TIMEOUT = Duration.ofSeconds(20);
+    static final String PROVIDER_CONFLICT = providerAnswer(409, "agreement no longer valid");
+    static final Duration CATALOG_TIMEOUT = Duration.ofSeconds(20);
+    static final Duration DEFAULT_BUDGET = Duration.ofSeconds(60);
+    static final String GROUP_CLIENT_A = "DEV:COM:222:A";
+    static final String GROUP_CLIENT_B = "DEV:COM:222:B";
 
     @Mock
     CatalogService catalogService;
@@ -126,6 +141,8 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     AssetAccessCompletionPoller completionPoller;
 
+    AgreementReuseNote reuseNote;
+
     AssetAccessOrchestrator orchestrator;
 
     final FakeTicker ticker = new FakeTicker();
@@ -134,9 +151,13 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
 
+    int negotiationCount;
+
     @BeforeEach
     void initFixture() {
         lenient().when(reusableAgreementLookup.find(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        lenient().when(reusableAgreementLookup.findById(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        reuseNote = new AgreementReuseNote(100);
         lenient().when(candidateHandshakeRace.order(any()))
                 .thenAnswer(invocation -> CompletableFuture.completedFuture(invocation.getArgument(0)));
         lenient().when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> Stream.empty());
@@ -158,11 +179,26 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     AssetAccessOrchestrator newOrchestrator(AssetAccessCompletionPoller poller, Duration negotiationTimeout,
                                             Duration transferTimeout) {
-        return new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup,
+        return newOrchestrator(poller, CATALOG_TIMEOUT, negotiationTimeout, transferTimeout);
+    }
+
+    AssetAccessOrchestrator newOrchestrator(AssetAccessCompletionPoller poller, Duration catalogTimeout,
+                                            Duration negotiationTimeout, Duration transferTimeout) {
+        return newOrchestrator(poller, catalogTimeout, negotiationTimeout, transferTimeout, CANDIDATE_TIMEOUT);
+    }
+
+    AssetAccessOrchestrator newOrchestrator(AssetAccessCompletionPoller poller, Duration catalogTimeout,
+                                            Duration negotiationTimeout, Duration transferTimeout,
+                                            Duration candidateTimeout) {
+        return new AssetAccessOrchestrator(new AssetAccessStateStore(), reusableAgreementLookup, reuseNote,
                 catalogService, contractNegotiationService, transferProcessService, poller, cooldownTracker,
                 candidateHandshakeRace,
                 jsonLd, transformerRegistry, monitor,
-                negotiationTimeout, transferTimeout, CANDIDATE_TIMEOUT);
+                catalogTimeout, negotiationTimeout, transferTimeout, candidateTimeout);
+    }
+
+    CallBudget defaultBudget() {
+        return CallBudget.startingNow(clock, DEFAULT_BUDGET);
     }
 
     DataAddress startedAddress(String transferProcessId, String endpoint) {
@@ -180,9 +216,14 @@ abstract class AssetAccessOrchestratorTestSupport {
     }
 
     AssetAccessResult acquireAndAwait(AssetAccessRequest request) throws Exception {
-        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request);
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
         pollUntilDone(future);
         return future.get(5, TimeUnit.SECONDS);
+    }
+
+    static String providerAnswer(int code, String body) {
+        return "Counter Party responded with Response{protocol=h2, code=%d, message=, url=https://provider.example/dsp}. Body: %s."
+                .formatted(code, body);
     }
 
     static ServiceResult<TransferProcess> successfulTransferInitiation(String transferProcessId) {
@@ -302,6 +343,117 @@ abstract class AssetAccessOrchestratorTestSupport {
         return Catalog.Builder.newInstance().dataset(dataset.build()).build();
     }
 
+    void stubReusableAgreement(String agreementId) {
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
+                .thenReturn(Optional.of(buildAgreement(agreementId)));
+    }
+
+    AgreementReuseNote.Key noteKey(String clientId) {
+        return new AgreementReuseNote.Key("participant1", "participant1", "provider-1", "asset-1", clientId);
+    }
+
+    void stubFindById(ContractAgreement agreement) {
+        lenient().when(reusableAgreementLookup.findById("participant1", "participant1", "asset-1", "provider-1", agreement.getId()))
+                .thenReturn(Optional.of(agreement));
+    }
+
+    void stubStartedTransfers(String... transferIds) {
+        var results = Stream.of(transferIds).map(AssetAccessOrchestratorTestSupport::successfulTransferInitiation).toList();
+        var stubbing = when(transferProcessService.initiateTransfer(any(), any())).thenReturn(results.getFirst());
+        results.stream().skip(1).forEach(stubbing::thenReturn);
+        for (var id : transferIds) {
+            startedAddress(id, "http://provider/data-" + id);
+        }
+    }
+
+    void stubNegotiatedAgreements(String... agreementIds) {
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenAnswer(invocation -> ServiceResult.success(
+                ContractNegotiation.Builder.newInstance().id("neg-" + (negotiationCount++))
+                        .protocol("http-dsp-profile-2025-1").counterPartyId("provider-1")
+                        .counterPartyAddress("http://provider/dsp").build()));
+        for (int i = 0; i < agreementIds.length; i++) {
+            var negotiationId = "neg-" + i;
+            var agreement = buildAgreement(agreementIds[i]);
+            lenient().when(negotiationStore.queryNegotiations(specWithId(negotiationId))).thenAnswer(invocation ->
+                    Stream.of(finalizedNegotiation(negotiationId, agreement)));
+        }
+    }
+
+    void refusedAddress(String transferProcessId) {
+        var address = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data-" + transferProcessId)
+                .property(DspConventions.ACCESS_REFUSED_PROPERTY, "true").build();
+        when(transferProcessStore.findAll(specWithId(transferProcessId))).thenAnswer(invocation ->
+                Stream.of(startedTransfer(transferProcessId, address)));
+    }
+
+    AssetAccessResult acquire(String clientId) throws Exception {
+        return acquireAndAwait(requestFor(clientId));
+    }
+
+    Throwable acquireExpectingFailure(String clientId) {
+        return failureOf(orchestrator.acquireAssetAccess(buildParticipantContext(), requestFor(clientId), defaultBudget()));
+    }
+
+    Throwable failureOf(CompletableFuture<AssetAccessResult> future) {
+        pollUntilDone(future);
+        var failure = catchThrowable(() -> future.get(5, TimeUnit.SECONDS));
+        assertThat(failure).isInstanceOf(ExecutionException.class);
+        return failure.getCause();
+    }
+
+    static AssetAccessRequest requestFor(String clientId) {
+        return new AssetAccessRequest("asset-1",
+                List.of(new AssetAccessRequest.Candidate("provider-1", "http://provider/dsp")), null, clientId, null);
+    }
+
+    void stubCatalogAndTransformChain(String assetId) {
+        var catalog = buildCatalog(assetId, "offer-1", XRoadTransferType.PULL.wireValue());
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class)))
+                .thenReturn(Result.success(catalog));
+    }
+
+    Catalog buildCatalog(String assetId, String offerId, String transferType) {
+        var dataService = DataService.Builder.newInstance().build();
+        var distribution = Distribution.Builder.newInstance().format(transferType).dataService(dataService).build();
+        var dataset = Dataset.Builder.newInstance()
+                .id(assetId)
+                .offer(offerId, Policy.Builder.newInstance().build())
+                .distribution(distribution)
+                .build();
+        return Catalog.Builder.newInstance().dataset(dataset).build();
+    }
+
+    void stubNegotiationInitiation() {
+        when(contractNegotiationService.initiateNegotiation(any(), any()))
+                .thenReturn(ServiceResult.success(buildNegotiation()));
+    }
+
+    void stubCatalog(Catalog catalog) {
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
+    }
+
+    static Policy groupPolicy(String encodedGroupId) {
+        var groupConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(encodedGroupId))
+                .build();
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance().constraint(groupConstraint).build())
+                .build();
+    }
+
+    static Policy unrestrictedPolicy() {
+        return Policy.Builder.newInstance().build();
+    }
+
     static final class MutableClock extends Clock {
         private Instant instant = Instant.parse("2026-01-01T00:00:00Z");
 
@@ -327,10 +479,12 @@ abstract class AssetAccessOrchestratorTestSupport {
 
     static final class FakeTicker extends Ticker {
         private long ticks;
+
         @Override
         public long read() {
             return ticks;
         }
+
         void advance(Duration duration) {
             ticks += duration.toNanos();
         }

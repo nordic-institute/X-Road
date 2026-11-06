@@ -119,31 +119,24 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
-    /** {@code xroad.common-rpc.certificate-provisioning.retry-delay}. */
-    public static final ConfigKey<Duration> CERT_PROVISIONING_RETRY_DELAY = CERT_PROVISIONING
-            .keyDuration("retry-delay")
+    /** {@code xroad.common-rpc.certificate-provisioning.wait-duration}. */
+    public static final ConfigKey<Duration> CERT_PROVISIONING_WAIT_DURATION = CERT_PROVISIONING
+            .keyDuration("wait-duration")
             .withDefaultValue(Duration.ofSeconds(5))
             .exposedInUi()
             .build();
 
-    /** {@code xroad.common-rpc.certificate-provisioning.retry-exponential-backoff-multiplier}. */
-    public static final ConfigKey<String> CERT_PROVISIONING_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = CERT_PROVISIONING
-            .string("retry-exponential-backoff-multiplier")
+    /** {@code xroad.common-rpc.certificate-provisioning.exponential-backoff-multiplier}. */
+    public static final ConfigKey<String> CERT_PROVISIONING_EXPONENTIAL_BACKOFF_MULTIPLIER = CERT_PROVISIONING
+            .string("exponential-backoff-multiplier")
             .withDefaultValue("1.5")
             .exposedInUi()
             .build();
 
-    /** {@code xroad.common-rpc.certificate-provisioning.retry-max-attempts}. */
-    public static final ConfigKey<Integer> CERT_PROVISIONING_RETRY_MAX_ATTEMPTS = CERT_PROVISIONING
-            .integer("retry-max-attempts")
-            .withDefaultValue(10)
-            .exposedInUi()
-            .build();
-
-    /** {@code xroad.common-rpc.certificate-provisioning.retry-timeout}. */
-    public static final ConfigKey<Duration> CERT_PROVISIONING_RETRY_TIMEOUT = CERT_PROVISIONING
-            .keyDuration("retry-timeout")
-            .withDefaultValue(Duration.ofSeconds(60))
+    /** {@code xroad.common-rpc.certificate-provisioning.exponential-max-wait-duration}. */
+    public static final ConfigKey<Duration> CERT_PROVISIONING_EXPONENTIAL_MAX_WAIT_DURATION = CERT_PROVISIONING
+            .keyDuration("exponential-max-wait-duration")
+            .withDefaultValue(Duration.ofMinutes(5))
             .exposedInUi()
             .build();
 

@@ -215,8 +215,8 @@ HTTP 201
 # co-located Issuer Service serves from OpenBao): generate the server-side key, fetch a
 # DN-only CSR, sign it at the test CA with this environment's SAN list (the CA attaches
 # SANs from order metadata — the CSR carries none by design), and upload the certificate.
-# The ds-* processes wait at startup on the empty vault slot until this lands; every
-# ds-* convergence gate below runs after it.
+# The ds-* processes boot without HTTPS while the vault slot is empty and open their
+# HTTPS endpoints once this lands; every ds-* convergence gate below runs after it.
 POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/key
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
@@ -340,7 +340,7 @@ HTTP *
 
 # Provision SS0's DS TLS certificate through the admin API — same key/CSR/sign/upload flow
 # as the Central Server block above; the SAN list is this server's environment-supplied
-# ds-* host names. Runs as early as possible so the waiting ds-* services converge
+# ds-* host names. Runs as early as possible so the ds-* services open HTTPS
 # well before the DSP readiness gates at the end.
 POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/key
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
@@ -667,6 +667,9 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     },
     {
        "service_code": "maintenanceModeDisable"
+    },
+    {
+      "service_code": "memberDidReg"
     }
   ]
 }

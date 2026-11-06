@@ -1,0 +1,25 @@
+---
+- name: install haproxy
+  apt:
+    name: haproxy
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    install_recommends: false
+    lock_timeout: 120
+
+- name: configure layer-4 pass-through
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: "0644"
+    validate: haproxy -c -f %s
+  notify: reload haproxy
+
+- name: ensure haproxy is running
+  service:
+    name: haproxy
+    state: started
+    enabled: true

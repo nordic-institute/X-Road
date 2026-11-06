@@ -215,8 +215,9 @@ class SystemDidRegistrationRequestHandlerTest {
     private static ErrorDeviation expectedDeviation(ParticipantValueRejection rejection) {
         return switch (rejection) {
             case NOT_CANONICAL, DID_TOO_LONG, WRONG_SCHEME, DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL,
-                 FOREIGN_SYSTEM_DID, UNRELATED_MEMBER, NON_ASCII_HOST -> MR_DID_FINAL_CONFLICT.build(rejection.name());
-            case HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS, DID_HELD_BY_ANOTHER_SERVER ->
+                 FOREIGN_SYSTEM_DID, UNDECODABLE_DID, DID_OF_OTHER_MEMBER, NON_ASCII_HOST ->
+                    MR_DID_FINAL_CONFLICT.build(rejection.name());
+            case HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS, DID_HELD_BY_ANOTHER_SERVER, MEMBER_NOT_SERVED ->
                     MR_DID_FIXABLE_CONFLICT.build(rejection.name());
         };
     }

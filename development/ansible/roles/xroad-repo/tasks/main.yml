@@ -60,11 +60,15 @@
   shell: dpkg-scanpackages -m . > Packages
   args:
     chdir: "/srv/xroad-build/ubuntu{{ ansible_facts['distribution_version'] }}"
+  changed_when: false
   when: not cache_fill_mode | default(false)
 
 - name: Build RPM repodata (writes repodata/ into mounted host dir)
   command: createrepo_c /srv/xroad-build/rhel/{{ rhel_releasever }}
-  when: not cache_fill_mode | default(false)
+  changed_when: false
+  when:
+    - xroad_repo_index_rpm | bool
+    - not cache_fill_mode | default(false)
 
 - name: Ensure nginx running
   systemd:

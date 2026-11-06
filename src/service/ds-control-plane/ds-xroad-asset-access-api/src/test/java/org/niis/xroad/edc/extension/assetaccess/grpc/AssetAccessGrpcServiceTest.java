@@ -53,6 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.time.CallBudget;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
@@ -65,12 +66,16 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -94,7 +99,7 @@ class AssetAccessGrpcServiceTest {
     void setUp() throws Exception {
         var responseHandler = new RpcResponseHandler();
         var grpcService = new AssetAccessGrpcService(
-                assetAccessOrchestrator, participantContextService, responseHandler, java.time.Duration.ofSeconds(60));
+                assetAccessOrchestrator, participantContextService, responseHandler, Duration.ofSeconds(60), Clock.systemUTC());
         server = ServerBuilder.forPort(0)
                 .addService(grpcService)
                 .build()
@@ -125,7 +130,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "authorization", "token-abc-123")
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
-                any(ParticipantContext.class), any(AssetAccessRequest.class)))
+                any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
                 .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
@@ -144,7 +149,7 @@ class AssetAccessGrpcServiceTest {
     void acquireFailureThrowsStatusRuntimeException() {
         stubParticipantContext();
 
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(
                         new RuntimeException("upstream catalog fetch failed")));
 
@@ -168,7 +173,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
-                any(ParticipantContext.class), any(AssetAccessRequest.class)))
+                any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
                 .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
@@ -193,7 +198,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "authorization", jwtToken)
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
-                any(ParticipantContext.class), any(AssetAccessRequest.class)))
+                any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
                 .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
@@ -218,7 +223,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "authorization", "opaque-token-abc")
                 .build();
         when(assetAccessOrchestrator.acquireAssetAccess(
-                any(ParticipantContext.class), any(AssetAccessRequest.class)))
+                any(ParticipantContext.class), any(AssetAccessRequest.class), any()))
                 .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
 
         var request = AcquireAssetAccessReq.newBuilder()
@@ -243,6 +248,7 @@ class AssetAccessGrpcServiceTest {
                 Arguments.of(ErrorCode.DSP_DATAADDRESS_INVALID),
                 Arguments.of(ErrorCode.DSP_NEGOTIATION_FAILED),
                 Arguments.of(ErrorCode.DSP_TRANSFER_FAILED),
+                Arguments.of(ErrorCode.DSP_ACCESS_REFUSED),
                 Arguments.of(ErrorCode.DSP_ACQUISITION_FAILED),
                 Arguments.of(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED)
         );
@@ -255,7 +261,7 @@ class AssetAccessGrpcServiceTest {
         var dspException = XrdRuntimeException.systemException(dspCode)
                 .origin(ErrorOrigin.DATASPACE)
                 .build();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(dspException));
 
         var request = baseRequest().build();
@@ -275,7 +281,7 @@ class AssetAccessGrpcServiceTest {
                 .origin(ErrorOrigin.DATASPACE)
                 .metadataItems("my-asset-id", "extra-context")
                 .build();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(dspException));
 
         var request = baseRequest().setAssetId("my-asset-id").build();
@@ -297,7 +303,7 @@ class AssetAccessGrpcServiceTest {
                 .identifier("fixed-uuid-1234")
                 .details("provider unreachable")
                 .build();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(dspException));
 
         try {
@@ -317,7 +323,7 @@ class AssetAccessGrpcServiceTest {
                 .origin(ErrorOrigin.SIGNER)
                 .details("signer unavailable")
                 .build();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(signerException));
 
         try {
@@ -331,7 +337,7 @@ class AssetAccessGrpcServiceTest {
     @Test
     void plainRuntimeExceptionFromFutureBecomesDspAcquisitionFailed() {
         stubParticipantContext();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(new RuntimeException("unexpected")));
 
         try {
@@ -346,7 +352,7 @@ class AssetAccessGrpcServiceTest {
     @Test
     void orchestratorThrowsDirectlyBecomesInternalError() {
         stubParticipantContext();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any()))
                 .thenThrow(new RuntimeException("unexpected direct throw"));
 
         try {
@@ -482,7 +488,8 @@ class AssetAccessGrpcServiceTest {
                 .type("HttpData")
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .build();
-        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class)))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class),
+                any()))
                 .thenReturn(CompletableFuture.completedFuture(new AssetAccessResult(
                         dataAddress, new AssetAccessResult.Winner("provider-b", "http://b.example.org/dsp"))));
 
@@ -528,6 +535,73 @@ class AssetAccessGrpcServiceTest {
         assertThat(captor.getValue().clientId()).isNull();
     }
 
+    @Test
+    void theBudgetIsTheTimeoutTheCallerAskedFor() {
+        var budget = stubOrchestratorCapturingBudget();
+
+        stub.acquire(minimalRequest().setTimeoutMillis(5_000).build());
+
+        assertThat(budget.getValue().total()).isEqualTo(Duration.ofSeconds(5));
+    }
+
+    @Test
+    void theBudgetNeverExceedsTheConfiguredAcquisitionTimeout() {
+        var budget = stubOrchestratorCapturingBudget();
+
+        stub.acquire(minimalRequest().setTimeoutMillis(600_000).build());
+
+        assertThat(budget.getValue().total()).isEqualTo(Duration.ofSeconds(60));
+    }
+
+    @Test
+    void theBudgetIsTheConfiguredAcquisitionTimeoutWhenTheCallerAsksForNone() {
+        var budget = stubOrchestratorCapturingBudget();
+
+        stub.acquire(minimalRequest().build());
+
+        assertThat(budget.getValue().total()).isEqualTo(Duration.ofSeconds(60));
+    }
+
+    @Test
+    void anAcquisitionThatOutlastsTheBudgetFailsWithATimeoutAndCancelsItsWaiter() {
+        stubParticipantContext();
+        var waiter = new CompletableFuture<AssetAccessResult>();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any())).thenReturn(waiter);
+
+        assertThatThrownBy(() -> stub.acquire(minimalRequest().setTimeoutMillis(200).build()))
+                .isInstanceOfSatisfying(StatusRuntimeException.class, ex -> assertThat(extractErrorCode(ex))
+                        .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + ErrorCode.DSP_ACQUISITION_TIMEOUT.code()));
+
+        assertThat(waiter).isCancelled();
+    }
+
+    @Test
+    void aCallerThatGivesUpCancelsItsWaiter() {
+        stubParticipantContext();
+        var waiter = new CompletableFuture<AssetAccessResult>();
+        when(assetAccessOrchestrator.acquireAssetAccess(any(), any(), any())).thenReturn(waiter);
+
+        assertThatThrownBy(() -> stub.withDeadlineAfter(300, TimeUnit.MILLISECONDS)
+                .acquire(minimalRequest().setTimeoutMillis(60_000).build()))
+                .isInstanceOfSatisfying(StatusRuntimeException.class, ex -> assertThat(ex.getStatus().getCode())
+                        .isEqualTo(Status.Code.DEADLINE_EXCEEDED));
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertThat(waiter).isCancelled());
+    }
+
+    private ArgumentCaptor<CallBudget> stubOrchestratorCapturingBudget() {
+        stubParticipantContext();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NS + "endpoint", "http://provider/api/data")
+                .build();
+        var captor = ArgumentCaptor.forClass(CallBudget.class);
+        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), any(AssetAccessRequest.class),
+                captor.capture()))
+                .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
+        return captor;
+    }
+
     private ArgumentCaptor<AssetAccessRequest> stubOrchestratorCapturingRequest() {
         stubParticipantContext();
         var dataAddress = DataAddress.Builder.newInstance()
@@ -535,7 +609,7 @@ class AssetAccessGrpcServiceTest {
                 .property(EDC_NS + "endpoint", "http://provider/api/data")
                 .build();
         var captor = ArgumentCaptor.forClass(AssetAccessRequest.class);
-        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), captor.capture()))
+        when(assetAccessOrchestrator.acquireAssetAccess(any(ParticipantContext.class), captor.capture(), any()))
                 .thenReturn(CompletableFuture.completedFuture(resultOf(dataAddress)));
         return captor;
     }

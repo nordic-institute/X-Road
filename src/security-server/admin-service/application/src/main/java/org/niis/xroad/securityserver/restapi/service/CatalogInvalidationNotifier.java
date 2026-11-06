@@ -38,14 +38,13 @@ import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Signals the data space control plane to flush its catalog caches on a catalog-affecting serverconf
- * change — local clients, service descriptions, services, endpoints, and access rights — so the
- * change is visible without waiting out the cache's own expiry. Keeps callers free of a direct
- * dependency on dataspace internals.
+ * change — local clients, service descriptions, services, endpoints, access rights, and local group
+ * membership — so the change is visible without waiting out the cache's own expiry. Keeps callers
+ * free of a direct dependency on dataspace internals.
  *
- * <p>Local group membership changes are the one exception: published policy constraints reference a
- * local group's id, not its member list, so adding or removing members never alters a catalog record.
- * Deleting a local group is different — it also removes the group's own access-right grants, which
- * the published policies do read, so that one {@code LocalGroupService} operation signals here.</p>
+ * <p>The flush also clears the control plane's serverconf (membership) cache, which the access-policy
+ * constraint functions read local group members from. It reaches only the control plane instance this
+ * admin service is connected to; other instances pick the change up when their caches expire.</p>
  *
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
  * or failed signal degrades latency, never correctness. A no-op until the instance is ready for data

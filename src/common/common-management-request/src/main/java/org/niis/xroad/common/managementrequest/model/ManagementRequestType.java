@@ -39,6 +39,7 @@ public enum ManagementRequestType {
     AUTH_CERT_DELETION_REQUEST("authCertDeletion"),
     ADDRESS_CHANGE_REQUEST("addressChange"),
     SYSTEM_DID_REGISTRATION_REQUEST("systemDidReg"),
+    MEMBER_DID_REGISTRATION_REQUEST("memberDidReg"),
     CLIENT_DISABLE_REQUEST("clientDisable"),
     CLIENT_ENABLE_REQUEST("clientEnable"),
     CLIENT_RENAME_REQUEST("clientRename"),

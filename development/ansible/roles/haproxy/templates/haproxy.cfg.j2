@@ -1,0 +1,42 @@
+global
+    log /dev/log local0
+    maxconn 4096
+
+defaults
+    mode tcp
+    log global
+    option tcplog
+    timeout connect 5s
+    timeout client {{ haproxy_timeout_client }}
+    timeout server {{ haproxy_timeout_server }}
+    timeout check 3s
+{% for port in lb_tcp_ports %}
+
+frontend fe_{{ port }}
+    bind *:{{ port }}
+    default_backend be_{{ port }}
+
+backend be_{{ port }}
+    balance roundrobin
+{% for backend in groups[haproxy_backend_group] %}
+    server {{ backend }} {{ hostvars[backend].cluster_node_address }}:{{ port }} check init-addr last,libc,none
+{% endfor %}
+{% endfor %}
+{% for service in haproxy_extra_services %}
+
+frontend fe_{{ service.name }}
+    bind *:{{ service.port }}
+    timeout client {{ service.timeout_client | default(haproxy_db_timeout_client) }}
+    option clitcpka
+    default_backend be_{{ service.name }}
+
+backend be_{{ service.name }}
+    timeout server {{ service.timeout_server | default(haproxy_db_timeout_server) }}
+    option srvtcpka
+    option httpchk GET {{ service.health_check_path }}
+    http-check expect status 200
+    default-server inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+{% for backend in groups[service.backend_group] %}
+    server {{ backend }} {{ hostvars[backend].cluster_node_address }}:{{ service.backend_port }} check port {{ service.health_check_port }} init-addr last,libc,none
+{% endfor %}
+{% endfor %}

@@ -50,6 +50,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedConnectorTlsCAInfo;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
+import org.niis.xroad.globalconf.model.GlobalConfInitState;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -63,6 +65,7 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -71,7 +74,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -131,6 +140,46 @@ class XRoadTlsOkHttpClientExtensionTest {
         assertThatThrownBy(() -> get(client, wouldBeAcceptedServer)).isInstanceOf(IOException.class);
     }
 
+    @Test
+    void globalConfThatIsNotInitializedAtBootIsWarnedAboutOnceWithoutAStackTrace() {
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(new GlobalConfInitException(GlobalConfInitState.UNINITIALIZED));
+        stubContextServices();
+        var extension = new XRoadTlsOkHttpClientExtension();
+        extension.okHttpClient(context);
+        extension.shutdown();
+        verify(monitor, times(1)).warning(anyString());
+        verify(monitor, never()).severe(anyString(), any(Throwable[].class));
+    }
+
+    @Test
+    void anyOtherFailureToLoadTheCaListAtBootIsStillSevereWithTheStackTrace() {
+        var failure = new IllegalStateException("malformed globalconf");
+        when(globalConfProvider.getInstanceIdentifier()).thenThrow(failure);
+        stubContextServices();
+        var extension = new XRoadTlsOkHttpClientExtension();
+        extension.okHttpClient(context);
+        extension.shutdown();
+        verify(monitor).severe(anyString(), eq(failure));
+    }
+
+    @Test
+    void aClientBuiltWhileGlobalConfIsUnreadableStartsAcceptingListedCasOnThePendingPollNotTheNormalInterval() throws Exception {
+        var ca = selfSignedCa("Listed After Boot CA");
+        var listedServer = startHttpsServer(issueLeaf(ca, "listed-after-boot"));
+        when(globalConfProvider.getInstanceIdentifier())
+                .thenThrow(new IllegalStateException("globalconf unreachable"))
+                .thenReturn(INSTANCE_IDENTIFIER);
+        when(globalConfProvider.getApprovedConnectorTlsCAs(INSTANCE_IDENTIFIER))
+                .thenReturn(List.of(connectorTlsCaInfo("listed", ca.certificate())));
+        stubContextServices();
+        var extension = new XRoadTlsOkHttpClientExtension(Duration.ofSeconds(1));
+
+        var client = extension.okHttpClient(context);
+
+        assertThatThrownBy(() -> get(client, listedServer)).isInstanceOf(IOException.class);
+        await().atMost(Duration.ofSeconds(10)).ignoreExceptions().untilAsserted(() -> assertThat(get(client, listedServer)).isEqualTo(200));
+        extension.shutdown();
+    }
     /**
      * The exact key and default are a contract other layers rely on without compiling against this class:
      * ansible/compose test-environment overrides (needed because CS-side globalconf registration only takes

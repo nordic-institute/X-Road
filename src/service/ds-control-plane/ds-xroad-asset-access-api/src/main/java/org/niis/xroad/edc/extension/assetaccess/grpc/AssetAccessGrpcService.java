@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
+import io.grpc.Context;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -37,6 +38,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.telemetry.SpanAttributes;
 import org.niis.xroad.common.core.telemetry.XrdSpanAttrs;
+import org.niis.xroad.common.core.time.CallBudget;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
@@ -50,7 +52,9 @@ import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.assetaccess.token.AgreementTokenExpiry;
 import org.niis.xroad.rpc.common.Empty;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -68,6 +72,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
  * gRPC service implementation that delegates to {@link AssetAccessOrchestrator}.
  * Bridges the async {@code CompletableFuture<AssetAccessResult>} to gRPC's
  * sync {@code StreamObserver} pattern using {@link RpcResponseHandler#handleRequest}.
+ *
+ * <p>An acquisition lasts at most the time the caller asked for in the request, and never longer than
+ * {@code acquisitionTimeout}. The waiter on the acquisition is cancelled when that time has run out and when the
+ * gRPC call is cancelled or reaches its own deadline, which is how the caller giving up reaches this service.
  */
 @RequiredArgsConstructor
 class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceImplBase {
@@ -80,6 +88,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     private final ParticipantContextService participantContextService;
     private final RpcResponseHandler responseHandler;
     private final Duration acquisitionTimeout;
+    private final Clock clock;
 
     @Override
     @WithSpan("dsp-asset-acquire")
@@ -118,10 +127,10 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
         requireCandidates(request);
         var participantContext = resolveParticipantContext(request.getParticipantContextId());
         var assetAccessRequest = toAssetAccessRequest(request);
-        var result = awaitResult(assetAccessOrchestrator.acquireAssetAccess(participantContext, assetAccessRequest));
+        var budget = CallBudget.startingNow(clock, budgetOf(request));
+        var result = awaitAcquireResult(participantContext, assetAccessRequest, budget);
         return buildResponse(result);
     }
-
     private static void requireCandidates(AcquireAssetAccessReq request) {
         if (request.getCandidatesCount() == 0) {
             throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
@@ -159,6 +168,14 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
         return result.getContent();
     }
 
+    private Duration budgetOf(AcquireAssetAccessReq request) {
+        if (!request.hasTimeoutMillis() || request.getTimeoutMillis() <= 0) {
+            return acquisitionTimeout;
+        }
+        var requested = Duration.ofMillis(request.getTimeoutMillis());
+        return requested.compareTo(acquisitionTimeout) < 0 ? requested : acquisitionTimeout;
+    }
+
     private static AssetAccessRequest toAssetAccessRequest(AcquireAssetAccessReq request) {
         return new AssetAccessRequest(
                 request.getAssetId(),
@@ -171,6 +188,12 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                 request.hasForcedTargetServerId() ? request.getForcedTargetServerId() : null);
     }
 
+    private AssetAccessResult awaitAcquireResult(ParticipantContext participantContext,
+                                                 AssetAccessRequest assetAccessRequest, CallBudget budget) {
+        var waiter = assetAccessOrchestrator.acquireAssetAccess(participantContext, assetAccessRequest, budget);
+        Context.current().addListener(context -> waiter.cancel(true), Runnable::run);
+        return awaitResult(waiter, budget);
+    }
     private static AcquireAssetAccessResp buildResponse(AssetAccessResult result) {
         var dataAddress = result.dataAddress();
         var properties = dataAddress.getProperties();
@@ -195,10 +218,11 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
         return respBuilder.build();
     }
 
-    private <T> T awaitResult(CompletableFuture<T> future) {
+    private <T> T awaitResult(CompletableFuture<T> future, CallBudget budget) {
         try {
-            return future.get(acquisitionTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            return future.get(budget.remaining().toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
+            future.cancel(true);
             Thread.currentThread().interrupt();
             throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
                     .origin(ErrorOrigin.DATASPACE)
@@ -210,10 +234,17 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
         } catch (CompletionException e) {
             return unwrapCompletionException(e);
         } catch (TimeoutException e) {
+            future.cancel(true);
             throw XrdRuntimeException.systemException(DSP_ACQUISITION_TIMEOUT)
                     .origin(ErrorOrigin.DATASPACE)
                     .cause(e)
-                    .metadataItems(acquisitionTimeout.toMillis())
+                    .metadataItems(budget.total().toMillis())
+                    .build();
+        } catch (CancellationException e) {
+            throw XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
+                    .origin(ErrorOrigin.DATASPACE)
+                    .cause(e)
+                    .details("Asset access acquisition cancelled by the caller")
                     .build();
         }
     }

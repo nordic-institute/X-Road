@@ -1274,10 +1274,9 @@
             "use-tls": "Quando habilitado, o TLS mútuo é usado para toda a comunicação gRPC entre os serviços internos do servidor de segurança.",
             "certificate-provisioning": {
               "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
-              "retry-delay": "Atraso inicial entre tentativas de provisionamento de certificado TLS gRPC (ex.: 5S).",
-              "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa em cada tentativa subsequente de provisionamento de certificado.",
-              "retry-max-attempts": "Número máximo de tentativas de provisionamento de certificado TLS gRPC.",
-              "retry-timeout": "Limite de tempo total para todas as tentativas de provisionamento de certificado TLS gRPC (ex.: 60S)."
+              "wait-duration": "Atraso antes da primeira nova tentativa após uma falha ao carregar o certificado TLS gRPC do repositório de segredos (ex.: 5S).",
+              "exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa após cada falha consecutiva ao carregar o certificado TLS gRPC.",
+              "exponential-max-wait-duration": "Limite superior do atraso de nova tentativa após falhas ao carregar o certificado TLS gRPC (ex.: 5M)."
             },
             "channel": {
               "proxy": {
