@@ -1388,10 +1388,9 @@
             "use-tls": "When enabled, mutual TLS is used for all gRPC communication between the Security Server internal services.",
             "certificate-provisioning": {
               "refresh-interval": "How often services check whether their gRPC TLS certificate needs to be renewed (e.g. 5H).",
-              "retry-delay": "Initial delay between gRPC TLS certificate provisioning retry attempts (e.g. 5S).",
-              "retry-exponential-backoff-multiplier": "Multiplier applied to the retry delay on each subsequent certificate provisioning attempt.",
-              "retry-max-attempts": "Maximum number of gRPC TLS certificate provisioning retry attempts.",
-              "retry-timeout": "Total time limit for all gRPC TLS certificate provisioning retry attempts (e.g. 60S)."
+              "wait-duration": "Delay before the first retry after a failed load of the gRPC TLS certificate from the secret store (e.g. 5S).",
+              "exponential-backoff-multiplier": "Multiplier applied to the retry delay after each consecutive failed load of the gRPC TLS certificate.",
+              "exponential-max-wait-duration": "Upper limit for the retry delay after failed loads of the gRPC TLS certificate (e.g. 5M)."
             },
             "channel": {
               "proxy": {

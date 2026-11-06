@@ -43,6 +43,8 @@ message AcquireAssetAccessReq {
   string counter_party_address = 4;
   string protocol = 5;
   optional string client_id = 6;
+  // Time the control plane may spend on the acquisition; absent means its configured limit.
+  optional int64 timeout_millis = 7;
 }
 
 message AcquireAssetAccessResp {

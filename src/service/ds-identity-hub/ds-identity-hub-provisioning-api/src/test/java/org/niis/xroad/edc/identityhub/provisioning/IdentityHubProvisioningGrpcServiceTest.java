@@ -550,6 +550,7 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(credentialRequestManager).initiateRequest(eq("ctx-1"), eq(REACHABLE_ISSUER_DID), eq("holder-pid-1"), any());
         verify(observer).onNext(any());
         verify(observer, never()).onError(any());
+        await().untilAsserted(() -> verify(didResolverRegistry).resolve(UNREACHABLE_ISSUER_DID));
     }
 
     @Test
@@ -584,6 +585,7 @@ class IdentityHubProvisioningGrpcServiceTest {
         verify(observer).onNext(any());
         verify(observer, never()).onError(any());
 
+        await().untilAsserted(() -> verify(didResolverRegistry).resolve(UNREACHABLE_ISSUER_DID));
         releaseLoser.countDown();
     }
 

@@ -334,7 +334,7 @@ public class LegacyConfigMigrationCLI {
 
     private static final String MESSAGELOG_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD";
     private static final String NO_SCOPE_ARGUMENT =
-            " (rows are keyed by property_key alone; a scope argument is no longer accepted)";
+            " (rows are keyed by (property_key, ha_node_name); a scope argument is no longer accepted)";
 
     private static void migrateMessageLogKeys(String[] args) throws IOException {
         if (args.length != 2) {

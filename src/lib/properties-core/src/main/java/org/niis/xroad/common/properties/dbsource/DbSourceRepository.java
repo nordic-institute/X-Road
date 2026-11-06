@@ -39,33 +39,51 @@ import java.util.Map;
 public class DbSourceRepository {
     private final DataSource dataSource;
 
+    private final String nodeName;
+
     private String selectAllStatement;
 
     public DbSourceRepository(DataSource dataSource, DbSourceConfig config) {
         this.dataSource = dataSource;
+        this.nodeName = config.getNodeName();
         prepareQueries(config);
     }
 
     /**
-     * Loads every stored override. Fails fast on any SQL error: the DSL layer is the only path stored
-     * configuration reaches a service, so silently starting on packaged defaults must never happen —
-     * a connection failure already aborts startup, and a post-connect query failure aborts it the same way.
+     * Loads the shared overrides and, when a node name is configured, the overrides stored for that node;
+     * a node value wins over the shared value of the same key. Fails fast on any SQL error: the DSL layer is
+     * the only path stored configuration reaches a service, so silently starting on packaged defaults must
+     * never happen — a connection failure already aborts startup, and a post-connect query failure aborts it
+     * the same way.
      */
     public Map<String, String> getProperties() {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(selectAllStatement);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            Map<String, String> properties = new HashMap<>();
-            while (resultSet.next()) {
-                properties.put(resultSet.getString(1), resultSet.getString(2));
+             PreparedStatement preparedStatement = connection.prepareStatement(selectAllStatement)) {
+            if (nodeName != null) {
+                preparedStatement.setString(1, nodeName);
             }
-            return properties;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return merge(resultSet);
+            }
         } catch (SQLException e) {
             throw new IllegalStateException("db-config-source: could not load configuration overrides", e);
         }
     }
 
+    private static Map<String, String> merge(ResultSet resultSet) throws SQLException {
+        Map<String, String> shared = new HashMap<>();
+        Map<String, String> node = new HashMap<>();
+        while (resultSet.next()) {
+            var target = resultSet.getString("ha_node_name") == null ? shared : node;
+            target.put(resultSet.getString("property_key"), resultSet.getString("property_value"));
+        }
+        shared.putAll(node);
+        return shared;
+    }
+
     private void prepareQueries(DbSourceConfig config) {
-        selectAllStatement = "SELECT c.property_key, c.property_value FROM %s c".formatted(config.getTableName());
+        var filter = nodeName == null ? "c.ha_node_name IS NULL" : "c.ha_node_name IS NULL OR c.ha_node_name = ?";
+        selectAllStatement = "SELECT c.property_key, c.property_value, c.ha_node_name FROM %s c WHERE %s"
+                .formatted(config.getTableName(), filter);
     }
 }

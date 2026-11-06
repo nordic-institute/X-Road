@@ -54,6 +54,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.listener.ConsumerDataFlowCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
@@ -69,6 +70,8 @@ import java.time.Duration;
 public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Asset Access Api Extension";
+
+    private static final int AGREEMENT_REUSE_NOTE_CAPACITY = 10_000;
 
     @Inject
     private CatalogService catalogService;
@@ -118,13 +121,18 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     @Inject
     private DataFlowController dataFlowController;
 
+    @Setting(key = "xroad.asset-access.catalog.timeout-seconds",
+            description = "Per-stage catalog fetch limit in seconds; a stage never outlasts the time left of the call",
+            defaultValue = "20")
+    private long catalogTimeoutSeconds;
+
     @Setting(key = "xroad.asset-access.negotiation.timeout-seconds",
-            description = "Per-stage contract negotiation deadline in seconds",
+            description = "Per-stage contract negotiation limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long negotiationTimeoutSeconds;
 
     @Setting(key = "xroad.asset-access.transfer.timeout-seconds",
-            description = "Per-stage transfer process deadline in seconds",
+            description = "Per-stage transfer process limit in seconds; a stage never outlasts the time left of the call",
             defaultValue = "60")
     private long transferTimeoutSeconds;
 
@@ -157,6 +165,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     private AssetAccessCompletionPoller completionPoller;
     private ExpiredTransferSweeper expiredTransferSweeper;
     private ReusableAgreementLookup reusableAgreementLookup;
+    private AgreementReuseNote agreementReuseNote;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
 
     @Override
@@ -190,6 +199,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                 Duration.ofSeconds(expiredTransferSweepUntokenedLifetimeSeconds));
 
         reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
+        agreementReuseNote = new AgreementReuseNote(AGREEMENT_REUSE_NOTE_CAPACITY);
 
         transferProcessObservable.registerListener(new ConsumerDataFlowCompletionListener(dataFlowController, monitor));
 
@@ -221,6 +231,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
             assetAccessOrchestrator = new AssetAccessOrchestrator(
                     new AssetAccessStateStore(),
                     reusableAgreementLookup,
+                    agreementReuseNote,
                     catalogService,
                     contractNegotiationService,
                     transferProcessService,
@@ -228,6 +239,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     jsonLd,
                     assetAccessTransformerRegistry,
                     monitor,
+                    Duration.ofSeconds(catalogTimeoutSeconds),
                     Duration.ofSeconds(negotiationTimeoutSeconds),
                     Duration.ofSeconds(transferTimeoutSeconds)
             );

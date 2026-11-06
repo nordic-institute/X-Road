@@ -108,9 +108,7 @@ public class DataspaceApiController implements DataspaceApi {
         dto.setKind(DataspaceParticipantContextStatusDto.KindEnum.valueOf(ctx.kind().name()));
         dto.setContextCreated(ctx.contextCreated());
         dto.setCredentialStatus(DataspaceParticipantContextStatusDto.CredentialStatusEnum.valueOf(ctx.credentialStatus().name()));
-        if (ctx.identityStatus() != null) {
-            dto.setIdentityStatus(DataspaceParticipantContextStatusDto.IdentityStatusEnum.valueOf(ctx.identityStatus().name()));
-        }
+        dto.setIdentityStatus(DataspaceParticipantContextStatusDto.IdentityStatusEnum.valueOf(ctx.identityStatus().name()));
         return dto;
     }
 }

@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACCESS_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
@@ -46,7 +47,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAI
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVIDER_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
@@ -66,6 +66,7 @@ class ClientFacingErrorPolicyTest {
                 Arguments.of(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
                 Arguments.of(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
                 Arguments.of(DSP_ACQUISITION_FAILED, IO_ERROR),
+                Arguments.of(DSP_ACCESS_REFUSED, ACCESS_DENIED),
                 Arguments.of(DSP_PROVIDER_NOT_FOUND, UNKNOWN_MEMBER),
                 Arguments.of(DSP_DATASET_NOT_FOUND, ACCESS_DENIED),
                 Arguments.of(DSP_OFFERS_NOT_FOUND, ACCESS_DENIED),
@@ -75,7 +76,6 @@ class ClientFacingErrorPolicyTest {
                 Arguments.of(DSP_TRANSFER_FAILED, SERVICE_FAILED),
                 Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR),
                 Arguments.of(DSP_PROVISIONING_FAILED, INTERNAL_ERROR),
-                Arguments.of(DSP_PARTICIPANT_IDENTIFIER_MISMATCH, INTERNAL_ERROR),
                 Arguments.of(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED, INTERNAL_ERROR),
                 Arguments.of(DSP_PARTICIPANT_DID_DRIFT, INTERNAL_ERROR)
         );

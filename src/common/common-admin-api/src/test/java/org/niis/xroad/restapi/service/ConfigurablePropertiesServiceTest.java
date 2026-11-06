@@ -173,6 +173,22 @@ class ConfigurablePropertiesServiceTest {
     }
 
     @Test
+    void getConfigurationPropertiesUsesTheSharedRowWhenNodeRowsAreReturnedToo() {
+        var nodeRow = new ConfigurationPropertyEntity();
+        nodeRow.setPropertyKey(PROPERTY_NAME);
+        nodeRow.setPropertyValue(PROPERTY_VALUE_2);
+        nodeRow.setHaNodeName("node_1");
+        var sharedRow = new ConfigurationPropertyEntity();
+        sharedRow.setPropertyKey(PROPERTY_NAME);
+        sharedRow.setPropertyValue(PROPERTY_VALUE);
+        when(repository.findAll()).thenReturn(List.of(nodeRow, sharedRow));
+
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+
+        assertEquals(PROPERTY_VALUE, findProperty(systemParameters, PROPERTY_NAME).getCurrentValue());
+    }
+
+    @Test
     void getConfigurationPropertiesIgnoresStoredRowsForOtherKeys() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(CATALOGUE_PROPERTY_NAME);

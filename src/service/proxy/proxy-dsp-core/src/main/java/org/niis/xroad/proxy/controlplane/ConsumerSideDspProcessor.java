@@ -30,14 +30,16 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.time.CallBudget;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
@@ -45,13 +47,17 @@ import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVIDER_NOT_FOUND;
@@ -84,16 +90,46 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  * them tokenless over the X-Road 7 path. The set is the union of the SOAP and REST handlers' codes; a
  * code the handler for that transport does not serve falls to the provider's access-checked default handler.
  *
+ * <p>{@link #failOver} serves a data call that could not connect to its cached provider server: it drops that
+ * server's cached asset access and acquires from the remaining candidates, never from the failed one. It yields
+ * nothing when no other candidate is left or none of them provides access. Candidate failure during acquisition
+ * itself needs no such drop, as an acquisition that failed cached nothing.
+ *
+ * <p>One acquisition runs under one time limit, {@link AssetAccessClientProperties#acquisitionDeadline()}, that all
+ * candidates share: each candidate gets the lesser of the limit and an even share of the time left among the
+ * candidates not yet tried, and no candidate is tried once the time has run out. The control plane is told its share
+ * and the proxy waits a margin longer, so a call that loads asset access itself never lasts past the limit plus that
+ * margin; a call that finds the same asset access already being loaded waits for that load instead. A failover
+ * acquisition is a new acquisition with a limit of its own: the data call that preceded it is not part of the
+ * acquisition's time, and sharing the first limit would leave a failover after a slow connect attempt without time.
+ *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
  * {@link ClientFacingErrorPolicy#sanitizeForConsumer(XrdRuntimeException)}.
  */
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
+    private final AssetAccessClientProperties clientProperties;
+    private final Clock clock;
+
+    @Inject
+    public ConsumerSideDspProcessor(AssetAccessAcquisitionService assetAccessAcquisitionService,
+                                    ProviderSecurityServerResolver providerSecurityServerResolver,
+                                    AssetAccessClientProperties clientProperties) {
+        this(assetAccessAcquisitionService, providerSecurityServerResolver, clientProperties, Clock.systemUTC());
+    }
+
+    ConsumerSideDspProcessor(AssetAccessAcquisitionService assetAccessAcquisitionService,
+                             ProviderSecurityServerResolver providerSecurityServerResolver,
+                             AssetAccessClientProperties clientProperties, Clock clock) {
+        this.assetAccessAcquisitionService = assetAccessAcquisitionService;
+        this.providerSecurityServerResolver = providerSecurityServerResolver;
+        this.clientProperties = clientProperties;
+        this.clock = clock;
+    }
 
     @Override
     @WithSpan("dsp-execute")
@@ -102,7 +138,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         log.trace("execute({})", request);
 
         try {
-            return acquireAssetAccessForService(request, request.serviceId());
+            return acquireAssetAccessForService(request, request.serviceId(), null);
         } catch (XrdRuntimeException ex) {
             throw ClientFacingErrorPolicy.sanitizeForConsumer(ex);
         }
@@ -121,42 +157,89 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         assetAccessAcquisitionService.invalidateAssetAccess(
                 ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId()),
                 request.serviceId().asEncodedId(),
+                null,
                 request.sender());
     }
 
-    private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
+    @Override
+    public Optional<AssetAccessResponse> failOver(DspRequest request, AssetAccessResponse failed) {
+        if (failed.counterPartyId() == null) {
+            return Optional.empty();
+        }
+        assetAccessAcquisitionService.invalidateAssetAccess(
+                ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId()),
+                request.serviceId().asEncodedId(),
+                failed.counterPartyId(),
+                request.sender());
+        try {
+            return Optional.of(acquireAssetAccessForService(request, request.serviceId(), failed.counterPartyId()));
+        } catch (RuntimeException ex) {
+            log.warn("No other provider server could take over the data call to {}", failed.endpoint(), ex);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Acquires asset access from the first candidate that yields it, never from the candidate whose
+     * counter-party id is {@code excludedCounterPartyId}.
+     */
+    private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId,
+                                                             @Nullable String excludedCounterPartyId) {
         var assetId = serviceId.asEncodedId();
         var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
+        candidates.removeIf(candidate -> isExcluded(candidate, requestTargetsSystemCtx, serviceId, excludedCounterPartyId));
         Collections.shuffle(candidates);
         log.debug("processing DSP request for service {}, asset {}, management={}. Got {} possible targets",
                 serviceId, assetId, request.managementSubsystem(), candidates.size());
 
-        if (candidates.isEmpty()) {
-            throw XrdRuntimeException.systemException(DSP_PROVIDER_NOT_FOUND)
-                    .origin(DATASPACE)
-                    .details("No candidate security servers found for service %s".formatted(serviceId))
-                    .build();
-        }
-
         var participantContextId = ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
+        var deadline = clientProperties.acquisitionDeadline();
+        var budget = CallBudget.startingNow(clock, deadline);
 
         var remoteFailures = new ArrayList<RuntimeException>();
-        for (var candidate : candidates) {
+        for (int index = 0; index < candidates.size(); index++) {
+            if (budget.isExhausted()) {
+                throw XrdRuntimeException.systemException(DSP_ACQUISITION_TIMEOUT)
+                        .origin(DATASPACE)
+                        .cause(remoteFailures.isEmpty() ? null : remoteFailures.getLast())
+                        .metadataItems(deadline.toMillis())
+                        .build();
+            }
+            var candidate = candidates.get(index);
             try {
                 var target = targetFor(requestTargetsSystemCtx, serviceId, candidate.hostAddress());
                 return assetAccessAcquisitionService.acquireAssetAccess(
                         participantContextId, assetId, target.counterPartyId().toString(), target.counterPartyAddress(),
-                        request.sender());
+                        request.sender(), budget.share(deadline, candidates.size() - index));
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
                 remoteFailures.add(ex);
             }
         }
-        throw buildFinalException(remoteFailures, serviceId, candidates.size());
+        if (remoteFailures.isEmpty()) {
+            throw XrdRuntimeException.systemException(DSP_PROVIDER_NOT_FOUND)
+                    .origin(DATASPACE)
+                    .details("No candidate security servers found for service %s".formatted(serviceId))
+                    .build();
+        }
+        throw buildFinalException(remoteFailures, serviceId);
+    }
+
+    private boolean isExcluded(ProviderAddress candidate, boolean requestTargetsSystemCtx, ServiceId serviceId,
+                               @Nullable String excludedCounterPartyId) {
+        if (excludedCounterPartyId == null) {
+            return false;
+        }
+        try {
+            return targetFor(requestTargetsSystemCtx, serviceId, candidate.hostAddress())
+                    .counterPartyId().toString().equals(excludedCounterPartyId);
+        } catch (RuntimeException ex) {
+            return false;
+        }
     }
 
     /**
@@ -196,8 +279,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 && ManagementServiceCodes.DSP_NEGOTIATED.contains(serviceId.getServiceCode());
     }
 
-    private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
-                                                 ServiceId serviceId, int candidateCount) {
+    private RuntimeException buildFinalException(List<RuntimeException> remoteFailures, ServiceId serviceId) {
         if (remoteFailures.stream().allMatch(XrdRuntimeException.class::isInstance)) {
             var xrdCodes = remoteFailures.stream()
                     .map(XrdRuntimeException.class::cast)
@@ -219,7 +301,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 .origin(DATASPACE)
                 .cause(remoteFailures.getLast())
                 .details("All %d candidate security servers failed to acquire asset access for service %s"
-                        .formatted(candidateCount, serviceId))
+                        .formatted(remoteFailures.size(), serviceId))
                 .build();
     }
 

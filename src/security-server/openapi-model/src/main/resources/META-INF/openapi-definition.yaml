@@ -8803,6 +8803,7 @@ components:
         - kind
         - context_created
         - credential_status
+        - identity_status
       properties:
         participant_id:
           type: string
@@ -8832,12 +8833,14 @@ components:
         identity_status:
           type: string
           readOnly: true
-          description: bound-identity verification state, present only for MEMBER contexts
+          description: >-
+            bound-identity verification state of the participant context, for MEMBER and SYSTEM contexts alike;
+            REJECTED means the registered address cannot carry a DID, so nothing is bound
           enum:
             - OK
-            - MISMATCH
             - VERSION_UNSUPPORTED
             - UNBOUND
+            - REJECTED
             - DRIFTED
             - UNKNOWN
     AgreementTokenKeyStatus:

@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -43,9 +44,22 @@ import java.util.function.Consumer;
  * cycle tries again — the schedule itself is never cancelled, even by an exception the loader or the
  * apply callback did not anticipate.
  *
+ * <p>A reloader may also start with no material at all, for material that is provisioned after the process has
+ * started. It then polls at the pending interval, one attempt per cycle, and the first successful load fires
+ * the change callback; from then on it polls at the normal check interval. While pending, a load failure is
+ * logged when its message differs from the previous failure's, with a periodic progress line while the same
+ * message persists. Material that loads but cannot be applied by the change callback stays pending and is retried
+ * every cycle, logged by the same rule.
+ *
  * @param <T> the loaded material's runtime representation (e.g. a {@link java.security.KeyStore})
  */
 public final class PeriodicMaterialReloader<T> implements AutoCloseable {
+
+    /** How often a reloader started without material polls for it. */
+    public static final Duration DEFAULT_PENDING_INTERVAL = Duration.ofSeconds(5);
+
+    /** How many pending polls pass between progress lines, about 5 minutes at {@link #DEFAULT_PENDING_INTERVAL}. */
+    public static final int PENDING_PROGRESS_EVERY_CYCLES = 60;
 
     private final String name;
     private final MaterialLoader<T> loader;
@@ -53,18 +67,25 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
     private final Monitor monitor;
     private final int maxAttemptsPerCycle;
     private final Duration retryDelay;
+    private final Duration checkInterval;
+    private final Duration pendingInterval;
     private final ScheduledExecutorService executor;
 
     private volatile String appliedFingerprint;
+    private int pendingCycles;
+    private String lastPendingFailure;
 
     private PeriodicMaterialReloader(String name, MaterialLoader<T> loader, Consumer<T> onChange, Monitor monitor,
-                                      int maxAttemptsPerCycle, Duration retryDelay, String initialFingerprint) {
+                                      int maxAttemptsPerCycle, Duration retryDelay, Duration checkInterval,
+                                      Duration pendingInterval, String initialFingerprint) {
         this.name = name;
         this.loader = loader;
         this.onChange = onChange;
         this.monitor = monitor;
         this.maxAttemptsPerCycle = maxAttemptsPerCycle;
         this.retryDelay = retryDelay;
+        this.checkInterval = checkInterval;
+        this.pendingInterval = pendingInterval;
         this.appliedFingerprint = initialFingerprint;
         this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
             var thread = new Thread(runnable, "xrd-edc-reload-" + name);
@@ -82,9 +103,27 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
                                                             int maxAttemptsPerCycle, Duration retryDelay,
                                                             MaterialLoader<T> loader, Consumer<T> onChange, Monitor monitor) {
         var reloader = new PeriodicMaterialReloader<>(name, loader, onChange, monitor, maxAttemptsPerCycle, retryDelay,
-                initial.fingerprint());
-        reloader.executor.scheduleWithFixedDelay(reloader::runCycleSafely,
-                checkInterval.toMillis(), checkInterval.toMillis(), TimeUnit.MILLISECONDS);
+                checkInterval, checkInterval, initial.fingerprint());
+        reloader.scheduleNext(checkInterval);
+        return reloader;
+    }
+
+    /**
+     * Starts polling {@code loader} every {@code pendingInterval} for material that does not exist yet. The first
+     * successful load calls {@code onChange} once; afterwards the reloader polls every {@code checkInterval} and
+     * behaves like one started with {@link #schedule}. A caller that already logged the failure of its own
+     * boot-time load passes it as {@code reportedFailure}: a pending load failing with that message is not logged
+     * again; {@code null} when there is none.
+     */
+    public static <T> PeriodicMaterialReloader<T> scheduleUntilFirstLoad(String name, Duration pendingInterval,
+                                                                         Duration checkInterval, int maxAttemptsPerCycle,
+                                                                         Duration retryDelay, MaterialLoader<T> loader,
+                                                                         Consumer<T> onChange, Monitor monitor,
+                                                                         String reportedFailure) {
+        var reloader = new PeriodicMaterialReloader<>(name, loader, onChange, monitor, maxAttemptsPerCycle, retryDelay,
+                checkInterval, pendingInterval, null);
+        reloader.lastPendingFailure = reportedFailure;
+        reloader.scheduleNext(pendingInterval);
         return reloader;
     }
 
@@ -93,17 +132,30 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
         executor.shutdownNow();
     }
 
+    private void scheduleNext(Duration delay) {
+        try {
+            executor.schedule(this::runCycleSafely, delay.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException _) {
+            monitor.debug("%s: reloader closed, no further cycles".formatted(name));
+        }
+    }
+
     private void runCycleSafely() {
         try {
             runCycle();
         } catch (Throwable t) {
-            // A scheduled task that escapes with an exception is silently cancelled by
-            // ScheduledExecutorService — swallowing here is what keeps future cycles running.
+            // An exception that escapes the cycle must not stop the next one from being scheduled.
             monitor.severe("%s: reload cycle failed unexpectedly; the schedule continues".formatted(name), t);
+        } finally {
+            scheduleNext(appliedFingerprint == null ? pendingInterval : checkInterval);
         }
     }
 
     private void runCycle() {
+        if (appliedFingerprint == null) {
+            runPendingCycle();
+            return;
+        }
         for (var attempt = 1; attempt <= maxAttemptsPerCycle; attempt++) {
             try {
                 var loaded = loader.load();
@@ -124,10 +176,39 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
                 .formatted(name, maxAttemptsPerCycle));
     }
 
+    private void runPendingCycle() {
+        pendingCycles++;
+        Loaded<T> loaded;
+        try {
+            loaded = loader.load();
+        } catch (Exception e) {
+            logPendingFailure("material not available yet", e);
+            return;
+        }
+        try {
+            onChange.accept(loaded.material());
+        } catch (Exception e) {
+            logPendingFailure("material could not be applied yet", e);
+            return;
+        }
+        appliedFingerprint = loaded.fingerprint();
+        monitor.info("%s: material available after %d polls".formatted(name, pendingCycles));
+    }
+
+    private void logPendingFailure(String phrase, Exception failure) {
+        var message = String.valueOf(failure.getMessage());
+        if (!message.equals(lastPendingFailure)) {
+            monitor.warning("%s: %s: %s".formatted(name, phrase, message));
+        } else if (pendingCycles % PENDING_PROGRESS_EVERY_CYCLES == 0) {
+            monitor.info("%s: still waiting for material after %d polls: %s".formatted(name, pendingCycles, message));
+        }
+        lastPendingFailure = message;
+    }
+
     private static void sleepUninterruptibly(Duration duration) {
         try {
             Thread.sleep(duration.toMillis());
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }

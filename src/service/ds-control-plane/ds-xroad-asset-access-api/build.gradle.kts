@@ -19,6 +19,7 @@ dependencies {
   implementation(libs.edc.lib.dsp)
   implementation(libs.edc.lib.dsp.catalog.transform.v2025)
 
+  testImplementation(project(":common:common-test"))
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)
   testImplementation(libs.junit.jupiter.params)
@@ -30,6 +31,7 @@ dependencies {
   testImplementation(libs.edc.sql.contract.negotiation)
   testImplementation(libs.edc.sql.transfer.process)
   testImplementation(libs.edc.core.controlplane.transfer)
+  testImplementation(libs.edc.core.controlplane.services)
   testImplementation(libs.edc.spi.core)
   testImplementation(libs.edc.transaction.local)
   testImplementation(libs.edc.sql.lease)

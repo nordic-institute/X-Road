@@ -41,6 +41,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class XRoadClientIdConstraintFunctionTest {
@@ -93,6 +96,26 @@ class XRoadClientIdConstraintFunctionTest {
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
+    }
+
+    @Test
+    void evaluateMalformedClientIdReturnsFalseAndLogs() {
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, "not-an-encoded-client-id", permission, context);
+
+        assertThat(result).isFalse();
+        verify(monitor).warning(anyString(), any(Throwable.class));
+    }
+
+    @Test
+    void evaluateNullRightValueReturnsFalseAndLogs() {
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, null, permission, context);
+
+        assertThat(result).isFalse();
+        verify(monitor).warning(anyString(), any(Throwable.class));
     }
 
     private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {

@@ -43,6 +43,9 @@ import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 /**
  * gRPC-based implementation of {@link AssetAccessAcquisitionService} that calls
  * the ds-control-plane AssetAccessService to acquire asset access responses.
@@ -102,7 +105,8 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
 
     @Override
     public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                                  String counterPartyAddress, @Nullable ClientId consumerClientId) {
+                                                  String counterPartyAddress, @Nullable ClientId consumerClientId,
+                                                  Duration timeout) {
         var cacheKey = new AssetAccessCache.CacheKey(
                 participantContextId,
                 assetId,
@@ -111,33 +115,40 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 clientProperties.protocol(),
                 consumerClientId != null ? consumerClientId.asEncodedId() : null);
         if (cache == null) {
-            return loadAssetAccess(cacheKey).response();
+            return loadAssetAccess(cacheKey, timeout).response();
         }
-        return cache.get(cacheKey, this::loadAssetAccess).response();
+        return cache.get(cacheKey, key -> loadAssetAccess(key, timeout)).response();
     }
 
     @Override
-    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
+    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable String counterPartyId,
+                                      @Nullable ClientId consumerClientId) {
         if (cache != null) {
-            cache.invalidate(participantContextId, assetId, consumerClientId != null ? consumerClientId.asEncodedId() : null);
+            cache.invalidate(participantContextId, assetId, counterPartyId,
+                    consumerClientId != null ? consumerClientId.asEncodedId() : null);
         }
     }
 
-    private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey) {
+    private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey, Duration timeout) {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())
                 .setAssetId(cacheKey.assetId())
                 .setCounterPartyId(cacheKey.counterPartyId())
                 .setCounterPartyAddress(cacheKey.counterPartyAddress())
-                .setProtocol(cacheKey.protocol());
+                .setProtocol(cacheKey.protocol())
+                .setTimeoutMillis(timeout.toMillis());
         if (cacheKey.consumerClientId() != null) {
             request.setClientId(cacheKey.consumerClientId());
         }
-        var response = exec(() -> accessServiceBlockingStub.acquire(request.build()));
+        var waitMillis = timeout.plus(clientProperties.acquisitionDeadlineMargin()).toMillis();
+        var response = exec(() -> accessServiceBlockingStub
+                .withDeadlineAfter(waitMillis, TimeUnit.MILLISECONDS)
+                .acquire(request.build()));
         long expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
         var assetAccessResponse = new AssetAccessResponse(
                 response.getEndpoint(),
-                response.hasAuthorization() ? response.getAuthorization() : null);
+                response.hasAuthorization() ? response.getAuthorization() : null,
+                cacheKey.counterPartyId());
         return new AssetAccessCache.CachedEntry(assetAccessResponse, expiresAt);
     }
 }

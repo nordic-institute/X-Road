@@ -63,6 +63,10 @@ public class XRoadClientIdConstraintFunction<C extends ParticipantAgentPolicyCon
                             yield false;
                         }
                     }).orElse(false);
+        } catch (RuntimeException e) {
+            monitor.warning("XRoadClientIdConstraintFunction failed for value '" + rightValue
+                    + "', treating it as no match", e);
+            return false;
         } finally {
              monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
         }

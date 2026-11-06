@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -143,6 +144,28 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
         assertThat(result).isFalse();
         assertThat(context.getProblems()).isNotEmpty();
+    }
+
+    @Test
+    void evaluateFailingLookupReturnsFalseAndLogs() {
+        when(globalConfProvider.isMemberInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class)))
+                .thenThrow(new IllegalStateException("lookup failed"));
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, "CS:myGlobalGroup", permission, context);
+
+        assertThat(result).isFalse();
+        verify(monitor).warning(anyString(), any(Throwable.class));
+    }
+
+    @Test
+    void evaluateMalformedGlobalGroupReturnsFalseAndLogs() {
+        var context = contextWithMember("CS", "ORG", "1234");
+
+        boolean result = function.evaluate(Operator.EQ, "no-separator", permission, context);
+
+        assertThat(result).isFalse();
+        verify(monitor).warning(anyString(), any(Throwable.class));
     }
 
     private static Operator operatorFromWire(String wireValue) {

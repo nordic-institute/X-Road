@@ -24,9 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.quarkus;
 
-import org.niis.xroad.common.rpc.RpcProperties;
+package org.niis.xroad.common.properties.config.keys;
 
-public interface QuarkusRpcProperties extends RpcProperties {
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class AdminServiceConfigKeysTest {
+
+    @Test
+    void provisioningBatchSizeRejectsZeroAndNegativeAndDefaultsToOneHundred() {
+        var key = AdminServiceConfigKeys.DATASPACE_PROVISIONING_BATCH_SIZE;
+
+        assertThat(key.validate(0).valid()).isFalse();
+        assertThat(key.validate(-1).valid()).isFalse();
+        assertThat(key.validate(1).valid()).isTrue();
+        assertThat(key.convertedDefaultValue()).isEqualTo(100);
+    }
+
+    @Test
+    void provisioningBatchSizeIsNotPublishedToTheFramework() {
+        assertThat(AdminServiceConfigKeys.DATASPACE_PROVISIONING_BATCH_SIZE.publishedToFramework()).isFalse();
+    }
 }

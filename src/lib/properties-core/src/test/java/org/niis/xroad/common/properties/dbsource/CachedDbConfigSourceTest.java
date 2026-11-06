@@ -61,20 +61,20 @@ public class CachedDbConfigSourceTest {
         try (var connection = ds.getConnection();
              var statement = connection.createStatement()) {
 
-            // key-only schema: property_key is globally unique, no scope column
             statement.execute(
                     "CREATE TABLE config ( "
                             + " id bigint PRIMARY KEY, "
                             + " property_key VARCHAR(512) NOT NULL UNIQUE, "
                             + " property_value VARCHAR(512) NOT NULL, "
+                            + " ha_node_name VARCHAR(255), "
                             + " created_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, "
                             + " updated_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL) "
             );
 
-            statement.execute("insert into config values (1, 'test.key', 'a value', now(), now())");
-            statement.execute("insert into config values (2, 'test.signer.key', 'signer value', now(), now())");
-            statement.execute("insert into config values (3, 'test.app.key', 'app value', now(), now())");
-            statement.execute("insert into config values (4, 'global.key', 'global value', now(), now())");
+            statement.execute("insert into config values (1, 'test.key', 'a value', null, now(), now())");
+            statement.execute("insert into config values (2, 'test.signer.key', 'signer value', null, now(), now())");
+            statement.execute("insert into config values (3, 'test.app.key', 'app value', null, now(), now())");
+            statement.execute("insert into config values (4, 'global.key', 'global value', null, now(), now())");
         }
 
     }
