@@ -110,7 +110,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         var upsert = """
                 INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
                 VALUES ('%s', 'true', now(), now())
-                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now()
+                ON CONFLICT (property_key, ha_node_name) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now()
                 """.formatted(ProxyConfigKeys.LEGACY_PROTOCOL_DISABLED.key());
         var stored = stack.execInContainer(SsStackSetup.DB_SERVERCONF, "psql", "-U", "postgres", "-d", "serverconf",
                 "-v", "ON_ERROR_STOP=1", "-c", upsert);

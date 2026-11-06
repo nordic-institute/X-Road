@@ -49,9 +49,9 @@ services:
       db-serverconf-config-seed:
         condition: service_completed_successfully
 
-  # Single place for all configuration_properties seeds. Rows are keyed by property_key alone (the consuming
-  # app's quarkus/spring.application.name, or NULL for global); apps resolve these via the DB-override
-  # layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml/env.
+  # Single place for all configuration_properties seeds. Rows are keyed by (property_key, ha_node_name) and
+  # are seeded shared (NULL node); apps resolve these via the DB-override layer
+  # (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml/env.
   db-serverconf-config-seed:
     image: ${POSTGRES_DEV_IMG:-postgres-dev}
     pull_policy: always

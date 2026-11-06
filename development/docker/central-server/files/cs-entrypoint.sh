@@ -41,7 +41,7 @@ seed_configuration_properties() {
 SET ROLE centerui;
 INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
 VALUES $rows
-ON CONFLICT (property_key) DO UPDATE
+ON CONFLICT (property_key, ha_node_name) DO UPDATE
   SET property_value = EXCLUDED.property_value, updated_at = now();
 EOF
   pg_ctlcluster 18 main stop
@@ -82,7 +82,7 @@ fi
 pg_isready -q -t 2 || pg_ctlcluster 18 main start
 wait_db
 TOKEN_ROWS=$(su -c "psql -qtA centerui_production -c \"SET ROLE centerui; SELECT count(*) FROM configuration_properties \
-  WHERE property_key IN ('xroad.registration-service.api-token', 'xroad.management-service.api-token');\"" postgres)
+  WHERE ha_node_name IS NULL AND property_key IN ('xroad.registration-service.api-token', 'xroad.management-service.api-token');\"" postgres)
 if [ "$TOKEN_ROWS" != "2" ]; then
   log "Creating API token for registration/management service..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
@@ -102,7 +102,7 @@ END
 INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
 ('xroad.registration-service.api-token', '$TOKEN', now(), now()),
 ('xroad.management-service.api-token', '$TOKEN', now(), now())
-ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
+ON CONFLICT (property_key, ha_node_name) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
 EOF
 fi
 pg_ctlcluster 18 main stop
