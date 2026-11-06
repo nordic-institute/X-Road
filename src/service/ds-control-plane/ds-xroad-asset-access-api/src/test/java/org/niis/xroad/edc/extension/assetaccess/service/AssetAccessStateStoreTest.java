@@ -28,9 +28,9 @@
 package org.niis.xroad.edc.extension.assetaccess.service;
 
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ class AssetAccessStateStoreTest {
     @Test
     void loadOrStartInFlightSharesTheWorkOfCallersWithTheSameKey() throws Exception {
         var supplierCallCount = new AtomicInteger(0);
-        var work = new CompletableFuture<ServiceResult<DataAddress>>();
+        var work = new CompletableFuture<AssetAccessResult>();
         var address = DataAddress.Builder.newInstance().type("HttpData").build();
 
         var future1 = store.loadOrStartInFlight("k", scope -> {
@@ -71,19 +71,19 @@ class AssetAccessStateStoreTest {
 
         assertThat(future1).isNotSameAs(future2);
         assertThat(supplierCallCount.get()).isEqualTo(1);
-        work.complete(ServiceResult.success(address));
-        assertThat(future1.get(2, TimeUnit.SECONDS).getContent()).isSameAs(address);
-        assertThat(future2.get(2, TimeUnit.SECONDS).getContent()).isSameAs(address);
+        work.complete(resultOf(address));
+        assertThat(future1.get(2, TimeUnit.SECONDS).dataAddress()).isSameAs(address);
+        assertThat(future2.get(2, TimeUnit.SECONDS).dataAddress()).isSameAs(address);
     }
 
     @Test
     void loadOrStartInFlightRemovesEntryOnCompletion() throws Exception {
-        var inner = new CompletableFuture<ServiceResult<DataAddress>>();
+        var inner = new CompletableFuture<AssetAccessResult>();
         var future = store.loadOrStartInFlight("k", scope -> inner);
 
         assertThat(future).isNotNull();
 
-        inner.complete(ServiceResult.success(DataAddress.Builder.newInstance().type("HttpData").build()));
+        inner.complete(resultOf(DataAddress.Builder.newInstance().type("HttpData").build()));
         future.get();
 
         // After completion, a new call with the same key should invoke the supplier again
@@ -97,7 +97,7 @@ class AssetAccessStateStoreTest {
 
     @Test
     void loadOrStartInFlightDoesNotCacheFutureAlreadyCompletedByItsSupplier() {
-        var failed = CompletableFuture.<ServiceResult<DataAddress>>failedFuture(new RuntimeException("boom"));
+        var failed = CompletableFuture.<AssetAccessResult>failedFuture(new RuntimeException("boom"));
         var first = store.loadOrStartInFlight("k", scope -> failed);
         assertThat(first).isCompletedExceptionally();
 
@@ -165,19 +165,19 @@ class AssetAccessStateStoreTest {
             var taskA = executor.submit(() -> store.loadOrStartInFlight("key-a", scope -> {
                 supplierStarted.countDown();
                 awaitLatch(release);
-                return CompletableFuture.completedFuture(ServiceResult.success(addressA));
+                return CompletableFuture.completedFuture(resultOf(addressA));
             }));
 
             assertThat(supplierStarted.await(2, TimeUnit.SECONDS)).isTrue();
 
             var addressB = DataAddress.Builder.newInstance().type("HttpData").build();
             var futureB = assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
-                    store.loadOrStartInFlight("key-b", scope -> CompletableFuture.completedFuture(ServiceResult.success(addressB))));
-            assertThat(futureB.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(addressB);
+                    store.loadOrStartInFlight("key-b", scope -> CompletableFuture.completedFuture(resultOf(addressB))));
+            assertThat(futureB.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(addressB);
 
             release.countDown();
             var futureA = taskA.get(2, TimeUnit.SECONDS);
-            assertThat(futureA.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(addressA);
+            assertThat(futureA.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(addressA);
         } finally {
             executor.shutdownNow();
         }
@@ -212,7 +212,7 @@ class AssetAccessStateStoreTest {
             var taskA = executor.submit(() -> store.loadOrStartInFlight("key-a", scope -> {
                 supplierStarted.countDown();
                 awaitLatch(release);
-                return CompletableFuture.completedFuture(ServiceResult.success(address));
+                return CompletableFuture.completedFuture(resultOf(address));
             }));
 
             assertThat(supplierStarted.await(2, TimeUnit.SECONDS)).isTrue();
@@ -226,8 +226,8 @@ class AssetAccessStateStoreTest {
             var first = taskA.get(2, TimeUnit.SECONDS);
 
             assertThat(second).isNotSameAs(first);
-            assertThat(first.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(address);
-            assertThat(second.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(address);
+            assertThat(first.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(address);
+            assertThat(second.get(2, TimeUnit.SECONDS).dataAddress()).isEqualTo(address);
         } finally {
             executor.shutdownNow();
         }
@@ -236,7 +236,7 @@ class AssetAccessStateStoreTest {
     @Test
     void cancellingOneWaiterLeavesTheSharedWorkRunningForTheOthers() throws Exception {
         var scopes = new ArrayList<AcquisitionScope>();
-        var work = new CompletableFuture<ServiceResult<DataAddress>>();
+        var work = new CompletableFuture<AssetAccessResult>();
         var first = store.loadOrStartInFlight("k", scope -> {
             scopes.add(scope);
             return work;
@@ -252,8 +252,8 @@ class AssetAccessStateStoreTest {
         assertThat(tracked).isNotDone();
         assertThat(second).isNotDone();
         var address = DataAddress.Builder.newInstance().type("HttpData").build();
-        work.complete(ServiceResult.success(address));
-        assertThat(second.get(2, TimeUnit.SECONDS).getContent()).isSameAs(address);
+        work.complete(resultOf(address));
+        assertThat(second.get(2, TimeUnit.SECONDS).dataAddress()).isSameAs(address);
     }
 
     @Test
@@ -293,20 +293,20 @@ class AssetAccessStateStoreTest {
 
     @Test
     void cancellingAWaiterOfFinishedWorkChangesNothingForTheOthers() throws Exception {
-        var work = new CompletableFuture<ServiceResult<DataAddress>>();
+        var work = new CompletableFuture<AssetAccessResult>();
         var first = store.loadOrStartInFlight("k", scope -> work);
         var second = store.loadOrStartInFlight("k", scope -> work);
         var address = DataAddress.Builder.newInstance().type("HttpData").build();
 
-        work.complete(ServiceResult.success(address));
+        work.complete(resultOf(address));
         first.cancel(true);
 
-        assertThat(second.get(2, TimeUnit.SECONDS).getContent()).isSameAs(address);
+        assertThat(second.get(2, TimeUnit.SECONDS).dataAddress()).isSameAs(address);
     }
 
     @Test
     void aJoinerGivingUpBeforeTheStarterBeginsDoesNotFailTheStarter() {
-        var joiners = new ArrayList<CompletableFuture<ServiceResult<DataAddress>>>();
+        var joiners = new ArrayList<CompletableFuture<AssetAccessResult>>();
         var inFlight = new ConcurrentHashMap<String, AssetAccessStateStore.InFlight>() {
             @Override
             public AssetAccessStateStore.InFlight putIfAbsent(String key, AssetAccessStateStore.InFlight value) {
@@ -338,5 +338,9 @@ class AssetAccessStateStoreTest {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static AssetAccessResult resultOf(DataAddress dataAddress) {
+        return new AssetAccessResult(dataAddress, new AssetAccessResult.Winner("provider-1", "http://provider/dsp"));
     }
 }

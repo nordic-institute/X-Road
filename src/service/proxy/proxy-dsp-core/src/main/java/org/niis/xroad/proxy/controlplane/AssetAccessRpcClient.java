@@ -27,8 +27,10 @@
 package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.grpc.ManagedChannel;
+import io.grpc.stub.StreamObserver;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -39,11 +41,17 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessReq;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessCandidate;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
+import org.niis.xroad.edc.assetaccess.proto.ReportCounterPartyFailureReq;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.rpc.common.Empty;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -55,12 +63,15 @@ import java.util.concurrent.TimeUnit;
 @ApplicationScoped
 public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAccessAcquisitionService {
 
+    private static final Duration FAILURE_REPORT_DEADLINE = Duration.ofSeconds(3);
+
     private final RpcChannelFactory rpcChannelFactory;
     private final ControlPlaneRpcChannelProperties channelProperties;
     private final AssetAccessClientProperties clientProperties;
 
     private ManagedChannel channel;
     private AssetAccessServiceGrpc.AssetAccessServiceBlockingStub accessServiceBlockingStub;
+    private AssetAccessServiceGrpc.AssetAccessServiceStub failureReportStub;
 
     private AssetAccessCache cache;
 
@@ -83,6 +94,7 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
         accessServiceBlockingStub = AssetAccessServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        failureReportStub = AssetAccessServiceGrpc.newStub(channel);
         cache = buildCache();
     }
 
@@ -104,51 +116,93 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     }
 
     @Override
-    public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                                  String counterPartyAddress, @Nullable ClientId consumerClientId,
+    public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId,
+                                                  List<AcquisitionCandidate> candidates,
+                                                  @Nullable SecurityServerId forcedTarget,
+                                                  @Nullable ClientId consumerClientId,
                                                   Duration timeout) {
         var cacheKey = new AssetAccessCache.CacheKey(
                 participantContextId,
                 assetId,
-                counterPartyId,
-                counterPartyAddress,
+                Set.copyOf(candidates),
+                forcedTarget != null ? forcedTarget.asEncodedId() : null,
                 clientProperties.protocol(),
                 consumerClientId != null ? consumerClientId.asEncodedId() : null);
         if (cache == null) {
-            return loadAssetAccess(cacheKey, timeout).response();
+            return loadAssetAccess(cacheKey, candidates, timeout).response();
         }
-        return cache.get(cacheKey, key -> loadAssetAccess(key, timeout)).response();
+        return cache.get(cacheKey, key -> loadAssetAccess(key, candidates, timeout)).response();
     }
 
     @Override
-    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable String counterPartyId,
-                                      @Nullable ClientId consumerClientId) {
+    public void invalidateAssetAccess(String participantContextId, String assetId, @Nullable ClientId consumerClientId) {
         if (cache != null) {
-            cache.invalidate(participantContextId, assetId, counterPartyId,
-                    consumerClientId != null ? consumerClientId.asEncodedId() : null);
+            cache.invalidate(participantContextId, assetId, consumerClientId != null ? consumerClientId.asEncodedId() : null);
         }
     }
 
-    private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey, Duration timeout) {
+    @Override
+    public void invalidateAssetAccessWonBy(String counterPartyAddress) {
+        if (cache != null) {
+            cache.removeWonBy(counterPartyAddress);
+        }
+    }
+
+    @Override
+    public void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
+        var request = ReportCounterPartyFailureReq.newBuilder()
+                .setCounterPartyId(counterPartyId)
+                .setCounterPartyAddress(counterPartyAddress)
+                .build();
+        try {
+            failureReportStub.withDeadlineAfter(FAILURE_REPORT_DEADLINE.toMillis(), TimeUnit.MILLISECONDS)
+                    .reportCounterPartyFailure(request, new FailureReportObserver(counterPartyId, counterPartyAddress));
+        } catch (RuntimeException e) {
+            log.warn("Failed to report counter-party failure: counterPartyId={} counterPartyAddress={}",
+                    counterPartyId, counterPartyAddress, e);
+        }
+    }
+
+    private AssetAccessCache.CachedEntry loadAssetAccess(AssetAccessCache.CacheKey cacheKey,
+                                                         List<AcquisitionCandidate> candidates,
+                                                         Duration timeout) {
         var request = AcquireAssetAccessReq.newBuilder()
                 .setParticipantContextId(cacheKey.participantContextId())
                 .setAssetId(cacheKey.assetId())
-                .setCounterPartyId(cacheKey.counterPartyId())
-                .setCounterPartyAddress(cacheKey.counterPartyAddress())
                 .setProtocol(cacheKey.protocol())
                 .setTimeoutMillis(timeout.toMillis());
+        candidates.forEach(candidate -> request.addCandidates(
+                AssetAccessCandidate.newBuilder()
+                        .setCounterPartyId(candidate.counterPartyId())
+                        .setCounterPartyAddress(candidate.counterPartyAddress())));
+        if (cacheKey.forcedTarget() != null) {
+            request.setForcedTargetServerId(cacheKey.forcedTarget());
+        }
         if (cacheKey.consumerClientId() != null) {
             request.setClientId(cacheKey.consumerClientId());
         }
         var waitMillis = timeout.plus(clientProperties.acquisitionDeadlineMargin()).toMillis();
-        var response = exec(() -> accessServiceBlockingStub
+        return AssetAccessCache.CachedEntry.from(exec(() -> accessServiceBlockingStub
                 .withDeadlineAfter(waitMillis, TimeUnit.MILLISECONDS)
-                .acquire(request.build()));
-        long expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
-        var assetAccessResponse = new AssetAccessResponse(
-                response.getEndpoint(),
-                response.hasAuthorization() ? response.getAuthorization() : null,
-                cacheKey.counterPartyId());
-        return new AssetAccessCache.CachedEntry(assetAccessResponse, expiresAt);
+                .acquire(request.build())));
+    }
+
+    private record FailureReportObserver(String counterPartyId, String counterPartyAddress) implements StreamObserver<Empty> {
+
+        @Override
+        public void onNext(Empty value) {
+            // The report has no response content.
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            log.warn("Failed to report counter-party failure: counterPartyId={} counterPartyAddress={}",
+                    counterPartyId, counterPartyAddress, t);
+        }
+
+        @Override
+        public void onCompleted() {
+            // Nothing to do once the control plane has acknowledged the report.
+        }
     }
 }

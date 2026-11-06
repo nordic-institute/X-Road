@@ -34,11 +34,22 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
+import org.niis.xroad.edc.assetaccess.proto.AssetAccessWinner;
+import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,7 +120,7 @@ class AssetAccessCacheTest {
         var key = key("asset-1");
         cache.get(key, k -> load(60));
 
-        cache.invalidate("test-participant-ctx", "asset-1", null, null);
+        cache.invalidate("test-participant-ctx", "asset-1", null);
         cache.get(key, k -> load(60));
 
         assertThat(loadCount.get()).isEqualTo(2);
@@ -117,49 +128,294 @@ class AssetAccessCacheTest {
 
     @Test
     void invalidatingDropsEveryProviderCandidateOfTheAssetAndLeavesOthersCached() {
-        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
-                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
-        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-b",
-                "http://provider-b/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
-        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
-                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:B");
+        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
+                Set.of(candidate("provider-a")), null, "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
+                Set.of(candidate("provider-b")), null, "http-dsp-profile-2025-1", "DEV:COM:222:A");
+        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1",
+                Set.of(candidate("provider-a")), null, "http-dsp-profile-2025-1", "DEV:COM:222:B");
         var otherAsset = key("asset-2");
         Stream.of(candidateA, candidateB, otherClient, otherAsset).forEach(k -> cache.get(k, x -> load(60)));
         loadCount.set(0);
 
-        cache.invalidate("test-participant-ctx", "asset-1", null, "DEV:COM:222:A");
+        cache.invalidate("test-participant-ctx", "asset-1", "DEV:COM:222:A");
         Stream.of(candidateA, candidateB, otherClient, otherAsset).forEach(k -> cache.get(k, x -> load(60)));
 
         assertThat(loadCount.get()).isEqualTo(2);
     }
 
     @Test
-    void invalidatingOneProviderServerLeavesTheOtherCandidatesOfTheAssetCached() {
-        var candidateA = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
-                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
-        var candidateB = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-b",
-                "http://provider-b/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:A");
-        var otherClient = new AssetAccessCache.CacheKey("test-participant-ctx", "asset-1", "provider-a",
-                "http://provider-a/dsp", "http-dsp-profile-2025-1", "DEV:COM:222:B");
-        Stream.of(candidateA, candidateB, otherClient).forEach(k -> cache.get(k, x -> load(60)));
+    void theSameCandidatesInADifferentOrderShareOneEntry() {
+        var ab = new LinkedHashSet<>(List.of(candidate("provider-a"), candidate("provider-b")));
+        var ba = new LinkedHashSet<>(List.of(candidate("provider-b"), candidate("provider-a")));
+
+        cache.get(keyOf(ab, null), k -> load(60));
+        cache.get(keyOf(ba, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void separatelyBuiltCandidatesEqualInValueShareOneEntry() {
+        var firstA = candidate("provider-a");
+        var firstB = candidate("provider-b");
+        var secondA = freshCandidate("provider-a");
+        var secondB = freshCandidate("provider-b");
+        var first = new LinkedHashSet<>(List.of(firstA, firstB));
+        var second = new LinkedHashSet<>(List.of(secondA, secondB));
+
+        assertThat(secondA).isNotSameAs(firstA);
+        assertThat(secondB).isNotSameAs(firstB);
+        assertThat(secondA.counterPartyId()).isNotSameAs(firstA.counterPartyId());
+        assertThat(secondA.counterPartyAddress()).isNotSameAs(firstA.counterPartyAddress());
+        assertThat(secondA).isEqualTo(firstA);
+        assertThat(secondB).isEqualTo(firstB);
+        assertThat(keyOf(second, null)).isEqualTo(keyOf(first, null));
+
+        cache.get(keyOf(first, null), k -> load(60));
+        cache.get(keyOf(second, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void theSameCounterPartyAtADifferentAddressIsADifferentEntry() {
+        var atFirstAddress = Set.of(new AcquisitionCandidate("provider-a", "http://first/dsp"));
+        var atSecondAddress = Set.of(new AcquisitionCandidate("provider-a", "http://second/dsp"));
+
+        cache.get(keyOf(atFirstAddress, null), k -> load(60));
+        cache.get(keyOf(atSecondAddress, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void aDifferentForcedTargetIsADifferentEntry() {
+        var candidates = Set.of(candidate("provider-a"));
+
+        cache.get(keyOf(candidates, "DEV:COM:1234:ss-a"), k -> load(60));
+        cache.get(keyOf(candidates, "DEV:COM:1234:ss-b"), k -> load(60));
+        cache.get(keyOf(candidates, null), k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(3);
+    }
+
+    @Test
+    void theEntryRecordsTheWinnerKeyFromTheResponse() {
+        var response = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId("provider-b")
+                        .setCounterPartyAddress("http://SS1.example:8183/dsp"))
+                .build();
+        var entry = AssetAccessCache.CachedEntry.from(response);
+        assertThat(entry.winnerKey())
+                .isEqualTo("ss1.example:8183")
+                .isEqualTo(SecurityServerAuthority.of("http://SS1.example:8183/dsp"));
+        assertThat(entry.response().endpoint()).isEqualTo("http://provider/api/data");
+    }
+
+    @Test
+    void theResponseOfAnEntryCarriesTheWinnerFromTheResponse() {
+        var response = AcquireAssetAccessResp.newBuilder()
+                .setEndpoint("http://provider/api/data")
+                .setWinner(AssetAccessWinner.newBuilder()
+                        .setCounterPartyId("provider-b")
+                        .setCounterPartyAddress("http://ss1.example/dsp"))
+                .build();
+
+        var result = AssetAccessCache.CachedEntry.from(response).response();
+
+        assertThat(result.winner().counterPartyId()).isEqualTo("provider-b");
+        assertThat(result.winner().counterPartyAddress()).isEqualTo("http://ss1.example/dsp");
+    }
+
+    @Test
+    void removalByWinnerDropsEveryEntryWonByTheServerAndKeepsTheOthers() {
+        var wonBySsAElsewhere = new AssetAccessCache.CacheKey("ctx-2", "asset-2",
+                Set.of(candidate("provider-a"), candidate("provider-b")), "DEV:COM:1234:ss-a",
+                "http-dsp-profile-2025-1", "DEV:COM:222:B");
+        var wonBySsA = keyWith("ctx-1", "asset-1", "provider-a", "DEV:COM:222:A");
+        var wonBySsAOtherPort = keyWith("ctx-1", "asset-3", "provider-a", "DEV:COM:222:A");
+        var wonBySsAOtherClient = keyWith("ctx-1", "asset-5", "provider-a", "DEV:COM:222:B");
+        var wonBySsB = keyWith("ctx-1", "asset-1", "provider-b", "DEV:COM:222:A");
+        var wonByOtherMemberServer = keyWith("ctx-3", "asset-1", "provider-c", "DEV:COM:222:A");
+        var wonByDefaultServer = keyWith("ctx-1", "asset-4", "provider-d", "DEV:COM:222:A");
+        cache.get(wonBySsA, k -> loadWonBy("provider-a", "https://ss-a.example:8183/api/dsp/DEV:COM:1/p"));
+        cache.get(wonBySsAElsewhere, k -> loadWonBy("provider-a", "https://ss-a.example:8183/api/dsp/DEV:COM:2/p"));
+        cache.get(wonBySsAOtherPort, k -> loadWonBy("provider-a", "https://ss-a.example:9999/api/dsp/DEV:COM:1/p"));
+        cache.get(wonBySsAOtherClient, k -> loadWonBy("provider-a", "https://SS-A.example:8183/api/dsp/DEV:COM:1/p"));
+        cache.get(wonBySsB, k -> loadWonBy("provider-b", "https://ss-b.example:8183/api/dsp/DEV:COM:1/p"));
+        cache.get(wonByOtherMemberServer, k -> loadWonBy("provider-c", "https://ss-c.example:8183/api/dsp/DEV:COM:3/p"));
+        cache.get(wonByDefaultServer, k -> load(60));
         loadCount.set(0);
 
-        cache.invalidate("test-participant-ctx", "asset-1", "provider-a", "DEV:COM:222:A");
-        Stream.of(candidateA, candidateB, otherClient).forEach(k -> cache.get(k, x -> load(60)));
+        cache.removeWonBy("https://ss-a.example:8183/dsp");
+
+        Stream.of(wonBySsA, wonBySsAElsewhere, wonBySsAOtherClient).forEach(k -> cache.get(k, x -> load(60)));
+        assertThat(loadCount.get()).isEqualTo(3);
+        loadCount.set(0);
+        Stream.of(wonBySsAOtherPort, wonBySsB, wonByOtherMemberServer, wonByDefaultServer)
+                .forEach(k -> cache.get(k, x -> load(60)));
+        assertThat(loadCount.get()).isZero();
+    }
+
+    @Test
+    void aSecondRemovalForTheSameServerChangesNothingAndDoesNotFail() {
+        var wonBySsA = keyWith("ctx-1", "asset-1", "provider-a", "DEV:COM:222:A");
+        var wonBySsB = keyWith("ctx-1", "asset-1", "provider-b", "DEV:COM:222:A");
+        cache.get(wonBySsA, k -> loadWonBy("provider-a", "https://ss-a.example:8183/p"));
+        cache.get(wonBySsB, k -> loadWonBy("provider-b", "https://ss-b.example:8183/p"));
+        cache.removeWonBy("https://ss-a.example:8183/dsp");
+        cache.get(wonBySsA, k -> loadWonBy("provider-a", "https://ss-a.example:8183/p"));
+        cache.removeWonBy("https://ss-a.example:8183/dsp");
+        cache.removeWonBy("https://ss-a.example:8183/dsp");
+        loadCount.set(0);
+
+        cache.get(wonBySsB, k -> load(60));
+        cache.get(wonBySsA, k -> loadWonBy("provider-a", "https://ss-a.example:8183/p"));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void concurrentRemovalsForTheSameServerFailNowhereAndLeaveNoEntryWonByIt() throws Exception {
+        var keys = IntStream.range(0, 200)
+                .mapToObj(i -> keyWith("ctx-1", "asset-" + i, "provider-a", "DEV:COM:222:A"))
+                .toList();
+        keys.forEach(k -> cache.get(k, x -> loadWonBy("provider-a", "https://ss-a.example:8183/p")));
+        var executor = Executors.newFixedThreadPool(2);
+        var startGate = new CountDownLatch(1);
+        try {
+            var futures = Stream.of(1, 2)
+                    .map(_ -> executor.submit(() -> {
+                        startGate.await();
+                        cache.removeWonBy("https://ss-a.example:8183/dsp");
+                        return null;
+                    }))
+                    .toList();
+            startGate.countDown();
+            for (var future : futures) {
+                future.get(5, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+        loadCount.set(0);
+
+        keys.forEach(k -> cache.get(k, x -> load(60)));
+
+        assertThat(loadCount.get()).isEqualTo(keys.size());
+    }
+
+    @Test
+    void anEntryAtAHostWithTheSameNameInADifferentCaseIsDropped() {
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", "https://SS-A.example:8183/p"));
+        loadCount.set(0);
+
+        cache.removeWonBy("https://ss-a.example:8183/dsp");
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void anEntryAtAHostWithTheSameNameInLowerCaseIsDroppedByARemovalForUpperCase() {
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", "https://ss-a.example:8183/p"));
+        loadCount.set(0);
+
+        cache.removeWonBy("https://SS-A.example:8183/p");
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void anEntryAtADefaultPortIsDroppedByARemovalNamingThePortExplicitly() {
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", "https://ss-a.example/p"));
+        loadCount.set(0);
+
+        cache.removeWonBy("https://ss-a.example:443/p");
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void anEntryAtAHostTheJdkUriRejectsIsDroppedByARemovalForTheSameAddress() {
+        var address = "https://ss_a:8183/api/dsp";
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", address));
+        loadCount.set(0);
+
+        cache.removeWonBy(address);
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void anEntryAtAnUnparsableWinnerAddressIsDroppedByARemovalForTheSameStringAndKeptByAnother() {
+        var key = keyWith("ctx-1", "asset-1", "provider-a", null);
+        cache.get(key, k -> loadWonBy("provider-a", "not a url"));
+        loadCount.set(0);
+
+        cache.removeWonBy("https://ss-a.example:8183/p");
+        cache.get(key, k -> load(60));
+
+        assertThat(loadCount.get()).isZero();
+
+        cache.removeWonBy("not a url");
+        cache.get(key, k -> load(60));
 
         assertThat(loadCount.get()).isEqualTo(1);
     }
 
     private AssetAccessCache.CachedEntry load(long expiresInSeconds) {
         loadCount.incrementAndGet();
-        return new AssetAccessCache.CachedEntry(
-                new AssetAccessResponse("http://provider/api/data", "token"),
+        return AssetAccessCache.CachedEntry.of(
+                new AssetAccessResponse("http://provider/api/data", "token",
+                        new AcquisitionCandidate("provider-x", "https://ss-x.example:8183/p")),
                 Instant.now().getEpochSecond() + expiresInSeconds);
     }
 
+    private AssetAccessCache.CachedEntry loadWonBy(String counterPartyId, String counterPartyAddress) {
+        loadCount.incrementAndGet();
+        return AssetAccessCache.CachedEntry.of(
+                new AssetAccessResponse("http://provider/api/data", "token",
+                        new AcquisitionCandidate(counterPartyId, counterPartyAddress)),
+                Instant.now().getEpochSecond() + 60);
+    }
+
+    private static AssetAccessCache.CacheKey keyWith(String participantContextId, String assetId, String candidateId,
+                                                     String consumerClientId) {
+        return new AssetAccessCache.CacheKey(participantContextId, assetId, Set.of(candidate(candidateId)), null,
+                "http-dsp-profile-2025-1", consumerClientId);
+    }
+
     private static AssetAccessCache.CacheKey key(String assetId) {
-        return new AssetAccessCache.CacheKey("test-participant-ctx", assetId, "provider-1",
-                "http://provider/dsp", "http-dsp-profile-2025-1", null);
+        return keyOf(Set.of(candidate("provider-1")), null, assetId);
+    }
+
+    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String forcedTarget) {
+        return keyOf(candidates, forcedTarget, "asset-1");
+    }
+
+    private static AssetAccessCache.CacheKey keyOf(Set<AcquisitionCandidate> candidates, String forcedTarget, String assetId) {
+        return new AssetAccessCache.CacheKey("test-participant-ctx", assetId, candidates, forcedTarget,
+                "http-dsp-profile-2025-1", null);
+    }
+
+    private static AcquisitionCandidate candidate(String counterPartyId) {
+        return new AcquisitionCandidate(counterPartyId, "http://" + counterPartyId + "/dsp");
+    }
+
+    private static AcquisitionCandidate freshCandidate(String counterPartyId) {
+        return new AcquisitionCandidate(String.valueOf(counterPartyId.toCharArray()),
+                String.join("", "http://", counterPartyId, "/dsp"));
     }
 
     private static final class ManualTicker implements Ticker {

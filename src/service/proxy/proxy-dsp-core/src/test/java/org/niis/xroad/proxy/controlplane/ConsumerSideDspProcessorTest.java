@@ -30,6 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,39 +42,38 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
-import org.niis.xroad.test.MutableClock;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ConsumerSideDspProcessorTest {
 
-    private static final Duration DEADLINE = Duration.ofSeconds(60);
-    private static final Duration MARGIN = Duration.ofSeconds(5);
-    private static final String HOST_C = "xrd-ss2.lxd";
+    private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
+            "did:web:ss-a.example%3A7183:v1:DEV:COM:222",
+            "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     private static final String INSTANCE = "DEV";
     private static final String HOST_A = "xrd-ss0.lxd";
     private static final String HOST_B = "xrd-ss1.lxd";
+    private static final String HOST_C = "xrd-ss2.lxd";
     private static final String PROVIDER_MEMBER_CTX_ID = "DEV:COM:1234";
     private static final String DID_A = "did:web:xrd-ss0.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
     private static final String DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
@@ -82,9 +83,11 @@ class ConsumerSideDspProcessorTest {
     private static final String SYSTEM_DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:system";
     private static final String SYSTEM_URL_A = "https://xrd-ss0.lxd:8183/api/dsp/system/http-dsp-profile-2025-1";
     private static final String SYSTEM_URL_B = "https://xrd-ss1.lxd:8183/api/dsp/system/http-dsp-profile-2025-1";
+    private static final String BLANK_HOST = "";
     private static final String UNKNOWN_HOST = "unknown.example.com";
     private static final ClientId SENDER = ClientId.Conf.create(INSTANCE, "COM", "4321", "SenderSub");
     private static final String SENDER_MEMBER_CTX_ID = "DEV:COM:4321";
+    private static final Duration DEADLINE = Duration.ofSeconds(60);
 
     @Mock
     private AssetAccessAcquisitionService assetAccessAcquisitionService;
@@ -93,7 +96,6 @@ class ConsumerSideDspProcessorTest {
     @Mock
     private AssetAccessClientProperties clientProperties;
 
-    private final MutableClock clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
     private ConsumerSideDspProcessor processor;
     private ServiceId serviceId;
 
@@ -101,7 +103,7 @@ class ConsumerSideDspProcessorTest {
     void setUp() {
         lenient().when(clientProperties.acquisitionDeadline()).thenReturn(DEADLINE);
         processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
-                clientProperties, clock);
+                clientProperties);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -110,12 +112,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -123,7 +125,21 @@ class ConsumerSideDspProcessorTest {
         processor.invalidateAssetAccess(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), null, SENDER);
+                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), SENDER);
+    }
+
+    @Test
+    void invalidatingByWinnerReachesTheAcquisitionService() {
+        processor.invalidateAssetAccessWonBy(URL_A);
+
+        verify(assetAccessAcquisitionService).invalidateAssetAccessWonBy(URL_A);
+    }
+
+    @Test
+    void reportingAFailureReachesTheAcquisitionService() {
+        processor.reportCounterPartyFailure(DID_A, URL_A);
+
+        verify(assetAccessAcquisitionService).reportCounterPartyFailure(DID_A, URL_A);
     }
 
     @Test
@@ -132,12 +148,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_A, SYSTEM_URL_A)), any(), any(), any());
     }
 
     @Test
@@ -146,12 +162,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(nonWhitelistedService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(nonWhitelistedService, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -160,12 +176,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(versionedService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(versionedService, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -174,12 +190,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_A, SYSTEM_URL_A)), any(), any(), any());
     }
 
     @Test
@@ -188,12 +204,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_B), eq(SYSTEM_URL_B), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_B, SYSTEM_URL_B)), any(), any(), any());
     }
 
     @Test
@@ -202,26 +218,26 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_B), eq(SYSTEM_URL_B), any(), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_B, SYSTEM_URL_B)), any(), any(), any());
     }
 
     @Test
     void executeReturnsAssetAccessResponseWithEndpointAndAuthorization() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp.example.com/endpoint", "token-abc");
+        var expected = new AssetAccessResponse("http://dp.example.com/endpoint", "token-abc", WINNER);
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any())).thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
-        assertThat(result).isSameAs(expected);
-        assertThat(result.endpoint()).isEqualTo("http://dp.example.com/endpoint");
-        assertThat(result.authorization()).isEqualTo("token-abc");
+        assertThat(result.access()).isSameAs(expected);
+        assertThat(result.access().endpoint()).isEqualTo("http://dp.example.com/endpoint");
+        assertThat(result.access().authorization()).isEqualTo("token-abc");
     }
 
     @ParameterizedTest
@@ -261,7 +277,7 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
@@ -275,15 +291,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture(), any(), any());
-        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -291,13 +304,14 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(),
-                eq("did:web:unknown.example.com%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID),
-                eq("https://unknown.example.com:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1"), any(), any());
+                eq(List.of(new AcquisitionCandidate("did:web:unknown.example.com%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID,
+                        "https://unknown.example.com:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1"))),
+                any(), any(), any());
     }
 
     @Test
@@ -306,11 +320,11 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(otherSubsystemService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(otherSubsystemService, SENDER, null, false));
 
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any());
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -319,13 +333,14 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(encodedMemberService, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(encodedMemberService, SENDER, null, false));
 
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(),
-                eq("did:web:xrd-ss0.lxd%3A7183:v1:DEV:COM:12%2B34"),
-                eq("https://xrd-ss0.lxd:8183/api/dsp/DEV:COM:12%252B34/http-dsp-profile-2025-1"), any(), any());
+                eq(List.of(new AcquisitionCandidate("did:web:xrd-ss0.lxd%3A7183:v1:DEV:COM:12%2B34",
+                        "https://xrd-ss0.lxd:8183/api/dsp/DEV:COM:12%252B34/http-dsp-profile-2025-1"))),
+                any(), any(), any());
     }
 
     @Test
@@ -333,15 +348,134 @@ class ConsumerSideDspProcessorTest {
         var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-a");
         when(providerSecurityServerResolver.resolve(serviceId, hint))
                 .thenReturn(List.of(new ProviderAddress(hint, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp/e", null);
+        var expected = new AssetAccessResponse("http://dp/e", null, WINNER);
         when(assetAccessAcquisitionService.acquireAssetAccess(
-                any(), eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A), any(), any())).thenReturn(expected);
+                any(), eq(serviceId.asEncodedId()), eq(single(DID_A, URL_A)), any(), any(), any())).thenReturn(expected);
 
         var result = processor.execute(new DspRequest(serviceId, SENDER, hint, false));
 
-        assertThat(result).isSameAs(expected);
+        assertThat(result.access()).isSameAs(expected);
         verify(assetAccessAcquisitionService).acquireAssetAccess(
-                any(), eq(serviceId.asEncodedId()), eq(DID_A), eq(URL_A), any(), any());
+                any(), eq(serviceId.asEncodedId()), eq(single(DID_A, URL_A)), any(), any(), any());
+    }
+
+    @Test
+    void executeCountsEveryDistinctCandidate() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B),
+                        new ProviderAddress(null, HOST_C)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(3);
+    }
+
+    @Test
+    void executeHandsTheConfiguredAcquisitionDeadlineToTheAcquisition() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), eq(DEADLINE)))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), any(), any(), any(), eq(DEADLINE));
+    }
+
+    @Test
+    void executeCountsAForcedTargetAsOneCandidate() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-b");
+        when(providerSecurityServerResolver.resolve(serviceId, hint))
+                .thenReturn(List.of(new ProviderAddress(hint, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, hint, false));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
+    }
+
+    @Test
+    void executeCountsCandidatesOfTheSameServerOnce() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(2);
+    }
+
+    @Test
+    void executeDoesNotCountAnAddressWhoseTargetCannotBeDerived() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, BLANK_HOST),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
+    }
+
+    @Test
+    void sendsOneAcquisitionCallCarryingEveryCandidate() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+        processor.execute(new DspRequest(serviceId, SENDER, null, false));
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
+                any(), any(),
+                argThat(candidates -> candidates.size() == 2 && candidates.containsAll(List.of(
+                        new AcquisitionCandidate(DID_A, URL_A),
+                        new AcquisitionCandidate(DID_B, URL_B)))),
+                isNull(), any(), any());
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void systemContextRequestSendsOneCallCarryingEverySystemCandidate() {
+        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "listMethods");
+        when(providerSecurityServerResolver.resolve(builtinServiceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+        processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
+                any(), any(),
+                argThat(candidates -> candidates.size() == 2 && candidates.containsAll(List.of(
+                        new AcquisitionCandidate(SYSTEM_DID_A, SYSTEM_URL_A),
+                        new AcquisitionCandidate(SYSTEM_DID_B, SYSTEM_URL_B)))),
+                any(), any(), any());
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void forcedTargetSendsAOneElementCandidateSetAndTheForcedTarget() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-b");
+        when(providerSecurityServerResolver.resolve(serviceId, hint))
+                .thenReturn(List.of(new ProviderAddress(hint, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+        processor.execute(new DspRequest(serviceId, SENDER, hint, false));
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
+                eq(SENDER_MEMBER_CTX_ID), eq(serviceId.asEncodedId()),
+                eq(single(DID_B, URL_B)), eq(hint), eq(SENDER), any());
     }
 
     @Test
@@ -374,112 +508,6 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void oneCandidateFailsOtherSucceeds() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var expected = new AssetAccessResponse("http://dp.b/e", "token-b");
-        // ConsumerSideDspProcessor#execute shuffles candidates, so A may be tried before or after B.
-        // A always fails, B always succeeds — result is `expected` regardless of order.
-        // A's stub is lenient so when shuffle picks B first (and A is never tried) the
-        // strict-stubbing check doesn't fire.
-        lenient().when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(new RuntimeException("SS A unreachable"));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenReturn(expected);
-
-        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
-
-        assertThat(result).isSameAs(expected);
-    }
-
-    @Test
-    void allSecurityServersFailThrowsIoError() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var failureA = new RuntimeException("SS A unreachable");
-        var failureB = new RuntimeException("SS B unreachable");
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(failureA);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(failureB);
-
-        // Candidate order is shuffled, so the chained root cause is whichever was iterated
-        // last — either A or B.
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.IO_ERROR.code());
-                    assertThat(xrd.getDetails())
-                            .doesNotContain("candidate security servers failed")
-                            .doesNotContain(serviceId.asEncodedId());
-                })
-                .satisfies(ex -> assertThat(ex.getCause()).isIn(failureA, failureB));
-    }
-
-    @Test
-    void allCandidatesHomogeneousUnknownMemberPreservesCode() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var failure = XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss for asset");
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(failure);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(failure);
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
-    }
-
-    @Test
-    void allCandidatesHomogeneousNetworkErrorPreservesCode() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var failure = XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR, "catalog fetch failed");
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(failure);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(failure);
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.NETWORK_ERROR.code());
-                    // Non-DSP (legacy) exceptions are out of scope for ClientFacingErrorPolicy and must
-                    // pass through completely untouched, details included.
-                    assertThat(xrd.getDetails()).isEqualTo("catalog fetch failed");
-                });
-    }
-
-    @Test
-    void mixedCodesAcrossCandidatesFallBackToIoError() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss"));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR, "fetch failed"));
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()));
-    }
-
-    @Test
     void emptyCandidateListThrowsUnknownMember() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of());
@@ -497,15 +525,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture(), any(), any());
-        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -514,15 +539,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(candidateServerId, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture(), any(), any());
-        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -531,15 +553,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(notBuiltin, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(notBuiltin, SENDER, null, false));
 
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture(), any(), any());
-        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_A, URL_A)), any(), any(), any());
     }
 
     @Test
@@ -549,7 +568,7 @@ class ConsumerSideDspProcessorTest {
         var dspException = XrdRuntimeException.systemException(
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -565,7 +584,7 @@ class ConsumerSideDspProcessorTest {
         var dspException = XrdRuntimeException.systemException(
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_OFFERS_NOT_FOUND.code()))
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -581,7 +600,7 @@ class ConsumerSideDspProcessorTest {
         var dspException = XrdRuntimeException.systemException(
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -605,7 +624,7 @@ class ConsumerSideDspProcessorTest {
         var dspException = XrdRuntimeException.systemException(
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_OFFERS_NOT_FOUND.code()))
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -622,54 +641,6 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void allCandidatesHomogeneousRemoteNotFoundMapsToAccessDenied() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var dspExceptionA = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
-                .build();
-        var dspExceptionB = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
-                .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(dspExceptionA);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(dspExceptionB);
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.ACCESS_DENIED.code());
-                    assertThat(xrd.getDetails())
-                            .isNotBlank()
-                            .doesNotContainIgnoringCase("dsp_")
-                            .doesNotContainIgnoringCase("candidate security servers failed");
-                });
-    }
-
-    @Test
-    void allCandidatesThrowSameDspCodeSurfacesAsMappedLegacyCode() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        var dspException = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
-                .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(dspException);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(dspException);
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue());
-    }
-
-    @Test
     void dspExceptionMetadataRoundTripCarriesOriginalCode() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
@@ -677,7 +648,7 @@ class ConsumerSideDspProcessorTest {
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_NEGOTIATION_FAILED.code()))
                 .details("negotiation timed out")
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -690,6 +661,7 @@ class ConsumerSideDspProcessorTest {
                             .isEqualTo("originalCode=" + ErrorCode.DSP_NEGOTIATION_FAILED.code());
                 });
     }
+
     @Test
     void emptyCandidatesYieldsUnknownMemberWithOriginalDspCode() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
@@ -708,16 +680,19 @@ class ConsumerSideDspProcessorTest {
                             .doesNotContainIgnoringCase("dsp_");
                 });
     }
+
     @Test
-    void allCandidatesFailedAggregationYieldsIoErrorWithOriginalDspCode() {
+    void acquisitionFailedFromAllCandidatesYieldsIoErrorWithOriginalDspCode() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
-                .thenThrow(new RuntimeException("SS A unreachable"));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any()))
-                .thenThrow(XrdRuntimeException.systemException(ErrorCode.IO_ERROR, "network down"));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_ACQUISITION_FAILED.code()))
+                .details("All 2 candidates failed")
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenThrow(dspException);
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
@@ -728,10 +703,77 @@ class ConsumerSideDspProcessorTest {
                             .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
-                            .doesNotContain("candidate security servers failed")
+                            .doesNotContain("candidates failed")
                             .doesNotContain(serviceId.asEncodedId());
                 });
     }
+
+    @Test
+    void nonDspXRoadFailureFromAcquisitionPassesThroughUnchanged() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, HOST_A),
+                        new ProviderAddress(null, HOST_B)));
+        var failure = XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR, "catalog fetch failed");
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenThrow(failure);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isSameAs(failure)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.NETWORK_ERROR.code());
+                    assertThat(xrd.getDetails()).isEqualTo("catalog fetch failed");
+                });
+    }
+
+    @Test
+    void unmappedAcquisitionFailureYieldsSanitizedIoError() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var grpcFailure = new StatusRuntimeException(Status.UNAVAILABLE);
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenThrow(grpcFailure);
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(xrd.getCause()).isSameAs(grpcFailure);
+                    assertThat(xrd.getDetails())
+                            .doesNotContain("UNAVAILABLE")
+                            .doesNotContain(serviceId.asEncodedId());
+                });
+    }
+
+    @Test
+    void candidateWithUnderivableTargetIsSkippedAndTheRestAreSent() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, BLANK_HOST),
+                        new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
+        processor.execute(new DspRequest(serviceId, SENDER, null, false));
+        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(
+                any(), any(), eq(single(DID_B, URL_B)), any(), any(), any());
+    }
+
+    @Test
+    void everyCandidateUnderivableFailsWithValidationErrorAndNoAcquisitionCall() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(
+                        new ProviderAddress(null, BLANK_HOST),
+                        new ProviderAddress(null, BLANK_HOST)));
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()));
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
     @Test
     void dspCatalogFetchFailedPerCandidateMapsToIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
@@ -739,7 +781,7 @@ class ConsumerSideDspProcessorTest {
         var dspException = XrdRuntimeException.systemException(
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
@@ -760,7 +802,7 @@ class ConsumerSideDspProcessorTest {
                         ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
                 .details("EDC catalog request to " + URL_A + " failed after 3 candidate hosts")
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -785,7 +827,7 @@ class ConsumerSideDspProcessorTest {
                         ErrorCode.withCode("proxy.dataspace.dsp_unknown_future_code"))
                 .details("host=" + HOST_A + " candidate acquisition failed via edc negotiation API")
                 .build();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A), any(), any()))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(single(DID_A, URL_A)), any(), any(), any()))
                 .thenThrow(futureDspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
@@ -808,12 +850,12 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A), eq(SENDER), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(DID_A, URL_A)), any(), eq(SENDER), any());
     }
 
     @Test
@@ -822,140 +864,15 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A), eq(SENDER), any());
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(single(SYSTEM_DID_A, SYSTEM_URL_A)), any(), eq(SENDER), any());
     }
 
-    @Test
-    void failOverDropsTheFailedServersAccessAndAcquiresFromTheOtherCandidateOnly() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
-        var fromB = new AssetAccessResponse("http://dp-b/e", "token-b", DID_B);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), eq(URL_B), any(), any())).thenReturn(fromB);
-        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
-
-        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
-
-        assertThat(result).contains(fromB);
-        verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
-        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), eq(DID_A), any(), any(), any());
-        verify(assetAccessAcquisitionService, never()).invalidateAssetAccess(any(), any(), isNull(), any());
-    }
-
-    @Test
-    void failOverWithNoOtherCandidateDropsTheEntryAndReturnsNothing() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
-
-        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
-
-        assertThat(result).isEmpty();
-        verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
-        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any(), any(), any());
-    }
-
-    @Test
-    void failOverOfAnAccessThatDoesNotIdentifyItsServerDoesNothing() {
-        var failed = new AssetAccessResponse("http://dp-a/e", "token-a");
-
-        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
-
-        assertThat(result).isEmpty();
-        verifyNoInteractions(assetAccessAcquisitionService, providerSecurityServerResolver);
-    }
-
-    @Test
-    void failOverReturnsNothingWhenTheOtherCandidatesCannotProvideAccessEither() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_B), any(), any(), any()))
-                .thenThrow(new IllegalStateException("provider b is down too"));
-        var failed = new AssetAccessResponse("http://dp-a/e", "token-a", DID_A);
-
-        var result = processor.failOver(new DspRequest(serviceId, SENDER, null, false), failed);
-
-        assertThat(result).isEmpty();
-        verify(assetAccessAcquisitionService)
-                .invalidateAssetAccess(SENDER_MEMBER_CTX_ID, serviceId.asEncodedId(), DID_A, SENDER);
-    }
-
-    @Test
-    void severalSlowCandidatesNeverTakeLongerThanTheDeadlinePlusTheMargin() {
-        when(providerSecurityServerResolver.resolve(serviceId, null)).thenReturn(List.of(
-                new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B), new ProviderAddress(null, HOST_C)));
-        var timeouts = new ArrayList<Duration>();
-        slowCandidates(timeouts);
-        var startedAt = clock.instant();
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class);
-
-        assertThat(Duration.between(startedAt, clock.instant())).isLessThanOrEqualTo(DEADLINE.plus(MARGIN));
-        assertThat(timeouts).containsExactly(Duration.ofSeconds(20), Duration.ofMillis(17_500), Duration.ofMillis(12_500));
-    }
-
-    @Test
-    void aSingleSlowCandidateGetsTheWholeDeadline() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        var timeouts = new ArrayList<Duration>();
-        slowCandidates(timeouts);
-        var startedAt = clock.instant();
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class);
-
-        assertThat(timeouts).containsExactly(DEADLINE);
-        assertThat(Duration.between(startedAt, clock.instant())).isLessThanOrEqualTo(DEADLINE.plus(MARGIN));
-    }
-
-    @Test
-    void noCandidateIsTriedOnceTheDeadlineHasPassed() {
-        when(providerSecurityServerResolver.resolve(serviceId, null)).thenReturn(List.of(
-                new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenAnswer(invocation -> {
-                    clock.advance(DEADLINE.plus(MARGIN));
-                    throw new IllegalStateException("provider timed out");
-                });
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class);
-
-        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
-    }
-
-    @Test
-    void failOverStartsANewDeadlineAndSharesItOnlyAmongTheCandidatesOtherThanTheFailedOne() {
-        when(providerSecurityServerResolver.resolve(serviceId, null)).thenReturn(List.of(
-                new ProviderAddress(null, HOST_A), new ProviderAddress(null, HOST_B), new ProviderAddress(null, HOST_C)));
-        var timeouts = new ArrayList<Duration>();
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenAnswer(invocation -> {
-                    timeouts.add(invocation.getArgument(5));
-                    return new AssetAccessResponse("http://dp-b/e", null, invocation.getArgument(2));
-                });
-        clock.advance(Duration.ofMinutes(10));
-
-        processor.failOver(new DspRequest(serviceId, SENDER, null, false), new AssetAccessResponse("http://dp-a/e", "t", DID_A));
-
-        assertThat(timeouts).containsExactly(Duration.ofSeconds(30));
-    }
-
-    private void slowCandidates(List<Duration> timeouts) {
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
-                .thenAnswer(invocation -> {
-                    Duration timeout = invocation.getArgument(5);
-                    timeouts.add(timeout);
-                    clock.advance(timeout.plus(MARGIN));
-                    throw new IllegalStateException("provider timed out");
-                });
+    private static List<AcquisitionCandidate> single(String counterPartyId, String counterPartyAddress) {
+        return List.of(new AcquisitionCandidate(counterPartyId, counterPartyAddress));
     }
 }

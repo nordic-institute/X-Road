@@ -28,8 +28,6 @@ package org.niis.xroad.proxy.core.dsp;
 
 import jakarta.annotation.Nonnull;
 
-import java.util.Optional;
-
 /**
  * Processes DSP (Data Space Protocol) requests within the proxy request pipeline.
  * Implementations perform asset access acquisition via the control plane.
@@ -38,15 +36,16 @@ public interface DspRequestProcessor {
 
     /**
      * Executes DSP processing for the given request and returns the asset access details
-     * (endpoint + optional authorization) resolved from the control plane.
+     * (endpoint + optional authorization) resolved from the control plane, with the number of
+     * distinct candidate Security Servers the acquisition chose among.
      *
      * @param request the DSP request carrying the target service identifier and an optional
      *                caller-sent security-server hint
-     * @return the asset access response containing the dataplane endpoint and optional authorization;
-     *         never {@code null} — an unresolved target raises an exception instead
+     * @return the acquisition holding the asset access response with the dataplane endpoint and optional
+     *         authorization; never {@code null} — an unresolved target raises an exception instead
      */
     @Nonnull
-    AssetAccessResponse execute(DspRequest request);
+    DspAcquisition execute(DspRequest request);
 
     /**
      * Tells whether the request goes to the provider over the X-Road 7 path instead of through DSP. A request
@@ -69,16 +68,22 @@ public interface DspRequestProcessor {
     }
 
     /**
-     * Gives up the asset access whose provider server could not be connected to and acquires asset access
-     * from another candidate provider server. The failed server's cached asset access is dropped, so a later
-     * {@link #execute} does not reuse it.
+     * Drops every cached asset access won by the Security Server at the given address, so that the next
+     * {@link #execute} acquires afresh. Servers are compared by the lowercase {@code host:port} of the address with
+     * the scheme's default port filled in, or by the exact address when it is not an HTTP(S) URL.
      *
-     * @param request the request whose data call failed to connect
-     * @param failed  the asset access the failed data call used
-     * @return the asset access of another provider server, or empty when there is none to fail over to
-     *         or none of them yields asset access
+     * @param counterPartyAddress the counter-party address of the failed Security Server
      */
-    default Optional<AssetAccessResponse> failOver(DspRequest request, AssetAccessResponse failed) {
-        return Optional.empty();
+    default void invalidateAssetAccessWonBy(String counterPartyAddress) {
+    }
+
+    /**
+     * Reports a provider Security Server as unreachable, so that the next acquisition keeps it out of selection.
+     * Returns without waiting for the control plane; a failed report is logged and never thrown.
+     *
+     * @param counterPartyId      the counter-party id of the failed Security Server
+     * @param counterPartyAddress the counter-party address of the failed Security Server
+     */
+    default void reportCounterPartyFailure(String counterPartyId, String counterPartyAddress) {
     }
 }

@@ -79,6 +79,11 @@ class CommonRpcConfigKeysTest {
         }
     }
 
+    @Test
+    void controlPlaneDeadlineDefaultIsSixtyFiveSeconds() {
+        assertThat(config(Map.of()).value(CommonRpcConfigKeys.CHANNEL_CONTROL_PLANE_DEADLINE_AFTER)).isEqualTo(65_000);
+    }
+
     private static XRoadConfig config(Map<String, String> overrides) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
