@@ -50,6 +50,7 @@ cp -p -r %{srcdir}/../../../../src/service/op-monitor/op-monitor-application/bui
 cp -p %{srcdir}/common/op-monitor/etc/xroad/services/opmonitor.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/bin/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/scripts/setup_opmonitor_db.sh %{buildroot}/usr/share/xroad/scripts/
+cp -p %{srcdir}/common/op-monitor/usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/../../../../src/LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../../src/3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
@@ -67,6 +68,7 @@ rm -rf %{buildroot}
 
 %defattr(-,root,root,-)
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_opmonitor_db.sh
+%attr(540,root,xroad) /usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-opmonitor
 %attr(644,root,root) %{_unitdir}/xroad-opmonitor.service
 
