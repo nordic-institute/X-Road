@@ -37,15 +37,18 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.MemberServer;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
+import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
+import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
@@ -56,6 +59,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
+import org.niis.xroad.cs.admin.core.repository.MemberDidRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -67,9 +71,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_HOST_DIFFERS;
@@ -103,6 +109,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final SecurityServerRepository securityServerRepository;
+    private final MemberDidRepository memberDidRepository;
     private final ParticipantValueStore participantValueStore;
     private final IdentifierRepository<MemberIdEntity> memberIds;
 
@@ -184,16 +191,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public List<SecurityServer> getMemberOwnedServers(ClientId memberId) {
-        return xRoadMemberRepository.findMember(memberId).stream()
-                .map(XRoadMemberEntity::getOwnedServers)
-                .flatMap(Collection::stream)
-                .map(securityServerMapper::toTarget)
-                .collect(toList());
+    public List<MemberServer> getMemberOwnedServers(ClientId memberId) {
+        return xRoadMemberRepository.findMember(memberId)
+                .map(member -> withMemberDids(member, member.getOwnedServers().stream()))
+                .orElseGet(List::of);
     }
 
     @Override
-    public List<SecurityServer> getMemberClientOfServers(ClientId memberId) {
+    public List<MemberServer> getMemberClientOfServers(ClientId memberId) {
 
         return xRoadMemberRepository.findOneBy(memberId).map(member -> {
             var memberServers = member.getServerClients().stream();
@@ -201,13 +206,28 @@ public class MemberServiceImpl implements MemberService {
                     .map(SecurityServerClientEntity::getServerClients)
                     .flatMap(Collection::stream);
 
-            return Stream.concat(memberServers, subsystemServers)
+            return withMemberDids(member, Stream.concat(memberServers, subsystemServers)
                     .map(ServerClientEntity::getSecurityServer)
-                    .distinct()
-                    .map(securityServerMapper::toTarget)
-                    .toList();
+                    .distinct());
         })
                 .orElseGet(List::of);
+    }
+
+    private List<MemberServer> withMemberDids(XRoadMemberEntity member, Stream<SecurityServerEntity> servers) {
+        var didsByServerId = memberDidRepository.findRowsByMemberId(member.getId()).stream()
+                .collect(toMap(MemberDidRow::securityServerId, MemberDidRow::did));
+        return servers
+                .map(server -> toMemberServer(server, didsByServerId.get(server.getId())))
+                .toList();
+    }
+
+    private MemberServer toMemberServer(SecurityServerEntity server, String memberDid) {
+        var target = securityServerMapper.toTarget(server);
+        if (memberDid == null) {
+            return new MemberServer(target, null, null);
+        }
+        var registered = new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), Set.of());
+        return new MemberServer(target, memberDid, new ParticipantValueValidator(registered).isMemberDidStale(memberDid));
     }
 
     @Override

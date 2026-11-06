@@ -449,6 +449,8 @@
         "globalGroups": "Global Groups",
         "group": "Group",
         "memberDeleted": "Member deleted successfully",
+        "memberDid": "Member DID",
+        "memberDidStaleWarning": "The member DID does not match the Security Server address. Other servers use the old DID to reach this member.",
         "memberNameSaved": "Member name successfully saved",
         "memberSuccessfullyUnregistered": "Member {memberCode} from server {serverCode} has been unregistered",
         "ownedServers": "Owned Servers",

@@ -171,3 +171,58 @@ describe('1040 — CS Member Details — used servers list render and unregister
     await expect.element(page.getByTestId(`server-${SERVER_CODE}`)).not.toBeInTheDocument();
   });
 });
+
+describe('CS Member Details — member DID column on owned and used servers (Browser Mode)', () => {
+  const CURRENT_DID = 'did:web:security-server-address-E2E-SS1%3A7183:v1:E2E-TC1:e2e-tc1-member-subsystem';
+  const OLD_DID = 'did:web:old-address%3A7183:v1:E2E-TC1:e2e-tc1-member-subsystem';
+  const serverWithout = (code: string): SecurityServer => ({
+    ...serverFixture,
+    server_id: { ...serverFixture.server_id, server_code: code, encoded_id: `${MEMBER_ID}:${code}` },
+  });
+
+  async function renderWith(owned: object[], used: object[]) {
+    await renderRoute(`/members/${encodeURIComponent(MEMBER_ID)}/details`, {
+      permissions: unregisterPermissions,
+      msw: [
+        specHttp.get('/members/{member_id}', ({ response }) => response(200).json(memberFixture as never)),
+        specHttp.get('/members/{member_id}/owned-servers', ({ response }) => response(200).json(owned as never)),
+        specHttp.get('/members/{member_id}/used-servers', ({ response }) => response(200).json(used as never)),
+        specHttp.get('/members/{member_id}/global-groups', ({ response }) => response(200).json([] as never)),
+      ],
+    });
+  }
+
+  it('shows the member DID without a warning when it is not stale', async () => {
+    await renderWith([{ ...serverFixture, member_did: CURRENT_DID, member_did_stale: false }], []);
+
+    const owned = page.getByTestId('owned-servers-table');
+    await expect.element(owned.getByTestId('member-did')).toMatchTextContent(CURRENT_DID);
+    await expect.element(owned.getByTestId('member-did-stale-warning')).not.toBeInTheDocument();
+  });
+
+  it('shows the member DID with a warning when it is stale', async () => {
+    await renderWith([{ ...serverFixture, member_did: OLD_DID, member_did_stale: true }], []);
+
+    const owned = page.getByTestId('owned-servers-table');
+    await expect.element(owned.getByTestId('member-did')).toMatchTextContent(OLD_DID);
+    await expect.element(owned.getByTestId('member-did-stale-warning')).toBeVisible();
+  });
+
+  it('shows a dash for a server without a member DID', async () => {
+    await renderWith([serverFixture], [serverWithout('E2E-SS2')]);
+
+    await expect.element(page.getByTestId('owned-servers-table').getByTestId('member-did-missing')).toMatchTextContent('-');
+    await expect.element(page.getByTestId('used-servers-table').getByTestId('member-did-missing')).toMatchTextContent('-');
+    await expect.element(page.getByTestId('member-did-stale-warning')).not.toBeInTheDocument();
+  });
+
+  it('shows the member DID and warning in the used servers list next to the unregister action', async () => {
+    await renderWith([], [{ ...serverFixture, member_did: OLD_DID, member_did_stale: true }]);
+
+    const used = page.getByTestId('used-servers-table');
+    await expect.element(used.getByTestId('member-did')).toMatchTextContent(OLD_DID);
+    await expect.element(used.getByTestId('member-did-stale-warning')).toBeVisible();
+    await expect.element(used.getByTestId(`server-${SERVER_CODE}`)).toBeVisible();
+    await expect.element(used.getByTestId(`unregister-${SERVER_CODE}`)).toBeVisible();
+  });
+});

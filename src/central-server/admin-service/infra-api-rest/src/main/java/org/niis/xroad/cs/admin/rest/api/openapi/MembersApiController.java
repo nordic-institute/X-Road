@@ -40,7 +40,7 @@ import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.MemberCreationRequestMapper;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
-import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
+import org.niis.xroad.cs.admin.rest.api.converter.db.MemberServerDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.cs.openapi.MembersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
@@ -53,7 +53,7 @@ import org.niis.xroad.cs.openapi.model.MemberDidEditDto;
 import org.niis.xroad.cs.openapi.model.MemberDidRefusalReasonDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerDto;
+import org.niis.xroad.cs.openapi.model.MemberServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -103,7 +103,7 @@ public class MembersApiController implements MembersApi {
     private final SubsystemDtoConverter subsystemDtoConverter;
     private final GroupMemberConverter groupMemberConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
-    private final SecurityServerDtoConverter securityServerDtoConverter;
+    private final MemberServerDtoConverter memberServerDtoConverter;
     private final MemberCreationRequestMapper memberCreationRequestMapper;
     private final AuditDataHelper auditDataHelper;
 
@@ -167,24 +167,24 @@ public class MembersApiController implements MembersApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<List<SecurityServerDto>> getOwnedServers(final String memberId) {
+    public ResponseEntity<List<MemberServerDto>> getOwnedServers(final String memberId) {
         verifyMemberId(memberId);
 
         return ResponseEntity.ok(
                 memberService.getMemberOwnedServers(clientIdConverter.convertId(memberId)).stream()
-                        .map(securityServerDtoConverter::toDto)
+                        .map(memberServerDtoConverter::toDto)
                         .toList()
         );
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<List<SecurityServerDto>> getUsedServers(String memberId) {
+    public ResponseEntity<List<MemberServerDto>> getUsedServers(String memberId) {
         verifyMemberId(memberId);
 
         return ResponseEntity.ok(
                 memberService.getMemberClientOfServers(clientIdConverter.convertId(memberId)).stream()
-                        .map(securityServerDtoConverter::toDto)
+                        .map(memberServerDtoConverter::toDto)
                         .toList()
         );
     }

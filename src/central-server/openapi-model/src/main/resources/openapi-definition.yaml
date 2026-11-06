@@ -2127,7 +2127,7 @@ paths:
               schema:
                 description: array of member security servers
                 items:
-                  $ref: '#/components/schemas/SecurityServer'
+                  $ref: '#/components/schemas/MemberServer'
                 type: array
                 uniqueItems: false
           description: List of member's global groups
@@ -2155,7 +2155,7 @@ paths:
               schema:
                 description: array of member security servers
                 items:
-                  $ref: '#/components/schemas/SecurityServer'
+                  $ref: '#/components/schemas/MemberServer'
                 type: array
                 uniqueItems: false
           description: List of member's global groups
@@ -4992,6 +4992,20 @@ components:
       required:
         - server_id
         - in_maintenance_mode
+      type: object
+    MemberServer:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServer'
+      description: security server of a member, with the DID stored for the member on it
+      properties:
+        member_did:
+          description: stored DID of the member on the security server, absent when none is stored
+          type: string
+          readOnly: true
+        member_did_stale:
+          description: whether the host of the stored member DID differs from the server address, absent when no member DID is stored
+          type: boolean
+          readOnly: true
       type: object
     PagedClients:
       description: array of Clients with paging metadata

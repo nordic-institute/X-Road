@@ -415,6 +415,8 @@
         "globalGroups": "Grupos globales",
         "group": "Grupo",
         "memberDeleted": "Miembro eliminado con éxito",
+        "memberDid": "DID del miembro",
+        "memberDidStaleWarning": "El DID del miembro no coincide con la dirección del servidor de seguridad. Otros servidores usan el DID antiguo para llegar a este miembro.",
         "memberNameSaved": "Nombre del miembro guardado con éxito",
         "memberSuccessfullyUnregistered": "Miembro {MiemberCode} del Servidor {ServerCode} no ha sido registrado",
         "ownedServers": "Servidores propios",

@@ -33,7 +33,6 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
@@ -163,7 +162,7 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
             var ownedServers = memberService.getMemberOwnedServers(xRoadMember.getIdentifier());
             if (ownedServers != null && !ownedServers.isEmpty()) {
                 securityServers.addAll(ownedServers.stream()
-                        .map(SecurityServer::getServerId)
+                        .map(ownedServer -> ownedServer.server().getServerId())
                         .toList());
             }
         }

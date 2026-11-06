@@ -413,6 +413,8 @@
         "globalGroups": "Global toparlar",
         "group": "Topar",
         "memberDeleted": "Agza üstünlikli pozuldy",
+        "memberDid": "Agzanyň DID-i",
+        "memberDidStaleWarning": "Agzanyň DID-i howpsuzlyk serweriniň salgysy bilen gabat gelmeýär. Beýleki serwerler bu agza ýetmek üçin köne DID-i ulanýar.",
         "memberNameSaved": "Agzanyň ady üstünlikli ýatda saklanyldy",
         "ownedServers": "Eýeli serwerler",
         "server": "Serwer"

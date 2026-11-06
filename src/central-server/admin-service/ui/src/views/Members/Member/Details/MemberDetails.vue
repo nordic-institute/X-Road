@@ -140,7 +140,7 @@ import { mapState, mapStores } from 'pinia';
 import { useNotifications, XrdBtn, XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
 
 import { Permissions } from '@/global';
-import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
+import { MemberGlobalGroup, MemberServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 import { useUser } from '@/store/modules/user';
 
@@ -183,11 +183,11 @@ export default defineComponent({
       showEditNameDialog: false,
 
       loadingOwnedServers: false,
-      ownedServers: [] as SecurityServer[],
+      ownedServers: [] as MemberServer[],
 
       loadingUsedServers: false,
-      usedServers: [] as SecurityServer[],
-      unregisterFromServer: null as SecurityServer | null,
+      usedServers: [] as MemberServer[],
+      unregisterFromServer: null as MemberServer | null,
 
       loadingGroups: false,
       searchGroups: '',

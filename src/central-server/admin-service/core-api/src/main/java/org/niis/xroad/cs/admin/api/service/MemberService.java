@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.MemberServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 
@@ -47,8 +47,8 @@ public interface MemberService {
 
     List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId);
 
-    List<SecurityServer> getMemberOwnedServers(ClientId memberId);
-    List<SecurityServer> getMemberClientOfServers(ClientId memberId);
+    List<MemberServer> getMemberOwnedServers(ClientId memberId);
+    List<MemberServer> getMemberClientOfServers(ClientId memberId);
 
     Optional<XRoadMember> updateMemberName(ClientId clientId, String newName);
 

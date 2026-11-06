@@ -123,6 +123,27 @@ class ParticipantValueStorePostgresTest extends AbstractCentralServerPostgresTes
     }
 
     @Test
+    void findRowsByMemberIdReturnsOnlyThatMembersRowsInOneStatement() {
+        var firstOwner = seed.member();
+        var secondOwner = seed.member();
+        var client = seed.member();
+        var first = seed.server(firstOwner);
+        var second = seed.server(secondOwner);
+        seed.addClient(first, client);
+        seed.addClient(second, client);
+        insertMemberDid(first.id(), firstOwner.id(), memberDid(first.address(), firstOwner.identifier()));
+        insertMemberDid(first.id(), client.id(), memberDid(first.address(), client.identifier()));
+        insertMemberDid(second.id(), client.id(), memberDid(second.address(), client.identifier()));
+
+        StatementRecorder.start();
+        var rows = memberDids.findRowsByMemberId(client.id());
+        var statements = StatementRecorder.stop();
+
+        assertThat(statements).hasSize(1);
+        assertThat(rows).containsExactlyInAnyOrder(row(first, client.identifier()), row(second, client.identifier()));
+    }
+
+    @Test
     void replaceSystemPairValidatesAgainstTheAddressPersistedEarlierInTheTransaction() {
         var server = seed.server(seed.member());
         var oldPair = systemDid(server.address(), 7183);

@@ -41,6 +41,7 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
+import org.niis.xroad.cs.admin.api.domain.MemberServer;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
@@ -159,7 +160,8 @@ class ManagementServicesServiceImplTest {
             serverClient0.setServerId(SecurityServerId.create(clientId, "SS0"));
             xRoadMember.setServerClients(Set.of(serverClient0));
 
-            when(memberService.getMemberOwnedServers(any())).thenReturn(List.of(new SecurityServer(xRoadMember, "SS1")));
+            when(memberService.getMemberOwnedServers(any()))
+                    .thenReturn(List.of(new MemberServer(new SecurityServer(xRoadMember, "SS1"), null, null)));
 
             var result = managementServicesService.getManagementServicesConfiguration();
 
