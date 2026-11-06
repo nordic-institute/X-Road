@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -74,6 +75,7 @@ import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
+import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.LegacyCallRefusalPolicy;
@@ -96,6 +98,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
@@ -109,6 +112,8 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_SECURITY_SERVER;
@@ -839,6 +844,35 @@ class ClientRestMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
     }
 
+    @ParameterizedTest
+    @MethodSource("protocolRejections")
+    void aRefusalInTheResponseOfTheSiblingAfterATransportFaultReachesTheCallerWithItsCode(ErrorCode code) throws Exception {
+        assertRefusalInTheSiblingResponseReachesTheCaller(code, senderAnsweringWithFault(code));
+    }
+
+    @ParameterizedTest
+    @MethodSource("protocolRejections")
+    void aRefusalInTheMultipartResponseOfTheSiblingAfterATransportFaultReachesTheCallerWithItsCode(ErrorCode code)
+            throws Exception {
+        assertRefusalInTheSiblingResponseReachesTheCaller(code, senderAnsweringWithMultipartFault(code));
+    }
+
+    private void assertRefusalInTheSiblingResponseReachesTheCaller(ErrorCode code, HttpSender refusingSsB) throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var failedSsA = failingSender(new ConnectException("refused"));
+        stubSenders(harness, failedSsA, refusingSsB);
+        var restRequest = restRequest();
+
+        assertThatThrownBy(() -> harness.processor().processRequest(mock(RequestWrapper.class), null, restRequest,
+                restRequest.getClientId(), serviceId(), "req-1", restRequestContext()))
+                .satisfies(thrown -> assertCausedByCodeNotIoError(thrown, code));
+
+        verify(refusingSsB).addHeader(HEADER_AGREEMENT_TOKEN, SS_B_TOKEN);
+        verify(refusingSsB, never()).addHeader(HEADER_AGREEMENT_TOKEN, SS_A_TOKEN);
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+    }
+
     @Test
     void operationalMonitoringRecordsTheSiblingThatServedAfterAFailover() throws Exception {
         var addressResolver = mock(ServiceAddressResolver.class);
@@ -1124,10 +1158,38 @@ class ClientRestMessageProcessorTest {
 
     private static void assertRefusalWithCode(Throwable thrown, ErrorCode code, XrdRuntimeException refusal) {
         assertThat(thrown).isSameAs(refusal);
+        assertCausedByCodeNotIoError(thrown, code);
+    }
+
+    private static void assertCausedByCodeNotIoError(Throwable thrown, ErrorCode code) {
         assertThat(thrown).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
             assertThat(e.isCausedBy(code)).isTrue();
             assertThat(e.isCausedBy(IO_ERROR)).isFalse();
         });
+    }
+
+    private static HttpSender senderAnsweringWithFault(ErrorCode code) throws Exception {
+        return senderAnswering(TEXT_XML_UTF8, faultXml(code).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static HttpSender senderAnsweringWithMultipartFault(ErrorCode code) throws Exception {
+        var body = new ByteArrayOutputStream();
+        var encoder = new ProxyMessageEncoder(body, DEFAULT_DIGEST_ALGORITHM);
+        encoder.fault(faultXml(code));
+        encoder.close();
+        return senderAnswering(encoder.getContentType(), body.toByteArray());
+    }
+
+    private static HttpSender senderAnswering(String contentType, byte[] body) throws Exception {
+        var httpSender = mock(HttpSender.class);
+        when(httpSender.getResponseHeaders()).thenReturn(Map.of());
+        when(httpSender.getResponseContentType()).thenReturn(contentType);
+        when(httpSender.getResponseContent()).thenReturn(new ByteArrayInputStream(body));
+        return httpSender;
+    }
+
+    private static String faultXml(ErrorCode code) {
+        return SoapFault.createFaultXml(XrdRuntimeException.systemException(code, "refused by sibling"));
     }
 
     private static HttpSender failingSender(Throwable failure) throws Exception {
