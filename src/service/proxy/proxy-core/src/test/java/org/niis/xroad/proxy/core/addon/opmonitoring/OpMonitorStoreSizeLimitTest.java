@@ -38,7 +38,6 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -102,8 +101,7 @@ class OpMonitorStoreSizeLimitTest {
                 "xroad.common-rpc.channel.op-monitor.port", String.valueOf(port)));
         startServer(config, port);
         opMonitorClient = new OpMonitorClient(new RpcChannelFactory(credentials), new OpMonitorRpcChannelProperties(config),
-                new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient(), new NoopVaultKeyProvider(),
-                        credentials));
+                new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient()));
         opMonitorClient.init();
 
         int proxyBatchCap = new OpMonitorBufferProperties(config).maxMessageSize();

@@ -35,9 +35,11 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.credentials.ChannelTrust;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -46,19 +48,26 @@ public final class RpcChannelFactory {
     private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
 
     public ManagedChannel createChannel(RpcChannelProperties channelProperties)  {
-        return createChannel(channelProperties, rpcCredentialsConfigurer.createClientCredentials());
+        return openChannel(channelProperties, rpcCredentialsConfigurer::createClientCredentials);
     }
 
     /**
-     * Creates a channel that authenticates with the given credentials instead of the shared ones.
+     * Creates a channel whose server trust is set by {@code trust}: the shared trust anchors, or only one CA.
      */
-    public ManagedChannel createChannel(RpcChannelProperties channelProperties, ChannelCredentials credentials) {
+    public ManagedChannel createChannel(RpcChannelProperties channelProperties, ChannelTrust trust) {
+        return openChannel(channelProperties, () -> rpcCredentialsConfigurer.createClientCredentials(trust));
+    }
+
+    private ManagedChannel openChannel(RpcChannelProperties channelProperties,
+                                       Supplier<ChannelCredentials> credentialsSupplier) {
         var host = channelProperties.host();
         var port = channelProperties.port();
 
         if (channelProperties.deadlineAfter() <= 0) {
             throw new IllegalArgumentException("Deadline must be greater than 0");
         }
+
+        var credentials = credentialsSupplier.get();
 
         log.info("Starting grpc client to {}:{}, deadline: [{}], credentials: [{}]", host, port,
                 channelProperties.deadlineAfter(),

@@ -98,8 +98,7 @@ archUnit {
     "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
     "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
     "org.niis.xroad.arch.rule.NoVanillaExceptions",
-    "org.niis.xroad.arch.rule.NoQuarkusTestAnnotations",
-    "org.niis.xroad.arch.rule.SharedRpcCredentialsOnly"
+    "org.niis.xroad.arch.rule.NoQuarkusTestAnnotations"
   )
 }
 

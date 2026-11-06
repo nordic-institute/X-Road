@@ -169,7 +169,7 @@ class OpMonitorChannelCreationTest {
                         "xroad.common-rpc.channel.op-monitor.deadline-after", "10000"))
                 .build();
         return new Wiring(new RpcChannelFactory(shared), new OpMonitorRpcChannelProperties(config),
-                new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, keyProvider, shared), config);
+                new OpMonitorChannelTrustResolver(rpcProperties, vaultClient), config);
     }
 
     private static VaultClient vaultClient(ImportedCaRead read) {

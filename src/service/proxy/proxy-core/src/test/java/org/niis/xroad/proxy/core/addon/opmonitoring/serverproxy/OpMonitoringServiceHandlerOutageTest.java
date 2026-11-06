@@ -45,7 +45,6 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
@@ -239,8 +238,7 @@ class OpMonitoringServiceHandlerOutageTest {
     }
 
     private static OpMonitorChannelTrustResolver sharedCredentialsResolver() {
-        return new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient(), new NoopVaultKeyProvider(),
-                new InsecureRpcCredentialsConfigurer());
+        return new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient());
     }
 
     private OpMonitoringServiceHandlerImpl handler(OpMonitorClient client) {

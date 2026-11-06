@@ -24,8 +24,6 @@
  */
 package org.niis.xroad.opmonitor.client;
 
-import io.grpc.ChannelCredentials;
-import io.grpc.TlsChannelCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,16 +32,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.test.TestCa;
-import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
+import org.niis.xroad.common.rpc.credentials.ChannelTrust;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -62,10 +56,8 @@ class OpMonitorChannelTrustResolverTest {
 
     private final RpcProperties rpcProperties = mock(RpcProperties.class);
     private final VaultClient vaultClient = mock(VaultClient.class);
-    private final VaultKeyProvider vaultKeyProvider = mock(VaultKeyProvider.class);
-    private final RpcCredentialsConfigurer sharedCredentials = mock(RpcCredentialsConfigurer.class);
     private final OpMonitorChannelTrustResolver resolver =
-            new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, vaultKeyProvider, sharedCredentials);
+            new OpMonitorChannelTrustResolver(rpcProperties, vaultClient);
 
     @BeforeEach
     void tlsOn() {
@@ -73,41 +65,24 @@ class OpMonitorChannelTrustResolverTest {
     }
 
     @Test
-    void noImportedCaGivesTheSharedCredentialsUnchanged() {
-        var shared = mock(ChannelCredentials.class);
+    void noImportedCaGivesTheSharedTrust() {
         when(vaultClient.getOpMonitorCa()).thenReturn(Optional.empty());
-        when(sharedCredentials.createClientCredentials()).thenReturn(shared);
 
-        assertThat(resolver.resolve()).isSameAs(shared);
-        verifyNoInteractions(vaultKeyProvider);
+        assertThat(resolver.resolve()).isEqualTo(ChannelTrust.shared());
     }
 
     @Test
-    void importedCaGivesDedicatedCredentialsAndNotTheSharedOnes() throws Exception {
-        var ca = TestCa.selfSigned("Op-monitor CA");
-        var identity = ca.issueLeaf("proxy", List.of("localhost"), List.of());
-        var resolverWithKeys = new OpMonitorChannelTrustResolver(rpcProperties, vaultClient,
-                new TestVaultKeyProvider(identity, ca.certificate()), sharedCredentials);
-        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(ca.certificate()));
+    void importedCaGivesTrustInThatCaAlone() {
+        var ca = mock(X509Certificate.class);
+        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(ca));
 
-        assertThat(resolverWithKeys.resolve()).isInstanceOf(TlsChannelCredentials.class);
-        verifyNoInteractions(sharedCredentials);
-    }
-
-    @Test
-    void blankOrMissingRecordGivesTheSharedCredentialsUnchanged() {
-        var shared = mock(ChannelCredentials.class);
-        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.empty());
-        when(sharedCredentials.createClientCredentials()).thenReturn(shared);
-
-        assertThat(resolver.resolve()).isSameAs(shared);
-        assertThat(resolver.resolve()).isSameAs(shared);
-        verifyNoInteractions(vaultKeyProvider);
+        assertThat(resolver.resolve())
+                .isInstanceOfSatisfying(ChannelTrust.OnlyCa.class, trust -> assertThat(trust.ca()).isSameAs(ca));
     }
 
     @ParameterizedTest
     @MethodSource("unreadableCaCases")
-    void unreadableImportedCaFailsInsteadOfFallingBackToTheSharedCredentials(String situation, Throwable readFailure) {
+    void unreadableImportedCaFailsInsteadOfFallingBackToTheSharedTrust(String situation, Throwable readFailure) {
         when(vaultClient.getOpMonitorCa()).thenThrow(readFailure);
 
         assertThatThrownBy(resolver::resolve)
@@ -116,7 +91,6 @@ class OpMonitorChannelTrustResolverTest {
                     assertTrustFailure(e);
                     assertThat(e.getCause()).isSameAs(readFailure);
                 });
-        verifyNoInteractions(sharedCredentials, vaultKeyProvider);
     }
 
     static Stream<Arguments> unreadableCaCases() {
@@ -130,12 +104,11 @@ class OpMonitorChannelTrustResolverTest {
     }
 
     @Test
-    void malformedCaCertificateFailsInsteadOfFallingBackToTheSharedCredentials() {
+    void malformedCaCertificateFailsInsteadOfFallingBackToTheSharedTrust() {
         var realReader = mock(VaultClient.class, CALLS_REAL_METHODS);
         doAnswer(_ -> realReader.toOpMonitorCa(Map.of(VaultClient.CERTIFICATE_KEY, "not a certificate")))
                 .when(realReader).getOpMonitorCa();
-        var resolverWithRealReader = new OpMonitorChannelTrustResolver(rpcProperties, realReader, vaultKeyProvider,
-                sharedCredentials);
+        var resolverWithRealReader = new OpMonitorChannelTrustResolver(rpcProperties, realReader);
 
         assertThatThrownBy(resolverWithRealReader::resolve)
                 .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
@@ -143,62 +116,38 @@ class OpMonitorChannelTrustResolverTest {
                     assertThat(e.getCause()).isInstanceOf(XrdRuntimeException.class)
                             .hasMessageContaining("Could not parse certificate");
                 });
-        verifyNoInteractions(sharedCredentials, vaultKeyProvider);
-    }
-
-    @Test
-    void unusableKeyManagerFailsInsteadOfFallingBackToTheSharedCredentials() {
-        var keyFailure = new IllegalStateException("key manager is not ready");
-        when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(mock(X509Certificate.class)));
-        when(vaultKeyProvider.getKeyManager()).thenThrow(keyFailure);
-
-        assertThatThrownBy(resolver::resolve)
-                .isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
-                    assertTrustFailure(e);
-                    assertThat(e.getCause()).isSameAs(keyFailure);
-                });
-        verifyNoInteractions(sharedCredentials);
     }
 
     private static void assertTrustFailure(XrdRuntimeException e) {
         assertThat(e.getCode()).isEqualTo(ErrorCode.OP_MONITOR_TRUST_FAILURE.code());
         assertThat(e.getDetails()).isEqualTo("The op-monitor channel trust could not be established");
         assertThat(e.getErrorCodeMetadata()).isEmpty();
-        assertThat(e.getMessage()).doesNotContain("status 403", "sealed", "connection refused", "Could not parse",
-                "key manager is not ready");
+        assertThat(e.getMessage()).doesNotContain("status 403", "sealed", "connection refused", "Could not parse");
     }
 
     @Test
-    void tlsDisabledUsesTheSharedCredentialsWithoutReadingTheCa() {
-        var shared = mock(ChannelCredentials.class);
+    void tlsDisabledGivesTheSharedTrustWithoutReadingTheCa() {
         when(rpcProperties.useTls()).thenReturn(false);
-        when(sharedCredentials.createClientCredentials()).thenReturn(shared);
 
-        assertThat(resolver.resolve()).isSameAs(shared);
-        verifyNoInteractions(vaultClient, vaultKeyProvider);
+        assertThat(resolver.resolve()).isEqualTo(ChannelTrust.shared());
+        verifyNoInteractions(vaultClient);
     }
 
     @Test
     void tlsDisabledIgnoresAStoredCa() {
-        var shared = mock(ChannelCredentials.class);
         when(rpcProperties.useTls()).thenReturn(false);
         when(vaultClient.getOpMonitorCa()).thenReturn(Optional.of(mock(X509Certificate.class)));
-        when(sharedCredentials.createClientCredentials()).thenReturn(shared);
 
-        assertThat(resolver.resolve()).isSameAs(shared);
+        assertThat(resolver.resolve()).isEqualTo(ChannelTrust.shared());
         verify(vaultClient, never()).getOpMonitorCa();
-        verifyNoInteractions(vaultKeyProvider);
     }
 
     @Test
     void tlsDisabledIgnoresAFailingCaRead() {
-        var shared = mock(ChannelCredentials.class);
         when(rpcProperties.useTls()).thenReturn(false);
         when(vaultClient.getOpMonitorCa()).thenThrow(new IllegalStateException("sealed"));
-        when(sharedCredentials.createClientCredentials()).thenReturn(shared);
 
-        assertThat(resolver.resolve()).isSameAs(shared);
+        assertThat(resolver.resolve()).isEqualTo(ChannelTrust.shared());
         verify(vaultClient, never()).getOpMonitorCa();
-        verifyNoInteractions(vaultKeyProvider);
     }
 }

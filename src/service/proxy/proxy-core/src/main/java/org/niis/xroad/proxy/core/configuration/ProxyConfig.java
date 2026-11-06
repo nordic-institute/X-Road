@@ -51,10 +51,8 @@ import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
@@ -246,10 +244,8 @@ class ProxyConfig {
     }
 
     @ApplicationScoped
-    OpMonitorChannelTrustResolver opMonitorChannelTrustResolver(RpcProperties rpcProperties, VaultClient vaultClient,
-                                                                VaultKeyProvider vaultKeyProvider,
-                                                                RpcCredentialsConfigurer rpcCredentialsConfigurer) {
-        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, vaultKeyProvider, rpcCredentialsConfigurer);
+    OpMonitorChannelTrustResolver opMonitorChannelTrustResolver(RpcProperties rpcProperties, VaultClient vaultClient) {
+        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient);
     }
 
     @ApplicationScoped

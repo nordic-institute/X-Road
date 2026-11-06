@@ -24,15 +24,11 @@
  */
 package org.niis.xroad.opmonitor.client;
 
-import io.grpc.ChannelCredentials;
-import io.grpc.TlsChannelCredentials;
-import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.ChannelTrust;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.security.cert.X509Certificate;
@@ -41,8 +37,8 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.OP_MONITOR_TRUST_FAILURE;
 
 /**
- * Chooses the credentials of the op-monitor channels: with RPC TLS on, only the imported op-monitor CA is trusted when
- * one exists; the shared credentials are used otherwise. With RPC TLS off the imported CA is not read.
+ * Chooses whom the op-monitor channels trust: with RPC TLS on, only the imported op-monitor CA when one exists; the
+ * shared trust otherwise. With RPC TLS off the imported CA is not read.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -51,16 +47,14 @@ public class OpMonitorChannelTrustResolver {
 
     private final RpcProperties rpcProperties;
     private final VaultClient vaultClient;
-    private final VaultKeyProvider vaultKeyProvider;
-    private final RpcCredentialsConfigurer sharedCredentials;
 
     /**
-     * @return the credentials for a new op-monitor channel
-     * @throws XrdRuntimeException when the imported op-monitor CA cannot be read or used; no credentials are returned
+     * @return the trust for a new op-monitor channel
+     * @throws XrdRuntimeException when the imported op-monitor CA cannot be read or used; no trust is returned
      */
-    public ChannelCredentials resolve() {
+    public ChannelTrust resolve() {
         if (!rpcProperties.useTls()) {
-            return sharedCredentials.createClientCredentials();
+            return ChannelTrust.shared();
         }
         final Optional<X509Certificate> opMonitorCa;
         try {
@@ -69,30 +63,13 @@ public class OpMonitorChannelTrustResolver {
             throw trustFailure(e);
         }
         if (opMonitorCa.isEmpty()) {
-            return sharedCredentials.createClientCredentials();
+            return ChannelTrust.shared();
         }
-        var credentials = importedCaCredentials(opMonitorCa.get());
         log.info("Trusting only the imported op-monitor CA on the op-monitor channel");
-        return credentials;
+        return ChannelTrust.onlyCa(opMonitorCa.get());
     }
 
-    private ChannelCredentials importedCaCredentials(X509Certificate opMonitorCa) {
-        try {
-            var keyManager = vaultKeyProvider.getKeyManager();
-            var trustManager = AdvancedTlsX509TrustManager.newBuilder()
-                    .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
-                    .build();
-            trustManager.updateTrustCredentials(new X509Certificate[] {opMonitorCa});
-            return TlsChannelCredentials.newBuilder()
-                    .keyManager(keyManager)
-                    .trustManager(trustManager)
-                    .build();
-        } catch (Exception e) {
-            throw trustFailure(e);
-        }
-    }
-
-    private static XrdRuntimeException trustFailure(Exception cause) {
+    static XrdRuntimeException trustFailure(Exception cause) {
         return XrdRuntimeException.systemException(OP_MONITOR_TRUST_FAILURE)
                 .cause(cause)
                 .details(TRUST_FAILURE_DETAILS)

@@ -41,7 +41,6 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.test.TestCa;
 import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
@@ -96,6 +95,7 @@ class OpMonitorChannelTrustOpenBaoIntTest {
     private VaultClient vaultClient;
     private TestCa opMonitorCa;
     private OpMonitorChannelTrustResolver resolver;
+    private RpcChannelFactory channelFactory;
     private TestCa.TestLeaf proxyIdentity;
     private CountingServer securityServerCaServer;
     private CountingServer opMonitorCaServer;
@@ -112,10 +112,10 @@ class OpMonitorChannelTrustOpenBaoIntTest {
 
         proxyIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
         var keyProvider = new TestVaultKeyProvider(proxyIdentity, securityServerCa.certificate());
-        RpcCredentialsConfigurer sharedCredentials = new TlsRpcCredentialsConfigurer(keyProvider);
         var rpcProperties = mock(RpcProperties.class);
         when(rpcProperties.useTls()).thenReturn(true);
-        resolver = new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, keyProvider, sharedCredentials);
+        resolver = new OpMonitorChannelTrustResolver(rpcProperties, vaultClient);
+        channelFactory = new RpcChannelFactory(new TlsRpcCredentialsConfigurer(keyProvider));
 
         securityServerCaServer = startServer(securityServerCa, securityServerCa.certificate());
         opMonitorCaServer = startServer(opMonitorCa, securityServerCa.certificate());
@@ -191,8 +191,7 @@ class OpMonitorChannelTrustOpenBaoIntTest {
     }
 
     private OpMonitorClient newChannel(CountingServer server) {
-        var client = OpMonitorClient.create(new RpcChannelFactory(mock(RpcCredentialsConfigurer.class)), config(server.port()),
-                resolver);
+        var client = OpMonitorClient.create(channelFactory, config(server.port()), resolver);
         closeables.add(client);
         return client;
     }

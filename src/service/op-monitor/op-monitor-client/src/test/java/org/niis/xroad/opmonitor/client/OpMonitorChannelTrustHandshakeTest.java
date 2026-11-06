@@ -73,6 +73,7 @@ class OpMonitorChannelTrustHandshakeTest {
     private TestCa untrustedCa;
     private OpMonitorChannelTrustResolver resolverWithImportedCa;
     private OpMonitorChannelTrustResolver resolverWithoutImportedCa;
+    private RpcCredentialsConfigurer credentialsConfigurer;
     private TestCa.TestLeaf clientIdentity;
     private TlsTestServer server;
     private StoreService storeService;
@@ -88,12 +89,12 @@ class OpMonitorChannelTrustHandshakeTest {
 
         clientIdentity = securityServerCa.issueLeaf("proxy", List.of(HOST), List.of());
         var keyProvider = new TestVaultKeyProvider(clientIdentity, securityServerCa.certificate());
-        RpcCredentialsConfigurer shared = new TlsRpcCredentialsConfigurer(keyProvider);
+        credentialsConfigurer = new TlsRpcCredentialsConfigurer(keyProvider);
 
         var rpcProperties = mock(RpcProperties.class);
         when(rpcProperties.useTls()).thenReturn(true);
-        resolverWithImportedCa = resolver(rpcProperties, Optional.of(opMonitorCa.certificate()), keyProvider, shared);
-        resolverWithoutImportedCa = resolver(rpcProperties, Optional.empty(), keyProvider, shared);
+        resolverWithImportedCa = resolver(rpcProperties, Optional.of(opMonitorCa.certificate()));
+        resolverWithoutImportedCa = resolver(rpcProperties, Optional.empty());
     }
 
     @AfterEach
@@ -185,11 +186,11 @@ class OpMonitorChannelTrustHandshakeTest {
         }
     }
 
-    private static OpMonitorChannelTrustResolver resolver(RpcProperties rpcProperties, Optional<X509Certificate> importedCa,
-                                                          TestVaultKeyProvider keyProvider, RpcCredentialsConfigurer shared) {
+    private static OpMonitorChannelTrustResolver resolver(RpcProperties rpcProperties,
+                                                          Optional<X509Certificate> importedCa) {
         var vaultClient = mock(VaultClient.class);
         when(vaultClient.getOpMonitorCa()).thenReturn(importedCa);
-        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, keyProvider, shared);
+        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient);
     }
 
     private static Stream<Throwable> causalChain(Throwable throwable) {
@@ -202,8 +203,7 @@ class OpMonitorChannelTrustHandshakeTest {
         serverName = dnsName;
         storeService = new StoreService();
         server = TlsTestServer.start(serverIdentity, securityServerCa.certificate(), storeService);
-        client = OpMonitorClient.create(new RpcChannelFactory(mock(RpcCredentialsConfigurer.class)), config(server.port()),
-                resolver);
+        client = OpMonitorClient.create(new RpcChannelFactory(credentialsConfigurer), config(server.port()), resolver);
     }
 
     private static XRoadConfig config(int port) {

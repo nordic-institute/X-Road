@@ -28,7 +28,6 @@ package org.niis.xroad.opmonitor.test.container;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
@@ -117,8 +116,7 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
 
         var credentials = new InsecureRpcCredentialsConfigurer();
         opMonitorClient = new OpMonitorClient(new RpcChannelFactory(credentials), properties,
-                new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient(), new NoopVaultKeyProvider(),
-                        credentials));
+                new OpMonitorChannelTrustResolver(mock(RpcProperties.class), new NoopVaultClient()));
         opMonitorClient.init();
     }
 

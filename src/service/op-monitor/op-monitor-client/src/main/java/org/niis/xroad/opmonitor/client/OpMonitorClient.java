@@ -38,6 +38,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.ChannelTrust;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.AccessScope;
@@ -68,7 +69,7 @@ public class OpMonitorClient extends AbstractRpcClient {
      * Creates an initialised client for the op-monitor channel configured in {@code config}.
      * @param rpcChannelFactory the factory of the channel
      * @param config the configuration the channel properties are read from
-     * @param channelTrustResolver chooses the credentials of the channel
+     * @param channelTrustResolver chooses whom the channel trusts
      * @return the client, to be closed after use
      */
     public static OpMonitorClient create(RpcChannelFactory rpcChannelFactory, XRoadConfig config,
@@ -100,8 +101,16 @@ public class OpMonitorClient extends AbstractRpcClient {
         }
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        var newChannel = rpcChannelFactory.createChannel(rpcChannelProperties, channelTrustResolver.resolve());
+        var newChannel = createChannel(channelTrustResolver.resolve());
         connection.set(new Connection(newChannel, OpMonitorServiceGrpc.newBlockingStub(newChannel).withWaitForReady()));
+    }
+
+    private ManagedChannel createChannel(ChannelTrust trust) {
+        try {
+            return rpcChannelFactory.createChannel(rpcChannelProperties, trust);
+        } catch (XrdRuntimeException e) {
+            throw OpMonitorChannelTrustResolver.trustFailure(e);
+        }
     }
 
     private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub stub() {

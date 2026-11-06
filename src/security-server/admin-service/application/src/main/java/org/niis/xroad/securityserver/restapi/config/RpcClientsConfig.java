@@ -31,9 +31,7 @@ import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcChannelPropertie
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
@@ -127,10 +125,8 @@ class RpcClientsConfig {
     }
 
     @Bean
-    OpMonitorChannelTrustResolver opMonitorChannelTrustResolver(RpcProperties rpcProperties, VaultClient vaultClient,
-                                                                VaultKeyProvider vaultKeyProvider,
-                                                                RpcCredentialsConfigurer rpcCredentialsConfigurer) {
-        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient, vaultKeyProvider, rpcCredentialsConfigurer);
+    OpMonitorChannelTrustResolver opMonitorChannelTrustResolver(RpcProperties rpcProperties, VaultClient vaultClient) {
+        return new OpMonitorChannelTrustResolver(rpcProperties, vaultClient);
     }
 
     @Bean

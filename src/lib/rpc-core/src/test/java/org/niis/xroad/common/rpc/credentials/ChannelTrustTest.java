@@ -26,32 +26,32 @@
  */
 package org.niis.xroad.common.rpc.credentials;
 
-import io.grpc.ServerCredentials;
-import io.grpc.TlsServerCredentials;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.rpc.test.TestCa;
 
-import java.util.Collection;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Server credentials that accept only clients whose certificate name is listed, on top of the chain check against
- * the trust anchors of the shared credentials.
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ClientNameServerCredentials {
+class ChannelTrustTest {
 
-    /**
-     * @param keyProvider source of the server identity and the trust anchors
-     * @param allowedClientNames names a client certificate must carry, as common name or DNS subject alternative name
-     * @return credentials requiring a client certificate; the shared trust manager is left untouched
-     */
-    public static ServerCredentials create(VaultKeyProvider keyProvider, Collection<String> allowedClientNames) {
-        var trustManager = keyProvider.createVerifyingTrustManager(new ClientIdentityMatcher(allowedClientNames));
-        return TlsServerCredentials.newBuilder()
-                .keyManager(keyProvider.getKeyManager())
-                .trustManager(trustManager)
-                .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE)
-                .build();
+    @Test
+    void hasExactlyTheSharedAndTheOnlyCaCases() {
+        assertThat(ChannelTrust.class.isSealed()).isTrue();
+        assertThat(ChannelTrust.class.getPermittedSubclasses())
+                .containsExactlyInAnyOrder(ChannelTrust.Shared.class, ChannelTrust.OnlyCa.class);
+    }
+
+    @Test
+    void onlyCaRejectsANullCertificate() {
+        assertThatThrownBy(() -> ChannelTrust.onlyCa(null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void factoriesCreateTheirCases() throws Exception {
+        var ca = TestCa.selfSigned("Test CA").certificate();
+
+        assertThat(ChannelTrust.shared()).isInstanceOf(ChannelTrust.Shared.class);
+        assertThat(ChannelTrust.onlyCa(ca)).isInstanceOfSatisfying(ChannelTrust.OnlyCa.class,
+                trust -> assertThat(trust.ca()).isSameAs(ca));
     }
 }

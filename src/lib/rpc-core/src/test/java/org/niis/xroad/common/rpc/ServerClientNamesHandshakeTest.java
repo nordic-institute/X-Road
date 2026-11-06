@@ -40,7 +40,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.niis.xroad.common.rpc.credentials.ClientNameServerCredentials;
 import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.test.TestCa;
 import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
@@ -51,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class ClientNameServerCredentialsHandshakeTest {
+class ServerClientNamesHandshakeTest {
     private static final String HOST = "localhost";
     private static final byte[] PAYLOAD = {1, 2, 3};
     private static final long DEADLINE_SECONDS = 10;
@@ -146,7 +145,7 @@ class ClientNameServerCredentialsHandshakeTest {
 
     @Test
     void emptyListAcceptsAnyClientFromTheSecurityServerCa() throws Exception {
-        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials());
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of()));
 
         connectWithClientCertificate(securityServerCa.issueLeaf("anything", List.of(), List.of()));
 
@@ -155,7 +154,7 @@ class ClientNameServerCredentialsHandshakeTest {
 
     @Test
     void emptyListRejectsAClientFromAnotherCa() throws Exception {
-        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials());
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of()));
 
         connectWithClientCertificate(otherCa.issueLeaf("proxy", List.of("proxy"), List.of()));
 
@@ -164,7 +163,7 @@ class ClientNameServerCredentialsHandshakeTest {
 
     @Test
     void emptyListRejectsAClientWithoutACertificate() throws Exception {
-        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials());
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of()));
 
         connectWithoutClientCertificate();
 
@@ -172,7 +171,7 @@ class ClientNameServerCredentialsHandshakeTest {
     }
 
     private void startListServer(String... allowedNames) throws Exception {
-        startServer(ClientNameServerCredentials.create(serverKeyProvider, List.of(allowedNames)));
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of(allowedNames)));
     }
 
     private void startServer(ServerCredentials credentials) throws Exception {
