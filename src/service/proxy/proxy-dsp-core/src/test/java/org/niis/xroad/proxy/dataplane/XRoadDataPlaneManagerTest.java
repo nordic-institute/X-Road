@@ -27,6 +27,7 @@
 package org.niis.xroad.proxy.dataplane;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -41,14 +42,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.agreementtoken.AgreementTokenGroup;
 import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
+import org.niis.xroad.proxy.controlplane.AgreementGroupGrant;
+import org.niis.xroad.proxy.controlplane.AgreementServiceGrant;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -348,6 +354,7 @@ class XRoadDataPlaneManagerTest {
         var result = manager.start(buildStartMessage("flow-no-grant"));
 
         assertThat(authorizationProperty(result.getDataAddress())).isEmpty();
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
     }
 
@@ -358,6 +365,7 @@ class XRoadDataPlaneManagerTest {
         var result = manager.start(buildStartMessage("flow-grant-throws"));
 
         assertThat(authorizationProperty(result.getDataAddress())).isEmpty();
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
     }
 
@@ -375,7 +383,7 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
-    void noTokenWhenNoGrantedScopeEntrySurvivesTheLiveAcl() {
+    void marksTheDataAddressRefusedWhenTheLiveAclGrantsNoEndpoint() {
         var scope = List.of(new AgreementTokenScope("GET", "/foo/*"), new AgreementTokenScope("POST", "/bar"));
         when(grantRpcClient.resolveAgreementGrant("agreement-1"))
                 .thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
@@ -384,6 +392,55 @@ class XRoadDataPlaneManagerTest {
         var result = manager.start(buildStartMessage("flow-empty-acl"));
 
         assertThat(authorizationProperty(result.getDataAddress())).isEmpty();
+        assertThat(refusedProperty(result.getDataAddress())).contains("true");
+        assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
+    }
+
+    @Test
+    void doesNotMarkTheDataAddressRefusedWhenTheLiveAclGrantsAnEndpoint() {
+        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant("agreement-1"))
+                .thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+
+        var result = manager.start(buildStartMessage("flow-granted-acl"));
+
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
+    }
+
+    @Test
+    void doesNotMarkTheDataAddressRefusedForAGroupGrant() {
+        when(grantRpcClient.resolveAgreementGrant("agreement-1"))
+                .thenReturn(Optional.of(new AgreementGroupGrant(
+                        new AgreementTokenGroup.Local(ClientId.Conf.create("DEV", "COM", "333", "PROVIDER"),
+                                LocalGroupId.Conf.create("readers")), SERVICE)));
+
+        var result = manager.start(buildStartMessage("flow-group"));
+
+        assertThat(authorizationProperty(result.getDataAddress())).isPresent();
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
+    }
+
+    @Test
+    void doesNotMarkTheDataAddressRefusedForAServiceOnlyGrant() {
+        when(grantRpcClient.resolveAgreementGrant("agreement-1")).thenReturn(Optional.of(new AgreementServiceGrant(SERVICE)));
+
+        var result = manager.start(buildStartMessage("flow-service-only"));
+
+        assertThat(authorizationProperty(result.getDataAddress())).isPresent();
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
+    }
+
+    @Test
+    void doesNotMarkTheDataAddressRefusedForABuiltinService() {
+        var builtin = ServiceId.Conf.create("DEV", "COM", "333", null, BuiltinServiceCodes.LIST_METHODS);
+        when(grantRpcClient.resolveAgreementGrant("agreement-1")).thenReturn(Optional.of(new AgreementServiceGrant(builtin)));
+
+        var result = manager.start(buildStartMessage("flow-builtin"));
+
+        assertThat(authorizationProperty(result.getDataAddress())).isEmpty();
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
     }
 
     @Test
@@ -393,6 +450,7 @@ class XRoadDataPlaneManagerTest {
         var result = manager.start(buildStartMessage("flow-no-key-material"));
 
         assertThat(authorizationProperty(result.getDataAddress())).isEmpty();
+        assertThat(refusedProperty(result.getDataAddress())).isEmpty();
         assertThat(result.getDataAddress().getEndpoint()).isEqualTo(SERVERPROXY_ENDPOINT);
         verifyNoInteractions(grantRpcClient);
     }
@@ -465,6 +523,10 @@ class XRoadDataPlaneManagerTest {
 
     private static Optional<String> authorizationProperty(DspDataAddress dataAddress) {
         return findProperty(dataAddress, CoreConstants.EDC_NAMESPACE + "authorization");
+    }
+
+    private static Optional<String> refusedProperty(DspDataAddress dataAddress) {
+        return findProperty(dataAddress, DspConventions.ACCESS_REFUSED_PROPERTY);
     }
 
     private static Optional<String> authTypeProperty(DspDataAddress dataAddress) {

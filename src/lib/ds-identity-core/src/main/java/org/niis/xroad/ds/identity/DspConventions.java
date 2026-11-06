@@ -74,6 +74,13 @@ public class DspConventions {
     public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
 
     /**
+     * Property of the provider's data address that carries {@code true} when the provider has a grant for the
+     * agreement but the caller's live ACL lists no endpoint, so the provider refuses access. The consumer treats such
+     * an address as a refused transfer instead of sending a tokenless call.
+     */
+    public static final String ACCESS_REFUSED_PROPERTY = "https://w3id.org/edc/v0.0.1/ns/accessRefused";
+
+    /**
      * DID-document service type under which a participant's DCP credential service is published.
      */
     public static final String CREDENTIAL_SERVICE_TYPE = "CredentialService";

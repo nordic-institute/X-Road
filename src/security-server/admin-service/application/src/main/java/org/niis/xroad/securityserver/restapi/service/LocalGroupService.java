@@ -214,6 +214,7 @@ public class LocalGroupService {
         // one-to-many + many-to-one construct properly
         localGroupRepository.saveOrUpdateAll(membersToBeAdded);
         localGroupEntity.getGroupMembers().addAll(membersToBeAdded);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     /**
@@ -278,6 +279,7 @@ public class LocalGroupService {
             throw new LocalGroupMemberNotFoundException("the requested group member was not found in local group");
         }
         managedLocalGroup.getGroupMembers().removeAll(membersToBeRemoved);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     /**

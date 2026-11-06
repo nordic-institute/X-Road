@@ -26,9 +26,6 @@
  */
 package org.niis.xroad.common.rpc.vault;
 
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.timelimiter.TimeLimiter;
-import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,16 +50,21 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
 
 @ExtendWith(MockitoExtension.class)
 class ReloadableVaultKeyManagerTest {
+
+    private static final long REFRESH_INTERVAL_MILLIS = 60_000L;
+    private static final long WAIT_DURATION_MILLIS = 1_000L;
+    private static final long MAX_WAIT_DURATION_MILLIS = 8_000L;
 
     private RpcProperties.RpcCertificateProvisioningProperties certificateProvisionProperties;
     @Mock
@@ -70,12 +72,8 @@ class ReloadableVaultKeyManagerTest {
     @Mock
     private ScheduledExecutorService scheduler;
 
-
     @Spy
     private AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
-
-    private Retry retryInstance;
-    private TimeLimiter timeLimiter;
 
     private AdvancedTlsX509TrustManager trustManager;
 
@@ -86,14 +84,11 @@ class ReloadableVaultKeyManagerTest {
     @Captor
     private ArgumentCaptor<Long> delayCaptor;
     @Captor
-    private ArgumentCaptor<TimeUnit> timeUnitCaptor;
-    @Captor
     private ArgumentCaptor<X509Certificate[]> trustCertsCaptor;
     @Captor
     private ArgumentCaptor<X509Certificate[]> identityCertsCaptor;
     @Captor
     private ArgumentCaptor<PrivateKey> privateKeyCaptor;
-
 
     @BeforeEach
     void setUp() throws CertificateException {
@@ -103,17 +98,12 @@ class ReloadableVaultKeyManagerTest {
                 .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
                 .build());
 
-
-        retryInstance = spy(ReloadableVaultKeyManager.createRetryInstance(certificateProvisionProperties));
-        timeLimiter = ReloadableVaultKeyManager.createTimeLimiter(certificateProvisionProperties);
         reloadableVaultKeyManager = new ReloadableVaultKeyManager(certificateProvisionProperties, vaultKeyClient, trustManager,
-                keyManager, scheduler, retryInstance, timeLimiter);
-
+                keyManager, scheduler);
     }
 
     @Test
     void reloadShouldSucceedOnFirstAttempt() throws Throwable {
-        // Arrange
         var mockResult = mock(VaultKeyClient.VaultKeyData.class);
         var mockIdentityCerts = new X509Certificate[]{mock(X509Certificate.class)};
         var mockTrustCerts = new X509Certificate[]{mock(X509Certificate.class)};
@@ -124,14 +114,10 @@ class ReloadableVaultKeyManagerTest {
         when(mockResult.identityPrivateKey()).thenReturn(mockPrivateKey);
         when(vaultKeyClient.provisionNewCerts()).thenReturn(mockResult);
 
-        // Act
         reloadableVaultKeyManager.reload();
 
-        // Assert
-        // Verify provisionNewCerts was called exactly once
         verify(vaultKeyClient, times(1)).provisionNewCerts();
 
-        // Verify keyManager and trustManager were updated with the results
         verify(keyManager).updateIdentityCredentials(identityCertsCaptor.capture(), privateKeyCaptor.capture());
         verify(trustManager).updateTrustCredentials(trustCertsCaptor.capture());
 
@@ -139,144 +125,154 @@ class ReloadableVaultKeyManagerTest {
         assertThat(privateKeyCaptor.getValue()).isEqualTo(mockPrivateKey);
         assertThat(trustCertsCaptor.getValue()).isEqualTo(mockTrustCerts);
 
-        // Verify the next reload is scheduled
-        verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
-        assertThat(delayCaptor.getValue()).isEqualTo(60L);
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
+        assertThat(scheduledDelays(1)).containsExactly(REFRESH_INTERVAL_MILLIS);
     }
 
     @Test
-    void reloadShouldSucceedOnRetry() throws Throwable {
-        // Arrange
-        var mockResult = mock(VaultKeyClient.VaultKeyData.class);
-        var mockIdentityCerts = new X509Certificate[]{mock(X509Certificate.class)};
-        var mockTrustCerts = new X509Certificate[]{mock(X509Certificate.class)};
-        var mockPrivateKey = mock(PrivateKey.class);
+    void firstFailedLoadShouldScheduleWaitDurationAndLeaveManagersUntouched() throws Exception {
+        when(vaultKeyClient.provisionNewCerts()).thenThrow(new IllegalStateException("secret store unreachable"));
 
-        when(mockResult.identityCertChain()).thenReturn(mockIdentityCerts);
-        when(mockResult.trustCerts()).thenReturn(mockTrustCerts);
-        when(mockResult.identityPrivateKey()).thenReturn(mockPrivateKey);
-
-        // Fail first time, succeed second time
-        when(vaultKeyClient.provisionNewCerts())
-                .thenThrow(new RuntimeException("Temporary failure"))
-                .thenReturn(mockResult);
-
-        // Act
         reloadableVaultKeyManager.reload();
 
-        // Assert
-        // Verify provisionNewCerts was called exactly twice (initial + 1 retry)
+        verify(vaultKeyClient, times(1)).provisionNewCerts();
+        verify(keyManager, never()).updateIdentityCredentials((X509Certificate[]) any(), any());
+        verify(trustManager, never()).updateTrustCredentials((X509Certificate[]) any());
+        assertThat(scheduledDelays(1)).containsExactly(WAIT_DURATION_MILLIS);
+    }
+
+    @Test
+    void errorThrownByLoadShouldStillScheduleNextReloadAtWaitDuration() throws Exception {
+        when(vaultKeyClient.provisionNewCerts()).thenThrow(new LinkageError("class initialization failed"));
+
+        reloadableVaultKeyManager.reload();
+
+        verify(keyManager, never()).updateIdentityCredentials((X509Certificate[]) any(), any());
+        assertThat(scheduledDelays(1)).containsExactly(WAIT_DURATION_MILLIS);
+    }
+
+    @Test
+    void consecutiveFailuresShouldGrowByMultiplierAndNeverExceedMaxWaitDuration() throws Exception {
+        when(vaultKeyClient.provisionNewCerts()).thenThrow(new IllegalStateException("secret store unreachable"));
+
+        for (int i = 0; i < 6; i++) {
+            reloadableVaultKeyManager.reload();
+        }
+
+        assertThat(scheduledDelays(6)).containsExactly(
+                WAIT_DURATION_MILLIS,
+                2 * WAIT_DURATION_MILLIS,
+                4 * WAIT_DURATION_MILLIS,
+                MAX_WAIT_DURATION_MILLIS,
+                MAX_WAIT_DURATION_MILLIS,
+                MAX_WAIT_DURATION_MILLIS);
+    }
+
+    @Test
+    void successAfterFailuresShouldScheduleRefreshIntervalAndResetBackoff() throws Exception {
+        var loaded = vaultKeyData();
+        when(vaultKeyClient.provisionNewCerts())
+                .thenThrow(new IllegalStateException("secret store unreachable"))
+                .thenThrow(new IllegalStateException("secret store unreachable"))
+                .thenReturn(loaded)
+                .thenThrow(new IllegalStateException("secret store unreachable"));
+
+        for (int i = 0; i < 4; i++) {
+            reloadableVaultKeyManager.reload();
+        }
+
+        assertThat(scheduledDelays(4)).containsExactly(
+                WAIT_DURATION_MILLIS,
+                2 * WAIT_DURATION_MILLIS,
+                REFRESH_INTERVAL_MILLIS,
+                WAIT_DURATION_MILLIS);
+    }
+
+    @Test
+    void failedPeriodicRefreshShouldKeepLoadedMaterialAndScheduleBackoff() throws Exception {
+        var loaded = vaultKeyData();
+        when(vaultKeyClient.provisionNewCerts())
+                .thenReturn(loaded)
+                .thenThrow(new IllegalStateException("secret store unreachable"));
+
+        reloadableVaultKeyManager.reload();
+        reloadableVaultKeyManager.reload();
+
+        verify(keyManager, times(1)).updateIdentityCredentials((X509Certificate[]) any(), any());
+        verify(trustManager, times(1)).updateTrustCredentials((X509Certificate[]) any());
+        assertThat(scheduledDelays(2)).containsExactly(REFRESH_INTERVAL_MILLIS, WAIT_DURATION_MILLIS);
+    }
+
+    @Test
+    void scheduledReloadShouldRunAnotherLoadAttempt() throws Exception {
+        var loaded = vaultKeyData();
+        when(vaultKeyClient.provisionNewCerts())
+                .thenThrow(new IllegalStateException("secret store unreachable"))
+                .thenReturn(loaded);
+
+        reloadableVaultKeyManager.init();
+        verify(scheduler).schedule(runnableCaptor.capture(), eq(WAIT_DURATION_MILLIS), eq(TimeUnit.MILLISECONDS));
+        runnableCaptor.getValue().run();
+
         verify(vaultKeyClient, times(2)).provisionNewCerts();
-
-        // Verify keyManager and trustManager were updated with the results from the successful call
-        verify(keyManager).updateIdentityCredentials(identityCertsCaptor.capture(), privateKeyCaptor.capture());
-        verify(trustManager).updateTrustCredentials(trustCertsCaptor.capture());
-
-        assertThat(identityCertsCaptor.getValue()).isEqualTo(mockIdentityCerts);
-        assertThat(privateKeyCaptor.getValue()).isEqualTo(mockPrivateKey);
-        assertThat(trustCertsCaptor.getValue()).isEqualTo(mockTrustCerts);
-
-        // Verify the next reload is scheduled
-        verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
-        assertThat(delayCaptor.getValue()).isEqualTo(60L);
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
-
-
-        // Verify the retry metrics (optional but good)
-        assertThat(retryInstance.getMetrics().getNumberOfSuccessfulCallsWithRetryAttempt()).isOne();
-        assertThat(retryInstance.getMetrics().getNumberOfFailedCallsWithRetryAttempt()).isZero();
+        verify(keyManager).updateIdentityCredentials((X509Certificate[]) any(), any());
+        assertThat(scheduledDelays(2)).containsExactly(WAIT_DURATION_MILLIS, REFRESH_INTERVAL_MILLIS);
     }
 
     @Test
-    void reloadShouldFailAfterExhaustingRetries() throws Throwable {
-        // Arrange
-        var failureException = new RuntimeException("Persistent failure");
+    void initFailingShouldScheduleNextReloadBeforeRefreshInterval() throws Exception {
+        when(vaultKeyClient.provisionNewCerts()).thenThrow(new IllegalStateException("secret store unreachable"));
 
-        // Fail all attempts (initial + 2 retries = 3)
-        when(vaultKeyClient.provisionNewCerts())
-                .thenThrow(failureException)
-                .thenThrow(failureException)
-                .thenThrow(failureException);
+        reloadableVaultKeyManager.init();
 
-        // Act
-        // The reload method catches the exception internally after retries are exhausted
-        reloadableVaultKeyManager.reload();
-
-        // Assert
-        // Verify provisionNewCerts was called the maximum number of times (initial + max retries)
-        int expectedAttempts = certificateProvisionProperties.retryMaxAttempts() + 1;
-        verify(vaultKeyClient, times(expectedAttempts)).provisionNewCerts();
-
-        // Verify keyManager and trustManager were NEVER updated
         verify(keyManager, never()).updateIdentityCredentials((X509Certificate[]) any(), any());
-        verify(trustManager, never()).updateTrustCredentials((X509Certificate[]) any());
-
-        // Verify the next reload is scheduled even after failure
-        verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
-        assertThat(delayCaptor.getValue()).isEqualTo(60L); // Still schedules the next attempt
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
-
-        assertThat(retryInstance.getMetrics().getNumberOfSuccessfulCallsWithoutRetryAttempt()).isZero();
-        assertThat(retryInstance.getMetrics().getNumberOfSuccessfulCallsWithRetryAttempt()).isZero();
-        assertThat(retryInstance.getMetrics().getNumberOfFailedCallsWithoutRetryAttempt()).isZero(); // Failed *after* retries
-        assertThat(retryInstance.getMetrics().getNumberOfFailedCallsWithRetryAttempt()).isOne();
+        verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), any(TimeUnit.class));
+        assertThat(delayCaptor.getValue()).isLessThan(REFRESH_INTERVAL_MILLIS);
     }
 
     @Test
-    void reloadShouldFailOnTimeout() throws Throwable {
-        // Arrange - create a TimeLimiter with a very short timeout
-        TimeLimiterConfig shortTimeoutConfig = TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofMillis(100))
-                .cancelRunningFuture(true)
-                .build();
-        var shortTimeLimiter = TimeLimiter.of("shortTimeoutLimiter", shortTimeoutConfig);
+    void initWithUnreachableSecretStoreShouldMakeSingleCallAndScheduleExactlyOneReload() throws Exception {
+        when(vaultKeyClient.provisionNewCerts()).thenThrow(new IllegalStateException("secret store unreachable"));
 
-        // Create a new manager with the short timeout
-        var managerWithShortTimeout = new ReloadableVaultKeyManager(
-                certificateProvisionProperties, vaultKeyClient, trustManager,
-                keyManager, scheduler, retryInstance, shortTimeLimiter);
+        reloadableVaultKeyManager.init();
 
-        // Mock provisionNewCerts to take longer than the timeout
-        when(vaultKeyClient.provisionNewCerts()).thenAnswer(invocation -> {
-            Thread.sleep(500); // Sleep longer than the timeout
-            return mock(VaultKeyClient.VaultKeyData.class);
-        });
+        verify(vaultKeyClient, times(1)).provisionNewCerts();
+        verify(scheduler, times(1)).schedule(any(Runnable.class), any(Long.class), any(TimeUnit.class));
+        verifyNoMoreInteractions(vaultKeyClient, scheduler);
+    }
 
-        // Act - reload should timeout
-        managerWithShortTimeout.reload();
+    private List<Long> scheduledDelays(int expectedReloads) {
+        verify(scheduler, times(expectedReloads)).schedule(any(Runnable.class), delayCaptor.capture(), eq(TimeUnit.MILLISECONDS));
+        return delayCaptor.getAllValues();
+    }
 
-        // Assert
-        // Verify keyManager and trustManager were NEVER updated due to timeout
-        verify(keyManager, never()).updateIdentityCredentials((X509Certificate[]) any(), any());
-        verify(trustManager, never()).updateTrustCredentials((X509Certificate[]) any());
-
-        // Verify the next reload is still scheduled even after timeout
-        verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
-        assertThat(delayCaptor.getValue()).isEqualTo(60L);
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
+    private static VaultKeyClient.VaultKeyData vaultKeyData() {
+        var result = mock(VaultKeyClient.VaultKeyData.class);
+        when(result.identityCertChain()).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
+        when(result.trustCerts()).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
+        when(result.identityPrivateKey()).thenReturn(mock(PrivateKey.class));
+        return result;
     }
 
     private static final class TestCertificateProvisioningProperties implements RpcProperties.RpcCertificateProvisioningProperties {
 
         @Override
         public Duration refreshInterval() {
-            return Duration.ofSeconds(60);
+            return Duration.ofMillis(REFRESH_INTERVAL_MILLIS);
         }
 
         @Override
-        public Duration retryDelay() {
-            return Duration.ofSeconds(1);
+        public Duration waitDuration() {
+            return Duration.ofMillis(WAIT_DURATION_MILLIS);
         }
 
         @Override
-        public Double retryExponentialBackoffMultiplier() {
-            return 1.0;
+        public Double exponentialBackoffMultiplier() {
+            return 2.0;
         }
 
         @Override
-        public int retryMaxAttempts() {
-            return 2;
+        public Duration exponentialMaxWaitDuration() {
+            return Duration.ofMillis(MAX_WAIT_DURATION_MILLIS);
         }
 
         @Override
@@ -307,11 +303,6 @@ class ReloadableVaultKeyManagerTest {
         @Override
         public String secretStorePkiPath() {
             return DEFAULT_SECRET_STORE_PKI_PATH;
-        }
-
-        @Override
-        public Duration retryTimeout() {
-            return Duration.ofSeconds(60);
         }
     }
 }
