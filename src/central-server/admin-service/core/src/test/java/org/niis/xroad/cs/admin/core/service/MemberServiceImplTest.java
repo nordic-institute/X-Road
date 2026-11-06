@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -39,16 +40,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
@@ -74,6 +80,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -83,6 +90,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
@@ -108,6 +116,8 @@ class MemberServiceImplTest {
     private MemberClassRepository memberClassRepository;
     @Mock
     private SecurityServerRepository securityServerRepository;
+    @Mock
+    private ParticipantValueStore participantValueStore;
     @Mock
     private IdentifierRepository<MemberIdEntity> memberIds;
     @Mock
@@ -421,6 +431,82 @@ class MemberServiceImplTest {
             Assertions.assertThat(result.stream()
                     .map(SecurityServer::getServerCode).collect(toList()))
                     .containsExactlyInAnyOrder("SS1", "SS3", "SS4");
+        }
+    }
+
+    @Nested
+    @DisplayName("editMemberDid()")
+    class EditMemberDid {
+        private static final int SERVER_ROW_ID = 7;
+        private static final String NEW_DID = "did:web:ss.example.org%3A7183:v1:TEST:CLASS:MEMBER";
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
+        private final SecurityServerId serverId = SecurityServerId.Conf.create("TEST", MEMBER_CLASS, "OWNER", "server");
+
+        private void givenServerRow() {
+            var server = mock(SecurityServerEntity.class);
+            when(server.getId()).thenReturn(SERVER_ROW_ID);
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(server));
+        }
+
+        @Test
+        void shouldReplaceWithoutLockingTheServerRow() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.STORED));
+
+            memberService.editMemberDid(serverId, clientId, NEW_DID);
+
+            verify(participantValueStore).replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID));
+            verify(securityServerRepository, never()).lockForUpdateBy(any());
+            verify(securityServerRepository, never()).lockForUpdateById(any());
+        }
+
+        @Test
+        void shouldPutAuditData() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.STORED));
+
+            memberService.editMemberDid(serverId, clientId, NEW_DID);
+
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
+            verify(auditData).put(RestApiAuditProperty.SERVER_CODE, "server");
+            verify(auditData).put(RestApiAuditProperty.OWNER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(RestApiAuditProperty.OWNER_CODE, "OWNER");
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
+        }
+
+        @Test
+        void shouldSucceedWhenTheStoredDidIsEqual() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.UNCHANGED));
+
+            memberService.editMemberDid(serverId, clientId, NEW_DID);
+
+            verify(participantValueStore).replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID));
+        }
+
+        @Test
+        void shouldFailWhenTheServerDoesNotExist() {
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
+
+            assertThrows(SecurityServerNotFoundException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            verify(participantValueStore, never()).replaceMemberDids(anyInt(), any());
+        }
+
+        @Test
+        void shouldFailWhenTheStoreRefusesTheDidAfterPuttingAuditData() {
+            givenServerRow();
+            when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(ParticipantValueRejection.HOST_DIFFERS)));
+
+            assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
+
+            verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
         }
     }
 }

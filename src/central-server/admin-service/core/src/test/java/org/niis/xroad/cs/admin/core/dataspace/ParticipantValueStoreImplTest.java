@@ -560,12 +560,12 @@ class ParticipantValueStoreImplTest {
     }
 
     @Test
-    void shouldNotAddMemberDidOnAdminReplace() {
+    void shouldRefuseMemberDidWithNoStoredRowOnAdminReplace() {
         storedRows.put(1L, new MemberDidEntity(server, ownerEntity, OWNER_DID));
 
         var results = store.replaceMemberDids(SERVER_ID, Map.of(CLIENT, CLIENT_DID));
 
-        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.UNCHANGED);
+        assertThat(results).containsEntry(CLIENT, ParticipantValueResult.rejected(NO_STORED_VALUE));
         assertThat(storedRows).containsOnlyKeys(1L);
         verify(memberDidRepository, never()).saveAndFlush(any());
     }
@@ -708,6 +708,15 @@ class ParticipantValueStoreImplTest {
         assertThat(results).containsEntry(OWNER, ParticipantValueResult.STORED)
                 .containsEntry(CLIENT, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
         assertThat(storedRows).containsOnlyKeys(1L);
+    }
+
+    @Test
+    void shouldRefuseUnservedMemberAsNotServedOnAdminReplace() {
+        var results = store.replaceMemberDids(SERVER_ID,
+                Map.of(UNRELATED, "did:web:ss0.example.org%3A7183:v1:DEV:COM:999"));
+
+        assertThat(results).containsEntry(UNRELATED, ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
+        assertThat(storedRows).isEmpty();
     }
 
     @Test

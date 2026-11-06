@@ -296,7 +296,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                                         String did, Mode mode) {
         if (stored == null) {
             return mode == Mode.ADMIN_REPLACE
-                    ? new MemberDidPlan.Settled(ParticipantValueResult.UNCHANGED)
+                    ? new MemberDidPlan.Settled(ParticipantValueResult.rejected(NO_STORED_VALUE))
                     : new MemberDidPlan.Insert(memberId);
         }
         var storedDid = stored.getDid();

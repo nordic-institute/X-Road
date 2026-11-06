@@ -184,6 +184,7 @@ public enum RestApiAuditEvent {
     DELETE_MEMBER("Delete member"),
     EDIT_MEMBER_NAME("Edit member name"),
     UNREGISTER_MEMBER("Unregister member as security server client"),
+    EDIT_MEMBER_DID("Edit member DID"),
 
     ADD_SUBSYSTEM("Add subsystem"),
     UNREGISTER_SUBSYSTEM("Unregister subsystem as security server client"),

@@ -97,6 +97,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     SYSTEM_PAIR_MALFORMED_DSP_BASE_URL("system_pair_malformed_dsp_base_url"),
     SYSTEM_PAIR_FOREIGN_DID("system_pair_foreign_did"),
     SYSTEM_PAIR_DID_HELD_BY_ANOTHER_SERVER("system_pair_did_held_by_another_server"),
+    MEMBER_DID_REJECTED("member_did_rejected"),
     CERTIFICATION_SERVICE_NOT_FOUND("certification_service_not_found"),
     INTERMEDIATE_CA_NOT_FOUND("intermediate_ca_not_found"),
     DS_TLS_CERTIFICATION_AUTHORITY_NOT_FOUND("ds_tls_certification_authority_not_found"),

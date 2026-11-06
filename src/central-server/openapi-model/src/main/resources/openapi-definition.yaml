@@ -2194,6 +2194,37 @@ paths:
       tags:
         - members
         - security-servers
+    patch:
+      description: >
+        <h3>CS administrator replaces the stored DID of a member on a Security Server.</h3>
+      operationId: updateMemberDid
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+        - $ref: '#/components/parameters/ServerIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberDidEdit'
+        description: the new member DID
+        required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: replace the DID of a member on a security server
+      tags:
+        - members
+        - security-servers
   /subsystems:
     post:
       description:
@@ -4669,6 +4700,15 @@ components:
           maxLength: 255
           minLength: 1
           type: string
+      type: object
+    MemberDidEdit:
+      description: new DID of a member on a security server
+      properties:
+        member_did:
+          description: new member DID, replaces the stored one
+          type: string
+      required:
+        - member_did
       type: object
     SubsystemName:
       description: x-road subsystem name

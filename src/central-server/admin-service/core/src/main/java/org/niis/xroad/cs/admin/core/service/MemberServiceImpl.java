@@ -27,18 +27,23 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
@@ -57,16 +62,22 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_DID_REJECTED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -77,6 +88,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final SecurityServerRepository securityServerRepository;
+    private final ParticipantValueStore participantValueStore;
     private final IdentifierRepository<MemberIdEntity> memberIds;
 
     private final GlobalGroupMemberService globalGroupMemberService;
@@ -194,5 +206,24 @@ public class MemberServiceImpl implements MemberService {
                     return xRoadMember;
                 })
                 .map(securityServerClientMapper::toDto);
+    }
+
+    @Override
+    public void editMemberDid(SecurityServerId serverId, ClientId memberId, String memberDid) {
+        auditData.put(MEMBER_CLASS, memberId.getMemberClass());
+        auditData.put(MEMBER_CODE, memberId.getMemberCode());
+        auditData.put(SERVER_CODE, serverId.getServerCode());
+        auditData.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
+        auditData.put(OWNER_CODE, serverId.getOwner().getMemberCode());
+        auditData.put(MEMBER_DID, memberDid);
+
+        var serverRowId = securityServerRepository.findBy(serverId)
+                .map(SecurityServerEntity::getId)
+                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
+
+        var result = participantValueStore.replaceMemberDids(serverRowId, Map.of(memberId, memberDid)).get(memberId);
+        if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
+            throw new BadRequestException(MEMBER_DID_REJECTED.build(result.rejection().name()));
+        }
     }
 }

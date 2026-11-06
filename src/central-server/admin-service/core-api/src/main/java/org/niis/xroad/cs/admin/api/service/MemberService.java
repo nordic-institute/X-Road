@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
@@ -50,4 +51,16 @@ public interface MemberService {
     List<SecurityServer> getMemberClientOfServers(ClientId memberId);
 
     Optional<XRoadMember> updateMemberName(ClientId clientId, String newName);
+
+    /**
+     * Replaces the stored DID of a member on a Security Server. Replacing a DID with an equal one changes nothing.
+     *
+     * @param serverId  the Security Server
+     * @param memberId  the member whose DID is replaced
+     * @param memberDid the new DID
+     * @throws org.niis.xroad.common.exception.SecurityServerNotFoundException when the server does not exist
+     * @throws org.niis.xroad.common.exception.BadRequestException             when the DID is refused or the member has no
+     *                                                                         stored DID on the server
+     */
+    void editMemberDid(SecurityServerId serverId, ClientId memberId, String memberDid);
 }

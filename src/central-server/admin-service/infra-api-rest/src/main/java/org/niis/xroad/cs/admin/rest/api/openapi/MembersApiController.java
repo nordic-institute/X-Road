@@ -42,6 +42,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.cs.openapi.MembersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
+import org.niis.xroad.cs.openapi.model.MemberDidEditDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
@@ -64,6 +65,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_MEMBER;
 import static org.springframework.http.ResponseEntity.noContent;
@@ -176,6 +178,17 @@ public class MembersApiController implements MembersApi {
         SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
 
         securityServerService.deleteClient(securityServerId, clientId);
+        return noContent().build();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_MEMBER_DID')")
+    @AuditEventMethod(event = EDIT_MEMBER_DID)
+    public ResponseEntity<Void> updateMemberDid(String memberId, String serverId, MemberDidEditDto memberDidEdit) {
+        verifyMemberId(memberId);
+        ClientId clientId = clientIdConverter.convertId(memberId);
+        SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
+        memberService.editMemberDid(securityServerId, clientId, memberDidEdit.getMemberDid());
         return noContent().build();
     }
 

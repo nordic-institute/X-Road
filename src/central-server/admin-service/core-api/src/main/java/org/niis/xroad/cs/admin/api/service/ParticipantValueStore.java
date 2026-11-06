@@ -102,7 +102,7 @@ public interface ParticipantValueStore {
 
     /**
      * Replaces the stored member DIDs of a server, each entry on its own. A member without a stored DID on
-     * the server is left without one.
+     * the server is left without one and the entry is refused as {@code NO_STORED_VALUE}.
      *
      * @param securityServerId the id of the server row
      * @param memberDids       the new DID for each member
