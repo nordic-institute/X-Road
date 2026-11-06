@@ -31,6 +31,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.http.spi.EdcHttpClientException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -41,6 +42,7 @@ import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessResult;
+import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,6 +69,7 @@ class AssetAccessOrchestratorSiblingSecurityServerTest extends AssetAccessOrches
 
     private static final String PETSTORE_ASSET_ID = "DEV:COM:222:TESTSERVICE:petstore";
     private static final String TESTCLIENT_ID = "DEV:COM:222:TESTCLIENT";
+    private static final String AUTHORIZATION_PROPERTY = EDC_NAMESPACE + "authorization";
     private static final AssetAccessRequest.Candidate SECURITY_SERVER =
             new AssetAccessRequest.Candidate("ss0.example.org", "http://ss0.example.org/dsp");
     private static final AssetAccessRequest.Candidate SIBLING_SECURITY_SERVER =
@@ -125,9 +129,84 @@ class AssetAccessOrchestratorSiblingSecurityServerTest extends AssetAccessOrches
         assertThat(cooldownTracker.isCoolingDown(SIBLING_SECURITY_SERVER.counterPartyAddress())).isFalse();
     }
 
+    @Test
+    void aSecurityServerBackAfterItsCooldownIsReusedThroughTheNoteWithoutNegotiatingAndGivesANewToken() throws Exception {
+        var agreement = buildAgreement("agreement-security-server", SECURITY_SERVER.counterPartyId(), 1_000L);
+        stubCatalogAt(SECURITY_SERVER.counterPartyId(), buildCatalogWithOffers(PETSTORE_ASSET_ID,
+                Map.of("offer-testclient", clientPolicy(TESTCLIENT_ID))));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(buildNegotiation()));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1")))
+                .thenAnswer(_ -> Stream.of(finalizedNegotiation("neg-1", agreement)));
+        when(reusableAgreementLookup.findById("participant1", "participant1", PETSTORE_ASSET_ID,
+                SECURITY_SERVER.counterPartyId(), agreement.getId())).thenReturn(Optional.of(agreement));
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(successfulTransferInitiation("tp-dropped"))
+                .thenReturn(successfulTransferInitiation("tp-new"));
+        startedAddressWithToken("tp-dropped", "http://ss0.example.org/data", "token-dropped");
+        startedAddressWithToken("tp-new", "http://ss0.example.org/data", "token-new");
+        var won = acquireAndAwait(petstoreRequestForTestClient());
+        orchestrator.reportCounterPartyFailure(SECURITY_SERVER.counterPartyId(), SECURITY_SERVER.counterPartyAddress());
+        assertThat(cooldownTracker.isCoolingDown(SECURITY_SERVER.counterPartyAddress())).isTrue();
+        ticker.advance(COOLDOWN_PERIOD);
+        assertThat(cooldownTracker.isCoolingDown(SECURITY_SERVER.counterPartyAddress())).isFalse();
+        var recovered = acquireAndAwait(petstoreRequestForTestClient());
+        assertThat(won.winner().counterPartyId()).isEqualTo(SECURITY_SERVER.counterPartyId());
+        assertThat(recovered.winner().counterPartyId()).isEqualTo(SECURITY_SERVER.counterPartyId());
+        assertThat(authorizationOf(won)).isEqualTo("token-dropped");
+        assertThat(authorizationOf(recovered)).isEqualTo("token-new");
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(catalogService, times(1)).requestCatalog(any(), eq(SECURITY_SERVER.counterPartyId()), any(), any(), any());
+        verify(reusableAgreementLookup, times(1)).find(any(), any(), any(), eq(SECURITY_SERVER.counterPartyId()), any());
+        verify(reusableAgreementLookup, times(1)).findById(any(), any(), any(), eq(SECURITY_SERVER.counterPartyId()), any());
+        var transferRequests = ArgumentCaptor.forClass(TransferRequest.class);
+        verify(transferProcessService, times(2)).initiateTransfer(any(), transferRequests.capture());
+        assertThat(transferRequests.getAllValues()).extracting(TransferRequest::getContractId, TransferRequest::getCounterPartyAddress)
+                .containsExactly(
+                        tuple(agreement.getId(), SECURITY_SERVER.counterPartyAddress()),
+                        tuple(agreement.getId(), SECURITY_SERVER.counterPartyAddress()));
+        assertThat(reuseNote.find(noteKeyAt(SECURITY_SERVER))).contains(agreement.getId());
+    }
+
+    @Test
+    void anEmptyAclAtTokenIssueOnTheSiblingSecurityServerFailsTheAcquisitionAsAccessRefusedAndTheCallerSeesAccessDenied() {
+        stubTransportFaultAtCatalog(SECURITY_SERVER.counterPartyId());
+        stubCatalogAt(SIBLING_SECURITY_SERVER.counterPartyId(), buildCatalogWithOffers(PETSTORE_ASSET_ID,
+                Map.of("offer-testclient", clientPolicy(TESTCLIENT_ID))));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(buildNegotiation()));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(_ -> Stream.of(finalizedNegotiation("neg-1",
+                buildAgreement("agreement-sibling-security-server", SIBLING_SECURITY_SERVER.counterPartyId(), 2_000L))));
+        when(transferProcessService.initiateTransfer(any(), any())).thenReturn(successfulTransferInitiation("tp-sibling-security-server"));
+        refusedAddress("tp-sibling-security-server");
+        var failure = (XrdRuntimeException) failureOf(
+                orchestrator.acquireAssetAccess(buildParticipantContext(), petstoreRequestForTestClient(), defaultBudget()));
+        assertThat(failure.getErrorCode()).isEqualTo("dataspace.dsp_access_refused");
+        assertThat(ClientFacingErrorPolicy.sanitizeForConsumer(failure).isCausedBy(ACCESS_DENIED)).isTrue();
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(transferProcessService, times(1)).initiateTransfer(any(), any());
+        assertThat(cooldownTracker.isCoolingDown(SECURITY_SERVER.counterPartyAddress())).isTrue();
+        assertThat(cooldownTracker.isCoolingDown(SIBLING_SECURITY_SERVER.counterPartyAddress())).isFalse();
+        assertThat(reuseNote.find(noteKeyAt(SIBLING_SECURITY_SERVER))).isEmpty();
+    }
+
     private static AssetAccessRequest petstoreRequestForTestClient() {
         return new AssetAccessRequest(PETSTORE_ASSET_ID, List.of(SECURITY_SERVER, SIBLING_SECURITY_SERVER), null,
                 TESTCLIENT_ID, null);
+    }
+
+    private void startedAddressWithToken(String transferProcessId, String endpoint, String token) {
+        var address = DataAddress.Builder.newInstance().type("HttpData").property("endpoint", endpoint)
+                .property(AUTHORIZATION_PROPERTY, token).build();
+        when(transferProcessStore.findAll(specWithId(transferProcessId))).thenAnswer(_ ->
+                Stream.of(startedTransfer(transferProcessId, address)));
+    }
+
+    private static String authorizationOf(AssetAccessResult result) {
+        return (String) result.dataAddress().getProperties().get(AUTHORIZATION_PROPERTY);
+    }
+
+    private static AgreementReuseNote.Key noteKeyAt(AssetAccessRequest.Candidate candidate) {
+        return new AgreementReuseNote.Key("participant1", "participant1", candidate.counterPartyId(), PETSTORE_ASSET_ID,
+                TESTCLIENT_ID);
     }
 
     private void stubTransportFaultAtCatalog(String counterPartyId) {
