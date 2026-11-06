@@ -79,6 +79,45 @@ class CommonRpcConfigKeysTest {
         }
     }
 
+    @Test
+    void identitySourceIsDeclaredUnderItsKeyAndDefaultsToOpenbao() {
+        assertThat(CommonRpcConfigKeys.IDENTITY_SOURCE.key()).isEqualTo("xroad.common-rpc.identity-source");
+        assertThat(CommonRpcConfigKeys.IDENTITY_SOURCE.defaultValue()).isEqualTo("openbao");
+        assertThat(config(Map.of()).value(CommonRpcConfigKeys.IDENTITY_SOURCE)).isEqualTo("openbao");
+    }
+
+    @Test
+    void identitySourceAcceptsOpenbaoAndFileInAnyCase() {
+        for (String source : new String[] {"openbao", "file", "FILE", "OpenBao"}) {
+            assertThat(config(Map.of("xroad.common-rpc.identity-source", source))
+                    .value(CommonRpcConfigKeys.IDENTITY_SOURCE)).isEqualTo(source);
+        }
+    }
+
+    @Test
+    void identitySourceOutsideTheAllowedValuesIsRejected() {
+        var overrides = Map.of("xroad.common-rpc.identity-source", "keystore");
+
+        assertThatThrownBy(() -> config(overrides))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("xroad.common-rpc.identity-source");
+    }
+
+    @Test
+    void fileIdentityPathsAreDeclaredUnderTheirKeys() {
+        assertThat(CommonRpcConfigKeys.FILE_IDENTITY_PRIVATE_KEY_PATH.key())
+                .isEqualTo("xroad.common-rpc.file-identity.private-key-path");
+        assertThat(CommonRpcConfigKeys.FILE_IDENTITY_CERTIFICATE_PATH.key())
+                .isEqualTo("xroad.common-rpc.file-identity.certificate-path");
+        assertThat(CommonRpcConfigKeys.FILE_IDENTITY_TRUSTED_CA_PATH.key())
+                .isEqualTo("xroad.common-rpc.file-identity.trusted-ca-path");
+        assertThat(CommonRpcConfigKeys.instance().keys()).contains(
+                CommonRpcConfigKeys.IDENTITY_SOURCE,
+                CommonRpcConfigKeys.FILE_IDENTITY_PRIVATE_KEY_PATH,
+                CommonRpcConfigKeys.FILE_IDENTITY_CERTIFICATE_PATH,
+                CommonRpcConfigKeys.FILE_IDENTITY_TRUSTED_CA_PATH);
+    }
+
     private static XRoadConfig config(Map<String, String> overrides) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())

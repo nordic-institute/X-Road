@@ -30,9 +30,11 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /** {@link RpcProperties} implementation backed by the XRoadConfig DSL. */
 public class XRoadRpcProperties implements RpcProperties {
@@ -48,6 +50,19 @@ public class XRoadRpcProperties implements RpcProperties {
     @Override
     public boolean useTls() {
         return config.value(CommonRpcConfigKeys.USE_TLS);
+    }
+
+    @Override
+    public IdentitySource identitySource() {
+        return IdentitySource.valueOf(config.value(CommonRpcConfigKeys.IDENTITY_SOURCE).toUpperCase(Locale.ROOT));
+    }
+
+    @Override
+    public FileIdentity fileIdentity() {
+        return new FileIdentity(
+                Path.of(config.value(CommonRpcConfigKeys.FILE_IDENTITY_PRIVATE_KEY_PATH)),
+                Path.of(config.value(CommonRpcConfigKeys.FILE_IDENTITY_CERTIFICATE_PATH)),
+                Path.of(config.value(CommonRpcConfigKeys.FILE_IDENTITY_TRUSTED_CA_PATH)));
     }
 
     @Override

@@ -28,10 +28,16 @@ package org.niis.xroad.common.rpc;
 
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
+import java.nio.file.Path;
 import java.time.Duration;
 
 public interface RpcProperties {
     boolean useTls();
+
+    IdentitySource identitySource();
+
+    FileIdentity fileIdentity();
+
     RpcCertificateProvisioningProperties certificateProvisioning();
 
     interface RpcCertificateProvisioningProperties extends CertificateProvisioningProperties {
@@ -39,5 +45,13 @@ public interface RpcProperties {
         Duration waitDuration();
         Double exponentialBackoffMultiplier();
         Duration exponentialMaxWaitDuration();
+    }
+
+    enum IdentitySource {
+        OPENBAO,
+        FILE
+    }
+
+    record FileIdentity(Path privateKeyPath, Path certificatePath, Path trustedCaPath) {
     }
 }
