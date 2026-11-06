@@ -27,6 +27,7 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -45,6 +46,6 @@ public class NodeIdentityConfig {
 
     @Bean
     NodeIdentity nodeIdentity(Environment environment) {
-        return NodeIdentity.resolve(environment.getProperty(NodeIdentity.PROPERTY_KEY));
+        return NodeIdentity.resolve(environment.getProperty(NodeName.PROPERTY_KEY));
     }
 }

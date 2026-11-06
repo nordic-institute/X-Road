@@ -29,6 +29,7 @@ package org.niis.xroad.common.vault.spring;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
@@ -118,6 +119,6 @@ class SpringVaultClientConfigTest {
                 .run(context -> assertThat(context).hasFailed().getFailure()
                         .rootCause()
                         .isInstanceOf(XrdRuntimeException.class)
-                        .hasMessageContaining(NodeIdentity.PROPERTY_KEY));
+                        .hasMessageContaining(NodeName.PROPERTY_KEY));
     }
 }

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.dbsource.NodeName;
 
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +58,7 @@ class SignerConfigNodeIdentityTest {
     @Test
     void shouldReadNodeNameFromLocalYamlProperty() {
         var config = new SmallRyeConfigBuilder()
-                .withSources(new PropertiesConfigSource(Map.of(NodeIdentity.PROPERTY_KEY, "node_b"), "local.yaml", 250))
+                .withSources(new PropertiesConfigSource(Map.of(NodeName.PROPERTY_KEY, "node_b"), "local.yaml", 250))
                 .build();
 
         assertThat(resolve(config)).isEqualTo(new NodeIdentity("node_b", true));
@@ -83,7 +84,7 @@ class SignerConfigNodeIdentityTest {
     }
 
     private NodeIdentity resolve(SmallRyeConfig config) {
-        Optional<String> configured = config.getOptionalValue(NodeIdentity.PROPERTY_KEY, String.class);
+        Optional<String> configured = config.getOptionalValue(NodeName.PROPERTY_KEY, String.class);
         return signerConfig.nodeIdentity(configured);
     }
 }

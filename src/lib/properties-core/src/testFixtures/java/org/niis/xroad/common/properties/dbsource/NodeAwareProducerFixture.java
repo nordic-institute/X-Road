@@ -59,7 +59,7 @@ public final class NodeAwareProducerFixture {
         try {
             this.databaseEnvironment = NodeConfigTestTable.create(databaseName, List.of(
                     new NodeConfigTestTable.Row(KEY, SHARED_VALUE, null),
-                    new NodeConfigTestTable.Row(KEY, DEFAULT_NODE_VALUE, NodeNameProvider.DEFAULT_NODE_NAME),
+                    new NodeConfigTestTable.Row(KEY, DEFAULT_NODE_VALUE, NodeName.DEFAULT_NODE_NAME),
                     new NodeConfigTestTable.Row(KEY, NODE_VALUE, NodeConfigTestTable.NODE_NAME)));
         } catch (SQLException e) {
             throw new IllegalStateException("Cannot create the configuration table", e);

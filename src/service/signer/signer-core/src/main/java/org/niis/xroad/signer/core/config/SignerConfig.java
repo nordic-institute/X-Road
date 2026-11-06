@@ -46,6 +46,7 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
@@ -71,8 +72,7 @@ public class SignerConfig {
 
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
-                            @ConfigProperty(name = NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY)
-                            Optional<String> nodeName) {
+                            NodeIdentity nodeIdentity) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(SignerConfigKeys.instance())
@@ -82,7 +82,7 @@ public class SignerConfig {
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .overrides(profileOverrides())
-                .dbOverrides(appName, NodeNameProvider.of(nodeName.orElse(null)))
+                .dbOverrides(appName, NodeNameProvider.of(nodeIdentity.name()))
                 .build();
     }
 
@@ -171,7 +171,7 @@ public class SignerConfig {
     // NodeIdentity is a final record: a normal scope would need a client proxy, which a record cannot have.
     @Produces
     @Singleton
-    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeIdentity.PROPERTY_KEY) Optional<String> configuredNodeName) {
+    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeName.PROPERTY_KEY) Optional<String> configuredNodeName) {
         return NodeIdentity.resolve(configuredNodeName.orElse(null));
     }
 
