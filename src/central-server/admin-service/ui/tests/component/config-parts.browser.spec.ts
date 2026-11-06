@@ -119,7 +119,7 @@ describe('0800/0810 — CS Config Parts — download non-optional part (SHARED-P
     await expect.element(downloadBtn).toBeVisible();
     await downloadBtn.click();
 
-    expect(downloadSpy).toHaveBeenCalled();
+    await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
   });
 });
 
@@ -232,6 +232,6 @@ describe('0810 — CS Config Parts — download optional part (MONITORING) trigg
     await expect.element(downloadBtn).toBeVisible();
     await downloadBtn.click();
 
-    expect(downloadSpy).toHaveBeenCalled();
+    await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
   });
 });
