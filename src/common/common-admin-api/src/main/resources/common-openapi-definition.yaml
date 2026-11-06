@@ -741,7 +741,6 @@ components:
         - subject_alternative_names
     KeyUsage:
       type: string
-      format: enum
       description: certificate key usage
       example: NON_REPUDIATION
       enum:
