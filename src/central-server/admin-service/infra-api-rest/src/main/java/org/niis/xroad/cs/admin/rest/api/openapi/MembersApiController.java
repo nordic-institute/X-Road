@@ -31,6 +31,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
+import org.niis.xroad.cs.admin.api.service.MemberDidCheckService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -41,12 +44,18 @@ import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.cs.openapi.MembersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.DidCheckStatusDto;
+import org.niis.xroad.cs.openapi.model.DidResolutionReasonDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
+import org.niis.xroad.cs.openapi.model.MemberDidCheckDto;
+import org.niis.xroad.cs.openapi.model.MemberDidCheckRequestDto;
 import org.niis.xroad.cs.openapi.model.MemberDidEditDto;
+import org.niis.xroad.cs.openapi.model.MemberDidRefusalReasonDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -64,11 +73,20 @@ import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_ID;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.CHECK_MEMBER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_DID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_DID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_DID_CHECK_STATUS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 import static org.springframework.http.ResponseEntity.noContent;
+import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -77,6 +95,7 @@ import static org.springframework.http.ResponseEntity.noContent;
 public class MembersApiController implements MembersApi {
 
     private final MemberService memberService;
+    private final MemberDidCheckService memberDidCheckService;
     private final SubsystemService subsystemService;
     private final SecurityServerService securityServerService;
     private final ClientDtoConverter clientDtoConverter;
@@ -86,6 +105,7 @@ public class MembersApiController implements MembersApi {
     private final SecurityServerIdConverter securityServerIdConverter;
     private final SecurityServerDtoConverter securityServerDtoConverter;
     private final MemberCreationRequestMapper memberCreationRequestMapper;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
@@ -193,6 +213,25 @@ public class MembersApiController implements MembersApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('EDIT_MEMBER_DID')")
+    @AuditEventMethod(event = CHECK_MEMBER_DID)
+    public ResponseEntity<MemberDidCheckDto> checkMemberDid(String memberId, String serverId, MemberDidCheckRequestDto request) {
+        verifyMemberId(memberId);
+        ClientId clientId = clientIdConverter.convertId(memberId);
+        SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
+        auditDataHelper.put(MEMBER_CLASS, clientId.getMemberClass());
+        auditDataHelper.put(MEMBER_CODE, clientId.getMemberCode());
+        auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
+        auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditDataHelper.put(MEMBER_DID, request.getMemberDid());
+
+        var check = memberDidCheckService.check(securityServerId, clientId, request.getMemberDid());
+        auditDataHelper.put(MEMBER_DID_CHECK_STATUS, check.status());
+        return ok(toDto(check));
+    }
+
+    @Override
     @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME')")
     @AuditEventMethod(event = EDIT_MEMBER_NAME)
     public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
@@ -209,5 +248,32 @@ public class MembersApiController implements MembersApi {
         if (!clientIdConverter.isEncodedMemberId(id)) {
             throw new BadRequestException(INVALID_MEMBER_ID.build(id));
         }
+    }
+
+    private static MemberDidCheckDto toDto(DidCheck check) {
+        return new MemberDidCheckDto()
+                .status(DidCheckStatusDto.valueOf(check.status().name()))
+                .refusalReason(check.refusal() == null ? null : toDto(check.refusal()))
+                .resolutionReason(check.resolutionReason() == null
+                        ? null
+                        : DidResolutionReasonDto.valueOf(check.resolutionReason().name()));
+    }
+
+    private static MemberDidRefusalReasonDto toDto(ParticipantValueRejection refusal) {
+        return switch (refusal) {
+            case NO_STORED_VALUE -> MemberDidRefusalReasonDto.NO_STORED_VALUE;
+            case WRONG_SCHEME -> MemberDidRefusalReasonDto.WRONG_SCHEME;
+            case DID_TOO_LONG -> MemberDidRefusalReasonDto.DID_TOO_LONG;
+            case NON_ASCII_HOST -> MemberDidRefusalReasonDto.NON_ASCII_HOST;
+            case UNDECODABLE_DID -> MemberDidRefusalReasonDto.UNDECODABLE_DID;
+            case NOT_CANONICAL -> MemberDidRefusalReasonDto.NOT_CANONICAL;
+            case HOST_DIFFERS -> MemberDidRefusalReasonDto.HOST_DIFFERS;
+            case DID_OF_OTHER_MEMBER -> MemberDidRefusalReasonDto.DID_OF_OTHER_MEMBER;
+            case MEMBER_NOT_SERVED -> MemberDidRefusalReasonDto.MEMBER_NOT_SERVED;
+            case UNPARSEABLE_REGISTERED_ADDRESS -> MemberDidRefusalReasonDto.UNPARSEABLE_REGISTERED_ADDRESS;
+            case DID_HELD_BY_ANOTHER_SERVER -> MemberDidRefusalReasonDto.DID_HELD_BY_ANOTHER_SERVER;
+            case DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, FOREIGN_SYSTEM_DID, VALUE_DIFFERS ->
+                    throw new IllegalStateException("A member DID check cannot be refused as " + refusal);
+        };
     }
 }

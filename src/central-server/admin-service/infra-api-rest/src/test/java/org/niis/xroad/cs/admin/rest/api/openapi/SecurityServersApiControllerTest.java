@@ -36,21 +36,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionReason;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemDidCheckService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
+import org.niis.xroad.cs.openapi.model.DidCheckStatusDto;
+import org.niis.xroad.cs.openapi.model.DidResolutionReasonDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
 import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
-import org.niis.xroad.cs.openapi.model.SystemDidCheckStatusDto;
 import org.niis.xroad.cs.openapi.model.SystemDidRefusalReasonDto;
-import org.niis.xroad.cs.openapi.model.SystemDidResolutionReasonDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -180,29 +180,29 @@ class SecurityServersApiControllerTest {
 
     @Test
     void systemDidCheckPassesTheProposedAddressAndDidAndAnswersResolved() {
-        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.RESOLVED);
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(DidCheck.RESOLVED);
 
         var body = controller.checkSystemDid(ID, checkRequest()).getBody();
 
         assertThat(body).isNotNull();
-        assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.RESOLVED);
+        assertThat(body.getStatus()).isEqualTo(DidCheckStatusDto.RESOLVED);
         assertThat(body.getRefusalReason()).isNull();
         assertThat(body.getResolutionReason()).isNull();
         verify(systemDidCheckService).check(serverId, ADDRESS_VALUE, DID);
-        verifyCheckAudit(SystemDidCheck.Status.RESOLVED);
+        verifyCheckAudit(DidCheck.Status.RESOLVED);
     }
 
     @Test
     void systemDidCheckMapsARefusalToItsReason() {
         when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID))
-                .thenReturn(SystemDidCheck.refused(ParticipantValueRejection.HOST_DIFFERS));
+                .thenReturn(DidCheck.refused(ParticipantValueRejection.HOST_DIFFERS));
 
         var body = controller.checkSystemDid(ID, checkRequest()).getBody();
 
-        assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.REFUSED);
+        assertThat(body.getStatus()).isEqualTo(DidCheckStatusDto.REFUSED);
         assertThat(body.getRefusalReason()).isEqualTo(SystemDidRefusalReasonDto.HOST_DIFFERS);
         assertThat(body.getResolutionReason()).isNull();
-        verifyCheckAudit(SystemDidCheck.Status.REFUSED);
+        verifyCheckAudit(DidCheck.Status.REFUSED);
     }
 
     @Test
@@ -212,7 +212,7 @@ class SecurityServersApiControllerTest {
                 ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS, ParticipantValueRejection.NON_ASCII_HOST,
                 ParticipantValueRejection.FOREIGN_SYSTEM_DID);
         for (var reason : reasons) {
-            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.refused(reason));
+            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(DidCheck.refused(reason));
 
             var body = controller.checkSystemDid(ID, checkRequest()).getBody();
 
@@ -223,26 +223,26 @@ class SecurityServersApiControllerTest {
     @Test
     void systemDidCheckMapsEveryResolutionReason() {
         for (var reason : DidResolutionReason.values()) {
-            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.notResolved(reason));
+            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(DidCheck.notResolved(reason));
 
             var body = controller.checkSystemDid(ID, checkRequest()).getBody();
 
-            assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.NOT_RESOLVED);
+            assertThat(body.getStatus()).isEqualTo(DidCheckStatusDto.NOT_RESOLVED);
             assertThat(body.getRefusalReason()).isNull();
-            assertThat(body.getResolutionReason()).isEqualTo(SystemDidResolutionReasonDto.valueOf(reason.name()));
+            assertThat(body.getResolutionReason()).isEqualTo(DidResolutionReasonDto.valueOf(reason.name()));
         }
     }
 
     @Test
     void systemDidCheckMapsAnUnavailableResolver() {
-        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(SystemDidCheck.RESOLVER_UNAVAILABLE);
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(DidCheck.RESOLVER_UNAVAILABLE);
 
         var body = controller.checkSystemDid(ID, checkRequest()).getBody();
 
-        assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.RESOLVER_UNAVAILABLE);
+        assertThat(body.getStatus()).isEqualTo(DidCheckStatusDto.RESOLVER_UNAVAILABLE);
         assertThat(body.getRefusalReason()).isNull();
         assertThat(body.getResolutionReason()).isNull();
-        verifyCheckAudit(SystemDidCheck.Status.RESOLVER_UNAVAILABLE);
+        verifyCheckAudit(DidCheck.Status.RESOLVER_UNAVAILABLE);
     }
 
     @Test
@@ -267,7 +267,7 @@ class SecurityServersApiControllerTest {
                 .isEqualTo(RestApiAuditEvent.CHECK_SECURITY_SERVER_SYSTEM_DID);
     }
 
-    private void verifyCheckAudit(SystemDidCheck.Status status) {
+    private void verifyCheckAudit(DidCheck.Status status) {
         verifyCheckAuditRequest();
         verify(auditDataHelper).put(SYSTEM_DID_CHECK_STATUS, status);
         verifyNoMoreInteractions(auditDataHelper);

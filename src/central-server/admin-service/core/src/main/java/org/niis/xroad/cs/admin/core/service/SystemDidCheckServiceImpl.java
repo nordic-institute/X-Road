@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
-import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
 import org.niis.xroad.cs.admin.api.service.SystemDidCheckService;
 import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
@@ -52,30 +52,21 @@ public class SystemDidCheckServiceImpl implements SystemDidCheckService {
     private final DidBatchResolution didBatchResolution;
 
     @Override
-    public SystemDidCheck check(SecurityServerId serverId, String serverAddress, String systemDid) {
+    public DidCheck check(SecurityServerId serverId, String serverAddress, String systemDid) {
         var server = securityServerRepository.findBy(serverId)
                 .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
         if (server.getSystemDid() == null) {
-            return SystemDidCheck.refused(NO_STORED_VALUE);
+            return DidCheck.refused(NO_STORED_VALUE);
         }
 
         var validator = new ParticipantValueValidator(new RegisteredServer(serverAddress, serverId.getOwner(), Set.of()));
         var refusal = validator.validateSystemDid(systemDid);
         if (refusal.isPresent()) {
-            return SystemDidCheck.refused(refusal.get());
+            return DidCheck.refused(refusal.get());
         }
         if (securityServerRepository.existsBySystemDidAndIdNot(systemDid, server.getId())) {
-            return SystemDidCheck.refused(DID_HELD_BY_ANOTHER_SERVER);
+            return DidCheck.refused(DID_HELD_BY_ANOTHER_SERVER);
         }
-        return resolve(systemDid);
-    }
-
-    private SystemDidCheck resolve(String systemDid) {
-        var result = didBatchResolution.resolve(List.of(systemDid)).getFirst();
-        return switch (result.status()) {
-            case RESOLVED -> SystemDidCheck.RESOLVED;
-            case NOT_RESOLVED -> SystemDidCheck.notResolved(result.resolution().reason());
-            case RESOLVER_UNAVAILABLE -> SystemDidCheck.RESOLVER_UNAVAILABLE;
-        };
+        return didBatchResolution.resolve(List.of(systemDid)).getFirst().toDidCheck();
     }
 }

@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
 
 /**
  * Tells an administrator whether a proposed SYSTEM DID of a Security Server is valid and resolves. Read-only:
@@ -47,5 +47,5 @@ public interface SystemDidCheckService {
      * @return the result of the check
      * @throws org.niis.xroad.common.exception.SecurityServerNotFoundException when there is no such server
      */
-    SystemDidCheck check(SecurityServerId serverId, String serverAddress, String systemDid);
+    DidCheck check(SecurityServerId serverId, String serverAddress, String systemDid);
 }

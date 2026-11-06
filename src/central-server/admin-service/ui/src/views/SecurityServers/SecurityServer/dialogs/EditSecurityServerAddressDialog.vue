@@ -124,7 +124,7 @@ import {
 import type { DialogSaveHandler } from '@niis/shared-ui';
 import type { AxiosError } from 'axios';
 
-import { SystemDidCheck, SystemDidCheckStatus, SystemDidRefusalReason, SystemDidResolutionReason } from '@/openapi-types';
+import { DidCheckStatus, DidResolutionReason, SystemDidCheck, SystemDidRefusalReason } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 
 const props = defineProps({
@@ -164,7 +164,7 @@ const REFUSAL_TEXT: Record<SystemDidRefusalReason, string> = {
   NO_STORED_VALUE: 'error_code.system_pair_not_stored',
 };
 
-const RESOLUTION_TEXT: Record<SystemDidResolutionReason, string> = {
+const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
   MALFORMED_DID: 'securityServers.dialogs.editAddress.check.not_resolved_malformed_did',
   NO_DOCUMENT: 'securityServers.dialogs.editAddress.check.not_resolved_no_document',
   ID_MISMATCH: 'securityServers.dialogs.editAddress.check.not_resolved_id_mismatch',
@@ -229,17 +229,17 @@ const checkOutcome = computed<CheckOutcome | undefined>(() => {
     return undefined;
   }
   switch (result.status) {
-    case SystemDidCheckStatus.RESOLVED:
+    case DidCheckStatus.RESOLVED:
       return { icon: 'check_circle', color: 'success', text: 'securityServers.dialogs.editAddress.check.resolved' };
-    case SystemDidCheckStatus.NOT_RESOLVED:
+    case DidCheckStatus.NOT_RESOLVED:
       return {
         icon: 'warning',
         color: 'warning',
         text:
-          RESOLUTION_TEXT[result.resolution_reason as SystemDidResolutionReason] ??
+          RESOLUTION_TEXT[result.resolution_reason as DidResolutionReason] ??
           'securityServers.dialogs.editAddress.check.not_resolved_fetch_failure',
       };
-    case SystemDidCheckStatus.RESOLVER_UNAVAILABLE:
+    case DidCheckStatus.RESOLVER_UNAVAILABLE:
       return { icon: 'warning', color: 'warning', text: 'securityServers.dialogs.editAddress.check.resolver_unavailable' };
     default:
       return {

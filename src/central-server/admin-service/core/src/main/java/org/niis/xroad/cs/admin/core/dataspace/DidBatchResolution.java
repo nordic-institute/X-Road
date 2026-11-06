@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
@@ -80,6 +81,17 @@ public class DidBatchResolution {
     public record Result(Status status, DidResolution resolution) {
 
         private static final Result UNAVAILABLE = new Result(Status.RESOLVER_UNAVAILABLE, null);
+
+        /**
+         * @return the DID check for an acceptable DID that was resolved to this result
+         */
+        public DidCheck toDidCheck() {
+            return switch (status) {
+                case RESOLVED -> DidCheck.RESOLVED;
+                case NOT_RESOLVED -> DidCheck.notResolved(resolution.reason());
+                case RESOLVER_UNAVAILABLE -> DidCheck.RESOLVER_UNAVAILABLE;
+            };
+        }
     }
 
     public enum Status {

@@ -33,9 +33,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
 import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionReason;
-import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -79,7 +79,7 @@ class SystemDidCheckServiceImplTest {
     private final SystemDidCheckServiceImpl service = new SystemDidCheckServiceImpl(
             securityServerRepository, new DidBatchResolution(resolver));
 
-    private SystemDidCheck check(String address, String did) {
+    private DidCheck check(String address, String did) {
         when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(server));
         when(server.getId()).thenReturn(SERVER_ROW_ID);
         when(server.getSystemDid()).thenReturn(SYSTEM_DID);
@@ -90,7 +90,7 @@ class SystemDidCheckServiceImplTest {
     void shouldAnswerResolvedWhenTheResolverResolvesTheDid() {
         resolverAnswer = () -> List.of(DidResolution.resolved(SYSTEM_DID));
 
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.RESOLVED);
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.RESOLVED);
         assertThat(resolverCalls).containsExactly(List.of(SYSTEM_DID));
     }
 
@@ -99,7 +99,7 @@ class SystemDidCheckServiceImplTest {
     void shouldAnswerNotResolvedWithTheResolversReason(DidResolutionReason reason) {
         resolverAnswer = () -> List.of(DidResolution.notResolved(SYSTEM_DID, reason));
 
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.notResolved(reason));
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.notResolved(reason));
     }
 
     @Test
@@ -108,7 +108,7 @@ class SystemDidCheckServiceImplTest {
             throw XrdRuntimeException.systemException(NETWORK_ERROR).details("DID resolution call failed: UNAVAILABLE").build();
         };
 
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.RESOLVER_UNAVAILABLE);
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.RESOLVER_UNAVAILABLE);
     }
 
     @Test
@@ -117,21 +117,21 @@ class SystemDidCheckServiceImplTest {
             throw XrdRuntimeException.systemException(INTERNAL_ERROR).details("unknown outcome").build();
         };
 
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.RESOLVER_UNAVAILABLE);
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.RESOLVER_UNAVAILABLE);
     }
 
     @Test
     void shouldAnswerResolverUnavailableWhenTheResolverAnswersForNoDidOrAnotherDid() {
         resolverAnswer = List::of;
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.RESOLVER_UNAVAILABLE);
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.RESOLVER_UNAVAILABLE);
 
         resolverAnswer = () -> List.of(DidResolution.resolved("did:web:other.example.org%3A7183:v1:system"));
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.RESOLVER_UNAVAILABLE);
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.RESOLVER_UNAVAILABLE);
     }
 
     @Test
     void shouldRefuseADidWhoseHostDiffersFromTheProposedAddressWithoutResolving() {
-        assertThat(check("other.example.org", SYSTEM_DID)).isEqualTo(SystemDidCheck.refused(HOST_DIFFERS));
+        assertThat(check("other.example.org", SYSTEM_DID)).isEqualTo(DidCheck.refused(HOST_DIFFERS));
         assertThat(resolverCalls).isEmpty();
     }
 
@@ -139,13 +139,13 @@ class SystemDidCheckServiceImplTest {
     void shouldRefuseADidThatIsNotTheServersSystemDidWithoutResolving() {
         var memberDid = "did:web:ss.example.org%3A7183:v1:DEV:COM:222";
 
-        assertThat(check(ADDRESS, memberDid)).isEqualTo(SystemDidCheck.refused(FOREIGN_SYSTEM_DID));
+        assertThat(check(ADDRESS, memberDid)).isEqualTo(DidCheck.refused(FOREIGN_SYSTEM_DID));
         assertThat(resolverCalls).isEmpty();
     }
 
     @Test
     void shouldRefuseWithoutResolvingWhenTheProposedAddressIsUnusable() {
-        assertThat(check("", SYSTEM_DID)).isEqualTo(SystemDidCheck.refused(UNPARSEABLE_REGISTERED_ADDRESS));
+        assertThat(check("", SYSTEM_DID)).isEqualTo(DidCheck.refused(UNPARSEABLE_REGISTERED_ADDRESS));
         assertThat(resolverCalls).isEmpty();
     }
 
@@ -153,7 +153,7 @@ class SystemDidCheckServiceImplTest {
     void shouldRefuseADidHeldByAnotherServerWithoutResolving() {
         when(securityServerRepository.existsBySystemDidAndIdNot(SYSTEM_DID, SERVER_ROW_ID)).thenReturn(true);
 
-        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.refused(DID_HELD_BY_ANOTHER_SERVER));
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(DidCheck.refused(DID_HELD_BY_ANOTHER_SERVER));
         assertThat(resolverCalls).isEmpty();
     }
 
@@ -162,7 +162,7 @@ class SystemDidCheckServiceImplTest {
         when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(server));
         when(server.getSystemDid()).thenReturn(null);
 
-        assertThat(service.check(serverId, "other.example.org", SYSTEM_DID)).isEqualTo(SystemDidCheck.refused(NO_STORED_VALUE));
+        assertThat(service.check(serverId, "other.example.org", SYSTEM_DID)).isEqualTo(DidCheck.refused(NO_STORED_VALUE));
         assertThat(resolverCalls).isEmpty();
     }
 

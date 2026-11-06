@@ -125,6 +125,7 @@ public enum RestApiAuditProperty {
     SYSTEM_DID,
     DSP_BASE_URL,
     SYSTEM_DID_CHECK_STATUS,
+    MEMBER_DID_CHECK_STATUS,
 
     API_KEY_ID,
     API_KEY_ROLES,

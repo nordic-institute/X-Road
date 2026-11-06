@@ -31,8 +31,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.domain.DidCheck;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
-import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -44,6 +44,8 @@ import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.openapi.SecurityServersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.DidCheckStatusDto;
+import org.niis.xroad.cs.openapi.model.DidResolutionReasonDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
@@ -51,9 +53,7 @@ import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
 import org.niis.xroad.cs.openapi.model.SystemDidCheckDto;
 import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
-import org.niis.xroad.cs.openapi.model.SystemDidCheckStatusDto;
 import org.niis.xroad.cs.openapi.model.SystemDidRefusalReasonDto;
-import org.niis.xroad.cs.openapi.model.SystemDidResolutionReasonDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -205,13 +205,13 @@ public class SecurityServersApiController implements SecurityServersApi {
         return ok(toDto(check));
     }
 
-    private static SystemDidCheckDto toDto(SystemDidCheck check) {
+    private static SystemDidCheckDto toDto(DidCheck check) {
         return new SystemDidCheckDto()
-                .status(SystemDidCheckStatusDto.valueOf(check.status().name()))
+                .status(DidCheckStatusDto.valueOf(check.status().name()))
                 .refusalReason(check.refusal() == null ? null : toDto(check.refusal()))
                 .resolutionReason(check.resolutionReason() == null
                         ? null
-                        : SystemDidResolutionReasonDto.valueOf(check.resolutionReason().name()));
+                        : DidResolutionReasonDto.valueOf(check.resolutionReason().name()));
     }
 
     private static SystemDidRefusalReasonDto toDto(ParticipantValueRejection refusal) {

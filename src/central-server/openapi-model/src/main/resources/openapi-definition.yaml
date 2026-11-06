@@ -2225,6 +2225,44 @@ paths:
       tags:
         - members
         - security-servers
+  /members/{member_id}/servers/{server_id}/member-did-check:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdParam'
+      - $ref: '#/components/parameters/ServerIdParam'
+    post:
+      description: >
+        <h3>CS administrator checks whether a proposed DID of a member on a security server would be accepted as
+        a replacement and can be resolved. Nothing is stored. A refused or unresolved DID is answered in the
+        response body.</h3>
+      operationId: checkMemberDid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberDidCheckRequest'
+        description: the proposed member DID
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberDidCheck'
+          description: the result of the check
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: check whether a proposed member DID resolves
+      tags:
+        - members
+        - security-servers
   /subsystems:
     post:
       description:
@@ -4710,6 +4748,44 @@ components:
       required:
         - member_did
       type: object
+    MemberDidCheckRequest:
+      description: proposed DID of a member on a security server
+      properties:
+        member_did:
+          description: the proposed member DID
+          type: string
+      required:
+        - member_did
+      type: object
+    MemberDidCheck:
+      description: >
+        result of checking a proposed member DID. refusal_reason is set only with REFUSED and
+        resolution_reason only with NOT_RESOLVED.
+      properties:
+        status:
+          $ref: '#/components/schemas/DidCheckStatus'
+        refusal_reason:
+          $ref: '#/components/schemas/MemberDidRefusalReason'
+        resolution_reason:
+          $ref: '#/components/schemas/DidResolutionReason'
+      required:
+        - status
+      type: object
+    MemberDidRefusalReason:
+      description: why a proposed member DID is refused
+      enum:
+        - NO_STORED_VALUE
+        - WRONG_SCHEME
+        - DID_TOO_LONG
+        - NON_ASCII_HOST
+        - UNDECODABLE_DID
+        - NOT_CANONICAL
+        - HOST_DIFFERS
+        - DID_OF_OTHER_MEMBER
+        - MEMBER_NOT_SERVED
+        - UNPARSEABLE_REGISTERED_ADDRESS
+        - DID_HELD_BY_ANOTHER_SERVER
+      type: string
     SubsystemName:
       description: x-road subsystem name
       properties:
@@ -5078,19 +5154,19 @@ components:
         resolution_reason only with NOT_RESOLVED.
       properties:
         status:
-          $ref: '#/components/schemas/SystemDidCheckStatus'
+          $ref: '#/components/schemas/DidCheckStatus'
         refusal_reason:
           $ref: '#/components/schemas/SystemDidRefusalReason'
         resolution_reason:
-          $ref: '#/components/schemas/SystemDidResolutionReason'
+          $ref: '#/components/schemas/DidResolutionReason'
       required:
         - status
       type: object
-    SystemDidCheckStatus:
+    DidCheckStatus:
       description: >
-        REFUSED: the DID is not valid for the address and was not resolved. RESOLVED: the DID resolves.
-        NOT_RESOLVED: the DID is valid but does not resolve. RESOLVER_UNAVAILABLE: the DID is valid but could
-        not be resolved because the resolver could not be reached.
+        REFUSED: the DID is not acceptable and was not resolved. RESOLVED: the DID resolves.
+        NOT_RESOLVED: the DID is acceptable but does not resolve. RESOLVER_UNAVAILABLE: the DID is acceptable
+        but could not be resolved because the resolver could not be reached.
       enum:
         - REFUSED
         - RESOLVED
@@ -5110,8 +5186,8 @@ components:
         - DID_HELD_BY_ANOTHER_SERVER
         - NO_STORED_VALUE
       type: string
-    SystemDidResolutionReason:
-      description: why a valid SYSTEM DID did not resolve
+    DidResolutionReason:
+      description: why an acceptable DID did not resolve
       enum:
         - MALFORMED_DID
         - NO_DOCUMENT

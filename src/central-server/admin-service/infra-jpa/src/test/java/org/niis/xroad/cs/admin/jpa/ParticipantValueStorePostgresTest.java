@@ -71,6 +71,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_T
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.VALUE_DIFFERS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 import static org.niis.xroad.cs.admin.jpa.CentralServerSeed.dspBaseUrl;
@@ -346,6 +347,81 @@ class ParticipantValueStorePostgresTest extends AbstractCentralServerPostgresTes
 
         assertThat(written).containsExactlyEntriesOf(expected);
         verify(auditLogging, times(1)).auditLogFailWithData(eq(REJECT_CONNECTOR_PUBLISHED_VALUE), anyString(), anyMap());
+    }
+
+    @Test
+    void memberReplaceDryRunAnswersLikeTheWriteForEachCaseAndTouchesNothing() {
+        var server = seed.server(seed.member());
+        var otherServer = seed.server(seed.member());
+        var replaced = clientOf(server);
+        var equal = clientOf(server);
+        var noStoredRow = clientOf(server);
+        var refused = clientOf(server);
+        var heldElsewhere = clientOf(server);
+        var notServed = seed.member();
+        var host = server.address();
+        var replacedStored = memberDid(host, replaced.identifier());
+        var replacedNew = replacedStored.replace("%3A7183", "%3A7184");
+        var heldStored = memberDid(host, heldElsewhere.identifier());
+        var heldProposed = heldStored.replace("%3A7183", "%3A7184");
+        insertMemberDid(server.id(), replaced.id(), replacedStored);
+        insertMemberDid(server.id(), equal.id(), memberDid(host, equal.identifier()));
+        insertMemberDid(server.id(), refused.id(), memberDid(host, refused.identifier()));
+        insertMemberDid(server.id(), heldElsewhere.id(), heldStored);
+        insertMemberDid(otherServer.id(), heldElsewhere.id(), heldProposed);
+        var entries = new LinkedHashMap<ClientId, String>();
+        entries.put(replaced.identifier(), replacedNew);
+        entries.put(equal.identifier(), memberDid(host, equal.identifier()));
+        entries.put(noStoredRow.identifier(), memberDid(host, noStoredRow.identifier()));
+        entries.put(refused.identifier(), "not-a-did");
+        entries.put(heldElsewhere.identifier(), heldProposed);
+        entries.put(notServed.identifier(), memberDid(host, notServed.identifier()));
+        var expected = new LinkedHashMap<ClientId, ParticipantValueResult>();
+        expected.put(replaced.identifier(), ParticipantValueResult.STORED);
+        expected.put(equal.identifier(), ParticipantValueResult.UNCHANGED);
+        expected.put(noStoredRow.identifier(), ParticipantValueResult.rejected(NO_STORED_VALUE));
+        expected.put(refused.identifier(), ParticipantValueResult.rejected(WRONG_SCHEME));
+        expected.put(heldElsewhere.identifier(), ParticipantValueResult.rejected(DID_HELD_BY_ANOTHER_SERVER));
+        expected.put(notServed.identifier(), ParticipantValueResult.rejected(MEMBER_NOT_SERVED));
+        var before = jdbc.queryForList("select * from member_dids order by id");
+
+        StatementRecorder.start();
+        var dryRun = store.checkMemberDidReplacements(server.id(), entries);
+        var statements = StatementRecorder.stop();
+
+        assertThat(dryRun).containsExactlyEntriesOf(expected);
+        assertThat(jdbc.queryForList("select * from member_dids order by id")).isEqualTo(before);
+        assertThat(statements).isNotEmpty().noneMatch(ParticipantValueStorePostgresTest::writesOrLocks);
+        verifyNoInteractions(auditLogging);
+
+        var written = store.replaceMemberDids(server.id(), entries);
+
+        assertThat(written).containsExactlyEntriesOf(expected);
+        assertThat(jdbc.queryForList("select did from member_dids where security_server_id = ? and member_id = ?",
+                String.class, server.id(), replaced.id())).containsExactly(replacedNew);
+    }
+
+    @Test
+    void memberReplaceDryRunTakesNoRowLockWhileTheReplaceDoes() throws Exception {
+        var owner = seed.member();
+        var server = seed.server(owner);
+        var stored = memberDid(server.address(), owner.identifier());
+        insertMemberDid(server.id(), owner.id(), stored);
+        var entries = Map.of(owner.identifier(), stored.replace("%3A7183", "%3A7184"));
+        var executor = Executors.newSingleThreadExecutor();
+        try {
+            var probes = transactions.execute(status -> {
+                store.checkMemberDidReplacements(server.id(), entries);
+                var afterDryRun = probe(executor, server.id());
+                store.replaceMemberDids(server.id(), entries);
+                return List.of(afterDryRun, probe(executor, server.id()));
+            });
+
+            assertThat(probes).containsExactly(true, false);
+        } finally {
+            executor.shutdownNow();
+            executor.close();
+        }
     }
 
     @Test

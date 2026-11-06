@@ -29,34 +29,34 @@ package org.niis.xroad.cs.admin.api.domain;
 import jakarta.annotation.Nullable;
 
 /**
- * The result of checking a proposed SYSTEM DID against a proposed address of a Security Server.
+ * The result of checking a proposed DID: whether it would be accepted and whether it resolves.
  *
  * @param status           how the check ended
  * @param refusal          why the DID is refused, set only with {@link Status#REFUSED}
  * @param resolutionReason why the DID did not resolve, set only with {@link Status#NOT_RESOLVED}
  */
-public record SystemDidCheck(Status status, @Nullable ParticipantValueRejection refusal,
-                             @Nullable DidResolutionReason resolutionReason) {
+public record DidCheck(Status status, @Nullable ParticipantValueRejection refusal,
+                       @Nullable DidResolutionReason resolutionReason) {
 
-    public static final SystemDidCheck RESOLVED = new SystemDidCheck(Status.RESOLVED, null, null);
-    public static final SystemDidCheck RESOLVER_UNAVAILABLE = new SystemDidCheck(Status.RESOLVER_UNAVAILABLE, null, null);
+    public static final DidCheck RESOLVED = new DidCheck(Status.RESOLVED, null, null);
+    public static final DidCheck RESOLVER_UNAVAILABLE = new DidCheck(Status.RESOLVER_UNAVAILABLE, null, null);
 
-    public static SystemDidCheck refused(ParticipantValueRejection refusal) {
-        return new SystemDidCheck(Status.REFUSED, refusal, null);
+    public static DidCheck refused(ParticipantValueRejection refusal) {
+        return new DidCheck(Status.REFUSED, refusal, null);
     }
 
-    public static SystemDidCheck notResolved(DidResolutionReason reason) {
-        return new SystemDidCheck(Status.NOT_RESOLVED, null, reason);
+    public static DidCheck notResolved(DidResolutionReason reason) {
+        return new DidCheck(Status.NOT_RESOLVED, null, reason);
     }
 
     public enum Status {
-        /** The DID is not valid for the address; it was not resolved. */
+        /** The DID is not acceptable; it was not resolved. */
         REFUSED,
-        /** The DID is valid and resolves. */
+        /** The DID is acceptable and resolves. */
         RESOLVED,
-        /** The DID is valid and does not resolve. */
+        /** The DID is acceptable and does not resolve. */
         NOT_RESOLVED,
-        /** The DID is valid but the resolver could not be reached or did not answer for it. */
+        /** The DID is acceptable but the resolver could not be reached or did not answer for it. */
         RESOLVER_UNAVAILABLE
     }
 }
