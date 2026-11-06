@@ -40,6 +40,9 @@ import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.function.Function;
+
+import static org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService.MANAGEMENT_REQUEST_SENDING_FAILED_ERROR;
 
 /**
  * Sends the DID registration requests of this security server to the central server. Not guarded by
@@ -53,8 +56,6 @@ public class DidRegistrationSender {
     private final GlobalConfProvider globalConfProvider;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
 
-    private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
-
     /**
      * Sends the SYSTEM DID registration request directly to the central server
      * as a signed mime multipart message, for this security server.
@@ -67,25 +68,13 @@ public class DidRegistrationSender {
      * @throws XrdRuntimeException if the global configuration is outdated or invalid or the owner is not set, before anything is sent
      */
     public SystemDidRegistrationSendOutcome sendSystemDidRegisterRequest(String systemDid, String dspBaseUrl, byte[] authCert) {
-        globalConfProvider.verifyValidity();
-        var serverId = ownSecurityServerResolver.identity().requireServerId();
-        ManagementRequestSender sender = createSender(serverId);
-        try {
+        return send((sender, serverId) -> {
             Integer requestId = sender.sendSystemDidRegRequest(serverId, systemDid, dspBaseUrl, authCert);
             if (requestId == null) {
-                var missingId = new IllegalStateException("Response carries no request id");
-                log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
-                return SystemDidRegistrationSendOutcome.sendFailure(missingId);
+                return missingRequestId(SystemDidRegistrationSendOutcome::sendFailure);
             }
             return SystemDidRegistrationSendOutcome.stored(requestId);
-        } catch (XrdRuntimeException e) {
-            return systemDidFaultOutcome(e);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
-            return SystemDidRegistrationSendOutcome.sendFailure(e);
-        }
+        }, DidRegistrationSender::systemDidFaultOutcome, SystemDidRegistrationSendOutcome::sendFailure);
     }
 
     /**
@@ -99,15 +88,10 @@ public class DidRegistrationSender {
      * @throws XrdRuntimeException if the global configuration is outdated or invalid or the owner is not set, before anything is sent
      */
     public MemberDidRegistrationSendOutcome sendMemberDidRegisterRequest(Map<ClientId.Conf, String> memberDids) {
-        globalConfProvider.verifyValidity();
-        var serverId = ownSecurityServerResolver.identity().requireServerId();
-        ManagementRequestSender sender = createSender(serverId);
-        try {
+        return send((sender, serverId) -> {
             MemberDidRegResponse response = sender.sendMemberDidRegRequest(serverId, memberDids);
             if (response.requestId() == null) {
-                var missingId = new IllegalStateException("Response carries no request id");
-                log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
-                return MemberDidRegistrationSendOutcome.sendFailure(missingId);
+                return missingRequestId(MemberDidRegistrationSendOutcome::sendFailure);
             }
             var answered = response.results().stream().map(r -> r.member().asEncodedId()).toList();
             var sent = memberDids.keySet().stream().map(ClientId::asEncodedId).toList();
@@ -119,24 +103,44 @@ public class DidRegistrationSender {
                     .map(r -> new MemberDidRegistrationSendOutcome.Entry(r.member(), r.status(), r.reason()))
                     .toList();
             return MemberDidRegistrationSendOutcome.answered(response.requestId(), entries);
+        }, fault -> memberDidFaultOutcome(fault, memberDids.size()), MemberDidRegistrationSendOutcome::sendFailure);
+    }
+
+    private <T> T send(SenderCall<T> call, Function<XrdRuntimeException, T> faultOutcome, Function<Throwable, T> failure) {
+        globalConfProvider.verifyValidity();
+        var serverId = ownSecurityServerResolver.identity().requireServerId();
+        ManagementRequestSender sender = managementRequestSenderFactory.createFor(serverId.getOwner());
+        try {
+            return call.send(sender, serverId);
         } catch (XrdRuntimeException e) {
-            if (e.isCausedBy(ErrorCode.REQUEST_TOO_LARGE)) {
-                log.warn("Central server refused a member DID registration request of {} entries as too large: {}",
-                        memberDids.size(), e.getDetails());
-                return MemberDidRegistrationSendOutcome.requestTooLarge();
-            }
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
-            return MemberDidRegistrationSendOutcome.sendFailure(e);
+            return faultOutcome.apply(e);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
-            return MemberDidRegistrationSendOutcome.sendFailure(e);
+            return failure.apply(e);
         }
     }
 
-    private ManagementRequestSender createSender(SecurityServerId.Conf serverId) {
-        return managementRequestSenderFactory.createFor(serverId.getOwner());
+    private <T> T missingRequestId(Function<Throwable, T> failure) {
+        var missingId = new IllegalStateException("Response carries no request id");
+        log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, missingId);
+        return failure.apply(missingId);
+    }
+
+    private static MemberDidRegistrationSendOutcome memberDidFaultOutcome(XrdRuntimeException fault, int entryCount) {
+        if (fault.isCausedBy(ErrorCode.REQUEST_TOO_LARGE)) {
+            log.warn("Central server refused a member DID registration request of {} entries as too large: {}",
+                    entryCount, fault.getDetails());
+            return MemberDidRegistrationSendOutcome.requestTooLarge();
+        }
+        log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, fault);
+        return MemberDidRegistrationSendOutcome.sendFailure(fault);
+    }
+
+    @FunctionalInterface
+    private interface SenderCall<T> {
+        T send(ManagementRequestSender sender, SecurityServerId.Conf serverId) throws Exception;
     }
 
     private static String reasonOf(XrdRuntimeException fault, ErrorCode outcomeClass) {

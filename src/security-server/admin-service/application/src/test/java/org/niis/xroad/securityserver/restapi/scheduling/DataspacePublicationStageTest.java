@@ -53,7 +53,6 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.niis.xroad.test.MutableClock;
@@ -100,8 +99,6 @@ class DataspacePublicationStageTest {
     @Mock
     private DidRegistrationSender didRegistrationSender;
     @Mock
-    private OwnSecurityServerResolver ownSecurityServerResolver;
-    @Mock
     private AdminServiceProperties adminServiceProperties;
 
     @InjectMocks
@@ -138,7 +135,7 @@ class DataspacePublicationStageTest {
     }
 
     private void runPass() {
-        stage.publish(Set.of(SYSTEM_CONTEXT), Set.of());
+        stage.publish(Set.of(SYSTEM_CONTEXT), false);
     }
 
     private List<ILoggingEvent> logsOfPass() {
@@ -225,7 +222,7 @@ class DataspacePublicationStageTest {
 
     @Test
     void sendsNothingWhileTheSystemContextIsNotProvisioned() {
-        stage.publish(Set.of(), Set.of());
+        stage.publish(Set.of(), false);
 
         verifyNothingSent();
     }
@@ -494,8 +491,8 @@ class DataspacePublicationStageTest {
         verifySends(1);
 
         var restarted = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender, ownSecurityServerResolver, adminServiceProperties);
-        restarted.publish(Set.of(SYSTEM_CONTEXT), Set.of());
+                didRegistrationSender, adminServiceProperties);
+        restarted.publish(Set.of(SYSTEM_CONTEXT), false);
 
         verifySends(2);
     }

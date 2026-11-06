@@ -55,8 +55,6 @@ import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOu
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnIdentity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
@@ -78,10 +76,13 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -108,8 +109,6 @@ class DataspaceMemberPublicationTest {
     private ClientRepository clientRepository;
     @Mock
     private DidRegistrationSender didRegistrationSender;
-    @Mock
-    private OwnSecurityServerResolver ownSecurityServerResolver;
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
@@ -138,7 +137,6 @@ class DataspaceMemberPublicationTest {
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
         when(readinessPredicates.registeredAuthCertBytes()).thenReturn(Optional.of(new byte[] {1}));
         when(didAuthority.dspBaseUrlIfValid()).thenReturn(Optional.of(DSP_BASE_URL));
-        when(ownSecurityServerResolver.identity()).thenReturn(new OwnIdentity.Known(SERVER_ID));
         when(adminServiceProperties.getDataspace()).thenReturn(dataspaceProperties);
         when(dataspaceProperties.getProvisioningBatchSize()).thenAnswer(_ -> batchSize);
         when(dsParticipantRepository.findActiveSystemParticipant()).thenAnswer(_ -> Optional.of(systemRow));
@@ -176,7 +174,7 @@ class DataspaceMemberPublicationTest {
         });
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender, ownSecurityServerResolver, adminServiceProperties);
+                didRegistrationSender, adminServiceProperties);
         backoff = new PublicationBackoff(clock, () -> 1.0);
         stage.setBackoff(backoff);
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository, globalConfProvider,
@@ -281,14 +279,26 @@ class DataspaceMemberPublicationTest {
     }
 
     @Test
-    void aMemberCheckThatReadsNoHostedMemberTouchesNoBindingRow() {
+    void aSubmittedMemberDidThatGlobalconfCarriesBecomesPublishedWhenNoMemberIsHostedHere() {
+        var member = addUnhostedMember("A01");
+        member.setPublicationState(PublicationState.SUBMITTED);
+        carryDid(member);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+
+        globalconfCheck();
+
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
+    }
+
+    @Test
+    void aPublishedMemberDidMissingFromGlobalconfIsNotResetWhenNoMemberIsHostedHere() {
         var member = addUnhostedMember("A01");
         member.setPublicationState(PublicationState.PUBLISHED);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
 
         globalconfCheck();
 
-        verify(dsParticipantRepository, never()).findActiveMembers(any());
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.PUBLISHED);
     }
 
     @Test
@@ -493,6 +503,38 @@ class DataspaceMemberPublicationTest {
         pass();
 
         assertThat(requests).hasSize(1);
+    }
+
+    @Test
+    void aPassReadsTheSystemRowAndTheReadinessOnceForBothSteps() {
+        systemRow.setPublicationState(PublicationState.NOT_SENT);
+        addMember("A01");
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
+                .thenReturn(SystemDidRegistrationSendOutcome.stored(1));
+
+        pass();
+
+        verify(dsParticipantRepository, times(1)).findActiveSystemParticipant();
+        verify(readinessPredicates, times(1)).isDataspaceReady();
+        verify(readinessPredicates, times(1)).registeredAuthCertBytes();
+        verify(didAuthority, times(1)).dspBaseUrlIfValid();
+        assertThat(requests).containsExactly(List.of("A01"));
+    }
+
+    @Test
+    void theMemberDidsGoOutInTheSamePassWhenTheSystemTransitionLeavesTheLoadedRowUnchanged() {
+        systemRow.setPublicationState(PublicationState.NOT_SENT);
+        var member = addMember("A01");
+        when(didRegistrationSender.sendSystemDidRegisterRequest(any(), any(), any()))
+                .thenReturn(SystemDidRegistrationSendOutcome.stored(1));
+        doReturn(true).when(dsParticipantRepository)
+                .transitionPublication(eq(systemRow.getId()), any(), any(), any());
+
+        pass();
+
+        assertThat(systemRow.getPublicationState()).isEqualTo(PublicationState.NOT_SENT);
+        assertThat(requests).containsExactly(List.of("A01"));
+        assertThat(member.getPublicationState()).isEqualTo(PublicationState.SUBMITTED);
     }
 
     @Test
@@ -741,7 +783,7 @@ class DataspaceMemberPublicationTest {
         unresolvedCodes = Set.of("M000", "M001", "M002");
         pass();
         clock.advance(Duration.ofSeconds(30));
-        nextOutcome = MemberDidRegistrationSendOutcome.answered(1, List.of(entry("M999", "STORED", null)));
+        nextOutcome = MemberDidRegistrationSendOutcome.answered(1, List.of());
         pass();
         nextOutcome = null;
         clock.advance(Duration.ofSeconds(30));
@@ -796,7 +838,9 @@ class DataspaceMemberPublicationTest {
     }
 
     private void pass() {
-        stage.publish(Set.copyOf(provisioned), Set.copyOf(issued));
+        var ownerCredentialIssued = issued.stream().anyMatch(context -> context.kind() == ParticipantKind.MEMBER
+                && OWNER.asEncodedId().equals(context.memberId().asEncodedId()));
+        stage.publish(Set.copyOf(provisioned), ownerCredentialIssued);
     }
 
     private void globalconfCheck() {

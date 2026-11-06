@@ -49,7 +49,6 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -129,7 +128,7 @@ class DataspacePublicationWritersTest {
         });
 
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
-                didRegistrationSender, mock(OwnSecurityServerResolver.class), mock(AdminServiceProperties.class));
+                didRegistrationSender, mock(AdminServiceProperties.class));
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
                 globalConfProvider, readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
     }
@@ -145,7 +144,7 @@ class DataspacePublicationWritersTest {
     }
 
     private void reconcilerPass() {
-        stage.publish(Set.of(SYSTEM_CONTEXT), Set.of());
+        stage.publish(Set.of(SYSTEM_CONTEXT), false);
     }
 
     private void globalconfCheck() {

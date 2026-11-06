@@ -48,7 +48,6 @@ import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifie
 import org.niis.xroad.securityserver.restapi.service.PublicationOutcomeClassifier.BackoffClass;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -57,7 +56,6 @@ import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +67,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Last stage of every provisioning reconciler pass: sends the SYSTEM values, the SYSTEM DID together with
@@ -76,8 +75,9 @@ import java.util.function.Supplier;
  * SYSTEM binding row. After that it sends the DIDs of the hosted members in batches. Exists only where the
  * reconciler is active, so a secondary node never sends.
  *
- * <p>A value is sent only when the data space is ready, the authentication certificate registration is
- * approved, the registered address is known and the SYSTEM binding is bound, provisioned and not sent.
+ * <p>A value is sent only when the data space is ready, a registered authentication certificate is usable (its
+ * key is available and the certificate is currently valid), the registered address is known and the SYSTEM
+ * binding is bound, provisioned and not sent.
  * Values already submitted or rejected are not sent again. A published value that globalconf loses is moved
  * back to not sent by the globalconf check and sent again.
  *
@@ -106,7 +106,6 @@ public class DataspacePublicationStage {
     private final DataspaceDidAuthority didAuthority;
     private final DsParticipantRepository dsParticipantRepository;
     private final DidRegistrationSender didRegistrationSender;
-    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final AdminServiceProperties adminServiceProperties;
 
     @Setter(AccessLevel.PACKAGE)
@@ -118,29 +117,31 @@ public class DataspacePublicationStage {
     /**
      * Runs one publication step. Never throws: a failure is logged and the next pass retries.
      *
-     * @param provisioned      the contexts that were converged at the start of the pass or whose anchor the identity hub
-     *                         confirmed while ensuring them in this pass
-     * @param credentialIssued the contexts whose credential was issued at the start of the pass
+     * @param provisioned          the contexts that were converged at the start of the pass or whose anchor the identity
+     *                             hub confirmed while ensuring them in this pass
+     * @param ownerCredentialIssued whether the credential of the owner member context was issued at the start of the pass
      */
-    public void publish(Set<ParticipantContext> provisioned, Set<ParticipantContext> credentialIssued) {
+    public void publish(Set<ParticipantContext> provisioned, boolean ownerCredentialIssued) {
+        var pass = new Pass();
         try {
-            publishSystemValues(provisioned);
+            publishSystemValues(provisioned, pass);
         } catch (Exception e) {
             log.error("Dataspace publication: SYSTEM values step failed, the next pass retries", e);
         }
         try {
-            publishMemberValues(provisioned, credentialIssued);
+            publishMemberValues(provisioned, ownerCredentialIssued, pass);
         } catch (Exception e) {
             log.error("Dataspace publication: member DIDs step failed, the next pass retries", e);
         }
     }
 
-    private void publishSystemValues(Set<ParticipantContext> provisioned) {
+    private void publishSystemValues(Set<ParticipantContext> provisioned, Pass pass) {
         if (provisioned.stream().noneMatch(context -> context.kind() == ParticipantKind.SYSTEM)) {
             log.debug("Dataspace publication: SYSTEM context not provisioned, nothing to send");
             return;
         }
-        var row = notSentSystemRow();
+        var row = pass.systemRow().filter(
+                system -> system.getPublicationState() == null || system.getPublicationState() == PublicationState.NOT_SENT);
         if (row.isEmpty()) {
             return;
         }
@@ -150,16 +151,21 @@ public class DataspacePublicationStage {
             log.debug("Dataspace publication: SYSTEM values are in a backoff pause, not sending");
             return;
         }
-        if (!readinessPredicates.isDataspaceReady()) {
+        if (!pass.dataspaceReady()) {
             log.debug("Dataspace publication: dataspace not ready, not sending the SYSTEM values");
             return;
         }
-        var authCert = readinessPredicates.registeredAuthCertBytes();
+        var authCert = pass.authCert();
         if (authCert.isEmpty()) {
-            log.debug("Dataspace publication: auth cert not registered, not sending the SYSTEM values");
+            if (readinessPredicates.hasRegisteredAuthCert()) {
+                log.warn("Dataspace publication: the registered auth cert is not usable (key unavailable, not valid yet"
+                        + " or expired), not sending the SYSTEM values");
+            } else {
+                log.debug("Dataspace publication: no usable auth cert, not sending the SYSTEM values");
+            }
             return;
         }
-        var dspBaseUrl = didAuthority.dspBaseUrlIfValid();
+        var dspBaseUrl = pass.dspBaseUrl();
         if (dspBaseUrl.isEmpty()) {
             log.debug("Dataspace publication: registered address unknown or invalid, not sending the SYSTEM values");
             return;
@@ -171,7 +177,9 @@ public class DataspacePublicationStage {
         }
         var transition = PublicationOutcomeClassifier.classify(outcome.get());
         recordBackoff(transition.backoff(), kindKey, valueKey);
-        apply(row.get(), transition, "SYSTEM values", "are");
+        if (apply(row.get(), transition, "SYSTEM values")) {
+            pass.systemStateAfterSend(transition.state());
+        }
     }
 
     private void recordBackoff(BackoffClass backoffClass, Key kindKey, Key valueKey) {
@@ -189,11 +197,6 @@ public class DataspacePublicationStage {
         } else {
             backoff.recordFailure(valueKey);
         }
-    }
-
-    private Optional<DsParticipantEntity> notSentSystemRow() {
-        return dsParticipantRepository.findActiveSystemParticipant()
-                .filter(row -> row.getPublicationState() == null || row.getPublicationState() == PublicationState.NOT_SENT);
     }
 
     private Optional<SystemDidRegistrationSendOutcome> send(String systemDid, String dspBaseUrl, byte[] authCert) {
@@ -237,35 +240,35 @@ public class DataspacePublicationStage {
         }
     }
 
-    private void apply(DsParticipantEntity row, PublicationOutcomeClassifier.Transition transition, String subject,
-            String verb) {
+    private boolean apply(DsParticipantEntity row, PublicationOutcomeClassifier.Transition transition, String subject) {
         if (transition.changesNothing(row.getPublicationState(), row.getPublicationReason())) {
             log.debug("Dataspace publication: {} still not sent ({}), reason unchanged", subject, transition.backoff());
-            return;
+            return false;
         }
         boolean applied = dsParticipantRepository.transitionPublication(row.getId(), PublicationState.NOT_SENT,
                 transition.state(), transition.reason());
         if (applied) {
-            log.info("Dataspace publication: {} {} now {}{}{}", subject, verb,
+            log.info("Dataspace publication: {} now {}{}{}", subject,
                     transition.state(), transition.reason() == null ? "" : " (" + transition.reason() + ")",
                     transition.state() == PublicationState.NOT_SENT ? ", backoff " + transition.backoff() : "");
         } else {
             log.debug("Dataspace publication: {} changed concurrently, result not applied", subject);
         }
+        return applied;
     }
 
-    private void publishMemberValues(Set<ParticipantContext> provisioned, Set<ParticipantContext> credentialIssued) {
+    private void publishMemberValues(Set<ParticipantContext> provisioned, boolean ownerCredentialIssued, Pass pass) {
         var hostedMembers = provisionedMemberIds(provisioned);
         var kindKey = Key.ofKind(RequestKind.MEMBER);
         if (hostedMembers.isEmpty() || !backoff.mayAttempt(kindKey)) {
             log.debug("Dataspace publication: no hosted member or member DIDs are in a backoff pause, not sending");
             return;
         }
-        if (!ownerCredentialIssued(credentialIssued)) {
+        if (!ownerCredentialIssued) {
             log.debug("Dataspace publication: owner member context has no issued credential, not sending member DIDs");
             return;
         }
-        if (!systemValuesSent()) {
+        if (!pass.systemValuesSent()) {
             return;
         }
         var candidates = dsParticipantRepository.findActiveMembers(Set.of(PublicationState.NOT_SENT)).stream()
@@ -279,8 +282,7 @@ public class DataspacePublicationStage {
             log.debug("Dataspace publication: member DIDs are in a backoff pause, not sending");
             return;
         }
-        if (!readinessPredicates.isDataspaceReady() || readinessPredicates.registeredAuthCertBytes().isEmpty()
-                || didAuthority.dspBaseUrlIfValid().isEmpty()) {
+        if (!pass.dataspaceReady() || pass.authCert().isEmpty() || pass.dspBaseUrl().isEmpty()) {
             log.debug("Dataspace publication: server not ready to send, not sending member DIDs");
             return;
         }
@@ -344,13 +346,11 @@ public class DataspacePublicationStage {
     }
 
     private void applyAnswered(List<DsParticipantEntity> batch, MemberDidRegistrationSendOutcome outcome, Key kindKey) {
-        Map<String, DsParticipantEntity> rows = new LinkedHashMap<>();
-        batch.forEach(row -> rows.put(encodedMemberId(row), row));
         boolean sendFailure = false;
         boolean resolved = false;
-        for (var entry : outcome.entries()) {
-            var row = rows.get(entry.member().asEncodedId());
-            var transition = PublicationOutcomeClassifier.classify(entry);
+        for (int i = 0; i < batch.size(); i++) {
+            var row = batch.get(i);
+            var transition = PublicationOutcomeClassifier.classify(outcome.entries().get(i));
             sendFailure |= transition.backoff() == BackoffClass.SEND_FAILURE;
             resolved |= isCentralServerVerdict(transition.backoff());
             recordValueBackoff(transition.backoff(), memberValueKey(row));
@@ -390,7 +390,7 @@ public class DataspacePublicationStage {
     }
 
     private void applyMember(DsParticipantEntity row, PublicationOutcomeClassifier.Transition transition) {
-        apply(row, transition, "member DID " + row.getDid(), "is");
+        apply(row, transition, "member DID " + row.getDid());
     }
 
     private static Key memberValueKey(DsParticipantEntity row) {
@@ -398,24 +398,66 @@ public class DataspacePublicationStage {
     }
 
     private static Set<String> provisionedMemberIds(Set<ParticipantContext> provisioned) {
-        Set<String> ids = new HashSet<>();
-        provisioned.stream()
+        return provisioned.stream()
                 .filter(context -> context.kind() == ParticipantKind.MEMBER)
-                .forEach(context -> ids.add(context.memberId().asEncodedId()));
-        return ids;
+                .map(context -> context.memberId().asEncodedId())
+                .collect(Collectors.toSet());
     }
 
-    private boolean systemValuesSent() {
-        return dsParticipantRepository.findActiveSystemParticipant()
-                .map(DsParticipantEntity::getPublicationState)
-                .filter(state -> state == PublicationState.SUBMITTED || state == PublicationState.PUBLISHED)
-                .isPresent();
+    /**
+     * What one {@link #publish} call reads from the server: each value is read on first use and then shared by the
+     * SYSTEM and member steps, and the SYSTEM state follows the SYSTEM step's own transition.
+     */
+    private final class Pass {
+        private final Once<Optional<DsParticipantEntity>> systemRow =
+                new Once<>(dsParticipantRepository::findActiveSystemParticipant);
+        private final Once<Boolean> dataspaceReady = new Once<>(readinessPredicates::isDataspaceReady);
+        private final Once<Optional<byte[]>> authCert = new Once<>(readinessPredicates::registeredAuthCertBytes);
+        private final Once<Optional<String>> dspBaseUrl = new Once<>(didAuthority::dspBaseUrlIfValid);
+        private PublicationState systemStateAfterSend;
+
+        Optional<DsParticipantEntity> systemRow() {
+            return systemRow.get();
+        }
+
+        boolean dataspaceReady() {
+            return dataspaceReady.get();
+        }
+
+        Optional<byte[]> authCert() {
+            return authCert.get();
+        }
+
+        Optional<String> dspBaseUrl() {
+            return dspBaseUrl.get();
+        }
+
+        void systemStateAfterSend(PublicationState state) {
+            systemStateAfterSend = state;
+        }
+
+        boolean systemValuesSent() {
+            var state = systemStateAfterSend != null ? systemStateAfterSend
+                    : systemRow().map(DsParticipantEntity::getPublicationState).orElse(null);
+            return state == PublicationState.SUBMITTED || state == PublicationState.PUBLISHED;
+        }
     }
 
-    private boolean ownerCredentialIssued(Set<ParticipantContext> credentialIssued) {
-        var owner = ownSecurityServerResolver.identity().serverId().map(serverId -> serverId.getOwner().asEncodedId());
-        return owner.isPresent() && credentialIssued.stream()
-                .anyMatch(context -> context.kind() == ParticipantKind.MEMBER
-                        && owner.get().equals(context.memberId().asEncodedId()));
+    private static final class Once<T> {
+        private final Supplier<T> source;
+        private T value;
+        private boolean read;
+
+        Once(Supplier<T> source) {
+            this.source = source;
+        }
+
+        T get() {
+            if (!read) {
+                value = source.get();
+                read = true;
+            }
+            return value;
+        }
     }
 }

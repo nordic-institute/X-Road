@@ -154,18 +154,15 @@ class PublicationBackoffTest {
     }
 
     @Test
-    void aProbeLimitsTheBatchSizeToOneUntilItIsClearedAndIsKeptPerRequestKind() {
-        backoff.rememberAcceptedSize(RequestKind.MEMBER, 25);
-        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(25);
-
+    void aProbeIsKeptPerRequestKindUntilItIsCleared() {
         backoff.requireProbe(RequestKind.MEMBER);
 
-        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(1);
-        assertThat(backoff.batchSize(RequestKind.SYSTEM, 100)).isEqualTo(100);
+        assertThat(backoff.isProbing(RequestKind.MEMBER)).isTrue();
+        assertThat(backoff.isProbing(RequestKind.SYSTEM)).isFalse();
 
         backoff.clearProbe(RequestKind.MEMBER);
 
-        assertThat(backoff.batchSize(RequestKind.MEMBER, 100)).isEqualTo(25);
+        assertThat(backoff.isProbing(RequestKind.MEMBER)).isFalse();
     }
 
     @Test

@@ -75,6 +75,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.atLeastOnce;
@@ -178,7 +179,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), any());
+        verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), anyBoolean());
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
     }
 
@@ -192,7 +193,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
         order.verify(participantBindingService).bindSystemIfAbsent(HUB_DID);
         order.verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_CONTEXT);
-        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), any());
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT)), anyBoolean());
     }
 
     @Test
@@ -203,7 +204,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(eq(Set.of()), any());
+        verify(publicationStage).publish(eq(Set.of()), anyBoolean());
     }
 
     @Test
@@ -214,7 +215,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(eq(Set.of()), any());
+        verify(publicationStage).publish(eq(Set.of()), anyBoolean());
     }
 
     @Test
@@ -227,7 +228,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(eq(Set.of()), any());
+        verify(publicationStage).publish(eq(Set.of()), anyBoolean());
     }
 
     @Test
@@ -236,7 +237,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(publicationStage, never()).publish(any(), any());
+        verify(publicationStage, never()).publish(any(), anyBoolean());
     }
 
     @Test
@@ -263,20 +264,38 @@ class DataspaceParticipantProvisioningWorkerTest {
         var order = inOrder(participantBindingService, dataspaceProvisioningService, publicationStage);
         order.verify(participantBindingService).bindMembersIfAbsent(Map.of(MEMBER, HUB_DID));
         order.verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
-        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT, MEMBER_CONTEXT)), any());
+        order.verify(publicationStage).publish(eq(Set.of(SYSTEM_CONTEXT, MEMBER_CONTEXT)), anyBoolean());
     }
 
     @Test
-    void publicationStageGetsOnlyTheContextsWhoseCredentialIsIssued() {
-        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, MEMBER_CONTEXT));
+    void publicationStageGetsTrueWhenTheOwnerMemberCredentialIsIssued() {
+        var ownerMember = new ParticipantContext("TEST:GOV:1234", ParticipantKind.MEMBER, OWNER);
+        when(dataspaceProvisioningService.participantContexts()).thenReturn(List.of(SYSTEM_CONTEXT, ownerMember));
         when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
                 .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
-        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
-                .thenReturn(statusOf(true, CredentialStatus.PENDING, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(ownerMember))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
 
         worker.provisionParticipant();
 
-        verify(publicationStage).publish(any(), eq(Set.of(SYSTEM_CONTEXT)));
+        verify(publicationStage).publish(any(), eq(true));
+    }
+
+    @Test
+    void publicationStageGetsFalseWhenOnlyAnotherMemberCredentialIsIssued() {
+        var ownerMember = new ParticipantContext("TEST:GOV:1234", ParticipantKind.MEMBER, OWNER);
+        when(dataspaceProvisioningService.participantContexts())
+                .thenReturn(List.of(SYSTEM_CONTEXT, ownerMember, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(SYSTEM_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(ownerMember))
+                .thenReturn(statusOf(true, CredentialStatus.PENDING, IdentityStatus.OK));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK));
+
+        worker.provisionParticipant();
+
+        verify(publicationStage).publish(any(), eq(false));
     }
 
     @Test

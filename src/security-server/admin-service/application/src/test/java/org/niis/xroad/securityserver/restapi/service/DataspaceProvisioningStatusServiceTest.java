@@ -141,7 +141,7 @@ class DataspaceProvisioningStatusServiceTest {
         systemRow.setState(ParticipantState.ACTIVE);
         systemRow.setPublicationState(PublicationState.REJECTED);
         systemRow.setPublicationReason("conflict-reason");
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(systemRow));
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
         when(readinessPredicates.isDataspaceReady()).thenReturn(true);
 
         var server = statusService.readStatus().server();
@@ -156,7 +156,7 @@ class DataspaceProvisioningStatusServiceTest {
     void readStatusReportsNotSentWhenTheSystemRowHasNoPublicationState() {
         var systemRow = new DsParticipantEntity();
         systemRow.setState(ParticipantState.ACTIVE);
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(systemRow));
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
 
         var server = statusService.readStatus().server();
 
@@ -166,11 +166,7 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusIgnoresThePublicationOfADecommissionedSystemRow() {
-        var systemRow = new DsParticipantEntity();
-        systemRow.setState(ParticipantState.DECOMMISSIONED);
-        systemRow.setPublicationState(PublicationState.REJECTED);
-        systemRow.setPublicationReason("conflict-reason");
-        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(systemRow));
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.empty());
 
         var server = statusService.readStatus().server();
 

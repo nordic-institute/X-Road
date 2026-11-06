@@ -82,8 +82,7 @@ public class DataspaceProvisioningStatusService {
     }
 
     private ServerStatus readServerStatus() {
-        var system = dsParticipantRepository.findSystemParticipant()
-                .filter(row -> row.getState() == ParticipantState.ACTIVE);
+        var system = dsParticipantRepository.findActiveSystemParticipant();
         var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
         return new ServerStatus(readinessPredicates.isDataspaceReady(), didAuthority.dspBaseUrlIfValid().orElse(null),
                 state,

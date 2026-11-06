@@ -173,13 +173,9 @@ public final class PublicationBackoff {
     }
 
     /**
-     * @return one during a probe, else the configured batch size or the remembered accepted size when that is
-     * smaller
+     * @return the configured batch size, or the remembered accepted size when that is smaller
      */
     public synchronized int batchSize(RequestKind kind, int configured) {
-        if (probing.contains(kind)) {
-            return 1;
-        }
         return Math.min(configured, acceptedSizes.getOrDefault(kind, Integer.MAX_VALUE));
     }
 

@@ -47,7 +47,7 @@ public class ManagementRequestSenderService {
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
 
-    private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
+    static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
 
     /**
      * Sends the authentication certificate registration request directly

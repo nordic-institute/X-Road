@@ -44,6 +44,10 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,8 +68,11 @@ class DataspaceReadinessPredicatesTest {
     private DataspaceReadinessPredicates predicates;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         predicates = new DataspaceReadinessPredicates(globalConfProvider, serverConfRepository, signerRpcClient);
+        var whileEveryMockCertIsValid = CertificateTestUtils.getMockCertificate().getNotAfter().toInstant()
+                .minus(Duration.ofDays(1));
+        predicates.setClock(Clock.fixed(whileEveryMockCertIsValid, ZoneOffset.UTC));
     }
 
     @Test
@@ -135,7 +142,7 @@ class DataspaceReadinessPredicatesTest {
     }
 
     @Test
-    void anUnparseableRegisteredAuthCertSortsLastAndStillCounts() throws Exception {
+    void anUnparseableRegisteredAuthCertIsNeverPickedButStillCountsAsRegistered() throws Exception {
         var unparseable = CertificateTestUtils.createCertificateInfo(ClientId.Conf.create("a", "b", "c"), true, true,
                 CertificateInfo.STATUS_REGISTERED, "2", new byte[] {1, 2, 3}, null, null);
         var valid = new CertificateTestUtils.CertificateInfoBuilder().build();
@@ -146,6 +153,64 @@ class DataspaceReadinessPredicatesTest {
 
         when(signerRpcClient.getTokens()).thenReturn(List.of(tokenWith(KeyUsageInfo.AUTHENTICATION, unparseable)));
 
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
+        assertThat(predicates.hasRegisteredAuthCert()).isTrue();
+    }
+
+    @Test
+    void anOlderUsableCertBeatsTheLatestExpiringOneWhoseKeyIsUnavailable() throws Exception {
+        var older = CertificateTestUtils.getMockCertificate();
+        var newer = CertificateTestUtils.getMockAuthCertificate();
+        when(signerRpcClient.getTokens()).thenReturn(List.of(
+                tokenWith(KeyUsageInfo.AUTHENTICATION, true, certInfo(older)),
+                tokenWith(KeyUsageInfo.AUTHENTICATION, false, certInfo(newer))));
+
+        assertThat(predicates.registeredAuthCertBytes()).contains(older.getEncoded());
+        assertThat(predicates.hasRegisteredAuthCert()).isTrue();
+    }
+
+    @Test
+    void anOlderUsableCertBeatsTheLatestExpiringOneThatIsNotValidYet() throws Exception {
+        var older = CertificateTestUtils.getMockCertificate();
+        var newer = CertificateTestUtils.getMockAuthCertificate();
+        var between = newer.getNotBefore().toInstant().compareTo(older.getNotBefore().toInstant()) > 0
+                ? newer.getNotBefore().toInstant().minusSeconds(1) : older.getNotBefore().toInstant().plusSeconds(1);
+        assertThat(older.getNotBefore().toInstant()).isBeforeOrEqualTo(between);
+        assertThat(newer.getNotBefore().toInstant()).isAfter(between);
+        predicates.setClock(Clock.fixed(between, ZoneOffset.UTC));
+        when(signerRpcClient.getTokens()).thenReturn(List.of(
+                tokenWith(KeyUsageInfo.AUTHENTICATION, true, certInfo(older)),
+                tokenWith(KeyUsageInfo.AUTHENTICATION, true, certInfo(newer))));
+
+        assertThat(predicates.registeredAuthCertBytes()).contains(older.getEncoded());
+    }
+
+    @Test
+    void anExpiredOlderCertIsSkippedAndNoCertIsUsableOnceAllHaveExpired() throws Exception {
+        var older = CertificateTestUtils.getMockCertificate();
+        var newer = CertificateTestUtils.getMockAuthCertificate();
+        var validForNewerOnly = older.getNotAfter().toInstant().plusSeconds(1);
+        assertThat(newer.getNotAfter().toInstant()).isAfter(validForNewerOnly);
+        assertThat(newer.getNotBefore().toInstant()).isBefore(validForNewerOnly);
+        predicates.setClock(Clock.fixed(validForNewerOnly, ZoneOffset.UTC));
+        when(signerRpcClient.getTokens()).thenReturn(List.of(
+                tokenWith(KeyUsageInfo.AUTHENTICATION, true, certInfo(older)),
+                tokenWith(KeyUsageInfo.AUTHENTICATION, true, certInfo(newer))));
+
+        assertThat(predicates.registeredAuthCertBytes()).contains(newer.getEncoded());
+
+        predicates.setClock(Clock.fixed(newer.getNotAfter().toInstant().plusSeconds(1), ZoneOffset.UTC));
+
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
+        assertThat(predicates.hasRegisteredAuthCert()).isTrue();
+    }
+
+    @Test
+    void registeredAuthCertBytesIsEmptyWhenTheOnlyKeyIsUnavailable() {
+        when(signerRpcClient.getTokens()).thenReturn(List.of(
+                tokenWith(KeyUsageInfo.AUTHENTICATION, false, certInfo(CertificateTestUtils.getMockCertificate()))));
+
+        assertThat(predicates.registeredAuthCertBytes()).isEmpty();
         assertThat(predicates.hasRegisteredAuthCert()).isTrue();
     }
 
@@ -183,7 +248,15 @@ class DataspaceReadinessPredicatesTest {
     }
 
     private static TokenInfo tokenWith(KeyUsageInfo usage, CertificateInfo cert) {
-        var key = new TokenTestUtils.KeyInfoBuilder().keyUsageInfo(usage).cert(cert).build();
+        return tokenWith(usage, true, cert);
+    }
+
+    private static TokenInfo tokenWith(KeyUsageInfo usage, boolean keyAvailable, CertificateInfo cert) {
+        var key = new TokenTestUtils.KeyInfoBuilder().keyUsageInfo(usage).available(keyAvailable).cert(cert).build();
         return new TokenTestUtils.TokenInfoBuilder().key(key).build();
+    }
+
+    private static CertificateInfo certInfo(X509Certificate certificate) {
+        return new CertificateTestUtils.CertificateInfoBuilder().certificate(certificate).build();
     }
 }

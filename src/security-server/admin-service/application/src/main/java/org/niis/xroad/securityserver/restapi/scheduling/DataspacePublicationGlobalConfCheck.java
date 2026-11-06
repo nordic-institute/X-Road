@@ -117,9 +117,6 @@ public class DataspacePublicationGlobalConfCheck {
 
     private void checkMemberDids(SecurityServerId securityServerId) {
         var hostedMembers = HostedMembers.of(clientRepository.getAllLocalClients());
-        if (hostedMembers.isEmpty()) {
-            return;
-        }
         for (var row : dsParticipantRepository.findActiveMembers(SENT)) {
             var member = row.getMemberIdentifier();
             var action = MemberPublicationCheck.decide(row.getPublicationState(), row.getDid(),
