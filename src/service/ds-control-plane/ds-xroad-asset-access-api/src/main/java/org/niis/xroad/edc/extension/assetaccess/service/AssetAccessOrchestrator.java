@@ -256,7 +256,7 @@ public class AssetAccessOrchestrator {
             List<AssetAccessRequest.Candidate> candidates, List<Throwable> transportFailures, CallContext call) {
         var ordering = candidates.size() == 1
                 ? CompletableFuture.completedFuture(candidates)
-                : candidateHandshakeRace.order(candidates);
+                : call.scope().track(candidateHandshakeRace.order(candidates));
         return ordering
                 .thenCompose(ordered -> acquireInOrder(key, ordered, transportFailures,
                         candidate -> attemptNegotiation(key, participantContext, request, candidate, call),

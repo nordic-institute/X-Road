@@ -177,6 +177,11 @@ public class CandidateHandshakeRace {
         }
         var round = new Round(candidates);
         round.start();
+        round.result.whenComplete((_, _) -> {
+            if (round.result.isCancelled()) {
+                round.cancel();
+            }
+        });
         return round.result;
     }
 
@@ -313,6 +318,18 @@ public class CandidateHandshakeRace {
                     .sorted(Comparator.comparing((Probe probe) -> !averages.containsKey(probe))
                             .thenComparing(probe -> averages.getOrDefault(probe, Duration.ZERO)))
                     .toList();
+        }
+
+        private void cancel() {
+            List<Probe> unfinished;
+            synchronized (this) {
+                decided = true;
+                unfinished = probes.stream()
+                        .filter(probe -> probe.state == ProbeState.PENDING || probe.state == ProbeState.WINNER)
+                        .toList();
+                unfinished.forEach(probe -> probe.state = ProbeState.CANCELLED);
+            }
+            unfinished.forEach(probe -> probe.call.cancel());
         }
 
         private void declareWinner(Probe probe) {

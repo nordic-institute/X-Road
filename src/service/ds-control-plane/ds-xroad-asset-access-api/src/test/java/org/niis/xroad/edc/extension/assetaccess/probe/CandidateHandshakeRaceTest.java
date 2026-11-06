@@ -398,6 +398,37 @@ class CandidateHandshakeRaceTest {
     }
 
     @Test
+    void cancellingTheOrderCancelsTheRunningProbeAndTheProbeStartsStillScheduled() throws Exception {
+        var stagger = Duration.ofMillis(800);
+        var started = startServer("started.xroad.test", trustedCa, 0);
+        var scheduled = startServer("scheduled.xroad.test", trustedCa, 0);
+        var lastScheduled = startServer("last.xroad.test", trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(started.address(), Duration.ofMillis(10));
+        handshakeTimes.record(scheduled.address(), Duration.ofMillis(20));
+        handshakeTimes.record(lastScheduled.address(), Duration.ofMillis(30));
+        List.of(started, scheduled, lastScheduled).forEach(TlsServer::holdHandshakes);
+        var race = race(DEADLINE, stagger, handshakeTimes);
+        var order = race.order(List.of(candidate("last", lastScheduled), candidate("scheduled", scheduled), candidate("started", started)));
+        await().atMost(8, TimeUnit.SECONDS).until(() -> !started.acceptNanos().isEmpty());
+
+        order.cancel(true);
+
+        await().atMost(DEADLINE.dividedBy(2)).until(() -> client.dispatcher().runningCallsCount() == 0);
+        started.releaseHandshakes();
+        await().atMost(8, TimeUnit.SECONDS).until(() -> started.handshakesAbandoned().get() == 1);
+        await().during(stagger.multipliedBy(2).plusMillis(100)).atMost(stagger.multipliedBy(2).plusSeconds(5))
+                .until(() -> scheduled.acceptNanos().isEmpty() && lastScheduled.acceptNanos().isEmpty());
+        assertThat(started.handshakesCompleted()).hasValue(0);
+        assertThat(handshakeTimes.average(started.address())).hasValue(Duration.ofMillis(10));
+        assertThat(handshakeTimes.average(scheduled.address())).hasValue(Duration.ofMillis(20));
+        assertThat(handshakeTimes.average(lastScheduled.address())).hasValue(Duration.ofMillis(30));
+        assertThat(List.of(started, scheduled, lastScheduled)).noneMatch(server -> cooldownTracker.isCoolingDown(server.address()));
+        scheduled.releaseHandshakes();
+        lastScheduled.releaseHandshakes();
+    }
+
+    @Test
     void aStaggeredRaceBegunAfterStopStillCompletes() throws Exception {
         var first = startServer("first.xroad.test", trustedCa, 0);
         var second = startServer("second.xroad.test", trustedCa, 0);

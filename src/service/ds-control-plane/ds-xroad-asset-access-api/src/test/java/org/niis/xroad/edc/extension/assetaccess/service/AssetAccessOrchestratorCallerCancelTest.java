@@ -32,8 +32,10 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -99,6 +101,22 @@ class AssetAccessOrchestratorCallerCancelTest extends AssetAccessOrchestratorTes
 
         verify(negotiationStore, never()).queryNegotiations(any());
         verify(transferProcessService, never()).initiateTransfer(any(), any());
+    }
+
+    @Test
+    void theLastCallerGivingUpDuringTheHandshakeRaceCancelsTheRaceAndSendsNoCatalogRequest() {
+        var request = new AssetAccessRequest("asset-1", List.of(
+                new AssetAccessRequest.Candidate("provider-1", "http://provider-1.example.org/dsp"),
+                new AssetAccessRequest.Candidate("provider-2", "http://provider-2.example.org/dsp")), null, null, null);
+        var ordering = new CompletableFuture<List<AssetAccessRequest.Candidate>>();
+        when(candidateHandshakeRace.order(any())).thenReturn(ordering);
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(), request, defaultBudget());
+
+        future.cancel(true);
+        ordering.complete(request.candidates());
+
+        assertThat(ordering).isCancelled();
+        verify(catalogService, never()).requestCatalog(any(), any(), any(), any(), any());
     }
 
     @Test
