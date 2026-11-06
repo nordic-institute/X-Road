@@ -32,6 +32,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Provider;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.RpcProperties;
@@ -41,19 +43,23 @@ import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 
 import java.security.cert.CertificateException;
+import java.util.Optional;
 
 @Slf4j
 public class QuarkusRpcConfig extends RpcConfig {
 
     @ApplicationScoped
     VaultKeyProvider vaultKeyProvider(RpcProperties rpcProperties,
-                                      Provider<VaultPKISecretEngineFactory> pkiSecretEngineFactory) throws CertificateException {
+                                      Provider<VaultPKISecretEngineFactory> pkiSecretEngineFactory,
+                                      @ConfigProperty(name = "quarkus.vault.authentication.client-token")
+                                      Optional<String> openBaoToken) throws CertificateException {
         if (!rpcProperties.useTls()) {
             return new NoopVaultKeyProvider();
         }
         VaultKeyProvider keyProvider = switch (rpcProperties.identitySource()) {
             case FILE -> new FileKeyProvider(rpcProperties.fileIdentity());
             case OPENBAO -> {
+                requireOpenBaoToken(openBaoToken);
                 var vaultKeyClient = new QuarkusVaultKeyClient(pkiSecretEngineFactory.get(),
                         rpcProperties.certificateProvisioning());
                 yield ReloadableVaultKeyManager.withDefaults(rpcProperties.certificateProvisioning(), vaultKeyClient);
@@ -61,6 +67,14 @@ public class QuarkusRpcConfig extends RpcConfig {
         };
         keyProvider.init();
         return keyProvider;
+    }
+
+    private static void requireOpenBaoToken(Optional<String> openBaoToken) {
+        if (openBaoToken.filter(token -> !token.isBlank()).isEmpty()) {
+            throw XrdRuntimeException.systemInternalError(
+                    "The OpenBao token is missing or blank. Set XROAD_SECRET_STORE_TOKEN, "
+                            + "or set xroad.common-rpc.identity-source to file");
+        }
     }
 
     public void dispose(@Disposes VaultKeyProvider vaultKeyProvider) {

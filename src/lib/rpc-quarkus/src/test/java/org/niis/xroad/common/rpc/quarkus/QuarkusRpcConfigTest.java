@@ -40,6 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -54,7 +55,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,10 +80,14 @@ class QuarkusRpcConfigTest {
     Path dir;
 
     private final QuarkusRpcConfig config = new QuarkusRpcConfig();
+    private static final Optional<String> TOKEN = Optional.of("fake-openbao-token");
+    private static final Optional<String> NO_TOKEN = Optional.empty();
+
     private final RpcProperties rpcProperties = mock(RpcProperties.class);
     @SuppressWarnings("unchecked")
     private final Provider<VaultPKISecretEngineFactory> pkiFactory = mock(Provider.class);
 
+    private final List<VaultKeyProvider> keyProviders = new ArrayList<>();
     private VaultKeyProvider keyProvider;
     private Server server;
     private ManagedChannel channel;
@@ -92,9 +99,7 @@ class QuarkusRpcConfigTest {
 
     @AfterEach
     void tearDown() throws InterruptedException {
-        if (keyProvider != null) {
-            keyProvider.shutdown();
-        }
+        keyProviders.forEach(VaultKeyProvider::shutdown);
         if (channel != null) {
             channel.shutdownNow().awaitTermination(DEADLINE_SECONDS, TimeUnit.SECONDS);
         }
@@ -109,7 +114,7 @@ class QuarkusRpcConfigTest {
         var opMonitorCa = TestCa.selfSigned("op-monitor CA");
         useFileIdentity(opMonitorCa, securityServerRpcCa);
 
-        keyProvider = config.vaultKeyProvider(rpcProperties, pkiFactory);
+        keyProvider = produce(NO_TOKEN);
 
         assertThat(keyProvider).isInstanceOf(FileKeyProvider.class);
         verifyNoInteractions(pkiFactory);
@@ -128,25 +133,59 @@ class QuarkusRpcConfigTest {
         when(rpcProperties.identitySource()).thenReturn(RpcProperties.IdentitySource.FILE);
         when(rpcProperties.fileIdentity()).thenReturn(new RpcProperties.FileIdentity(missing, missing, missing));
 
-        assertThatThrownBy(() -> config.vaultKeyProvider(rpcProperties, pkiFactory))
-                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> produce(NO_TOKEN)).isInstanceOf(RuntimeException.class);
         verifyNoInteractions(pkiFactory);
     }
 
     @Test
-    void openBaoSourceReturnsTheReloadableOpenBaoKeyManager() throws Exception {
-        when(rpcProperties.identitySource()).thenReturn(RpcProperties.IdentitySource.OPENBAO);
-        var provisioning = mock(RpcProperties.RpcCertificateProvisioningProperties.class);
-        when(provisioning.waitDuration()).thenReturn(Duration.ofSeconds(5));
-        when(provisioning.exponentialBackoffMultiplier()).thenReturn(1.5);
-        when(provisioning.exponentialMaxWaitDuration()).thenReturn(Duration.ofMinutes(5));
-        when(provisioning.refreshInterval()).thenReturn(Duration.ofHours(5));
-        when(rpcProperties.certificateProvisioning()).thenReturn(provisioning);
-        when(pkiFactory.get()).thenReturn(mock(VaultPKISecretEngineFactory.class));
+    void fileSourceWithATokenSetNeverCallsOpenBao() throws Exception {
+        var securityServerRpcCa = TestCa.selfSigned("Security Server RPC CA");
+        useFileIdentity(TestCa.selfSigned("op-monitor CA"), securityServerRpcCa);
 
-        keyProvider = config.vaultKeyProvider(rpcProperties, pkiFactory);
+        keyProvider = produce(TOKEN);
+
+        assertThat(keyProvider).isInstanceOf(FileKeyProvider.class);
+        verifyNoInteractions(pkiFactory);
+    }
+
+    @Test
+    void openBaoSourceWithATokenReturnsTheReloadableOpenBaoKeyManager() throws Exception {
+        useOpenBaoIdentity();
+
+        keyProvider = produce(TOKEN);
 
         assertThat(keyProvider).isInstanceOf(ReloadableVaultKeyManager.class);
+    }
+
+    @Test
+    void openBaoSourceWithoutAUsableTokenFailsTheProducer() {
+        useOpenBaoIdentity();
+
+        for (var token : List.of(NO_TOKEN, Optional.of(""), Optional.of("  "))) {
+            assertThatThrownBy(() -> produce(token))
+                    .isInstanceOf(XrdRuntimeException.class)
+                    .hasMessageContaining("OpenBao token");
+        }
+        verifyNoInteractions(pkiFactory);
+    }
+
+    @Test
+    void producerCarriesNoStateFromOpenBaoToFile() throws Exception {
+        useOpenBaoIdentity();
+        assertThat(produce(TOKEN)).isInstanceOf(ReloadableVaultKeyManager.class);
+
+        useFileIdentity(TestCa.selfSigned("op-monitor CA"), TestCa.selfSigned("Security Server RPC CA"));
+        assertThat(produce(NO_TOKEN)).isInstanceOf(FileKeyProvider.class);
+    }
+
+    @Test
+    void producerCarriesNoStateFromFileToOpenBao() throws Exception {
+        useFileIdentity(TestCa.selfSigned("op-monitor CA"), TestCa.selfSigned("Security Server RPC CA"));
+        assertThat(produce(NO_TOKEN)).isInstanceOf(FileKeyProvider.class);
+
+        useOpenBaoIdentity();
+        assertThat(produce(TOKEN)).isInstanceOf(ReloadableVaultKeyManager.class);
+        assertThatThrownBy(() -> produce(NO_TOKEN)).isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
@@ -155,9 +194,26 @@ class QuarkusRpcConfigTest {
         for (var source : RpcProperties.IdentitySource.values()) {
             when(rpcProperties.identitySource()).thenReturn(source);
 
-            assertThat(config.vaultKeyProvider(rpcProperties, pkiFactory)).isInstanceOf(NoopVaultKeyProvider.class);
+            assertThat(produce(NO_TOKEN)).isInstanceOf(NoopVaultKeyProvider.class);
         }
         verifyNoInteractions(pkiFactory);
+    }
+
+    private VaultKeyProvider produce(Optional<String> token) throws Exception {
+        var produced = config.vaultKeyProvider(rpcProperties, pkiFactory, token);
+        keyProviders.add(produced);
+        return produced;
+    }
+
+    private void useOpenBaoIdentity() {
+        when(rpcProperties.identitySource()).thenReturn(RpcProperties.IdentitySource.OPENBAO);
+        var provisioning = mock(RpcProperties.RpcCertificateProvisioningProperties.class);
+        when(provisioning.waitDuration()).thenReturn(Duration.ofSeconds(5));
+        when(provisioning.exponentialBackoffMultiplier()).thenReturn(1.5);
+        when(provisioning.exponentialMaxWaitDuration()).thenReturn(Duration.ofMinutes(5));
+        when(provisioning.refreshInterval()).thenReturn(Duration.ofHours(5));
+        when(rpcProperties.certificateProvisioning()).thenReturn(provisioning);
+        when(pkiFactory.get()).thenReturn(mock(VaultPKISecretEngineFactory.class));
     }
 
     private void useFileIdentity(TestCa serverCa, TestCa trustedCa) throws Exception {
@@ -169,8 +225,8 @@ class QuarkusRpcConfigTest {
         when(rpcProperties.fileIdentity()).thenReturn(new RpcProperties.FileIdentity(privateKey, certificate, trustedCaFile));
     }
 
-    private byte[] callUnknownMethod() {
-        return ClientCalls.blockingUnaryCall(channel, UNKNOWN_METHOD,
+    private void callUnknownMethod() {
+        ClientCalls.blockingUnaryCall(channel, UNKNOWN_METHOD,
                 CallOptions.DEFAULT.withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS), new byte[0]);
     }
 
