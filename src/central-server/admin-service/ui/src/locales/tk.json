@@ -113,7 +113,7 @@
     "system_pair_incomplete": "SYSTEM DID-i we DSP esasy URL-i bilelikde beriň ýa-da hiç birini bermäň",
     "system_pair_malformed_dsp_base_url": "DSP esasy URL-i dogry URL däl",
     "system_pair_non_ascii_host": "SYSTEM DID-iň, DSP esasy URL-iň we howpsuzlyk serweriniň salgysynyň hosty ASCII bolmaly",
-    "system_pair_not_canonical": "SYSTEM DID kanoniki görnüşde däl",
+    "system_pair_not_canonical": "SYSTEM DID ýa-da DSP esasy URL-i kanoniki görnüşde däl",
     "system_pair_not_stored": "Howpsuzlyk serweriniň çalyşmak üçin saklanan SYSTEM DID-i we DSP esasy URL-i ýok",
     "system_pair_unparseable_address": "Howpsuzlyk serweriniň salgysyny host hökmünde okap bolmaýar",
     "system_pair_wrong_scheme": "SYSTEM DID v1 wersiýaly did:web DID bolmaly",
@@ -459,7 +459,22 @@
       },
       "editAddress": {
         "addressField": "Howpsuzlyk serweriň salgysy",
+        "check": {
+          "not_resolved_fetch_failure": "SYSTEM DID çözülmeýär: onuň DID resminamasyny almak başartmady. Ýöne ýatda saklap bilersiňiz.",
+          "not_resolved_id_mismatch": "SYSTEM DID çözülmeýär: DID resminamasy başga DID-e degişli. Ýöne ýatda saklap bilersiňiz.",
+          "not_resolved_malformed_did": "SYSTEM DID çözülmeýär: onuň DID resminamasy nädogry görnüşde. Ýöne ýatda saklap bilersiňiz.",
+          "not_resolved_no_document": "SYSTEM DID çözülmeýär: DID resminamasy tapylmady. Ýöne ýatda saklap bilersiňiz.",
+          "resolved": "SYSTEM DID çözülýär.",
+          "resolver_unavailable": "SYSTEM DID barlanyp bilinmedi, sebäbi Issuer Service elýeterli däl. Ýöne ýatda saklap bilersiňiz."
+        },
+        "checkDid": "DID-i barla",
+        "dspBaseUrlField": "DSP esasy URL-i",
+        "notify": "Howpsuzlyk serweriniň operatoryna bu üýtgeşme barada, meselem, e-poçta arkaly habar beriň. Operator serweri täzeden kesgitleýänçä, howpsuzlyk serweri öz bahalaryny saklaýar.",
+        "oldHostWarning": "SYSTEM DID we DSP esasy URL-i henizem köne hosty ulanýar. Olary hem üýtgediň ýa-da serweri täzeden kesgitlemek üçin howpsuzlyk serweriniň operatoryna goýuň.",
+        "publishedValues": "Neşir edilen bahalar",
+        "publishedValuesHint": "Global konfigurasiýa bu bahalary beýleki serwerlere habar berýär.",
         "success": "Howpsuzlyk serweriň salgysy üstünlikli täzelendi",
+        "systemDidField": "SYSTEM DID",
         "title": "Howpsuzlyk serweriň salgysyny üýtget"
       }
     },
@@ -493,7 +508,7 @@
       }
     },
     "serverCode": "Serweriň kody",
-    "staleValuesWarning": "SYSTEM DID ýa-da DSP esasy URL-i howpsuzlyk serweriniň salgysy bilen gabat gelmeýär. Beýleki serwerler bu serwere ýetmek üçin köne bahalary ulanýar.",
+    "staleValuesWarning": "SYSTEM DID ýa-da DSP esasy URL-i howpsuzlyk serweriniň salgysy bilen gabat gelmeýär. Beýleki serwerler bu serwere ýetmek üçin köne bahalary ulanýar. Bahalary üýtgediň ýa-da howpsuzlyk serweriniň operatoryndan serweri täzeden kesgitlemegi soraň.",
     "systemDid": "SYSTEM DID",
     "unregistered": "Hasaba alynmadyk"
   },

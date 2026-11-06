@@ -30,20 +30,16 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.cs.admin.api.domain.DidResolution;
-import org.niis.xroad.cs.admin.api.domain.DidResolutionOutcome;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Entry;
 import org.niis.xroad.cs.admin.api.domain.MemberDidRegistrationRequest.Result;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
-import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.MemberDidRegistrationService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
@@ -69,12 +65,11 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_REQUEST_TOO_
  * answered as owner changed by the handler for every entry. Holds no transaction, so the resolver call
  * never runs inside one.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationService {
 
-    private final DidResolutionService didResolutionService;
+    private final DidBatchResolution didBatchResolution;
     private final ParticipantValueStore participantValueStore;
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
@@ -142,22 +137,16 @@ public class MemberDidRegistrationServiceImpl implements MemberDidRegistrationSe
     private Map<ClientId, Result> unresolved(Map<ClientId, String> eligible) {
         var members = new ArrayList<>(eligible.keySet());
         var dids = members.stream().map(eligible::get).toList();
-        List<DidResolution> resolutions;
-        try {
-            resolutions = didResolutionService.resolve(dids);
-        } catch (XrdRuntimeException e) {
-            log.warn("DID resolution of {} member DIDs failed", dids.size(), e);
-            return byMember(members, MemberDidRegistrationOutcome::resolverUnavailable);
-        }
+        var results = didBatchResolution.resolve(dids);
 
         var unresolved = new LinkedHashMap<ClientId, Result>();
         for (int i = 0; i < members.size(); i++) {
             var member = members.get(i);
-            var resolution = i < resolutions.size() ? resolutions.get(i) : null;
-            if (resolution == null || !dids.get(i).equals(resolution.did())) {
+            var result = results.get(i);
+            if (result.status() == DidBatchResolution.Status.RESOLVER_UNAVAILABLE) {
                 unresolved.put(member, MemberDidRegistrationOutcome.resolverUnavailable(member));
-            } else if (resolution.outcome() != DidResolutionOutcome.RESOLVED) {
-                unresolved.put(member, MemberDidRegistrationOutcome.notResolved(member, resolution));
+            } else if (result.status() == DidBatchResolution.Status.NOT_RESOLVED) {
+                unresolved.put(member, MemberDidRegistrationOutcome.notResolved(member, result.resolution()));
             }
         }
         return unresolved;

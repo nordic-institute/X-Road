@@ -258,7 +258,8 @@ public class SecurityServerServiceImpl implements SecurityServerService {
             case MALFORMED_DSP_BASE_URL -> SYSTEM_PAIR_MALFORMED_DSP_BASE_URL;
             case FOREIGN_SYSTEM_DID -> SYSTEM_PAIR_FOREIGN_DID;
             case DID_HELD_BY_ANOTHER_SERVER -> SYSTEM_PAIR_DID_HELD_BY_ANOTHER_SERVER;
-            default -> throw new IllegalStateException("A SYSTEM pair replacement cannot be refused as " + rejection);
+            case UNDECODABLE_DID, DID_OF_OTHER_MEMBER, MEMBER_NOT_SERVED, VALUE_DIFFERS ->
+                    throw new IllegalStateException("A SYSTEM pair replacement cannot be refused as " + rejection);
         };
     }
 

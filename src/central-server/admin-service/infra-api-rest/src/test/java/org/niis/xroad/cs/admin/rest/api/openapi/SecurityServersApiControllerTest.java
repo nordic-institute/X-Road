@@ -74,6 +74,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLA
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_DID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_DID_CHECK_STATUS;
 
 @ExtendWith(MockitoExtension.class)
 class SecurityServersApiControllerTest {
@@ -188,7 +189,7 @@ class SecurityServersApiControllerTest {
         assertThat(body.getRefusalReason()).isNull();
         assertThat(body.getResolutionReason()).isNull();
         verify(systemDidCheckService).check(serverId, ADDRESS_VALUE, DID);
-        verifyNoInteractions(auditDataHelper);
+        verifyCheckAudit(SystemDidCheck.Status.RESOLVED);
     }
 
     @Test
@@ -201,6 +202,7 @@ class SecurityServersApiControllerTest {
         assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.REFUSED);
         assertThat(body.getRefusalReason()).isEqualTo(SystemDidRefusalReasonDto.HOST_DIFFERS);
         assertThat(body.getResolutionReason()).isNull();
+        verifyCheckAudit(SystemDidCheck.Status.REFUSED);
     }
 
     @Test
@@ -240,6 +242,19 @@ class SecurityServersApiControllerTest {
         assertThat(body.getStatus()).isEqualTo(SystemDidCheckStatusDto.RESOLVER_UNAVAILABLE);
         assertThat(body.getRefusalReason()).isNull();
         assertThat(body.getResolutionReason()).isNull();
+        verifyCheckAudit(SystemDidCheck.Status.RESOLVER_UNAVAILABLE);
+    }
+
+    @Test
+    void systemDidCheckOfAnUnknownServerAuditsTheRequestWithoutAStatus() {
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID))
+                .thenThrow(new SecurityServerNotFoundException(serverId));
+
+        assertThatThrownBy(() -> controller.checkSystemDid(ID, checkRequest()))
+                .isInstanceOf(SecurityServerNotFoundException.class);
+
+        verifyCheckAuditRequest();
+        verifyNoMoreInteractions(auditDataHelper);
     }
 
     @Test
@@ -248,7 +263,22 @@ class SecurityServersApiControllerTest {
 
         assertThat(method.getAnnotation(PreAuthorize.class).value())
                 .isEqualTo("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')");
-        assertThat(method.getAnnotation(AuditEventMethod.class)).isNull();
+        assertThat(method.getAnnotation(AuditEventMethod.class).event())
+                .isEqualTo(RestApiAuditEvent.CHECK_SECURITY_SERVER_SYSTEM_DID);
+    }
+
+    private void verifyCheckAudit(SystemDidCheck.Status status) {
+        verifyCheckAuditRequest();
+        verify(auditDataHelper).put(SYSTEM_DID_CHECK_STATUS, status);
+        verifyNoMoreInteractions(auditDataHelper);
+    }
+
+    private void verifyCheckAuditRequest() {
+        verify(auditDataHelper).put(SERVER_CODE, "SS1");
+        verify(auditDataHelper).put(OWNER_CODE, "1234");
+        verify(auditDataHelper).put(OWNER_CLASS, "COM");
+        verify(auditDataHelper).put(ADDRESS, ADDRESS_VALUE);
+        verify(auditDataHelper).put(SYSTEM_DID, DID);
     }
 
     private SystemDidCheckRequestDto checkRequest() {

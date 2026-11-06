@@ -141,7 +141,7 @@
     "system_pair_incomplete": "Give both the SYSTEM DID and the DSP base URL, or neither",
     "system_pair_malformed_dsp_base_url": "The DSP base URL is not a valid URL",
     "system_pair_non_ascii_host": "The host of the SYSTEM DID, the DSP base URL and the security server address must be ASCII",
-    "system_pair_not_canonical": "The SYSTEM DID is not in its canonical form",
+    "system_pair_not_canonical": "The SYSTEM DID or DSP base URL is not in its canonical form",
     "system_pair_not_stored": "The security server has no stored SYSTEM DID and DSP base URL to replace",
     "system_pair_unparseable_address": "The security server address cannot be read as a host",
     "system_pair_wrong_scheme": "The SYSTEM DID must be a did:web DID of version v1",
@@ -501,7 +501,22 @@
       },
       "editAddress": {
         "addressField": "Security server address",
+        "check": {
+          "not_resolved_fetch_failure": "The SYSTEM DID does not resolve: its DID document could not be fetched. You can still save.",
+          "not_resolved_id_mismatch": "The SYSTEM DID does not resolve: the DID document belongs to another DID. You can still save.",
+          "not_resolved_malformed_did": "The SYSTEM DID does not resolve: its DID document is malformed. You can still save.",
+          "not_resolved_no_document": "The SYSTEM DID does not resolve: no DID document was found. You can still save.",
+          "resolved": "The SYSTEM DID resolves.",
+          "resolver_unavailable": "The SYSTEM DID could not be checked because the Issuer Service is unreachable. You can still save."
+        },
+        "checkDid": "Check DID",
+        "dspBaseUrlField": "DSP base URL",
+        "notify": "Inform the Security Server operator about this change, for example by email. The Security Server keeps its own values until the operator re-identifies it.",
+        "oldHostWarning": "The SYSTEM DID and DSP base URL still use the old host. Change them too, or leave them for the Security Server operator to re-identify the server.",
+        "publishedValues": "Published values",
+        "publishedValuesHint": "Global configuration announces these values to other servers.",
         "success": "Security server address successfully updated",
+        "systemDidField": "SYSTEM DID",
         "title": "Edit Security Server address"
       }
     },
@@ -536,7 +551,7 @@
       }
     },
     "serverCode": "Server Code",
-    "staleValuesWarning": "The SYSTEM DID or DSP base URL does not match the Security Server address. Other servers use the old values to reach this server.",
+    "staleValuesWarning": "The SYSTEM DID or DSP base URL does not match the Security Server address. Other servers use the old values to reach this server. Edit the values, or ask the Security Server operator to re-identify the server.",
     "systemDid": "SYSTEM DID",
     "unregistered": "Unregistered"
   },

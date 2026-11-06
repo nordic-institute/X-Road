@@ -113,7 +113,7 @@
     "system_pair_incomplete": "Укажите и SYSTEM DID, и базовый URL DSP, или ни одного из них",
     "system_pair_malformed_dsp_base_url": "Базовый URL DSP не является допустимым URL",
     "system_pair_non_ascii_host": "Хост SYSTEM DID, базового URL DSP и адреса сервера безопасности должен состоять из символов ASCII",
-    "system_pair_not_canonical": "SYSTEM DID не в канонической форме",
+    "system_pair_not_canonical": "SYSTEM DID или базовый URL DSP не в канонической форме",
     "system_pair_not_stored": "У сервера безопасности нет сохранённых SYSTEM DID и базового URL DSP для замены",
     "system_pair_unparseable_address": "Адрес сервера безопасности не удаётся прочитать как хост",
     "system_pair_wrong_scheme": "SYSTEM DID должен быть DID did:web версии v1",
@@ -459,7 +459,22 @@
       },
       "editAddress": {
         "addressField": "Адрес сервера безопасности",
+        "check": {
+          "not_resolved_fetch_failure": "SYSTEM DID не разрешается: не удалось получить его документ DID. Сохранить всё равно можно.",
+          "not_resolved_id_mismatch": "SYSTEM DID не разрешается: документ DID принадлежит другому DID. Сохранить всё равно можно.",
+          "not_resolved_malformed_did": "SYSTEM DID не разрешается: его документ DID имеет неверный формат. Сохранить всё равно можно.",
+          "not_resolved_no_document": "SYSTEM DID не разрешается: документ DID не найден. Сохранить всё равно можно.",
+          "resolved": "SYSTEM DID разрешается.",
+          "resolver_unavailable": "Не удалось проверить SYSTEM DID, так как Issuer Service недоступен. Сохранить всё равно можно."
+        },
+        "checkDid": "Проверить DID",
+        "dspBaseUrlField": "Базовый URL DSP",
+        "notify": "Сообщите оператору сервера безопасности об этом изменении, например по электронной почте. Сервер безопасности сохраняет свои значения, пока оператор не выполнит его повторную идентификацию.",
+        "oldHostWarning": "SYSTEM DID и базовый URL DSP по-прежнему используют старый хост. Измените и их или оставьте оператору сервера безопасности, чтобы он повторно идентифицировал сервер.",
+        "publishedValues": "Опубликованные значения",
+        "publishedValuesHint": "Глобальная конфигурация сообщает эти значения другим серверам.",
         "success": "Адрес сервера безопасности успешно обновлен",
+        "systemDidField": "SYSTEM DID",
         "title": "Изменить адрес сервера безопасности"
       }
     },
@@ -493,7 +508,7 @@
       }
     },
     "serverCode": "Код сервера",
-    "staleValuesWarning": "SYSTEM DID или базовый URL DSP не совпадает с адресом сервера безопасности. Другие серверы используют старые значения, чтобы обратиться к этому серверу.",
+    "staleValuesWarning": "SYSTEM DID или базовый URL DSP не совпадает с адресом сервера безопасности. Другие серверы используют старые значения, чтобы обратиться к этому серверу. Измените значения или попросите оператора сервера безопасности повторно идентифицировать сервер.",
     "systemDid": "SYSTEM DID",
     "unregistered": "Не зарегистрировано"
   },

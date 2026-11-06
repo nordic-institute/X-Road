@@ -46,6 +46,7 @@ import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.service.managementrequest.AuthCertServerCheck.CheckedServer;
 
 import java.util.ArrayList;
@@ -123,7 +124,8 @@ class SystemDidRegistrationServiceImplTest {
             calls.add("add");
             return request;
         });
-        return new SystemDidRegistrationServiceImpl(authCertServerCheck, store, resolver, managementRequestService);
+        return new SystemDidRegistrationServiceImpl(
+                authCertServerCheck, store, new DidBatchResolution(resolver), managementRequestService);
     }
 
     @Test

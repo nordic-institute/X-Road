@@ -25,7 +25,14 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { PagedSecurityServers, PagingMetadata, SecurityServer, SecurityServerEdit } from '@/openapi-types';
+import {
+  PagedSecurityServers,
+  PagingMetadata,
+  SecurityServer,
+  SecurityServerEdit,
+  SystemDidCheck,
+  SystemDidCheckRequest,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataQuery } from '@/ui-types';
 import { WithCurrentItem } from '@niis/shared-ui';
@@ -77,9 +84,10 @@ export const useSecurityServer = defineStore('securityServer', {
         })
         .finally(() => (this.loadingCurrent = false));
     },
-    async updateAddress(securityServerId: string, address: string) {
+    async updateAddress(securityServerId: string, address: string, systemPair?: { system_did: string; dsp_base_url: string }) {
       const securityServerEdit: SecurityServerEdit = {
         server_address: address,
+        ...systemPair,
       };
       this.loadingCurrent = true;
       return axios
@@ -88,6 +96,13 @@ export const useSecurityServer = defineStore('securityServer', {
           this.current = resp.data;
         })
         .finally(() => (this.loadingCurrent = false));
+    },
+    async checkSystemDid(securityServerId: string, address: string, systemDid: string) {
+      const request: SystemDidCheckRequest = {
+        server_address: address,
+        system_did: systemDid,
+      };
+      return axios.post<SystemDidCheck>(`/security-servers/${securityServerId}/system-did-check`, request).then((resp) => resp.data);
     },
     async delete(securityServerId: string) {
       return axios.delete(`/security-servers/${securityServerId}`).then(() => {

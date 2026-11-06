@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.api.domain.DidResolution;
 import org.niis.xroad.cs.admin.api.domain.DidResolutionReason;
 import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 import org.niis.xroad.cs.admin.api.service.DidResolutionService;
+import org.niis.xroad.cs.admin.core.dataspace.DidBatchResolution;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 
@@ -75,7 +76,8 @@ class SystemDidCheckServiceImplTest {
         resolverCalls.add(dids);
         return resolverAnswer.get();
     };
-    private final SystemDidCheckServiceImpl service = new SystemDidCheckServiceImpl(securityServerRepository, resolver);
+    private final SystemDidCheckServiceImpl service = new SystemDidCheckServiceImpl(
+            securityServerRepository, new DidBatchResolution(resolver));
 
     private SystemDidCheck check(String address, String did) {
         when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(server));
@@ -110,13 +112,12 @@ class SystemDidCheckServiceImplTest {
     }
 
     @Test
-    void shouldRethrowAResolverFailureThatIsNotATransportFailure() {
-        var failure = XrdRuntimeException.systemException(INTERNAL_ERROR).details("unknown outcome").build();
+    void shouldAnswerResolverUnavailableOnAResolverFailureThatIsNotATransportFailure() {
         resolverAnswer = () -> {
-            throw failure;
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR).details("unknown outcome").build();
         };
 
-        assertThatThrownBy(() -> check(ADDRESS, SYSTEM_DID)).isSameAs(failure);
+        assertThat(check(ADDRESS, SYSTEM_DID)).isEqualTo(SystemDidCheck.RESOLVER_UNAVAILABLE);
     }
 
     @Test

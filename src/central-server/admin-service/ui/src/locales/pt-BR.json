@@ -115,7 +115,7 @@
     "system_pair_incomplete": "Informe o SYSTEM DID e a URL base do DSP juntos, ou nenhum dos dois",
     "system_pair_malformed_dsp_base_url": "A URL base do DSP não é uma URL válida",
     "system_pair_non_ascii_host": "O host do SYSTEM DID, da URL base do DSP e do endereço do servidor seguro deve ser ASCII",
-    "system_pair_not_canonical": "O SYSTEM DID não está em sua forma canônica",
+    "system_pair_not_canonical": "O SYSTEM DID ou a URL base do DSP não está em sua forma canônica",
     "system_pair_not_stored": "O servidor seguro não tem SYSTEM DID e URL base do DSP armazenados para substituir",
     "system_pair_unparseable_address": "O endereço do servidor seguro não pode ser lido como um host",
     "system_pair_wrong_scheme": "O SYSTEM DID deve ser um DID did:web da versão v1",
@@ -474,7 +474,22 @@
       },
       "editAddress": {
         "addressField": "Endereço do servidor seguro",
+        "check": {
+          "not_resolved_fetch_failure": "O SYSTEM DID não é resolvido: não foi possível obter o documento DID. Você ainda pode salvar.",
+          "not_resolved_id_mismatch": "O SYSTEM DID não é resolvido: o documento DID pertence a outro DID. Você ainda pode salvar.",
+          "not_resolved_malformed_did": "O SYSTEM DID não é resolvido: o documento DID está malformado. Você ainda pode salvar.",
+          "not_resolved_no_document": "O SYSTEM DID não é resolvido: nenhum documento DID foi encontrado. Você ainda pode salvar.",
+          "resolved": "O SYSTEM DID é resolvido.",
+          "resolver_unavailable": "Não foi possível verificar o SYSTEM DID porque o Issuer Service está inacessível. Você ainda pode salvar."
+        },
+        "checkDid": "Verificar DID",
+        "dspBaseUrlField": "URL base do DSP",
+        "notify": "Informe o operador do servidor seguro sobre esta alteração, por exemplo por e-mail. O servidor seguro mantém seus próprios valores até que o operador o identifique novamente.",
+        "oldHostWarning": "O SYSTEM DID e a URL base do DSP ainda usam o host antigo. Altere-os também, ou deixe-os para o operador do servidor seguro identificar o servidor novamente.",
+        "publishedValues": "Valores publicados",
+        "publishedValuesHint": "A configuração global anuncia esses valores a outros servidores.",
         "success": "Endereço do servidor seguro atualizado com sucesso",
+        "systemDidField": "SYSTEM DID",
         "title": "Editar endereço do servidor seguro"
       }
     },
@@ -509,7 +524,7 @@
       }
     },
     "serverCode": "Código do Servidor",
-    "staleValuesWarning": "O SYSTEM DID ou a URL base do DSP não corresponde ao endereço do servidor seguro. Outros servidores usam os valores antigos para alcançar este servidor.",
+    "staleValuesWarning": "O SYSTEM DID ou a URL base do DSP não corresponde ao endereço do servidor seguro. Outros servidores usam os valores antigos para alcançar este servidor. Edite os valores ou peça ao operador do servidor seguro que identifique o servidor novamente.",
     "systemDid": "SYSTEM DID",
     "unregistered": "Não registrado"
   },

@@ -24,14 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { page } from 'vitest/browser';
+import { HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
-import type { SecurityServer } from '@/openapi-types';
+import type { SecurityServer, SystemDidCheck } from '@/openapi-types';
 
 const SERVER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1';
 const SERVER_CODE = 'E2E-SS1';
@@ -190,6 +191,417 @@ describe('1000 — CS Security Server Details — edit address dialog cancel and
 
     await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
     await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(updatedAddress);
+  });
+});
+
+describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (Browser Mode)', () => {
+  const SYSTEM_DID = 'did:web:security-server-address-e2e-ss1%3A7183:v1:system';
+  const DSP_BASE_URL = 'https://security-server-address-e2e-ss1:8183/api/dsp';
+  const NEW_DID = 'did:web:new-address.example.org%3A7183:v1:system';
+  const NEW_URL = 'https://new-address.example.org:8183/api/dsp';
+  const NEW_ADDRESS = 'new-address.example.org';
+  const STALE_TEXT =
+    'The SYSTEM DID or DSP base URL does not match the Security Server address. Other servers use the old values to reach this server. Edit the values, or ask the Security Server operator to re-identify the server.';
+  const OLD_HOST_TEXT =
+    'The SYSTEM DID and DSP base URL still use the old host. Change them too, or leave them for the Security Server operator to re-identify the server.';
+  const NOTIFY_TEXT =
+    'Inform the Security Server operator about this change, for example by email. The Security Server keeps its own values until the operator re-identifies it.';
+
+  const pairFixture = {
+    ...serverFixture,
+    system_did: SYSTEM_DID,
+    dsp_base_url: DSP_BASE_URL,
+    system_pair_stale: false,
+  } as SecurityServer;
+
+  async function openDialog(fixture: SecurityServer, extra: RequestHandler[] = []) {
+    await renderRoute(`/security-servers/${encodeURIComponent(SERVER_ID)}/details`, {
+      permissions: editPermissions,
+      msw: [...baseHandlers(fixture), ...extra],
+    });
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(fixture.server_address);
+    await page.getByTestId('security-server-address').getByRole('button').click();
+    const dialog = page.getByTestId('security-server-address-edit-dialog');
+    await expect.element(dialog).toBeVisible();
+    return dialog;
+  }
+
+  const field = (dialog: ReturnType<typeof page.getByTestId>, testId: string) => dialog.getByTestId(testId).getByRole('textbox');
+
+  it('prefills the address and the pair', async () => {
+    const dialog = await openDialog(pairFixture);
+
+    await expect.element(field(dialog, 'security-server-address-edit-field')).toHaveValue(ADDRESS);
+    await expect.element(field(dialog, 'security-server-system-did-edit-field')).toHaveValue(SYSTEM_DID);
+    await expect.element(field(dialog, 'security-server-dsp-base-url-edit-field')).toHaveValue(DSP_BASE_URL);
+  });
+
+  it('shows only the address field for a server without a pair', async () => {
+    const dialog = await openDialog(serverFixture);
+
+    await expect.element(field(dialog, 'security-server-address-edit-field')).toHaveValue(ADDRESS);
+    await expect.element(dialog.getByTestId('security-server-system-did-edit-field')).not.toBeInTheDocument();
+    await expect.element(dialog.getByTestId('security-server-dsp-base-url-edit-field')).not.toBeInTheDocument();
+    await expect.element(dialog.getByTestId('security-server-system-did-check-button')).not.toBeInTheDocument();
+    await expect.element(dialog.getByTestId('security-server-edit-warning')).not.toBeInTheDocument();
+  });
+
+  it('warns from the stored stale flag, then about the old host after an address edit, then not after a pair edit', async () => {
+    const dialog = await openDialog({ ...pairFixture, system_pair_stale: true } as SecurityServer);
+    const warning = dialog.getByTestId('security-server-edit-warning');
+
+    await expect.element(warning).toMatchTextContent(STALE_TEXT);
+
+    await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+    await expect.element(warning).toMatchTextContent(OLD_HOST_TEXT);
+
+    await field(dialog, 'security-server-system-did-edit-field').fill(NEW_DID);
+    await expect.element(warning).not.toBeInTheDocument();
+
+    await field(dialog, 'security-server-system-did-edit-field').fill(SYSTEM_DID);
+    await expect.element(warning).toMatchTextContent(OLD_HOST_TEXT);
+
+    await field(dialog, 'security-server-address-edit-field').fill(ADDRESS);
+    await expect.element(warning).toMatchTextContent(STALE_TEXT);
+  });
+
+  it('shows no warning for an unchanged, non-stale pair', async () => {
+    const dialog = await openDialog(pairFixture);
+
+    await expect.element(dialog.getByTestId('security-server-edit-warning')).not.toBeInTheDocument();
+  });
+
+  describe('check DID button', () => {
+    type CheckCase = [name: string, answer: SystemDidCheck, text: string, icon: string, color: string];
+    const SUCCESS: [string, string] = ['check_circle', 'success'];
+    const WARNING: [string, string] = ['warning', 'warning'];
+    const ERROR: [string, string] = ['error', 'error'];
+    const checkCases: CheckCase[] = [
+      ['RESOLVED', { status: 'RESOLVED' }, 'The SYSTEM DID resolves.', ...SUCCESS],
+      [
+        'NOT_RESOLVED MALFORMED_DID',
+        { status: 'NOT_RESOLVED', resolution_reason: 'MALFORMED_DID' },
+        'The SYSTEM DID does not resolve: its DID document is malformed. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'NOT_RESOLVED NO_DOCUMENT',
+        { status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' },
+        'The SYSTEM DID does not resolve: no DID document was found. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'NOT_RESOLVED ID_MISMATCH',
+        { status: 'NOT_RESOLVED', resolution_reason: 'ID_MISMATCH' },
+        'The SYSTEM DID does not resolve: the DID document belongs to another DID. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'NOT_RESOLVED FETCH_FAILURE',
+        { status: 'NOT_RESOLVED', resolution_reason: 'FETCH_FAILURE' },
+        'The SYSTEM DID does not resolve: its DID document could not be fetched. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'RESOLVER_UNAVAILABLE',
+        { status: 'RESOLVER_UNAVAILABLE' },
+        'The SYSTEM DID could not be checked because the Issuer Service is unreachable. You can still save.',
+        ...WARNING,
+      ],
+      [
+        'REFUSED WRONG_SCHEME',
+        { status: 'REFUSED', refusal_reason: 'WRONG_SCHEME' },
+        'The SYSTEM DID must be a did:web DID of version v1',
+        ...ERROR,
+      ],
+      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The SYSTEM DID is too long', ...ERROR],
+      [
+        'REFUSED NOT_CANONICAL',
+        { status: 'REFUSED', refusal_reason: 'NOT_CANONICAL' },
+        'The SYSTEM DID or DSP base URL is not in its canonical form',
+        ...ERROR,
+      ],
+      [
+        'REFUSED HOST_DIFFERS',
+        { status: 'REFUSED', refusal_reason: 'HOST_DIFFERS' },
+        'The host of the SYSTEM DID and the DSP base URL must match the security server address',
+        ...ERROR,
+      ],
+      [
+        'REFUSED UNPARSEABLE_REGISTERED_ADDRESS',
+        { status: 'REFUSED', refusal_reason: 'UNPARSEABLE_REGISTERED_ADDRESS' },
+        'The security server address cannot be read as a host',
+        ...ERROR,
+      ],
+      [
+        'REFUSED NON_ASCII_HOST',
+        { status: 'REFUSED', refusal_reason: 'NON_ASCII_HOST' },
+        'The host of the SYSTEM DID, the DSP base URL and the security server address must be ASCII',
+        ...ERROR,
+      ],
+      [
+        'REFUSED FOREIGN_SYSTEM_DID',
+        { status: 'REFUSED', refusal_reason: 'FOREIGN_SYSTEM_DID' },
+        'The SYSTEM DID is not the DID of this security server',
+        ...ERROR,
+      ],
+      [
+        'REFUSED DID_HELD_BY_ANOTHER_SERVER',
+        { status: 'REFUSED', refusal_reason: 'DID_HELD_BY_ANOTHER_SERVER' },
+        'The SYSTEM DID is already used by another security server',
+        ...ERROR,
+      ],
+    ];
+
+    it.each(checkCases)('shows the answer %s', async (_name, answer, text, iconName, iconColor) => {
+      const checkSpy = vi.fn();
+      const dialog = await openDialog(pairFixture, [
+        specHttp.post('/security-servers/{server_id}/system-did-check', async ({ request, response }) => {
+          checkSpy(await request.json());
+          return response(200).json(answer as never);
+        }),
+      ]);
+
+      await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+      await field(dialog, 'security-server-system-did-edit-field').fill(NEW_DID);
+      await dialog.getByTestId('security-server-system-did-check-button').click();
+
+      const result = dialog.getByTestId('security-server-system-did-check-result');
+      await expect.element(result).toMatchTextContent(text);
+      const icon = result.element().querySelector('.v-icon');
+      expect(icon?.textContent?.trim()).toBe(iconName);
+      expect(icon?.classList).toContain(`text-${iconColor}`);
+      expect(checkSpy).toHaveBeenCalledWith({ server_address: NEW_ADDRESS, system_did: NEW_DID });
+    });
+
+    it('is disabled with an empty DID', async () => {
+      const dialog = await openDialog(pairFixture);
+
+      await expect.element(dialog.getByTestId('security-server-system-did-check-button')).not.toBeDisabled();
+      await field(dialog, 'security-server-system-did-edit-field').fill('');
+      await expect.element(dialog.getByTestId('security-server-system-did-check-button')).toBeDisabled();
+    });
+
+    it('clears the result when the address, the DID or the DSP base URL changes', async () => {
+      const dialog = await openDialog(pairFixture, [
+        specHttp.post('/security-servers/{server_id}/system-did-check', ({ response }) =>
+          response(200).json({ status: 'RESOLVED' } as never),
+        ),
+      ]);
+      const result = dialog.getByTestId('security-server-system-did-check-result');
+      const edits = [
+        ['security-server-address-edit-field', NEW_ADDRESS],
+        ['security-server-system-did-edit-field', NEW_DID],
+        ['security-server-dsp-base-url-edit-field', NEW_URL],
+      ];
+
+      for (const [testId, value] of edits) {
+        await dialog.getByTestId('security-server-system-did-check-button').click();
+        await expect.element(result).toBeVisible();
+        await field(dialog, testId).fill(value);
+        await expect.element(result).not.toBeInTheDocument();
+      }
+    });
+
+    describe('late answers', () => {
+      const NO_DOCUMENT_TEXT = 'The SYSTEM DID does not resolve: no DID document was found. You can still save.';
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
+
+      function gatedFirstCheck(
+        firstStatus: number,
+        firstBody: object,
+        laterBody: object = { status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' },
+      ) {
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        let calls = 0;
+        const firstServed = vi.fn();
+        const handler = specHttp.untyped.post('/api/v1/security-servers/:server_id/system-did-check', async () => {
+          calls += 1;
+          if (calls > 1) {
+            return HttpResponse.json(laterBody);
+          }
+          await gate;
+          firstServed();
+          return HttpResponse.json(firstBody, { status: firstStatus });
+        });
+        return { handler, release, firstServed };
+      }
+
+      it('drops an answer that arrives after a field edit', async () => {
+        const { handler, release, firstServed } = gatedFirstCheck(200, { status: 'RESOLVED' });
+        const dialog = await openDialog(pairFixture, [handler]);
+        const result = dialog.getByTestId('security-server-system-did-check-result');
+
+        await dialog.getByTestId('security-server-system-did-check-button').click();
+        await field(dialog, 'security-server-dsp-base-url-edit-field').fill(NEW_URL);
+        release();
+        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
+        await settle();
+
+        await expect.element(result).not.toBeInTheDocument();
+      });
+
+      it('drops an answer that arrives after a newer check and shows the newer answer', async () => {
+        const { handler, release, firstServed } = gatedFirstCheck(200, { status: 'RESOLVED' });
+        const dialog = await openDialog(pairFixture, [handler]);
+        const result = dialog.getByTestId('security-server-system-did-check-result');
+
+        await dialog.getByTestId('security-server-system-did-check-button').click();
+        await field(dialog, 'security-server-system-did-edit-field').fill(NEW_DID);
+        await dialog.getByTestId('security-server-system-did-check-button').click();
+        await expect.element(result).toMatchTextContent(NO_DOCUMENT_TEXT);
+        release();
+        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
+        await settle();
+
+        await expect.element(result).toMatchTextContent(NO_DOCUMENT_TEXT);
+      });
+
+      it('shows no error for a failed call that arrives after a field edit', async () => {
+        const { handler, release, firstServed } = gatedFirstCheck(500, { status: 500, error: { code: 'internal_error' } });
+        const dialog = await openDialog(pairFixture, [handler]);
+
+        await dialog.getByTestId('security-server-system-did-check-button').click();
+        await field(dialog, 'security-server-dsp-base-url-edit-field').fill(NEW_URL);
+        release();
+        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
+        await settle();
+
+        await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      });
+    });
+
+    it('never blocks saving', async () => {
+      const dialog = await openDialog(pairFixture, [
+        specHttp.post('/security-servers/{server_id}/system-did-check', ({ response }) =>
+          response(200).json({ status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' } as never),
+        ),
+      ]);
+
+      await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+      await dialog.getByTestId('security-server-system-did-check-button').click();
+      await expect.element(dialog.getByTestId('security-server-system-did-check-result')).toBeVisible();
+
+      await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    });
+  });
+
+  it('sends only the address for an address-only edit', async () => {
+    const patchSpy = vi.fn();
+    const dialog = await openDialog(pairFixture, [
+      specHttp.patch('/security-servers/{server_id}', async ({ request, response }) => {
+        patchSpy(await request.json());
+        return response(200).json({ ...pairFixture, server_address: NEW_ADDRESS } as never);
+      }),
+    ]);
+
+    await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
+    expect(patchSpy).toHaveBeenCalledTimes(1);
+    expect(patchSpy).toHaveBeenCalledWith({ server_address: NEW_ADDRESS });
+  });
+
+  it('sends both pair values when one pair field changed', async () => {
+    const patchSpy = vi.fn();
+    const dialog = await openDialog(pairFixture, [
+      specHttp.patch('/security-servers/{server_id}', async ({ request, response }) => {
+        patchSpy(await request.json());
+        return response(200).json({ ...pairFixture, system_did: NEW_DID } as never);
+      }),
+    ]);
+
+    await field(dialog, 'security-server-system-did-edit-field').fill(NEW_DID);
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
+    expect(patchSpy).toHaveBeenCalledWith({ server_address: ADDRESS, system_did: NEW_DID, dsp_base_url: DSP_BASE_URL });
+  });
+
+  it('shows a refusal inside the dialog and keeps the dialog open with the entered values', async () => {
+    const dialog = await openDialog(pairFixture, [
+      specHttp.untyped.patch('/api/v1/security-servers/:server_id', () =>
+        HttpResponse.json({ status: 400, error: { code: 'system_pair_host_differs' } }, { status: 400 }),
+      ),
+    ]);
+
+    await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+    await field(dialog, 'security-server-system-did-edit-field').fill(NEW_DID);
+    submitDialogForm();
+
+    await expect
+      .element(dialog.getByTestId('contextual-alert'))
+      .toMatchTextContent('The host of the SYSTEM DID and the DSP base URL must match the security server address');
+    await expect.element(dialog).toBeVisible();
+    await expect.element(field(dialog, 'security-server-address-edit-field')).toHaveValue(NEW_ADDRESS);
+    await expect.element(field(dialog, 'security-server-system-did-edit-field')).toHaveValue(NEW_DID);
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(ADDRESS);
+  });
+
+  it('puts a validation failure on the address field', async () => {
+    const dialog = await openDialog(pairFixture, [
+      specHttp.untyped.patch('/api/v1/security-servers/:server_id', () =>
+        HttpResponse.json(
+          {
+            status: 400,
+            error: { code: 'validation_failure', validation_errors: { 'securityServerEditDto.serverAddress': ['IdentifierChars'] } },
+          },
+          { status: 400 },
+        ),
+      ),
+    ]);
+
+    await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+    submitDialogForm();
+
+    await expect.element(dialog.getByText('Use valid identifier characters only')).toBeVisible();
+    await expect.element(dialog.getByTestId('contextual-alert')).not.toBeInTheDocument();
+  });
+
+  it('shows the response values, the success snackbar and the notify banner after a save', async () => {
+    const dialog = await openDialog(pairFixture, [
+      specHttp.patch('/security-servers/{server_id}', ({ response }) =>
+        response(200).json({
+          ...pairFixture,
+          server_address: NEW_ADDRESS,
+          system_did: NEW_DID,
+          dsp_base_url: NEW_URL,
+        } as never),
+      ),
+    ]);
+
+    await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+    await field(dialog, 'security-server-system-did-edit-field').fill(NEW_DID);
+    await field(dialog, 'security-server-dsp-base-url-edit-field').fill(NEW_URL);
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(NEW_ADDRESS);
+    await expect.element(page.getByTestId('security-server-system-did')).toMatchTextContent(NEW_DID);
+    await expect.element(page.getByTestId('security-server-dsp-base-url')).toMatchTextContent(NEW_URL);
+    await expect.element(page.getByTestId('success-snackbar')).toMatchTextContent('Security server address successfully updated');
+    const banner = page.getByTestId('contextual-alert');
+    await expect.element(banner).toMatchTextContent(NOTIFY_TEXT);
+    expect(banner.element().classList).toContain('border-warning');
+    expect(banner.element().classList).not.toContain('border-error');
+  });
+
+  it('shows the success snackbar and no notify banner after a save for a server without a pair', async () => {
+    const dialog = await openDialog(serverFixture, [
+      specHttp.patch('/security-servers/{server_id}', ({ response }) =>
+        response(200).json({ ...serverFixture, server_address: NEW_ADDRESS } as never),
+      ),
+    ]);
+
+    await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+    submitDialogForm();
+
+    await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(NEW_ADDRESS);
+    await expect.element(page.getByTestId('success-snackbar')).toMatchTextContent('Security server address successfully updated');
+    await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
   });
 });
 

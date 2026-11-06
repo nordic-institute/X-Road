@@ -93,6 +93,9 @@
     <edit-security-server-address-dialog
       v-if="showEditAddressDialog"
       :address="address"
+      :system-did="hasSystemPair ? securityServer?.system_did : undefined"
+      :dsp-base-url="hasSystemPair ? securityServer?.dsp_base_url : undefined"
+      :system-pair-stale="systemPairStale"
       :security-server-id="serverId"
       @cancel="closeEditAddress"
       @save="closeEditAddress"

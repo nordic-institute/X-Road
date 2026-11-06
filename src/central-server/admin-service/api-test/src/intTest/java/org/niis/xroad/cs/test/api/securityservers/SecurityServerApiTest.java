@@ -461,6 +461,31 @@ class SecurityServerApiTest extends CsApiTest {
     }
 
     @Test
+    void invalidAddressIsRefusedOnTheEditAndTheCheckAndStoresNothing(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0820", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "0820", memberId));
+        var client = new SecurityServersAdminClient(session);
+
+        Step.when("an address containing a slash is given on the edit", () ->
+                client.updateSecurityServerAddress(serverId, "bad/addr-0820")
+                        .statusCode(400)
+                        .body("error.code", equalTo("validation_failure"))
+                        .body("error.validation_errors", hasKey("securityServerEditDto.serverAddress")));
+
+        Step.and("an address containing a space is given on the check", () ->
+                client.checkSystemDid(serverId, "bad addr-0820", systemDid("bad-addr-0820"))
+                        .statusCode(400)
+                        .body("error.code", equalTo("validation_failure"))
+                        .body("error.validation_errors", hasKey("systemDidCheckRequestDto.serverAddress")));
+
+        Step.then("the address is unchanged", () ->
+                client.getSecurityServer(serverId)
+                        .statusCode(200)
+                        .body("server_address", equalTo("ss-addr-0820")));
+    }
+
+    @Test
     void systemDidCheckForbiddenWithoutTheEditAddressPermission(CsBaselineSeeder seeder) {
         var session = Step.given("admin session opened", seeder::newSession);
         var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "0817", BASELINE_MEMBER_CLASS));
