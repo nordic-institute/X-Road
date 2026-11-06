@@ -54,6 +54,7 @@ public final class TestCa {
 
     private static final AtomicLong SERIAL = new AtomicLong(1);
     private static final int RSA_KEY_SIZE = 2048;
+    private static final int EC_KEY_SIZE = 256;
     private static final int VALIDITY_DAYS = 365;
 
     private final KeyPair keyPair;
@@ -84,7 +85,20 @@ public final class TestCa {
      * @param ipAddresses IP subject alternative names
      */
     public TestLeaf issueLeaf(String commonName, List<String> dnsNames, List<String> ipAddresses) throws Exception {
-        var leafKeyPair = generateKeyPair();
+        return issueLeaf(generateKeyPair(), commonName, dnsNames, ipAddresses);
+    }
+
+    /**
+     * Issues a leaf certificate like {@link #issueLeaf(String, List, List)}, with an EC key pair.
+     */
+    public TestLeaf issueEcLeaf(String commonName, List<String> dnsNames, List<String> ipAddresses) throws Exception {
+        var generator = KeyPairGenerator.getInstance("EC");
+        generator.initialize(EC_KEY_SIZE);
+        return issueLeaf(generator.generateKeyPair(), commonName, dnsNames, ipAddresses);
+    }
+
+    private TestLeaf issueLeaf(KeyPair leafKeyPair, String commonName, List<String> dnsNames,
+                               List<String> ipAddresses) throws Exception {
         var issuer = new X500Name(certificate.getSubjectX500Principal().getName());
         var subject = new X500Name("CN=" + commonName);
         var builder = new JcaX509v3CertificateBuilder(issuer, nextSerial(), notBefore(), notAfter(), subject,
@@ -101,6 +115,17 @@ public final class TestCa {
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
         var leafCertificate = new JcaX509CertificateConverter().getCertificate(builder.build(signer));
         return new TestLeaf(leafKeyPair.getPrivate(), new X509Certificate[] {leafCertificate, certificate});
+    }
+
+    /**
+     * Mints a self-signed certificate without the CA basic constraint.
+     */
+    public static X509Certificate selfSignedNonCa(String commonName) throws Exception {
+        var keyPair = generateKeyPair();
+        var subject = new X500Name("CN=" + commonName);
+        var builder = new JcaX509v3CertificateBuilder(subject, nextSerial(), notBefore(), notAfter(), subject, keyPair.getPublic());
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
     }
 
     private static KeyPair generateKeyPair() throws Exception {

@@ -26,7 +26,14 @@
  */
 package org.niis.xroad.common.rpc.test;
 
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8EncryptorBuilder;
+
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,6 +64,28 @@ public final class PemFiles {
     /** Writes the key as unencrypted PKCS#8. */
     public static Path writePrivateKey(Path file, PrivateKey privateKey) throws IOException {
         return write(file, block("PRIVATE KEY", privateKey.getEncoded()));
+    }
+
+    /**
+     * Writes the key as SEC1 {@code EC PRIVATE KEY}, the format OpenSSL emits for EC keys by default.
+     */
+    public static void writeEcPrivateKeySec1(Path file, PrivateKey ecPrivateKey) throws IOException {
+        var sec1 = PrivateKeyInfo.getInstance(ecPrivateKey.getEncoded()).parsePrivateKey().toASN1Primitive().getEncoded();
+        write(file, block("EC PRIVATE KEY", sec1));
+    }
+
+    /**
+     * Writes the key as password-protected PKCS#8 ({@code ENCRYPTED PRIVATE KEY}).
+     */
+    public static void writeEncryptedPrivateKey(Path file, PrivateKey privateKey, char[] password) throws Exception {
+        var encryptor = new JceOpenSSLPKCS8EncryptorBuilder(PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC)
+                .setPassword(password)
+                .build();
+        var pem = new StringWriter();
+        try (var writer = new JcaPEMWriter(pem)) {
+            writer.writeObject(new JcaPKCS8Generator(privateKey, encryptor));
+        }
+        write(file, pem.toString());
     }
 
     public static Path write(Path file, String content) throws IOException {

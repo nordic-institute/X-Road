@@ -46,10 +46,12 @@ import org.niis.xroad.common.rpc.test.TlsTestChannels;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FileKeyProviderTest {
@@ -108,37 +110,135 @@ class FileKeyProviderTest {
     }
 
     @Test
+    void ecPrivateKeyInPkcs8LoadsAndServes() throws Exception {
+        var ecIdentity = opMonitorCa.issueEcLeaf("op-monitor", List.of(HOST), List.of());
+        PemFiles.writePrivateKey(privateKeyPath, ecIdentity.privateKey());
+        PemFiles.writeCertificates(certificatePath, ecIdentity.chain()[0]);
+        startServer(loadedProvider());
+
+        connectWithClientCertificateFrom(securityServerRpcCa);
+
+        assertThat(echo()).isEqualTo(PAYLOAD);
+    }
+
+    @Test
+    void certificateChainWithIntermediateLoads() throws Exception {
+        var identity = opMonitorCa.issueLeaf("op-monitor", List.of(HOST), List.of());
+        PemFiles.writePrivateKey(privateKeyPath, identity.privateKey());
+        PemFiles.writeCertificates(certificatePath, identity.chain());
+
+        assertThatCode(this::loadedProvider).doesNotThrowAnyException();
+    }
+
+    @Test
     void missingFileFailsInit() throws Exception {
         Files.delete(privateKeyPath);
-        assertInitFails();
+        assertInitFails(privateKeyPath, "missing or cannot be read");
+    }
+
+    @Test
+    void unreadableFileFailsInit() throws Exception {
+        Files.delete(certificatePath);
+        Files.createDirectory(certificatePath);
+        assertInitFails(certificatePath, "missing or cannot be read");
     }
 
     @Test
     void emptyFileFailsInit() throws Exception {
         PemFiles.write(certificatePath, "");
-        assertInitFails();
+        assertInitFails(certificatePath, "empty");
+    }
+
+    @Test
+    void unsetPathFailsInitNamingTheSetting() {
+        var provider = providerFor(Path.of(""), certificatePath, trustedCaPath);
+        assertThatThrownBy(provider::init)
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("file-identity.private-key-path is not set");
     }
 
     @Test
     void privateKeyFileWithoutAKeyFailsInit() throws Exception {
         PemFiles.write(privateKeyPath, "not a key");
-        assertInitFails();
+        assertInitFails(privateKeyPath, "PKCS#8");
+    }
+
+    @Test
+    void encryptedPrivateKeyFailsInit() throws Exception {
+        var identity = opMonitorCa.issueLeaf("op-monitor", List.of(HOST), List.of());
+        PemFiles.writeEncryptedPrivateKey(privateKeyPath, identity.privateKey(), "secret".toCharArray());
+        assertInitFails(privateKeyPath, "PKCS#8");
+    }
+
+    @Test
+    void sec1EcPrivateKeyFailsInit() throws Exception {
+        var ecIdentity = opMonitorCa.issueEcLeaf("op-monitor", List.of(HOST), List.of());
+        PemFiles.writeEcPrivateKeySec1(privateKeyPath, ecIdentity.privateKey());
+        PemFiles.writeCertificates(certificatePath, ecIdentity.chain()[0]);
+        assertInitFails(privateKeyPath, "PKCS#8");
+    }
+
+    @Test
+    void corruptPrivateKeyFailsInit() throws Exception {
+        PemFiles.write(privateKeyPath, "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----\n");
+        assertInitFails(privateKeyPath, "cannot be parsed");
     }
 
     @Test
     void certificateFileWithoutACertificateFailsInit() throws Exception {
         PemFiles.write(certificatePath, "not a certificate");
-        assertInitFails();
+        assertInitFails(certificatePath, "cannot be parsed");
     }
 
     @Test
-    void trustedCaFileWithTwoCertificatesFailsInit() throws Exception {
+    void privateKeyOfAnotherCertificateFailsInit() throws Exception {
+        var other = opMonitorCa.issueLeaf("other", List.of(HOST), List.of());
+        PemFiles.writePrivateKey(privateKeyPath, other.privateKey());
+        assertInitFails(privateKeyPath, "does not match");
+    }
+
+    @Test
+    void privateKeyOfAnotherKeyTypeFailsInit() throws Exception {
+        var ecIdentity = opMonitorCa.issueEcLeaf("other", List.of(HOST), List.of());
+        PemFiles.writePrivateKey(privateKeyPath, ecIdentity.privateKey());
+        assertInitFails(privateKeyPath, "does not match");
+    }
+
+    @Test
+    void trustedCaFileWithoutACertificateFailsInit() throws Exception {
+        PemFiles.write(trustedCaPath, "not a certificate");
+        assertInitFails(trustedCaPath, "cannot be parsed");
+    }
+
+    @Test
+    void trustedCaFileWithTwoCaCertificatesFailsInit() throws Exception {
         PemFiles.writeCertificates(trustedCaPath, securityServerRpcCa.certificate(), opMonitorCa.certificate());
-        assertInitFails();
+        assertInitFails(trustedCaPath, "exactly one");
+    }
+
+    @Test
+    void trustedCaFileWithANonCaCertificateFailsInit() throws Exception {
+        PemFiles.writeCertificates(trustedCaPath, TestCa.selfSignedNonCa("not a CA"));
+        assertInitFails(trustedCaPath, "not a CA certificate");
+    }
+
+    @Test
+    void verifyingTrustManagerBeforeInitFails() throws Exception {
+        var provider = newProvider();
+        assertThatThrownBy(() -> provider.createVerifyingTrustManager(null))
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     private FileKeyProvider newProvider() throws Exception {
-        return new FileKeyProvider(new RpcProperties.FileIdentity(privateKeyPath, certificatePath, trustedCaPath));
+        return providerFor(privateKeyPath, certificatePath, trustedCaPath);
+    }
+
+    private static FileKeyProvider providerFor(Path privateKey, Path certificate, Path trustedCa) {
+        try {
+            return new FileKeyProvider(new RpcProperties.FileIdentity(privateKey, certificate, trustedCa));
+        } catch (CertificateException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private FileKeyProvider loadedProvider() throws Exception {
@@ -147,8 +247,11 @@ class FileKeyProviderTest {
         return provider;
     }
 
-    private void assertInitFails() throws Exception {
-        assertThatThrownBy(newProvider()::init).isInstanceOf(XrdRuntimeException.class);
+    private void assertInitFails(Path failingFile, String reason) throws Exception {
+        assertThatThrownBy(newProvider()::init)
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(failingFile.toString())
+                .hasMessageContaining(reason);
     }
 
     private void startServer(VaultKeyProvider keyProvider) throws Exception {

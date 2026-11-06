@@ -1,0 +1,221 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.common.rpc;
+
+import io.grpc.CallOptions;
+import io.grpc.ManagedChannel;
+import io.grpc.Server;
+import io.grpc.ServerCredentials;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.grpc.TlsChannelCredentials;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
+import io.grpc.stub.ClientCalls;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.file.FileKeyProvider;
+import org.niis.xroad.common.rpc.test.PemFiles;
+import org.niis.xroad.common.rpc.test.TestCa;
+import org.niis.xroad.common.rpc.test.TestVaultKeyProvider;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/**
+ * The allow-list cases of {@link ServerClientNamesHandshakeTest}, run against server credentials built on
+ * {@link FileKeyProvider}.
+ */
+class FileKeyProviderServerClientNamesTest {
+    private static final String HOST = "localhost";
+    private static final byte[] PAYLOAD = {1, 2, 3};
+    private static final long DEADLINE_SECONDS = 10;
+
+    @TempDir
+    Path dir;
+
+    private TestCa securityServerCa;
+    private TestCa otherCa;
+    private FileKeyProvider serverKeyProvider;
+    private Server server;
+    private ManagedChannel channel;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        securityServerCa = TestCa.selfSigned("Security Server CA");
+        otherCa = TestCa.selfSigned("Other CA");
+        var serverIdentity = securityServerCa.issueLeaf("op-monitor", List.of(HOST), List.of());
+        serverKeyProvider = new FileKeyProvider(new RpcProperties.FileIdentity(
+                PemFiles.writePrivateKey(dir.resolve("server.key"), serverIdentity.privateKey()),
+                PemFiles.writeCertificates(dir.resolve("server.crt"), serverIdentity.chain()[0]),
+                PemFiles.writeCertificates(dir.resolve("trusted-ca.crt"), securityServerCa.certificate())));
+        serverKeyProvider.init();
+    }
+
+    @AfterEach
+    void tearDown() throws InterruptedException {
+        if (channel != null) {
+            channel.shutdownNow().awaitTermination(DEADLINE_SECONDS, TimeUnit.SECONDS);
+        }
+        if (server != null) {
+            server.shutdownNow().awaitTermination(DEADLINE_SECONDS, TimeUnit.SECONDS);
+        }
+    }
+
+    @Test
+    void unlistedClientFromTheRightCaIsRejected() throws Exception {
+        startListServer("proxy");
+
+        connectWithClientCertificate(securityServerCa.issueLeaf("ui", List.of("ui"), List.of()));
+
+        assertRejected();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"proxy,proxy", "PROXY,proxy", "127.0.0.1,127.0.0.1"})
+    void clientWhoseCommonNameMatchesTheListedNameIsAccepted(String listedName, String commonName) throws Exception {
+        startListServer(listedName);
+
+        connectWithClientCertificate(securityServerCa.issueLeaf(commonName, List.of(), List.of()));
+
+        assertAccepted();
+    }
+
+    @Test
+    void clientWhoseDnsSubjectAlternativeNameIsListedIsAccepted() throws Exception {
+        startListServer("proxy");
+
+        connectWithClientCertificate(securityServerCa.issueLeaf("other", List.of("proxy"), List.of()));
+
+        assertAccepted();
+    }
+
+    @Test
+    void clientWhoseOnlyMatchingEntryIsAnIpSubjectAlternativeNameIsRejected() throws Exception {
+        startListServer("127.0.0.1");
+
+        connectWithClientCertificate(securityServerCa.issueLeaf("other", List.of(), List.of("127.0.0.1")));
+
+        assertRejected();
+    }
+
+    @Test
+    void ipShapedEntryAcceptsClientWhoseDnsSubjectAlternativeNameEqualsIt() throws Exception {
+        startListServer("127.0.0.1");
+
+        connectWithClientCertificate(securityServerCa.issueLeaf("other", List.of("127.0.0.1"), List.of()));
+
+        assertAccepted();
+    }
+
+    @Test
+    void listedClientFromAnotherCaIsRejected() throws Exception {
+        startListServer("proxy");
+
+        connectWithClientCertificate(otherCa.issueLeaf("proxy", List.of("proxy"), List.of()));
+
+        assertRejected();
+    }
+
+    @Test
+    void listedServerStillRequiresAClientCertificate() throws Exception {
+        startListServer("proxy");
+
+        connectWithoutClientCertificate();
+
+        assertRejected();
+    }
+
+    @Test
+    void emptyListAcceptsAnyClientFromTheSecurityServerCa() throws Exception {
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of()));
+
+        connectWithClientCertificate(securityServerCa.issueLeaf("anything", List.of(), List.of()));
+
+        assertAccepted();
+    }
+
+    @Test
+    void emptyListRejectsAClientFromAnotherCa() throws Exception {
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of()));
+
+        connectWithClientCertificate(otherCa.issueLeaf("proxy", List.of("proxy"), List.of()));
+
+        assertRejected();
+    }
+
+    @Test
+    void emptyListRejectsAClientWithoutACertificate() throws Exception {
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of()));
+
+        connectWithoutClientCertificate();
+
+        assertRejected();
+    }
+
+    private void startListServer(String... allowedNames) throws Exception {
+        startServer(new TlsRpcCredentialsConfigurer(serverKeyProvider).createServerCredentials(List.of(allowedNames)));
+    }
+
+    private void startServer(ServerCredentials credentials) throws Exception {
+        server = NettyServerBuilder.forPort(0, credentials).addService(new ByteEchoService()).build().start();
+    }
+
+    private void connectWithClientCertificate(TestCa.TestLeaf clientIdentity) throws Exception {
+        var clientKeyProvider = new TestVaultKeyProvider(clientIdentity, securityServerCa.certificate());
+        channel = NettyChannelBuilder.forAddress(HOST, server.getPort(), new TlsRpcCredentialsConfigurer(clientKeyProvider)
+                .createClientCredentials()).build();
+    }
+
+    private void connectWithoutClientCertificate() {
+        channel = NettyChannelBuilder.forAddress(HOST, server.getPort(), TlsChannelCredentials.newBuilder()
+                .trustManager(serverKeyProvider.getTrustManager()).build()).build();
+    }
+
+    private void assertAccepted() {
+        assertThat(echo()).isEqualTo(PAYLOAD);
+    }
+
+    private void assertRejected() {
+        assertThatThrownBy(this::echo)
+                .isInstanceOfSatisfying(StatusRuntimeException.class,
+                        e -> assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE));
+    }
+
+    private byte[] echo() {
+        return ClientCalls.blockingUnaryCall(channel, ByteEchoService.ECHO,
+                CallOptions.DEFAULT.withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS), PAYLOAD);
+    }
+}
