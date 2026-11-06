@@ -337,6 +337,11 @@ function handleAnsible() {
     [ "$onMacOs" != "yes" ] && become_flags+=("--ask-become-pass")
   fi
 
+  if [[ "${XROAD_SS_DSP_CACHE_ENABLED:-false}" =~ ^(true|1|yes|YES|TRUE)$ ]]; then
+    extra_vars+=("-e" "xroad_ss_dsp_cache_enabled=true")
+    log_info "Proxy DSP cache enabled for this run (XROAD_SS_DSP_CACHE_ENABLED)"
+  fi
+
   ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
     ../../development/ansible/xroad_dev.yml \
     --forks 5 \
