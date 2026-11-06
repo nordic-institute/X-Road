@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.clientproxy;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -74,6 +75,7 @@ import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -82,6 +84,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -95,6 +98,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_AGREEMENT_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -827,6 +831,24 @@ class ClientSoapMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
     }
 
+    @ParameterizedTest
+    @MethodSource("protocolRejections")
+    void aRefusalInTheResponseOfTheSiblingAfterATransportFaultReachesTheCallerWithItsCode(ErrorCode code) throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var request = newCompletedRequest();
+        var failedSsA = failingSender(new ConnectException("refused"));
+        var refusingSsB = senderAnsweringWithFault(code);
+        stubSenders(harness, failedSsA, refusingSsB);
+
+        assertThatThrownBy(() -> harness.processor().processRequest(request.ctx(), request.decoder(), "req-1", null))
+                .satisfies(thrown -> assertCausedByCodeNotIoError(thrown, code));
+
+        verify(refusingSsB).addHeader(HEADER_AGREEMENT_TOKEN, SS_B_TOKEN);
+        verify(refusingSsB, never()).addHeader(HEADER_AGREEMENT_TOKEN, SS_A_TOKEN);
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+    }
+
     @Test
     void operationalMonitoringRecordsTheSiblingThatServedAfterAFailover() throws Exception {
         var addressResolver = mock(ServiceAddressResolver.class);
@@ -1018,10 +1040,23 @@ class ClientSoapMessageProcessorTest {
 
     private static void assertRefusalWithCode(Throwable thrown, ErrorCode code, XrdRuntimeException refusal) {
         assertThat(thrown).isSameAs(refusal);
+        assertCausedByCodeNotIoError(thrown, code);
+    }
+
+    private static void assertCausedByCodeNotIoError(Throwable thrown, ErrorCode code) {
         assertThat(thrown).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
             assertThat(e.isCausedBy(code)).isTrue();
             assertThat(e.isCausedBy(IO_ERROR)).isFalse();
         });
+    }
+
+    private static HttpSender senderAnsweringWithFault(ErrorCode code) throws Exception {
+        var fault = SoapFault.createFaultXml(XrdRuntimeException.systemException(code, "refused by sibling"));
+        var httpSender = mock(HttpSender.class);
+        when(httpSender.getResponseHeaders()).thenReturn(Map.of());
+        when(httpSender.getResponseContentType()).thenReturn(TEXT_XML_UTF8);
+        when(httpSender.getResponseContent()).thenReturn(new ByteArrayInputStream(fault.getBytes(StandardCharsets.UTF_8)));
+        return httpSender;
     }
 
     private static HttpSender failingSender(Throwable failure) throws Exception {
