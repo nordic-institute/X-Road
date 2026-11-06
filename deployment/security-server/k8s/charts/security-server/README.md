@@ -10,8 +10,6 @@ and additionally carries the dataspace (DSP) stack whose application
 Pods default to `replicas: 0` — no DSP Pods start unless explicitly
 enabled via per-service `replicas` overrides.
 
-Trust settings of the operational monitoring connection (`op-monitor`, disabled by default): [Security Server User Guide, section 15.2.7](../../../../../doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1527-trust-settings-of-the-operational-monitoring-connection).
-
 ## 2. Dataspace (DSP) services
 
 DSP application workloads (`ds-control-plane`, `ds-identity-hub`,
@@ -206,3 +204,16 @@ mechanism itself (Service `type` templating, a TCP-mode Gateway API resource, or
 similar — see `development/k8s/docs/EKS.md`'s NLB-vs-ALB note for the EKS case
 specifically) is out of scope for this chart's current contract and left for a future
 change.
+
+## 11. Operational monitoring client allow-list
+
+`xroad.op-monitor.rpc.allowed-client-names` limits which components may connect to
+the op-monitor gRPC server (`services.op-monitor`, disabled by default). It matches
+the common name or a DNS SAN of the client certificate. The chart does not set it: an
+empty list admits every component with a certificate from the Security Server RPC CA,
+including `signer` and `configuration-client`.
+
+Each component's internal gRPC certificate carries its `XROAD_HOST` value as the
+common name, so the proxy presents `proxy` and the admin-service `proxy-ui-api`. A list
+of these two names admits only them. Like other non-default `xroad.*` keys, the value
+comes from `configSeed.properties`.
