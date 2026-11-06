@@ -48,9 +48,12 @@ class DspRecordCleanerAgeTest {
 
     @Test
     void ageAtOrBelowTheMinimumIsRejected() {
-        assertThatThrownBy(() -> DspRecordCleaner.requireValidAge(DspRecordCleaner.MINIMUM_AGE))
+        var minimum = DspRecordCleaner.MINIMUM_AGE;
+        var belowMinimum = Duration.ofHours(1);
+
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidAge(minimum))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> DspRecordCleaner.requireValidAge(Duration.ofHours(1)))
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidAge(belowMinimum))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -63,9 +66,12 @@ class DspRecordCleanerAgeTest {
 
     @Test
     void nonPositiveIntervalIsRejected() {
-        assertThatThrownBy(() -> DspRecordCleaner.requireValidInterval(Duration.ZERO))
+        var zero = Duration.ZERO;
+        var negative = Duration.ofMinutes(-1);
+
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidInterval(zero))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> DspRecordCleaner.requireValidInterval(Duration.ofMinutes(-1)))
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidInterval(negative))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

@@ -28,7 +28,6 @@ package org.niis.xroad.edc.extension.cleaner;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -55,7 +54,8 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  * <p>Step 1 terminates transfers that are still not final after {@code age}, through EDC, which releases the
  * data-address secret and signals the data plane. Step 2 deletes finished transfers, policy monitor entries,
  * data-flow state rows and negotiations without an agreement once they are older than {@code age}.
- * Agreements are never deleted.
+ * Negotiations are found by a SQL id query that excludes those with an agreement, and are read and deleted in
+ * batches. Agreements are never deleted.
  *
  * <p>{@code age} must exceed {@link #MINIMUM_AGE}: the policy monitor re-evaluates entries once per
  * {@link #POLICY_MONITOR_PERIOD}, and a data-plane signal may still be retried for {@link #SIGNAL_RETRY_WINDOW}
@@ -68,12 +68,14 @@ public class DspRecordCleaner {
     static final Duration SIGNAL_RETRY_WINDOW = Duration.ofMinutes(10);
     public static final Duration MINIMUM_AGE = POLICY_MONITOR_PERIOD.plus(SIGNAL_RETRY_WINDOW);
 
-    private static final int PAGE_SIZE = 500;
+    static final int PAGE_SIZE = 500;
+    private static final String STATE_TIMESTAMP = "stateTimestamp";
     private static final String TERMINATION_REASON = "Abandoned transfer closed by the DSP record cleaner";
 
     private final TransferProcessStore transferProcessStore;
     private final TransferProcessService transferProcessService;
     private final ContractNegotiationStore contractNegotiationStore;
+    private final NegotiationsWithoutAgreementReader negotiationsWithoutAgreementReader;
     private final PolicyMonitorEntryPurger policyMonitorEntryPurger;
     private final ServerConfDatabaseCtx serverConfDatabaseCtx;
     private final Clock clock;
@@ -159,7 +161,7 @@ public class DspRecordCleaner {
         var stuckIds = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
                         .filter(List.of(
                                 criterion("state", "<", TransferProcessStates.COMPLETED.code()),
-                                criterion("stateTimestamp", "<", cutoff)))
+                                criterion(STATE_TIMESTAMP, "<", cutoff)))
                         .offset(offset)
                         .limit(PAGE_SIZE)
                         .build()))
@@ -194,7 +196,7 @@ public class DspRecordCleaner {
                         .filter(List.of(
                                 criterion("state", "in",
                                         List.of(TransferProcessStates.COMPLETED.code(), TransferProcessStates.TERMINATED.code())),
-                                criterion("stateTimestamp", "<", cutoff)))
+                                criterion(STATE_TIMESTAMP, "<", cutoff)))
                         .offset(offset)
                         .limit(PAGE_SIZE)
                         .build()))
@@ -209,16 +211,18 @@ public class DspRecordCleaner {
     }
 
     private int deleteNegotiationsWithoutAgreement(long cutoff) {
-        var ids = readAll(offset -> contractNegotiationStore.queryNegotiations(QuerySpec.Builder.newInstance()
-                        .filter(criterion("stateTimestamp", "<", cutoff))
-                        .offset(offset)
-                        .limit(PAGE_SIZE)
-                        .build()))
-                .stream()
-                .filter(negotiation -> negotiation.getContractAgreement() == null)
-                .map(ContractNegotiation::getId)
-                .toList();
-        return (int) ids.stream().filter(id -> deleted(contractNegotiationStore.deleteById(id).succeeded(), id)).count();
+        int deleted = 0;
+        String lastId = "";
+        int batchSize;
+        do {
+            var ids = negotiationsWithoutAgreementReader.readIdsUpdatedBefore(cutoff, lastId, PAGE_SIZE);
+            deleted += (int) ids.stream().filter(id -> deleted(contractNegotiationStore.deleteById(id).succeeded(), id)).count();
+            batchSize = ids.size();
+            if (batchSize > 0) {
+                lastId = ids.getLast();
+            }
+        } while (batchSize == PAGE_SIZE);
+        return deleted;
     }
 
     private boolean deleted(boolean succeeded, String id) {

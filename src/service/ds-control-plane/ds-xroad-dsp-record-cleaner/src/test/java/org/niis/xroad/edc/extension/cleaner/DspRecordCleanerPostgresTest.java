@@ -100,6 +100,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -223,7 +225,7 @@ class DspRecordCleanerPostgresTest {
     void flowRowFinishedInsideTheMinimumAgeSurvivesSoALateSignalStillFindsIt() throws Exception {
         insertFlow("inside-floor", DataFlowLifecycleState.TERMINATED, DspRecordCleaner.MINIMUM_AGE.minusMinutes(5));
         var cleaner = new DspRecordCleaner(transferProcessStore, new EdcTerminationChain().service(), negotiationStore,
-                policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor,
+                negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor,
                 DspRecordCleaner.requireValidAge(DspRecordCleaner.MINIMUM_AGE.plusSeconds(1)));
 
         cleaner.run();
@@ -241,6 +243,47 @@ class DspRecordCleanerPostgresTest {
         assertThat(summary.deletedNegotiations()).isEqualTo(1);
         assertThat(ids("edc_contract_negotiation", "id")).containsExactly("old-agreed");
         assertThat(ids("edc_contract_agreement", "agr_id")).containsExactly("agreement-old-agreed");
+    }
+
+    @Test
+    void negotiationsWithAnAgreementAreNeitherLoadedNorOfferedForDeletion() {
+        saveNegotiation("old-agreed", OLD, true);
+        saveNegotiation("old-no-agreement", OLD, false);
+        var spyStore = spy(negotiationStore);
+
+        newCleaner(new EdcTerminationChain().service(), spyStore).run();
+
+        verify(spyStore, never()).queryNegotiations(any());
+        verify(spyStore, never()).deleteById("old-agreed");
+        verify(spyStore).deleteById("old-no-agreement");
+    }
+
+    @Test
+    void backlogLargerThanOneBatchIsDeletedInOnePassAndAgreementsInBetweenStay() throws Exception {
+        var backlog = DspRecordCleaner.PAGE_SIZE * 2 + 1;
+        for (int i = 0; i < backlog; i++) {
+            saveNegotiation("old-%05d".formatted(i), OLD, false);
+        }
+        saveNegotiation("old-00250-agreed", OLD, true);
+        saveNegotiation("young", YOUNG, false);
+
+        var summary = newCleaner(new EdcTerminationChain().service()).run();
+
+        assertThat(summary.deletedNegotiations()).isEqualTo(backlog);
+        assertThat(ids("edc_contract_negotiation", "id")).containsExactlyInAnyOrder("old-00250-agreed", "young");
+        monitor.assertNoProblems();
+    }
+
+    @Test
+    void negotiationLeasedByAnotherRuntimeIsSkippedWithoutBlockingTheBatch() throws Exception {
+        saveNegotiation("a-leased", OLD, false);
+        saveNegotiation("b-free", OLD, false);
+        assertThat(negotiationStore.findByIdAndLease("a-leased").succeeded()).isTrue();
+
+        var summary = newCleaner(new EdcTerminationChain().service()).run();
+
+        assertThat(summary.deletedNegotiations()).isEqualTo(1);
+        assertThat(ids("edc_contract_negotiation", "id")).containsExactly("a-leased");
     }
 
     @Test
@@ -325,8 +368,17 @@ class DspRecordCleanerPostgresTest {
     }
 
     private DspRecordCleaner newCleaner(TransferProcessService transferProcessService) {
-        return new DspRecordCleaner(transferProcessStore, transferProcessService, negotiationStore,
-                policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor, AGE);
+        return newCleaner(transferProcessService, negotiationStore);
+    }
+
+    private DspRecordCleaner newCleaner(TransferProcessService transferProcessService, ContractNegotiationStore store) {
+        return new DspRecordCleaner(transferProcessStore, transferProcessService, store,
+                negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor, AGE);
+    }
+
+    private NegotiationsWithoutAgreementReader negotiationsWithoutAgreementReader() {
+        return new NegotiationsWithoutAgreementReader(dataSourceRegistry, DATA_SOURCE_NAME, new NoopTransactionContext(),
+                new SqlQueryExecutor(), new PostgresDialectStatements(Clock.systemUTC()));
     }
 
     private PolicyMonitorEntryPurger policyMonitorEntryPurger() {

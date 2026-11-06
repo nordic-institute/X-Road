@@ -28,6 +28,7 @@ package org.niis.xroad.edc.extension.cleaner;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements;
@@ -76,6 +77,11 @@ public class DspRecordCleanerExtension implements ServiceExtension {
             defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
     private String policyMonitorDataSourceName;
 
+    @Setting(key = "edc.sql.store.contractnegotiation.datasource",
+            description = "The datasource backing the contract negotiation tables",
+            defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    private String negotiationDataSourceName;
+
     @Inject
     private TransferProcessStore transferProcessStore;
 
@@ -120,8 +126,11 @@ public class DspRecordCleanerExtension implements ServiceExtension {
         var statements = policyMonitorStatements != null ? policyMonitorStatements : new PostgresPolicyMonitorStatements();
         var policyMonitorEntryPurger = new PolicyMonitorEntryPurger(dataSourceRegistry, policyMonitorDataSourceName,
                 transactionContext, queryExecutor, statements);
+        var negotiationsWithoutAgreement = new NegotiationsWithoutAgreementReader(dataSourceRegistry,
+                negotiationDataSourceName, transactionContext, queryExecutor, new PostgresDialectStatements(clock));
         cleaner = new DspRecordCleaner(transferProcessStore, transferProcessService, contractNegotiationStore,
-                policyMonitorEntryPurger, serverConfDatabaseCtx, clock, monitor, DspRecordCleaner.requireValidAge(age));
+                negotiationsWithoutAgreement, policyMonitorEntryPurger, serverConfDatabaseCtx, clock, monitor,
+                DspRecordCleaner.requireValidAge(age));
     }
 
     @Override
@@ -140,7 +149,7 @@ public class DspRecordCleanerExtension implements ServiceExtension {
             if (!executor.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                 executor.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
@@ -159,7 +168,7 @@ public class DspRecordCleanerExtension implements ServiceExtension {
     private void scheduleNextPass() {
         try {
             executor.schedule(this::runPass, interval.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (RejectedExecutionException e) {
+        } catch (RejectedExecutionException _) {
             monitor.debug("DSP record cleaner stopped");
         }
     }
