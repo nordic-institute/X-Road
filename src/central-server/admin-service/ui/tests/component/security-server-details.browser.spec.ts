@@ -303,11 +303,18 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
         ...WARNING,
       ],
       [
+        'NOT_RESOLVED without a reason',
+        { status: 'NOT_RESOLVED' },
+        'The SYSTEM DID does not resolve: its DID document could not be fetched. You can still save.',
+        ...WARNING,
+      ],
+      [
         'RESOLVER_UNAVAILABLE',
         { status: 'RESOLVER_UNAVAILABLE' },
         'The SYSTEM DID could not be checked because the Issuer Service is unreachable. You can still save.',
         ...WARNING,
       ],
+      ['REFUSED without a reason', { status: 'REFUSED' }, 'Internal error. See server logs for more details', ...ERROR],
       [
         'REFUSED WRONG_SCHEME',
         { status: 'REFUSED', refusal_reason: 'WRONG_SCHEME' },

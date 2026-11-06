@@ -37,9 +37,9 @@ import org.niis.xroad.cs.admin.api.domain.SystemDidCheck;
 public interface SystemDidCheckService {
 
     /**
-     * Validates the DID against the proposed address and the server's identity, and only when it is valid
-     * resolves it through the Issuer Service. A refused DID is never resolved, because the resolver connects to
-     * the host the DID names.
+     * Validates the DID against the proposed address and the server's identity, and resolves it through the
+     * Issuer Service only when it is valid. The check does not limit which host the resolver contacts: the
+     * proposed address comes from the caller.
      *
      * @param serverId      the identifier of the server
      * @param serverAddress the proposed address of the server

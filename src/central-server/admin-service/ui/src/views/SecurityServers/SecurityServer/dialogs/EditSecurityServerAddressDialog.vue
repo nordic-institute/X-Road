@@ -235,12 +235,18 @@ const checkOutcome = computed<CheckOutcome | undefined>(() => {
       return {
         icon: 'warning',
         color: 'warning',
-        text: RESOLUTION_TEXT[result.resolution_reason as SystemDidResolutionReason],
+        text:
+          RESOLUTION_TEXT[result.resolution_reason as SystemDidResolutionReason] ??
+          'securityServers.dialogs.editAddress.check.not_resolved_fetch_failure',
       };
     case SystemDidCheckStatus.RESOLVER_UNAVAILABLE:
       return { icon: 'warning', color: 'warning', text: 'securityServers.dialogs.editAddress.check.resolver_unavailable' };
     default:
-      return { icon: 'error', color: 'error', text: REFUSAL_TEXT[result.refusal_reason as SystemDidRefusalReason] };
+      return {
+        icon: 'error',
+        color: 'error',
+        text: REFUSAL_TEXT[result.refusal_reason as SystemDidRefusalReason] ?? 'error_code.internal_error',
+      };
   }
 });
 
