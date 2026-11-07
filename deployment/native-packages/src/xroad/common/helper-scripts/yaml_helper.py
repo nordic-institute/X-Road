@@ -4,9 +4,21 @@ YAML helper script for X-Road configuration management.
 Provides simple operations to read and write YAML configuration values.
 """
 
+import re
 import sys
 import yaml
 from pathlib import Path
+
+
+class RawLoader(yaml.BaseLoader):
+    """Keeps every scalar as written, except an unquoted YAML null, which reads as no value."""
+
+
+RawLoader.add_implicit_resolver(
+    'tag:yaml.org,2002:null',
+    re.compile(r'^(?:~|null|Null|NULL|)$'),
+    ['~', 'n', 'N', ''])
+RawLoader.add_constructor('tag:yaml.org,2002:null', lambda loader, node: None)
 
 
 def parse_path(path_str):
@@ -79,14 +91,14 @@ def set_value(data, keys, value):
     current[keys[-1]] = value
 
 
-def load_yaml(file_path):
+def load_yaml(file_path, loader=RawLoader):
     """Load YAML file, returns empty dict if file doesn't exist or is empty."""
     path = Path(file_path)
     if not path.exists() or path.stat().st_size == 0:
         return {}
     
     with open(file_path, 'r') as f:
-        content = yaml.safe_load(f)
+        content = yaml.load(f, Loader=loader)
         return content if content is not None else {}
 
 
@@ -104,10 +116,10 @@ def cmd_get(args):
     if len(args) < 2:
         print("Usage: yaml_helper.py get <file> <path>", file=sys.stderr)
         sys.exit(1)
-    
+
     file_path = args[0]
     path = args[1]
-    
+
     data = load_yaml(file_path)
     keys = parse_path(path)
     value = get_value(data, keys)
@@ -150,8 +162,8 @@ def cmd_set(args):
     file_path = args[0]
     path = args[1]
     value = args[2]
-    
-    data = load_yaml(file_path)
+
+    data = load_yaml(file_path, yaml.SafeLoader)
     keys = parse_path(path)
     set_value(data, keys, value)
     save_yaml(file_path, data)
@@ -162,7 +174,8 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: yaml_helper.py <command> [args...]", file=sys.stderr)
         print("Commands:", file=sys.stderr)
-        print("  get <file> <path>        - Get value at path", file=sys.stderr)
+        print("  get <file> <path>        - Get value at path as written, without number or boolean conversion",
+              file=sys.stderr)
         print("  exists <file> <path>     - Check if path exists (exit code)", file=sys.stderr)
         print("  set <file> <path> <value> - Set value at path", file=sys.stderr)
         sys.exit(1)

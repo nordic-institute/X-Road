@@ -2,6 +2,7 @@
 # postinst script for xroad-center
 
 . /usr/share/debconf/confmodule
+. /usr/share/xroad/scripts/_node_name.sh
 trap db_stop EXIT
 
 . /usr/share/xroad/scripts/write_tls_config.sh
@@ -245,9 +246,13 @@ store_certificates_settings() {
     || abort "Failed to store management-service TLS identity. ABORTING."
 }
 
+check_configured_node_name() {
+    read_local_yaml_node_name >/dev/null || exit 1
+}
 
 case "$1" in
 configure | reconfigure)
+    check_configured_node_name
     prepare_certificates_settings
     setup_database
     store_certificates_settings "$1"
