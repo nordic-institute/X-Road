@@ -34,7 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SignerConfigNodeAwareTest {
 
     private static final NodeAwareProducerFixture FIXTURE = new NodeAwareProducerFixture("signernodeaware",
-            nodeName -> new SignerConfig().xRoadConfig("signer", nodeName));
+            nodeName -> new SignerConfig().xRoadConfig("signer",
+                    new SignerConfig().nodeIdentity(nodeName)));
 
     @Test
     void aConfiguredNodeNameResolvesTheNodeValue() throws Exception {

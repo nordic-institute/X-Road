@@ -24,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.properties.dbsource;
 
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NodeNameProviderTest {
 
@@ -41,8 +43,8 @@ class NodeNameProviderTest {
     }
 
     @Test
-    void aNameUsesTheTrimmedName() {
-        assertThat(NodeNameProvider.of(" node_1 ").nodeName()).contains("node_1");
+    void configuredNameIsUsedUnchanged() {
+        assertThat(NodeNameProvider.of("node_1").nodeName()).contains("node_1");
     }
 
     @ParameterizedTest
@@ -50,5 +52,10 @@ class NodeNameProviderTest {
     @ValueSource(strings = {"", "   "})
     void blankOrMissingNameUsesNodeZero(String configuredName) {
         assertThat(NodeNameProvider.of(configuredName).nodeName()).contains("node_0");
+    }
+
+    @Test
+    void invalidNameIsRejectedWhenTheProviderIsBuilt() {
+        assertThatThrownBy(() -> NodeNameProvider.of("-bad")).isInstanceOf(InvalidNodeNameException.class);
     }
 }

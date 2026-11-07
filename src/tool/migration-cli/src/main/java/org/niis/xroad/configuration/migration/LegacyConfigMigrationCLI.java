@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.acme.AcmeAccountKeyAliasResolver;
 import org.niis.xroad.migration.acme.AcmeAccountKeyMigrator;
 import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
@@ -119,21 +120,24 @@ public class LegacyConfigMigrationCLI {
                 System.exit(1);
             }
 
+            NodeOption nodeOption = NodeOption.extract(shiftArgs(args));
+            String[] commandArgs = nodeOption.remainingArgs().toArray(new String[0]);
+
             switch (command) {
                 case VALIDATE -> validateEnv();
-                case CONFIG -> migrateConfiguration(shiftArgs(args));
-                case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
-                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
-                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(shiftArgs(args));
-                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(shiftArgs(args));
-                case KEYCONF -> migrateKeyConf(shiftArgs(args));
-                case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
-                case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
-                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
-                case FILE_TO_DB -> migrateFileToDb(shiftArgs(args));
-                case INI_TO_DB -> migrateIniToDb(shiftArgs(args));
-                case PROPERTIES_TO_DB -> migratePropertiesToDb(shiftArgs(args));
-                case SET_PROPERTY -> setProperty(shiftArgs(args));
+                case CONFIG -> migrateConfiguration(commandArgs);
+                case PGP_KEYS -> migratePgpKeys(commandArgs);
+                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(commandArgs);
+                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(commandArgs);
+                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(commandArgs);
+                case KEYCONF -> migrateKeyConf(commandArgs);
+                case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(commandArgs, nodeOption.nodeIdentity());
+                case SIGNER_DEVICES -> migrateSignerDevices(commandArgs);
+                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(commandArgs);
+                case FILE_TO_DB -> migrateFileToDb(commandArgs);
+                case INI_TO_DB -> migrateIniToDb(commandArgs);
+                case PROPERTIES_TO_DB -> migratePropertiesToDb(commandArgs);
+                case SET_PROPERTY -> setProperty(commandArgs);
                 default -> showHelp();
             }
         } catch (Exception e) {
@@ -156,6 +160,10 @@ public class LegacyConfigMigrationCLI {
                 X-Road Migration Tool
 
                 Usage: migration-cli <command> [options]
+
+                Options:
+                  --node <name>                  Cluster node the migrated data belongs to (default: node_0), used by
+                                                 signer-token-pins. Central Server: xroad.admin-service.ha-node-name.
 
                 Commands:
                   validate                       Check for probable migration issues
@@ -264,9 +272,10 @@ public class LegacyConfigMigrationCLI {
                       <property value>     Property value to store
 
                 Signer Token PINs Migration:
-                  migration-cli signer-token-pins [<script-path>]
-                    Migrates token PINs from autologin scripts to Vault.
+                  migration-cli signer-token-pins [--node <name>] [<script-path>]
+                    Migrates token PINs from autologin scripts to Vault, under signer/token-pins/<node>/<tokenId>.
                     Arguments:
+                      --node <name>    Node name (default: node_0); an invalid name stops the tool before any write
                       <script-path>    Optional path to fetch-pin script
                                       If not provided, auto-selects:
                                         1. /usr/share/xroad/autologin/custom-fetch-pin.sh (preferred)
@@ -292,6 +301,7 @@ public class LegacyConfigMigrationCLI {
                   migration-cli properties-to-db /etc/xroad/conf.d/local.properties /etc/xroad/db.properties proxy-ui-api
                   migration-cli set-property /etc/xroad/db.properties xroad.proxy.batch-signing-enabled true
                   migration-cli signer-token-pins
+                  migration-cli signer-token-pins --node node_1
                   migration-cli signer-token-pins /usr/share/xroad/autologin/custom-fetch-pin.sh
                 """);
     }
@@ -616,7 +626,7 @@ public class LegacyConfigMigrationCLI {
         new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath);
     }
 
-    private static void migrateSignerTokenPins(String[] args) throws IOException {
+    private static void migrateSignerTokenPins(String[] args, NodeIdentity nodeIdentity) throws IOException {
         // Determine script path
         Path scriptPath;
         if (args.length > 0) {
@@ -635,8 +645,8 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Starting signer token PIN migration from script: {}", scriptPath);
-        var vaultClient = MigrationVaultClient.createAndPreflight();
+        log.info("Starting signer token PIN migration for node {} from script: {}", nodeIdentity.name(), scriptPath);
+        var vaultClient = MigrationVaultClient.createAndPreflight(nodeIdentity);
         var executor = new AutoLoginScriptExecutor();
         var migrator = new TokenPinMigrator(vaultClient, executor);
         var result = migrator.migrateFromScript(scriptPath);

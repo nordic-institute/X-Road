@@ -37,12 +37,6 @@ import java.util.Optional;
 @FunctionalInterface
 public interface NodeNameProvider {
 
-    /** Configuration key that holds the HA node name of a Central Server node. */
-    String HA_NODE_NAME_PROPERTY_KEY = "xroad.admin-service.ha-node-name";
-
-    /** Node name used when {@link #HA_NODE_NAME_PROPERTY_KEY} is blank or missing. */
-    String DEFAULT_NODE_NAME = "node_0";
-
     /** @return the node name, or empty when only shared rows apply */
     Optional<String> nodeName();
 
@@ -52,12 +46,13 @@ public interface NodeNameProvider {
     }
 
     /**
-     * The one rule that turns the configured node name into a provider.
+     * Applies the {@link NodeName} rule to the configured node name.
      * @param configuredName the configured node name, may be {@code null} or blank
-     * @return a provider of the trimmed name, or of {@link #DEFAULT_NODE_NAME} when the name is blank or missing
+     * @return a provider of the name, or of {@link NodeName#DEFAULT_NODE_NAME} when the name is blank or missing
+     * @throws InvalidNodeNameException if the name breaks the rule; the name is never rewritten
      */
     static NodeNameProvider of(String configuredName) {
-        var name = configuredName == null || configuredName.isBlank() ? DEFAULT_NODE_NAME : configuredName.trim();
+        var name = NodeName.resolve(configuredName).name();
         return () -> Optional.of(name);
     }
 }
