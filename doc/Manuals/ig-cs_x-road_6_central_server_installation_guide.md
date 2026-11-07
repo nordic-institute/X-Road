@@ -65,7 +65,7 @@ Doc. ID: IG-CS
 | 30.06.2025 | 2.45    | Update the method of adding X-Road apt repository                                                                                                                                             | Mikk-Erik Bachmann   |
 | 10.09.2026 | 2.46    | Document hardware token configuration via the `xroad.signer.modules` database property                                                                                                       | Ričardas Bučiūnas    |
 | 05.11.2026 | 2.47    | Document per-node property values in `db_property.sh`                                                                                                                                        |                      |
-| 07.11.2026 | 2.48    | Add the `db_property.sh list` command and the node name rule                                                                                                                                 |                      |
+| 07.11.2026 | 2.48    | Add the `db_property.sh list` command and the TLS certificate name keys as per-node example                                                                                                  |                      |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -456,14 +456,14 @@ xroad:
     ha-node-name: node_1
 ```
 
-Example: set a property for `node_1` and read it back:
+Example: give the user interface certificate of `node_1` its own common name, and read it back. The keys `xroad.admin-service.tls.certificate-provisioning.*` and `xroad.management-service.tls.certificate-provisioning.*` set the names of the user interface and the management services certificates:
 
 ```bash
-sudo /usr/share/xroad/scripts/db_property.sh set --yes --node node_1 -- <property-key> <value>
-sudo /usr/share/xroad/scripts/db_property.sh get <property-key> --node node_1
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node node_1 -- xroad.admin-service.tls.certificate-provisioning.common-name cs1.example.org
+sudo /usr/share/xroad/scripts/db_property.sh get xroad.admin-service.tls.certificate-provisioning.common-name --node node_1
 ```
 
-Then restart the service that reads the property on `node_1`.
+The other nodes keep using the shared row of the key, or the name derived from their host when there is no shared row. Then restart the service that reads the property on `node_1`. The certificate names are an exception: they take effect only when the certificate key is created again, see [IG-CS-8](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
 **Migrating from a pre-version-8 `devices.ini`:** versions of X-Road before 8 configured hardware tokens in an INI file at `/etc/xroad/devices.ini`. On X-Road 8 this file is no longer read by the signer — do not create it. When upgrading, `migration-cli signer-devices <devices.ini file> <db.properties file>` converts an existing `devices.ini` into the `xroad.signer.modules` document described above; see the version 8 upgrade guide for details.
 

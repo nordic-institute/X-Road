@@ -202,22 +202,14 @@ Upon the first installation of the Central Server software, the system asks for 
 
 - Whether the database migrations should be skipped and handled manually instead. Usually automatic migrations should be used, but for legacy database support (like BDR1) it's possible to rely on manual operations instead. How to execute the database migrations manually is described in [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually).
 
-- The Common Name of the owner of the user interface self-signed TLS certificate (subjectDN attribute) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.8; 1.10). The name and IP addresses detected from the operating system are suggested as default values. 
-
-  The certificate owner’s Common Name must be entered in the format: `server.domain.tld`. 
-  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
-
-- Common name for the TLS certificate that is used for securing the HTTPS access point used for providing management services (reference data: 1.8; 1.11). The name and IP addresses detected from the operating system are suggested as default values.
-
-  ATTENTION: The Central Server IP address or DNS name that Security Servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.9).
-
-  The certificate owner’s Common Name must be entered in the format: `server.domain.tld`
-  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
-
 - Identification of the TLS certificate that is used for securing the HTTPS access point used for global configuration distribution (reference data: 1.8; 1.12). The name and IP addresses detected from the operating system are suggested as default values.
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+The installation does not ask for the names of the user interface and management services TLS certificates (reference data: 1.10; 1.11). Their names come from the host, see [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
+
+ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, change the certificate names after the installation. Follow the procedure in section [2.6.2](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
 
 #### 2.6.1 Configuring TLS Certificates for global configuration distribution
 
@@ -234,6 +226,67 @@ systemctl reload nginx
 #### 2.6.2 Provisioning TLS Certificates for management services and user interface
 
 TLS certificates for the user interface and management services are automatically provisioned at the applications startup, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).
+
+Each node has its own keys. The user interface key is stored at `xrd-secret/tls/admin-service/<node>` and the management services key at `xrd-secret/tls/management-service/<node>`. `<node>` is the node name, see [2.6.4 Node name](#264-node-name).
+
+The names in the certificates come from the host:
+
+- The common name is the fully qualified host name. It is the short host name when the fully qualified name is longer than 64 characters.
+- The DNS alternative names are the fully qualified and the short host name.
+- The IP alternative names are the server's global-scope addresses. Loopback and link-local addresses are left out.
+
+**Changing the certificate names**
+
+Change the names when Security Servers or users reach the node by another name or address, for example a NAT address or a load balancer name. A service creates its key when it starts and the key is missing. A service reads the names once, when it starts. Changing the names in the configuration database therefore has no effect on a key that already exists. To get a certificate with new names, set the names, delete the key and restart the services that use it.
+
+1. Set the names in the configuration database. For the management services certificate, use the keys `xroad.management-service.tls.certificate-provisioning.*`:
+
+   ```bash
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs.example.org --yes
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs.example.org --yes
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names 203.0.113.10 --yes
+   ```
+
+   For the user interface certificate, use the keys `xroad.admin-service.tls.certificate-provisioning.*`.
+
+   These rows are shared: they apply to every node that has no row of its own for the key. To set a key for one node only, add `--node <node>`, where `<node>` is the node name, see [2.6.4 Node name](#264-node-name). Node rows are for a cluster, where each node can have its own names:
+
+   ```bash
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs-1.example.org --node node_1 --yes
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs-1.example.org,cs.example.org --node node_1 --yes
+   ```
+
+   Each node resolves every key on its own, in this order: the row of the node, the shared row, the name derived from the host. A node can therefore use its own common name together with the shared alternative names.
+
+   For node 2 and later of a cluster, the rows can be set from an existing node before the new node is installed, because the configuration database already exists. The new node reads the rows when it creates its key at the first start.
+
+   To check the rows, run `db_property.sh get <key>` for the shared row and `db_property.sh get <key> --node <node>` for the row of a node. `db_property.sh list --node <node>` shows all rows of a node. To make a node use the shared row again, run `db_property.sh remove <key> --node <node>`.
+
+2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
+
+   ```bash
+   export BAO_ADDR=https://127.0.0.1:8200
+   export BAO_TOKEN=$(sudo cat /etc/openbao/root-token)
+   bao kv delete xrd-secret/tls/management-service/<node>
+   ```
+
+   For the user interface certificate, delete `xrd-secret/tls/admin-service/<node>` instead.
+
+3. Restart the services that use the key. The first service in each list creates the new key, so start it first:
+
+   - Management services certificate: `xroad-center-management-service`, then `xroad-center-registration-service`. The user interface service `xroad-center` reads this key whenever it needs it and does not need a restart.
+   - User interface certificate: `xroad-center`, then `xroad-center-management-service` and `xroad-center-registration-service`. The two services connect to `xroad-center` and trust its certificate from the key.
+
+   Example for the management services certificate:
+
+   ```bash
+   sudo systemctl restart xroad-center-management-service
+   sudo systemctl restart xroad-center-registration-service
+   ```
+
+4. Check the new certificate. For the user interface certificate, open the user interface in a Web browser and view the certificate. For the management services certificate, see [UG-CS](#Ref_UG-CS) section "Registration and Management Service TLS certificate".
+
+After a new management services certificate is created, the management services' Security Server must trust it. Add it as an internal TLS certificate on that Security Server, see [UG-SS](#Ref_UG-SS) section "Managing Information System TLS Certificates".
 
 #### 2.6.3 Provisioning TLS Certificates for gRPC services
 
@@ -258,7 +311,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
   - The first character must be a letter or a digit.
   - Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected by the installer and by the backup and restore scripts, with or without quotes. The services read `local.yaml` through a YAML loader, which converts an unquoted value before the services check it: for example `0123` becomes `83`, which the services accept but the scripts reject. In `local.yaml`, write the name in quotes when in doubt. An unquoted `null` or `~` means that the name is not set.
 - What it selects:
-  - The node's signer token PINs in the secret store.
+  - The node's keys in the secret store.
   - The node's configuration rows: a row set with `db_property.sh --node <node>` applies only to the node with that name, and only while the node has that name. See [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md#28-installing-the-support-for-hardware-tokens) section 2.8, "Per-node values".
 - If the name is not set:
   - The services use the name `node_0` in secret store paths.
