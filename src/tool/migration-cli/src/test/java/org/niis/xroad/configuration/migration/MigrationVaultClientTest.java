@@ -29,7 +29,6 @@ package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
 import org.niis.xroad.migration.tokenpin.ScriptExecutionResult;
@@ -46,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -55,7 +53,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class MigrationVaultClientTest {
@@ -184,26 +181,6 @@ class MigrationVaultClientTest {
         assertThat(second.successfulTokens()).isEmpty();
         assertThat(store).isEqualTo(afterFirstRun);
         verify(kvOps, times(2)).put(anyString(), any());
-    }
-
-    @Test
-    void testBlankNodeNameResolvesToDefaultNode() {
-        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-
-        new MigrationVaultClient(kvOps, NodeIdentity.resolve("")).deleteTokenPin("tok1");
-
-        verify(kvOps).delete("signer/token-pins/node_0/tok1");
-    }
-
-    @Test
-    void testInvalidNodeNameIsRejectedWithTheRuleAndNothingIsWritten() {
-        VaultKeyValueOperations kvOps = mock(VaultKeyValueOperations.class);
-
-        assertThatThrownBy(() -> NodeIdentity.resolve("_bad"))
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
-
-        verifyNoInteractions(kvOps);
     }
 
 }

@@ -15,4 +15,5 @@ dependencies {
     api(libs.commons.fileupload)
 
     testImplementation(libs.assertj.core)
+    testImplementation(libs.springBoot.starterTest)
 }
