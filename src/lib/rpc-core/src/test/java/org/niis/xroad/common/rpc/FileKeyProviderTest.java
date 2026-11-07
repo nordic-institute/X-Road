@@ -154,7 +154,7 @@ class FileKeyProviderTest {
         var provider = providerFor(Path.of(""), certificatePath, trustedCaPath);
         assertThatThrownBy(provider::init)
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("file-identity.private-key-path is not set");
+                .hasMessageContaining("xroad.op-monitor.rpc.file-identity.private-key-path is not set");
     }
 
     @Test

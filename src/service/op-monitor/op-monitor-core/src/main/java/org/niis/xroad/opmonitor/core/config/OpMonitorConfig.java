@@ -37,7 +37,6 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.rpc.XRoadRpcProperties;
 
 public class OpMonitorConfig {
 
@@ -60,7 +59,7 @@ public class OpMonitorConfig {
 
     @ApplicationScoped
     RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
-        return new XRoadRpcProperties(xRoadConfig);
+        return new OpMonitorRpcProperties(xRoadConfig);
     }
 
     @ApplicationScoped

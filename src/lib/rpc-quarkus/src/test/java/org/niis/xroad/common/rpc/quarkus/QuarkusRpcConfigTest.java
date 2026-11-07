@@ -164,7 +164,9 @@ class QuarkusRpcConfigTest {
         for (var token : List.of(NO_TOKEN, Optional.of(""), Optional.of("  "))) {
             assertThatThrownBy(() -> produce(token))
                     .isInstanceOf(XrdRuntimeException.class)
-                    .hasMessageContaining("OpenBao token");
+                    .hasMessageContaining("OpenBao token")
+                    .hasMessageContaining("XROAD_SECRET_STORE_TOKEN")
+                    .hasMessageNotContaining("identity-source");
         }
         verifyNoInteractions(pkiFactory);
     }

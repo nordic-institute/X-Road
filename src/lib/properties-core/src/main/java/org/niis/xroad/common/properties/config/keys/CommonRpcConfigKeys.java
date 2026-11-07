@@ -36,7 +36,6 @@ import java.time.Duration;
 import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
-import static org.niis.xroad.common.properties.config.Validator.oneOfIgnoreCase;
 import static org.niis.xroad.common.properties.config.Validator.range;
 
 /** Common-RPC keys ({@code xroad.common-rpc.*}): root props, cert-provisioning, and channel sub-trees. */
@@ -44,7 +43,6 @@ import static org.niis.xroad.common.properties.config.Validator.range;
 public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     private static final Prefix ROOT = Prefix.of(Category.COMMON, "xroad.common-rpc");
-    private static final Prefix FILE_IDENTITY = ROOT.subPrefix("file-identity");
     private static final Prefix CERT_PROVISIONING = ROOT.subPrefix("certificate-provisioning");
     private static final Prefix CHANNEL = ROOT.subPrefix("channel");
     private static final Prefix CHANNEL_SIGNER = CHANNEL.subPrefix("signer");
@@ -74,33 +72,6 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .bool("use-tls")
             .withDefaultValue(true)
             .exposedInUi()
-            .build();
-
-    /** {@code xroad.common-rpc.identity-source}: {@code openbao} or {@code file}. */
-    public static final ConfigKey<String> IDENTITY_SOURCE = ROOT
-            .string("identity-source")
-            .withDefaultValue("openbao")
-            .withValidator(oneOfIgnoreCase("openbao", "file"))
-            .build();
-
-    // --- file-identity ---
-
-    /** {@code xroad.common-rpc.file-identity.private-key-path}. */
-    public static final ConfigKey<String> FILE_IDENTITY_PRIVATE_KEY_PATH = FILE_IDENTITY
-            .string("private-key-path")
-            .withDefaultValue("")
-            .build();
-
-    /** {@code xroad.common-rpc.file-identity.certificate-path}. */
-    public static final ConfigKey<String> FILE_IDENTITY_CERTIFICATE_PATH = FILE_IDENTITY
-            .string("certificate-path")
-            .withDefaultValue("")
-            .build();
-
-    /** {@code xroad.common-rpc.file-identity.trusted-ca-path}. */
-    public static final ConfigKey<String> FILE_IDENTITY_TRUSTED_CA_PATH = FILE_IDENTITY
-            .string("trusted-ca-path")
-            .withDefaultValue("")
             .build();
 
     // --- certificate-provisioning ---

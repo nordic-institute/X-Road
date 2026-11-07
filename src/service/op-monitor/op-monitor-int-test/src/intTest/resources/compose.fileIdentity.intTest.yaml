@@ -88,10 +88,10 @@ services:
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
           "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
              ('xroad.common-rpc.use-tls', 'true', now(), now()),
-             ('xroad.common-rpc.identity-source', 'file', now(), now()),
-             ('xroad.common-rpc.file-identity.private-key-path', '/identity/server.key', now(), now()),
-             ('xroad.common-rpc.file-identity.certificate-path', '/identity/server.crt', now(), now()),
-             ('xroad.common-rpc.file-identity.trusted-ca-path', '/identity/trusted-ca.crt', now(), now()),
+             ('xroad.op-monitor.rpc.identity-source', 'file', now(), now()),
+             ('xroad.op-monitor.rpc.file-identity.private-key-path', '/identity/server.key', now(), now()),
+             ('xroad.op-monitor.rpc.file-identity.certificate-path', '/identity/server.crt', now(), now()),
+             ('xroad.op-monitor.rpc.file-identity.trusted-ca-path', '/identity/trusted-ca.crt', now(), now()),
              ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now())
            ON CONFLICT DO NOTHING;"
     depends_on:

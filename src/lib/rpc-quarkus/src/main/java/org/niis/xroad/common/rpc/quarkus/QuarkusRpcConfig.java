@@ -72,8 +72,7 @@ public class QuarkusRpcConfig extends RpcConfig {
     private static void requireOpenBaoToken(Optional<String> openBaoToken) {
         if (openBaoToken.filter(token -> !token.isBlank()).isEmpty()) {
             throw XrdRuntimeException.systemInternalError(
-                    "The OpenBao token is missing or blank. Set XROAD_SECRET_STORE_TOKEN, "
-                            + "or set xroad.common-rpc.identity-source to file");
+                    "The OpenBao token is missing or blank. Set XROAD_SECRET_STORE_TOKEN");
         }
     }
 

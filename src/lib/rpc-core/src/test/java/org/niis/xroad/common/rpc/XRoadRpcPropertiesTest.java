@@ -29,8 +29,8 @@ package org.niis.xroad.common.rpc;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 
-import java.nio.file.Path;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,32 +38,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 class XRoadRpcPropertiesTest {
 
     @Test
-    void unsetIdentitySourceResolvesToOpenbao() {
-        assertThat(properties(Map.of()).identitySource()).isEqualTo(RpcProperties.IdentitySource.OPENBAO);
+    void identityIsOpenbaoWithoutFileIdentityByDefault() {
+        var properties = properties(Map.of());
+
+        assertThat(properties.identitySource()).isEqualTo(RpcProperties.IdentitySource.OPENBAO);
+        assertThat(properties.fileIdentity()).isEqualTo(RpcProperties.FileIdentity.UNSET);
     }
 
     @Test
-    void identitySourceFileResolvesInAnyCase() {
-        assertThat(properties(Map.of("xroad.common-rpc.identity-source", "file")).identitySource())
-                .isEqualTo(RpcProperties.IdentitySource.FILE);
-        assertThat(properties(Map.of("xroad.common-rpc.identity-source", "FILE")).identitySource())
-                .isEqualTo(RpcProperties.IdentitySource.FILE);
-    }
-
-    @Test
-    void fileIdentityPathsAreReadFromTheirKeys() {
+    void opMonitorIdentityKeysHaveNoEffectOnTheSharedProperties() {
         var properties = properties(Map.of(
-                "xroad.common-rpc.file-identity.private-key-path", "/id/server.key",
-                "xroad.common-rpc.file-identity.certificate-path", "/id/server.crt",
-                "xroad.common-rpc.file-identity.trusted-ca-path", "/id/trusted-ca.crt"));
+                "xroad.op-monitor.rpc.identity-source", "file",
+                "xroad.op-monitor.rpc.file-identity.private-key-path", "/id/server.key",
+                "xroad.op-monitor.rpc.file-identity.certificate-path", "/id/server.crt",
+                "xroad.op-monitor.rpc.file-identity.trusted-ca-path", "/id/trusted-ca.crt"));
 
-        assertThat(properties.fileIdentity()).isEqualTo(new RpcProperties.FileIdentity(
-                Path.of("/id/server.key"), Path.of("/id/server.crt"), Path.of("/id/trusted-ca.crt")));
+        assertThat(properties.identitySource()).isEqualTo(RpcProperties.IdentitySource.OPENBAO);
+        assertThat(properties.fileIdentity()).isEqualTo(RpcProperties.FileIdentity.UNSET);
     }
 
     private static XRoadRpcProperties properties(Map<String, String> overrides) {
         return new XRoadRpcProperties(XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
+                .register(OpMonitorConfigKeys.instance())
                 .overrides(overrides)
                 .build());
     }

@@ -34,9 +34,13 @@ import java.time.Duration;
 public interface RpcProperties {
     boolean useTls();
 
-    IdentitySource identitySource();
+    default IdentitySource identitySource() {
+        return IdentitySource.OPENBAO;
+    }
 
-    FileIdentity fileIdentity();
+    default FileIdentity fileIdentity() {
+        return FileIdentity.UNSET;
+    }
 
     RpcCertificateProvisioningProperties certificateProvisioning();
 
@@ -53,5 +57,6 @@ public interface RpcProperties {
     }
 
     record FileIdentity(Path privateKeyPath, Path certificatePath, Path trustedCaPath) {
+        public static final FileIdentity UNSET = new FileIdentity(Path.of(""), Path.of(""), Path.of(""));
     }
 }

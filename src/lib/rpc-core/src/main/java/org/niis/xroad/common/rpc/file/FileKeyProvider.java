@@ -138,7 +138,7 @@ public class FileKeyProvider implements VaultKeyProvider {
     private static Path requireSet(Path path, String settingName) {
         if (path == null || path.toString().isEmpty()) {
             throw XrdRuntimeException.systemInternalError(
-                    "Invalid file-based RPC identity: xroad.common-rpc.file-identity.%s is not set".formatted(settingName));
+                    "Invalid file-based RPC identity: xroad.op-monitor.rpc.file-identity.%s is not set".formatted(settingName));
         }
         return path;
     }
