@@ -502,7 +502,7 @@ Proxy data-plane flow lifecycle state, shared by every proxy node of a clustered
 
 On the first `prepare` or `start` signal, one row is created. The flow's process ID is stored in `flow_id`, and `state` is set to `PROVISIONED` for `prepare` or `STARTED` for `start`. Later lifecycle calls for the same flow update the same row: `started` sets the state to `STARTED`, `suspend` to `SUSPENDED`, `terminate` to `TERMINATED`, and `completed` to `COMPLETED`. A second row is never created for the same `flow_id`.
 
-**Retention.** `TERMINATED` and `COMPLETED` rows are retained, and the table currently has no automatic cleanup or expiration. The state of a completed flow is no longer needed for functional flow handling, but remains available for debugging through the flow-state endpoint.
+**Retention.** The control plane's DSP record cleaner deletes `TERMINATED` and `COMPLETED` rows once they have not been updated for the configured age (`xroad.dsp-record-cleaner.age`, default `PT6H`, must exceed `PT1H10M`). Until then the state of a finished flow remains available for debugging through the flow-state endpoint.
 
 #### 2.19.1 Indexes
 
@@ -510,6 +510,7 @@ On the first `prepare` or `start` signal, one row is created. The flow's process
 |:---------------------------------------|:-------:|
 | dataflow_state_pkey                    |   id    |
 | uniq_dataflow_state_flow_id (unique)   | flow_id |
+| idx_dataflow_state_state_updated_at    | state, updated_at |
 
 #### 2.19.2 Attributes
 
