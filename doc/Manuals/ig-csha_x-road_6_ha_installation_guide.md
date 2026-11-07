@@ -180,7 +180,10 @@ The database can also be installed on the Central Server node(s), but that is no
 
 In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
 
-1.  On each node, edit file `/etc/xroad/conf.d/local.yaml`, creating it if necessary
+1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/local.yaml` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
+    ```bash
+    sudo mkdir -p /etc/xroad/conf.d
+    ```
 2.  Add the following lines
     ```yaml
     xroad:
@@ -230,7 +233,7 @@ The node name must follow this rule:
 
 - Use 1 to 63 characters: letters, digits, `_` and `-`.
 - The first character must be a letter or a digit.
-- Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected with or without quotes. An unquoted `null` or `~` means that the name is not set.
+- Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected by the installation and by the backup and restore scripts, with or without quotes. The services read `local.yaml` through a YAML loader, which converts an unquoted value before the services check it: for example `0123` becomes `83`, which the services accept but the scripts reject. In `local.yaml`, write the name in quotes when in doubt. An unquoted `null` or `~` means that the name is not set.
 
 The installation and the backup and restore scripts check the name with this rule. The services check it when they start. In containers, set the name with the environment variable `XROAD_ADMIN_SERVICE_HA_NODE_NAME`.
 

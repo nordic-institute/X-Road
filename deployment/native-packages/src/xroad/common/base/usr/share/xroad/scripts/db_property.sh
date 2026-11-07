@@ -29,12 +29,14 @@ set -euo pipefail
 readonly LOG_TAG="db_property"
 readonly CS_MARKER="/etc/xroad/services/centralserver-admin-service.conf"
 
-# shellcheck source=_node_name.sh
-source /usr/share/xroad/scripts/_node_name.sh
-
 log()       { echo "$(date -Iseconds) ${LOG_TAG}: $*" >&2; }
 log_error() { echo "$(date -Iseconds) ${LOG_TAG} ERROR: $*" >&2; }
 die()       { log_error "$*"; exit 2; }
+
+readonly NODE_NAME_HELPER="/usr/share/xroad/scripts/_node_name.sh"
+[ -f "$NODE_NAME_HELPER" ] || die "Node name helper $NODE_NAME_HELPER not found"
+# shellcheck source=_node_name.sh
+source "$NODE_NAME_HELPER" || die "Cannot load node name helper $NODE_NAME_HELPER"
 
 usage() {
   cat >&2 <<EOF
