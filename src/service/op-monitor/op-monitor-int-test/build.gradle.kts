@@ -33,6 +33,10 @@ intTestShadowJar {
   mainClass("org.niis.xroad.opmonitor.test.ConsoleIntTestRunner")
 }
 
+val identityScript = rootProject.file(
+  "../deployment/native-packages/src/xroad/common/op-monitor/usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh"
+)
+
 tasks.register<Test>("intTest") {
   dependsOn(":service:op-monitor:op-monitor-application:quarkusBuild")
   dependsOn(provider { tasks.named("generateIntTestEnv") })
@@ -46,6 +50,9 @@ tasks.register<Test>("intTest") {
   classpath = sourceSets["intTest"].runtimeClasspath
 
   include("**/*IntTest.class")
+
+  inputs.file(identityScript)
+  systemProperty("xroad.opmonitor.identityScript", identityScript.absolutePath)
 
   testLogging {
     showStackTraces = true
