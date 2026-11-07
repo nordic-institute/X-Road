@@ -10,6 +10,8 @@
 #  - each node uses the database write address and carries its own HA node name, distinct from the others;
 #  - a node that is not expected to stop reports its HA node name through the admin API,
 #    a node that is expected to stop at OpenBao database creation did stop there;
+#  - on every node whose admin service runs, OpenBao holds tls/admin-service/<node> and
+#    tls/management-service/<node> and no shared tls/admin-service or tls/management-service secret;
 #  - the cluster name resolves to the load balancer and, through it, the Issuer Service ports serve the
 #    first node's certificate carrying the cluster name, and port 80 answers HTTP.
 # CHECK_PATRONI_WAIT and CHECK_CS_WRITE_WAIT (seconds) bound the Patroni wait and the admin API retries.
@@ -73,6 +75,20 @@ case "$status" in
   *) echo "the change was answered with HTTP $status"; exit 1 ;;
 esac
 call "$api" | grep -Eq "\"description\" *: *\"$2\"" || { echo "the new description is not read back"; exit 1; }
+EOF
+
+# Prints "<secret path> <HTTP status>" for the node's own and the shared TLS secret of each service. The root token
+# is read on the node and sent from standard input to curl, so it appears in no argument list, and no response body
+# is printed.
+IFS= read -r -d '' OPENBAO_TLS_STATUS_SCRIPT <<'EOF' || true
+status_of() {
+  printf 'X-Vault-Token: %s\n' "$(cat /etc/openbao/root-token)" \
+    | curl -sk -m 20 -o /dev/null -w '%{http_code}' -H @- "https://127.0.0.1:8200/v1/xrd-secret/$1"
+}
+for service in admin-service management-service; do
+  echo "tls/$service/$1 $(status_of "tls/$service/$1")"
+  echo "tls/$service $(status_of "tls/$service")"
+done
 EOF
 
 admin_api_status() {
@@ -296,7 +312,7 @@ for node in $nodes; do
     fail "$node database host is '$configured_host', expected the write address $db_host"
   fi
 
-  configured_name=$(host_exec "$node" sed -n 's/^ *ha-node-name: *//p' /etc/xroad/conf.d/local.yaml 2>/dev/null)
+  configured_name=$(host_exec "$node" /usr/share/xroad/scripts/yaml_helper.sh get /etc/xroad/conf.d/local.yaml xroad.admin-service.ha-node-name 2>/dev/null)
   node_names+=("$configured_name")
   if [[ -n "$expected_name" && "$configured_name" == "$expected_name" ]]; then
     pass "$node local.yaml carries HA node name $configured_name"
@@ -325,6 +341,27 @@ for node in $nodes; do
     else
       fail "$node admin API reports is_ha_configured=$ha_configured node_name=$node_name, expected node_name=$expected_name"
     fi
+  fi
+
+  if host_state_is "$node" RUNNING && host_exec "$node" systemctl is-active --quiet xroad-center; then
+    openbao_tls=$(host_exec "$node" bash -c "$OPENBAO_TLS_STATUS_SCRIPT" bash "$expected_name" 2>/dev/null)
+    for service in admin-service management-service; do
+      node_secret="tls/$service/$expected_name"
+      node_secret_status=$(awk -v key="$node_secret" '$1 == key {print $2}' <<<"$openbao_tls")
+      plain_secret_status=$(awk -v key="tls/$service" '$1 == key {print $2}' <<<"$openbao_tls")
+      if [[ "$node_secret_status" == "200" ]]; then
+        pass "$node OpenBao holds $node_secret"
+      else
+        fail "$node OpenBao does not hold $node_secret (HTTP '$node_secret_status')"
+      fi
+      case "$plain_secret_status" in
+        404) pass "$node OpenBao holds no shared tls/$service secret" ;;
+        200) fail "$node OpenBao holds the shared tls/$service secret" ;;
+        *) fail "cannot tell whether $node OpenBao holds the shared tls/$service secret (HTTP '$plain_secret_status')" ;;
+      esac
+    done
+  else
+    echo "INFO: skipping the OpenBao TLS path check on $node: its admin service is not running"
   fi
 done
 

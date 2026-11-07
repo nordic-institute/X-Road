@@ -47,6 +47,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedOutputStream;
@@ -74,6 +75,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_WRI
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CSR_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_KEY_NOT_FOUND;
+import static org.niis.xroad.cs.admin.core.config.BootstrapConfiguration.MANAGEMENT_SERVICE_VAULT_KEY_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 
 @Service
@@ -87,6 +89,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
     private static final String CERT_CER_FILENAME = "./" + MANAGEMENT_SERVICE + ".cer";
 
     private final VaultClient vaultClient;
+    @Qualifier(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
     private final VaultKeyClient vaultKeyClient;
     private final CertificateConverter certificateConverter;
     private final AuditDataHelper auditDataHelper;

@@ -35,17 +35,14 @@ import org.springframework.boot.ssl.SslBundleRegistry;
 import org.springframework.boot.ssl.SslStoreBundle;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 
 @Slf4j
 public abstract class AbstractManagementServiceSslBundleRegistrar implements SslBundleRegistrar {
     public static final String BUNDLE_NAME = "management-service";
 
-    protected abstract InternalSSLKey resolveTlsCredentials() throws IOException, CertificateException,
-            NoSuchAlgorithmException, InvalidKeySpecException;
+    protected abstract InternalSSLKey resolveTlsCredentials() throws IOException, GeneralSecurityException;
 
     @Override
     public final void registerBundles(SslBundleRegistry registry) {
