@@ -247,9 +247,22 @@ Change the names when Security Servers or users reach the node by another name o
    sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names 203.0.113.10 --yes
    ```
 
-   For the user interface certificate, use the keys `xroad.admin-service.tls.certificate-provisioning.*`. The rows apply to all nodes that share the configuration database.
+   For the user interface certificate, use the keys `xroad.admin-service.tls.certificate-provisioning.*`.
 
-2. Delete the key of the certificate. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
+   These rows are shared: they apply to every node that has no row of its own for the key. To set a key for one node only, add `--node <node>`, where `<node>` is the node name, see [2.6.4 Node name](#264-node-name). Node rows are for a cluster, where each node can have its own names:
+
+   ```bash
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs-1.example.org --node node_1 --yes
+   sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs-1.example.org,cs.example.org --node node_1 --yes
+   ```
+
+   Each node resolves every key on its own, in this order: the row of the node, the shared row, the name derived from the host. A node can therefore use its own common name together with the shared alternative names.
+
+   For node 2 and later of a cluster, the rows can be set from an existing node before the new node is installed, because the configuration database already exists. The new node reads the rows when it creates its key at the first start.
+
+   To check the rows, run `db_property.sh get <key>` for the shared row and `db_property.sh get <key> --node <node>` for the row of a node. `db_property.sh list --node <node>` shows all rows of a node. To make a node use the shared row again, run `db_property.sh remove <key> --node <node>`.
+
+2. Delete the key of the certificate. Do this and the next step on each node whose names changed: after a change of a shared row, that is every node without a row of its own for the key. The commands use the OpenBao command line tool `bao`. With the local secret store, the address is `https://127.0.0.1:8200` and the token is in `/etc/openbao/root-token`. If `bao` does not trust the secret store certificate, set `BAO_CACERT` to the CA certificate file. Replace `<node>` with the node name, `node_0` when the name is not set:
 
    ```bash
    export BAO_ADDR=https://127.0.0.1:8200
@@ -297,11 +310,14 @@ A standalone Central Server does not need a node name. Set one on every node of 
   - Use 1 to 63 characters: letters, digits, `_` and `-`.
   - The first character must be a letter or a digit.
   - Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected with or without quotes. An unquoted `null` or `~` means that the name is not set.
+- What it selects:
+  - The node's keys in the secret store.
+  - The node's configuration rows: a row set with `db_property.sh --node <node>` applies only to the node with that name, and only while the node has that name. See [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md#28-installing-the-support-for-hardware-tokens) section 2.8, "Per-node values".
 - If the name is not set:
   - The services use the name `node_0` in secret store paths.
   - Backup archive names have no node name suffix.
 - The installer and the backup and restore scripts check the name with the same rule as the services. The installation stops with a message that names the rule when the name is not valid.
-- Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node.
+- Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
 
 ### 2.7 Pre-configuration for Registration Web Service
 

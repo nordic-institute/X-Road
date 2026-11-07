@@ -201,7 +201,20 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 **TLS certificate names.** The installation does not ask for the names of the admin and management service TLS certificates. Each node's certificates carry its own host name.
 
-To use one shared name instead, for example a load balancer name, change the certificate names as described in [IG-CS section 2.6.2](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface). The names are rows in the shared configuration database, so one change applies to all nodes. Delete the key of each node and restart the services of that node. For a load balancer name, the rows for the management service certificate are:
+To use other names, for example a load balancer name, change the certificate names as described in [IG-CS section 2.6.2](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface). The names are rows in the shared configuration database. A row can be set for one node with `--node <node>` or for all nodes without it. A node uses its own row first, then the shared row, then the name derived from its host. After a change, delete the key of each affected node and restart the services of that node.
+
+To give each node its own host name and the load balancer name, set the rows of each node. The rows of node 2 and later can be set from the first node before the new node is installed, because the configuration database already exists. For the management service certificate, the rows are, for `node_1` and `node_2`:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs1.example.org --node node_1 --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs1.example.org,cs.example.org --node node_1 --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs2.example.org --node node_2 --yes
+sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.alt-names cs2.example.org,cs.example.org --node node_2 --yes
+```
+
+The IP alternative names are not set here, so each node uses its own addresses. To check the rows of a node, run `db_property.sh list --node <node>`.
+
+To use one shared name on all nodes instead, set the shared rows. A shared row applies to every node that has no row of its own for the key. For a load balancer name, the rows for the management service certificate are:
 
 ```bash
 sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.certificate-provisioning.common-name cs.example.org --yes
@@ -235,10 +248,21 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
     bao kv delete xrd-secret/tls/management-service/<old_node_name>
     ```
     Run the second command for each token ID that the first command lists. Do not delete the entries of the other nodes.
-4.  Remove the node from the cluster: uninstall the Central Server packages from it.
-5.  On the node, set the new name in `/etc/xroad/conf.d/local.yaml` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
+4.  Move the configuration rows of the old name to the new name. Rows set with `db_property.sh --node <old_node_name>`, for example per-node TLS certificate names, no longer apply to the node under its new name. They stay in the configuration database until they are removed. Run the commands on any Central Server node. Replace `<old_node_name>` and `<new_node_name>` with the old and the new name. List the rows of the old name:
+    ```bash
+    sudo /usr/share/xroad/scripts/db_property.sh list --node <old_node_name>
+    ```
+    Each line shows a key, a tab and the value. For each row, set the same value for the new name and then remove the row of the old name:
+    ```bash
+    sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <new_node_name> -- <key> '<value>' && \
+      sudo /usr/share/xroad/scripts/db_property.sh remove --yes --node <old_node_name> <key>
+    ```
+    Keep the single quotes around the value: without them, the shell changes values that contain spaces, braces, commas or quotes, such as JSON values, and `set` fails or stores a different value. Write a single quote inside the value as `'\''`. The `&&` runs `remove` only when `set` succeeded. After each row, check the new row with `sudo /usr/share/xroad/scripts/db_property.sh get --node <new_node_name> <key>`; it must print the same value as the `list` output.
+    Run `list --node <old_node_name>` again to check that no row is left. Shared rows are not affected.
+5.  Remove the node from the cluster: uninstall the Central Server packages from it.
+6.  On the node, set the new name in `/etc/xroad/conf.d/local.yaml` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
 
-These steps do not change the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
+These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
 
 ## 5 Monitoring HA State on a Node
 
