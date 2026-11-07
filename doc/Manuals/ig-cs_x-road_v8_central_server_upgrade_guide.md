@@ -198,11 +198,16 @@ XROAD_MIGRATION_SOFTTOKEN_PIN='<pin>' \
   java -jar /var/tmp/migration-cli.jar keyconf /etc/xroad/signer /etc/xroad/db.properties
 
 # signer-token-pins — only if xroad-autologin is installed
+# <node> is the node name described below; --node may be left out only for node_0
 if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
    || [ -f /usr/share/xroad/autologin/default-fetch-pin.sh ]; then
-  java -jar /var/tmp/migration-cli.jar signer-token-pins
+  java -jar /var/tmp/migration-cli.jar signer-token-pins --node <node>
 fi
 ```
+
+`<node>` is the name of this Central Server node. Read it from `xroad.admin-service.ha-node-name` in `/etc/xroad/conf.d/local.yaml`. If the property is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long.
+
+With `--node <node>`, the PINs are stored in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 
 **Treat any Java stack trace as a failure even if the process exits 0** — do not proceed if a step printed an exception. The migration-CLI scans for `Error `, `Caused by:`, `Exception in `, and `<Class>Exception:` patterns when run from the Security Server wizard, so the same patterns are reliable signals here.
 
