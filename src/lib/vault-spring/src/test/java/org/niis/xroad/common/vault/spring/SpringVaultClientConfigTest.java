@@ -29,6 +29,7 @@ package org.niis.xroad.common.vault.spring;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
 import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.core.env.StandardEnvironment;
@@ -117,8 +118,9 @@ class SpringVaultClientConfigTest {
         contextRunner.withUserConfiguration(NodeIdentityConfig.class)
                 .withPropertyValues("xroad.admin-service.ha-node-name=true")
                 .run(context -> assertThat(context).hasFailed().getFailure()
+                        .hasStackTraceContaining(XrdRuntimeException.class.getName())
                         .rootCause()
-                        .isInstanceOf(XrdRuntimeException.class)
+                        .isInstanceOf(InvalidNodeNameException.class)
                         .hasMessageContaining(NodeName.PROPERTY_KEY));
     }
 }

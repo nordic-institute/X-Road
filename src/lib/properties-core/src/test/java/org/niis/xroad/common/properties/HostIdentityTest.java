@@ -27,7 +27,12 @@
 
 package org.niis.xroad.common.properties;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -116,6 +121,27 @@ class HostIdentityTest {
         assertThat(identity.ipAddresses()).isEmpty();
     }
 
+    @Test
+    void logsOneWarningNamingTheCauseWhenDetectionFails() {
+        var logger = (Logger) LoggerFactory.getLogger(HostIdentity.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            HostIdentity.detectOrFallback(() -> {
+                throw new IllegalStateException("detection failed");
+            });
+        } finally {
+            logger.detachAppender(appender);
+        }
+        assertThat(appender.list)
+                .filteredOn(event -> event.getFormattedMessage().contains("IllegalStateException: detection failed"))
+                .singleElement()
+                .satisfies(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                    assertThat(event.getFormattedMessage()).contains("localhost");
+                });
+    }
     private static InetAddress address(String literal) throws UnknownHostException {
         return InetAddress.getByName(literal);
     }

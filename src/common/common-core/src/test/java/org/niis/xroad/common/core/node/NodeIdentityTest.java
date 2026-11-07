@@ -24,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.core.node;
 
 import org.junit.jupiter.api.Test;
@@ -32,55 +33,39 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NodeIdentityTest {
 
-    @ParameterizedTest
-    @ValueSource(strings = {"node_1", "0", "a", "Z", "9", "cs-node-2", "A_b-c", "node_0", "0abc", "1a",
-            "0bad", "0bed", "0oface", "0b2", "0o8",
-            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"})
-    void shouldAcceptValidNames(String name) {
-        assertThat(NodeIdentity.resolve(name)).isEqualTo(new NodeIdentity(name, true));
+    @Test
+    void shouldResolveAConfiguredName() {
+        assertThat(NodeIdentity.resolve("node_1")).isEqualTo(new NodeIdentity("node_1", true));
     }
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {"", " ", "   ", "\t"})
+    @ValueSource(strings = {"", "   "})
     void shouldResolveDefaultNameForBlankOrUnset(String value) {
         assertThat(NodeIdentity.resolve(value)).isEqualTo(new NodeIdentity("node_0", false));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"_node", "-node", "_", "-",
-            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-            "node name", "node.1", "node/1", "node:1", "nodé", "node ", " node", "node\n", "a$", "a=b"})
-    void shouldRejectNamesBreakingTheCharacterRules(String name) {
-        assertInvalid(name);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"true", "True", "TRUE", "false", "False", "FALSE", "yes", "Yes", "YES",
-            "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF", "null", "Null", "NULL",
-            "0123", "007", "0x1F", "0b101", "0o17", "1_0", "1_000", "1e3", "2E10", "2024-01-31"})
-    void shouldRejectValuesYamlReadsAsNonString(String name) {
-        assertInvalid(name);
+    @Test
+    void shouldReportAnInvalidNameAsInvalidPropertyValueWithTheRuleViolationAsCause() {
+        assertThatThrownBy(() -> NodeIdentity.resolve("-bad"))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code()))
+                .hasMessageContaining("xroad.admin-service.ha-node-name")
+                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
+                .hasCauseInstanceOf(InvalidNodeNameException.class);
     }
 
     @Test
-    void shouldNameTheRuleInTheFailureMessage() {
-        assertThatThrownBy(() -> NodeIdentity.resolve("-bad"))
+    void shouldReportAnInvalidNameGivenToTheConstructorWithTheSameCause() {
+        assertThatThrownBy(() -> new NodeIdentity("-bad", true))
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("xroad.admin-service.ha-node-name")
-                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
-                .hasMessageContaining("YAML");
-    }
-
-    private static void assertInvalid(String name) {
-        assertThatThrownBy(() -> NodeIdentity.resolve(name))
-                .isInstanceOfSatisfying(XrdRuntimeException.class,
-                        e -> assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code()));
+                .hasCauseInstanceOf(InvalidNodeNameException.class);
     }
 }

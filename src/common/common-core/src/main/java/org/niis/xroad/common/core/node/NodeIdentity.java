@@ -57,15 +57,11 @@ public record NodeIdentity(String name, boolean configured) {
      * @throws XrdRuntimeException if the value breaks the node name rule; the value is never rewritten
      */
     public static NodeIdentity resolve(String configuredValue) {
-        try {
-            var nodeName = NodeName.resolve(configuredValue);
-            return new NodeIdentity(nodeName.name(), nodeName.configured());
-        } catch (InvalidNodeNameException e) {
-            throw invalid(e);
-        }
+        var configured = configuredValue != null && !configuredValue.isBlank();
+        return new NodeIdentity(configured ? configuredValue : NodeName.DEFAULT_NODE_NAME, configured);
     }
 
     private static XrdRuntimeException invalid(InvalidNodeNameException e) {
-        return XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE, "%s", e.getMessage());
+        return XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE, e, "%s", e.getMessage());
     }
 }

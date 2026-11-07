@@ -250,6 +250,10 @@ public abstract sealed class Prefix {
         }
 
         @Override
+        public boolean hasLazyDefault() {
+            return lazyDefaultValue != null;
+        }
+        @Override
         public T convertedDefaultValue() {
             var raw = defaultValue();
             return raw == null ? null : convert(raw);

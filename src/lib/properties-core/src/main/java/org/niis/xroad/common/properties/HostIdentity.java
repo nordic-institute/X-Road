@@ -27,6 +27,8 @@
 
 package org.niis.xroad.common.properties;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -47,6 +49,7 @@ import java.util.stream.Stream;
  * @param dnsNames    DNS subject alternative names
  * @param ipAddresses IP subject alternative names (global-scope addresses only)
  */
+@Slf4j
 public record HostIdentity(String commonName, List<String> dnsNames, List<String> ipAddresses) {
 
     /** The longest common name a certificate may carry (RFC 5280 upper bound). */
@@ -88,7 +91,8 @@ public record HostIdentity(String commonName, List<String> dnsNames, List<String
     static HostIdentity detectOrFallback(Supplier<HostIdentity> detector) {
         try {
             return detector.get();
-        } catch (RuntimeException _) {
+        } catch (RuntimeException e) {
+            log.warn("Host identity detection failed, using '{}' and no IP addresses: {}", FALLBACK_HOST_NAME, e.toString());
             return of(FALLBACK_HOST_NAME, FALLBACK_HOST_NAME, List.of());
         }
     }
@@ -118,7 +122,8 @@ public record HostIdentity(String commonName, List<String> dnsNames, List<String
         private static InetAddress localHost() {
             try {
                 return InetAddress.getLocalHost();
-            } catch (UnknownHostException _) {
+            } catch (UnknownHostException e) {
+                log.warn("Local host name lookup failed, using '{}': {}", FALLBACK_HOST_NAME, e.toString());
                 return null;
             }
         }
@@ -144,7 +149,8 @@ public record HostIdentity(String commonName, List<String> dnsNames, List<String
                     }
                 }
                 return addresses;
-            } catch (SocketException _) {
+            } catch (SocketException e) {
+                log.warn("Network interface scan failed, using no IP addresses: {}", e.toString());
                 return List.of();
             }
         }

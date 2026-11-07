@@ -97,8 +97,8 @@ class LegacyConfigMigrationCLIVaultTest {
         String[] args = {"signer-token-pins", "--node", "_bad", stubScript.toString()};
         assertThatThrownBy(() -> LegacyConfigMigrationCLI.main(args))
                 .isInstanceOf(MigrationException.class)
-                .hasRootCauseInstanceOf(XrdRuntimeException.class)
-                .rootCause()
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .cause()
                 .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
                 .hasMessageNotContaining("XROAD_SECRET_STORE");
     }

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Node name check shared by the Central Server installer, backup and restore scripts.
-# The rule is the same as in the services (NodeIdentity).
+# The rule is the same as in the services (NodeName).
 #
 # Usage: source this file once at the top of the script, then call
 #   check_node_name <value> <description of where the value comes from>
