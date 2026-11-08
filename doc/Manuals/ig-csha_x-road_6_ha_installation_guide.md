@@ -227,6 +227,8 @@ sudo /usr/share/xroad/scripts/db_property.sh set xroad.management-service.tls.ce
 
 Each node has its own management service TLS certificate. The management services' Security Server must therefore trust the certificate of every node. Add each certificate as an internal TLS certificate on that Security Server, see [UG-SS](ug-ss_x-road_6_security_server_user_guide.md) section "Managing Information System TLS Certificates".
 
+Authentication certificate registration requests from Security Servers use the address and the management service certificate published in the configuration of the node the Security Server downloaded it from. The Security Server accepts only that exact certificate, whatever names it carries. Keep the default node-specific registration address: a registration address shared by all nodes behind a load balancer is not supported, because each node serves a different certificate.
+
 ### 4.1 Node name and renaming a node
 
 The node name must follow this rule:
