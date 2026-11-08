@@ -62,7 +62,7 @@ class YamlHelperGetTest {
     Path tempDir;
 
     @BeforeAll
-    static void findPythonWithYaml() throws InterruptedException {
+    static void findPythonWithYaml() {
         script = Path.of(System.getProperty(SCRIPT_PROPERTY, ""));
         assumeTrue(Files.isRegularFile(script), "yaml_helper.py not available");
         python = PYTHON_CANDIDATES.stream().filter(YamlHelperGetTest::hasYaml).findFirst().orElse(null);
