@@ -120,24 +120,24 @@ public class LegacyConfigMigrationCLI {
                 System.exit(1);
             }
 
-            NodeOption nodeOption = NodeOption.extract(shiftArgs(args));
-            String[] commandArgs = nodeOption.remainingArgs().toArray(new String[0]);
-
             switch (command) {
                 case VALIDATE -> validateEnv();
-                case CONFIG -> migrateConfiguration(commandArgs);
-                case PGP_KEYS -> migratePgpKeys(commandArgs);
-                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(commandArgs);
-                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(commandArgs);
-                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(commandArgs);
-                case KEYCONF -> migrateKeyConf(commandArgs);
-                case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(commandArgs, nodeOption.nodeIdentity());
-                case SIGNER_DEVICES -> migrateSignerDevices(commandArgs);
-                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(commandArgs);
-                case FILE_TO_DB -> migrateFileToDb(commandArgs);
-                case INI_TO_DB -> migrateIniToDb(commandArgs);
-                case PROPERTIES_TO_DB -> migratePropertiesToDb(commandArgs);
-                case SET_PROPERTY -> setProperty(commandArgs);
+                case CONFIG -> migrateConfiguration(shiftArgs(args));
+                case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
+                case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
+                case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(shiftArgs(args));
+                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(shiftArgs(args));
+                case KEYCONF -> migrateKeyConf(shiftArgs(args));
+                case SIGNER_TOKEN_PINS -> {
+                    NodeOption nodeOption = NodeOption.extract(shiftArgs(args));
+                    migrateSignerTokenPins(nodeOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity());
+                }
+                case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
+                case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
+                case FILE_TO_DB -> migrateFileToDb(shiftArgs(args));
+                case INI_TO_DB -> migrateIniToDb(shiftArgs(args));
+                case PROPERTIES_TO_DB -> migratePropertiesToDb(shiftArgs(args));
+                case SET_PROPERTY -> setProperty(shiftArgs(args));
                 default -> showHelp();
             }
         } catch (Exception e) {
