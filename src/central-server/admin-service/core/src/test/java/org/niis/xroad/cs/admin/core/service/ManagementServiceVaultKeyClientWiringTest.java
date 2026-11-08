@@ -59,7 +59,7 @@ class ManagementServiceVaultKeyClientWiringTest {
             var admin = context.getBean("springVaultKeyClient", VaultKeyClient.class);
             var management = context.getBean("managementServiceSpringVaultKeyClient", VaultKeyClient.class);
 
-            var injected = ReflectionTestUtils.getField(
+            var injected = (VaultKeyClient) ReflectionTestUtils.getField(
                     context.getBean(ManagementServiceTlsCertificateServiceImpl.class), "vaultKeyClient");
 
             assertThat(injected).isSameAs(management).isNotSameAs(admin);

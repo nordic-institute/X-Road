@@ -61,8 +61,6 @@ class AdminServiceTlsNodeNamesTest {
     private static final String NODE_1 = "node_1";
     private static final String NODE_2 = "node_2";
 
-    private static final List<String> NO_NAMES = List.of();
-
     private static Map<String, String> databaseEnvironment;
 
     @SystemStub
