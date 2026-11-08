@@ -11,9 +11,23 @@ from pathlib import Path
 
 
 class RawLoader(yaml.BaseLoader):
-    """Keeps every scalar as written, except an unquoted YAML null, which reads as no value."""
+    """
+    Keeps every scalar as written, except an unquoted YAML null, which reads as no value.
+    Expands merge keys (<<) like the Java configuration loader does.
+    """
+
+    flatten_mapping = yaml.SafeLoader.flatten_mapping
+
+    def construct_mapping(self, node, deep=False):
+        if isinstance(node, yaml.MappingNode):
+            self.flatten_mapping(node)
+        return super().construct_mapping(node, deep)
 
 
+RawLoader.add_implicit_resolver(
+    'tag:yaml.org,2002:merge',
+    re.compile(r'^(?:<<)$'),
+    ['<'])
 RawLoader.add_implicit_resolver(
     'tag:yaml.org,2002:null',
     re.compile(r'^(?:~|null|Null|NULL|)$'),
