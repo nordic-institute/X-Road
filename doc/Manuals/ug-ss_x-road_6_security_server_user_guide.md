@@ -3242,7 +3242,7 @@ Renewing the server certificate under the existing CA requires `ca.key`. If only
 1. Upload the new `ca.crt` to the Security Server as the Operational Monitoring CA (see section [15.2.6](#1526-exchanging-ca-certificates-with-an-external-operational-monitoring-daemon)), and restart the proxy and admin-service as described there.
 2. Restart the operational monitoring daemon to load the replaced identity.
 
-When the tool creates a new CA, it prints these follow-up instructions. The Security Server cannot connect to the operational monitoring daemon until the new Operational Monitoring CA has been uploaded to the Security Server, the proxy and admin-service have been restarted, and the op-monitor daemon has been restarted.
+Until the new CA has been imported into the Security Server and the proxy, admin-service and op-monitor have been restarted, the Security Server cannot connect to the operational monitoring daemon.
 
 ## 16 Environmental Monitoring
 
