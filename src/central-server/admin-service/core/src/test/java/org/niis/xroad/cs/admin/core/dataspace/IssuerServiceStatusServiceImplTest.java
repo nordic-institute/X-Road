@@ -31,13 +31,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.admin.api.domain.CanSignCause;
 import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.domain.IssuerServiceStatus;
 import org.niis.xroad.cs.admin.api.dto.IssuerHostState;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,13 +65,15 @@ class IssuerServiceStatusServiceImplTest {
     private IssuerProvisioningRpcClient issuerProvisioningRpcClient;
     @Mock
     private DataspaceIssuerProperties dataspaceIssuerProperties;
+    @Mock
+    private DataspaceIssuerDidService dataspaceIssuerDidService;
 
     private IssuerServiceStatusServiceImpl issuerServiceStatusService;
 
     @BeforeEach
     void setUp() {
         issuerServiceStatusService = new IssuerServiceStatusServiceImpl(issuerHostService, connectorCertificateCheck,
-                issuerSetUpLeaseService, issuerProvisioningRpcClient, dataspaceIssuerProperties);
+                issuerSetUpLeaseService, issuerProvisioningRpcClient, dataspaceIssuerProperties, dataspaceIssuerDidService);
     }
 
     @Test
@@ -77,6 +82,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.canSign(DID));
 
@@ -90,6 +96,23 @@ class IssuerServiceStatusServiceImplTest {
         assertThat(status.canSign()).isTrue();
         assertThat(status.canSignCause()).isNull();
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
+    }
+
+    @Test
+    void readyWhenTheIssuerCanSignForAnyOfSeveralBoundDids() {
+        var laterDid = "did:web:other.example.org%3A6183:issuer";
+        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, true));
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID, laterDid));
+        when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.canSign(laterDid));
+
+        var status = issuerServiceStatusService.getStatus();
+
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY);
+        assertThat(status.canSignCause()).isNull();
     }
 
     @Test
@@ -130,6 +153,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenReturn(CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
 
@@ -146,6 +170,7 @@ class IssuerServiceStatusServiceImplTest {
         when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(DID));
         when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
                 .thenThrow(new IllegalStateException("channel is not ready"));
 
@@ -154,5 +179,21 @@ class IssuerServiceStatusServiceImplTest {
         assertThat(status.canSign()).isFalse();
         assertThat(status.canSignCause()).isEqualTo(CanSignCause.ISSUER_SERVICE_UNREACHABLE);
         assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.FAILED);
+    }
+
+    @Test
+    void certificateNotReadyWhenTheCertificateCheckFails() {
+        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
+        when(connectorCertificateCheck.isReadyFor(HOST))
+                .thenThrow(new InternalServerErrorException("OpenBao is unreachable"));
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(dataspaceIssuerProperties.getDidPort()).thenReturn(DID_PORT);
+        when(issuerProvisioningRpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent());
+
+        var status = issuerServiceStatusService.getStatus();
+
+        assertThat(status.certificateReady()).isFalse();
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.WAITING_FOR_CERTIFICATE);
     }
 }

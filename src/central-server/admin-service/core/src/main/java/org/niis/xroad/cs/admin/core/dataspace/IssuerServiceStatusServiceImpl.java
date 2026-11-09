@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.CanSignCause;
 import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.domain.IssuerServiceStatus;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerServiceStatusService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
@@ -49,16 +50,39 @@ public class IssuerServiceStatusServiceImpl implements IssuerServiceStatusServic
     private final IssuerSetUpLeaseService issuerSetUpLeaseService;
     private final IssuerProvisioningRpcClient issuerProvisioningRpcClient;
     private final DataspaceIssuerProperties dataspaceIssuerProperties;
+    private final DataspaceIssuerDidService dataspaceIssuerDidService;
 
     @Override
     public IssuerServiceStatus getStatus() {
         var state = issuerHostService.getState();
         boolean hostSet = state.host() != null;
-        boolean certificateReady = hostSet && connectorCertificateCheck.isReadyFor(state.host());
+        boolean certificateReady = hostSet && isCertificateReady(state.host());
         boolean runInProgress = issuerSetUpLeaseService.currentHolder().isPresent();
         String didToBind = hostSet ? IssuerDidFormat.didFor(state.host(), dataspaceIssuerProperties.getDidPort()) : null;
+        var canSign = canSign();
 
-        return IssuerServiceStatus.derive(hostSet, certificateReady, runInProgress, didToBind, state.bound(), canSign());
+        return IssuerServiceStatus.derive(hostSet, certificateReady, runInProgress, didToBind, boundDid(canSign), canSign);
+    }
+
+    private String boundDid(CanSignResult canSign) {
+        var boundDids = dataspaceIssuerDidService.findAll();
+        if (canSign.did() != null && boundDids.contains(canSign.did())) {
+            return canSign.did();
+        }
+        return boundDids.stream().findFirst().orElse(null);
+    }
+
+    /**
+     * Never throws: a certificate check that cannot read the connector TLS certificate (e.g. OpenBao is
+     * unreachable) is a status to report as "not ready", not an error in reading the status.
+     */
+    private boolean isCertificateReady(String host) {
+        try {
+            return connectorCertificateCheck.isReadyFor(host);
+        } catch (RuntimeException e) {
+            log.warn("Issuer Service status read could not check the connector TLS certificate: {}", e.getMessage(), e);
+            return false;
+        }
     }
 
     /**

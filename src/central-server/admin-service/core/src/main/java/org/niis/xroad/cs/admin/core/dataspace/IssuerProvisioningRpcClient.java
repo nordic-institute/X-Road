@@ -180,6 +180,8 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
                 return CanSignResult.cannotSign(CanSignCause.TIMEOUT);
             }
+            log.warn("Can-sign check could not reach the Issuer Service: status={} serverError={}",
+                    error.getStatus().getCode(), mapServerError(error).map(Object::toString).orElse("none"));
             return CanSignResult.cannotSign(CanSignCause.ISSUER_SERVICE_UNREACHABLE);
         }
     }

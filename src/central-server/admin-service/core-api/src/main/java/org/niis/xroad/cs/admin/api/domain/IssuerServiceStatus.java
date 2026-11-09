@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import java.util.Objects;
+
 /**
  * The Issuer Service's status, derived on every read from where each fact really lives: nothing here is
  * stored. {@link #derive} is the pure mapping from the six source facts to these rows and the overall state;
@@ -66,25 +68,37 @@ public record IssuerServiceStatus(
     /**
      * Derives the status from its six source facts. An absent participant context counts as "no active key":
      * once the issuer DID is bound, that is a real failure (the key went missing); before binding, it simply
-     * does not yet affect the overall state, which is governed by {@code runInProgress} and {@code didBound}.
+     * does not yet affect the overall state, which is governed by {@code runInProgress} and whether a DID is
+     * bound.
+     *
+     * @param boundDid the bound issuer DID, or {@code null} when none is bound yet
      */
     public static IssuerServiceStatus derive(boolean hostSet, boolean certificateReady, boolean runInProgress,
-            String didToBind, boolean didBound, CanSignResult canSignResult) {
-        boolean canSign = canSignResult.outcome() == CanSignOutcome.CAN_SIGN;
-        CanSignCause canSignCause = canSign ? null
-                : canSignResult.outcome() == CanSignOutcome.ABSENT ? CanSignCause.NO_ACTIVE_KEY : canSignResult.cause();
+            String didToBind, String boundDid, CanSignResult canSignResult) {
+        boolean didBound = boundDid != null;
+        String expectedDid = didBound ? boundDid : didToBind;
+        boolean matches = canSignResult.outcome() == CanSignOutcome.CAN_SIGN
+                && Objects.equals(canSignResult.did(), expectedDid);
+
+        boolean canSign = matches;
+        CanSignCause canSignCause = matches ? null
+                : switch (canSignResult.outcome()) {
+                    case CAN_SIGN -> CanSignCause.DID_MISMATCH;
+                    case ABSENT -> CanSignCause.NO_ACTIVE_KEY;
+                    case CANNOT_SIGN -> canSignResult.cause();
+                };
 
         Overall overall;
-        if (!hostSet) {
+        if (didBound) {
+            overall = matches ? Overall.READY : Overall.FAILED;
+        } else if (!hostSet) {
             overall = Overall.NOT_CONFIGURED;
         } else if (!certificateReady) {
             overall = Overall.WAITING_FOR_CERTIFICATE;
         } else if (runInProgress) {
             overall = Overall.SETTING_UP;
-        } else if (!didBound) {
+        } else if (canSignResult.outcome() == CanSignOutcome.ABSENT || matches) {
             overall = Overall.READY_TO_SET_UP;
-        } else if (canSign) {
-            overall = Overall.READY;
         } else {
             overall = Overall.FAILED;
         }
