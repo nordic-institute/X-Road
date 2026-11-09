@@ -68,6 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import static java.util.Map.entry;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_INCOMPLETE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.CHECK_SECURITY_SERVER_SYSTEM_DID;
@@ -171,7 +172,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = EDIT_SECURITY_SERVER)
     public ResponseEntity<SecurityServerDto> updateSecurityServer(String id, SecurityServerEditDto securityServerEdit) {
-        var securityServerId = securityServerIdConverter.convertId(id);
+        var securityServerId = requireNonNull(securityServerIdConverter.convertId(id));
         auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
         auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
         auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
@@ -194,7 +195,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = CHECK_SECURITY_SERVER_SYSTEM_DID)
     public ResponseEntity<SystemDidCheckDto> checkSystemDid(String id, SystemDidCheckRequestDto request) {
-        var securityServerId = securityServerIdConverter.convertId(id);
+        var securityServerId = requireNonNull(securityServerIdConverter.convertId(id));
         auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
         auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
         auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());

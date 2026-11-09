@@ -91,7 +91,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -385,7 +384,7 @@ class MemberServiceImplTest {
             assertEquals(securityServersMock.size(), result.size());
 
             Assertions.assertThat(result.stream()
-                    .map(memberServer -> memberServer.server().getServerCode()).collect(toList()))
+                    .map(memberServer -> memberServer.server().getServerCode()).toList())
                     .hasSameElementsAs(List.of("SS0", "SS1"));
         }
 
@@ -476,7 +475,7 @@ class MemberServiceImplTest {
 
             assertEquals(3, result.size());
             Assertions.assertThat(result.stream()
-                    .map(memberServer -> memberServer.server().getServerCode()).collect(toList()))
+                    .map(memberServer -> memberServer.server().getServerCode()).toList())
                     .containsExactlyInAnyOrder("SS1", "SS3", "SS4");
         }
 

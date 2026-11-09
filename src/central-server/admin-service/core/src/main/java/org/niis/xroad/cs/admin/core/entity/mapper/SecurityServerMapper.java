@@ -26,10 +26,11 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.Named;
+import org.mapstruct.MappingTarget;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
@@ -40,14 +41,14 @@ import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 public interface SecurityServerMapper extends GenericUniDirectionalMapper<SecurityServerEntity, SecurityServer> {
 
     @Override
-    @Mapping(target = "systemPairStale", source = ".", qualifiedByName = "systemPairStale")
+    @Mapping(target = "systemPairStale", ignore = true)
     SecurityServer toTarget(SecurityServerEntity source);
 
-    @Named("systemPairStale")
-    default Boolean systemPairStale(SecurityServerEntity server) {
-        if (server.getSystemDid() == null) {
-            return null;
+    @AfterMapping
+    default void setSystemPairStale(SecurityServerEntity source, @MappingTarget SecurityServer target) {
+        if (source.getSystemDid() != null) {
+            target.setSystemPairStale(RegisteredServer.validatorFor(source)
+                    .isSystemPairStale(source.getSystemDid(), source.getDspBaseUrl()));
         }
-        return RegisteredServer.validatorFor(server).isSystemPairStale(server.getSystemDid(), server.getDspBaseUrl());
     }
 }

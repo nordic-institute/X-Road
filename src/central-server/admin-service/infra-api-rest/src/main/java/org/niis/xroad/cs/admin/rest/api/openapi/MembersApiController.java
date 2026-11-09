@@ -69,6 +69,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_ID;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
@@ -207,7 +208,7 @@ public class MembersApiController implements MembersApi {
     public ResponseEntity<Void> updateMemberDid(String memberId, String serverId, MemberDidEditDto memberDidEdit) {
         verifyMemberId(memberId);
         ClientId clientId = clientIdConverter.convertId(memberId);
-        SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
+        SecurityServerId securityServerId = requireNonNull(securityServerIdConverter.convertId(serverId));
         memberService.editMemberDid(securityServerId, clientId, memberDidEdit.getMemberDid());
         return noContent().build();
     }
@@ -218,7 +219,7 @@ public class MembersApiController implements MembersApi {
     public ResponseEntity<MemberDidCheckDto> checkMemberDid(String memberId, String serverId, MemberDidCheckRequestDto request) {
         verifyMemberId(memberId);
         ClientId clientId = clientIdConverter.convertId(memberId);
-        SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
+        SecurityServerId securityServerId = requireNonNull(securityServerIdConverter.convertId(serverId));
         auditDataHelper.put(MEMBER_CLASS, clientId.getMemberClass());
         auditDataHelper.put(MEMBER_CODE, clientId.getMemberCode());
         auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());

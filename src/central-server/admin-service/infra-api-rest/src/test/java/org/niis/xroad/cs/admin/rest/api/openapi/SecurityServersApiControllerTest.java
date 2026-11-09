@@ -139,8 +139,9 @@ class SecurityServersApiControllerTest {
 
     @Test
     void halfAPairIsRefusedAfterItIsAudited() {
-        assertThatThrownBy(() -> controller.updateSecurityServer(ID,
-                new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).systemDid(DID)))
+        var edit = new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).systemDid(DID);
+
+        assertThatThrownBy(() -> controller.updateSecurityServer(ID, edit))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("system_pair_incomplete");
 
@@ -150,8 +151,9 @@ class SecurityServersApiControllerTest {
 
     @Test
     void onlyTheDspBaseUrlIsRefusedAsAnIncompletePair() {
-        assertThatThrownBy(() -> controller.updateSecurityServer(ID,
-                new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).dspBaseUrl(URL)))
+        var edit = new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).dspBaseUrl(URL);
+
+        assertThatThrownBy(() -> controller.updateSecurityServer(ID, edit))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("system_pair_incomplete");
 
@@ -165,8 +167,9 @@ class SecurityServersApiControllerTest {
         when(securityServerService.editSecurityServer(serverId, ADDRESS_VALUE, pair))
                 .thenThrow(new BadRequestException(ErrorMessage.SYSTEM_PAIR_HOST_DIFFERS.build()));
 
-        assertThatThrownBy(() -> controller.updateSecurityServer(ID,
-                new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).systemDid(DID).dspBaseUrl(URL)))
+        var edit = new SecurityServerEditDto().serverAddress(ADDRESS_VALUE).systemDid(DID).dspBaseUrl(URL);
+
+        assertThatThrownBy(() -> controller.updateSecurityServer(ID, edit))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("system_pair_host_differs");
 
@@ -177,7 +180,9 @@ class SecurityServersApiControllerTest {
     void unknownServerIsReportedAsNotFound() {
         when(securityServerService.editSecurityServer(serverId, ADDRESS_VALUE, null)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> controller.updateSecurityServer(ID, new SecurityServerEditDto().serverAddress(ADDRESS_VALUE)))
+        var edit = new SecurityServerEditDto().serverAddress(ADDRESS_VALUE);
+
+        assertThatThrownBy(() -> controller.updateSecurityServer(ID, edit))
                 .isInstanceOf(SecurityServerNotFoundException.class);
     }
 
@@ -260,7 +265,9 @@ class SecurityServersApiControllerTest {
         when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID))
                 .thenThrow(new SecurityServerNotFoundException(serverId));
 
-        assertThatThrownBy(() -> controller.checkSystemDid(ID, checkRequest()))
+        var request = checkRequest();
+
+        assertThatThrownBy(() -> controller.checkSystemDid(ID, request))
                 .isInstanceOf(SecurityServerNotFoundException.class);
 
         verifyCheckAuditRequest();

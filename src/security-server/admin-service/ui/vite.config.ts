@@ -112,6 +112,7 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
+      fsModuleCache: false,
       testTimeout: 15000,
       attachmentsDir: 'tests/results/attachments',
       reporters: ['default', 'junit'],

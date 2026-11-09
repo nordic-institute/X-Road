@@ -421,6 +421,26 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
       }
     });
 
+    it('removes the earlier answer when a re-check fails', async () => {
+      let failing = false;
+      const handler = specHttp.untyped.post('/api/v1/security-servers/:server_id/system-did-check', () =>
+        failing
+          ? HttpResponse.json({ status: 500, error: { code: 'internal_error' } }, { status: 500 })
+          : HttpResponse.json({ status: 'RESOLVED' }),
+      );
+      const dialog = await openDialog(pairFixture, [handler]);
+      const result = dialog.getByTestId('security-server-system-did-check-result');
+      const checkButton = dialog.getByTestId('security-server-system-did-check-button');
+
+      await checkButton.click();
+      await expect.element(result).toBeVisible();
+      failing = true;
+      await checkButton.click();
+
+      await expect.element(page.getByTestId('contextual-alert')).toBeVisible();
+      await expect.element(result).not.toBeInTheDocument();
+    });
+
     describe('late answers', () => {
       const NO_DOCUMENT_TEXT = 'The SYSTEM DID does not resolve: no DID document was found. You can still save.';
       const settle = () => new Promise((resolve) => setTimeout(resolve, 200));

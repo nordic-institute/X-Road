@@ -105,8 +105,9 @@ class SecurityServerEditPostgresTest extends AbstractCentralServerPostgresTest {
         var before = stored(server.id());
         var newAddress = newHost();
         var pairForAnotherHost = pairFor(newHost(), 7184);
+        var identifier = server.identifier();
 
-        assertThatThrownBy(() -> service.editSecurityServer(server.identifier(), newAddress, pairForAnotherHost))
+        assertThatThrownBy(() -> service.editSecurityServer(identifier, newAddress, pairForAnotherHost))
                 .isInstanceOf(BadRequestException.class);
 
         assertThat(stored(server.id())).isEqualTo(before);
@@ -118,7 +119,10 @@ class SecurityServerEditPostgresTest extends AbstractCentralServerPostgresTest {
         var before = stored(server.id());
         var newAddress = newHost();
 
-        assertThatThrownBy(() -> service.editSecurityServer(server.identifier(), newAddress, pairFor(newAddress, 7184)))
+        var identifier = server.identifier();
+        var pair = pairFor(newAddress, 7184);
+
+        assertThatThrownBy(() -> service.editSecurityServer(identifier, newAddress, pair))
                 .isInstanceOf(BadRequestException.class);
 
         assertThat(stored(server.id())).isEqualTo(before);
@@ -133,9 +137,10 @@ class SecurityServerEditPostgresTest extends AbstractCentralServerPostgresTest {
         service.editSecurityServer(server.identifier(), newAddress, null);
 
         var after = stored(server.id());
-        assertThat(after).containsEntry("address", newAddress);
-        assertThat(after).containsEntry("system_did", before.get("system_did"));
-        assertThat(after).containsEntry("dsp_base_url", before.get("dsp_base_url"));
+        assertThat(after)
+                .containsEntry("address", newAddress)
+                .containsEntry("system_did", before.get("system_did"))
+                .containsEntry("dsp_base_url", before.get("dsp_base_url"));
     }
 
     @Test

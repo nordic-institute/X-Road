@@ -93,6 +93,7 @@ export function useDidCheck<Refusal extends string>(options: {
     latestCheck += 1;
     const thisCheck = latestCheck;
     const isLatest = () => thisCheck === latestCheck;
+    answer.value = undefined;
     checking.value = true;
     request()
       .then((result) => isLatest() && (answer.value = result))
