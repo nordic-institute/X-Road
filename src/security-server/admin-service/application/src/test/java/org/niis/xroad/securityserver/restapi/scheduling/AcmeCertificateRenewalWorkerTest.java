@@ -50,6 +50,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderFactory;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -111,6 +112,8 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
     private AcmeCertificateRenewalWorker acmeCertificateRenewalWorker;
     @MockitoBean
     ManagementRequestSender managementRequestSenderMock;
+    @MockitoBean
+    ManagementRequestSenderFactory managementRequestSenderFactory;
     @MockitoSpyBean
     MailNotificationHelper mailNotificationHelper;
     @MockitoSpyBean
@@ -192,7 +195,7 @@ public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestC
                 any(),
                 any())).thenReturn(List.of(readCertificate(newAuthCertInfo.getCertificateBytes())));
 
-        doReturn(managementRequestSenderMock).when(acmeCertificateRenewalWorker).createManagementRequestSender(any());
+        when(managementRequestSenderFactory.createFor(any())).thenReturn(managementRequestSenderMock);
     }
 
     private CertificateInfo createCertificateInfo(String certId, String commonName, KeyUsage keyUsage, Date notBefore,

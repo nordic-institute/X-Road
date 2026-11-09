@@ -30,9 +30,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -50,11 +54,15 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(DataspaceParticipantProvisioningWorker.class,
+            .withUserConfiguration(DataspaceParticipantProvisioningWorker.class, DataspacePublicationStage.class,
                     NoopDataspaceParticipantProvisioningTrigger.class)
+            .withBean(DataspaceDidAuthority.class, () -> mock(DataspaceDidAuthority.class))
+            .withBean(DsParticipantRepository.class, () -> mock(DsParticipantRepository.class))
+            .withBean(DidRegistrationSender.class, () -> mock(DidRegistrationSender.class))
             .withBean(DataspaceProvisioningService.class, () -> mock(DataspaceProvisioningService.class))
             .withBean(DataspaceReadinessPredicates.class, () -> mock(DataspaceReadinessPredicates.class))
             .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class))
+            .withBean(OwnSecurityServerResolver.class, () -> mock(OwnSecurityServerResolver.class))
             .withBean(AdminServiceProperties.class, () -> mock(AdminServiceProperties.class));
 
     @Test
@@ -66,6 +74,7 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
             assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
                     .isInstanceOf(NoopDataspaceParticipantProvisioningTrigger.class);
             assertThat(context).doesNotHaveBean(DataspaceParticipantProvisioningWorker.class);
+            assertThat(context).doesNotHaveBean(DataspacePublicationStage.class);
 
             context.getBean(DataspaceParticipantProvisioningTrigger.class).provisionParticipantAsync();
 
@@ -81,6 +90,7 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
             assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
             assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
                     .isInstanceOf(DataspaceParticipantProvisioningWorker.class);
+            assertThat(context).hasSingleBean(DataspacePublicationStage.class);
         });
     }
 
@@ -92,6 +102,7 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
             assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
             assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
                     .isInstanceOf(DataspaceParticipantProvisioningWorker.class);
+            assertThat(context).hasSingleBean(DataspacePublicationStage.class);
         });
     }
 

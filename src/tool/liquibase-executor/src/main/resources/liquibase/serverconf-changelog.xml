@@ -32,6 +32,7 @@
     <include file="configuration-properties/003-ha-node-name.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/012-ds-participant-binding.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/013-dataflow-state.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/014-ds-participant-publication.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

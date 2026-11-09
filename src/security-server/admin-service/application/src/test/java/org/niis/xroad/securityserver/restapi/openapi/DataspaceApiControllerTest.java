@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,16 +39,28 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.ExceptionTranslator;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspacePublicationStateDto;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.MemberPublication;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.ServerStatus;
+import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -56,15 +69,94 @@ import static org.mockito.Mockito.when;
 class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final Instant CREATED_AT = Instant.parse("2026-01-01T00:00:00Z");
+    private static final Did SYSTEM_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
 
     @Autowired
     private DataspaceApiController dataspaceApiController;
     @Autowired
     private ExceptionTranslator exceptionTranslator;
+    @MockitoBean
+    private DataspaceProvisioningStatusService dataspaceProvisioningStatusService;
 
     @AfterEach
     void clearRole() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusCarriesTheServerLevelObject() {
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
+                new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.REJECTED, "DID_TAKEN")));
+
+        var response = dataspaceApiController.getDataspaceProvisioningStatus();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        var server = response.getBody().getServer();
+        assertThat(server.getDataspaceReady()).isTrue();
+        assertThat(server.getDspBaseUrl()).isEqualTo("https://ss.example.test:7181/dsp");
+        assertThat(server.getPublicationState()).isEqualTo(DataspacePublicationStateDto.REJECTED);
+        assertThat(server.getPublicationReason()).isEqualTo("DID_TAKEN");
+        assertThat(response.getBody().getParticipantContexts()).hasSize(1);
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusShowsNotSentWithoutAddressOrReason() {
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
+                new ServerStatus(false, null, PublicationState.NOT_SENT, null)));
+
+        var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
+
+        assertThat(server.getDataspaceReady()).isFalse();
+        assertThat(server.getDspBaseUrl()).isNull();
+        assertThat(server.getPublicationState()).isEqualTo(DataspacePublicationStateDto.NOT_SENT);
+        assertThat(server.getPublicationReason()).isNull();
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusShowsTheLastSendFailureCauseWhileTheValueIsNotSent() {
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(statusWith(
+                new ServerStatus(true, "https://ss.example.test:7181/dsp", PublicationState.NOT_SENT,
+                        "SEND_FAILURE: timeout")));
+
+        var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
+
+        assertThat(server.getPublicationState()).isEqualTo(DataspacePublicationStateDto.NOT_SENT);
+        assertThat(server.getPublicationReason()).isEqualTo("SEND_FAILURE: timeout");
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_AGREEMENT_TOKEN_KEY")
+    void provisioningStatusNeedsTheViewDataspaceStatusPermission() {
+        assertThatThrownBy(() -> dataspaceApiController.getDataspaceProvisioningStatus())
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusShowsThePublicationOfEachMemberContextAndNoneForTheSystemContext() {
+        var system = new ParticipantContextStatus("xrd-ss0", ParticipantKind.SYSTEM, SYSTEM_DID, false, SYSTEM_DID,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        var member = new ParticipantContextStatus("DEV-COM-222", ParticipantKind.MEMBER, null, false, null,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(new DataspaceStatus(true, true,
+                new ServerStatus(true, null, PublicationState.SUBMITTED, null), List.of(system, member),
+                Map.of("DEV-COM-222", new MemberPublication(PublicationState.REJECTED, "DID_TAKEN"))));
+
+        var contexts = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts();
+
+        assertThat(contexts.getFirst().getPublicationState()).isNull();
+        assertThat(contexts.getFirst().getPublicationReason()).isNull();
+        assertThat(contexts.getLast().getPublicationState()).isEqualTo(DataspacePublicationStateDto.REJECTED);
+        assertThat(contexts.getLast().getPublicationReason()).isEqualTo("DID_TAKEN");
+    }
+
+    private static DataspaceStatus statusWith(ServerStatus server) {
+        return new DataspaceStatus(true, true, server,
+                List.of(new ParticipantContextStatus("xrd-ss0", ParticipantKind.SYSTEM, SYSTEM_DID, false, SYSTEM_DID,
+                        CredentialStatus.ISSUED, IdentityStatus.OK)), Map.of());
     }
 
     @Test
