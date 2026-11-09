@@ -125,7 +125,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                 .orElseThrow(() -> serverNotFound(securityServerId));
         var pair = new SystemPair(systemDid, dspBaseUrl);
 
-        var check = verdictOf(server, validatorFor(server), pair);
+        var check = verdictOf(server, ParticipantValueValidator.forServer(server), pair);
         boolean wouldWrite = check.verdict() == Verdict.ABSENT || check.verdict() == Verdict.STALE_REPLACEABLE;
         if (wouldWrite && isHeldByAnotherServer(server, pair)) {
             return SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER);
@@ -168,7 +168,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         if (mode == Mode.ADMIN_REPLACE && server.getSystemDid() == null) {
             return ParticipantValueResult.rejected(NO_STORED_VALUE);
         }
-        var check = verdictOf(server, validatorFor(server), pair);
+        var check = verdictOf(server, ParticipantValueValidator.forServer(server), pair);
 
         var verdict = check.verdict();
         if (verdict == Verdict.REJECTED) {
@@ -330,10 +330,6 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
 
     private static NotFoundException serverNotFound(int securityServerId) {
         return new NotFoundException(SECURITY_SERVER_NOT_FOUND.build(String.valueOf(securityServerId)));
-    }
-
-    private ParticipantValueValidator validatorFor(SecurityServerEntity server) {
-        return validatorFor(server, Set.of());
     }
 
     private ParticipantValueValidator validatorFor(SecurityServerEntity server, Set<ClientId> clientMembers) {

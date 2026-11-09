@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
@@ -230,6 +231,7 @@ public class SecurityServersApiController implements SecurityServersApi {
         };
     }
 
+    @Nullable
     private static SystemPairEdit toSystemPairEdit(SecurityServerEditDto edit) {
         if (edit.getSystemDid() == null && edit.getDspBaseUrl() == null) {
             return null;

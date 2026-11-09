@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
@@ -209,7 +210,8 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress, SystemPairEdit pair) {
+    public Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress,
+                                                       @Nullable SystemPairEdit pair) {
         if (securityServerRepository.lockForUpdateBy(serverId).isEmpty()) {
             return Optional.empty();
         }

@@ -32,6 +32,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.ds.identity.DecodedParticipant;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.MemberParticipant;
@@ -41,6 +42,7 @@ import org.niis.xroad.ds.identity.SystemParticipant;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
@@ -80,6 +82,15 @@ public final class ParticipantValueValidator {
     private final RegisteredServer server;
     private final String registeredHost;
     private final ParticipantValueRejection registeredAddressRejection;
+
+    /**
+     * @param server a Security Server as stored in the Central Server
+     * @return a validator for the server's address and owner, with no registered client members
+     */
+    public static ParticipantValueValidator forServer(SecurityServerEntity server) {
+        return new ParticipantValueValidator(
+                new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), Set.of()));
+    }
 
     public ParticipantValueValidator(RegisteredServer server) {
         this.server = server;

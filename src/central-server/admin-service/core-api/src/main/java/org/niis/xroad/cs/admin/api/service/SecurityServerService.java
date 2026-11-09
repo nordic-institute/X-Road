@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.annotation.Nullable;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
@@ -68,7 +69,7 @@ public interface SecurityServerService {
      * @param pair       the new SYSTEM DID and DSP base URL, or {@code null} to leave the stored pair as it is
      * @return the updated server, empty when there is no such server
      */
-    Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress, SystemPairEdit pair);
+    Optional<SecurityServer> editSecurityServer(SecurityServerId serverId, String newAddress, @Nullable SystemPairEdit pair);
 
     void delete(SecurityServerId serverId);
 

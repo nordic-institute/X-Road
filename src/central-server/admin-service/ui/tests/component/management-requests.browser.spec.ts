@@ -636,6 +636,16 @@ describe('0900 — CS Management Requests — notify after an address-changing a
       expect(serverFetches).toBe(1);
     });
 
+    it('shows no banner when the address differs only in letter case', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(NEW_ADDRESS.toUpperCase())));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+      expect(approvals).toBe(1);
+    });
+
     it('still approves, with no banner, when the server fetch fails for another reason', async () => {
       await open(authCertRequest, handlers(() => serverAnswers.broken()));
       await confirmApproval();

@@ -47,7 +47,6 @@ import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
-import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -71,7 +70,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -226,8 +224,7 @@ public class MemberServiceImpl implements MemberService {
         if (memberDid == null) {
             return new MemberServer(target, null, null);
         }
-        var registered = new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), Set.of());
-        return new MemberServer(target, memberDid, new ParticipantValueValidator(registered).isMemberDidStale(memberDid));
+        return new MemberServer(target, memberDid, ParticipantValueValidator.forServer(server).isMemberDidStale(memberDid));
     }
 
     @Override

@@ -108,7 +108,7 @@ function findServerBeforeApproval(): Promise<SecurityServer | undefined> {
 
 function needsOperatorNotice(server: SecurityServer | undefined): boolean {
   const hasSystemPair = !!server?.system_did && !!server.dsp_base_url;
-  return hasSystemPair && server?.server_address !== props.requestedAddress;
+  return hasSystemPair && server?.server_address?.toLowerCase() !== props.requestedAddress?.toLowerCase();
 }
 
 function approve() {

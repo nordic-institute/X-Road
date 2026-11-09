@@ -26,12 +26,11 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.dao.DataIntegrityViolationException;
 
-final class ConstraintViolations {
-
-    private ConstraintViolations() {
-    }
+@UtilityClass
+class ConstraintViolations {
 
     static boolean violates(DataIntegrityViolationException e, String constraint) {
         var cause = e.getMostSpecificCause().getMessage();

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -78,7 +79,7 @@ public class DidBatchResolution {
      * @param status     how the resolution ended
      * @param resolution the resolver's answer for the DID, {@code null} when the resolver was unavailable
      */
-    public record Result(Status status, DidResolution resolution) {
+    public record Result(Status status, @Nullable DidResolution resolution) {
 
         private static final Result UNAVAILABLE = new Result(Status.RESOLVER_UNAVAILABLE, null);
 
