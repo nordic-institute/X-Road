@@ -505,16 +505,18 @@ describe('0900 — CS Management Requests — notify after an address-changing a
 
   const authCertRequest: ManagementRequestListView = { ...waitingRequest, address: NEW_ADDRESS };
 
-  const existingServer = (address: string): SecurityServer => ({
-    server_id: serverId,
-    owner_name: 'E2E TC1 Member',
-    server_address: address,
-    created_at: '2024-01-15T10:00:00Z',
-    in_maintenance_mode: false,
-  });
+  const existingServer = (address: string, withPair = true): SecurityServer =>
+    ({
+      server_id: serverId,
+      owner_name: 'E2E TC1 Member',
+      server_address: address,
+      created_at: '2024-01-15T10:00:00Z',
+      in_maintenance_mode: false,
+      ...(withPair ? { system_did: `did:web:${address}%3A7183:v1:system`, dsp_base_url: `https://${address}:8183/api/dsp` } : {}),
+    }) as SecurityServer;
 
   const serverAnswers = {
-    existing: (address: string) => () => HttpResponse.json(existingServer(address)),
+    existing: (address: string, withPair = true) => () => HttpResponse.json(existingServer(address, withPair)),
     missing: () => HttpResponse.json({ status: 404, error: { code: 'security_server_not_found' } }, { status: 404 }),
     broken: () => HttpResponse.json({ status: 500 }, { status: 500 }),
   };
@@ -604,6 +606,16 @@ describe('0900 — CS Management Requests — notify after an address-changing a
       } finally {
         store.$patch({ current: undefined });
       }
+    });
+
+    it('shows only the success message for an existing server without a stored pair', async () => {
+      await open(authCertRequest, handlers(serverAnswers.existing(OLD_ADDRESS, false)));
+      await confirmApproval();
+
+      await expect.element(page.getByTestId('success-snackbar')).toBeVisible();
+      await expect.element(page.getByTestId('contextual-alert')).not.toBeInTheDocument();
+      expect(serverFetches).toBe(1);
+      expect(approvals).toBe(1);
     });
 
     it('shows no banner for a new server (404)', async () => {

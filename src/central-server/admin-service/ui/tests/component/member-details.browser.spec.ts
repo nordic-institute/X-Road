@@ -351,6 +351,26 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       expect(banner.element().classList).toContain('border-warning');
     });
 
+    describe('save button', () => {
+      const saveButton = () => page.getByTestId('dialog-save-button');
+
+      it('is disabled when the dialog opens unchanged', async () => {
+        await openDialog();
+
+        await expect.element(saveButton()).toBeDisabled();
+      });
+
+      it('is enabled after a change and disabled again when the DID is emptied', async () => {
+        const dialog = await openDialog();
+
+        await didField(dialog).fill(NEW_DID);
+        await expect.element(saveButton()).not.toBeDisabled();
+        await didField(dialog).fill('');
+
+        await expect.element(saveButton()).toBeDisabled();
+      });
+    });
+
     const refusalCases: [code: string, text: string][] = [
       ['member_did_host_differs', 'The host of the member DID must match the security server address'],
       ['member_did_held_by_another_server', 'The member DID is already used by another security server'],
@@ -496,6 +516,58 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       expect(icon?.textContent?.trim()).toBe(iconName);
       expect(icon?.classList).toContain(`text-${iconColor}`);
       expect(checkSpy).toHaveBeenCalledWith({ member_did: NEW_DID });
+    });
+
+    describe('late answers', () => {
+      const NO_DOCUMENT_TEXT = 'The member DID does not resolve: no DID document was found. You can still save.';
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
+
+      function gatedFirstCheck() {
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        let calls = 0;
+        const firstServed = vi.fn();
+        const handler = specHttp.untyped.post('/api/v1/members/:member_id/servers/:server_id/member-did-check', async () => {
+          calls += 1;
+          if (calls > 1) {
+            return HttpResponse.json({ status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' });
+          }
+          await gate;
+          firstServed();
+          return HttpResponse.json({ status: 'RESOLVED' });
+        });
+        return { handler, release, firstServed };
+      }
+
+      it('drops an answer that arrives after the DID was edited', async () => {
+        const { handler, release, firstServed } = gatedFirstCheck();
+        const dialog = await openDialog([handler]);
+        const result = dialog.getByTestId('member-did-check-result');
+
+        await dialog.getByTestId('member-did-check-button').click();
+        await didField(dialog).fill(NEW_DID);
+        release();
+        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
+        await settle();
+
+        await expect.element(result).not.toBeInTheDocument();
+      });
+
+      it('drops an answer that arrives after a newer check and shows the newer answer', async () => {
+        const { handler, release, firstServed } = gatedFirstCheck();
+        const dialog = await openDialog([handler]);
+        const result = dialog.getByTestId('member-did-check-result');
+
+        await dialog.getByTestId('member-did-check-button').click();
+        await didField(dialog).fill(NEW_DID);
+        await dialog.getByTestId('member-did-check-button').click();
+        await expect.element(result).toMatchTextContent(NO_DOCUMENT_TEXT);
+        release();
+        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
+        await settle();
+
+        await expect.element(result).toMatchTextContent(NO_DOCUMENT_TEXT);
+      });
     });
 
     it('is disabled with an empty DID and clears the result when the DID changes', async () => {

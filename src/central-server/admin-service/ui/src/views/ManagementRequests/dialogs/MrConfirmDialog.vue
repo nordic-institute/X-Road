@@ -106,13 +106,18 @@ function findServerBeforeApproval(): Promise<SecurityServer | undefined> {
   return fetchById(props.securityServerId).catch(() => undefined);
 }
 
+function needsOperatorNotice(server: SecurityServer | undefined): boolean {
+  const hasSystemPair = !!server?.system_did && !!server.dsp_base_url;
+  return hasSystemPair && server?.server_address !== props.requestedAddress;
+}
+
 function approve() {
   loading.value = true;
   findServerBeforeApproval()
     .then((existingServer) =>
       approveManagementRequest(props.requestId).then(() => {
         addSuccessMessage('managementRequests.dialog.approve.successMessage', messageData.value);
-        if (existingServer && existingServer.server_address !== props.requestedAddress) {
+        if (needsOperatorNotice(existingServer)) {
           addError(
             t('managementRequests.dialog.approve.addressChangedNotify', {
               serverId: props.securityServerId,

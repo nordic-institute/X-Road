@@ -67,20 +67,15 @@
             />
           </XrdFormBlockRow>
           <XrdFormBlockRow full-length>
-            <div class="d-flex align-center ga-4">
-              <XrdBtn
-                data-test="security-server-system-did-check-button"
-                text="securityServers.dialogs.editAddress.checkDid"
-                variant="outlined"
-                :disabled="!systemDidInput"
-                :loading="checking"
-                @click="check(dialogHandler)"
-              />
-              <div v-if="checkOutcome" class="d-flex align-center" data-test="security-server-system-did-check-result">
-                <v-icon class="mr-2" :icon="checkOutcome.icon" :color="checkOutcome.color" filled />
-                <span class="body-regular">{{ $t(checkOutcome.text) }}</span>
-              </div>
-            </div>
+            <DidCheckRow
+              button-text="securityServers.dialogs.editAddress.checkDid"
+              button-test-id="security-server-system-did-check-button"
+              result-test-id="security-server-system-did-check-result"
+              :disabled="!systemDidInput || !!errors.securityServerAddress"
+              :checking="checking"
+              :outcome="outcome"
+              @check="check(dialogHandler)"
+            />
           </XrdFormBlockRow>
           <XrdFormBlockRow full-length>
             <v-text-field
@@ -109,22 +104,16 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
-import {
-  XrdBtn,
-  XrdSimpleDialog,
-  useBasicForm,
-  XrdFormBlock,
-  XrdFormBlockRow,
-  getErrorInfo,
-  getTranslatedFieldErrors,
-} from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow, getErrorInfo, getTranslatedFieldErrors } from '@niis/shared-ui';
 import type { DialogSaveHandler } from '@niis/shared-ui';
 import type { AxiosError } from 'axios';
 
-import { DidCheckStatus, DidResolutionReason, SystemDidCheck, SystemDidRefusalReason } from '@/openapi-types';
+import DidCheckRow from '@/components/DidCheckRow.vue';
+import { useDidCheck } from '@/composables/use-did-check';
+import type { DidResolutionReason, SystemDidRefusalReason } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 
 const props = defineProps({
@@ -171,11 +160,9 @@ const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
   FETCH_FAILURE: 'securityServers.dialogs.editAddress.check.not_resolved_fetch_failure',
 };
 
-type CheckOutcome = { icon: string; color: 'success' | 'warning' | 'error'; text: string };
-
 const hasSystemPair = !!props.systemDid && !!props.dspBaseUrl;
 
-const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
+const { meta, errors, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
     securityServerAddress: 'required|address',
     ...(hasSystemPair ? { systemDid: 'required', dspBaseUrl: 'required' } : {}),
@@ -194,19 +181,16 @@ const { t } = useI18n();
 const { updateAddress, checkSystemDid } = useSecurityServer();
 const { addSuccessMessage, addError, loading } = useBasicForm();
 
-const checking = ref(false);
-const checkResult = ref<SystemDidCheck | undefined>(undefined);
-let latestCheck = 0;
-
-watch(
-  [securityServerAddress, systemDidInput, dspBaseUrlInput],
-  () => {
-    latestCheck += 1;
-    checkResult.value = undefined;
-    checking.value = false;
+const { checking, outcome, check } = useDidCheck({
+  request: () => checkSystemDid(props.securityServerId, securityServerAddress.value as string, systemDidInput.value as string),
+  resetOn: [securityServerAddress, systemDidInput, dspBaseUrlInput],
+  texts: {
+    resolved: 'securityServers.dialogs.editAddress.check.resolved',
+    resolverUnavailable: 'securityServers.dialogs.editAddress.check.resolver_unavailable',
+    resolution: RESOLUTION_TEXT,
+    refusal: REFUSAL_TEXT,
   },
-  { flush: 'sync' },
-);
+});
 
 const addressChanged = computed(() => securityServerAddress.value !== props.address);
 const systemPairChanged = computed(
@@ -223,47 +207,9 @@ const warningText = computed(() => {
   return props.systemPairStale ? 'securityServers.staleValuesWarning' : undefined;
 });
 
-const checkOutcome = computed<CheckOutcome | undefined>(() => {
-  const result = checkResult.value;
-  if (!result) {
-    return undefined;
-  }
-  switch (result.status) {
-    case DidCheckStatus.RESOLVED:
-      return { icon: 'check_circle', color: 'success', text: 'securityServers.dialogs.editAddress.check.resolved' };
-    case DidCheckStatus.NOT_RESOLVED:
-      return {
-        icon: 'warning',
-        color: 'warning',
-        text:
-          RESOLUTION_TEXT[result.resolution_reason as DidResolutionReason] ??
-          'securityServers.dialogs.editAddress.check.not_resolved_fetch_failure',
-      };
-    case DidCheckStatus.RESOLVER_UNAVAILABLE:
-      return { icon: 'warning', color: 'warning', text: 'securityServers.dialogs.editAddress.check.resolver_unavailable' };
-    default:
-      return {
-        icon: 'error',
-        color: 'error',
-        text: REFUSAL_TEXT[result.refusal_reason as SystemDidRefusalReason] ?? 'error_code.internal_error',
-      };
-  }
-});
-
 function close() {
   resetForm();
   emits('cancel');
-}
-
-function check(handler: DialogSaveHandler) {
-  latestCheck += 1;
-  const thisCheck = latestCheck;
-  const isLatest = () => thisCheck === latestCheck;
-  checking.value = true;
-  checkSystemDid(props.securityServerId, securityServerAddress.value as string, systemDidInput.value as string)
-    .then((result) => isLatest() && (checkResult.value = result))
-    .catch((error) => isLatest() && handler.addError(error))
-    .finally(() => isLatest() && (checking.value = false));
 }
 
 function showSaveError(error: AxiosError, handler: DialogSaveHandler) {

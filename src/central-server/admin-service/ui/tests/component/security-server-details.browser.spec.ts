@@ -389,6 +389,17 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
       await expect.element(dialog.getByTestId('security-server-system-did-check-button')).toBeDisabled();
     });
 
+    it('is disabled while the address is invalid', async () => {
+      const dialog = await openDialog(pairFixture);
+      const button = dialog.getByTestId('security-server-system-did-check-button');
+
+      await field(dialog, 'security-server-address-edit-field').fill('bad address!');
+      await expect.element(button).toBeDisabled();
+
+      await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+      await expect.element(button).not.toBeDisabled();
+    });
+
     it('clears the result when the address, the DID or the DSP base URL changes', async () => {
       const dialog = await openDialog(pairFixture, [
         specHttp.post('/security-servers/{server_id}/system-did-check', ({ response }) =>
@@ -491,6 +502,38 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
       await expect.element(dialog.getByTestId('security-server-system-did-check-result')).toBeVisible();
 
       await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    });
+  });
+
+  describe('save button', () => {
+    const saveButton = () => page.getByTestId('dialog-save-button');
+
+    it('is disabled when the dialog opens unchanged', async () => {
+      await openDialog(pairFixture);
+
+      await expect.element(saveButton()).toBeDisabled();
+    });
+
+    it('is enabled after a change', async () => {
+      const dialog = await openDialog(pairFixture);
+
+      await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+
+      await expect.element(saveButton()).not.toBeDisabled();
+    });
+
+    it.each([
+      ['address', 'security-server-address-edit-field'],
+      ['SYSTEM DID', 'security-server-system-did-edit-field'],
+      ['DSP base URL', 'security-server-dsp-base-url-edit-field'],
+    ])('is disabled when the %s is emptied', async (_name, testId) => {
+      const dialog = await openDialog(pairFixture);
+
+      await field(dialog, 'security-server-address-edit-field').fill(NEW_ADDRESS);
+      await expect.element(saveButton()).not.toBeDisabled();
+      await field(dialog, testId).fill('');
+
+      await expect.element(saveButton()).toBeDisabled();
     });
   });
 

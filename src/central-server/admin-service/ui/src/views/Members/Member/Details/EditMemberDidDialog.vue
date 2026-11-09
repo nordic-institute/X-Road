@@ -50,20 +50,15 @@
           />
         </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
-          <div class="d-flex align-center ga-4">
-            <XrdBtn
-              data-test="member-did-check-button"
-              text="members.member.details.editDid.checkDid"
-              variant="outlined"
-              :disabled="!memberDidInput"
-              :loading="checking"
-              @click="check(dialogHandler)"
-            />
-            <div v-if="checkOutcome" class="d-flex align-center" data-test="member-did-check-result">
-              <v-icon class="mr-2" :icon="checkOutcome.icon" :color="checkOutcome.color" filled />
-              <span class="body-regular">{{ $t(checkOutcome.text) }}</span>
-            </div>
-          </div>
+          <DidCheckRow
+            button-text="members.member.details.editDid.checkDid"
+            button-test-id="member-did-check-button"
+            result-test-id="member-did-check-result"
+            :disabled="!memberDidInput"
+            :checking="checking"
+            :outcome="outcome"
+            @check="check(dialogHandler)"
+          />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
@@ -71,13 +66,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, PropType, ref, watch } from 'vue';
+import type { PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
-import { XrdBtn, XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
+import { XrdSimpleDialog, useBasicForm, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 import type { DialogSaveHandler } from '@niis/shared-ui';
 
-import { Client, DidCheckStatus, DidResolutionReason, MemberDidCheck, MemberDidRefusalReason, MemberServer } from '@/openapi-types';
+import DidCheckRow from '@/components/DidCheckRow.vue';
+import { useDidCheck } from '@/composables/use-did-check';
+import type { Client, DidResolutionReason, MemberDidRefusalReason, MemberServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 
 const props = defineProps({
@@ -114,8 +111,6 @@ const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
   FETCH_FAILURE: 'members.member.details.editDid.check.not_resolved_fetch_failure',
 };
 
-type CheckOutcome = { icon: string; color: 'success' | 'warning' | 'error'; text: string };
-
 const { meta, resetForm, defineField, handleSubmit } = useForm({
   validationSchema: { memberDid: 'required' },
   initialValues: { memberDid: props.server.member_did },
@@ -127,45 +122,18 @@ const { t } = useI18n();
 const { editMemberDid, checkMemberDid } = useMember();
 const { addSuccessMessage, addError, loading } = useBasicForm();
 
-const checking = ref(false);
-const checkResult = ref<MemberDidCheck | undefined>(undefined);
-let latestCheck = 0;
-
-watch(
-  memberDidInput,
-  () => {
-    latestCheck += 1;
-    checkResult.value = undefined;
-    checking.value = false;
+const { checking, outcome, check } = useDidCheck({
+  request: () => {
+    const { memberId, serverId } = ids();
+    return checkMemberDid(memberId, serverId, memberDidInput.value as string);
   },
-  { flush: 'sync' },
-);
-
-const checkOutcome = computed<CheckOutcome | undefined>(() => {
-  const result = checkResult.value;
-  if (!result) {
-    return undefined;
-  }
-  switch (result.status) {
-    case DidCheckStatus.RESOLVED:
-      return { icon: 'check_circle', color: 'success', text: 'members.member.details.editDid.check.resolved' };
-    case DidCheckStatus.NOT_RESOLVED:
-      return {
-        icon: 'warning',
-        color: 'warning',
-        text:
-          RESOLUTION_TEXT[result.resolution_reason as DidResolutionReason] ??
-          'members.member.details.editDid.check.not_resolved_fetch_failure',
-      };
-    case DidCheckStatus.RESOLVER_UNAVAILABLE:
-      return { icon: 'warning', color: 'warning', text: 'members.member.details.editDid.check.resolver_unavailable' };
-    default:
-      return {
-        icon: 'error',
-        color: 'error',
-        text: REFUSAL_TEXT[result.refusal_reason as MemberDidRefusalReason] ?? 'error_code.internal_error',
-      };
-  }
+  resetOn: [memberDidInput],
+  texts: {
+    resolved: 'members.member.details.editDid.check.resolved',
+    resolverUnavailable: 'members.member.details.editDid.check.resolver_unavailable',
+    resolution: RESOLUTION_TEXT,
+    refusal: REFUSAL_TEXT,
+  },
 });
 
 function ids() {
@@ -175,18 +143,6 @@ function ids() {
 function close() {
   resetForm();
   emits('cancel');
-}
-
-function check(handler: DialogSaveHandler) {
-  latestCheck += 1;
-  const thisCheck = latestCheck;
-  const isLatest = () => thisCheck === latestCheck;
-  const { memberId, serverId } = ids();
-  checking.value = true;
-  checkMemberDid(memberId, serverId, memberDidInput.value as string)
-    .then((result) => isLatest() && (checkResult.value = result))
-    .catch((error) => isLatest() && handler.addError(error))
-    .finally(() => isLatest() && (checking.value = false));
 }
 
 function save(evt: Event, handler: DialogSaveHandler) {
