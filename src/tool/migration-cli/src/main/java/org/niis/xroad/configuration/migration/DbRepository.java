@@ -44,7 +44,7 @@ public class DbRepository implements AutoCloseable {
 
     private static final String UPSERT_KEY_VALUE =
             "INSERT INTO configuration_properties(property_key, property_value) VALUES (?, ?) "
-                    + " ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value";
+                    + " ON CONFLICT (property_key, ha_node_name) DO UPDATE SET property_value = EXCLUDED.property_value";
 
     private static final String UPSERT_CONFIGURATION_ANCHOR =
             "INSERT INTO configuration_client(name, content) VALUES ('configuration-anchor', ?) "

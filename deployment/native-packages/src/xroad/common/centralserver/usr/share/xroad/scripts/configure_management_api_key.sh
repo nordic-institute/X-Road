@@ -24,14 +24,12 @@ token_hash_in_db() {
 }
 
 store_token() {
-  run_psql "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
-    VALUES ('xroad.${1}.api-token', '$2', now(), now())
-    ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();"
+  /usr/share/xroad/scripts/db_property.sh set --yes -- "xroad.${1}.api-token" "$2"
 }
 
 api_token_configured() {
   local token
-  token=$(run_psql "SELECT property_value FROM configuration_properties WHERE property_key = 'xroad.${1}.api-token';")
+  token=$(/usr/share/xroad/scripts/db_property.sh get "xroad.${1}.api-token") || token=""
   if [[ -n "$token" ]]; then
     if token_hash_in_db "$(encode_token "$token")"; then
       return 0

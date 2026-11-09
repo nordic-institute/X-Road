@@ -154,7 +154,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await downloadBtn.click();
 
       // Download endpoint was called
-      expect(downloadSpy).toHaveBeenCalled();
+      await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
     });
   });
 

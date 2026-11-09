@@ -41,10 +41,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.jpa.entity.AuditableEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
+
+import java.time.Instant;
 
 import static jakarta.persistence.AccessType.FIELD;
 
@@ -59,6 +63,7 @@ import static jakarta.persistence.AccessType.FIELD;
 @Getter
 @Setter
 @Entity
+@DynamicUpdate
 @Table(name = DsParticipantEntity.TABLE_NAME,
         check = @CheckConstraint(name = "valid_participant_type_identifier",
                 constraint = "(participant_type = 'MEMBER' AND member_identifier IS NOT NULL) "
@@ -67,6 +72,7 @@ import static jakarta.persistence.AccessType.FIELD;
 public class DsParticipantEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "ds_participant";
+    public static final int PUBLICATION_REASON_MAX_LENGTH = 4000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -93,5 +99,15 @@ public class DsParticipantEntity extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false, length = 32)
     private ParticipantState state;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "publication_state", length = 32)
+    private PublicationState publicationState;
+
+    @Column(name = "publication_reason", length = PUBLICATION_REASON_MAX_LENGTH)
+    private String publicationReason;
+
+    @Column(name = "publication_changed_at")
+    private Instant publicationChangedAt;
 
 }

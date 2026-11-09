@@ -8759,6 +8759,7 @@ components:
       required:
         - enabled
         - auth_cert_registered
+        - server
         - participant_contexts
       properties:
         enabled:
@@ -8769,12 +8770,47 @@ components:
           type: boolean
           readOnly: true
           description: whether the authentication certificate is in REGISTERED state
+        server:
+          $ref: '#/components/schemas/DataspaceServerStatus'
         participant_contexts:
           type: array
           readOnly: true
           description: provisioning status per participant context
           items:
             $ref: '#/components/schemas/DataspaceParticipantContextStatus'
+    DataspaceServerStatus:
+      type: object
+      description: server-level data space status, including the publication of the SYSTEM values
+      required:
+        - dataspace_ready
+        - publication_state
+      properties:
+        dataspace_ready:
+          type: boolean
+          readOnly: true
+          description: whether the data space is ready, that is globalconf lists a credential issuer for this instance
+        dsp_base_url:
+          type: string
+          readOnly: true
+          description: DSP base URL of this security server, built from the registered address; absent while the address is unknown
+        publication_state:
+          $ref: '#/components/schemas/DataspacePublicationState'
+        publication_reason:
+          type: string
+          readOnly: true
+          description: reason for the publication state, for example the Central Server's conflict reason
+    DataspacePublicationState:
+      type: string
+      readOnly: true
+      description: >-
+        whether the SYSTEM values have reached the Central Server. NOT_SENT: not sent yet or retrying.
+        SUBMITTED: accepted by the Central Server, not yet in globalconf. PUBLISHED: seen in globalconf.
+        REJECTED: refused with a final reason.
+      enum:
+        - NOT_SENT
+        - SUBMITTED
+        - PUBLISHED
+        - REJECTED
     DataspaceParticipantContextStatus:
       type: object
       description: provisioning status for one data space participant context
@@ -8823,6 +8859,12 @@ components:
             - REJECTED
             - DRIFTED
             - UNKNOWN
+        publication_state:
+          $ref: '#/components/schemas/DataspacePublicationState'
+        publication_reason:
+          type: string
+          readOnly: true
+          description: reason for the publication state of a MEMBER context; absent for SYSTEM contexts
     AgreementTokenKeyStatus:
       type: object
       description: status of the agreement token signing key of the connected proxy
