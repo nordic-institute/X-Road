@@ -47,7 +47,8 @@ public record NodeName(String name, boolean configured) {
 
     private static final Pattern VALID_NAME = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
 
-    private static final String RULE = "must match " + VALID_NAME.pattern();
+    /** The rule as a clause that completes the sentence "the name ...", for messages that name their own source. */
+    public static final String RULE = "must match " + VALID_NAME.pattern();
 
     public NodeName {
         if (name == null || !VALID_NAME.matcher(name).matches()) {

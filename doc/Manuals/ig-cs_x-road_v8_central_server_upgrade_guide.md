@@ -161,7 +161,7 @@ echo "deb [signed-by=/usr/share/keyrings/xroad-keyring.asc] https://artifactory.
 apt-get update
 ```
 
-**8. Upgrade the Central Server packages.**
+**8. Upgrade the Central Server packages.** The package scripts may start the X-Road services. A service that starts now runs as `node_0`, because `/etc/xroad/conf.d/node.ini` does not exist yet. Step 9 stops these services again.
 
 ```bash
 DEBIAN_FRONTEND=noninteractive apt-get install -y xroad-centralserver
@@ -175,13 +175,28 @@ dpkg-query -W -f='${Version}\n' xroad-center
 
 The output must now begin with `8.`.
 
-**9. Migrate TLS material to the local secret store.** Source `/etc/xroad/services/secret-store-local.conf` to get `XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`, then for each existing pair `/etc/xroad/ssl/{internal,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (for `center-admin-service`), or `management-service`.
+**9. Stop the Central Server services that started.** Stop every active X-Road service except `xroad-secret-store-local`, which step 10 needs:
+
+```bash
+mapfile -t SERVICES < <(systemctl list-units --type=service --state=active 'xroad-*' \
+  --no-legend --plain | awk '{print $1}' | grep -v '^xroad-secret-store-local\.service$')
+for s in "${SERVICES[@]}"; do
+  systemctl stop "$s"
+  for _ in {1..30}; do systemctl is-active --quiet "$s" || break; sleep 2; done
+done
+```
+
+**10. Migrate TLS material to the local secret store.** Source `/etc/xroad/services/secret-store-local.conf` to get `XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`, then for each existing pair `/etc/xroad/ssl/{internal,center-admin-service,management-service}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (for `center-admin-service`), or `management-service`.
 
 The pattern matches what the Security Server wizard does in `migrate_tls_to_secret_store.sh`; if you want a working reference, read that script.
 
-**10. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server — each sub-command skips cleanly when its source file is absent, so the operator's job is simply to run the full sequence in order. For a Central Server, the following sub-commands are the relevant ones:
+**11. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server — each sub-command skips cleanly when its source file is absent, so the operator's job is simply to run the full sequence in order. For a Central Server, the following sub-commands are the relevant ones:
 
 ```bash
+# node-name — carry the node name from local.ini to node.ini
+java -jar /var/tmp/migration-cli.jar node-name /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/node.ini
+[ -f /etc/xroad/conf.d/node.ini ] && chown xroad:xroad /etc/xroad/conf.d/node.ini
+
 java -jar /var/tmp/migration-cli.jar validate
 
 # devices.ini — HSM/signer module declarations
@@ -205,26 +220,28 @@ if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
 fi
 ```
 
-`<node>` is the name of this Central Server node. Read it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`. If the key is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long.
+The `node-name` sub-command must run first: it runs after step 9 has stopped the services and before any service starts again. X-Road 7.8 keeps the node name in `[center] ha-node-name` of `/etc/xroad/conf.d/local.ini`. X-Road 8 reads it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`. The sub-command creates `node.ini` if it does not exist and keeps its other keys, such as `[node] type`. It changes nothing when `ha-node-name` is empty or missing, and when `node.ini` already holds the same name. It stops without writing anything when the name is not valid (it must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long, so a host name with dots is not valid) or when `node.ini` holds a different name. If the name is not valid, choose a valid name and set it in `[node] name` of `node.ini` yourself. The database rows keyed by the old name stay behind under that name. The package upgrade has already set the ownership of `/etc/xroad/conf.d`, so the `chown` line gives a newly created `node.ini` the same owner.
+
+`<node>` is the name of this Central Server node. Read it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`, which the `node-name` sub-command filled in from X-Road 7. If the key is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long.
 
 With `--node <node>`, the PINs are stored in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 
 **Treat any Java stack trace as a failure even if the process exits 0** — do not proceed if a step printed an exception. The migration-CLI scans for `Error `, `Caused by:`, `Exception in `, and `<Class>Exception:` patterns when run from the Security Server wizard, so the same patterns are reliable signals here.
 
-**11. Start Central Server services.**
+**12. Start Central Server services.**
 
 ```bash
-for s in xroad-signer xroad-center xroad-center-management-service xroad-center-registration-service xroad-monitor xroad-opmonitor; do
+for s in xroad-signer xroad-center xroad-center-management-service xroad-center-registration-service xroad-monitor xroad-opmonitor xroad-ds-issuer-service; do
   systemctl cat "$s" >/dev/null 2>&1 || { echo "skip $s (not installed)"; continue; }
   systemctl start "$s"
   for _ in {1..30}; do systemctl is-active --quiet "$s" && break; sleep 2; done
 done
 ```
 
-**12. Clean up obsolete V7 config files** once you have verified the upgrade (see [Post-upgrade verification](#post-upgrade-verification)):
+**13. Clean up obsolete V7 config files** once you have verified the upgrade (see [Post-upgrade verification](#post-upgrade-verification)). Keep `/etc/xroad/conf.d/node.ini`; it holds the node name:
 
 ```
-/etc/xroad/conf.d/*.ini
+/etc/xroad/conf.d/*.ini      (all except node.ini)
 /etc/xroad/devices.ini
 /etc/xroad/signer            (directory)
 /etc/xroad/conf.d/*-logback*.xml
@@ -239,7 +256,7 @@ done
 systemctl list-units --type=service --state=active 'xroad-*'
 ```
 
-Expect: `xroad-signer`, `xroad-center`, `xroad-center-management-service`, `xroad-center-registration-service`, `xroad-monitor`, plus any optional services that were active before the upgrade.
+Expect: `xroad-signer`, `xroad-center`, `xroad-center-management-service`, `xroad-center-registration-service`, `xroad-monitor`, `xroad-ds-issuer-service`, plus any optional services that were active before the upgrade.
 
 **2. Confirm the package version:**
 
@@ -261,7 +278,7 @@ The upgrade is destructive once steps 7 (repo switch) and 8 (package install) ha
 
 **Snapshot restore (recommended).** Restore the host snapshot taken in [Before you start](#before-you-start).
 
-**Restore /etc/xroad and the centerui database from backup.** If no snapshot is available, restore the pre-upgrade backup on top of a freshly-reinstalled 7.8 Central Server. The `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` written in step 2 covers `/etc/xroad/` only; the database must come from your standard CS backup.
+**Restore /etc/xroad and the centerui database from backup.** If no snapshot is available, restore the pre-upgrade backup on top of a freshly-reinstalled 7.8 Central Server. The `/etc/xroad/xroad-pre-v8-backup-*.tar.gz` written in step 2 covers `/etc/xroad/` only; the database must come from your standard CS backup. The `node-name` sub-command in step 11 may have written `/etc/xroad/conf.d/node.ini`; the backup does not contain it, so delete that file when you restore over a tree that already has it.
 
 **The procedure halts before destructive change when preflight fails.** Steps 1–6 can be undone without a rollback procedure: restore `/etc/xroad/db.properties.bak`, remove the OpenBao sources file, and `systemctl start` the services. Beta 2 does not support a package-level downgrade as a primary rollback strategy.
 
