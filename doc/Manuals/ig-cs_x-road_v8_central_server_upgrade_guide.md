@@ -205,7 +205,7 @@ if [ -f /usr/share/xroad/autologin/custom-fetch-pin.sh ] \
 fi
 ```
 
-`<node>` is the name of this Central Server node. Read it from `xroad.admin-service.ha-node-name` in `/etc/xroad/conf.d/local.yaml`. If the property is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long.
+`<node>` is the name of this Central Server node. Read it from the `name` key of the `[node]` section in `/etc/xroad/conf.d/node.ini`. If the key is not set, use `node_0`. The name must start with a letter or a digit, contain only letters, digits, `_` and `-`, and be at most 63 characters long.
 
 With `--node <node>`, the PINs are stored in the secret store under `signer/token-pins/<node>/<tokenId>`. Without `--node`, the node name is `node_0`. If the name is not valid, migration-CLI stops before it writes anything. Tokens that already have a PIN under this node name are skipped, so it is safe to run the step again.
 

@@ -39,7 +39,6 @@ import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
-import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
@@ -57,18 +56,14 @@ import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
 
-import java.util.Optional;
-
 import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 public class ConfClientRootConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
-                            @ConfigProperty(name = NodeName.PROPERTY_KEY)
-                            Optional<String> nodeName) {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return configBuilder()
-                .dbOverrides(appName, NodeNameProvider.of(nodeName.orElse(null)))
+                .dbOverrides(appName, NodeNameProvider.fromEnvironment())
                 .build();
     }
 

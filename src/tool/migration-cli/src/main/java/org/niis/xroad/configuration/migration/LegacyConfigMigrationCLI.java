@@ -163,7 +163,7 @@ public class LegacyConfigMigrationCLI {
 
                 Options:
                   --node <name>                  Cluster node the migrated data belongs to (default: node_0), used by
-                                                 signer-token-pins. Central Server: xroad.admin-service.ha-node-name.
+                                                 signer-token-pins. Central Server: the [node] name in node.ini.
 
                 Commands:
                   validate                       Check for probable migration issues

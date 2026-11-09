@@ -24,47 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.properties.spring;
+package org.niis.xroad.cs.admin.core.config;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.env.SystemEnvironmentPropertySource;
-import org.springframework.mock.env.MockEnvironment;
-
-import java.util.Map;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class SpringNodeNameProviderTest {
+@ExtendWith(SystemStubsExtension.class)
+class CurrentHAConfigStatusTest {
 
-    private static final String NODE_NAME_KEY = "xroad.admin-service.ha-node-name";
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
+
+    private final CurrentHAConfigStatus currentHAConfigStatus = new CurrentHAConfigStatus();
 
     @Test
-    void returnsTheConfiguredName() {
-        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "node_1");
+    void shouldBeConfiguredWhenNodeNameEnvironmentVariableIsSet() {
+        variables.set("XROAD_NODE_NAME", "node_1");
 
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_1");
+        assertThat(currentHAConfigStatus.currentHaConfigStatus()).isEqualTo(new HAConfigStatus("node_1", true));
     }
 
     @Test
-    void blankNameMapsToNodeZero() {
-        var environment = new MockEnvironment().withProperty(NODE_NAME_KEY, "  ");
-
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_0");
-    }
-
-    @Test
-    void missingNameMapsToNodeZero() {
-        assertThat(SpringNodeNameProvider.forEnvironment(new MockEnvironment()).nodeName()).contains("node_0");
-    }
-
-    @Test
-    void readsTheNameFromTheEnvironmentVariable() {
-        var environment = new StandardEnvironment();
-        environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                new SystemEnvironmentPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                        Map.of("XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_2")));
-
-        assertThat(SpringNodeNameProvider.forEnvironment(environment).nodeName()).contains("node_2");
+    void shouldFallBackToNodeZeroNotConfiguredWhenEnvironmentVariableIsUnset() {
+        assertThat(currentHAConfigStatus.currentHaConfigStatus()).isEqualTo(new HAConfigStatus("node_0", false));
     }
 }

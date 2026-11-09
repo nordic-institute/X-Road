@@ -107,7 +107,6 @@ file-upload-endpoints:
 
 xroad:
   admin-service:
-    ha-node-name:
     global-conf-generator:
       minimum-global-configuration-version: 2
       internal-directory: internalconf

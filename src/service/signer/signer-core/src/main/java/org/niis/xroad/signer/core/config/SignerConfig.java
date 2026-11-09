@@ -46,7 +46,6 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
-import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
@@ -65,7 +64,6 @@ import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 public class SignerConfig {
@@ -171,8 +169,8 @@ public class SignerConfig {
     // NodeIdentity is a final record: a normal scope would need a client proxy, which a record cannot have.
     @Produces
     @Singleton
-    NodeIdentity nodeIdentity(@ConfigProperty(name = NodeName.PROPERTY_KEY) Optional<String> configuredNodeName) {
-        return NodeIdentity.resolve(configuredNodeName.orElse(null));
+    NodeIdentity nodeIdentity() {
+        return NodeIdentity.fromEnvironment();
     }
 
     void onStart(@Observes StartupEvent event, NodeIdentity nodeIdentity) {

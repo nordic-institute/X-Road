@@ -65,7 +65,7 @@ class NodeOptionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"_node", "true"})
+    @ValueSource(strings = {"_node", "cs1.example.org"})
     void shouldRejectAnInvalidNodeNameWithTheRule(String name) {
         assertThatThrownBy(() -> NodeOption.extract(new String[]{"--node", name}))
                 .isInstanceOf(XrdRuntimeException.class)

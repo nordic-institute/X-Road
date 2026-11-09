@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.properties.dbsource;
 
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -84,13 +85,16 @@ public final class NodeAwareProducerFixture {
     }
 
     private String resolve(Optional<String> nodeName) throws Exception {
-        return new EnvironmentVariables(databaseEnvironment).execute(
-                () -> producer.create(nodeName).value(CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME));
+        var variables = new EnvironmentVariables(databaseEnvironment);
+        nodeName.ifPresentOrElse(
+                name -> variables.set(NodeProperties.NODE_NAME_ENV_VARIABLE, name),
+                () -> variables.remove(NodeProperties.NODE_NAME_ENV_VARIABLE));
+        return variables.execute(() -> producer.create().value(CommonRpcConfigKeys.CERT_PROVISIONING_COMMON_NAME));
     }
 
     /** The {@code xRoadConfig} producer method of an application. */
     @FunctionalInterface
     public interface Producer {
-        XRoadConfig create(Optional<String> nodeName);
+        XRoadConfig create();
     }
 }

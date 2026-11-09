@@ -60,8 +60,7 @@ Commands:
 Common options:
   -n, --node <name>  Central Server only. Act on the row of this Central Server node
                      (for example node_1) instead of the shared row. The name must
-                     match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$ and must not be a value
-                     that YAML reads as a non-string, such as true, on, null or 0123.
+                     match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$.
   -y, --yes          Skip interactive confirmation prompt
   -h, --help         Show this help
 

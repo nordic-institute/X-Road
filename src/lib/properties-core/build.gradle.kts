@@ -31,10 +31,4 @@ tasks.test {
   ).canonicalFile
   inputs.files(nodeNameScript).withPropertyName("nodeNameScript")
   systemProperty("xroad.test.node-name-script", nodeNameScript.path)
-
-  val yamlHelperScript = rootDir.resolve(
-    "../deployment/native-packages/src/xroad/common/helper-scripts/yaml_helper.py"
-  ).canonicalFile
-  inputs.files(yamlHelperScript).withPropertyName("yamlHelperScript")
-  systemProperty("xroad.test.yaml-helper-script", yamlHelperScript.path)
 }

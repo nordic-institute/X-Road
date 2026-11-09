@@ -28,6 +28,7 @@ package org.niis.xroad.common.core.node;
 
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
 import org.niis.xroad.common.properties.dbsource.NodeName;
 
@@ -59,6 +60,16 @@ public record NodeIdentity(String name, boolean configured) {
     public static NodeIdentity resolve(String configuredValue) {
         var configured = configuredValue != null && !configuredValue.isBlank();
         return new NodeIdentity(configured ? configuredValue : NodeName.DEFAULT_NODE_NAME, configured);
+    }
+
+    /**
+     * The node identity of this process, read from the node name environment variable.
+     *
+     * @return the node identity, {@link NodeName#DEFAULT_NODE_NAME} with {@code configured = false} when unset
+     * @throws XrdRuntimeException if the value breaks the node name rule
+     */
+    public static NodeIdentity fromEnvironment() {
+        return resolve(NodeProperties.getConfiguredNodeName());
     }
 
     private static XrdRuntimeException invalid(InvalidNodeNameException e) {

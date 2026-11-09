@@ -26,55 +26,57 @@
  */
 package org.niis.xroad.signer.core.config;
 
-import io.smallrye.config.EnvConfigSource;
-import io.smallrye.config.SmallRyeConfig;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
-import org.niis.xroad.common.properties.dbsource.NodeName;
-
-import java.util.Map;
-import java.util.Optional;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExtendWith(SystemStubsExtension.class)
 class SignerConfigNodeIdentityTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
+
+    @SystemStub
+    private final SystemProperties properties = new SystemProperties();
 
     private final SignerConfig signerConfig = new SignerConfig();
 
     @Test
-    void shouldReadNodeNameFromEnvVarWhenNoLocalYamlIsLoaded() {
-        var config = new SmallRyeConfigBuilder()
-                .withSources(new EnvConfigSource(Map.of("XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_a"), 300))
-                .build();
+    void shouldReadNodeNameFromEnvironmentVariable() {
+        variables.set("XROAD_NODE_NAME", "node_a");
 
-        assertThat(resolve(config)).isEqualTo(new NodeIdentity("node_a", true));
+        assertThat(signerConfig.nodeIdentity()).isEqualTo(new NodeIdentity("node_a", true));
     }
 
     @Test
-    void shouldResolveDefaultNodeNameWhenNothingIsConfigured() {
-        var config = new SmallRyeConfigBuilder().build();
-
-        assertThat(resolve(config)).isEqualTo(new NodeIdentity("node_0", false));
+    void shouldResolveDefaultNodeNameWhenEnvironmentVariableIsUnset() {
+        assertThat(signerConfig.nodeIdentity()).isEqualTo(new NodeIdentity("node_0", false));
     }
 
     @Test
-    void shouldFailStartupNamingTheRuleWhenTheEnvVarHoldsAnInvalidName() {
-        var config = new SmallRyeConfigBuilder()
-                .withSources(new EnvConfigSource(Map.of("XROAD_ADMIN_SERVICE_HA_NODE_NAME", "_bad"), 300))
-                .build();
+    void shouldIgnoreStaleConfigurationKeyWhenEnvironmentVariableIsUnset() {
+        properties.set("xroad.admin-service.ha-node-name", "node_stale");
 
-        assertThatThrownBy(() -> resolve(config))
+        assertThat(signerConfig.nodeIdentity()).isEqualTo(new NodeIdentity("node_0", false));
+    }
+
+    @Test
+    void shouldFailStartupNamingTheRuleWhenTheEnvironmentVariableHoldsAnInvalidName() {
+        variables.set("XROAD_NODE_NAME", "_bad");
+
+        assertThatThrownBy(signerConfig::nodeIdentity)
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code()))
+                .hasMessageContaining("XROAD_NODE_NAME")
                 .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
-    }
-
-    private NodeIdentity resolve(SmallRyeConfig config) {
-        Optional<String> configured = config.getOptionalValue(NodeName.PROPERTY_KEY, String.class);
-        return signerConfig.nodeIdentity(configured);
     }
 }

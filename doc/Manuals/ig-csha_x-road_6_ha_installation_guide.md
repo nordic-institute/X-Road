@@ -180,15 +180,14 @@ The database can also be installed on the Central Server node(s), but that is no
 
 In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
 
-1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/local.yaml` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
+1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/node.ini` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
     ```bash
     sudo mkdir -p /etc/xroad/conf.d
     ```
 2.  Add the following lines
-    ```yaml
-    xroad:
-      admin-service:
-        ha-node-name: <node_name>
+    ```ini
+    [node]
+    name=<node_name>
     ```
     Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). Set the name before installing the Central Server package. The installation stops if the name is not valid.
 
@@ -208,11 +207,11 @@ The node name must follow this rule:
 
 - Use 1 to 63 characters: letters, digits, `_` and `-`.
 - The first character must be a letter or a digit.
-- Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected by the installation and by the backup and restore scripts, with or without quotes. The services read `local.yaml` through a YAML loader, which converts an unquoted value before the services check it: for example `0123` becomes `83`, which the services accept but the scripts reject. In `local.yaml`, write the name in quotes when in doubt. An unquoted `null` or `~` means that the name is not set.
+- The name is read as plain text, so values such as `01`, `007` and `true` are valid.
 
-The installation and the backup and restore scripts check the name with this rule. The services check it when they start. In containers, set the name with the environment variable `XROAD_ADMIN_SERVICE_HA_NODE_NAME`.
+The installation and the backup and restore scripts check the name with this rule. The services check it when they start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
 
-The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `local.yaml` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
+The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `node.ini` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
 
 1.  Take a backup of the node and of the other nodes.
 2.  Stop the Central Server services on the node. Do not uninstall the packages yet. The entries of the old name must be deleted while the secret store is reachable, and the local secret store may be gone after the packages are removed.
@@ -236,7 +235,7 @@ The name is fixed after the node has joined the cluster. The node keeps its secr
     Keep the single quotes around the value: without them, the shell changes values that contain spaces, braces, commas or quotes, such as JSON values, and `set` fails or stores a different value. Write a single quote inside the value as `'\''`. The `&&` runs `remove` only when `set` succeeded. After each row, check the new row with `sudo /usr/share/xroad/scripts/db_property.sh get --node <new_node_name> <key>`; it must print the same value as the `list` output.
     Run `list --node <old_node_name>` again to check that no row is left. Shared rows are not affected.
 5.  Remove the node from the cluster: uninstall the Central Server packages from it.
-6.  On the node, set the new name in `/etc/xroad/conf.d/local.yaml` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
+6.  On the node, set the new name in `/etc/xroad/conf.d/node.ini` and install the Central Server again, as in section [4](#4-general-installation-of-ha-support).
 
 These steps do not change the other tables of the configuration database. Rows in the `ha_node_name` column of the tables for configuration sources, distributed files and system parameters keep the old node name. This guide does not describe how to move or remove them.
 

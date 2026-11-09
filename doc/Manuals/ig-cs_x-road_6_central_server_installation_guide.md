@@ -441,19 +441,18 @@ sudo /usr/share/xroad/scripts/db_property.sh set xroad.signer.modules '{"softhsm
 - The services that read node values are the Central Server admin service, management service, registration service, signer, configuration client and Issuer Service. Each reads its settings once at startup, so restart the service after a change.
 - On the signer, the configuration client and the Issuer Service, settings that the framework publishes to the service use the shared value only, and a node value for them is ignored. An example is the `xroad.dsp.*` settings that the Issuer Service reads through the EDC settings.
 - Data that the signer keeps in its own tables, such as tokens and keys, is still shared by all nodes.
-- A node uses the name set in the `xroad.admin-service.ha-node-name` property of `/etc/xroad/conf.d/local.yaml`. If it is blank or missing, the node name is `node_0`.
-- A node name consists of ASCII letters, digits, `_` and `-`, is at most 63 characters long and starts with an ASCII letter or digit. A value that YAML reads as something other than text, such as `true` or `0123`, is rejected. For the full rule, see [IG-CS-8](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name) section 2.6.4.
+- A node uses the name set in the `name` key of the `[node]` section of `/etc/xroad/conf.d/node.ini`. If it is blank or missing, the node name is `node_0`.
+- A node name consists of ASCII letters, digits, `_` and `-`, is at most 63 characters long and starts with an ASCII letter or digit. For the full rule, see [IG-CS-8](ig-cs_x-road_8_central_server_installation_guide.md#264-node-name) section 2.6.4.
 - Rows are bound to the node name. After a node is renamed, rows of the old name no longer apply; see [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) section 4.1.
 - `db_property.sh list` prints every shared row as the key, a tab and the value, sorted by key. `db_property.sh list --node <name>` prints the rows of that node only.
 - A value that starts with `-` must be preceded by `--`, so that it is not read as an option.
 - Known limitation: the admin UI and `db_property.sh get` without `--node` show the shared value, not the value that a node actually uses. Use `get --node <name>` to see the value of a node.
 
-Example `local.yaml` entry that names the node:
+Example `node.ini` entry that names the node:
 
-```yaml
-xroad:
-  admin-service:
-    ha-node-name: node_1
+```ini
+[node]
+name=node_1
 ```
 
 Example: set a property for `node_1` and read it back:

@@ -246,17 +246,16 @@ The node name tells Central Server nodes apart when they share one secret store.
 A standalone Central Server does not need a node name. Set one on every node of a high availability cluster, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md).
 
 - Where to set it:
-  - Native packages: the key `xroad.admin-service.ha-node-name` in `/etc/xroad/conf.d/local.yaml`. Set it before installing the packages. The directory does not exist before the first installation, so create it first with `sudo mkdir -p /etc/xroad/conf.d`. The package sets the ownership of the directory and its files when it is installed.
-    ```yaml
-    xroad:
-      admin-service:
-        ha-node-name: node_1
+  - Native packages: the key `name` in the `[node]` section of `/etc/xroad/conf.d/node.ini`. Set it before installing the packages. The directory does not exist before the first installation, so create it first with `sudo mkdir -p /etc/xroad/conf.d`. The package sets the ownership of the directory and its files when it is installed.
+    ```ini
+    [node]
+    name=node_1
     ```
-  - Containers: the environment variable `XROAD_ADMIN_SERVICE_HA_NODE_NAME`.
+  - Containers: the environment variable `XROAD_NODE_NAME`.
 - The rule:
   - Use 1 to 63 characters: letters, digits, `_` and `-`.
   - The first character must be a letter or a digit.
-  - Do not use a value that YAML reads as something other than text, for example `true`, `no`, `on`, `0123`, `1_0`, `1e3` or `2024-01-31`. Such a value is rejected by the installer and by the backup and restore scripts, with or without quotes. The services read `local.yaml` through a YAML loader, which converts an unquoted value before the services check it: for example `0123` becomes `83`, which the services accept but the scripts reject. In `local.yaml`, write the name in quotes when in doubt. An unquoted `null` or `~` means that the name is not set.
+  - The name is read as plain text, so values such as `01`, `007` and `true` are valid.
 - What it selects:
   - The node's signer token PINs in the secret store.
   - The node's configuration rows: a row set with `db_property.sh --node <node>` applies only to the node with that name, and only while the node has that name. See [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md#28-installing-the-support-for-hardware-tokens) section 2.8, "Per-node values".
