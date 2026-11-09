@@ -167,7 +167,9 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
     /**
      * Checks whether the issuer can sign credentials for the given participant context, under
      * {@link #CAN_SIGN_DEADLINE_MILLIS} instead of the channel's own deadline. A deadline overrun comes back as
-     * {@link CanSignCause#TIMEOUT}, not an exception; every other gRPC failure goes through the usual mapping.
+     * {@link CanSignCause#TIMEOUT}; any other failure to reach the Issuer Service comes back as
+     * {@link CanSignCause#ISSUER_SERVICE_UNREACHABLE}. Neither is an exception, so a caller reading the status
+     * can rely on this method never throwing for a down or unreachable Issuer Service.
      */
     public CanSignResult canSign(String participantContextId) {
         try {
@@ -178,7 +180,7 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
                 return CanSignResult.cannotSign(CanSignCause.TIMEOUT);
             }
-            throw mapFailedStatus(error);
+            return CanSignResult.cannotSign(CanSignCause.ISSUER_SERVICE_UNREACHABLE);
         }
     }
 

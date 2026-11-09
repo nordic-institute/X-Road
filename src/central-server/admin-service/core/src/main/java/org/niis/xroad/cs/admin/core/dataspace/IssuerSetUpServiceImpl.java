@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
-import ee.ria.xroad.common.util.CertUtils;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
@@ -36,16 +34,10 @@ import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpService;
-import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
-import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 
-import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,9 +50,6 @@ import java.util.concurrent.Executors;
 @RequiredArgsConstructor
 public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBean {
 
-    /** {@code GeneralName} tag for a DNS subject alternative name entry (RFC 5280). */
-    private static final int GENERAL_NAME_DNS = 2;
-
     /**
      * The provisioning run makes this many sequential gRPC calls, each bounded by the RPC deadline:
      * the initial "can sign" check, creating the participant context, the two definition calls, and
@@ -72,7 +61,7 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
     private static final Duration LEASE_TTL_MARGIN = Duration.ofSeconds(30);
 
     private final IssuerHostService issuerHostService;
-    private final DsTlsCertificateService dsTlsCertificateService;
+    private final ConnectorCertificateCheck connectorCertificateCheck;
     private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     private final IssuerSetUpLeaseService issuerSetUpLeaseService;
     private final IssuerProvisioningRpcChannelProperties issuerProvisioningRpcChannelProperties;
@@ -90,7 +79,7 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
         if (state.host() == null) {
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.HOST_NOT_SET);
         }
-        if (!connectorCertificateReadyFor(state.host())) {
+        if (!connectorCertificateCheck.isReadyFor(state.host())) {
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY);
         }
         if (issuerSetUpLeaseService.currentHolder().isPresent()) {
@@ -126,34 +115,6 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
         } finally {
             issuerSetUpLeaseService.release(node);
         }
-    }
-
-    /**
-     * The connector TLS certificate check: a certificate must be present in the {@code tls/ds-https}
-     * vault slot, unexpired, and carry the issuer host as a DNS subject alternative name.
-     */
-    private boolean connectorCertificateReadyFor(String host) {
-        DsTlsCertificateStatus status = dsTlsCertificateService.getStatus();
-        X509Certificate certificate = status.certificate();
-        return certificate != null && CertUtils.isValid(certificate) && hasDnsSubjectAlternativeName(certificate, host);
-    }
-
-    private static boolean hasDnsSubjectAlternativeName(X509Certificate certificate, String host) {
-        Collection<List<?>> subjectAlternativeNames;
-        try {
-            subjectAlternativeNames = certificate.getSubjectAlternativeNames();
-        } catch (CertificateParsingException e) {
-            return false;
-        }
-        if (subjectAlternativeNames == null) {
-            return false;
-        }
-        return subjectAlternativeNames.stream()
-                .filter(san -> san.size() > 1 && Integer.valueOf(GENERAL_NAME_DNS).equals(san.get(0)))
-                .map(san -> san.get(1))
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .anyMatch(host::equalsIgnoreCase);
     }
 
     @Override

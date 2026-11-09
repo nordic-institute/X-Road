@@ -72,7 +72,7 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
     @Override
     public void provisionIssuer() {
         String host = properties.getHost();
-        String did = "did:web:" + host + "%3A" + properties.getDidPort() + ":issuer";
+        String did = IssuerDidFormat.didFor(host, properties.getDidPort());
         String issuerServiceUrl = "https://%s:%d/api/issuance/v1/participants/issuer"
                 .formatted(host, properties.getIssuancePort());
         String statuslistBaseUrl = "https://%s:%d/statuslist".formatted(host, properties.getStatuslistPort());

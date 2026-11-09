@@ -41,6 +41,7 @@ import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.dataspace.ConnectorCertificateCheck;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerDidServiceImpl;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioningServiceImpl;
@@ -312,7 +313,7 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
     }
 
     private IssuerSetUpServiceImpl buildSetUpService(DataspaceIssuerProvisioningServiceImpl provisioningService, String node) {
-        return new IssuerSetUpServiceImpl(issuerHostService, dsTlsCertificateService, provisioningService,
+        return new IssuerSetUpServiceImpl(issuerHostService, new ConnectorCertificateCheck(dsTlsCertificateService), provisioningService,
                 issuerSetUpLeaseService, issuerProvisioningRpcChannelProperties, new HAConfigStatus(node, true));
     }
 

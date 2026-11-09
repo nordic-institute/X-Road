@@ -38,14 +38,8 @@ import org.niis.xroad.cs.admin.api.dto.IssuerSetUpResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.IssuerHostService;
 import org.niis.xroad.cs.admin.api.service.IssuerSetUpLeaseService;
-import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
-import org.niis.xroad.restapi.service.DsTlsCertificateService;
 
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -56,8 +50,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -67,14 +59,13 @@ import static org.mockito.Mockito.when;
 class IssuerSetUpServiceImplTest {
 
     private static final String HOST = "issuer.example.org";
-    private static final int GENERAL_NAME_DNS = 2;
     private static final String NODE = "node-a";
     private static final int DEADLINE_AFTER_MS = 60000;
 
     @Mock
     private IssuerHostService issuerHostService;
     @Mock
-    private DsTlsCertificateService dsTlsCertificateService;
+    private ConnectorCertificateCheck connectorCertificateCheck;
     @Mock
     private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     @Mock
@@ -86,17 +77,15 @@ class IssuerSetUpServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        issuerSetUpService = new IssuerSetUpServiceImpl(issuerHostService, dsTlsCertificateService,
+        issuerSetUpService = new IssuerSetUpServiceImpl(issuerHostService, connectorCertificateCheck,
                 dataspaceIssuerProvisioningService, issuerSetUpLeaseService, issuerProvisioningRpcChannelProperties,
                 new HAConfigStatus(NODE, true));
     }
 
     /** Stubs every check before the lease so a test can start at "no run in progress". */
-    private void givenEveryPrerequisiteCheckPasses() throws CertificateParsingException {
+    private void givenEveryPrerequisiteCheckPasses() {
         when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
-        var certificate = mock(X509Certificate.class);
-        lenient().when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, HOST)));
-        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
     }
 
     @Test
@@ -108,7 +97,7 @@ class IssuerSetUpServiceImplTest {
         assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP));
         // No collaborator here can write issuer_dids, so the already-bound refusal leaves it untouched
         // by construction: proving that requires only that neither check ran past the bound check.
-        verifyNoInteractions(dsTlsCertificateService, dataspaceIssuerProvisioningService);
+        verifyNoInteractions(connectorCertificateCheck, dataspaceIssuerProvisioningService);
     }
 
     @Test
@@ -118,40 +107,13 @@ class IssuerSetUpServiceImplTest {
         var result = issuerSetUpService.start();
 
         assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.HOST_NOT_SET));
-        verifyNoInteractions(dsTlsCertificateService, dataspaceIssuerProvisioningService);
+        verifyNoInteractions(connectorCertificateCheck, dataspaceIssuerProvisioningService);
     }
 
     @Test
-    void refusesCertificateNotReadyWhenNoCertificateIsStored() {
+    void refusesCertificateNotReadyWhenTheCertificateCheckFails() {
         when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
-        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, null));
-
-        var result = issuerSetUpService.start();
-
-        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY));
-        verifyNoInteractions(dataspaceIssuerProvisioningService);
-    }
-
-    @Test
-    void refusesCertificateNotReadyWhenTheCertificateIsExpired() throws Exception {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
-        var certificate = mock(X509Certificate.class);
-        doThrow(new CertificateExpiredException("expired")).when(certificate).checkValidity();
-        lenient().when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, HOST)));
-        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
-
-        var result = issuerSetUpService.start();
-
-        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY));
-        verifyNoInteractions(dataspaceIssuerProvisioningService);
-    }
-
-    @Test
-    void refusesCertificateNotReadyWhenTheCertificateDoesNotCoverTheIssuerHost() throws Exception {
-        when(issuerHostService.getState()).thenReturn(new IssuerHostState(HOST, false));
-        var certificate = mock(X509Certificate.class);
-        when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, "other.example.org")));
-        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(false);
 
         var result = issuerSetUpService.start();
 

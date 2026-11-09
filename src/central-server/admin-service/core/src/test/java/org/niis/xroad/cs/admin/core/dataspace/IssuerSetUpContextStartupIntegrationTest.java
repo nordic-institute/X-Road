@@ -105,7 +105,8 @@ import static org.mockito.Mockito.when;
                 DataspaceIssuerDidServiceImpl.class,
                 DataspaceMemberDidServiceImpl.class,
                 ParticipantValueStoreImpl.class,
-                IssuerSetUpLeaseServiceImpl.class
+                IssuerSetUpLeaseServiceImpl.class,
+                IssuerServiceStatusServiceImpl.class
         }))
 @EnableScheduling
 @Execution(ExecutionMode.SAME_THREAD)

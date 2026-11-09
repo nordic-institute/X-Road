@@ -27,12 +27,14 @@
 package org.niis.xroad.cs.admin.api.domain;
 
 /**
- * Why the data space issuer cannot sign credentials for a participant context. {@link #TIMEOUT} is never
- * reported by the Issuer Service itself; the Central Server client reports it when the Issuer Service does
- * not answer within the check's deadline.
+ * Why the data space issuer cannot sign credentials for a participant context. {@link #TIMEOUT} and
+ * {@link #ISSUER_SERVICE_UNREACHABLE} are never reported by the Issuer Service itself; the Central Server
+ * client reports them when the Issuer Service does not answer within the check's deadline, or fails to
+ * answer at all.
  */
 public enum CanSignCause {
     NO_ACTIVE_KEY,
     DID_NOT_PUBLISHED,
-    TIMEOUT
+    TIMEOUT,
+    ISSUER_SERVICE_UNREACHABLE
 }

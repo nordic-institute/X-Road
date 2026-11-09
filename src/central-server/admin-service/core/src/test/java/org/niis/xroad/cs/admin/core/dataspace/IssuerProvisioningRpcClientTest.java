@@ -77,6 +77,7 @@ class IssuerProvisioningRpcClientTest {
     private CanSignResp configuredCanSignResp;
     private final AtomicReference<CanSignReq> capturedCanSignReq = new AtomicReference<>();
     private long canSignDelayMillis;
+    private boolean canSignUnavailable;
 
     private final AtomicReference<CreateParticipantContextReq> capturedCreateParticipantContextReq = new AtomicReference<>();
     private ErrorCode configuredCreateParticipantContextError;
@@ -95,6 +96,10 @@ class IssuerProvisioningRpcClientTest {
             @Override
             public void canSign(CanSignReq request, StreamObserver<CanSignResp> responseObserver) {
                 capturedCanSignReq.set(request);
+                if (canSignUnavailable) {
+                    responseObserver.onError(io.grpc.Status.UNAVAILABLE.asRuntimeException());
+                    return;
+                }
                 if (canSignDelayMillis > 0) {
                     try {
                         Thread.sleep(canSignDelayMillis);
@@ -236,6 +241,15 @@ class IssuerProvisioningRpcClientTest {
         var result = client.canSign("ctx-id");
 
         assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.TIMEOUT));
+    }
+
+    @Test
+    void canSignReturnsCannotSignWithIssuerServiceUnreachableCauseOnAnyOtherGrpcFailure() {
+        canSignUnavailable = true;
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.ISSUER_SERVICE_UNREACHABLE));
     }
 
     @Test
