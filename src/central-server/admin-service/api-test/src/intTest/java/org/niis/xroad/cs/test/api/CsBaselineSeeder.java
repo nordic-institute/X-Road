@@ -344,6 +344,53 @@ public class CsBaselineSeeder {
     }
 
     /**
+     * Claims the single-flight Issuer Service set-up lease directly, as if a run on {@code ownerNode}
+     * had just started it. The caller is responsible for releasing it afterwards with
+     * {@link #releaseIssuerSetUpLease()}; this stack has no reachable Issuer Service to run a real
+     * set-up that would hold the lease itself.
+     */
+    public void acquireIssuerSetUpLease(String ownerNode) {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("""
+                        INSERT INTO centerui.issuer_set_up_lease (id, owner_node, started_at, expires_at)
+                        VALUES (1, ?, now(), now() + interval '5 minutes')
+                        ON CONFLICT (id) DO UPDATE
+                            SET owner_node = excluded.owner_node,
+                                started_at = excluded.started_at,
+                                expires_at = excluded.expires_at
+                        """)) {
+            stmt.setString(1, ownerNode);
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to claim the issuer set-up lease in the CS DB", e);
+        }
+    }
+
+    /**
+     * Releases the issuer set-up lease claimed by {@link #acquireIssuerSetUpLease(String)}.
+     */
+    public void releaseIssuerSetUpLease() {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.prepareStatement("DELETE FROM centerui.issuer_set_up_lease WHERE id = 1")) {
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to release the issuer set-up lease in the CS DB", e);
+        }
+    }
+
+    /**
      * Seeds the bootstrap API key, initialises the CS if needed, and verifies the stack is reachable.
      * Called once per JVM before any test starts. All HTTP here is silent (no Allure attachment).
      */
