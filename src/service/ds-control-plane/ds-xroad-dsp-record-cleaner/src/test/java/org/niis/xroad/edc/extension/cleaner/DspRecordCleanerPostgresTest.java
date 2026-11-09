@@ -73,6 +73,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
@@ -103,6 +104,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -201,6 +203,51 @@ class DspRecordCleanerPostgresTest {
     }
 
     @Test
+    void onlyOldTransfersInStatesThatEdcCanTerminateAreTerminated() {
+        var terminable = new ArrayList<String>();
+        for (var state : TransferProcessStates.values()) {
+            saveTransfer("old-" + state.name(), TransferProcess.Type.PROVIDER, state, OLD);
+            saveTransfer("young-" + state.name(), TransferProcess.Type.PROVIDER, state, YOUNG);
+            if (state.code() < TransferProcessStates.COMPLETED.code() && canBeTerminated(state)) {
+                terminable.add("old-" + state.name());
+            }
+        }
+        TransferProcessService service = mock();
+        when(service.terminate(any(TerminateTransferCommand.class))).thenReturn(ServiceResult.success());
+
+        var summary = newCleaner(service).run();
+
+        var commands = ArgumentCaptor.forClass(TerminateTransferCommand.class);
+        verify(service, times(terminable.size())).terminate(commands.capture());
+        var terminated = commands.getAllValues().stream().map(TerminateTransferCommand::getEntityId).toList();
+        assertThat(terminated).containsExactlyInAnyOrderElementsOf(terminable)
+                .doesNotContain("old-" + TransferProcessStates.RESUMED.name());
+        assertThat(summary.terminatedTransfers()).isEqualTo(terminable.size());
+        assertThat(transferProcessStore.findById("old-" + TransferProcessStates.COMPLETED.name())).isNull();
+        assertThat(transferProcessStore.findById("old-" + TransferProcessStates.TERMINATED.name())).isNull();
+        assertThat(transferProcessStore.findById("old-" + TransferProcessStates.RESUMED.name())).isNotNull();
+        assertThat(transferProcessStore.findById("young-" + TransferProcessStates.COMPLETED.name())).isNotNull();
+        monitor.assertNoProblems();
+    }
+
+    @Test
+    void finishedTransferBacklogLargerThanOneBatchIsDeletedInOnePass() {
+        var backlog = DspRecordCleaner.PAGE_SIZE * 2 + 1;
+        for (int i = 0; i < backlog; i++) {
+            saveTransfer("old-%05d".formatted(i), TransferProcess.Type.PROVIDER, TransferProcessStates.COMPLETED, OLD);
+        }
+        saveTransfer("young", TransferProcess.Type.PROVIDER, TransferProcessStates.COMPLETED, YOUNG);
+
+        var summary = newCleaner(new EdcTerminationChain().service()).run();
+
+        assertThat(summary.deletedTransfers()).isEqualTo(backlog);
+        assertThat(transferProcessStore.findById("young")).isNotNull();
+        assertThat(transferProcessStore.findById("old-00000")).isNull();
+        assertThat(transferProcessStore.findById("old-%05d".formatted(backlog - 1))).isNull();
+        monitor.assertNoProblems();
+    }
+
+    @Test
     void finishedRowsOlderThanTheAgeAreDeletedAndYoungerOnesStay() throws Exception {
         saveTransfer("old-completed", TransferProcess.Type.PROVIDER, TransferProcessStates.COMPLETED, OLD);
         saveTransfer("old-terminated", TransferProcess.Type.CONSUMER, TransferProcessStates.TERMINATED, OLD);
@@ -231,8 +278,8 @@ class DspRecordCleanerPostgresTest {
         insertFlow("inside-floor", DataFlowLifecycleState.TERMINATED, DspRecordCleaner.MINIMUM_AGE.minusMinutes(5));
         var age = DspRecordCleaner.requireValidAge(DspRecordCleaner.MINIMUM_AGE.plusSeconds(1));
         var cleaner = new DspRecordCleaner(transferProcessStore, new EdcTerminationChain().service(), dataAddressStore,
-                negotiationStore, negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx,
-                clock, monitor, age, DspRecordCleaner.requireValidMaxAge(MAX_AGE, age));
+                negotiationStore, transferProcessIdReader(), negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(),
+                serverConfDatabaseCtx, clock, monitor, age, DspRecordCleaner.requireValidMaxAge(MAX_AGE, age));
 
         cleaner.run();
 
@@ -444,8 +491,15 @@ class DspRecordCleanerPostgresTest {
 
     private DspRecordCleaner newCleaner(TransferProcessService transferProcessService, ContractNegotiationStore store) {
         return new DspRecordCleaner(transferProcessStore, transferProcessService, dataAddressStore, store,
-                negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor,
-                AGE, MAX_AGE);
+                transferProcessIdReader(), negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(),
+                serverConfDatabaseCtx, clock, monitor, AGE, MAX_AGE);
+    }
+
+    private TransferProcessIdReader transferProcessIdReader() {
+        return new TransferProcessIdReader(dataSourceRegistry, DATA_SOURCE_NAME, new NoopTransactionContext(),
+                new SqlQueryExecutor(),
+                new org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres
+                        .PostgresDialectStatements(Clock.systemUTC()));
     }
 
     private NegotiationsWithoutAgreementReader negotiationsWithoutAgreementReader() {
@@ -457,6 +511,14 @@ class DspRecordCleanerPostgresTest {
         return new PolicyMonitorEntryPurger(dataSourceRegistry, DATA_SOURCE_NAME, new NoopTransactionContext(),
                 new SqlQueryExecutor(),
                 new org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements());
+    }
+
+    private boolean canBeTerminated(TransferProcessStates state) {
+        return TransferProcess.Builder.newInstance()
+                .id("probe")
+                .state(state.code())
+                .build()
+                .canBeTerminated();
     }
 
     private void saveTransfer(String id, TransferProcess.Type type, TransferProcessStates state, Duration age) {

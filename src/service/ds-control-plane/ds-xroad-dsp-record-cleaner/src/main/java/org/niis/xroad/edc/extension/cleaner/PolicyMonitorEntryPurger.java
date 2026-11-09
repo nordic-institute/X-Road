@@ -82,7 +82,7 @@ class PolicyMonitorEntryPurger {
     private String deleteStatement() {
         var table = statements.getPolicyMonitorTable();
         var id = statements.getIdColumn();
-        return "DELETE FROM %1$s WHERE %2$s IN (SELECT %2$s FROM %1$s WHERE %3$s <> ? AND %4$s < ? ORDER BY %2$s FOR UPDATE SKIP LOCKED)"
+        return "DELETE FROM %1$s WHERE %2$s IN (SELECT %2$s FROM %1$s WHERE %3$s <> ? AND %4$s < ? FOR UPDATE SKIP LOCKED)"
                 .formatted(table, id, statements.getStateColumn(), statements.getUpdatedAtColumn());
     }
 }

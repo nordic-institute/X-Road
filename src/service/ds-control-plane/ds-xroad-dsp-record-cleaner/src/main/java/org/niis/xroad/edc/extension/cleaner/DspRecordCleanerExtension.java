@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.cleaner;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
+import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
@@ -42,6 +43,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 
 import java.time.Clock;
@@ -50,9 +52,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 
 /**
- * Runs {@link DspRecordCleaner} periodically on every control-plane instance.
+ * Runs {@link DspRecordCleaner} periodically on the primary or standalone node. A secondary cluster node does not
+ * schedule it.
  */
 @Extension(value = DspRecordCleanerExtension.EXTENSION_NAME)
 public class DspRecordCleanerExtension implements ServiceExtension {
@@ -87,6 +91,11 @@ public class DspRecordCleanerExtension implements ServiceExtension {
             defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
     private String policyMonitorDataSourceName;
 
+    @Setting(key = "edc.sql.store.transferprocess.datasource",
+            description = "The datasource backing the transfer process table",
+            defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
+    private String transferProcessDataSourceName;
+
     @Setting(key = "edc.sql.store.contractnegotiation.datasource",
             description = "The datasource backing the contract negotiation tables",
             defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE)
@@ -116,6 +125,9 @@ public class DspRecordCleanerExtension implements ServiceExtension {
     @Inject(required = false)
     private PolicyMonitorStatements policyMonitorStatements;
 
+    @Inject(required = false)
+    private TransferProcessStoreStatements transferProcessStatements;
+
     @Inject
     private ServerConfDatabaseCtx serverConfDatabaseCtx;
 
@@ -125,8 +137,18 @@ public class DspRecordCleanerExtension implements ServiceExtension {
     @Inject
     private Monitor monitor;
 
+    private final BooleanSupplier secondaryNode;
+
     private DspRecordCleaner cleaner;
     private ScheduledExecutorService executor;
+
+    public DspRecordCleanerExtension() {
+        this(NodeProperties::isSecondaryNode);
+    }
+
+    DspRecordCleanerExtension(BooleanSupplier secondaryNode) {
+        this.secondaryNode = secondaryNode;
+    }
 
     @Override
     public String name() {
@@ -139,16 +161,26 @@ public class DspRecordCleanerExtension implements ServiceExtension {
         var statements = policyMonitorStatements != null ? policyMonitorStatements : new PostgresPolicyMonitorStatements();
         var policyMonitorEntryPurger = new PolicyMonitorEntryPurger(dataSourceRegistry, policyMonitorDataSourceName,
                 transactionContext, queryExecutor, statements);
+        var transferStatements = transferProcessStatements != null
+                ? transferProcessStatements
+                : new org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres
+                        .PostgresDialectStatements(clock);
+        var transferProcessIdReader = new TransferProcessIdReader(dataSourceRegistry, transferProcessDataSourceName,
+                transactionContext, queryExecutor, transferStatements);
         var negotiationsWithoutAgreement = new NegotiationsWithoutAgreementReader(dataSourceRegistry,
                 negotiationDataSourceName, transactionContext, queryExecutor, new PostgresDialectStatements(clock));
         var validAge = DspRecordCleaner.requireValidAge(age);
         cleaner = new DspRecordCleaner(transferProcessStore, transferProcessService, dataAddressStore,
-                contractNegotiationStore, negotiationsWithoutAgreement, policyMonitorEntryPurger, serverConfDatabaseCtx,
-                clock, monitor, validAge, DspRecordCleaner.requireValidMaxAge(maxAge, validAge));
+                contractNegotiationStore, transferProcessIdReader, negotiationsWithoutAgreement, policyMonitorEntryPurger,
+                serverConfDatabaseCtx, clock, monitor, validAge, DspRecordCleaner.requireValidMaxAge(maxAge, validAge));
     }
 
     @Override
     public void start() {
+        if (secondaryNode.getAsBoolean()) {
+            monitor.info("DSP record cleaner not scheduled: this is a secondary cluster node");
+            return;
+        }
         executor = Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name(THREAD_NAME).daemon().factory());
         scheduleNextPass();
     }

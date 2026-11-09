@@ -31,37 +31,36 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.IntSupplier;
-import java.util.stream.Stream;
-
-import static org.eclipse.edc.spi.query.Criterion.criterion;
+import java.util.function.Predicate;
 
 /**
- * One pass of the DSP record cleaner. Safe to run on every control-plane instance at once: every delete is a
- * lease-guarded store delete or a {@code SKIP LOCKED} SQL delete, and a second run finds nothing left to do.
+ * One pass of the DSP record cleaner. The extension schedules it on the primary or standalone node only, not on
+ * secondary nodes. Where several instances still run, for example replicas that do not set the node type, each
+ * record is deleted once: every delete is a lease-guarded store delete or a {@code SKIP LOCKED} SQL delete.
+ * Overlapping passes can still send the same terminate signal twice, which is harmless.
  *
  * <p>Step 1 terminates transfers that are still not final after {@code age}, through EDC, which releases the
  * data-address secret and signals the data plane. Step 2 deletes finished transfers, policy monitor entries,
  * data-flow state rows of finished flows and negotiations without an agreement once they are older than
- * {@code age}. Negotiations are found by a SQL id query that excludes those with an agreement, and are read and
- * deleted in batches. Agreements are never deleted.
+ * {@code age}. Transfers and negotiations are found by SQL id queries and are read, then terminated or deleted,
+ * in batches of {@link #PAGE_SIZE} ids, so a pass never holds all matching entities in memory. Agreements are
+ * never deleted.
  *
  * <p>{@code maxAge} bounds what {@code age} cannot reach. EDC cannot terminate a {@code RESUMED} transfer and
  * nothing moves it on, so one older than {@code maxAge} has its data-address secret removed and is deleted
- * through the store. A data-flow state row in any state older than {@code maxAge} is deleted, which also
- * removes a row recreated by a start signal that arrived after its deletion.
+ * through the store; only that transfer is loaded, one at a time. A data-flow state row in any state older than
+ * {@code maxAge} is deleted, which also removes a row recreated by a start signal that arrived after its deletion.
  *
  * <p>{@code age} must exceed {@link #MINIMUM_AGE}: the policy monitor re-evaluates entries once per
  * {@link #POLICY_MONITOR_PERIOD}, and a data-plane signal may still be retried for {@link #SIGNAL_RETRY_WINDOW}
@@ -75,14 +74,20 @@ public class DspRecordCleaner {
     public static final Duration MINIMUM_AGE = POLICY_MONITOR_PERIOD.plus(SIGNAL_RETRY_WINDOW);
 
     static final int PAGE_SIZE = 500;
-    private static final String STATE_TIMESTAMP = "stateTimestamp";
-    private static final String STATE = "state";
+    static final List<Integer> TERMINABLE_STATES = Arrays.stream(TransferProcessStates.values())
+            .filter(state -> state.code() < TransferProcessStates.COMPLETED.code() && state != TransferProcessStates.RESUMED)
+            .map(TransferProcessStates::code)
+            .toList();
+    static final List<Integer> FINISHED_STATES =
+            List.of(TransferProcessStates.COMPLETED.code(), TransferProcessStates.TERMINATED.code());
+    static final List<Integer> RESUMED_STATES = List.of(TransferProcessStates.RESUMED.code());
     private static final String TERMINATION_REASON = "Abandoned transfer closed by the DSP record cleaner";
 
     private final TransferProcessStore transferProcessStore;
     private final TransferProcessService transferProcessService;
     private final DataAddressStore dataAddressStore;
     private final ContractNegotiationStore contractNegotiationStore;
+    private final TransferProcessIdReader transferProcessIdReader;
     private final NegotiationsWithoutAgreementReader negotiationsWithoutAgreementReader;
     private final PolicyMonitorEntryPurger policyMonitorEntryPurger;
     private final ServerConfDatabaseCtx serverConfDatabaseCtx;
@@ -187,22 +192,9 @@ public class DspRecordCleaner {
     }
 
     private int terminateStuckTransfers(long cutoff) {
-        var stuckIds = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
-                        .filter(List.of(
-                                criterion(STATE, "<", TransferProcessStates.COMPLETED.code()),
-                                criterion(STATE_TIMESTAMP, "<", cutoff)))
-                        .offset(offset)
-                        .limit(PAGE_SIZE)
-                        .build()))
-                .stream()
-                .filter(DspRecordCleaner::isTerminable)
-                .map(TransferProcess::getId)
-                .toList();
-        return (int) stuckIds.stream().filter(this::terminate).count();
-    }
-
-    private static boolean isTerminable(TransferProcess transfer) {
-        return transfer.getState() < TransferProcessStates.TERMINATING.code() && transfer.canBeTerminated();
+        return processInBatches((afterId, limit) ->
+                        transferProcessIdReader.readIdsUpdatedBefore(TERMINABLE_STATES, cutoff, afterId, limit),
+                this::terminate);
     }
 
     private boolean terminate(String transferId) {
@@ -221,42 +213,32 @@ public class DspRecordCleaner {
     }
 
     private int deleteFinishedTransfers(long cutoff) {
-        var finishedIds = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
-                        .filter(List.of(
-                                criterion(STATE, "in",
-                                        List.of(TransferProcessStates.COMPLETED.code(), TransferProcessStates.TERMINATED.code())),
-                                criterion(STATE_TIMESTAMP, "<", cutoff)))
-                        .offset(offset)
-                        .limit(PAGE_SIZE)
-                        .build()))
-                .stream()
-                .map(TransferProcess::getId)
-                .toList();
-        return (int) finishedIds.stream().filter(id -> deleted(transferProcessStore.delete(id).succeeded(), id)).count();
+        return processInBatches((afterId, limit) ->
+                        transferProcessIdReader.readIdsUpdatedBefore(FINISHED_STATES, cutoff, afterId, limit),
+                id -> deleted(transferProcessStore.delete(id).succeeded(), id));
     }
 
     private int deleteAbandonedResumedTransfers(long maxCutoff) {
-        var resumed = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
-                .filter(List.of(
-                        criterion(STATE, "=", TransferProcessStates.RESUMED.code()),
-                        criterion(STATE_TIMESTAMP, "<", maxCutoff)))
-                .offset(offset)
-                .limit(PAGE_SIZE)
-                .build()));
-        return (int) resumed.stream().filter(this::removeSecretAndDelete).count();
+        return processInBatches((afterId, limit) ->
+                        transferProcessIdReader.readIdsUpdatedBefore(RESUMED_STATES, maxCutoff, afterId, limit),
+                this::removeSecretAndDelete);
     }
 
-    private boolean removeSecretAndDelete(TransferProcess transfer) {
+    private boolean removeSecretAndDelete(String transferId) {
         try {
+            var transfer = transferProcessStore.findById(transferId);
+            if (transfer == null) {
+                return false;
+            }
             var removed = dataAddressStore.remove(transfer);
             if (removed.failed()) {
                 monitor.warning("Removing the data address of abandoned transfer failed: transferProcessId=%s reason=%s"
-                        .formatted(transfer.getId(), removed.getFailureDetail()));
+                        .formatted(transferId, removed.getFailureDetail()));
                 return false;
             }
-            return deleted(transferProcessStore.delete(transfer.getId()).succeeded(), transfer.getId());
+            return deleted(transferProcessStore.delete(transferId).succeeded(), transferId);
         } catch (Exception e) {
-            monitor.warning("Deleting abandoned transfer failed: transferProcessId=%s".formatted(transfer.getId()), e);
+            monitor.warning("Deleting abandoned transfer failed: transferProcessId=%s".formatted(transferId), e);
             return false;
         }
     }
@@ -266,18 +248,9 @@ public class DspRecordCleaner {
     }
 
     private int deleteNegotiationsWithoutAgreement(long cutoff) {
-        int deleted = 0;
-        String lastId = "";
-        int batchSize;
-        do {
-            var ids = negotiationsWithoutAgreementReader.readIdsUpdatedBefore(cutoff, lastId, PAGE_SIZE);
-            deleted += (int) ids.stream().filter(id -> deleted(contractNegotiationStore.deleteById(id).succeeded(), id)).count();
-            batchSize = ids.size();
-            if (batchSize > 0) {
-                lastId = ids.getLast();
-            }
-        } while (batchSize == PAGE_SIZE);
-        return deleted;
+        return processInBatches((afterId, limit) ->
+                        negotiationsWithoutAgreementReader.readIdsUpdatedBefore(cutoff, afterId, limit),
+                id -> deleted(contractNegotiationStore.deleteById(id).succeeded(), id));
     }
 
     private boolean deleted(boolean succeeded, String id) {
@@ -287,23 +260,22 @@ public class DspRecordCleaner {
         return succeeded;
     }
 
-    private static <T> List<T> readAll(PageReader<T> reader) {
-        var all = new ArrayList<T>();
-        int offset = 0;
-        int pageSize;
+    private static int processInBatches(IdBatchReader reader, Predicate<String> action) {
+        int handled = 0;
+        String lastId = "";
+        List<String> ids;
         do {
-            try (Stream<T> page = reader.read(offset)) {
-                var items = page.toList();
-                all.addAll(items);
-                pageSize = items.size();
+            ids = reader.read(lastId, PAGE_SIZE);
+            handled += (int) ids.stream().filter(action).count();
+            if (!ids.isEmpty()) {
+                lastId = ids.getLast();
             }
-            offset += pageSize;
-        } while (pageSize == PAGE_SIZE);
-        return all;
+        } while (ids.size() == PAGE_SIZE);
+        return handled;
     }
 
     @FunctionalInterface
-    private interface PageReader<T> {
-        Stream<T> read(int offset);
+    private interface IdBatchReader {
+        List<String> read(String afterId, int limit);
     }
 }

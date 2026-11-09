@@ -4,12 +4,14 @@ plugins {
 }
 
 dependencies {
+  implementation(project(":lib:properties-core"))
   implementation(project(":lib:serverconf-impl"))
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.controlplane)
   implementation(libs.edc.sql.policy.monitor)
   implementation(libs.edc.sql.contract.negotiation)
+  implementation(libs.edc.sql.transfer.process)
   implementation(libs.edc.lib.core)
   implementation(libs.edc.sql.core)
   implementation(libs.edc.sql.lease)
@@ -21,7 +23,6 @@ dependencies {
   testImplementation(libs.edc.junit)
   testImplementation(libs.edc.lib.controlplane)
   testImplementation(libs.edc.core.controlplane.transfer)
-  testImplementation(libs.edc.sql.transfer.process)
   testImplementation(libs.edc.sql.core)
   testImplementation(libs.edc.sql.lease)
   testImplementation(libs.edc.transaction.local)

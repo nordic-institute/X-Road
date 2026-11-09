@@ -107,7 +107,6 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
                             WHERE (state IN (:finishedStates)
                                    AND updated_at < CURRENT_TIMESTAMP - CAST(:finishedSeconds AS bigint) * INTERVAL '1 second')
                                OR updated_at < CURRENT_TIMESTAMP - CAST(:maxSeconds AS bigint) * INTERVAL '1 second'
-                            ORDER BY id
                             FOR UPDATE SKIP LOCKED)
                         """)
                 .setParameterList("finishedStates", FINISHED_STATES)
