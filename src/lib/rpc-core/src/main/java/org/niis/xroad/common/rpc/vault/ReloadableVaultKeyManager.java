@@ -30,6 +30,7 @@ import io.github.resilience4j.core.IntervalFunction;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.vault.VaultKeyClient;
@@ -37,8 +38,13 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +65,10 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
     private final IntervalFunction failureBackoff;
 
     private int consecutiveFailures;
+
+    private final Object trustLock = new Object();
+    private final List<AdvancedTlsX509TrustManager> verifyingTrustManagers = new ArrayList<>();
+    private X509Certificate[] currentTrustCerts;
 
     public ReloadableVaultKeyManager(RpcProperties.RpcCertificateProvisioningProperties certificateProvisioningProperties,
                                      VaultKeyClient vaultKeyClient, AdvancedTlsX509TrustManager trustManager,
@@ -99,7 +109,7 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
                     result.identityCertChain(),
                     result.identityPrivateKey());
 
-            trustManager.updateTrustCredentials(result.trustCerts());
+            updateTrustCredentials(result.trustCerts());
 
             consecutiveFailures = 0;
             var delay = certificateProvisionProperties.refreshInterval();
@@ -112,6 +122,36 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
             log.error("Failed to load key material from secret store (consecutive failures: {}), next attempt in {}",
                     consecutiveFailures, delay, e);
             return delay;
+        }
+    }
+
+    private void updateTrustCredentials(X509Certificate[] trustCerts) throws IOException, GeneralSecurityException {
+        synchronized (trustLock) {
+            trustManager.updateTrustCredentials(trustCerts);
+            for (var verifyingTrustManager : verifyingTrustManagers) {
+                verifyingTrustManager.updateTrustCredentials(trustCerts);
+            }
+            currentTrustCerts = trustCerts;
+        }
+    }
+
+    @Override
+    public AdvancedTlsX509TrustManager createVerifyingTrustManager(
+            AdvancedTlsX509TrustManager.SslSocketAndEnginePeerVerifier verifier) {
+        synchronized (trustLock) {
+            try {
+                var verifyingTrustManager = AdvancedTlsX509TrustManager.newBuilder()
+                        .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+                        .setSslSocketAndEnginePeerVerifier(verifier)
+                        .build();
+                if (currentTrustCerts != null) {
+                    verifyingTrustManager.updateTrustCredentials(currentTrustCerts);
+                }
+                verifyingTrustManagers.add(verifyingTrustManager);
+                return verifyingTrustManager;
+            } catch (IOException | GeneralSecurityException e) {
+                throw XrdRuntimeException.systemInternalError("Failed to create the verifying trust manager", e);
+            }
         }
     }
 

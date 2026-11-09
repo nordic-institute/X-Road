@@ -35,6 +35,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -62,7 +63,7 @@ class OpMonitoringBufferInitializerTest {
         buffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 1));
 
         assertThat(buffer).isInstanceOf(NoOpMonitoringBuffer.class);
-        verify(rpcChannelFactory, never()).createChannel(any());
+        verify(rpcChannelFactory, never()).createChannel(any(), any());
     }
 
     @Test
@@ -73,7 +74,7 @@ class OpMonitoringBufferInitializerTest {
         buffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 1));
 
         assertThat(buffer).isInstanceOf(OpMonitoringBufferImpl.class);
-        verify(rpcChannelFactory, never()).createChannel(any());
+        verify(rpcChannelFactory, never()).createChannel(any(), any());
         initializer.cleanup(buffer);
     }
 
@@ -81,20 +82,20 @@ class OpMonitoringBufferInitializerTest {
     void opMonitorChannelIsNotCreatedAtStartupWhenOperationalMonitoringIsEnabled() {
         var buffer = create(Map.of("xroad.proxy.addon.op-monitor.enabled", "true"));
 
-        verify(rpcChannelFactory, never()).createChannel(any());
+        verify(rpcChannelFactory, never()).createChannel(any(), any());
         initializer.cleanup(buffer);
     }
 
     @Test
     void opMonitorChannelIsCreatedOnceOnFirstStoreAndClosedOnShutdown() {
-        when(rpcChannelFactory.createChannel(any())).thenReturn(channel);
+        when(rpcChannelFactory.createChannel(any(), any())).thenReturn(channel);
         var buffer = create(Map.of("xroad.proxy.addon.op-monitor.enabled", "true"));
 
         buffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 1));
         buffer.store(new OpMonitoringData(OpMonitoringData.SecurityServerType.CLIENT, 2));
 
         Awaitility.await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> verify(rpcChannelFactory, times(1)).createChannel(any()));
+                .untilAsserted(() -> verify(rpcChannelFactory, times(1)).createChannel(any(), any()));
         initializer.cleanup(buffer);
         Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> verify(channel).shutdown());
     }
@@ -106,6 +107,6 @@ class OpMonitoringBufferInitializerTest {
                 .overrides(overrides)
                 .build();
         return initializer.opMonitoringBuffer(mock(ServerConfProvider.class), new ProxyProperties(config),
-                rpcChannelFactory, config);
+                rpcChannelFactory, config, mock(OpMonitorChannelTrustResolver.class));
     }
 }

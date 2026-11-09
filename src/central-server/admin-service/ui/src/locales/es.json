@@ -579,7 +579,7 @@
             "cache-period": "Tiempo en segundos que los resultados de verificación OCSP se almacenan en caché antes de volver a verificarse."
           },
           "common-rpc": {
-            "use-tls": "Cuando está habilitado, se utiliza TLS mutuo para la comunicación gRPC entre los servicios colocalizados del Servidor Central.",
+            "use-tls": "Solo para pruebas; nunca lo desactive en producción. Cuando está habilitado, se utiliza TLS mutuo para la comunicación gRPC entre los servicios colocalizados del Servidor Central. Cuando está deshabilitado, esta comunicación gRPC va en texto plano.",
             "certificate-provisioning": {
               "refresh-interval": "Con qué frecuencia los servicios verifican si su certificado TLS de gRPC necesita renovarse (p. ej. 5H).",
               "wait-duration": "Retraso antes del primer reintento tras una carga fallida del certificado TLS de gRPC desde el almacén de secretos (p. ej. 5S).",

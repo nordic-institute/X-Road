@@ -460,7 +460,8 @@
       "agreement_token_key_not_available": "A chave de assinatura de tokens de acordo não está disponível. O proxy ainda não carregou nenhuma chave de assinatura",
       "agreement_token_key_store_failed": "Não foi possível salvar a chave de assinatura de tokens de acordo no armazenamento de segredos. Tente novamente mais tarde",
       "agreement_token_rejected": "O token de acordo foi rejeitado",
-      "agreement_token_signing_failed": "Falha ao assinar o token de acordo"
+      "agreement_token_signing_failed": "Falha ao assinar o token de acordo",
+      "op_monitor_trust_failure": "Não foi possível estabelecer uma conexão confiável com o Monitoramento Operacional"
     },
     "csr_not_found": "CSR não encontrado",
     "diagnostic_request_failed": "Falha na solicitação de diagnóstico",
@@ -542,7 +543,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Erro de rede: o monitoramento de dados operacionais não está disponível"
-      }
+      },
+      "op_monitor_trust_failure": "Verifique a AC de Monitoramento Operacional importada na guia “Confiança do Monitoramento Operacional” e se o armazenamento de segredos (OpenBao) está disponível; depois, tente novamente."
     },
     "unsupported_openapi_version": "Versão OpenAPI não suportada. Apenas 3.0.x e 3.1.0 são aceitas.",
     "url_already_exists": "URL já existe",
@@ -823,6 +825,7 @@
       "description": "A AC de um daemon de monitoramento operacional executado em outro host. Envie-a para que este Servidor de Segurança confie nesse daemon de monitoramento operacional. O arquivo deve conter exatamente um certificado de AC codificado em PEM ou DER e nenhuma chave privada.",
       "empty": "Nenhuma AC de Monitoramento Operacional armazenada",
       "replace": "Substituir",
+      "restartHint": "Reinicie os serviços proxy e admin-service para aplicar as alterações.",
       "title": "AC de Monitoramento Operacional",
       "upload": "Enviar",
       "uploaded": "A AC de Monitoramento Operacional foi armazenada"
@@ -1271,7 +1274,7 @@
             "enabled": "Sinalizador para habilitar ou desabilitar o sistema AntiDOS."
           },
           "common-rpc": {
-            "use-tls": "Quando habilitado, o TLS mútuo é usado para toda a comunicação gRPC entre os serviços internos do servidor de segurança.",
+            "use-tls": "Somente para testes; nunca o desative em produção. Quando habilitado, o TLS mútuo é usado para toda a comunicação gRPC entre os serviços internos do servidor de segurança. Quando desabilitado, toda a comunicação gRPC interna é em texto simples, incluindo a conexão com o daemon de monitoramento operacional, e a AC de Monitoramento Operacional importada e os nomes de cliente permitidos não são aplicados.",
             "certificate-provisioning": {
               "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
               "wait-duration": "Atraso antes da primeira nova tentativa após uma falha ao carregar o certificado TLS gRPC do repositório de segredos (ex.: 5S).",
@@ -1367,7 +1370,8 @@
             "health-statistics-period-seconds": "Período em segundos sobre o qual as estatísticas de integridade são agregadas.",
             "rpc": {
               "listen-address": "Endereço IP no qual o servidor gRPC do daemon de monitoramento operacional escuta.",
-              "port": "Porta na qual o servidor gRPC do daemon de monitoramento operacional escuta."
+              "port": "Porta na qual o servidor gRPC do daemon de monitoramento operacional escuta.",
+              "allowed-client-names": "Nomes de cliente separados por vírgula que o servidor gRPC do daemon de monitoramento operacional aceita quando o RPC TLS está ativado. Um cliente é aceito quando o CN ou um SAN DNS do seu certificado é igual a uma entrada (sem distinção de maiúsculas, sem SAN IP, sem curingas). Vazio (padrão) aceita qualquer cliente com certificado da CA do servidor de segurança. Um curinga ou uma entrada vazia impede a inicialização do daemon. Reinicie o daemon após uma alteração."
             }
           },
           "message-log-archiver": {

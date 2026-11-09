@@ -590,7 +590,7 @@
             "cache-period": "Por quanto tempo (em segundos) os resultados de verificação OCSP são armazenados em cache antes de serem reverificados."
           },
           "common-rpc": {
-            "use-tls": "Quando habilitado, o TLS mútuo é usado para a comunicação gRPC entre os serviços colocalizados do Servidor Central.",
+            "use-tls": "Somente para testes; nunca o desative em produção. Quando habilitado, o TLS mútuo é usado para a comunicação gRPC entre os serviços colocalizados do Servidor Central. Quando desabilitado, essa comunicação gRPC é em texto simples.",
             "certificate-provisioning": {
               "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
               "wait-duration": "Atraso antes da primeira nova tentativa após uma falha ao carregar o certificado TLS gRPC do repositório de segredos (ex.: 5S).",
