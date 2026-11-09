@@ -12,4 +12,6 @@ dependencies {
   api(libs.bundles.quarkus.core)
 
   testImplementation(libs.assertj.core)
+  testImplementation(libs.systemStubs)
+  testImplementation(testFixtures(project(":lib:properties-core")))
 }

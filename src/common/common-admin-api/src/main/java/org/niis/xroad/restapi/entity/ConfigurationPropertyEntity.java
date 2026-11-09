@@ -56,4 +56,7 @@ public class ConfigurationPropertyEntity {
 
     @Column(name = "property_value", nullable = false, length = 4096)
     private String propertyValue;
+
+    @Column(name = "ha_node_name", length = 255)
+    private String haNodeName;
 }

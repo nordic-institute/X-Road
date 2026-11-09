@@ -46,7 +46,6 @@ import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClie
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
-import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -54,7 +53,6 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -474,22 +472,12 @@ public class DataspaceProvisioningService {
             return contexts;
         }
 
-        hostedMembers().stream()
+        HostedMembers.of(clientRepository.getAllLocalClients()).stream()
                 .filter(member -> !isTombstoned(member))
                 .forEach(member -> contexts.add(
                         new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
 
         return contexts;
-    }
-
-    private Set<ClientId> hostedMembers() {
-        Set<ClientId> members = new LinkedHashSet<>();
-        for (var client : clientRepository.getAllLocalClients()) {
-            if (Client.STATUS_REGISTERED.equals(client.getClientStatus())) {
-                members.add(client.getIdentifier().getMemberId());
-            }
-        }
-        return members;
     }
 
     private boolean isTombstoned(ClientId member) {

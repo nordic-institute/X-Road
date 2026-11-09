@@ -65,7 +65,7 @@ public class FileToDbPropertyMigrator extends BasePropertiesToDbMigrator {
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void validateParams(String[] args) {
         if (args.length != 3) {
-            logUsageAndThrow("Invalid number of arguments provided. Rows are keyed by property_key alone; "
+            logUsageAndThrow("Invalid number of arguments provided. Rows are keyed by (property_key, ha_node_name); "
                     + "a scope argument is no longer accepted.");
         }
         LegacyConfigMigrationCLI.validateFilePath(args[0], "Input file");

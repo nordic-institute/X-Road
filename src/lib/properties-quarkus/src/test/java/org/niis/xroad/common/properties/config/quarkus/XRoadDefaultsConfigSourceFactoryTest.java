@@ -27,19 +27,36 @@
 
 package org.niis.xroad.common.properties.config.quarkus;
 
+import io.smallrye.config.ConfigSourceContext;
+import io.smallrye.config.ConfigValue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
+import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(SystemStubsExtension.class)
 class XRoadDefaultsConfigSourceFactoryTest {
 
+    private static final String SHARED_VALUE = "1111";
+    private static final String NODE_VALUE = "2222";
+
     private final List<ConfigKeyProvider> all = ConfigKeyProviders.allProviders();
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Test
     void publishesEveryProviderWhenScopesUnset() {
@@ -69,5 +86,30 @@ class XRoadDefaultsConfigSourceFactoryTest {
         assertThat(selected.getFirst().keys())
                 .extracting(ConfigKey::key)
                 .containsExactly("xroad.acme");
+    }
+
+    @Test
+    void publishesTheSharedRowOfAFrameworkPublishedKeyNeverTheNodeRow() throws SQLException {
+        var key = DspConfigKeys.DID_RESOLUTION_FETCH_TIMEOUT_MS.key();
+        NodeConfigTestTable.create("quarkusfactoryshared", key, SHARED_VALUE, NODE_VALUE).forEach(variables::set);
+
+        var sources = new XRoadDefaultsConfigSourceFactory().getConfigSources(new EmptyContext());
+
+        assertThat(sources)
+                .filteredOn(XRoadFrameworkConfigSource.class::isInstance)
+                .singleElement()
+                .satisfies(source -> assertThat(source.getValue(key)).isEqualTo(SHARED_VALUE));
+    }
+
+    private static final class EmptyContext implements ConfigSourceContext {
+        @Override
+        public ConfigValue getValue(String name) {
+            return null;
+        }
+
+        @Override
+        public Iterator<String> iterateNames() {
+            return List.<String>of().iterator();
+        }
     }
 }

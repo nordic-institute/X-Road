@@ -136,7 +136,7 @@ describe('0860 — CS TLS Certificates — download certificate trigger (Browser
     await expect.element(page.getByTestId('download-management-service-certificate')).toBeVisible();
     await page.getByTestId('download-management-service-certificate').click();
 
-    expect(downloadSpy).toHaveBeenCalled();
+    await expect.poll(() => downloadSpy.mock.calls.length).toBeGreaterThan(0);
   });
 });
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="serverconf/014-ds-participant-publication.xml">
+
+    <!--
+        Publication of a bound participant's identity values to the Central Server. All columns are
+        nullable: NULL means not sent, so rows bound before this changeset need no backfill.
+    -->
+    <changeSet author="niis" id="014-ds-participant-publication">
+        <addColumn tableName="ds_participant">
+            <column name="publication_state" type="VARCHAR(32)"/>
+            <column name="publication_reason" type="VARCHAR(4000)"/>
+            <column name="publication_changed_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

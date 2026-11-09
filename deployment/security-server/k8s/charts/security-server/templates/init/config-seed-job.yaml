@@ -10,9 +10,8 @@ Hook strategy (post-install/post-upgrade, weighted, delete-on-success):
 post-install/post-upgrade (db-serverconf must be Ready first), re-created on
 upgrade (Job.spec.template is immutable), successful Jobs cleaned up.
 
-Rows are upserted by property_key: INSERT ... ON CONFLICT DO NOTHING against
-the unique index on (property_key), followed by an
-UPDATE so upgrades refresh values.
+Rows are upserted as shared rows (no ha_node_name): INSERT ... ON CONFLICT
+(property_key, ha_node_name) DO UPDATE, so upgrades refresh values.
 */}}
 {{- if .Values.configSeed.properties }}
 apiVersion: batch/v1
@@ -74,7 +73,7 @@ spec:
               {{- range .Values.configSeed.properties }}
               INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
                 VALUES ('{{ .key | replace "'" "''" }}', '{{ .value | replace "'" "''" }}', now(), now())
-                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
+                ON CONFLICT (property_key, ha_node_name) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
               {{- end }}
               {{- /*
               Consumer side of the softtoken-signer split (see values.yaml's
@@ -87,7 +86,7 @@ spec:
               {{- if include "xroad.softtokenSigner.enabled" $ }}
               INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
                 VALUES ('xroad.common-rpc.channel.softtoken-signer.enabled', 'true', now(), now())
-                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
+                ON CONFLICT (property_key, ha_node_name) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
               {{- end }}
               SQL
           resources:

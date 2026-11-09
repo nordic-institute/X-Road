@@ -28,6 +28,7 @@ package org.niis.xroad.serverconf.impl.dao;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
@@ -38,9 +39,12 @@ import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Data access object implementation for bound dataspace participants.
@@ -78,6 +82,43 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         query.select(root).where(cb.equal(root.get("participantType"), ParticipantType.SYSTEM));
 
         return session.createQuery(query).uniqueResultOptional();
+    }
+
+    /**
+     * Finds the Security Server's SYSTEM participant row if it is {@link ParticipantState#ACTIVE}.
+     *
+     * @param session the Hibernate session
+     * @return the active SYSTEM row, empty when none exists or the row is decommissioned
+     */
+    public Optional<DsParticipantEntity> findActiveSystemParticipant(Session session) {
+        return findSystemParticipant(session).filter(row -> row.getState() == ParticipantState.ACTIVE);
+    }
+
+    /**
+     * Finds every {@link ParticipantType#MEMBER} row that is {@link ParticipantState#ACTIVE} and whose publication
+     * state is one of the given states. A row without a publication state counts as {@link PublicationState#NOT_SENT}.
+     * The member identifier is fetched together with the row.
+     *
+     * @param session the Hibernate session
+     * @param states  the publication states to match
+     * @return the matching active member rows, in no particular order
+     */
+    public List<DsParticipantEntity> findActiveMembers(Session session, Set<PublicationState> states) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+        root.fetch("memberIdentifier");
+
+        var publicationState = root.<PublicationState>get("publicationState");
+        var matches = states.contains(PublicationState.NOT_SENT)
+                ? cb.or(publicationState.isNull(), publicationState.in(states))
+                : publicationState.in(states);
+        query.select(root).where(
+                cb.equal(root.get("participantType"), ParticipantType.MEMBER),
+                cb.equal(root.get("state"), ParticipantState.ACTIVE),
+                matches);
+
+        return session.createQuery(query).list();
     }
 
     /**
@@ -125,6 +166,39 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
      */
     public boolean delete(Session session, Long id) {
         return deleteById(session, DsParticipantEntity.class, id);
+    }
+
+    /**
+     * Moves the row's publication state from {@code expected} to {@code next} only if the row is
+     * still {@link ParticipantState#ACTIVE} and in the expected state, in one conditional
+     * update. A row with no publication state counts as {@link PublicationState#NOT_SENT}, so expecting
+     * {@code NOT_SENT} also matches it.
+     *
+     * @param session  the Hibernate session
+     * @param id       the participant row id
+     * @param expected the state the row must still be in
+     * @param next     the new state
+     * @param reason   the new reason, may be {@code null}
+     * @param at       the time of the change
+     * @return {@code true} if the transition applied, {@code false} if the row was in another state, is not active
+     * or is gone
+     */
+    public boolean transitionPublication(Session session, Long id, PublicationState expected, PublicationState next,
+            @Nullable String reason, Instant at) {
+        String expectedMatches = expected == PublicationState.NOT_SENT
+                ? "(publicationState is null or publicationState = :expected)"
+                : "publicationState = :expected";
+        int updated = session.createMutationQuery("update DsParticipantEntity set publicationState = :next, "
+                        + "publicationReason = :reason, publicationChangedAt = :at where id = :id and state = :active and "
+                        + expectedMatches)
+                .setParameter("next", next)
+                .setParameter("reason", reason)
+                .setParameter("at", at)
+                .setParameter("id", id)
+                .setParameter("active", ParticipantState.ACTIVE)
+                .setParameter("expected", expected)
+                .executeUpdate();
+        return updated > 0;
     }
 
     private Optional<DsParticipantEntity> findByMemberIdentifier(Session session, ClientIdEntity identifier) {
