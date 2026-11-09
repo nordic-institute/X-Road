@@ -75,7 +75,7 @@ class XRoadDataPlaneStoreExtensionTest {
         extension.initialize(context);
         var store = extension.dataPlaneInstanceStore();
 
-        var instance = store.findById("xroad-proxy::" + MEMBER_CONTEXT);
+        var instance = store.findById(MEMBER_CONTEXT, "xroad-proxy");
         assertThat(instance).isNotNull();
         assertThat(instance.getParticipantContextId()).isEqualTo(MEMBER_CONTEXT);
         assertThat(instance.getUrl()).hasToString("http://127.0.0.1:5590/full/api/v1/dataflows");
@@ -84,7 +84,7 @@ class XRoadDataPlaneStoreExtensionTest {
         assertThat(instance.getState()).isEqualTo(DataPlaneInstanceStates.REGISTERED.code());
         assertThat(store.query(queryByParticipantContextId("ss1").build()))
                 .extracting(DataPlaneInstance::getId)
-                .containsExactly("xroad-proxy::ss1");
+                .containsExactly("xroad-proxy");
     }
 
     @Test
@@ -98,7 +98,7 @@ class XRoadDataPlaneStoreExtensionTest {
         extension.initialize(context);
         var store = extension.dataPlaneInstanceStore();
 
-        assertThat(store.findById("xroad-proxy::" + MEMBER_CONTEXT)).isNull();
+        assertThat(store.findById(MEMBER_CONTEXT, "xroad-proxy")).isNull();
         assertThat(store.query(queryByParticipantContextId(MEMBER_CONTEXT).build())).isEmpty();
     }
 
@@ -117,7 +117,7 @@ class XRoadDataPlaneStoreExtensionTest {
 
         assertThat(extension.dataPlaneInstanceStore().query(queryByParticipantContextId(MEMBER_CONTEXT).build()))
                 .extracting(DataPlaneInstance::getId)
-                .containsExactlyInAnyOrder("dp1::" + MEMBER_CONTEXT, "dp2::" + MEMBER_CONTEXT);
+                .containsExactlyInAnyOrder("dp1", "dp2");
     }
 
     @Test
@@ -128,21 +128,8 @@ class XRoadDataPlaneStoreExtensionTest {
         var store = extension.dataPlaneInstanceStore();
 
         assertThat(store).isNotNull();
-        assertThat(store.findById("xroad-proxy::" + MEMBER_CONTEXT)).isNull();
+        assertThat(store.findById(MEMBER_CONTEXT, "xroad-proxy")).isNull();
         assertThat(store.query(queryByParticipantContextId(MEMBER_CONTEXT).build())).isEmpty();
-    }
-
-    @Test
-    void initializeRejectsEntryIdContainingSeparator() {
-        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
-                "xroad.cp.dataplane.bad-entry.id", "xroad::proxy",
-                "xroad.cp.dataplane.bad-entry.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
-        )));
-
-        assertThatThrownBy(() -> extension.initialize(context))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining("bad-entry")
-                .hasMessageContaining("xroad::proxy");
     }
 
     @Test
