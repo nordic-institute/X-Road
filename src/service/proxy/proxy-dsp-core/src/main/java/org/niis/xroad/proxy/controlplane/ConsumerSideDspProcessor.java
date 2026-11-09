@@ -103,6 +103,10 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  * acquisition is a new acquisition with a limit of its own: the data call that preceded it is not part of the
  * acquisition's time, and sharing the first limit would leave a failover after a slow connect attempt without time.
  *
+ * <p>A provider's refusal that ends a negotiation is remembered by {@link RefusalMemory} for a few seconds: a repeat of
+ * the call within that time counts that candidate as having refused again, with the code of the first refusal, and
+ * does not contact the control plane.
+ *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
  * {@link ClientFacingErrorPolicy#sanitizeForConsumer(XrdRuntimeException)}.
  */
@@ -110,10 +114,13 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 @ApplicationScoped
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
+    private static final String DATASPACE_SEGMENT = "dataspace.";
+
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
     private final AssetAccessClientProperties clientProperties;
     private final Clock clock;
+    private final RefusalMemory refusalMemory;
 
     @Inject
     public ConsumerSideDspProcessor(AssetAccessAcquisitionService assetAccessAcquisitionService,
@@ -129,6 +136,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         this.providerSecurityServerResolver = providerSecurityServerResolver;
         this.clientProperties = clientProperties;
         this.clock = clock;
+        this.refusalMemory = new RefusalMemory(clock);
     }
 
     @Override
@@ -209,14 +217,29 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                         .build();
             }
             var candidate = candidates.get(index);
+            AssetAccessCache.CacheKey refusalKey = null;
             try {
                 var target = targetFor(requestTargetsSystemCtx, serviceId, candidate.hostAddress());
+                var counterPartyId = target.counterPartyId().toString();
+                refusalKey = new AssetAccessCache.CacheKey(participantContextId, assetId, counterPartyId,
+                        target.counterPartyAddress(), clientProperties.protocol(), request.sender().asEncodedId());
+                var remembered = refusalMemory.recall(refusalKey);
+                if (remembered.isPresent()) {
+                    log.debug("SS {} (address {}) refused this call a moment ago, not asking again",
+                            candidate.serverId(), candidate.hostAddress());
+                    remoteFailures.add(remembered.get());
+                    continue;
+                }
                 return assetAccessAcquisitionService.acquireAssetAccess(
-                        participantContextId, assetId, target.counterPartyId().toString(), target.counterPartyAddress(),
+                        participantContextId, assetId, counterPartyId, target.counterPartyAddress(),
                         request.sender(), budget.share(deadline, candidates.size() - index));
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
+                if (refusalKey != null && ex instanceof XrdRuntimeException failure
+                        && RefusalMemory.isNegotiationRefusal(failure)) {
+                    refusalMemory.remember(refusalKey, failure);
+                }
                 remoteFailures.add(ex);
             }
         }
@@ -284,6 +307,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             var xrdCodes = remoteFailures.stream()
                     .map(XrdRuntimeException.class::cast)
                     .map(XrdRuntimeException::getCode)
+                    .map(ConsumerSideDspProcessor::withoutOrigin)
                     .collect(Collectors.toSet());
             if (xrdCodes.size() == 1) {
                 var remoteNotFoundCode = resolveRemoteNotFoundCode(xrdCodes.iterator().next());
@@ -303,6 +327,15 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 .details("All %d candidate security servers failed to acquire asset access for service %s"
                         .formatted(remoteFailures.size(), serviceId))
                 .build();
+    }
+
+    /**
+     * The code without the origin prefix in front of its {@code dataspace.} segment, so the same refusal compares equal
+     * whichever origin raised it. A code without that segment is returned unchanged.
+     */
+    private static String withoutOrigin(String code) {
+        int index = code.lastIndexOf(DATASPACE_SEGMENT);
+        return index < 0 ? code : code.substring(index + DATASPACE_SEGMENT.length());
     }
 
     private static ErrorCode resolveRemoteNotFoundCode(String errorCode) {
