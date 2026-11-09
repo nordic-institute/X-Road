@@ -67,6 +67,7 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -74,7 +75,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -167,7 +167,6 @@ class XRoadConstraintFailureIsolationTest {
     }
 
     @Test
-    @Disabled("policy lookup by in pending: slice 03")
     void catalogListsTheOtherServicesWhenOneAccessRightsEntryFails() {
         when(serverConfProvider.isLocalGroupMember(any(ClientId.class), any(LocalGroupId.class), any(ClientId.class)))
                 .thenAnswer(invocation -> {
@@ -178,10 +177,9 @@ class XRoadConstraintFailureIsolationTest {
                     return true;
                 });
         var policyStore = mock(PolicyDefinitionStore.class);
-        when(policyStore.findById(PARTICIPANT_CONTEXT_ID, BAD_GROUP))
-                .thenReturn(policyDefinition(BAD_GROUP, localGroupPolicy(BAD_GROUP)));
-        when(policyStore.findById(PARTICIPANT_CONTEXT_ID, GOOD_GROUP))
-                .thenReturn(policyDefinition(GOOD_GROUP, localGroupPolicy(GOOD_GROUP)));
+        when(policyStore.findAll(argThat(XRoadConstraintFailureIsolationTest::isLookupByIdIn))).thenAnswer(invocation -> Stream.of(
+                policyDefinition(BAD_GROUP, localGroupPolicy(BAD_GROUP)),
+                policyDefinition(GOOD_GROUP, localGroupPolicy(GOOD_GROUP))));
         var definitionStore = mock(ContractDefinitionStore.class);
         when(definitionStore.findAll(any())).thenReturn(Stream.of(
                 contractDefinition("def-bad", BAD_GROUP), contractDefinition("def-good", GOOD_GROUP)));
@@ -264,6 +262,11 @@ class XRoadConstraintFailureIsolationTest {
             }
             default -> throw new IllegalArgumentException(constraintKey);
         };
+    }
+
+    private static boolean isLookupByIdIn(QuerySpec spec) {
+        return spec.getFilterExpression().stream()
+                .anyMatch(criterion -> "id".equals(criterion.getOperandLeft()) && "in".equals(criterion.getOperator()));
     }
 
     private static ParticipantAgent memberAgent() {
