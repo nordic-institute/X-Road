@@ -33,18 +33,25 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.cs.admin.api.domain.CanSignCause;
+import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +63,7 @@ class DataspaceIssuerProvisioningServiceImplTest {
     private static final int ISSUANCE_PORT = 7185;
     private static final int STATUSLIST_PORT = 7187;
     private static final String SCHEMA_URL = "https://example.com/schema/XRoadMembershipCredential.json";
+    private static final String EXPECTED_DID = "did:web:" + HOST + "%3A" + DID_PORT + ":issuer";
 
     @Mock
     private IssuerProvisioningRpcClient rpcClient;
@@ -72,7 +80,9 @@ class DataspaceIssuerProvisioningServiceImplTest {
         when(properties.getDidPort()).thenReturn(DID_PORT);
         when(properties.getIssuancePort()).thenReturn(ISSUANCE_PORT);
         when(properties.getStatuslistPort()).thenReturn(STATUSLIST_PORT);
-        when(properties.getCredentialJsonSchemaUrl()).thenReturn(SCHEMA_URL);
+        lenient().when(properties.getCredentialJsonSchemaUrl()).thenReturn(SCHEMA_URL);
+        lenient().when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent(), CanSignResult.canSign(EXPECTED_DID));
         service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService);
     }
 
@@ -180,6 +190,74 @@ class DataspaceIssuerProvisioningServiceImplTest {
         verify(dataspaceIssuerDidService).register(anyString(), anyString(), anyInt(), anyString(), statuslistBaseUrlCaptor.capture());
 
         assertThat(statuslistBaseUrlCaptor.getValue()).isEqualTo("https://" + HOST + ":" + STATUSLIST_PORT + "/statuslist");
+    }
+
+    @Test
+    void provisionIssuerCreatesParticipantContextOnlyWhenCanSignIsAbsent() {
+        service.provisionIssuer();
+
+        verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerSkipsCreationWhenIssuerAlreadyCanSignForTheIntendedDid() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.canSign(EXPECTED_DID));
+
+        service.provisionIssuer();
+
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(dataspaceIssuerDidService).register(eq(EXPECTED_DID), eq(HOST), eq(DID_PORT), anyString(), anyString());
+    }
+
+    @Test
+    void provisionIssuerFailsAndCreatesNothingWhenTheIssuerCannotSignBeforeCreate() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.cannotSign(CanSignCause.NO_ACTIVE_KEY));
+
+        assertThatThrownBy(() -> service.provisionIssuer()).isInstanceOf(XrdRuntimeException.class);
+
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(rpcClient, never()).createAttestationDefinition(any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerFailsAndCreatesNothingWhenTheIssuerCanSignForADifferentDidBeforeCreate() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.canSign("did:web:other.example.test%3A7183:issuer"));
+
+        assertThatThrownBy(() -> service.provisionIssuer()).isInstanceOf(XrdRuntimeException.class);
+
+        verify(rpcClient, never()).createParticipantContext(any(), any(), any(), any(), any());
+        verify(rpcClient, never()).createAttestationDefinition(any(), any(), any());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerFailsAndNeverBindsWhenTheFinalCanSignCheckFails() {
+        when(rpcClient.canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID))
+                .thenReturn(CanSignResult.absent(), CanSignResult.cannotSign(CanSignCause.DID_NOT_PUBLISHED));
+
+        assertThatThrownBy(() -> service.provisionIssuer()).isInstanceOf(XrdRuntimeException.class);
+
+        verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(dataspaceIssuerDidService, never()).register(any(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void provisionIssuerChecksCanSignCreatesThenChecksAgainBeforeBinding() {
+        service.provisionIssuer();
+
+        InOrder order = inOrder(rpcClient, dataspaceIssuerDidService);
+        order.verify(rpcClient).canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
+        order.verify(rpcClient).createParticipantContext(anyString(), anyString(), anyString(), anyString(), anyString());
+        order.verify(rpcClient).createAttestationDefinition(anyString(), anyString(), anyString());
+        order.verify(rpcClient).createCredentialDefinition(
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(),
+                anyLong(), anyList(), anyList());
+        order.verify(rpcClient).canSign(DataspaceIssuerProvisioningServiceImpl.ISSUER_PARTICIPANT_ID);
+        order.verify(dataspaceIssuerDidService).register(anyString(), anyString(), anyInt(), anyString(), anyString());
     }
 
 }

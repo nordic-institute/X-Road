@@ -26,10 +26,12 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import com.google.protobuf.Any;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,18 +39,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.cs.admin.api.domain.CanSignCause;
 import org.niis.xroad.cs.admin.api.domain.CanSignResult;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
+import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.IssuerProvisioningServiceGrpc;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,6 +77,9 @@ class IssuerProvisioningRpcClientTest {
     private CanSignResp configuredCanSignResp;
     private final AtomicReference<CanSignReq> capturedCanSignReq = new AtomicReference<>();
     private long canSignDelayMillis;
+
+    private final AtomicReference<CreateParticipantContextReq> capturedCreateParticipantContextReq = new AtomicReference<>();
+    private ErrorCode configuredCreateParticipantContextError;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -92,6 +103,24 @@ class IssuerProvisioningRpcClientTest {
                     }
                 }
                 responseObserver.onNext(configuredCanSignResp);
+                responseObserver.onCompleted();
+            }
+
+            @Override
+            public void createParticipantContext(CreateParticipantContextReq request,
+                                                 StreamObserver<CreateParticipantContextResp> responseObserver) {
+                capturedCreateParticipantContextReq.set(request);
+                if (configuredCreateParticipantContextError != null) {
+                    responseObserver.onError(StatusProto.toStatusRuntimeException(
+                            com.google.rpc.Status.newBuilder()
+                                    .setCode(io.grpc.Status.Code.INTERNAL.value())
+                                    .addDetails(Any.pack(XrdRuntimeExceptionProto.newBuilder()
+                                            .setErrorCode(configuredCreateParticipantContextError.code())
+                                            .build()))
+                                    .build()));
+                    return;
+                }
+                responseObserver.onNext(CreateParticipantContextResp.getDefaultInstance());
                 responseObserver.onCompleted();
             }
         };
@@ -196,5 +225,27 @@ class IssuerProvisioningRpcClientTest {
         var result = client.canSign("ctx-id");
 
         assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.TIMEOUT));
+    }
+
+    @Test
+    void createParticipantContextSwallowsAConflictFromTheIssuer() {
+        configuredCreateParticipantContextError = ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
+
+        client.createParticipantContext("ctx-id", "did:web:issuer.example.com", "https://issuer.example.com",
+                "key-id", "key-alias");
+
+        var req = capturedCreateParticipantContextReq.get();
+        assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
+        assertThat(req.getDid()).isEqualTo("did:web:issuer.example.com");
+    }
+
+    @Test
+    void createParticipantContextRethrowsAnyOtherErrorFromTheIssuer() {
+        configuredCreateParticipantContextError = ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+
+        assertThatThrownBy(() -> client.createParticipantContext("ctx-id", "did:web:issuer.example.com",
+                "https://issuer.example.com", "key-id", "key-alias"))
+                .isInstanceOfSatisfying(XrdRuntimeException.class,
+                        e -> assertThat(e.isCausedBy(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED)).isTrue());
     }
 }

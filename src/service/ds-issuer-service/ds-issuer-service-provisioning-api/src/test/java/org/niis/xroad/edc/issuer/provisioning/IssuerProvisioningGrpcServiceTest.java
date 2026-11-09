@@ -26,7 +26,9 @@
  */
 package org.niis.xroad.edc.issuer.provisioning;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.StatusRuntimeException;
+import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
@@ -61,15 +63,19 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignResp;
+import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
+import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -83,6 +89,8 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class IssuerProvisioningGrpcServiceTest {
@@ -103,6 +111,8 @@ class IssuerProvisioningGrpcServiceTest {
     private Monitor monitor;
     @Mock
     private StreamObserver<CreateParticipantContextResp> participantContextResponseObserver;
+    @Mock
+    private StreamObserver<CreateAttestationDefinitionResp> attestationDefinitionResponseObserver;
     @Mock
     private StreamObserver<RevokeCredentialResp> revokeResponseObserver;
     @Mock
@@ -169,16 +179,52 @@ class IssuerProvisioningGrpcServiceTest {
     }
 
     @Test
-    void createParticipantContextForProvisionedIssuerIsNoOp() {
+    void createParticipantContextFailsWithConflictWhenParticipantAlreadyExists() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.conflict("Another participant with the same DID already exists."));
 
         service.createParticipantContext(createReq(), participantContextResponseObserver);
 
         verify(participantContextService).createParticipantContext(any());
-        verify(participantContextResponseObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
-        verify(participantContextResponseObserver).onCompleted();
-        verify(participantContextResponseObserver, never()).onError(any());
+        var error = ArgumentCaptor.forClass(Throwable.class);
+        verify(participantContextResponseObserver).onError(error.capture());
+        assertThat(unpackProto(error.getValue()).getErrorCode())
+                .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + DSP_PARTICIPANT_CONTEXT_CONFLICT.code());
+        verify(participantContextResponseObserver, never()).onNext(any());
+        verify(participantContextResponseObserver, never()).onCompleted();
+    }
+
+    @Test
+    void createParticipantContextFailsWithGenericErrorForOtherFailureReasons() {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.badRequest("manifest rejected"));
+
+        service.createParticipantContext(createReq(), participantContextResponseObserver);
+
+        var error = ArgumentCaptor.forClass(Throwable.class);
+        verify(participantContextResponseObserver).onError(error.capture());
+        assertThat(unpackProto(error.getValue()).getErrorCode())
+                .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + DSP_PARTICIPANT_CONTEXT_FAILED.code());
+        verify(participantContextResponseObserver, never()).onNext(any());
+        verify(participantContextResponseObserver, never()).onCompleted();
+    }
+
+    @Test
+    void createAttestationDefinitionAcceptsConflictAsSuccess() {
+        when(attestationDefinitionService.createAttestation(any()))
+                .thenReturn(ServiceResult.conflict("Attestation definition already exists."));
+
+        service.createAttestationDefinition(
+                CreateAttestationDefinitionReq.newBuilder()
+                        .setParticipantContextId("issuer")
+                        .setAttestationDefinitionId("xroad-membership-attestation-definition")
+                        .setAttestationType("holder")
+                        .build(),
+                attestationDefinitionResponseObserver);
+
+        verify(attestationDefinitionResponseObserver).onNext(CreateAttestationDefinitionResp.getDefaultInstance());
+        verify(attestationDefinitionResponseObserver).onCompleted();
+        verify(attestationDefinitionResponseObserver, never()).onError(any());
     }
 
     @Test
@@ -496,5 +542,20 @@ class IssuerProvisioningGrpcServiceTest {
                 .timestamp(timestamp)
                 .credential(container)
                 .build();
+    }
+
+    private static XrdRuntimeExceptionProto unpackProto(Throwable ex) {
+        var status = StatusProto.fromThrowable(ex);
+        assertThat(status).isNotNull();
+        for (var any : status.getDetailsList()) {
+            if (any.is(XrdRuntimeExceptionProto.class)) {
+                try {
+                    return any.unpack(XrdRuntimeExceptionProto.class);
+                } catch (InvalidProtocolBufferException e) {
+                    throw new AssertionError("Failed to unpack XrdRuntimeExceptionProto", e);
+                }
+            }
+        }
+        throw new AssertionError("No XrdRuntimeExceptionProto found in gRPC status details");
     }
 }

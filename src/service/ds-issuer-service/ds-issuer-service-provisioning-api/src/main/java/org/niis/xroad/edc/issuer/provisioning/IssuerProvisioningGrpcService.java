@@ -46,6 +46,7 @@ import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause;
@@ -65,8 +66,10 @@ import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 import java.util.List;
 import java.util.Map;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.failure;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
@@ -149,8 +152,13 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
                 .build();
 
         var result = participantContextService.createParticipantContext(manifest);
-        requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
-        return CreateParticipantContextResp.getDefaultInstance();
+        if (result.succeeded()) {
+            return CreateParticipantContextResp.getDefaultInstance();
+        }
+        if (result.reason() == ServiceFailure.Reason.CONFLICT) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_CONFLICT, request.getParticipantContextId(), result.getFailureDetail());
+        }
+        throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), result.getFailureDetail());
     }
 
     private CreateAttestationDefinitionResp createAttestationDefinitionInternal(CreateAttestationDefinitionReq request) {

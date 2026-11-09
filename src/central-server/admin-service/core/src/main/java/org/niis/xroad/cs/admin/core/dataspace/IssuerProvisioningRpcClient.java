@@ -51,6 +51,7 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.List;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
@@ -103,15 +104,25 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
         close();
     }
 
+    /**
+     * Creates the participant context for the given issuer identity. A conflict, meaning the context already
+     * exists, is not an error here: the caller decides whether that is acceptable by checking "can sign" itself.
+     */
     public void createParticipantContext(String participantContextId, String did, String issuerServiceUrl,
                                          String keyId, String privateKeyAlias) {
-        exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
-                .setParticipantContextId(participantContextId)
-                .setDid(did)
-                .setIssuerServiceUrl(issuerServiceUrl)
-                .setKeyId(keyId)
-                .setPrivateKeyAlias(privateKeyAlias)
-                .build()));
+        try {
+            exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
+                    .setParticipantContextId(participantContextId)
+                    .setDid(did)
+                    .setIssuerServiceUrl(issuerServiceUrl)
+                    .setKeyId(keyId)
+                    .setPrivateKeyAlias(privateKeyAlias)
+                    .build()));
+        } catch (XrdRuntimeException e) {
+            if (!e.isCausedBy(DSP_PARTICIPANT_CONTEXT_CONFLICT)) {
+                throw e;
+            }
+        }
     }
 
     public void createAttestationDefinition(String participantContextId, String attestationDefinitionId, String attestationType) {
