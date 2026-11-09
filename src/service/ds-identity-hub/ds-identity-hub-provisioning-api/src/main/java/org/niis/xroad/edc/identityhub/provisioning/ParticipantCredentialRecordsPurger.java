@@ -40,14 +40,12 @@ import java.sql.SQLException;
 import java.util.function.Supplier;
 
 /**
- * Purges verifiable-credential and holder credential-request records left behind by a deleted
- * participant context. Neither record type is cleaned up by the upstream participant-context
- * deletion cascade, which would otherwise leave them visible to a context recreated with the same id.
+ * Purges verifiable-credential and holder credential-request records of a deleted participant
+ * context, so they are not visible to a context recreated with the same id.
  *
  * <p>Verifiable credentials are purged through the {@link CredentialStore} SPI, which supports
- * deletion. Holder credential requests have no delete operation anywhere in their SPI, so they are
- * purged with a direct statement against the table the upstream {@code holder-credential-request-store-sql}
- * extension creates.
+ * deletion. Holder credential requests are purged by participant context with a direct statement
+ * against the table the upstream {@code holder-credential-request-store-sql} extension creates.
  */
 class ParticipantCredentialRecordsPurger extends AbstractSqlStore {
 
