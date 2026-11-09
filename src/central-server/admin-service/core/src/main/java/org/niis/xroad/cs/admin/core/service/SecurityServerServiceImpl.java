@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
@@ -43,14 +42,11 @@ import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
-import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
-import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ClientService;
@@ -72,7 +68,6 @@ import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -82,21 +77,9 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SS_AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_DSP_BASE_URL_NOT_HTTPS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_FOREIGN_DID;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_MALFORMED_DSP_BASE_URL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_NOT_STORED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_UNPARSEABLE_ADDRESS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SYSTEM_PAIR_WRONG_SCHEME;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
@@ -228,36 +211,9 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     private void replaceSystemPair(SecurityServerEntity server, SystemPairEdit pair) {
-        ParticipantValueResult result;
-        try {
-            result = participantValueStore.replaceSystemPair(server.getId(), pair.systemDid(), pair.dspBaseUrl());
-        } catch (DataIntegrityViolationException e) {
-            if (!ConstraintViolations.violates(e, SYSTEM_DID_EXCLUSION_CONSTRAINT)) {
-                throw e;
-            }
-            throw new BadRequestException(systemPairError(DID_HELD_BY_ANOTHER_SERVER).build());
-        }
-        if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
-            throw new BadRequestException(systemPairError(result.rejection()).build());
-        }
-    }
-
-    private static ErrorMessage systemPairError(ParticipantValueRejection rejection) {
-        return switch (rejection) {
-            case NO_STORED_VALUE -> SYSTEM_PAIR_NOT_STORED;
-            case WRONG_SCHEME -> SYSTEM_PAIR_WRONG_SCHEME;
-            case DID_TOO_LONG -> SYSTEM_PAIR_DID_TOO_LONG;
-            case NOT_CANONICAL -> SYSTEM_PAIR_NOT_CANONICAL;
-            case HOST_DIFFERS -> SYSTEM_PAIR_HOST_DIFFERS;
-            case UNPARSEABLE_REGISTERED_ADDRESS -> SYSTEM_PAIR_UNPARSEABLE_ADDRESS;
-            case NON_ASCII_HOST -> SYSTEM_PAIR_NON_ASCII_HOST;
-            case DSP_BASE_URL_NOT_HTTPS -> SYSTEM_PAIR_DSP_BASE_URL_NOT_HTTPS;
-            case MALFORMED_DSP_BASE_URL -> SYSTEM_PAIR_MALFORMED_DSP_BASE_URL;
-            case FOREIGN_SYSTEM_DID -> SYSTEM_PAIR_FOREIGN_DID;
-            case DID_HELD_BY_ANOTHER_SERVER -> SYSTEM_PAIR_DID_HELD_BY_ANOTHER_SERVER;
-            case UNDECODABLE_DID, DID_OF_OTHER_MEMBER, MEMBER_NOT_SERVED, VALUE_DIFFERS ->
-                    throw new IllegalStateException("A SYSTEM pair replacement cannot be refused as " + rejection);
-        };
+        ParticipantValueRefusals.replaceOrRefuse(
+                () -> participantValueStore.replaceSystemPair(server.getId(), pair.systemDid(), pair.dspBaseUrl()),
+                SYSTEM_DID_EXCLUSION_CONSTRAINT);
     }
 
     @Override

@@ -113,8 +113,9 @@ import type { AxiosError } from 'axios';
 
 import DidCheckRow from '@/components/DidCheckRow.vue';
 import { useDidCheck } from '@/composables/use-did-check';
-import type { DidResolutionReason, SystemDidRefusalReason } from '@/openapi-types';
+import type { DidResolutionReason } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
+import { DID_REFUSAL_TEXT } from '@/util/did-refusal-text';
 
 const props = defineProps({
   securityServerId: {
@@ -140,18 +141,6 @@ const props = defineProps({
 });
 
 const emits = defineEmits(['save', 'cancel']);
-
-const REFUSAL_TEXT: Record<SystemDidRefusalReason, string> = {
-  WRONG_SCHEME: 'error_code.system_pair_wrong_scheme',
-  DID_TOO_LONG: 'error_code.system_pair_did_too_long',
-  NOT_CANONICAL: 'error_code.system_pair_not_canonical',
-  HOST_DIFFERS: 'error_code.system_pair_host_differs',
-  UNPARSEABLE_REGISTERED_ADDRESS: 'error_code.system_pair_unparseable_address',
-  NON_ASCII_HOST: 'error_code.system_pair_non_ascii_host',
-  FOREIGN_SYSTEM_DID: 'error_code.system_pair_foreign_did',
-  DID_HELD_BY_ANOTHER_SERVER: 'error_code.system_pair_did_held_by_another_server',
-  NO_STORED_VALUE: 'error_code.system_pair_not_stored',
-};
 
 const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
   MALFORMED_DID: 'securityServers.dialogs.editAddress.check.not_resolved_malformed_did',
@@ -188,7 +177,7 @@ const { checking, outcome, check } = useDidCheck({
     resolved: 'securityServers.dialogs.editAddress.check.resolved',
     resolverUnavailable: 'securityServers.dialogs.editAddress.check.resolver_unavailable',
     resolution: RESOLUTION_TEXT,
-    refusal: REFUSAL_TEXT,
+    refusal: DID_REFUSAL_TEXT,
   },
 });
 

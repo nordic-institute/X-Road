@@ -48,10 +48,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_MALFORMED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
@@ -72,7 +75,8 @@ class MemberDidRegistrationOutcomeTest {
             EnumSet.of(HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, DID_HELD_BY_ANOTHER_SERVER, VALUE_DIFFERS, MEMBER_NOT_SERVED);
     private static final Set<ParticipantValueRejection> ADDRESS_DEPENDENT_REASONS = EnumSet.of(NON_ASCII_HOST);
     private static final Set<ParticipantValueRejection> UNREACHABLE_REASONS =
-            EnumSet.of(DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, FOREIGN_SYSTEM_DID);
+            EnumSet.of(DSP_BASE_URL_NOT_HTTPS, DSP_BASE_URL_MALFORMED, DSP_BASE_URL_NOT_CANONICAL,
+                    DSP_BASE_URL_HOST_DIFFERS, DSP_BASE_URL_NON_ASCII_HOST, FOREIGN_SYSTEM_DID);
     private static final Set<ParticipantValueRejection> ADMIN_REPLACE_ONLY_REASONS = EnumSet.of(NO_STORED_VALUE);
 
     @Test
@@ -90,7 +94,13 @@ class MemberDidRegistrationOutcomeTest {
 
     @Test
     void theUnreachableGroupIsTheSetTheClassificationRefuses() {
-        assertThat(MemberDidRegistrationOutcome.SYSTEM_PAIR_ONLY).isEqualTo(UNREACHABLE_REASONS);
+        var refused = EnumSet.noneOf(ParticipantValueRejection.class);
+        for (var rejection : ParticipantValueRejection.values()) {
+            if (MemberDidRegistrationOutcome.isSystemPairOnly(rejection)) {
+                refused.add(rejection);
+            }
+        }
+        assertThat(refused).isEqualTo(UNREACHABLE_REASONS);
     }
 
     @ParameterizedTest

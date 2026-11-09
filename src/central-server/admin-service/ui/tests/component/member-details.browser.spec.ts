@@ -32,7 +32,7 @@ import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
 import type { RequestHandler } from 'msw';
-import type { Client, MemberDidCheck, SecurityServer } from '@/openapi-types';
+import type { Client, DidCheck, SecurityServer } from '@/openapi-types';
 
 const MEMBER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem';
 const SERVER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1';
@@ -372,9 +372,9 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
     });
 
     const refusalCases: [code: string, text: string][] = [
-      ['member_did_host_differs', 'The host of the member DID must match the security server address'],
-      ['member_did_held_by_another_server', 'The member DID is already used by another security server'],
-      ['member_did_not_stored', 'The security server has no stored DID for this member to replace'],
+      ['did_host_differs', 'The host of the DID must match the security server address'],
+      ['did_held_by_another_server', 'The DID is already used by another security server'],
+      ['did_not_stored', 'The security server has no stored DID to replace'],
     ];
     it.each(refusalCases)('shows the refusal %s inside the dialog, keeps it open and shows no notify banner', async (code, text) => {
       let usedCalls = 0;
@@ -401,7 +401,7 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
   });
 
   describe('check DID button', () => {
-    type CheckCase = [name: string, answer: MemberDidCheck, text: string, icon: string, color: string];
+    type CheckCase = [name: string, answer: DidCheck, text: string, icon: string, color: string];
     const SUCCESS: [string, string] = ['check_circle', 'success'];
     const WARNING: [string, string] = ['warning', 'warning'];
     const ERROR: [string, string] = ['error', 'error'];
@@ -438,38 +438,38 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       [
         'REFUSED WRONG_SCHEME',
         { status: 'REFUSED', refusal_reason: 'WRONG_SCHEME' },
-        'The member DID must be a did:web DID of version v1',
+        'The DID must be a did:web DID of version v1',
         ...ERROR,
       ],
-      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The member DID is too long', ...ERROR],
+      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The DID is too long', ...ERROR],
       [
         'REFUSED NON_ASCII_HOST',
         { status: 'REFUSED', refusal_reason: 'NON_ASCII_HOST' },
-        'The host of the member DID and the security server address must be ASCII',
+        'The host of the DID and the security server address must be ASCII',
         ...ERROR,
       ],
       [
         'REFUSED UNDECODABLE_DID',
         { status: 'REFUSED', refusal_reason: 'UNDECODABLE_DID' },
-        'The member DID cannot be decoded',
+        'The DID cannot be decoded',
         ...ERROR,
       ],
       [
         'REFUSED NOT_CANONICAL',
         { status: 'REFUSED', refusal_reason: 'NOT_CANONICAL' },
-        'The member DID is not in its canonical form',
+        'The DID is not in its canonical form',
         ...ERROR,
       ],
       [
         'REFUSED HOST_DIFFERS',
         { status: 'REFUSED', refusal_reason: 'HOST_DIFFERS' },
-        'The host of the member DID must match the security server address',
+        'The host of the DID must match the security server address',
         ...ERROR,
       ],
       [
         'REFUSED DID_OF_OTHER_MEMBER',
         { status: 'REFUSED', refusal_reason: 'DID_OF_OTHER_MEMBER' },
-        'The member DID is the DID of another member',
+        'The DID belongs to another member',
         ...ERROR,
       ],
       [
@@ -487,13 +487,13 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       [
         'REFUSED DID_HELD_BY_ANOTHER_SERVER',
         { status: 'REFUSED', refusal_reason: 'DID_HELD_BY_ANOTHER_SERVER' },
-        'The member DID is already used by another security server',
+        'The DID is already used by another security server',
         ...ERROR,
       ],
       [
         'REFUSED NO_STORED_VALUE',
         { status: 'REFUSED', refusal_reason: 'NO_STORED_VALUE' },
-        'The security server has no stored DID for this member to replace',
+        'The security server has no stored DID to replace',
         ...ERROR,
       ],
     ];

@@ -74,8 +74,9 @@ import type { DialogSaveHandler } from '@niis/shared-ui';
 
 import DidCheckRow from '@/components/DidCheckRow.vue';
 import { useDidCheck } from '@/composables/use-did-check';
-import type { Client, DidResolutionReason, MemberDidRefusalReason, MemberServer } from '@/openapi-types';
+import type { Client, DidResolutionReason, MemberServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
+import { DID_REFUSAL_TEXT } from '@/util/did-refusal-text';
 
 const props = defineProps({
   member: {
@@ -89,20 +90,6 @@ const props = defineProps({
 });
 
 const emits = defineEmits(['save', 'cancel']);
-
-const REFUSAL_TEXT: Record<MemberDidRefusalReason, string> = {
-  NO_STORED_VALUE: 'error_code.member_did_not_stored',
-  WRONG_SCHEME: 'error_code.member_did_wrong_scheme',
-  DID_TOO_LONG: 'error_code.member_did_too_long',
-  NON_ASCII_HOST: 'error_code.member_did_non_ascii_host',
-  UNDECODABLE_DID: 'error_code.member_did_undecodable',
-  NOT_CANONICAL: 'error_code.member_did_not_canonical',
-  HOST_DIFFERS: 'error_code.member_did_host_differs',
-  DID_OF_OTHER_MEMBER: 'error_code.member_did_of_other_member',
-  MEMBER_NOT_SERVED: 'error_code.member_did_member_not_served',
-  UNPARSEABLE_REGISTERED_ADDRESS: 'error_code.member_did_unparseable_address',
-  DID_HELD_BY_ANOTHER_SERVER: 'error_code.member_did_held_by_another_server',
-};
 
 const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
   MALFORMED_DID: 'members.member.details.editDid.check.not_resolved_malformed_did',
@@ -132,7 +119,7 @@ const { checking, outcome, check } = useDidCheck({
     resolved: 'members.member.details.editDid.check.resolved',
     resolverUnavailable: 'members.member.details.editDid.check.resolver_unavailable',
     resolution: RESOLUTION_TEXT,
-    refusal: REFUSAL_TEXT,
+    refusal: DID_REFUSAL_TEXT,
   },
 });
 

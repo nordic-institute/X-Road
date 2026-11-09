@@ -25,16 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import {
-  Client,
-  MemberAdd,
-  MemberDidCheck,
-  MemberDidCheckRequest,
-  MemberDidEdit,
-  MemberGlobalGroup,
-  MemberName,
-  MemberServer,
-} from '@/openapi-types';
+import { Client, DidCheck, MemberAdd, MemberDidEdit, MemberGlobalGroup, MemberName, MemberServer } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { WithCurrentItem } from '@niis/shared-ui';
 
@@ -105,8 +96,8 @@ export const useMember = defineStore('member', {
       return axios.patch(`/members/${memberId}/servers/${serverId}`, request);
     },
     async checkMemberDid(memberId: string, serverId: string, memberDid: string) {
-      const request: MemberDidCheckRequest = { member_did: memberDid };
-      return axios.post<MemberDidCheck>(`/members/${memberId}/servers/${serverId}/member-did-check`, request).then((resp) => resp.data);
+      const request: MemberDidEdit = { member_did: memberDid };
+      return axios.post<DidCheck>(`/members/${memberId}/servers/${serverId}/member-did-check`, request).then((resp) => resp.data);
     },
   },
 });

@@ -308,13 +308,13 @@ class SecurityServerApiTest extends CsApiTest {
 
         var cases = List.of(
                 new RefusalCase("host of the SYSTEM DID differs", systemDid("other-addr-0812"),
-                        dspBaseUrl(newAddress), "system_pair_host_differs"),
+                        dspBaseUrl(newAddress), "did_host_differs"),
                 new RefusalCase("host of the DSP base URL differs", systemDid(newAddress),
-                        dspBaseUrl("other-addr-0812"), "system_pair_host_differs"),
+                        dspBaseUrl("other-addr-0812"), "dsp_base_url_host_differs"),
                 new RefusalCase("DID is not the server's own SYSTEM DID", memberDid,
-                        dspBaseUrl(newAddress), "system_pair_foreign_did"),
+                        dspBaseUrl(newAddress), "did_foreign_system"),
                 new RefusalCase("DSP base URL is not https", systemDid(newAddress),
-                        "http://" + newAddress + ":8183/api/dsp", "system_pair_dsp_base_url_not_https"));
+                        "http://" + newAddress + ":8183/api/dsp", "dsp_base_url_not_https"));
 
         for (var refusal : cases) {
             Step.when(refusal.name() + " and the edit is refused", () ->
@@ -352,7 +352,7 @@ class SecurityServerApiTest extends CsApiTest {
                                 .systemDid(systemDid("ss-addr-0813a"))
                                 .dspBaseUrl(dspBaseUrl("ss-addr-0813a")))
                         .statusCode(400)
-                        .body("error.code", equalTo("system_pair_did_held_by_another_server")));
+                        .body("error.code", equalTo("did_held_by_another_server")));
 
         Step.then("the edited server keeps its address and pair", () ->
                 client.getSecurityServer(editedId)
@@ -406,7 +406,7 @@ class SecurityServerApiTest extends CsApiTest {
                                 .systemDid(systemDid("new-addr-0815"))
                                 .dspBaseUrl(dspBaseUrl("new-addr-0815")))
                         .statusCode(400)
-                        .body("error.code", equalTo("system_pair_not_stored")));
+                        .body("error.code", equalTo("did_not_stored")));
 
         Step.then("the address is unchanged and no pair is stored", () ->
                 client.getSecurityServer(serverId)

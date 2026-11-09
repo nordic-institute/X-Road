@@ -46,9 +46,10 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_MALFORMED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
@@ -140,24 +141,24 @@ class ParticipantValueValidatorTest {
             "did:web:ss0.example.org%3A7183:v1:system:extra|" + DSP_URL + "|FOREIGN_SYSTEM_DID",
             SYSTEM_DID + "|http://ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_HTTPS",
             SYSTEM_DID + "|ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_HTTPS",
-            SYSTEM_DID + "|https://other.example.org:8183/api/dsp|HOST_DIFFERS",
-            SYSTEM_DID + "|https://user@ss0.example.org:8183/api/dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://ss0.example.org:8183/api/dsp?x=1|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://ss0.example.org:8183/api/dsp#top|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://ss0.example.org:0/api/dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://ss0.example.org:70000/api/dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://ss0.example.org:http/api/dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https:///api/dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://2001:db8::1/api/dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://bücher.example:8183/api/dsp|NON_ASCII_HOST",
-            SYSTEM_DID + "|HTTPS://ss0.example.org:8183/api/dsp|NOT_CANONICAL",
-            SYSTEM_DID + "|Https://ss0.example.org:8183/api/dsp|NOT_CANONICAL",
-            SYSTEM_DID + "|https://SS0.Example.ORG:8183/api/dsp|NOT_CANONICAL",
+            SYSTEM_DID + "|https://other.example.org:8183/api/dsp|DSP_BASE_URL_HOST_DIFFERS",
+            SYSTEM_DID + "|https://user@ss0.example.org:8183/api/dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://ss0.example.org:8183/api/dsp?x=1|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://ss0.example.org:8183/api/dsp#top|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://ss0.example.org:0/api/dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://ss0.example.org:70000/api/dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://ss0.example.org:http/api/dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https:///api/dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://2001:db8::1/api/dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://bücher.example:8183/api/dsp|DSP_BASE_URL_NON_ASCII_HOST",
+            SYSTEM_DID + "|HTTPS://ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_CANONICAL",
+            SYSTEM_DID + "|Https://ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_CANONICAL",
+            SYSTEM_DID + "|https://SS0.Example.ORG:8183/api/dsp|DSP_BASE_URL_NOT_CANONICAL",
             SYSTEM_DID + "|https://ss0.example.org:443/api/dsp|",
-            SYSTEM_DID + "|https://other.example.org:443/api/dsp|HOST_DIFFERS",
-            SYSTEM_DID + "|https://ss0.example.org:0443/api/dsp|NOT_CANONICAL",
-            SYSTEM_DID + "|https://ss0.example.org:8183/api/ dsp|MALFORMED_DSP_BASE_URL",
-            SYSTEM_DID + "|https://ss0.example.org:8183/api/%zz|MALFORMED_DSP_BASE_URL",
+            SYSTEM_DID + "|https://other.example.org:443/api/dsp|DSP_BASE_URL_HOST_DIFFERS",
+            SYSTEM_DID + "|https://ss0.example.org:0443/api/dsp|DSP_BASE_URL_NOT_CANONICAL",
+            SYSTEM_DID + "|https://ss0.example.org:8183/api/ dsp|DSP_BASE_URL_MALFORMED",
+            SYSTEM_DID + "|https://ss0.example.org:8183/api/%zz|DSP_BASE_URL_MALFORMED",
             SYSTEM_DID + "|https://ss0.example.org/api/dsp|",
             "did:web:bücher.example%3A7183:v1:system|" + DSP_URL + "|NON_ASCII_HOST"
     })
@@ -204,7 +205,7 @@ class ParticipantValueValidatorTest {
 
         assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, IPV6_DSP_URL))).isEmpty();
         assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:DB8::1]/api/dsp")))
-                .contains(NOT_CANONICAL);
+                .contains(DSP_BASE_URL_NOT_CANONICAL);
         assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:db8::1]:443/api/dsp"))).isEmpty();
         assertThat(ipv6.validate(new SystemPair(SYSTEM_DID, DSP_URL))).contains(HOST_DIFFERS);
     }
@@ -214,7 +215,7 @@ class ParticipantValueValidatorTest {
         var ipv6 = validatorFor("2001:db8::1");
 
         assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://2001:db8::1/api/dsp")))
-                .contains(MALFORMED_DSP_BASE_URL);
+                .contains(DSP_BASE_URL_MALFORMED);
         assertThat(ipv6.validate(new SystemPair(IPV6_SYSTEM_DID, "https://[2001:db8::1]/api/dsp"))).isEmpty();
     }
 

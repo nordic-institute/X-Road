@@ -32,29 +32,25 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
-import org.niis.xroad.cs.admin.api.domain.DidCheck;
-import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.SystemPairEdit;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemDidCheckService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
+import org.niis.xroad.cs.admin.rest.api.converter.DidCheckDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.SecurityServerConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.openapi.SecurityServersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
-import org.niis.xroad.cs.openapi.model.DidCheckStatusDto;
-import org.niis.xroad.cs.openapi.model.DidResolutionReasonDto;
+import org.niis.xroad.cs.openapi.model.DidCheckDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerEditDto;
-import org.niis.xroad.cs.openapi.model.SystemDidCheckDto;
 import org.niis.xroad.cs.openapi.model.SystemDidCheckRequestDto;
-import org.niis.xroad.cs.openapi.model.SystemDidRefusalReasonDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -98,6 +94,7 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     private final SecurityServerService securityServerService;
     private final SystemDidCheckService systemDidCheckService;
+    private final DidCheckDtoConverter didCheckDtoConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
     private final AuditDataHelper auditDataHelper;
@@ -194,7 +191,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = CHECK_SECURITY_SERVER_SYSTEM_DID)
-    public ResponseEntity<SystemDidCheckDto> checkSystemDid(String id, SystemDidCheckRequestDto request) {
+    public ResponseEntity<DidCheckDto> checkSystemDid(String id, SystemDidCheckRequestDto request) {
         var securityServerId = requireNonNull(securityServerIdConverter.convertId(id));
         auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
         auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
@@ -204,32 +201,7 @@ public class SecurityServersApiController implements SecurityServersApi {
 
         var check = systemDidCheckService.check(securityServerId, request.getServerAddress(), request.getSystemDid());
         auditDataHelper.put(SYSTEM_DID_CHECK_STATUS, check.status());
-        return ok(toDto(check));
-    }
-
-    private static SystemDidCheckDto toDto(DidCheck check) {
-        return new SystemDidCheckDto()
-                .status(DidCheckStatusDto.valueOf(check.status().name()))
-                .refusalReason(check.refusal() == null ? null : toDto(check.refusal()))
-                .resolutionReason(check.resolutionReason() == null
-                        ? null
-                        : DidResolutionReasonDto.valueOf(check.resolutionReason().name()));
-    }
-
-    private static SystemDidRefusalReasonDto toDto(ParticipantValueRejection refusal) {
-        return switch (refusal) {
-            case WRONG_SCHEME -> SystemDidRefusalReasonDto.WRONG_SCHEME;
-            case DID_TOO_LONG -> SystemDidRefusalReasonDto.DID_TOO_LONG;
-            case NOT_CANONICAL -> SystemDidRefusalReasonDto.NOT_CANONICAL;
-            case HOST_DIFFERS -> SystemDidRefusalReasonDto.HOST_DIFFERS;
-            case UNPARSEABLE_REGISTERED_ADDRESS -> SystemDidRefusalReasonDto.UNPARSEABLE_REGISTERED_ADDRESS;
-            case NON_ASCII_HOST -> SystemDidRefusalReasonDto.NON_ASCII_HOST;
-            case FOREIGN_SYSTEM_DID -> SystemDidRefusalReasonDto.FOREIGN_SYSTEM_DID;
-            case DID_HELD_BY_ANOTHER_SERVER -> SystemDidRefusalReasonDto.DID_HELD_BY_ANOTHER_SERVER;
-            case NO_STORED_VALUE -> SystemDidRefusalReasonDto.NO_STORED_VALUE;
-            case DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL, UNDECODABLE_DID, DID_OF_OTHER_MEMBER, MEMBER_NOT_SERVED,
-                 VALUE_DIFFERS -> throw new IllegalStateException("A SYSTEM DID check cannot be refused as " + refusal);
-        };
+        return ok(didCheckDtoConverter.toTarget(check));
     }
 
     @Nullable

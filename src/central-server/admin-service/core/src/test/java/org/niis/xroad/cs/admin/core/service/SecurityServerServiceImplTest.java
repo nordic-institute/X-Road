@@ -311,17 +311,20 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @ParameterizedTest
         @CsvSource({
-                "NO_STORED_VALUE, system_pair_not_stored",
-                "WRONG_SCHEME, system_pair_wrong_scheme",
-                "DID_TOO_LONG, system_pair_did_too_long",
-                "NOT_CANONICAL, system_pair_not_canonical",
-                "HOST_DIFFERS, system_pair_host_differs",
-                "UNPARSEABLE_REGISTERED_ADDRESS, system_pair_unparseable_address",
-                "NON_ASCII_HOST, system_pair_non_ascii_host",
-                "DSP_BASE_URL_NOT_HTTPS, system_pair_dsp_base_url_not_https",
-                "MALFORMED_DSP_BASE_URL, system_pair_malformed_dsp_base_url",
-                "FOREIGN_SYSTEM_DID, system_pair_foreign_did",
-                "DID_HELD_BY_ANOTHER_SERVER, system_pair_did_held_by_another_server"})
+                "NO_STORED_VALUE, did_not_stored",
+                "WRONG_SCHEME, did_wrong_scheme",
+                "DID_TOO_LONG, did_too_long",
+                "NOT_CANONICAL, did_not_canonical",
+                "HOST_DIFFERS, did_host_differs",
+                "UNPARSEABLE_REGISTERED_ADDRESS, did_unparseable_server_address",
+                "NON_ASCII_HOST, did_non_ascii_host",
+                "DSP_BASE_URL_NOT_HTTPS, dsp_base_url_not_https",
+                "DSP_BASE_URL_MALFORMED, dsp_base_url_malformed",
+                "FOREIGN_SYSTEM_DID, did_foreign_system",
+                "DSP_BASE_URL_NOT_CANONICAL, dsp_base_url_not_canonical",
+                "DSP_BASE_URL_HOST_DIFFERS, dsp_base_url_host_differs",
+                "DSP_BASE_URL_NON_ASCII_HOST, dsp_base_url_non_ascii_host",
+                "DID_HELD_BY_ANOTHER_SERVER, did_held_by_another_server"})
         void shouldFailWithTheCodeOfTheReasonTheStoreRefusesThePair(ParticipantValueRejection rejection, String code) {
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.rejected(rejection));
@@ -339,7 +342,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("system_pair_did_held_by_another_server");
+                    .hasMessageContaining("did_held_by_another_server");
             verifyNoInteractions(securityServerMapper);
         }
 
@@ -355,7 +358,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         @Test
         void shouldFailWhenAReasonThatAPairReplacementCannotHitIsReturned() {
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
-                    .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.MEMBER_NOT_SERVED));
+                    .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.VALUE_DIFFERS));
 
             assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
                     .isInstanceOf(IllegalStateException.class);

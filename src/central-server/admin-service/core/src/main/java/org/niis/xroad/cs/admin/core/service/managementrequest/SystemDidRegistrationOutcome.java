@@ -64,10 +64,11 @@ record SystemDidRegistrationOutcome(OutcomeClass outcomeClass, String reason) {
      */
     static SystemDidRegistrationOutcome of(ParticipantValueRejection rejection, String registeredAddress) {
         var outcomeClass = switch (rejection) {
-            case NOT_CANONICAL, DID_TOO_LONG, WRONG_SCHEME, DSP_BASE_URL_NOT_HTTPS, MALFORMED_DSP_BASE_URL,
-                    FOREIGN_SYSTEM_DID, UNDECODABLE_DID, DID_OF_OTHER_MEMBER -> OutcomeClass.FINAL_CONFLICT;
-            case HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS, DID_HELD_BY_ANOTHER_SERVER, MEMBER_NOT_SERVED ->
-                    OutcomeClass.FIXABLE_CONFLICT;
+            case NOT_CANONICAL, DID_TOO_LONG, WRONG_SCHEME, DSP_BASE_URL_NOT_HTTPS, DSP_BASE_URL_MALFORMED,
+                    DSP_BASE_URL_NOT_CANONICAL, DSP_BASE_URL_NON_ASCII_HOST, FOREIGN_SYSTEM_DID, UNDECODABLE_DID,
+                    DID_OF_OTHER_MEMBER -> OutcomeClass.FINAL_CONFLICT;
+            case HOST_DIFFERS, DSP_BASE_URL_HOST_DIFFERS, UNPARSEABLE_REGISTERED_ADDRESS, VALUE_DIFFERS,
+                    DID_HELD_BY_ANOTHER_SERVER, MEMBER_NOT_SERVED -> OutcomeClass.FIXABLE_CONFLICT;
             case NON_ASCII_HOST -> isNonAscii(registeredAddress) ? OutcomeClass.FIXABLE_CONFLICT : OutcomeClass.FINAL_CONFLICT;
             case NO_STORED_VALUE -> throw new IllegalStateException("A registration cannot be refused as " + rejection);
         };

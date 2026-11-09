@@ -43,15 +43,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_MALFORMED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
@@ -166,38 +170,34 @@ public final class ParticipantValueValidator {
     }
 
     private Optional<ParticipantValueRejection> checkSystemDid(String did) {
+        return checkDid(did, FOREIGN_SYSTEM_DID,
+                participant -> participant instanceof SystemParticipant ? Optional.empty() : Optional.of(FOREIGN_SYSTEM_DID));
+    }
+
+    private Optional<ParticipantValueRejection> validateMemberDid(MemberDid memberDid) {
+        return checkDid(memberDid.did(), UNDECODABLE_DID, participant -> checkMemberIdentity(participant, memberDid.member()));
+    }
+
+    private Optional<ParticipantValueRejection> checkDid(
+            String did, ParticipantValueRejection undecodable,
+            Function<DecodedParticipant, Optional<ParticipantValueRejection>> identityCheck) {
         var shape = checkShape(did);
         if (shape.isPresent()) {
             return shape;
         }
         var participant = decode(did);
         if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(did) ? NOT_CANONICAL : FOREIGN_SYSTEM_DID);
+            return Optional.of(isDecodableWithCanonicalEncoding(did) ? NOT_CANONICAL : undecodable);
         }
         var authority = checkAuthority(participant.get().ssHost());
-        if (authority.isPresent()) {
-            return authority;
-        }
-        return participant.get() instanceof SystemParticipant ? Optional.empty() : Optional.of(FOREIGN_SYSTEM_DID);
+        return authority.isPresent() ? authority : identityCheck.apply(participant.get());
     }
 
-    private Optional<ParticipantValueRejection> validateMemberDid(MemberDid memberDid) {
-        var shape = checkShape(memberDid.did());
-        if (shape.isPresent()) {
-            return shape;
-        }
-        var participant = decode(memberDid.did());
-        if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(memberDid.did()) ? NOT_CANONICAL : UNDECODABLE_DID);
-        }
-        var authority = checkAuthority(participant.get().ssHost());
-        if (authority.isPresent()) {
-            return authority;
-        }
-        if (!(participant.get() instanceof MemberParticipant decoded) || !decoded.member().equals(memberDid.member())) {
+    private Optional<ParticipantValueRejection> checkMemberIdentity(DecodedParticipant participant, ClientId member) {
+        if (!(participant instanceof MemberParticipant decoded) || !decoded.member().equals(member)) {
             return Optional.of(DID_OF_OTHER_MEMBER);
         }
-        return isOwnerOrClient(memberDid.member()) ? Optional.empty() : Optional.of(MEMBER_NOT_SERVED);
+        return isOwnerOrClient(member) ? Optional.empty() : Optional.of(MEMBER_NOT_SERVED);
     }
 
     private boolean isOwnerOrClient(ClientId member) {
@@ -235,17 +235,17 @@ public final class ParticipantValueValidator {
         }
         var authority = authorityOf(url);
         if (!DidAuthority.isAscii(authority)) {
-            return Optional.of(NON_ASCII_HOST);
+            return Optional.of(DSP_BASE_URL_NON_ASCII_HOST);
         }
         if (authority.indexOf('@') >= 0 || url.indexOf('?') >= 0 || url.indexOf('#') >= 0
                 || canonicalHostOf(authority).isEmpty() || !DidAuthority.isUriHost(authority)
                 || !isWellFormedUri(url)) {
-            return Optional.of(MALFORMED_DSP_BASE_URL);
+            return Optional.of(DSP_BASE_URL_MALFORMED);
         }
         if (!url.startsWith(DSP_BASE_URL_PREFIX) || !hasCanonicalHost(authority)) {
-            return Optional.of(NOT_CANONICAL);
+            return Optional.of(DSP_BASE_URL_NOT_CANONICAL);
         }
-        return hostMatches(authority) ? Optional.empty() : Optional.of(HOST_DIFFERS);
+        return hostMatches(authority) ? Optional.empty() : Optional.of(DSP_BASE_URL_HOST_DIFFERS);
     }
 
     private static boolean hasCanonicalHost(String authority) {

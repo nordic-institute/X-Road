@@ -103,35 +103,35 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
     void refusesADidOfAnotherSchemeVersionAndStoresNothing() {
         var served = servedClientWithStoredDid();
 
-        assertRefused(served, served.storedDid().replace(":v1:", ":v2:"), ErrorMessage.MEMBER_DID_WRONG_SCHEME);
+        assertRefused(served, served.storedDid().replace(":v1:", ":v2:"), ErrorMessage.DID_WRONG_SCHEME);
     }
 
     @Test
     void refusesAValueThatIsNotADidAndStoresNothing() {
         var served = servedClientWithStoredDid();
 
-        assertRefused(served, "not-a-did", ErrorMessage.MEMBER_DID_WRONG_SCHEME);
+        assertRefused(served, "not-a-did", ErrorMessage.DID_WRONG_SCHEME);
     }
 
     @Test
     void refusesADidThatIsTooLongAndStoresNothing() {
         var served = servedClientWithStoredDid();
 
-        assertRefused(served, served.storedDid() + "a".repeat(MAX_DID_LENGTH), ErrorMessage.MEMBER_DID_TOO_LONG);
+        assertRefused(served, served.storedDid() + "a".repeat(MAX_DID_LENGTH), ErrorMessage.DID_TOO_LONG);
     }
 
     @Test
     void refusesADidWithANonAsciiHostAndStoresNothing() {
         var served = servedClientWithStoredDid();
 
-        assertRefused(served, memberDid("bücher.example", served.client().identifier()), ErrorMessage.MEMBER_DID_NON_ASCII_HOST);
+        assertRefused(served, memberDid("bücher.example", served.client().identifier()), ErrorMessage.DID_NON_ASCII_HOST);
     }
 
     @Test
     void refusesADidThatCannotBeDecodedAndStoresNothing() {
         var served = servedClientWithStoredDid();
 
-        assertRefused(served, served.storedDid() + "%2", ErrorMessage.MEMBER_DID_UNDECODABLE);
+        assertRefused(served, served.storedDid() + "%2", ErrorMessage.DID_UNDECODABLE);
     }
 
     @Test
@@ -139,14 +139,14 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         var served = servedClientWithStoredDid();
         var upperCaseHost = memberDid(served.server().address().toUpperCase(Locale.ROOT), served.client().identifier());
 
-        assertRefused(served, upperCaseHost, ErrorMessage.MEMBER_DID_NOT_CANONICAL);
+        assertRefused(served, upperCaseHost, ErrorMessage.DID_NOT_CANONICAL);
     }
 
     @Test
     void refusesADidOfAnotherHostAndStoresNothing() {
         var served = servedClientWithStoredDid();
 
-        assertRefused(served, memberDid(newHost(), served.client().identifier()), ErrorMessage.MEMBER_DID_HOST_DIFFERS);
+        assertRefused(served, memberDid(newHost(), served.client().identifier()), ErrorMessage.DID_HOST_DIFFERS);
     }
 
     @Test
@@ -154,7 +154,7 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         var served = servedClientWithStoredDid();
         var ownersDid = memberDid(served.server().address(), served.server().owner().identifier());
 
-        assertRefused(served, ownersDid, ErrorMessage.MEMBER_DID_OF_OTHER_MEMBER);
+        assertRefused(served, ownersDid, ErrorMessage.DID_OF_OTHER_MEMBER);
     }
 
     @Test
@@ -165,7 +165,7 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         assertThatThrownBy(() -> service.editMemberDid(served.server().identifier(), outsider.identifier(),
                 memberDid(served.server().address(), outsider.identifier())))
                 .isInstanceOfSatisfying(BadRequestException.class,
-                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.MEMBER_DID_MEMBER_NOT_SERVED.code()));
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.DID_MEMBER_NOT_SERVED.code()));
 
         assertThat(storedDids(served.server().id())).containsExactly(served.storedDid());
     }
@@ -175,7 +175,7 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         var served = servedClientWithStoredDid();
         jdbc.update("update security_servers set address = 'a/b' where id = ?", served.server().id());
 
-        assertRefused(served, otherPort(served.storedDid()), ErrorMessage.MEMBER_DID_UNPARSEABLE_ADDRESS);
+        assertRefused(served, otherPort(served.storedDid()), ErrorMessage.DID_UNPARSEABLE_SERVER_ADDRESS);
     }
 
     @Test
@@ -186,7 +186,7 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         var heldElsewhere = otherPort(served.storedDid());
         insertMemberDid(otherServer.id(), served.client().id(), heldElsewhere);
 
-        assertRefused(served, heldElsewhere, ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER);
+        assertRefused(served, heldElsewhere, ErrorMessage.DID_HELD_BY_ANOTHER_SERVER);
 
         assertThat(storedDids(otherServer.id())).containsExactly(heldElsewhere);
     }
@@ -201,7 +201,7 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         assertThatThrownBy(() -> service.editMemberDid(
                 server.identifier(), client.identifier(), memberDid(hostPrefix + server.address(), client.identifier())))
                 .isInstanceOfSatisfying(BadRequestException.class,
-                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.MEMBER_DID_NOT_STORED.code()));
+                        e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.DID_NOT_STORED.code()));
 
         assertThat(storedDids(server.id())).isEmpty();
     }
@@ -260,7 +260,7 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
                 .isInstanceOf(ExecutionException.class)
                 .cause()
                 .isInstanceOfSatisfying(BadRequestException.class, e -> assertThat(e.getErrorDeviation().code())
-                        .isEqualTo(ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER.code()));
+                        .isEqualTo(ErrorMessage.DID_HELD_BY_ANOTHER_SERVER.code()));
         assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(WAIT_SECONDS));
         assertThat(storedDids(winner.server().id())).containsExactly(contested);
         assertThat(storedDids(loser.server().id())).isEqualTo(loserBefore);

@@ -65,10 +65,13 @@ import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_HELD_BY_ANOTHER_SERVER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_HOST_DIFFERS;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_MALFORMED;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NON_ASCII_HOST;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.FOREIGN_SYSTEM_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MALFORMED_DSP_BASE_URL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.MEMBER_NOT_SERVED;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
@@ -296,7 +299,7 @@ class SystemDidRegistrationServiceImplTest {
                 row(DID_TOO_LONG, ADDRESS, finalCode),
                 row(WRONG_SCHEME, ADDRESS, finalCode),
                 row(DSP_BASE_URL_NOT_HTTPS, ADDRESS, finalCode),
-                row(MALFORMED_DSP_BASE_URL, ADDRESS, finalCode),
+                row(DSP_BASE_URL_MALFORMED, ADDRESS, finalCode),
                 row(FOREIGN_SYSTEM_DID, ADDRESS, finalCode),
                 row(UNDECODABLE_DID, ADDRESS, finalCode),
                 row(DID_OF_OTHER_MEMBER, ADDRESS, finalCode),
@@ -306,7 +309,10 @@ class SystemDidRegistrationServiceImplTest {
                 row(UNPARSEABLE_REGISTERED_ADDRESS, ADDRESS, fixableCode),
                 row(VALUE_DIFFERS, ADDRESS, fixableCode),
                 row(DID_HELD_BY_ANOTHER_SERVER, ADDRESS, fixableCode),
-                row(NON_ASCII_HOST, NON_ASCII_ADDRESS, fixableCode));
+                row(NON_ASCII_HOST, NON_ASCII_ADDRESS, fixableCode),
+                row(DSP_BASE_URL_NOT_CANONICAL, ADDRESS, finalCode),
+                row(DSP_BASE_URL_NON_ASCII_HOST, ADDRESS, finalCode),
+                row(DSP_BASE_URL_HOST_DIFFERS, ADDRESS, fixableCode));
     }
 
     private static Arguments row(ParticipantValueRejection rejection, String address, String code) {

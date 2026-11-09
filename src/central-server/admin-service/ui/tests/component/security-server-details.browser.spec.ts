@@ -32,7 +32,7 @@ import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
 import { Permissions } from '@/global';
-import type { SecurityServer, SystemDidCheck } from '@/openapi-types';
+import type { DidCheck, SecurityServer } from '@/openapi-types';
 
 const SERVER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1';
 const SERVER_CODE = 'E2E-SS1';
@@ -272,7 +272,7 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
   });
 
   describe('check DID button', () => {
-    type CheckCase = [name: string, answer: SystemDidCheck, text: string, icon: string, color: string];
+    type CheckCase = [name: string, answer: DidCheck, text: string, icon: string, color: string];
     const SUCCESS: [string, string] = ['check_circle', 'success'];
     const WARNING: [string, string] = ['warning', 'warning'];
     const ERROR: [string, string] = ['error', 'error'];
@@ -318,20 +318,20 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
       [
         'REFUSED WRONG_SCHEME',
         { status: 'REFUSED', refusal_reason: 'WRONG_SCHEME' },
-        'The SYSTEM DID must be a did:web DID of version v1',
+        'The DID must be a did:web DID of version v1',
         ...ERROR,
       ],
-      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The SYSTEM DID is too long', ...ERROR],
+      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The DID is too long', ...ERROR],
       [
         'REFUSED NOT_CANONICAL',
         { status: 'REFUSED', refusal_reason: 'NOT_CANONICAL' },
-        'The SYSTEM DID or DSP base URL is not in its canonical form',
+        'The DID is not in its canonical form',
         ...ERROR,
       ],
       [
         'REFUSED HOST_DIFFERS',
         { status: 'REFUSED', refusal_reason: 'HOST_DIFFERS' },
-        'The host of the SYSTEM DID and the DSP base URL must match the security server address',
+        'The host of the DID must match the security server address',
         ...ERROR,
       ],
       [
@@ -343,19 +343,19 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
       [
         'REFUSED NON_ASCII_HOST',
         { status: 'REFUSED', refusal_reason: 'NON_ASCII_HOST' },
-        'The host of the SYSTEM DID, the DSP base URL and the security server address must be ASCII',
+        'The host of the DID and the security server address must be ASCII',
         ...ERROR,
       ],
       [
         'REFUSED FOREIGN_SYSTEM_DID',
         { status: 'REFUSED', refusal_reason: 'FOREIGN_SYSTEM_DID' },
-        'The SYSTEM DID is not the DID of this security server',
+        "The DID is not this security server's SYSTEM DID",
         ...ERROR,
       ],
       [
         'REFUSED DID_HELD_BY_ANOTHER_SERVER',
         { status: 'REFUSED', refusal_reason: 'DID_HELD_BY_ANOTHER_SERVER' },
-        'The SYSTEM DID is already used by another security server',
+        'The DID is already used by another security server',
         ...ERROR,
       ],
     ];
@@ -593,7 +593,7 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
   it('shows a refusal inside the dialog and keeps the dialog open with the entered values', async () => {
     const dialog = await openDialog(pairFixture, [
       specHttp.untyped.patch('/api/v1/security-servers/:server_id', () =>
-        HttpResponse.json({ status: 400, error: { code: 'system_pair_host_differs' } }, { status: 400 }),
+        HttpResponse.json({ status: 400, error: { code: 'did_host_differs' } }, { status: 400 }),
       ),
     ]);
 
@@ -603,7 +603,7 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
 
     await expect
       .element(dialog.getByTestId('contextual-alert'))
-      .toMatchTextContent('The host of the SYSTEM DID and the DSP base URL must match the security server address');
+      .toMatchTextContent('The host of the DID must match the security server address');
     await expect.element(dialog).toBeVisible();
     await expect.element(field(dialog, 'security-server-address-edit-field')).toHaveValue(NEW_ADDRESS);
     await expect.element(field(dialog, 'security-server-system-did-edit-field')).toHaveValue(NEW_DID);

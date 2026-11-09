@@ -168,7 +168,7 @@ class SecurityServerEditPostgresTest extends AbstractCentralServerPostgresTest {
         assertThatThrownBy(racing::get)
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(BadRequestException.class)
-                .hasMessageContaining("system_pair_did_held_by_another_server");
+                .hasMessageContaining("did_held_by_another_server");
         assertThat(stored(winner.id())).isEqualTo(row(sharedHost, contested));
         assertThat(stored(loser.id())).isEqualTo(loserBefore);
     }

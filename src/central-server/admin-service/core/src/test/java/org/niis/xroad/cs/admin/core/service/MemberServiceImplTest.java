@@ -37,7 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -591,17 +590,17 @@ class MemberServiceImplTest {
 
         @ParameterizedTest
         @CsvSource({
-                "NO_STORED_VALUE, member_did_not_stored",
-                "WRONG_SCHEME, member_did_wrong_scheme",
-                "DID_TOO_LONG, member_did_too_long",
-                "NON_ASCII_HOST, member_did_non_ascii_host",
-                "UNDECODABLE_DID, member_did_undecodable",
-                "NOT_CANONICAL, member_did_not_canonical",
-                "HOST_DIFFERS, member_did_host_differs",
-                "DID_OF_OTHER_MEMBER, member_did_of_other_member",
-                "MEMBER_NOT_SERVED, member_did_member_not_served",
-                "UNPARSEABLE_REGISTERED_ADDRESS, member_did_unparseable_address",
-                "DID_HELD_BY_ANOTHER_SERVER, member_did_held_by_another_server"})
+                "NO_STORED_VALUE, did_not_stored",
+                "WRONG_SCHEME, did_wrong_scheme",
+                "DID_TOO_LONG, did_too_long",
+                "NON_ASCII_HOST, did_non_ascii_host",
+                "UNDECODABLE_DID, did_undecodable",
+                "NOT_CANONICAL, did_not_canonical",
+                "HOST_DIFFERS, did_host_differs",
+                "DID_OF_OTHER_MEMBER, did_of_other_member",
+                "MEMBER_NOT_SERVED, did_member_not_served",
+                "UNPARSEABLE_REGISTERED_ADDRESS, did_unparseable_server_address",
+                "DID_HELD_BY_ANOTHER_SERVER, did_held_by_another_server"})
         void shouldFailWithTheCodeOfTheReasonTheStoreRefusesTheDid(ParticipantValueRejection rejection, String code) {
             givenServerRow();
             when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
@@ -613,13 +612,11 @@ class MemberServiceImplTest {
             verify(auditData).put(RestApiAuditProperty.MEMBER_DID, NEW_DID);
         }
 
-        @ParameterizedTest
-        @EnumSource(value = ParticipantValueRejection.class, names = {
-                "DSP_BASE_URL_NOT_HTTPS", "MALFORMED_DSP_BASE_URL", "FOREIGN_SYSTEM_DID", "VALUE_DIFFERS"})
-        void shouldFailLoudlyForAReasonThatAMemberEditCannotProduce(ParticipantValueRejection rejection) {
+        @Test
+        void shouldFailLoudlyForAReasonThatAnEditCannotProduce() {
             givenServerRow();
             when(participantValueStore.replaceMemberDids(SERVER_ROW_ID, Map.of(clientId, NEW_DID)))
-                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(rejection)));
+                    .thenReturn(Map.of(clientId, ParticipantValueResult.rejected(ParticipantValueRejection.VALUE_DIFFERS)));
 
             assertThrows(IllegalStateException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
         }
@@ -632,7 +629,7 @@ class MemberServiceImplTest {
 
             var failure = assertThrows(BadRequestException.class, () -> memberService.editMemberDid(serverId, clientId, NEW_DID));
 
-            assertEquals("member_did_held_by_another_server", failure.getErrorDeviation().code());
+            assertEquals("did_held_by_another_server", failure.getErrorDeviation().code());
         }
 
         @Test

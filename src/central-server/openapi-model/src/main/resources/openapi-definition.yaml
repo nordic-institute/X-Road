@@ -2239,7 +2239,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberDidCheckRequest'
+              $ref: '#/components/schemas/MemberDidEdit'
         description: the proposed member DID
         required: true
       responses:
@@ -2247,7 +2247,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemberDidCheck'
+                $ref: '#/components/schemas/DidCheck'
           description: the result of the check
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2762,7 +2762,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SystemDidCheck'
+                $ref: '#/components/schemas/DidCheck'
           description: the result of the check
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -4740,52 +4740,14 @@ components:
           type: string
       type: object
     MemberDidEdit:
-      description: new DID of a member on a security server
+      description: proposed DID of a member on a security server, checked or saved as the new one
       properties:
         member_did:
-          description: new member DID, replaces the stored one
+          description: the proposed member DID, replaces the stored one when saved
           type: string
       required:
         - member_did
       type: object
-    MemberDidCheckRequest:
-      description: proposed DID of a member on a security server
-      properties:
-        member_did:
-          description: the proposed member DID
-          type: string
-      required:
-        - member_did
-      type: object
-    MemberDidCheck:
-      description: >
-        result of checking a proposed member DID. refusal_reason is set only with REFUSED and
-        resolution_reason only with NOT_RESOLVED.
-      properties:
-        status:
-          $ref: '#/components/schemas/DidCheckStatus'
-        refusal_reason:
-          $ref: '#/components/schemas/MemberDidRefusalReason'
-        resolution_reason:
-          $ref: '#/components/schemas/DidResolutionReason'
-      required:
-        - status
-      type: object
-    MemberDidRefusalReason:
-      description: why a proposed member DID is refused
-      enum:
-        - NO_STORED_VALUE
-        - WRONG_SCHEME
-        - DID_TOO_LONG
-        - NON_ASCII_HOST
-        - UNDECODABLE_DID
-        - NOT_CANONICAL
-        - HOST_DIFFERS
-        - DID_OF_OTHER_MEMBER
-        - MEMBER_NOT_SERVED
-        - UNPARSEABLE_REGISTERED_ADDRESS
-        - DID_HELD_BY_ANOTHER_SERVER
-      type: string
     SubsystemName:
       description: x-road subsystem name
       properties:
@@ -5162,15 +5124,15 @@ components:
       required:
         - system_did
       type: object
-    SystemDidCheck:
+    DidCheck:
       description: >
-        result of checking a proposed SYSTEM DID. refusal_reason is set only with REFUSED and
+        result of checking a proposed SYSTEM DID or member DID. refusal_reason is set only with REFUSED and
         resolution_reason only with NOT_RESOLVED.
       properties:
         status:
           $ref: '#/components/schemas/DidCheckStatus'
         refusal_reason:
-          $ref: '#/components/schemas/SystemDidRefusalReason'
+          $ref: '#/components/schemas/DidRefusalReason'
         resolution_reason:
           $ref: '#/components/schemas/DidResolutionReason'
       required:
@@ -5187,9 +5149,12 @@ components:
         - NOT_RESOLVED
         - RESOLVER_UNAVAILABLE
       type: string
-    SystemDidRefusalReason:
-      description: why a proposed SYSTEM DID is refused
+    DidRefusalReason:
+      description: >
+        why a proposed DID is refused. FOREIGN_SYSTEM_DID is given only for a SYSTEM DID. UNDECODABLE_DID,
+        DID_OF_OTHER_MEMBER and MEMBER_NOT_SERVED are given only for a member DID.
       enum:
+        - NO_STORED_VALUE
         - WRONG_SCHEME
         - DID_TOO_LONG
         - NOT_CANONICAL
@@ -5197,8 +5162,10 @@ components:
         - UNPARSEABLE_REGISTERED_ADDRESS
         - NON_ASCII_HOST
         - FOREIGN_SYSTEM_DID
+        - UNDECODABLE_DID
+        - DID_OF_OTHER_MEMBER
+        - MEMBER_NOT_SERVED
         - DID_HELD_BY_ANOTHER_SERVER
-        - NO_STORED_VALUE
       type: string
     DidResolutionReason:
       description: why an acceptable DID did not resolve

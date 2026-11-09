@@ -25,14 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import {
-  PagedSecurityServers,
-  PagingMetadata,
-  SecurityServer,
-  SecurityServerEdit,
-  SystemDidCheck,
-  SystemDidCheckRequest,
-} from '@/openapi-types';
+import { DidCheck, PagedSecurityServers, PagingMetadata, SecurityServer, SecurityServerEdit, SystemDidCheckRequest } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataQuery } from '@/ui-types';
 import { WithCurrentItem } from '@niis/shared-ui';
@@ -105,7 +98,7 @@ export const useSecurityServer = defineStore('securityServer', {
         server_address: address,
         system_did: systemDid,
       };
-      return axios.post<SystemDidCheck>(`/security-servers/${securityServerId}/system-did-check`, request).then((resp) => resp.data);
+      return axios.post<DidCheck>(`/security-servers/${securityServerId}/system-did-check`, request).then((resp) => resp.data);
     },
     async delete(securityServerId: string) {
       return axios.delete(`/security-servers/${securityServerId}`).then(() => {
