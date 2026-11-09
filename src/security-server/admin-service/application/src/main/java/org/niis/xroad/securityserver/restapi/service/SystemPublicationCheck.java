@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.serverconf.model.PublicationState;
 
@@ -39,10 +40,8 @@ import java.util.function.Supplier;
  * <p>Values that globalconf carries but that differ from the stored ones change nothing: only an absence counts as
  * missing.
  */
-public final class SystemPublicationCheck {
-
-    private SystemPublicationCheck() {
-    }
+@UtilityClass
+public class SystemPublicationCheck {
 
     /**
      * @param storedState        the stored publication state of the SYSTEM row; {@code null} counts as not sent

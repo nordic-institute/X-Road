@@ -28,8 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-
 import java.util.List;
 
 /**
@@ -40,11 +38,9 @@ import java.util.List;
  * @param requestId request id in the Central Server database, set only when answered
  * @param entries   one record per request entry in request order, empty unless answered
  * @param cause     send failure cause, set only when sending failed
- * @param causeCode code of the failure's cause when it is an XrdRuntimeException, whether a fault the Central Server
- *                  answered with or a local failure before any request was sent; null for other causes
  */
-public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries, Throwable cause,
-                                               String causeCode) {
+public record MemberDidRegistrationSendOutcome(Status status, Integer requestId, List<Entry> entries,
+                                               Throwable cause) {
 
     public MemberDidRegistrationSendOutcome {
         entries = List.copyOf(entries);
@@ -67,15 +63,14 @@ public record MemberDidRegistrationSendOutcome(Status status, Integer requestId,
     }
 
     public static MemberDidRegistrationSendOutcome answered(int requestId, List<Entry> entries) {
-        return new MemberDidRegistrationSendOutcome(Status.ANSWERED, requestId, entries, null, null);
+        return new MemberDidRegistrationSendOutcome(Status.ANSWERED, requestId, entries, null);
     }
 
     public static MemberDidRegistrationSendOutcome requestTooLarge() {
-        return new MemberDidRegistrationSendOutcome(Status.REQUEST_TOO_LARGE, null, List.of(), null, null);
+        return new MemberDidRegistrationSendOutcome(Status.REQUEST_TOO_LARGE, null, List.of(), null);
     }
 
     public static MemberDidRegistrationSendOutcome sendFailure(Throwable cause) {
-        var causeCode = cause instanceof XrdRuntimeException fault ? fault.getCode() : null;
-        return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause, causeCode);
+        return new MemberDidRegistrationSendOutcome(Status.SEND_FAILURE, null, List.of(), cause);
     }
 }

@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.google.common.base.Suppliers;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -140,7 +141,7 @@ public class DataspacePublicationStage {
             log.debug("Dataspace publication: SYSTEM context not provisioned, nothing to send");
             return;
         }
-        var row = pass.systemRow().filter(
+        var row = pass.systemRow.get().filter(
                 system -> system.getPublicationState() == null || system.getPublicationState() == PublicationState.NOT_SENT);
         if (row.isEmpty()) {
             return;
@@ -151,11 +152,11 @@ public class DataspacePublicationStage {
             log.debug("Dataspace publication: SYSTEM values are in a backoff pause, not sending");
             return;
         }
-        if (!pass.dataspaceReady()) {
+        if (!pass.dataspaceReady.get()) {
             log.debug("Dataspace publication: dataspace not ready, not sending the SYSTEM values");
             return;
         }
-        var authCert = pass.authCert();
+        var authCert = pass.authCert.get();
         if (authCert.isEmpty()) {
             if (readinessPredicates.hasRegisteredAuthCert()) {
                 log.warn("Dataspace publication: the registered auth cert is not usable (key unavailable, not valid yet"
@@ -165,7 +166,7 @@ public class DataspacePublicationStage {
             }
             return;
         }
-        var dspBaseUrl = pass.dspBaseUrl();
+        var dspBaseUrl = pass.dspBaseUrl.get();
         if (dspBaseUrl.isEmpty()) {
             log.debug("Dataspace publication: registered address unknown or invalid, not sending the SYSTEM values");
             return;
@@ -282,7 +283,7 @@ public class DataspacePublicationStage {
             log.debug("Dataspace publication: member DIDs are in a backoff pause, not sending");
             return;
         }
-        if (!pass.dataspaceReady() || pass.authCert().isEmpty() || pass.dspBaseUrl().isEmpty()) {
+        if (!pass.dataspaceReady.get() || pass.authCert.get().isEmpty() || pass.dspBaseUrl.get().isEmpty()) {
             log.debug("Dataspace publication: server not ready to send, not sending member DIDs");
             return;
         }
@@ -409,28 +410,12 @@ public class DataspacePublicationStage {
      * SYSTEM and member steps, and the SYSTEM state follows the SYSTEM step's own transition.
      */
     private final class Pass {
-        private final Once<Optional<DsParticipantEntity>> systemRow =
-                new Once<>(dsParticipantRepository::findActiveSystemParticipant);
-        private final Once<Boolean> dataspaceReady = new Once<>(readinessPredicates::isDataspaceReady);
-        private final Once<Optional<byte[]>> authCert = new Once<>(readinessPredicates::registeredAuthCertBytes);
-        private final Once<Optional<String>> dspBaseUrl = new Once<>(didAuthority::dspBaseUrlIfValid);
+        private final Supplier<Optional<DsParticipantEntity>> systemRow =
+                Suppliers.memoize(dsParticipantRepository::findActiveSystemParticipant);
+        private final Supplier<Boolean> dataspaceReady = Suppliers.memoize(readinessPredicates::isDataspaceReady);
+        private final Supplier<Optional<byte[]>> authCert = Suppliers.memoize(readinessPredicates::registeredAuthCertBytes);
+        private final Supplier<Optional<String>> dspBaseUrl = Suppliers.memoize(didAuthority::dspBaseUrlIfValid);
         private PublicationState systemStateAfterSend;
-
-        Optional<DsParticipantEntity> systemRow() {
-            return systemRow.get();
-        }
-
-        boolean dataspaceReady() {
-            return dataspaceReady.get();
-        }
-
-        Optional<byte[]> authCert() {
-            return authCert.get();
-        }
-
-        Optional<String> dspBaseUrl() {
-            return dspBaseUrl.get();
-        }
 
         void systemStateAfterSend(PublicationState state) {
             systemStateAfterSend = state;
@@ -438,26 +423,8 @@ public class DataspacePublicationStage {
 
         boolean systemValuesSent() {
             var state = systemStateAfterSend != null ? systemStateAfterSend
-                    : systemRow().map(DsParticipantEntity::getPublicationState).orElse(null);
+                    : systemRow.get().map(DsParticipantEntity::getPublicationState).orElse(null);
             return state == PublicationState.SUBMITTED || state == PublicationState.PUBLISHED;
-        }
-    }
-
-    private static final class Once<T> {
-        private final Supplier<T> source;
-        private T value;
-        private boolean read;
-
-        Once(Supplier<T> source) {
-            this.source = source;
-        }
-
-        T get() {
-            if (!read) {
-                value = source.get();
-                read = true;
-            }
-            return value;
         }
     }
 }

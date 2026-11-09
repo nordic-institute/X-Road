@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.model.Client;
 
@@ -38,10 +39,8 @@ import java.util.Set;
 /**
  * The members hosted on this Security Server: the members of its registered local clients.
  */
-public final class HostedMembers {
-
-    private HostedMembers() {
-    }
+@UtilityClass
+public class HostedMembers {
 
     /**
      * @param localClients the local clients of this Security Server

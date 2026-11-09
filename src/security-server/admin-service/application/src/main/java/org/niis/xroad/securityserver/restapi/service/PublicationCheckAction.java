@@ -27,30 +27,25 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 /**
  * The transition a globalconf check applies to the publication state of a binding row; {@link #NONE} has no states.
  */
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public enum PublicationCheckAction {
     NONE(null, null),
     PUBLISH(PublicationState.SUBMITTED, PublicationState.PUBLISHED),
     /** Moves the row back to not sent, so that the next reconciler pass sends again. */
     RESEND(PublicationState.PUBLISHED, PublicationState.NOT_SENT);
 
+    @Nullable
     private final PublicationState expected;
+    @Nullable
     private final PublicationState next;
-
-    PublicationCheckAction(@Nullable PublicationState expected, @Nullable PublicationState next) {
-        this.expected = expected;
-        this.next = next;
-    }
-
-    public PublicationState expected() {
-        return expected;
-    }
-
-    public PublicationState next() {
-        return next;
-    }
 }

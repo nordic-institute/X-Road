@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 /**
@@ -35,10 +36,8 @@ import org.niis.xroad.serverconf.model.PublicationState;
  * <p>A DID that globalconf carries for the member but that differs from the stored one changes nothing: only an
  * absence counts as missing, and only while the member is hosted on this server.
  */
-public final class MemberPublicationCheck {
-
-    private MemberPublicationCheck() {
-    }
+@UtilityClass
+public class MemberPublicationCheck {
 
     /**
      * @param storedState the stored publication state of the member row; {@code null} counts as not sent

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.PublicationState;
@@ -38,14 +39,12 @@ import java.util.concurrent.TimeoutException;
  * Pure: no clock, no storage. A send failure carries a stable description of its cause, never the exception
  * message, so a repeated failure yields the same reason.
  */
-public final class PublicationOutcomeClassifier {
+@UtilityClass
+public class PublicationOutcomeClassifier {
 
     static final String SEND_FAILURE_REASON = "SEND_FAILURE";
     static final String REQUEST_TOO_LARGE_REASON = "REQUEST_TOO_LARGE";
     static final String MISSING_STATUS_REASON = "MISSING_STATUS";
-
-    private PublicationOutcomeClassifier() {
-    }
 
     /**
      * How soon a value that stays not sent may be tried again.

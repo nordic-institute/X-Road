@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import lombok.RequiredArgsConstructor;
+
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,6 +47,7 @@ import java.util.function.DoubleSupplier;
  * refusing a larger one. Nothing is persisted: a restart forgets every pause, probe, probed member and size, so
  * the next pass may retry early and halve an oversized request again.
  */
+@RequiredArgsConstructor
 public final class PublicationBackoff {
 
     static final Duration INITIAL_DELAY = Duration.ofSeconds(30);
@@ -81,21 +84,15 @@ public final class PublicationBackoff {
     }
 
     private final Clock clock;
+    /**
+     * Supplies a number in {@code [0, 1)}; the pause is its base length times
+     * {@code MIN_JITTER_FACTOR + (1 - MIN_JITTER_FACTOR) * jitter}.
+     */
     private final DoubleSupplier jitter;
     private final Map<Key, Entry> entries = new HashMap<>();
     private final Set<RequestKind> probing = EnumSet.noneOf(RequestKind.class);
     private final Map<RequestKind, Integer> acceptedSizes = new EnumMap<>(RequestKind.class);
     private final Map<RequestKind, String> lastProbedMembers = new EnumMap<>(RequestKind.class);
-
-    /**
-     * @param clock  the time source
-     * @param jitter supplies a number in {@code [0, 1)}; the pause is its base length times
-     *               {@code MIN_JITTER_FACTOR + (1 - MIN_JITTER_FACTOR) * jitter}
-     */
-    public PublicationBackoff(Clock clock, DoubleSupplier jitter) {
-        this.clock = clock;
-        this.jitter = jitter;
-    }
 
     /**
      * @return whether the key has no pause or its pause is over

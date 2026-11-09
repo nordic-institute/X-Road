@@ -285,7 +285,6 @@ class DidRegistrationSenderTest {
         assertThat(outcome.requestId()).isNull();
         assertThat(outcome.entries()).isEmpty();
         assertThat(outcome.cause()).isSameAs(failure);
-        assertThat(outcome.causeCode()).isNull();
     }
 
     @Test
@@ -297,7 +296,6 @@ class DidRegistrationSenderTest {
 
         assertThat(outcome.status()).isEqualTo(MemberDidRegistrationSendOutcome.Status.SEND_FAILURE);
         assertThat(outcome.cause()).isSameAs(failure);
-        assertThat(outcome.causeCode()).isEqualTo(ErrorCode.INTERNAL_ERROR.code());
     }
 
     @Test
@@ -311,7 +309,6 @@ class DidRegistrationSenderTest {
         assertThat(outcome.requestId()).isNull();
         assertThat(outcome.entries()).isEmpty();
         assertThat(outcome.cause()).isNull();
-        assertThat(outcome.causeCode()).isNull();
     }
 
     @Test
