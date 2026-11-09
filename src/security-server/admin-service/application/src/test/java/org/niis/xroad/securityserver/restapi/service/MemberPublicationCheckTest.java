@@ -32,57 +32,60 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.ABSENT;
+import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.DIFFERENT;
+import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.EQUAL;
+import static org.niis.xroad.securityserver.restapi.service.GlobalConfComparison.STALE;
 import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.NONE;
 import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.PUBLISH;
 import static org.niis.xroad.securityserver.restapi.service.PublicationCheckAction.RESEND;
 
 class MemberPublicationCheckTest {
 
-    private static final String DID = "did:web:ss.example.test%3A7183:xrd-ss0-m01";
-    private static final String OTHER_DID = "did:web:other.example.test%3A7183:xrd-ss0-m01";
-
     @Test
     void aSubmittedDidThatGlobalconfCarriesUnchangedIsPublished() {
-        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, DID, DID, true)).isEqualTo(PUBLISH);
+        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, EQUAL, true)).isEqualTo(PUBLISH);
     }
 
     @Test
     void aPublishedDidMissingFromGlobalconfWhileHostedIsSentAgain() {
-        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, DID, null, true)).isEqualTo(RESEND);
+        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, ABSENT, true)).isEqualTo(RESEND);
     }
 
     @Test
     void aPublishedDidIsNeverResetWhenTheMemberIsNoLongerHostedHere() {
-        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, DID, null, false)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, ABSENT, false)).isEqualTo(NONE);
     }
 
     @Test
     void aDifferentDidIsNeverTreatedAsMissingNorPublishesASubmittedDid() {
-        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, DID, OTHER_DID, true)).isEqualTo(NONE);
-        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, DID, OTHER_DID, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, DIFFERENT, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, DIFFERENT, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, STALE, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, STALE, true)).isEqualTo(NONE);
     }
 
     @Test
     void aPublishedDidThatGlobalconfCarriesUnchangedIsLeftAlone() {
-        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, DID, DID, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.PUBLISHED, EQUAL, true)).isEqualTo(NONE);
     }
 
     @Test
     void aSubmittedDidThatGlobalconfDoesNotCarryIsLeftAlone() {
-        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, DID, null, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(PublicationState.SUBMITTED, ABSENT, true)).isEqualTo(NONE);
     }
 
     @ParameterizedTest
     @EnumSource(value = PublicationState.class, names = {"NOT_SENT", "REJECTED"})
     void aNotSentOrRejectedDidIsNeverTouched(PublicationState state) {
-        assertThat(MemberPublicationCheck.decide(state, DID, DID, true)).isEqualTo(NONE);
-        assertThat(MemberPublicationCheck.decide(state, DID, OTHER_DID, true)).isEqualTo(NONE);
-        assertThat(MemberPublicationCheck.decide(state, DID, null, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(state, EQUAL, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(state, DIFFERENT, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(state, ABSENT, true)).isEqualTo(NONE);
     }
 
     @Test
     void aDidWithNoStoredStateIsNotSentAndNeverTouched() {
-        assertThat(MemberPublicationCheck.decide(null, DID, DID, true)).isEqualTo(NONE);
-        assertThat(MemberPublicationCheck.decide(null, DID, null, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(null, EQUAL, true)).isEqualTo(NONE);
+        assertThat(MemberPublicationCheck.decide(null, ABSENT, true)).isEqualTo(NONE);
     }
 }

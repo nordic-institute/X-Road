@@ -129,6 +129,7 @@ public class DataspaceApiController implements DataspaceApi {
         if (publication != null) {
             dto.setPublicationState(DataspacePublicationStateDto.valueOf(publication.publicationState().name()));
             dto.setPublicationReason(publication.publicationReason());
+            dto.setGlobalconfMismatch(publication.globalconfMismatch());
         }
         return dto;
     }

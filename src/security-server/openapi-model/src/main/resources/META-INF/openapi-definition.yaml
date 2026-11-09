@@ -8865,6 +8865,12 @@ components:
           type: string
           readOnly: true
           description: reason for the publication state of a MEMBER context; absent for SYSTEM contexts
+        globalconf_mismatch:
+          type: boolean
+          readOnly: true
+          description: >-
+            true when globalconf announces a DID for the member that differs from the bound one while the DID is
+            submitted or published; absent for SYSTEM contexts
     AgreementTokenKeyStatus:
       type: object
       description: status of the agreement token signing key of the connected proxy

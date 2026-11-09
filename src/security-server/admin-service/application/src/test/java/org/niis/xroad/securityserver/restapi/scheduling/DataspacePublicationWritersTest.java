@@ -49,6 +49,8 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicate
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -130,7 +132,9 @@ class DataspacePublicationWritersTest {
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
                 didRegistrationSender, mock(AdminServiceProperties.class));
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
-                globalConfProvider, readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
+                globalConfProvider, readinessPredicates, didAuthority,
+                new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
+                mock(PlatformTransactionManager.class));
     }
 
     private DsParticipantEntity snapshot() {

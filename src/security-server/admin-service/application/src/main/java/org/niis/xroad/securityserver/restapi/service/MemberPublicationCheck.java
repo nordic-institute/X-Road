@@ -41,19 +41,20 @@ public class MemberPublicationCheck {
 
     /**
      * @param storedState the stored publication state of the member row; {@code null} counts as not sent
-     * @param ownDid      the DID of the member row
-     * @param carriedDid  the DID globalconf carries for the member on this server, {@code null} when it carries none
+     * @param comparison  how the DID globalconf carries for the member on this server compares with the DID of the
+     *                    member row
      * @param hostedHere  whether the member is still hosted on this server
      * @return the transition to apply to the row
      */
-    public static PublicationCheckAction decide(@Nullable PublicationState storedState, String ownDid,
-            @Nullable String carriedDid, boolean hostedHere) {
+    public static PublicationCheckAction decide(@Nullable PublicationState storedState,
+            GlobalConfComparison comparison, boolean hostedHere) {
         var state = storedState == null ? PublicationState.NOT_SENT : storedState;
-        if (carriedDid != null) {
-            return state == PublicationState.SUBMITTED && ownDid.equals(carriedDid)
-                    ? PublicationCheckAction.PUBLISH : PublicationCheckAction.NONE;
-        }
-        return state == PublicationState.PUBLISHED && hostedHere
-                ? PublicationCheckAction.RESEND : PublicationCheckAction.NONE;
+        return switch (comparison) {
+            case EQUAL -> state == PublicationState.SUBMITTED ? PublicationCheckAction.PUBLISH
+                    : PublicationCheckAction.NONE;
+            case ABSENT -> state == PublicationState.PUBLISHED && hostedHere ? PublicationCheckAction.RESEND
+                    : PublicationCheckAction.NONE;
+            case DIFFERENT, STALE -> PublicationCheckAction.NONE;
+        };
     }
 }

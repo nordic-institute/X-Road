@@ -132,7 +132,8 @@ class DataspaceProvisioningStatusServiceTest {
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
 
         statusService = new DataspaceProvisioningStatusService(provisioningService, readinessPredicates,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties), dsParticipantRepository);
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties), dsParticipantRepository,
+                ownSecurityServerResolver, globalConfProvider);
     }
 
     @Test

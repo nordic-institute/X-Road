@@ -28,10 +28,15 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Service;
@@ -53,6 +58,8 @@ public class DataspaceProvisioningStatusService {
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
     private final DsParticipantRepository dsParticipantRepository;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Returns a snapshot of the current provisioning status. Deliberately not transactional: the context
@@ -66,19 +73,38 @@ public class DataspaceProvisioningStatusService {
         List<ParticipantContextStatus> contextStatuses = contexts.stream()
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
-        Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
-        contexts.stream()
-                .filter(context -> context.kind() == DataspaceProvisioningService.ParticipantKind.MEMBER)
-                .forEach(context -> memberPublications.put(context.participantId(), readMemberPublication(context)));
-
-        return new DataspaceStatus(true, authCertRegistered, readServerStatus(), contextStatuses, memberPublications);
+        return new DataspaceStatus(true, authCertRegistered, readServerStatus(), contextStatuses,
+                readMemberPublications(contexts));
     }
 
-    private MemberPublication readMemberPublication(DataspaceProvisioningService.ParticipantContext context) {
+    private Map<String, MemberPublication> readMemberPublications(List<ParticipantContext> contexts) {
+        var memberContexts = contexts.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .toList();
+        Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
+        if (memberContexts.isEmpty()) {
+            return memberPublications;
+        }
+        var signals = readDifferenceSignals();
+        memberContexts.forEach(context ->
+                memberPublications.put(context.participantId(), readMemberPublication(context, signals)));
+        return memberPublications;
+    }
+
+    @Nullable
+    private DifferenceSignals readDifferenceSignals() {
+        return ownSecurityServerResolver.address() instanceof OwnAddress.Registered(var serverId, var address)
+                ? DifferenceSignals.of(serverId, globalConfProvider, address)
+                : null;
+    }
+
+    private MemberPublication readMemberPublication(ParticipantContext context, @Nullable DifferenceSignals signals) {
         var row = dsParticipantRepository.findByMemberIdentifier(context.memberId())
                 .filter(participant -> participant.getState() == ParticipantState.ACTIVE);
         var state = row.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
-        return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null));
+        var mismatch = signals != null && row.filter(signals::memberMismatch).isPresent();
+        return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null),
+                mismatch);
     }
 
     private ServerStatus readServerStatus() {
@@ -112,8 +138,11 @@ public class DataspaceProvisioningStatusService {
      *
      * @param publicationState  publication state, NOT_SENT while the member has no state yet
      * @param publicationReason reason for the publication state, {@code null} when there is none
+     * @param globalconfMismatch whether globalconf announces another, not stale, DID than the bound one while the DID
+     *                          is submitted or published
      */
-    public record MemberPublication(PublicationState publicationState, @Nullable String publicationReason) {
+    public record MemberPublication(PublicationState publicationState, @Nullable String publicationReason,
+                                    boolean globalconfMismatch) {
     }
 
     /**

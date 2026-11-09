@@ -55,6 +55,8 @@ import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOu
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
+import org.niis.xroad.serverconf.impl.ownserver.OwnServerIdentitySource;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
@@ -178,7 +180,9 @@ class DataspaceMemberPublicationTest {
         backoff = new PublicationBackoff(clock, () -> 1.0);
         stage.setBackoff(backoff);
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository, globalConfProvider,
-                readinessPredicates, didAuthority, mock(PlatformTransactionManager.class));
+                readinessPredicates, didAuthority,
+                new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
+                mock(PlatformTransactionManager.class));
         provisioned.add(SYSTEM_CONTEXT);
         issued.add(SYSTEM_CONTEXT);
         host(OWNER.getMemberCode());

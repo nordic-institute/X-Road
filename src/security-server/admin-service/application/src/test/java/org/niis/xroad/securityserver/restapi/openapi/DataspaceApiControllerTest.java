@@ -143,7 +143,7 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
                 CredentialStatus.ISSUED, IdentityStatus.OK);
         when(dataspaceProvisioningStatusService.readStatus()).thenReturn(new DataspaceStatus(true, true,
                 new ServerStatus(true, null, PublicationState.SUBMITTED, null), List.of(system, member),
-                Map.of("DEV-COM-222", new MemberPublication(PublicationState.REJECTED, "DID_TAKEN"))));
+                Map.of("DEV-COM-222", new MemberPublication(PublicationState.REJECTED, "DID_TAKEN", false))));
 
         var contexts = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts();
 
@@ -151,6 +151,27 @@ class DataspaceApiControllerTest extends AbstractApiControllerTestContext {
         assertThat(contexts.getFirst().getPublicationReason()).isNull();
         assertThat(contexts.getLast().getPublicationState()).isEqualTo(DataspacePublicationStateDto.REJECTED);
         assertThat(contexts.getLast().getPublicationReason()).isEqualTo("DID_TAKEN");
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
+    void provisioningStatusShowsTheGlobalconfMismatchOfMemberContextsAndNoneForTheSystemContext() {
+        var system = new ParticipantContextStatus("xrd-ss0", ParticipantKind.SYSTEM, SYSTEM_DID, false, SYSTEM_DID,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        var mismatching = new ParticipantContextStatus("DEV-COM-222", ParticipantKind.MEMBER, null, false, null,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        var equal = new ParticipantContextStatus("DEV-COM-333", ParticipantKind.MEMBER, null, false, null,
+                CredentialStatus.ISSUED, IdentityStatus.OK);
+        when(dataspaceProvisioningStatusService.readStatus()).thenReturn(new DataspaceStatus(true, true,
+                new ServerStatus(true, null, PublicationState.PUBLISHED, null), List.of(system, mismatching, equal),
+                Map.of("DEV-COM-222", new MemberPublication(PublicationState.PUBLISHED, null, true),
+                        "DEV-COM-333", new MemberPublication(PublicationState.PUBLISHED, null, false))));
+
+        var contexts = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts();
+
+        assertThat(contexts.getFirst().getGlobalconfMismatch()).isNull();
+        assertThat(contexts.get(1).getGlobalconfMismatch()).isTrue();
+        assertThat(contexts.get(2).getGlobalconfMismatch()).isFalse();
     }
 
     private static DataspaceStatus statusWith(ServerStatus server) {

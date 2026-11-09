@@ -34,18 +34,19 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.niis.xroad.securityserver.restapi.service.DifferenceSignals;
 import org.niis.xroad.securityserver.restapi.service.HostedMembers;
 import org.niis.xroad.securityserver.restapi.service.MemberPublicationCheck;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheckAction;
 import org.niis.xroad.securityserver.restapi.service.SystemPublicationCheck;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
+import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.Set;
 
 /**
  * Step of the globalconf check that compares the SYSTEM values and the member DIDs on the binding rows with what the
@@ -63,24 +64,24 @@ import java.util.Set;
 @Component
 public class DataspacePublicationGlobalConfCheck {
 
-    private static final Set<PublicationState> SENT = Set.of(PublicationState.SUBMITTED, PublicationState.PUBLISHED);
-
     private final DsParticipantRepository dsParticipantRepository;
     private final ClientRepository clientRepository;
     private final GlobalConfProvider globalConfProvider;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final TransactionTemplate transactionTemplate;
 
     public DataspacePublicationGlobalConfCheck(DsParticipantRepository dsParticipantRepository,
             ClientRepository clientRepository, GlobalConfProvider globalConfProvider,
             DataspaceReadinessPredicates readinessPredicates, DataspaceDidAuthority didAuthority,
-            PlatformTransactionManager transactionManager) {
+            OwnSecurityServerResolver ownSecurityServerResolver, PlatformTransactionManager transactionManager) {
         this.dsParticipantRepository = dsParticipantRepository;
         this.clientRepository = clientRepository;
         this.globalConfProvider = globalConfProvider;
         this.readinessPredicates = readinessPredicates;
         this.didAuthority = didAuthority;
+        this.ownSecurityServerResolver = ownSecurityServerResolver;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -116,11 +117,17 @@ public class DataspacePublicationGlobalConfCheck {
     }
 
     private void checkMemberDids(SecurityServerId securityServerId) {
+        var rows = dsParticipantRepository.findActiveMembers(DifferenceSignals.SENT);
+        if (rows.isEmpty()) {
+            return;
+        }
         var hostedMembers = HostedMembers.of(clientRepository.getAllLocalClients());
-        for (var row : dsParticipantRepository.findActiveMembers(SENT)) {
+        var registeredAddress = ownSecurityServerResolver.address(securityServerId)
+                instanceof OwnAddress.Registered(var _, var address) ? address : null;
+        var signals = DifferenceSignals.of(securityServerId, globalConfProvider, registeredAddress);
+        for (var row : rows) {
             var member = row.getMemberIdentifier();
-            var action = MemberPublicationCheck.decide(row.getPublicationState(), row.getDid(),
-                    globalConfProvider.getMemberDid(member, securityServerId).orElse(null),
+            var action = MemberPublicationCheck.decide(row.getPublicationState(), signals.compareMemberDid(row),
                     hostedMembers.contains(member));
             if (action != PublicationCheckAction.NONE) {
                 transition(row, "member DID of " + member.asEncodedId(), action.expected(), action.next());
