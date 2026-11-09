@@ -36,6 +36,7 @@ package org.niis.xroad.cs.admin.api.domain;
 public enum CanSignCause {
     NO_ACTIVE_KEY,
     DID_NOT_PUBLISHED,
+    KEY_SECRET_NOT_READABLE,
     TIMEOUT,
     ISSUER_SERVICE_UNREACHABLE,
     DID_MISMATCH

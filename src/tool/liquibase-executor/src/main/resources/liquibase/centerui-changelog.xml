@@ -48,6 +48,7 @@
     <include file="centerui/202610141200-published-dids.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202610271200-member-did-request-batch.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202611041200-issuer-set-up-lease.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202611091200-issuer-dids-identity-columns.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/002-drop-scope.xml" relativeToChangelogFile="true"/>

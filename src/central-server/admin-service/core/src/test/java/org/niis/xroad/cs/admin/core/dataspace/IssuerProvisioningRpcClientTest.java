@@ -231,6 +231,18 @@ class IssuerProvisioningRpcClientTest {
     }
 
     @Test
+    void canSignReturnsCannotSignWithKeySecretNotReadableCause() {
+        configuredCanSignResp = CanSignResp.newBuilder()
+                .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.CANNOT_SIGN)
+                .setCause(org.niis.xroad.edc.issuer.provisioning.proto.CanSignCause.KEY_SECRET_NOT_READABLE)
+                .build();
+
+        var result = client.canSign("ctx-id");
+
+        assertThat(result).isEqualTo(CanSignResult.cannotSign(CanSignCause.KEY_SECRET_NOT_READABLE));
+    }
+
+    @Test
     void canSignReturnsCannotSignWithTimeoutCauseOnDeadlineOverrun() {
         configuredCanSignResp = CanSignResp.newBuilder()
                 .setOutcome(org.niis.xroad.edc.issuer.provisioning.proto.CanSignOutcome.CAN_SIGN)

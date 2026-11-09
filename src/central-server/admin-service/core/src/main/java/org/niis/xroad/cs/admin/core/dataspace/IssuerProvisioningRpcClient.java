@@ -202,6 +202,7 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
         return switch (cause) {
             case NO_ACTIVE_KEY -> CanSignCause.NO_ACTIVE_KEY;
             case DID_NOT_PUBLISHED -> CanSignCause.DID_NOT_PUBLISHED;
+            case KEY_SECRET_NOT_READABLE -> CanSignCause.KEY_SECRET_NOT_READABLE;
             default -> throw XrdRuntimeException.systemException(INTERNAL_ERROR)
                     .origin(ErrorOrigin.DS_ISSUER_SERVICE)
                     .details("Can-sign check returned an unknown cause: " + cause)

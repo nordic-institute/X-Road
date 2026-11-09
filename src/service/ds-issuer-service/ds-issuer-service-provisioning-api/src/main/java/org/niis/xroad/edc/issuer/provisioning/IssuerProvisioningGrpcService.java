@@ -43,6 +43,7 @@ import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.Credentia
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -102,6 +103,7 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private final CredentialStatusService credentialStatusService;
     private final KeyPairService keyPairService;
     private final DidDocumentService didDocumentService;
+    private final PrivateKeyResolver privateKeyResolver;
     private final RpcResponseHandler responseHandler;
     private final Monitor monitor;
 
@@ -237,6 +239,11 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         var keyResult = keyPairService.getActiveKeyPairForUsage(participantContextId, KeyPairUsage.CREDENTIAL_SIGNING);
         if (keyResult.failed()) {
             return cannotSign(CanSignCause.NO_ACTIVE_KEY);
+        }
+
+        var privateKeyResult = privateKeyResolver.resolvePrivateKey(participantContextId, keyResult.getContent().getPrivateKeyAlias());
+        if (privateKeyResult.failed()) {
+            return cannotSign(CanSignCause.KEY_SECRET_NOT_READABLE);
         }
 
         var did = contextResult.getContent().getDid();

@@ -181,7 +181,12 @@ class IssuerSetUpServiceImplTest {
 
         var ttlCaptor = ArgumentCaptor.forClass(Duration.class);
         verify(issuerSetUpLeaseService).tryAcquire(eq(NODE), ttlCaptor.capture());
-        assertThat(ttlCaptor.getValue()).isGreaterThan(Duration.ofMillis(DEADLINE_AFTER_MS).multipliedBy(3));
+        var expectedTtl = Duration.ofMillis(DEADLINE_AFTER_MS).multipliedBy(5)
+                .plus(Duration.ofSeconds(30))
+                .plus(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_RETRY_INTERVAL
+                        .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS - 1)
+                        .multipliedBy(2));
+        assertThat(ttlCaptor.getValue()).isEqualTo(expectedTtl);
     }
 
     @Test

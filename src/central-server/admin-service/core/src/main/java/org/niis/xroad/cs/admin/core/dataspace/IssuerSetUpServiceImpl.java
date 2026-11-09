@@ -97,13 +97,19 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
 
     /**
      * Longer than the provisioning run could ever take, so a node that crashes mid-run never blocks the
-     * cluster past this point: every RPC call the run makes carries the same deadline, and a margin is
-     * added on top of the worst case of all of them running back to back.
+     * cluster past this point: every RPC call the run makes carries the same deadline, a margin is added on
+     * top of the worst case of all of them running back to back, and the run's two "can sign" probes may
+     * each retry a transient failure up to {@link DataspaceIssuerProvisioningServiceImpl#CAN_SIGN_MAX_ATTEMPTS}
+     * times, waiting {@link DataspaceIssuerProvisioningServiceImpl#CAN_SIGN_RETRY_INTERVAL} between attempts.
      */
     private Duration leaseTtl() {
+        var canSignRetryBudget = DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_RETRY_INTERVAL
+                .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS - 1)
+                .multipliedBy(2);
         return Duration.ofMillis(issuerProvisioningRpcChannelProperties.deadlineAfter())
                 .multipliedBy(PROVISIONING_RPC_CALLS)
-                .plus(LEASE_TTL_MARGIN);
+                .plus(LEASE_TTL_MARGIN)
+                .plus(canSignRetryBudget);
     }
 
     private void runProvisioning(String node) {

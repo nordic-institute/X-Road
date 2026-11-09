@@ -32,6 +32,7 @@ import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipant
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -67,6 +68,9 @@ public class IssuerProvisioningExtension implements ServiceExtension {
     private DidDocumentService didDocumentService;
 
     @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
+    @Inject
     private GrpcServiceRegistry grpcServiceRegistry;
 
     @Inject
@@ -81,7 +85,8 @@ public class IssuerProvisioningExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var grpcService = new IssuerProvisioningGrpcService(
                 participantContextService, attestationDefinitionService, credentialDefinitionService,
-                credentialStatusService, keyPairService, didDocumentService, new RpcResponseHandler(), monitor);
+                credentialStatusService, keyPairService, didDocumentService, privateKeyResolver,
+                new RpcResponseHandler(), monitor);
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }

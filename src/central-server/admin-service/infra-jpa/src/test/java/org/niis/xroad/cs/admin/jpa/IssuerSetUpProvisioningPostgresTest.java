@@ -154,7 +154,8 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
     }
 
     @Test
-    void crashBetweenKeyCreationAndBindingThenASecondRunBindsWithoutCreatingAKeyAndLogsAWarning() {
+    void crashBetweenKeyCreationAndBindingThenASecondRunBindsWithoutCreatingAKeyAndLogsAWarning() throws CertificateParsingException {
+        givenEveryPrerequisiteCheckPasses();
         var rpcClient = mock(IssuerProvisioningRpcClient.class);
         when(rpcClient.canSign(any())).thenReturn(
                 CanSignResult.absent(), CanSignResult.canSign(EXPECTED_DID),
@@ -167,7 +168,8 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
                     return null;
                 })
                 .when(didServiceDouble).register(any(), any(), anyInt(), any(), any());
-        var service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, didServiceDouble);
+        var service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, didServiceDouble,
+                new ConnectorCertificateCheck(dsTlsCertificateService));
 
         var logger = (Logger) LoggerFactory.getLogger(DataspaceIssuerProvisioningServiceImpl.class);
         var originalLevel = logger.getLevel();
@@ -193,10 +195,12 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
     }
 
     @Test
-    void anUnboundLeftoverThatCannotSignOrHasAnotherDidLeavesIssuerDidsEmpty() {
+    void anUnboundLeftoverThatCannotSignOrHasAnotherDidLeavesIssuerDidsEmpty() throws CertificateParsingException {
+        givenEveryPrerequisiteCheckPasses();
         var cannotSignClient = mock(IssuerProvisioningRpcClient.class);
         when(cannotSignClient.canSign(any())).thenReturn(CanSignResult.cannotSign(CanSignCause.NO_ACTIVE_KEY));
-        var cannotSignService = new DataspaceIssuerProvisioningServiceImpl(cannotSignClient, properties, dataspaceIssuerDidService);
+        var cannotSignService = new DataspaceIssuerProvisioningServiceImpl(cannotSignClient, properties, dataspaceIssuerDidService,
+                new ConnectorCertificateCheck(dsTlsCertificateService));
 
         assertThatThrownBy(cannotSignService::provisionIssuer).isInstanceOf(RuntimeException.class);
 
@@ -205,7 +209,8 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
 
         var otherDidClient = mock(IssuerProvisioningRpcClient.class);
         when(otherDidClient.canSign(any())).thenReturn(CanSignResult.canSign("did:web:other.example.test%3A7183:issuer"));
-        var otherDidService = new DataspaceIssuerProvisioningServiceImpl(otherDidClient, properties, dataspaceIssuerDidService);
+        var otherDidService = new DataspaceIssuerProvisioningServiceImpl(otherDidClient, properties, dataspaceIssuerDidService,
+                new ConnectorCertificateCheck(dsTlsCertificateService));
 
         assertThatThrownBy(otherDidService::provisionIssuer).isInstanceOf(RuntimeException.class);
 
@@ -218,7 +223,8 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
         givenEveryPrerequisiteCheckPasses();
         dataspaceIssuerDidService.register(EXPECTED_DID, HOST, DID_PORT, ISSUANCE_URL, STATUSLIST_BASE_URL);
         var rpcClient = mock(IssuerProvisioningRpcClient.class);
-        var provisioningService = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService);
+        var provisioningService = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService,
+                new ConnectorCertificateCheck(dsTlsCertificateService));
         var setUpService = buildSetUpService(provisioningService, "node-a");
 
         try {
@@ -248,7 +254,8 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
                     return null;
                 })
                 .when(didServiceDouble).register(any(), any(), anyInt(), any(), any());
-        var provisioningService = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, didServiceDouble);
+        var provisioningService = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, didServiceDouble,
+                new ConnectorCertificateCheck(dsTlsCertificateService));
         var setUpService = buildSetUpService(provisioningService, "node-a");
 
         try {
@@ -278,7 +285,8 @@ class IssuerSetUpProvisioningPostgresTest extends AbstractCentralServerPostgresT
         when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
         var rpcClient = mock(IssuerProvisioningRpcClient.class);
         when(rpcClient.canSign(any())).thenReturn(CanSignResult.absent(), CanSignResult.canSign(EXPECTED_DID));
-        var provisioningService = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService);
+        var provisioningService = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService,
+                new ConnectorCertificateCheck(dsTlsCertificateService));
 
         var barrier = new CyclicBarrier(2);
         var executor = Executors.newFixedThreadPool(2);

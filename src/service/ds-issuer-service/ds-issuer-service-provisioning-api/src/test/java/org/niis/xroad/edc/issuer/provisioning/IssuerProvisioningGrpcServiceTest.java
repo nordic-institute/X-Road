@@ -50,9 +50,11 @@ import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCre
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
+import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,6 +79,7 @@ import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 import org.niis.xroad.rpc.error.XrdRuntimeExceptionProto;
 
+import java.security.PrivateKey;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -86,6 +89,8 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -108,6 +113,8 @@ class IssuerProvisioningGrpcServiceTest {
     @Mock
     private DidDocumentService didDocumentService;
     @Mock
+    private PrivateKeyResolver privateKeyResolver;
+    @Mock
     private Monitor monitor;
     @Mock
     private StreamObserver<CreateParticipantContextResp> participantContextResponseObserver;
@@ -128,7 +135,8 @@ class IssuerProvisioningGrpcServiceTest {
     void setUp() {
         service = new IssuerProvisioningGrpcService(participantContextService, attestationDefinitionService,
                 credentialDefinitionService, credentialStatusService, keyPairService, didDocumentService,
-                new RpcResponseHandler(), monitor);
+                privateKeyResolver, new RpcResponseHandler(), monitor);
+        lenient().when(privateKeyResolver.resolvePrivateKey(any(), any())).thenReturn(Result.success(mock(PrivateKey.class)));
     }
 
     @ParameterizedTest
@@ -420,6 +428,23 @@ class IssuerProvisioningGrpcServiceTest {
     }
 
     @Test
+    void canSignReturnsCannotSignWithKeySecretNotReadableCauseWhenPrivateKeyCannotBeResolved() {
+        stubParticipantContext("issuer", "did:web:issuer.example.com");
+        when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
+                .thenReturn(ServiceResult.success(activeSigningKey("did:web:issuer.example.com#key-1")));
+        when(privateKeyResolver.resolvePrivateKey("issuer", "did:web:issuer.example.com#key-1-alias"))
+                .thenReturn(Result.failure("vault read failed"));
+
+        service.canSign(canSignReq("issuer"), canSignResponseObserver);
+
+        verify(canSignResponseObserver).onNext(CanSignResp.newBuilder()
+                .setOutcome(CanSignOutcome.CANNOT_SIGN)
+                .setCause(CanSignCause.KEY_SECRET_NOT_READABLE)
+                .build());
+        verify(didDocumentService, never()).findById(any());
+    }
+
+    @Test
     void canSignReturnsCannotSignWithDidNotPublishedCauseWhenDidResourceNotPublished() {
         stubParticipantContext("issuer", "did:web:issuer.example.com");
         when(keyPairService.getActiveKeyPairForUsage("issuer", KeyPairUsage.CREDENTIAL_SIGNING))
@@ -471,6 +496,7 @@ class IssuerProvisioningGrpcServiceTest {
         return KeyPairResource.Builder.newInstance()
                 .id(keyId)
                 .keyId(keyId)
+                .privateKeyAlias(keyId + "-alias")
                 .usage(KeyPairUsage.CREDENTIAL_SIGNING)
                 .state(KeyPairState.ACTIVATED)
                 .build();
