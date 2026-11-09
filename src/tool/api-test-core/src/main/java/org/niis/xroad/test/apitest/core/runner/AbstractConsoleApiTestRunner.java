@@ -28,6 +28,7 @@ package org.niis.xroad.test.apitest.core.runner;
 
 import org.junit.platform.console.ConsoleLauncher;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.ClasspathResourceExtractor;
 
 /**
@@ -49,6 +50,12 @@ public abstract class AbstractConsoleApiTestRunner {
     protected abstract String phasedSuiteClassName();
 
     /**
+     * Called after {@link #resourceFiles} are extracted and before the suite starts; does nothing by default.
+     */
+    protected void onResourcesExtracted(ApiTestCoreProperties props) {
+    }
+
+    /**
      * Runs the test suite. Call from the product subclass {@code main}.
      */
     protected final void run() {
@@ -59,6 +66,7 @@ public abstract class AbstractConsoleApiTestRunner {
         System.setProperty("allure.results.directory", props.allure().resultsDirectory());
 
         ClasspathResourceExtractor.extract(props.resourceDir(), resourceFiles());
+        onResourcesExtracted(props);
 
         ConsoleLauncher.main(
                 "execute",

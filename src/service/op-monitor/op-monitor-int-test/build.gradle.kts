@@ -37,6 +37,12 @@ val identityScript = rootProject.file(
   "../deployment/native-packages/src/xroad/common/op-monitor/usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh"
 )
 
+tasks.named<Copy>("processIntTestResources") {
+  from(identityScript) {
+    into("scripts")
+  }
+}
+
 tasks.register<Test>("intTest") {
   dependsOn(":service:op-monitor:op-monitor-application:quarkusBuild")
   dependsOn(provider { tasks.named("generateIntTestEnv") })
