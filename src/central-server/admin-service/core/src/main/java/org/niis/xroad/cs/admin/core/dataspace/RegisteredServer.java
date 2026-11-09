@@ -28,6 +28,8 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+
 import java.util.Set;
 
 /**
@@ -39,4 +41,21 @@ import java.util.Set;
  *                          empty when only system pairs are checked
  */
 public record RegisteredServer(String registeredAddress, ClientId owner, Set<ClientId> clientMembers) {
+
+    /**
+     * @param server        a Security Server as stored in the Central Server
+     * @param clientMembers the members that have a registered client on the server, without subsystem codes
+     * @return the server's address and owner with the given client members
+     */
+    public static RegisteredServer of(SecurityServerEntity server, Set<ClientId> clientMembers) {
+        return new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers);
+    }
+
+    /**
+     * @param server a Security Server as stored in the Central Server
+     * @return a validator for the server's address and owner, with no registered client members
+     */
+    public static ParticipantValueValidator validatorFor(SecurityServerEntity server) {
+        return new ParticipantValueValidator(of(server, Set.of()));
+    }
 }

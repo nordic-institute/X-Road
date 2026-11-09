@@ -29,6 +29,8 @@ package org.niis.xroad.cs.admin.jpa;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
@@ -193,14 +195,15 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         assertThat(storedDids(otherServer.id())).containsExactly(heldElsewhere);
     }
 
-    @Test
-    void refusesAMemberWithNoStoredDidAndStoresNothing() {
+    @ParameterizedTest(name = "DID host prefix [{0}]")
+    @ValueSource(strings = {"", "moved."})
+    void refusesAMemberWithNoStoredDidAsNotStoredWhateverTheHostAndStoresNothing(String hostPrefix) {
         var server = seed.server(seed.member());
         var client = seed.member();
         seed.addClient(server, client);
 
         assertThatThrownBy(() -> service.editMemberDid(
-                server.identifier(), client.identifier(), memberDid(server.address(), client.identifier())))
+                server.identifier(), client.identifier(), memberDid(hostPrefix + server.address(), client.identifier())))
                 .isInstanceOfSatisfying(BadRequestException.class,
                         e -> assertThat(e.getErrorDeviation().code()).isEqualTo(ErrorMessage.MEMBER_DID_NOT_STORED.code()));
 

@@ -32,6 +32,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck;
 import org.niis.xroad.cs.admin.api.domain.SystemPairCheck.Verdict;
@@ -52,6 +53,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.function.Function.identity;
@@ -125,7 +127,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                 .orElseThrow(() -> serverNotFound(securityServerId));
         var pair = new SystemPair(systemDid, dspBaseUrl);
 
-        var check = verdictOf(server, ParticipantValueValidator.forServer(server), pair);
+        var check = verdictOf(server, RegisteredServer.validatorFor(server), pair);
         boolean wouldWrite = check.verdict() == Verdict.ABSENT || check.verdict() == Verdict.STALE_REPLACEABLE;
         if (wouldWrite && isHeldByAnotherServer(server, pair)) {
             return SystemPairCheck.rejected(DID_HELD_BY_ANOTHER_SERVER);
@@ -168,7 +170,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         if (mode == Mode.ADMIN_REPLACE && server.getSystemDid() == null) {
             return ParticipantValueResult.rejected(NO_STORED_VALUE);
         }
-        var check = verdictOf(server, ParticipantValueValidator.forServer(server), pair);
+        var check = verdictOf(server, RegisteredServer.validatorFor(server), pair);
 
         var verdict = check.verdict();
         if (verdict == Verdict.REJECTED) {
@@ -215,13 +217,14 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
                                                                    Mode mode, Effect effect) {
         var servedMemberIds = servedMembers(server);
         var validator = validatorFor(server, servedMemberIds.keySet());
+        var storedByMemberId = loadStoredRows(server, servedMemberIds, memberDids.keySet());
         var plans = new HashMap<ClientId, MemberDidPlan>();
         var accepted = new LinkedHashMap<ClientId, String>();
-        memberDids.forEach((member, did) -> validator.validate(new MemberDid(member, did)).ifPresentOrElse(
-                rejection -> plans.put(member, new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection))),
-                () -> accepted.put(member, did)));
+        memberDids.forEach((member, did) -> refusalOf(validator, member, did, servedMemberIds, storedByMemberId, mode)
+                .ifPresentOrElse(
+                        rejection -> plans.put(member, new MemberDidPlan.Settled(ParticipantValueResult.rejected(rejection))),
+                        () -> accepted.put(member, did)));
 
-        var storedByMemberId = loadStoredRows(server, servedMemberIds, accepted.keySet());
         var writableDids = new HashSet<String>();
         accepted.forEach((member, did) -> {
             var memberId = servedMemberIds.get(member.getMemberId());
@@ -239,6 +242,16 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
         return results;
     }
 
+    private Optional<ParticipantValueRejection> refusalOf(ParticipantValueValidator validator, ClientId member, String did,
+                                                          Map<ClientId, Long> servedMemberIds,
+                                                          Map<Long, MemberDidEntity> storedByMemberId, Mode mode) {
+        var memberId = servedMemberIds.get(member.getMemberId());
+        if (mode == Mode.ADMIN_REPLACE && memberId != null && !storedByMemberId.containsKey(memberId)) {
+            return Optional.of(NO_STORED_VALUE);
+        }
+        return validator.validate(new MemberDid(member, did));
+    }
+
     private Map<ClientId, Long> servedMembers(SecurityServerEntity server) {
         var owner = server.getOwner();
         var memberIds = new HashMap<ClientId, Long>();
@@ -249,8 +262,8 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     }
 
     private Map<Long, MemberDidEntity> loadStoredRows(SecurityServerEntity server, Map<ClientId, Long> servedMemberIds,
-                                                      Set<ClientId> accepted) {
-        var memberIds = accepted.stream()
+                                                      Set<ClientId> members) {
+        var memberIds = members.stream()
                 .map(member -> servedMemberIds.get(member.getMemberId()))
                 .filter(Objects::nonNull)
                 .collect(toUnmodifiableSet());
@@ -304,9 +317,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     private MemberDidPlan planMemberDid(ParticipantValueValidator validator, long memberId, MemberDidEntity stored,
                                         String did, Mode mode) {
         if (stored == null) {
-            return mode == Mode.ADMIN_REPLACE
-                    ? new MemberDidPlan.Settled(ParticipantValueResult.rejected(NO_STORED_VALUE))
-                    : new MemberDidPlan.Insert(memberId);
+            return new MemberDidPlan.Insert(memberId);
         }
         var storedDid = stored.getDid();
         if (storedDid.equals(did)) {
@@ -333,8 +344,7 @@ public class ParticipantValueStoreImpl implements ParticipantValueStore {
     }
 
     private ParticipantValueValidator validatorFor(SecurityServerEntity server, Set<ClientId> clientMembers) {
-        return new ParticipantValueValidator(
-                new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers));
+        return new ParticipantValueValidator(RegisteredServer.of(server, clientMembers));
     }
 
     private ParticipantValueResult heldByAnotherServer(SecurityServerEntity server, ClientId member, Mode mode) {

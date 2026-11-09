@@ -32,7 +32,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
+import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
@@ -48,6 +48,6 @@ public interface SecurityServerMapper extends GenericUniDirectionalMapper<Securi
         if (server.getSystemDid() == null) {
             return null;
         }
-        return ParticipantValueValidator.forServer(server).isSystemPairStale(server.getSystemDid(), server.getDspBaseUrl());
+        return RegisteredServer.validatorFor(server).isSystemPairStale(server.getSystemDid(), server.getDspBaseUrl());
     }
 }
