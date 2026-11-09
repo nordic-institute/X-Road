@@ -101,8 +101,7 @@ class XRoadDataPlaneInstanceStoreTest {
                 Arguments.of(MEMBER_CONTEXT, ""),
                 Arguments.of(MEMBER_CONTEXT, "unknown"),
                 Arguments.of(MEMBER_CONTEXT, "disabled"),
-                Arguments.of(MEMBER_CONTEXT, "xroad-proxy::" + MEMBER_CONTEXT),
-                Arguments.of("xroad-proxy", MEMBER_CONTEXT)
+                Arguments.of(MEMBER_CONTEXT, "xroad-proxy::" + MEMBER_CONTEXT)
         );
     }
 

@@ -84,7 +84,7 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     @Override
     public DataPlaneInstance findById(String participantContextId, String id) {
-        if (participantContextId == null || participantContextId.isEmpty() || id == null) {
+        if (participantContextId == null || participantContextId.isEmpty()) {
             return null;
         }
         var entry = entriesById.get(id);
@@ -181,8 +181,8 @@ final class XRoadDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
     private static UnsupportedOperationException unsupported(String operation) {
         return new UnsupportedOperationException(
-                "XRoadDataPlaneInstanceStore is read-only and answers only by id or by participantContextId; '%s' is not supported"
-                        .formatted(operation));
+                ("XRoadDataPlaneInstanceStore is read-only and answers only lookups by participantContextId and id, "
+                        + "or queries filtered by participantContextId; '%s' is not supported").formatted(operation));
     }
 
     private record Entry(String id, URL url, Set<String> allowedSourceTypes, Set<String> allowedTransferTypes) {
