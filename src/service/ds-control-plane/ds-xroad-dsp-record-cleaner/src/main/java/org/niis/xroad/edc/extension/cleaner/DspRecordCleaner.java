@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
@@ -53,9 +54,14 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  *
  * <p>Step 1 terminates transfers that are still not final after {@code age}, through EDC, which releases the
  * data-address secret and signals the data plane. Step 2 deletes finished transfers, policy monitor entries,
- * data-flow state rows and negotiations without an agreement once they are older than {@code age}.
- * Negotiations are found by a SQL id query that excludes those with an agreement, and are read and deleted in
- * batches. Agreements are never deleted.
+ * data-flow state rows of finished flows and negotiations without an agreement once they are older than
+ * {@code age}. Negotiations are found by a SQL id query that excludes those with an agreement, and are read and
+ * deleted in batches. Agreements are never deleted.
+ *
+ * <p>{@code maxAge} bounds what {@code age} cannot reach. EDC cannot terminate a {@code RESUMED} transfer and
+ * nothing moves it on, so one older than {@code maxAge} has its data-address secret removed and is deleted
+ * through the store. A data-flow state row in any state older than {@code maxAge} is deleted, which also
+ * removes a row recreated by a start signal that arrived after its deletion.
  *
  * <p>{@code age} must exceed {@link #MINIMUM_AGE}: the policy monitor re-evaluates entries once per
  * {@link #POLICY_MONITOR_PERIOD}, and a data-plane signal may still be retried for {@link #SIGNAL_RETRY_WINDOW}
@@ -74,6 +80,7 @@ public class DspRecordCleaner {
 
     private final TransferProcessStore transferProcessStore;
     private final TransferProcessService transferProcessService;
+    private final DataAddressStore dataAddressStore;
     private final ContractNegotiationStore contractNegotiationStore;
     private final NegotiationsWithoutAgreementReader negotiationsWithoutAgreementReader;
     private final PolicyMonitorEntryPurger policyMonitorEntryPurger;
@@ -81,6 +88,7 @@ public class DspRecordCleaner {
     private final Clock clock;
     private final Monitor monitor;
     private final Duration age;
+    private final Duration maxAge;
     private final DataFlowStateDAOImpl dataFlowStateDao = new DataFlowStateDAOImpl();
 
     /**
@@ -91,13 +99,14 @@ public class DspRecordCleaner {
      * @param deletedPolicyEntries  policy monitor entries deleted
      * @param deletedDataFlowStates data-flow state rows deleted
      * @param deletedNegotiations   negotiations without an agreement deleted
+     * @param deletedResumedTransfers abandoned {@code RESUMED} transfers deleted
      */
     public record Summary(int terminatedTransfers, int deletedTransfers, int deletedPolicyEntries,
-                          int deletedDataFlowStates, int deletedNegotiations) {
+                          int deletedDataFlowStates, int deletedNegotiations, int deletedResumedTransfers) {
 
         boolean isEmpty() {
             return terminatedTransfers + deletedTransfers + deletedPolicyEntries + deletedDataFlowStates
-                    + deletedNegotiations == 0;
+                    + deletedNegotiations + deletedResumedTransfers == 0;
         }
     }
 
@@ -113,6 +122,22 @@ public class DspRecordCleaner {
             throw new IllegalArgumentException("DSP record cleaner age %s must exceed %s".formatted(age, MINIMUM_AGE));
         }
         return age;
+    }
+
+    /**
+     * Validates a configured upper age limit.
+     *
+     * @param maxAge the configured upper age limit
+     * @param age    the configured age
+     * @return {@code maxAge}
+     * @throws IllegalArgumentException if {@code maxAge} is not positive or does not exceed {@code age}
+     */
+    public static Duration requireValidMaxAge(Duration maxAge, Duration age) {
+        if (maxAge.isZero() || maxAge.isNegative() || maxAge.compareTo(age) <= 0) {
+            throw new IllegalArgumentException(
+                    "DSP record cleaner max age %s must be positive and exceed the age %s".formatted(maxAge, age));
+        }
+        return maxAge;
     }
 
     /**
@@ -135,13 +160,16 @@ public class DspRecordCleaner {
      * @return what the pass did
      */
     public Summary run() {
-        var cutoff = clock.millis() - age.toMillis();
+        var now = clock.millis();
+        var cutoff = now - age.toMillis();
+        var maxCutoff = now - maxAge.toMillis();
         var summary = new Summary(
                 step("terminate stuck transfers", () -> terminateStuckTransfers(cutoff)),
                 step("delete finished transfers", () -> deleteFinishedTransfers(cutoff)),
                 step("delete policy monitor entries", () -> policyMonitorEntryPurger.purgeFinishedUpdatedBefore(cutoff)),
                 step("delete data-flow state rows", this::deleteDataFlowStates),
-                step("delete negotiations without agreement", () -> deleteNegotiationsWithoutAgreement(cutoff)));
+                step("delete negotiations without agreement", () -> deleteNegotiationsWithoutAgreement(cutoff)),
+                step("delete abandoned resumed transfers", () -> deleteAbandonedResumedTransfers(maxCutoff)));
         if (!summary.isEmpty()) {
             monitor.info("DSP record cleaner pass: " + summary);
         }
@@ -206,8 +234,34 @@ public class DspRecordCleaner {
         return (int) finishedIds.stream().filter(id -> deleted(transferProcessStore.delete(id).succeeded(), id)).count();
     }
 
+    private int deleteAbandonedResumedTransfers(long maxCutoff) {
+        var resumed = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
+                .filter(List.of(
+                        criterion("state", "=", TransferProcessStates.RESUMED.code()),
+                        criterion(STATE_TIMESTAMP, "<", maxCutoff)))
+                .offset(offset)
+                .limit(PAGE_SIZE)
+                .build()));
+        return (int) resumed.stream().filter(this::removeSecretAndDelete).count();
+    }
+
+    private boolean removeSecretAndDelete(TransferProcess transfer) {
+        try {
+            var removed = dataAddressStore.remove(transfer);
+            if (removed.failed()) {
+                monitor.warning("Removing the data address of abandoned transfer failed: transferProcessId=%s reason=%s"
+                        .formatted(transfer.getId(), removed.getFailureDetail()));
+                return false;
+            }
+            return deleted(transferProcessStore.delete(transfer.getId()).succeeded(), transfer.getId());
+        } catch (Exception e) {
+            monitor.warning("Deleting abandoned transfer failed: transferProcessId=%s".formatted(transfer.getId()), e);
+            return false;
+        }
+    }
+
     private int deleteDataFlowStates() {
-        return serverConfDatabaseCtx.doInTransaction(session -> dataFlowStateDao.deleteFinishedOlderThan(session, age));
+        return serverConfDatabaseCtx.doInTransaction(session -> dataFlowStateDao.deleteOlderThan(session, age, maxAge));
     }
 
     private int deleteNegotiationsWithoutAgreement(long cutoff) {

@@ -35,7 +35,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * A data-flow state row that is deleted can be recreated by a start signal still being retried for its flow, so
- * the cleaner refuses an age at or below the policy monitor period plus the signal retry window.
+ * the cleaner refuses an age at or below the policy monitor period plus the signal retry window. It also refuses
+ * an upper age limit that is not positive or does not exceed the age, and an interval that is not positive.
  */
 class DspRecordCleanerAgeTest {
 
@@ -62,6 +63,37 @@ class DspRecordCleanerAgeTest {
         var age = DspRecordCleaner.MINIMUM_AGE.plusSeconds(1);
 
         assertThat(DspRecordCleaner.requireValidAge(age)).isEqualTo(age);
+    }
+
+    @Test
+    void maxAgeThatIsNotPositiveIsRejected() {
+        var age = Duration.ofHours(6);
+        var zero = Duration.ZERO;
+        var negative = Duration.ofDays(-7);
+
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidMaxAge(zero, age))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidMaxAge(negative, age))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void maxAgeAtOrBelowTheAgeIsRejected() {
+        var age = Duration.ofHours(6);
+        var below = Duration.ofHours(5);
+
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidMaxAge(age, age))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> DspRecordCleaner.requireValidMaxAge(below, age))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void maxAgeAboveTheAgeIsAccepted() {
+        var age = Duration.ofHours(6);
+        var maxAge = age.plusSeconds(1);
+
+        assertThat(DspRecordCleaner.requireValidMaxAge(maxAge, age)).isEqualTo(maxAge);
     }
 
     @Test

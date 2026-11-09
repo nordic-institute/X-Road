@@ -98,6 +98,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -114,6 +115,8 @@ class DspRecordCleanerPostgresTest {
     private static final Duration AGE = Duration.ofHours(6);
     private static final Duration OLD = AGE.plusHours(1);
     private static final Duration YOUNG = Duration.ofHours(1);
+    private static final Duration MAX_AGE = Duration.ofDays(7);
+    private static final Duration PAST_MAX_AGE = MAX_AGE.plusHours(1);
     private static final String DATA_SOURCE_NAME = "default";
     private static final String PARTICIPANT_CONTEXT = "participant-1";
 
@@ -127,6 +130,7 @@ class DspRecordCleanerPostgresTest {
     private final Clock clock = Clock.systemUTC();
     private final RecordingMonitor monitor = new RecordingMonitor();
     private final DataFlowStateDAOImpl dataFlowStateDao = new DataFlowStateDAOImpl();
+    private final DataAddressStore dataAddressStore = mock();
 
     @BeforeAll
     static void startDatabase() throws Exception {
@@ -172,6 +176,7 @@ class DspRecordCleanerPostgresTest {
 
     @BeforeEach
     void emptyTables() throws SQLException {
+        when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
         execute("TRUNCATE edc_transfer_process, edc_contract_negotiation, edc_contract_agreement, "
                 + "edc_policy_monitor, dataflow_state");
     }
@@ -213,7 +218,7 @@ class DspRecordCleanerPostgresTest {
 
         var summary = newCleaner(new EdcTerminationChain().service()).run();
 
-        assertThat(summary).isEqualTo(new DspRecordCleaner.Summary(0, 2, 2, 2, 1));
+        assertThat(summary).isEqualTo(new DspRecordCleaner.Summary(0, 2, 2, 2, 1, 0));
         assertThat(ids("edc_transfer_process", "transferprocess_id")).containsExactly("young-completed");
         assertThat(ids("edc_policy_monitor", "entry_id")).containsExactlyInAnyOrder("old-started", "young-completed");
         assertThat(ids("dataflow_state", "flow_id")).containsExactlyInAnyOrder("old-started", "young-terminated");
@@ -224,13 +229,79 @@ class DspRecordCleanerPostgresTest {
     @Test
     void flowRowFinishedInsideTheMinimumAgeSurvivesSoALateSignalStillFindsIt() throws Exception {
         insertFlow("inside-floor", DataFlowLifecycleState.TERMINATED, DspRecordCleaner.MINIMUM_AGE.minusMinutes(5));
-        var cleaner = new DspRecordCleaner(transferProcessStore, new EdcTerminationChain().service(), negotiationStore,
-                negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor,
-                DspRecordCleaner.requireValidAge(DspRecordCleaner.MINIMUM_AGE.plusSeconds(1)));
+        var age = DspRecordCleaner.requireValidAge(DspRecordCleaner.MINIMUM_AGE.plusSeconds(1));
+        var cleaner = new DspRecordCleaner(transferProcessStore, new EdcTerminationChain().service(), dataAddressStore,
+                negotiationStore, negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx,
+                clock, monitor, age, DspRecordCleaner.requireValidMaxAge(MAX_AGE, age));
 
         cleaner.run();
 
         assertThat(ids("dataflow_state", "flow_id")).containsExactly("inside-floor");
+    }
+
+    @Test
+    void flowRowsInAnyStateOlderThanTheMaxAgeAreDeletedAndYoungerUnfinishedOnesStay() throws Exception {
+        insertFlow("provisioned-past-max", DataFlowLifecycleState.PROVISIONED, PAST_MAX_AGE);
+        insertFlow("started-past-max", DataFlowLifecycleState.STARTED, PAST_MAX_AGE);
+        insertFlow("suspended-past-max", DataFlowLifecycleState.SUSPENDED, PAST_MAX_AGE);
+        insertFlow("terminated-past-max", DataFlowLifecycleState.TERMINATED, PAST_MAX_AGE);
+        insertFlow("started-past-age", DataFlowLifecycleState.STARTED, OLD);
+        insertFlow("suspended-past-age", DataFlowLifecycleState.SUSPENDED, OLD);
+        insertFlow("terminated-past-age", DataFlowLifecycleState.TERMINATED, OLD);
+        insertFlow("started-young", DataFlowLifecycleState.STARTED, YOUNG);
+
+        var summary = newCleaner(new EdcTerminationChain().service()).run();
+
+        assertThat(summary.deletedDataFlowStates()).isEqualTo(5);
+        assertThat(ids("dataflow_state", "flow_id"))
+                .containsExactlyInAnyOrder("started-past-age", "suspended-past-age", "started-young");
+        monitor.assertNoProblems();
+    }
+
+    @Test
+    void startedRowRecreatedByALateStartSignalIsDeletedOnceOlderThanTheMaxAge() throws Exception {
+        insertFlow("flow-1", DataFlowLifecycleState.TERMINATED, OLD);
+        var cleaner = newCleaner(new EdcTerminationChain().service());
+        cleaner.run();
+        assertThat(ids("dataflow_state", "flow_id")).isEmpty();
+
+        serverConfDatabaseCtx.doInTransaction(session -> dataFlowStateDao.insert(session, "flow-1", DataFlowLifecycleState.STARTED));
+        assertThat(cleaner.run().deletedDataFlowStates()).isZero();
+        assertThat(ids("dataflow_state", "flow_id")).containsExactly("flow-1");
+
+        ageFlow("flow-1", PAST_MAX_AGE);
+        var summary = cleaner.run();
+
+        assertThat(summary.deletedDataFlowStates()).isEqualTo(1);
+        assertThat(ids("dataflow_state", "flow_id")).isEmpty();
+    }
+
+    @Test
+    void resumedTransfersOlderThanTheMaxAgeAreDeletedWithTheirSecretAndYoungerOnesStay() {
+        saveTransfer("resumed-past-max", TransferProcess.Type.PROVIDER, TransferProcessStates.RESUMED, PAST_MAX_AGE);
+        saveTransfer("resumed-past-age", TransferProcess.Type.PROVIDER, TransferProcessStates.RESUMED, OLD);
+        var edc = new EdcTerminationChain();
+
+        var summary = newCleaner(edc.service()).run();
+
+        assertThat(summary).isEqualTo(new DspRecordCleaner.Summary(0, 0, 0, 0, 0, 1));
+        assertThat(transferProcessStore.findById("resumed-past-max")).isNull();
+        assertThat(transferProcessStore.findById("resumed-past-age")).isNotNull();
+        verify(dataAddressStore).remove(argThat(transfer -> "resumed-past-max".equals(transfer.getId())));
+        verify(dataAddressStore, never()).remove(argThat(transfer -> "resumed-past-age".equals(transfer.getId())));
+        verify(edc.service, never()).terminate(any(TerminateTransferCommand.class));
+        monitor.assertNoProblems();
+    }
+
+    @Test
+    void resumedTransferIsKeptWhenItsDataAddressSecretCannotBeRemoved() {
+        saveTransfer("resumed-past-max", TransferProcess.Type.PROVIDER, TransferProcessStates.RESUMED, PAST_MAX_AGE);
+        when(dataAddressStore.remove(any())).thenReturn(StoreResult.generalError("vault unavailable"));
+
+        var summary = newCleaner(new EdcTerminationChain().service()).run();
+
+        assertThat(summary.deletedResumedTransfers()).isZero();
+        assertThat(transferProcessStore.findById("resumed-past-max")).isNotNull();
     }
 
     @Test
@@ -299,7 +370,7 @@ class DspRecordCleanerPostgresTest {
         assertThat(first.deletedPolicyEntries()).isPositive();
         assertThat(first.deletedDataFlowStates()).isPositive();
         assertThat(first.deletedNegotiations()).isPositive();
-        assertThat(second).isEqualTo(new DspRecordCleaner.Summary(0, 0, 0, 0, 0));
+        assertThat(second).isEqualTo(new DspRecordCleaner.Summary(0, 0, 0, 0, 0, 0));
         assertThat(rowCounts()).isEqualTo(rowsAfterFirst);
         monitor.assertNoProblems();
     }
@@ -372,8 +443,9 @@ class DspRecordCleanerPostgresTest {
     }
 
     private DspRecordCleaner newCleaner(TransferProcessService transferProcessService, ContractNegotiationStore store) {
-        return new DspRecordCleaner(transferProcessStore, transferProcessService, store,
-                negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor, AGE);
+        return new DspRecordCleaner(transferProcessStore, transferProcessService, dataAddressStore, store,
+                negotiationsWithoutAgreementReader(), policyMonitorEntryPurger(), serverConfDatabaseCtx, clock, monitor,
+                AGE, MAX_AGE);
     }
 
     private NegotiationsWithoutAgreementReader negotiationsWithoutAgreementReader() {
@@ -436,6 +508,10 @@ class DspRecordCleanerPostgresTest {
 
     private void insertFlow(String flowId, DataFlowLifecycleState state, Duration age) throws SQLException {
         serverConfDatabaseCtx.doInTransaction(session -> dataFlowStateDao.insert(session, flowId, state));
+        ageFlow(flowId, age);
+    }
+
+    private static void ageFlow(String flowId, Duration age) throws SQLException {
         execute("ALTER TABLE dataflow_state DISABLE TRIGGER set_timestamps");
         try {
             execute("UPDATE dataflow_state SET updated_at = CURRENT_TIMESTAMP - INTERVAL '%d seconds' WHERE flow_id = '%s'"
@@ -506,6 +582,7 @@ class DspRecordCleanerPostgresTest {
     private static final class EdcTerminationChain {
 
         private final DataAddressStore dataAddressStore = mock();
+        private final TransferProcessService service = mock();
         private final DataFlowController dataFlowController = mock();
         private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
         private final TransferProcessorsImpl processors;
@@ -531,7 +608,6 @@ class DspRecordCleanerPostgresTest {
         }
 
         TransferProcessService service() {
-            TransferProcessService service = mock();
             when(service.terminate(any(TerminateTransferCommand.class))).thenAnswer(invocation -> {
                 var result = handler.handle(invocation.getArgument(0));
                 return result.succeeded() ? ServiceResult.success() : ServiceResult.conflict(result.getFailureDetail());

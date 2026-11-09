@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -68,9 +69,17 @@ public class DspRecordCleanerExtension implements ServiceExtension {
 
     @Setting(key = "xroad.dsp-record-cleaner.age",
             description = "How old DSP records must be before the cleaner closes or deletes them, in ISO-8601 "
-                    + "duration format. Must exceed PT1H10M: the policy monitor period plus the data-plane signal retry window.",
+                    + "duration format. Must exceed PT1H10M, the policy monitor period plus the data-plane signal retry "
+                    + "window, and stay below xroad.dsp-record-cleaner.max-age.",
             defaultValue = "PT6H")
     private Duration age;
+
+    @Setting(key = "xroad.dsp-record-cleaner.max-age",
+            description = "How old DSP records must be before the cleaner deletes them whatever their state, in "
+                    + "ISO-8601 duration format. This is the upper age limit: it removes data-flow state rows left in any "
+                    + "state and abandoned RESUMED transfers. Must be positive and exceed xroad.dsp-record-cleaner.age.",
+            defaultValue = "P7D")
+    private Duration maxAge;
 
     @Setting(key = "edc.sql.store.policy-monitor.datasource",
             description = "The datasource backing the policy monitor table",
@@ -87,6 +96,9 @@ public class DspRecordCleanerExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessService transferProcessService;
+
+    @Inject
+    private DataAddressStore dataAddressStore;
 
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
@@ -128,9 +140,10 @@ public class DspRecordCleanerExtension implements ServiceExtension {
                 transactionContext, queryExecutor, statements);
         var negotiationsWithoutAgreement = new NegotiationsWithoutAgreementReader(dataSourceRegistry,
                 negotiationDataSourceName, transactionContext, queryExecutor, new PostgresDialectStatements(clock));
-        cleaner = new DspRecordCleaner(transferProcessStore, transferProcessService, contractNegotiationStore,
-                negotiationsWithoutAgreement, policyMonitorEntryPurger, serverConfDatabaseCtx, clock, monitor,
-                DspRecordCleaner.requireValidAge(age));
+        var validAge = DspRecordCleaner.requireValidAge(age);
+        cleaner = new DspRecordCleaner(transferProcessStore, transferProcessService, dataAddressStore,
+                contractNegotiationStore, negotiationsWithoutAgreement, policyMonitorEntryPurger, serverConfDatabaseCtx,
+                clock, monitor, validAge, DspRecordCleaner.requireValidMaxAge(maxAge, validAge));
     }
 
     @Override
