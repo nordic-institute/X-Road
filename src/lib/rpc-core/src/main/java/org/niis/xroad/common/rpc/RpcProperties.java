@@ -31,23 +31,13 @@ import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 import java.time.Duration;
 
 public interface RpcProperties {
-    String PREFIX = "xroad.common-rpc";
-    String DEFAULT_USE_TLS = "true";
-
     boolean useTls();
     RpcCertificateProvisioningProperties certificateProvisioning();
 
     interface RpcCertificateProvisioningProperties extends CertificateProvisioningProperties {
-        String DEFAULT_REFRESH_INTERVAL = "5H";
-        String DEFAULT_RETRY_DELAY = "5S";
-        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
-        String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
-        String DEFAULT_RETRY_TIMEOUT = "60S";
-
         Duration refreshInterval();
-        Duration retryDelay();
-        Double retryExponentialBackoffMultiplier();
-        int retryMaxAttempts();
-        Duration retryTimeout();
+        Duration waitDuration();
+        Double exponentialBackoffMultiplier();
+        Duration exponentialMaxWaitDuration();
     }
 }

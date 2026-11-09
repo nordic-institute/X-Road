@@ -54,10 +54,16 @@ public class DbSourceConfig {
     private char[] password;
     private String tableName;
     private String schema;
+    private String nodeName;
 
     public static DbSourceConfig loadValues(String appName) {
+        return loadValues(appName, NodeNameProvider.shared());
+    }
+
+    public static DbSourceConfig loadValues(String appName, NodeNameProvider nodeNameProvider) {
         DbSourceConfig config = new DbSourceConfig();
         config.appName = appName;
+        config.nodeName = nodeNameProvider.nodeName().orElse(null);
         config.url = getenv(ENV_VAR_DB_URL);
         config.username = getenv(ENV_VAR_DB_USERNAME);
         config.password = ofNullable(getenv(ENV_VAR_DB_PASS))

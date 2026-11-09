@@ -36,6 +36,7 @@ import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
@@ -48,6 +49,10 @@ import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
  * fabricates a {@link DspDataAddress} advertising the provider serverproxy endpoint and returns it wrapped
  * in a {@link DataFlowStatusMessage}. A {@link DataFlowPrepareMessage} is answered with the state only.
  * The serverproxy endpoint (mTLS) is the dataplane — consumers send signed X-Road requests directly to it via the existing PKI pipeline.
+ * <p>
+ * When the agreement has a grant but the caller's live ACL lists no endpoint, the data address carries
+ * {@link DspConventions#ACCESS_REFUSED_PROPERTY} instead of a token, so the consumer refuses the call instead of
+ * sending it tokenless. This does not depend on whether legacy calls are refused.
  * <p>
  * Flow state is tracked in the {@link DataFlowStateStore}, shared by every proxy node of a
  * clustered Security Server: a signaling call handled by any node reads and updates the same
@@ -180,9 +185,15 @@ public class XRoadDataPlaneManager {
         var dataAddressBuilder = DspDataAddress.Builder.newInstance()
                 .endpointType(protocol)
                 .endpoint(endpoint);
-        agreementTokenIssuer.issueToken(agreementId).ifPresent(token -> dataAddressBuilder
-                .property(AUTHORIZATION_PROPERTY, token)
-                .property(AUTH_TYPE_PROPERTY, BEARER_AUTH_TYPE));
+        var outcome = agreementTokenIssuer.issueToken(agreementId);
+        if (outcome instanceof AgreementTokenIssuer.Outcome.Minted(var token)) {
+            dataAddressBuilder
+                    .property(AUTHORIZATION_PROPERTY, token)
+                    .property(AUTH_TYPE_PROPERTY, BEARER_AUTH_TYPE);
+        } else if (outcome instanceof AgreementTokenIssuer.Outcome.Refused) {
+            log.info("The live ACL grants no endpoint for agreement id '{}'; marking the data address as refused", agreementId);
+            dataAddressBuilder.property(DspConventions.ACCESS_REFUSED_PROPERTY, Boolean.TRUE.toString());
+        }
         return DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(dataAddressBuilder.build())
                 .state(state.name())

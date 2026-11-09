@@ -23,4 +23,6 @@ dependencies {
     testImplementation(libs.edc.lib.core)
     testImplementation(libs.edc.lib.controlplane.transform)
     testImplementation(libs.edc.lib.controlplane)
+    testImplementation(libs.edc.core.controlplane.catalog)
+    testImplementation(libs.edc.core.policy.monitor)
 }

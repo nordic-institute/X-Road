@@ -9,4 +9,6 @@ dependencies {
   implementation(libs.springBoot.starter)
 
   testImplementation(libs.springBoot.starterTest)
+  testImplementation(testFixtures(project(":lib:properties-core")))
+  testImplementation(libs.systemStubs)
 }

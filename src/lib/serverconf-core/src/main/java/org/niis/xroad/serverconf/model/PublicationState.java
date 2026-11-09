@@ -24,9 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.quarkus;
+package org.niis.xroad.serverconf.model;
 
-import org.niis.xroad.common.rpc.RpcProperties;
-
-public interface QuarkusRpcProperties extends RpcProperties {
+/**
+ * Whether a bound participant's identity values have reached the Central Server. A row with no
+ * publication state is treated as {@link #NOT_SENT}.
+ */
+public enum PublicationState {
+    NOT_SENT,
+    SUBMITTED,
+    PUBLISHED,
+    REJECTED
 }

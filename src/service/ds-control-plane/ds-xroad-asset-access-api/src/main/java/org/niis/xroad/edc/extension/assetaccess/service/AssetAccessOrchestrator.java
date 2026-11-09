@@ -57,6 +57,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.time.CallBudget;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.AgreementReuseNote;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
@@ -79,6 +80,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACCESS_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
@@ -102,12 +104,15 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * transfers with the existing agreement. The note is what lets a group agreement be reused, which the lookup
  * cannot attribute to a subsystem. A successful transfer records its agreement in the note.
  *
- * <p>Only a provider refusal of the transfer, as recognised by {@link ProviderFailureClassifier}, ends an
- * agreement's reuse: the note entry is removed (unless a newer one replaced it) and the same acquisition falls
- * back to one full negotiation, whose newer agreement wins reuse from then on. Every other failure keeps the
+ * <p>Only a provider refusal ends an agreement's reuse: a refusal of the transfer, as recognised by
+ * {@link ProviderFailureClassifier}, or a data address the provider marks refused
+ * ({@link DspConventions#ACCESS_REFUSED_PROPERTY}) because the caller's live ACL grants no endpoint. The note
+ * entry is removed (unless a newer one replaced it) and the same acquisition falls back to one full negotiation,
+ * whose newer agreement wins reuse from then on. Every other failure keeps the
  * agreement and the note entry and fails the acquisition: a provider-side termination without a refusal, a
  * failed initiation, a timeout waiting for the transfer to start, and any connection fault. A later acquisition
- * then transfers on the same agreement again.
+ * then transfers on the same agreement again. A marked data address is never returned: after a reused agreement's
+ * renegotiation, or after a fresh negotiation, it fails the acquisition with {@code DSP_ACCESS_REFUSED}.
  *
  * <p>An acquisition runs under the {@link CallBudget} its caller supplies. The catalog fetch, the negotiation wait
  * and the transfer wait each get the lesser of their own cap and the time left, so together they never outlast the
@@ -215,8 +220,8 @@ public class AssetAccessOrchestrator {
 
     private static boolean isTransferRefusal(Throwable failure) {
         return unwrap(failure) instanceof XrdRuntimeException xrdException
-                && xrdException.isCausedBy(DSP_TRANSFER_FAILED)
-                && ProviderFailureClassifier.isRefusal(xrdException.getDetails());
+                && (xrdException.isCausedBy(DSP_ACCESS_REFUSED)
+                || xrdException.isCausedBy(DSP_TRANSFER_FAILED) && ProviderFailureClassifier.isRefusal(xrdException.getDetails()));
     }
 
     private static Throwable unwrap(Throwable failure) {
@@ -488,7 +493,22 @@ public class AssetAccessOrchestrator {
         monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
         return call.scope().track(completionPoller.awaitTransfer(transferProcessId, timeout))
-                .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
+                .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable))
+                .thenApply(dataAddress -> rejectRefusedDataAddress(key, transferProcessId, dataAddress));
+    }
+
+    private DataAddress rejectRefusedDataAddress(String key, String transferProcessId, DataAddress dataAddress) {
+        if (dataAddress == null
+                || !Boolean.parseBoolean(String.valueOf(dataAddress.getProperties().get(DspConventions.ACCESS_REFUSED_PROPERTY)))) {
+            return dataAddress;
+        }
+        monitor.warning("%s provider refused access, the caller's live ACL grants no endpoint: transferProcessId=%s"
+                .formatted(key, transferProcessId));
+        throw XrdRuntimeException.systemException(DSP_ACCESS_REFUSED)
+                .origin(ErrorOrigin.DATASPACE)
+                .metadataItems(transferProcessId)
+                .details("The provider refused access: the caller's ACL grants no endpoint of the service")
+                .build();
     }
 
     private void onTransferComplete(String key, String transferProcessId, DataAddress dataAddress, Throwable throwable) {

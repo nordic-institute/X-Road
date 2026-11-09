@@ -62,7 +62,8 @@ public class XRoadFrameworkPropertySourceEnvironmentPostProcessor implements Env
                 ctx -> log.replayTo(XRoadFrameworkPropertySourceEnvironmentPostProcessor.class));
 
         var appName = environment.getProperty("spring.application.name");
-        var storedOverrides = FrameworkPublishedConfig.storedOverrides(appName, ConfigKeyProviders.allProviders());
+        var storedOverrides = FrameworkPublishedConfig.storedOverrides(appName, ConfigKeyProviders.allProviders(),
+                SpringNodeNameProvider.forEnvironment(environment));
         if (storedOverrides.isEmpty()) {
             return;
         }

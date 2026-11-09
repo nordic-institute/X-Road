@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -36,10 +37,14 @@ import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyRota
 import org.niis.xroad.securityserver.restapi.openapi.model.AgreementTokenKeyStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspacePublicationStateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceServerStatusDto;
 import org.niis.xroad.securityserver.restapi.service.AgreementTokenKeyService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.MemberPublication;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.ServerStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +52,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data space API controller — participant context provisioning status and agreement token signing key
@@ -94,21 +100,36 @@ public class DataspaceApiController implements DataspaceApi {
         var dto = new DataspaceProvisioningStatusDto();
         dto.setEnabled(status.enabled());
         dto.setAuthCertRegistered(status.authCertRegistered());
-        dto.setParticipantContexts(toContextDtos(status.participantContexts()));
+        dto.setServer(toServerDto(status.server()));
+        dto.setParticipantContexts(toContextDtos(status.participantContexts(), status.memberPublications()));
         return dto;
     }
 
-    private List<DataspaceParticipantContextStatusDto> toContextDtos(List<ParticipantContextStatus> contexts) {
-        return contexts.stream().map(this::toContextDto).toList();
+    private DataspaceServerStatusDto toServerDto(ServerStatus server) {
+        return new DataspaceServerStatusDto()
+                .dataspaceReady(server.dataspaceReady())
+                .dspBaseUrl(server.dspBaseUrl())
+                .publicationState(DataspacePublicationStateDto.valueOf(server.publicationState().name()))
+                .publicationReason(server.publicationReason());
     }
 
-    private DataspaceParticipantContextStatusDto toContextDto(ParticipantContextStatus ctx) {
+    private List<DataspaceParticipantContextStatusDto> toContextDtos(List<ParticipantContextStatus> contexts,
+                                                                     Map<String, MemberPublication> memberPublications) {
+        return contexts.stream().map(ctx -> toContextDto(ctx, memberPublications.get(ctx.participantId()))).toList();
+    }
+
+    private DataspaceParticipantContextStatusDto toContextDto(ParticipantContextStatus ctx,
+                                                              @Nullable MemberPublication publication) {
         var dto = new DataspaceParticipantContextStatusDto();
         dto.setParticipantId(ctx.participantId());
         dto.setKind(DataspaceParticipantContextStatusDto.KindEnum.valueOf(ctx.kind().name()));
         dto.setContextCreated(ctx.contextCreated());
         dto.setCredentialStatus(DataspaceParticipantContextStatusDto.CredentialStatusEnum.valueOf(ctx.credentialStatus().name()));
         dto.setIdentityStatus(DataspaceParticipantContextStatusDto.IdentityStatusEnum.valueOf(ctx.identityStatus().name()));
+        if (publication != null) {
+            dto.setPublicationState(DataspacePublicationStateDto.valueOf(publication.publicationState().name()));
+            dto.setPublicationReason(publication.publicationReason());
+        }
         return dto;
     }
 }

@@ -198,7 +198,7 @@ abstract class AbstractCentralServerPostgresTest {
         }
     }
 
-    private static void applyCentralServerChangelog() throws Exception {
+    static void applyCentralServerChangelog() throws Exception {
         Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {
             var update = new CommandScope("update");
             update.addArgumentValue("changelogFile", "liquibase/centerui-changelog.xml");

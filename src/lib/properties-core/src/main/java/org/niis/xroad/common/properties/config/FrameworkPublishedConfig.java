@@ -28,6 +28,7 @@ package org.niis.xroad.common.properties.config;
 
 import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,20 @@ public final class FrameworkPublishedConfig {
      *         flagged key has a stored override
      */
     public static Map<String, String> storedOverrides(String appName, List<ConfigKeyProvider> providers) {
+        return storedOverrides(appName, providers, NodeNameProvider.shared());
+    }
+
+    /**
+     * Same as {@link #storedOverrides(String, List)}, additionally reading the rows stored for the node the
+     * provider names; a node row wins over the shared row of the same key.
+     *
+     * @param appName          application name partitioning the stored overrides
+     * @param providers        providers to scan for flagged keys
+     * @param nodeNameProvider supplies the node whose rows are read
+     * @return flagged key to stored value
+     */
+    public static Map<String, String> storedOverrides(String appName, List<ConfigKeyProvider> providers,
+                                                      NodeNameProvider nodeNameProvider) {
         Set<String> flagged = providers.stream()
                 .flatMap(provider -> provider.keys().stream())
                 .filter(ConfigKey::publishedToFramework)
@@ -73,7 +88,7 @@ public final class FrameworkPublishedConfig {
             return Map.of();
         }
 
-        var dbSourceConfig = DbSourceConfig.loadValues(appName);
+        var dbSourceConfig = DbSourceConfig.loadValues(appName, nodeNameProvider);
         if (dbSourceConfig.getUrl() == null) {
             return Map.of();
         }

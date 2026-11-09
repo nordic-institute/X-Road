@@ -53,6 +53,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.CLIENT_ID_SS1;
@@ -100,7 +101,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
         localGroupService.addLocalGroupMembers(
                 groupId, List.of(getClientId(CLIENT_ID_SS1)));
 
-        verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
 
         LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
         Assertions.assertThat(localGroup.getGroupMembers())
@@ -119,6 +120,30 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
             localGroupService.addLocalGroupMembers(groupId, List.of(getClientId(CLIENT_ID_SS1))))
                 .isInstanceOf(LocalGroupService.MemberAlreadyExistsException.class);
 
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    @Test
+    public void removeClientFromLocalGroup() {
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
+        localGroupService.addLocalGroupMembers(groupId, List.of(getClientId(CLIENT_ID_SS1)));
+        reset(catalogInvalidationNotifier);
+
+        localGroupService.deleteGroupMembers(groupId, List.of(getClientId(CLIENT_ID_SS1)));
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+        assertTrue(localGroupService.getLocalGroup(groupId).getGroupMembers().isEmpty());
+    }
+
+    @Test
+    public void removeNonMemberFromLocalGroupDoesNotFlushCaches() {
+        Long groupId = Long.valueOf(DB_LOCAL_GROUP_ID_1);
+
+        Assertions.assertThatThrownBy(() ->
+                localGroupService.deleteGroupMembers(groupId, List.of(getClientId(CLIENT_ID_SS1))))
+                .isInstanceOf(LocalGroupService.LocalGroupMemberNotFoundException.class);
+
+        verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
     }
 
     @Test
