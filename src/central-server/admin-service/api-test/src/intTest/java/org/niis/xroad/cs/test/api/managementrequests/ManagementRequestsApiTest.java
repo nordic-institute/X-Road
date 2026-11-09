@@ -1639,12 +1639,13 @@ class ManagementRequestsApiTest extends CsApiTest {
                         ManagementRequestOriginDto.SECURITY_SERVER));
         Step.and("it is approved", () -> mgmtClient.approveRequest(secondRegId).statusCode(200));
 
-        Step.then("the address is the new one and the stored pair is unchanged", () ->
+        Step.then("the address is the new one and the stored pair is unchanged and stale", () ->
                 new SecurityServersAdminClient(session).getSecurityServer(serverId)
                         .statusCode(200)
                         .body("server_address", equalTo(SSMR38_NEW_ADDRESS))
                         .body("system_did", equalTo(storedDid))
-                        .body("dsp_base_url", equalTo(storedUrl)));
+                        .body("dsp_base_url", equalTo(storedUrl))
+                        .body("system_pair_stale", equalTo(true)));
     }
 
     @Test

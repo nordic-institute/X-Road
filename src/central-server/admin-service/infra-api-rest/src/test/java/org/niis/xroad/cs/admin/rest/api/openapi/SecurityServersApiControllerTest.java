@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,8 +59,11 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -83,6 +88,11 @@ class SecurityServersApiControllerTest {
     private static final String ADDRESS_VALUE = "ss.example.org";
     private static final String DID = "did:web:ss.example.org%3A7183";
     private static final String URL = "https://ss.example.org:7185/dsp";
+
+    private static final Set<ParticipantValueRejection> REFUSALS_A_SYSTEM_DID_CHECK_NEVER_GIVES = EnumSet.of(
+            ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS, ParticipantValueRejection.MALFORMED_DSP_BASE_URL,
+            ParticipantValueRejection.UNDECODABLE_DID, ParticipantValueRejection.DID_OF_OTHER_MEMBER,
+            ParticipantValueRejection.MEMBER_NOT_SERVED, ParticipantValueRejection.VALUE_DIFFERS);
 
     private final SecurityServerId serverId = SecurityServerId.Conf.create("DEV", "COM", "1234", "SS1");
 
@@ -205,19 +215,19 @@ class SecurityServersApiControllerTest {
         verifyCheckAudit(DidCheck.Status.REFUSED);
     }
 
-    @Test
-    void systemDidCheckMapsEveryRefusalReasonTheCheckCanGive() {
-        var reasons = List.of(ParticipantValueRejection.WRONG_SCHEME, ParticipantValueRejection.DID_TOO_LONG,
-                ParticipantValueRejection.NOT_CANONICAL, ParticipantValueRejection.HOST_DIFFERS,
-                ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS, ParticipantValueRejection.NON_ASCII_HOST,
-                ParticipantValueRejection.FOREIGN_SYSTEM_DID);
-        for (var reason : reasons) {
-            when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(DidCheck.refused(reason));
+    @ParameterizedTest
+    @MethodSource("refusalReasonsTheCheckCanGive")
+    void systemDidCheckMapsEveryRefusalReasonTheCheckCanGive(ParticipantValueRejection reason) {
+        when(systemDidCheckService.check(serverId, ADDRESS_VALUE, DID)).thenReturn(DidCheck.refused(reason));
 
-            var body = controller.checkSystemDid(ID, checkRequest()).getBody();
+        var body = controller.checkSystemDid(ID, checkRequest()).getBody();
 
-            assertThat(body.getRefusalReason()).hasToString(reason.name());
-        }
+        assertThat(body.getRefusalReason()).hasToString(reason.name());
+    }
+
+    static Stream<ParticipantValueRejection> refusalReasonsTheCheckCanGive() {
+        return Arrays.stream(ParticipantValueRejection.values())
+                .filter(reason -> !REFUSALS_A_SYSTEM_DID_CHECK_NEVER_GIVES.contains(reason));
     }
 
     @Test

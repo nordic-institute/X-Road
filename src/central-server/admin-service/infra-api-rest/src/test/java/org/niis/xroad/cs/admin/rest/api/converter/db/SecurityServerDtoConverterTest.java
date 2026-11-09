@@ -48,6 +48,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
@@ -134,7 +135,7 @@ class SecurityServerDtoConverterTest extends AbstractDtoConverterTest implements
             stubRequiredFields();
             doReturn(true).when(securityServer).getSystemPairStale();
 
-            assertEquals(true, converter.toDto(securityServer).getSystemPairStale());
+            assertTrue(converter.toDto(securityServer).getSystemPairStale());
         }
 
         @Test
