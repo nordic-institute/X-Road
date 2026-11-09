@@ -32,6 +32,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.MemberDid;
 import org.niis.xroad.cs.admin.core.dataspace.ParticipantValue.SystemPair;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.ds.identity.DecodedParticipant;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.MemberParticipant;
@@ -41,6 +42,8 @@ import org.niis.xroad.ds.identity.SystemParticipant;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
@@ -81,6 +84,23 @@ public final class ParticipantValueValidator {
     private final String registeredHost;
     private final ParticipantValueRejection registeredAddressRejection;
 
+    /**
+     * @param server a Security Server as stored in the Central Server
+     * @return a validator for the server's address and owner, with no registered client members
+     */
+    public static ParticipantValueValidator forServer(SecurityServerEntity server) {
+        return forServer(server, Set.of());
+    }
+
+    /**
+     * @param server        a Security Server as stored in the Central Server
+     * @param clientMembers the members that have a registered client on the server, without subsystem codes
+     * @return a validator for the server's address and owner with the given client members
+     */
+    public static ParticipantValueValidator forServer(SecurityServerEntity server, Set<ClientId> clientMembers) {
+        return new ParticipantValueValidator(RegisteredServer.of(server, clientMembers));
+    }
+
     public ParticipantValueValidator(RegisteredServer server) {
         this.server = server;
         var address = server.registeredAddress();
@@ -102,13 +122,10 @@ public final class ParticipantValueValidator {
      * @return the reason it is refused, or empty when it is accepted
      */
     public Optional<ParticipantValueRejection> validate(ParticipantValue candidate) {
-        if (registeredAddressRejection != null) {
-            return Optional.of(registeredAddressRejection);
-        }
-        return switch (candidate) {
+        return whenRegisteredAddressUsable(() -> switch (candidate) {
             case SystemPair pair -> validateSystemPair(pair);
             case MemberDid memberDid -> validateMemberDid(memberDid);
-        };
+        });
     }
 
     /**
@@ -135,10 +152,12 @@ public final class ParticipantValueValidator {
      * @return the reason it is refused, or empty when it is accepted
      */
     public Optional<ParticipantValueRejection> validateSystemDid(String did) {
-        if (registeredAddressRejection != null) {
-            return Optional.of(registeredAddressRejection);
-        }
-        return checkSystemDid(did);
+        return whenRegisteredAddressUsable(() -> checkSystemDid(did));
+    }
+
+    private Optional<ParticipantValueRejection> whenRegisteredAddressUsable(
+            Supplier<Optional<ParticipantValueRejection>> check) {
+        return registeredAddressRejection != null ? Optional.of(registeredAddressRejection) : check.get();
     }
 
     private Optional<ParticipantValueRejection> validateSystemPair(SystemPair pair) {

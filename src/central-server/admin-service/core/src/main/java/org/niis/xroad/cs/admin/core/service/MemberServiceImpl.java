@@ -46,7 +46,7 @@ import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.ParticipantValueStore;
-import org.niis.xroad.cs.admin.core.dataspace.RegisteredServer;
+import org.niis.xroad.cs.admin.core.dataspace.ParticipantValueValidator;
 import org.niis.xroad.cs.admin.core.entity.MemberDidRow;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -224,7 +224,7 @@ public class MemberServiceImpl implements MemberService {
         if (memberDid == null) {
             return new MemberServer(target, null, null);
         }
-        return new MemberServer(target, memberDid, RegisteredServer.validatorFor(server).isMemberDidStale(memberDid));
+        return new MemberServer(target, memberDid, ParticipantValueValidator.forServer(server).isMemberDidStale(memberDid));
     }
 
     @Override

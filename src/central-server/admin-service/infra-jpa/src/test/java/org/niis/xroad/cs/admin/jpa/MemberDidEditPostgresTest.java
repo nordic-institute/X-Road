@@ -54,11 +54,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -254,37 +250,17 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
         var loser = serverServing(client, sharedHost, 7184);
         var contested = memberDid(sharedHost, client.identifier()).replace("%3A7183", "%3A7190");
         var loserBefore = storedDids(loser.server().id());
-        var locked = new CountDownLatch(1);
-        var release = new CountDownLatch(1);
         var started = System.nanoTime();
-        var executor = Executors.newFixedThreadPool(2);
-        try {
-            var holder = executor.submit(() -> transactions.execute(status -> {
-                service.editMemberDid(winner.server().identifier(), client.identifier(), contested);
-                locked.countDown();
-                await(release);
-                return null;
-            }));
-            awaitHolding(locked, holder);
-            var racingPid = new AtomicInteger();
-            var racing = executor.submit(inTransaction(racingPid,
-                    () -> editReturningNothing(loser.server(), client, contested)));
-            awaitLockedSession(racingPid);
-            assertThat(racing.isDone()).isFalse();
 
-            release.countDown();
+        var racing = raceForLock(
+                () -> service.editMemberDid(winner.server().identifier(), client.identifier(), contested),
+                () -> service.editMemberDid(loser.server().identifier(), client.identifier(), contested));
 
-            holder.get(WAIT_SECONDS, TimeUnit.SECONDS);
-            assertThatThrownBy(() -> racing.get(WAIT_SECONDS, TimeUnit.SECONDS))
-                    .isInstanceOf(ExecutionException.class)
-                    .cause()
-                    .isInstanceOfSatisfying(BadRequestException.class, e -> assertThat(e.getErrorDeviation().code())
-                            .isEqualTo(ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER.code()));
-        } finally {
-            release.countDown();
-            executor.shutdownNow();
-            executor.close();
-        }
+        assertThatThrownBy(racing::get)
+                .isInstanceOf(ExecutionException.class)
+                .cause()
+                .isInstanceOfSatisfying(BadRequestException.class, e -> assertThat(e.getErrorDeviation().code())
+                        .isEqualTo(ErrorMessage.MEMBER_DID_HELD_BY_ANOTHER_SERVER.code()));
         assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(WAIT_SECONDS));
         assertThat(storedDids(winner.server().id())).containsExactly(contested);
         assertThat(storedDids(loser.server().id())).isEqualTo(loserBefore);
@@ -347,11 +323,6 @@ class MemberDidEditPostgresTest extends AbstractCentralServerPostgresTest {
 
     private void edit(Served served, String did) {
         service.editMemberDid(served.server().identifier(), served.client().identifier(), did);
-    }
-
-    private Object editReturningNothing(CentralServerSeed.Server server, CentralServerSeed.ClientRef client, String did) {
-        service.editMemberDid(server.identifier(), client.identifier(), did);
-        return null;
     }
 
     private void assertRefused(Served served, String did, ErrorMessage expected) {

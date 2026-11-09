@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -94,6 +95,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -263,10 +265,15 @@ class SecurityServerServiceImplTest implements WithInOrder {
         private static final String NEW_ADDRESS = "http://localhost:443";
         private static final SystemPairEdit PAIR = new SystemPairEdit("did:web:localhost%3A7184", "https://localhost:7185/dsp");
 
+        @BeforeEach
+        void stubTheLockedServer() {
+            lenient().when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
+            lenient().when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
+            lenient().when(securityServerEntity.getId()).thenReturn(5);
+        }
+
         @Test
         void shouldChangeTheAddressAndLeaveTheStoredPairAloneWhenNoPairIsGiven() {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
 
             var result = securityServerService.editSecurityServer(serverId, NEW_ADDRESS, null);
@@ -281,9 +288,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void shouldReplaceThePairAfterTheAddressIsFlushed() {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getId()).thenReturn(5);
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.STORED);
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
@@ -298,9 +302,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void shouldAcceptAPairEqualToTheStoredOne() {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getId()).thenReturn(5);
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.UNCHANGED);
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
@@ -322,9 +323,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
                 "FOREIGN_SYSTEM_DID, system_pair_foreign_did",
                 "DID_HELD_BY_ANOTHER_SERVER, system_pair_did_held_by_another_server"})
         void shouldFailWithTheCodeOfTheReasonTheStoreRefusesThePair(ParticipantValueRejection rejection, String code) {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getId()).thenReturn(5);
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.rejected(rejection));
 
@@ -336,9 +334,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void shouldFailAsHeldByAnotherServerWhenTheDatabaseRefusesTheSameDidOnTwoServers() {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getId()).thenReturn(5);
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenThrow(new DataIntegrityViolationException("security_servers_system_did_excl"));
 
@@ -350,9 +345,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void shouldRethrowADatabaseRefusalOfAnotherConstraint() {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getId()).thenReturn(5);
             var failure = new DataIntegrityViolationException("security_servers_system_values_check");
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl())).thenThrow(failure);
 
@@ -362,9 +354,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void shouldFailWhenAReasonThatAPairReplacementCannotHitIsReturned() {
-            when(securityServerRepository.lockForUpdateBy(serverId)).thenReturn(Optional.of(5));
-            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
-            when(securityServerEntity.getId()).thenReturn(5);
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
                     .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.MEMBER_NOT_SERVED));
 

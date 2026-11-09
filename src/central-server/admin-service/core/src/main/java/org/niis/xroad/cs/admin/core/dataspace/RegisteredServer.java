@@ -50,12 +50,4 @@ public record RegisteredServer(String registeredAddress, ClientId owner, Set<Cli
     public static RegisteredServer of(SecurityServerEntity server, Set<ClientId> clientMembers) {
         return new RegisteredServer(server.getAddress(), server.getOwner().getIdentifier().getMemberId(), clientMembers);
     }
-
-    /**
-     * @param server a Security Server as stored in the Central Server
-     * @return a validator for the server's address and owner, with no registered client members
-     */
-    public static ParticipantValueValidator validatorFor(SecurityServerEntity server) {
-        return new ParticipantValueValidator(of(server, Set.of()));
-    }
 }
