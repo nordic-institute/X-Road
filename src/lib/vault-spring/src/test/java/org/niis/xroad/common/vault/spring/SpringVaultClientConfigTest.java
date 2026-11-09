@@ -27,18 +27,18 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.node.NodeIdentity;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.dbsource.InvalidNodeNameException;
-import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.env.SystemEnvironmentPropertySource;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
 import org.springframework.vault.core.VaultTemplate;
-
-import java.util.Map;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -46,7 +46,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(SystemStubsExtension.class)
 class SpringVaultClientConfigTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     private final VaultKeyValueOperations kvOperations = mock(VaultKeyValueOperations.class);
     private final VaultTemplate vaultTemplate = mock(VaultTemplate.class);
@@ -77,23 +81,19 @@ class SpringVaultClientConfigTest {
 
     @Test
     void shouldTakeTheNodeNameFromTheEnvironmentVariable() {
+        variables.set("XROAD_NODE_NAME", "node_env");
         contextRunner.withUserConfiguration(NodeIdentityConfig.class)
-                .withInitializer(context -> context.getEnvironment().getPropertySources().replace(
-                        StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                        new SystemEnvironmentPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                                Map.of("XROAD_ADMIN_SERVICE_HA_NODE_NAME", "node_env"))))
                 .run(context -> assertThat(context.getBean(NodeIdentity.class))
                         .isEqualTo(new NodeIdentity("node_env", true)));
     }
-
     @Test
     void shouldRejectAnInvalidNodeName() {
+        variables.set("XROAD_NODE_NAME", "_bad");
         contextRunner.withUserConfiguration(NodeIdentityConfig.class)
-                .withPropertyValues("xroad.admin-service.ha-node-name=true")
                 .run(context -> assertThat(context).hasFailed().getFailure()
                         .hasStackTraceContaining(XrdRuntimeException.class.getName())
                         .rootCause()
                         .isInstanceOf(InvalidNodeNameException.class)
-                        .hasMessageContaining(NodeName.PROPERTY_KEY));
+                        .hasMessageContaining(NodeProperties.NODE_NAME_ENV_VARIABLE));
     }
 }

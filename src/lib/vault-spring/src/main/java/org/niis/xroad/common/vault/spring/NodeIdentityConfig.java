@@ -27,25 +27,22 @@
 package org.niis.xroad.common.vault.spring;
 
 import org.niis.xroad.common.core.node.NodeIdentity;
-import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * Provides the node identity of a Central Server service. Imported only by services that are cluster nodes;
  * {@link SpringVaultClientConfig} uses node-independent secret paths in services that do not import it.
  * <p>
- * The name is read from the Spring {@code Environment} rather than the {@code XRoadConfig} DSL: it is
- * per-node install-time identity written to {@code /etc/xroad/conf.d/local.yaml} or set through the
- * {@code XROAD_ADMIN_SERVICE_HA_NODE_NAME} environment variable, and the packaged backup and restore scripts
- * read the same key from that file.
+ * The name is read from the {@code XROAD_NODE_NAME} environment variable rather than the {@code XRoadConfig}
+ * DSL: it is per-node install-time identity, which the service launcher takes from {@code node.ini}, and the
+ * packaged backup and restore scripts read the same {@code node.ini} key.
  */
 @Configuration
 public class NodeIdentityConfig {
 
     @Bean
-    NodeIdentity nodeIdentity(Environment environment) {
-        return NodeIdentity.resolve(environment.getProperty(NodeName.PROPERTY_KEY));
+    NodeIdentity nodeIdentity() {
+        return NodeIdentity.fromEnvironment();
     }
 }

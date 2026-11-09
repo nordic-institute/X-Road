@@ -16,4 +16,5 @@ dependencies {
 
     testImplementation(libs.assertj.core)
     testImplementation(libs.springBoot.starterTest)
+    testImplementation(libs.systemStubs)
 }

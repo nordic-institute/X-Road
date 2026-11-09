@@ -58,11 +58,10 @@ class NodeNameTest {
     }
 
     @Test
-    void rejectionNamesTheKeyAndTheRule() {
+    void rejectionNamesTheVariableAndTheRule() {
         assertThatThrownBy(() -> NodeName.resolve("-bad"))
                 .isInstanceOf(InvalidNodeNameException.class)
-                .hasMessageContaining("xroad.admin-service.ha-node-name")
-                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
-                .hasMessageContaining("YAML");
+                .hasMessageContaining("XROAD_NODE_NAME")
+                .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
     }
 }

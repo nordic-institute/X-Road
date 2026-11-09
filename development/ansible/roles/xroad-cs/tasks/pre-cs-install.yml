@@ -41,17 +41,17 @@
                 reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
-# 3. HA node name. Per-node identity read by the admin service from local.yaml;
+# 3. HA node name. Per-node identity read from node.ini by the launcher script;
 #    it has to exist before the first start of xroad-center.
 # ---------------------------------------------------------------------------
-- name: write the HA node name to local.yaml
-  copy:
-    dest: /etc/xroad/conf.d/local.yaml
+- name: write the HA node name to node.ini
+  ini_file:
+    path: /etc/xroad/conf.d/node.ini
+    section: node
+    option: name
+    value: "{{ xroad_cs_ha_node_name }}"
+    create: true
     owner: xroad
     group: xroad
     mode: "0640"
-    content: |
-      xroad:
-        admin-service:
-          ha-node-name: {{ xroad_cs_ha_node_name }}
   when: xroad_cs_ha_node_name | length > 0

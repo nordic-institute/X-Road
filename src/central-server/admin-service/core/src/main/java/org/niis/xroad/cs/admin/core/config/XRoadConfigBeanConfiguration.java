@@ -36,7 +36,7 @@ import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKey
 import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
-import org.niis.xroad.common.properties.spring.SpringNodeNameProvider;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,7 +71,7 @@ public class XRoadConfigBeanConfiguration {
                 .register(DataspaceConfigKeys.instance())
                 .overrides(overrides.values())
                 .deploymentMode(deploymentMode)
-                .dbOverrides(appName, SpringNodeNameProvider.forEnvironment(environment))
+                .dbOverrides(appName, NodeNameProvider.fromEnvironment())
                 .build();
     }
 

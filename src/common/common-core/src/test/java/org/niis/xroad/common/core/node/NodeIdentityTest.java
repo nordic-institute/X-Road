@@ -50,7 +50,7 @@ class NodeIdentityTest {
         assertThatThrownBy(() -> NodeIdentity.resolve("-bad"))
                 .isInstanceOfSatisfying(XrdRuntimeException.class,
                         e -> assertThat(e.getCode()).isEqualTo(ErrorCode.INVALID_PROPERTY_VALUE.code()))
-                .hasMessageContaining("xroad.admin-service.ha-node-name")
+                .hasMessageContaining("XROAD_NODE_NAME")
                 .hasMessageContaining("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
                 .hasCauseInstanceOf(InvalidNodeNameException.class);
     }

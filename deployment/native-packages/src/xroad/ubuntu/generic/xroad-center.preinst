@@ -12,7 +12,7 @@ if [ "$1" = "upgrade" ]; then
 fi
 
 check_configured_node_name() {
-  read_local_yaml_node_name >/dev/null || exit 1
+  read_node_ini_node_name >/dev/null || exit 1
 }
 
 if [ "$1" = "install" ] || [ "$1" = "upgrade" ]; then

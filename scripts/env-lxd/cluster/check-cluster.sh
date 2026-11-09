@@ -312,12 +312,12 @@ for node in $nodes; do
     fail "$node database host is '$configured_host', expected the write address $db_host"
   fi
 
-  configured_name=$(host_exec "$node" /usr/share/xroad/scripts/yaml_helper.sh get /etc/xroad/conf.d/local.yaml xroad.admin-service.ha-node-name 2>/dev/null)
+  configured_name=$(host_exec "$node" crudini --get /etc/xroad/conf.d/node.ini node name 2>/dev/null)
   node_names+=("$configured_name")
   if [[ -n "$expected_name" && "$configured_name" == "$expected_name" ]]; then
-    pass "$node local.yaml carries HA node name $configured_name"
+    pass "$node node.ini carries HA node name $configured_name"
   else
-    fail "$node local.yaml carries HA node name '$configured_name', expected '$expected_name'"
+    fail "$node node.ini carries HA node name '$configured_name', expected '$expected_name'"
   fi
 
   if [[ "$stop_expected" == "True" || "$stop_expected" == "true" ]]; then

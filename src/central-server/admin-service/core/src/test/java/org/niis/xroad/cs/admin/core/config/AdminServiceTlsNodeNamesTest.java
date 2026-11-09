@@ -122,10 +122,10 @@ class AdminServiceTlsNodeNamesTest {
                 Duration.ofHours(72), "management-role", "management-pki");
     }
 
-    private static AdminServiceTlsProperties tlsProperties(String nodeName) {
+    private AdminServiceTlsProperties tlsProperties(String nodeName) {
+        variables.set("XROAD_NODE_NAME", nodeName);
         var environment = new MockEnvironment()
-                .withProperty("spring.application.name", "admin-service")
-                .withProperty("xroad.admin-service.ha-node-name", nodeName);
+                .withProperty("spring.application.name", "admin-service");
         var configuration = new XRoadConfigBeanConfiguration();
         return configuration.adminServiceTlsProperties(
                 configuration.xRoadConfig("admin-service", environment, XRoadConfigOverrides.none()));

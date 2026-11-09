@@ -68,6 +68,7 @@ public class LegacyConfigMigrationCLI {
         ACME_ACCOUNT_KEYS("acme-account-keys", "Migrate ACME account key pairs from P12 keystore to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
+        NODE_NAME("node-name", "Carry the X-Road 7 Central Server node name into node.ini"),
         SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
         CONFIGURATION_ANCHOR("configuration-anchor", "Migrate configuration anchor file to DB"),
         FILE_TO_DB("file-to-db", "Migrate file contents into a single DB property"),
@@ -94,6 +95,7 @@ public class LegacyConfigMigrationCLI {
                 case "acme-account-keys" -> ACME_ACCOUNT_KEYS;
                 case "keyconf" -> KEYCONF;
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
+                case "node-name" -> NODE_NAME;
                 case "signer-devices" -> SIGNER_DEVICES;
                 case "configuration-anchor" -> CONFIGURATION_ANCHOR;
                 case "file-to-db" -> FILE_TO_DB;
@@ -132,6 +134,7 @@ public class LegacyConfigMigrationCLI {
                     NodeOption nodeOption = NodeOption.extract(shiftArgs(args));
                     migrateSignerTokenPins(nodeOption.remainingArgs().toArray(new String[0]), nodeOption.nodeIdentity());
                 }
+                case NODE_NAME -> migrateNodeName(shiftArgs(args));
                 case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
                 case CONFIGURATION_ANCHOR -> migrateConfigurationAnchor(shiftArgs(args));
                 case FILE_TO_DB -> migrateFileToDb(shiftArgs(args));
@@ -163,7 +166,7 @@ public class LegacyConfigMigrationCLI {
 
                 Options:
                   --node <name>                  Cluster node the migrated data belongs to (default: node_0), used by
-                                                 signer-token-pins. Central Server: xroad.admin-service.ha-node-name.
+                                                 signer-token-pins. Central Server: the [node] name in node.ini.
 
                 Commands:
                   validate                       Check for probable migration issues
@@ -174,6 +177,7 @@ public class LegacyConfigMigrationCLI {
                   acme-account-keys              Migrate ACME account key pairs from P12 keystore to Vault
                   keyconf                        Migrate signer key configuration to DB
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
+                  node-name                      Carry the X-Road 7 Central Server node name into node.ini
                   signer-devices                 Migrate signer devices.ini to DB
                   configuration-anchor           Migrate configuration anchor file to DB
                   file-to-db                     Migrate file contents into a single DB property
@@ -234,6 +238,23 @@ public class LegacyConfigMigrationCLI {
                     Env vars:
                       XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required)
 
+                Node Name Migration:
+                  migration-cli node-name <local.ini> <node.ini>
+                    Copies the Central Server node name from [center] ha-node-name in the X-Road 7 local.ini
+                    to [node] name in node.ini. The file is created if absent; other keys are kept.
+                    Arguments:
+                      <local.ini>  Path to the X-Road 7 local.ini
+                      <node.ini>   Path to node.ini (/etc/xroad/conf.d/node.ini)
+                    Notes:
+                      - A blank or missing ha-node-name changes nothing
+                      - A name that breaks the node name rule stops the tool before any write
+                      - A different name already in node.ini stops the tool before any write
+                """);
+        showRemainingHelp();
+    }
+
+    private static void showRemainingHelp() {
+        System.out.println("""
                 Signer Devices Migration:
                   migration-cli signer-devices <devices.ini> <db.properties path>
                     Migrates signer devices configuration from devices.ini to the database.
@@ -295,6 +316,7 @@ public class LegacyConfigMigrationCLI {
                     migration-cli acme-account-keys /etc/xroad/ssl/acme.p12 /etc/xroad/db.properties
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
+                  migration-cli node-name /etc/xroad/conf.d/local.ini /etc/xroad/conf.d/node.ini
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
                   migration-cli file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme proxy-ui-api
                   migration-cli ini-to-db /etc/xroad/conf.d/local.ini /etc/xroad/db.properties
@@ -469,6 +491,21 @@ public class LegacyConfigMigrationCLI {
             log.error("Error while migrating Signer keyconf", e);
         }
 
+    }
+
+    private static void migrateNodeName(String[] args) {
+        if (args.length != 2) {
+            log.error("Node name migration requires 2 arguments");
+            log.error("Usage: migration-cli node-name <local.ini> <node.ini>");
+            log.error("  <local.ini>  Path to the X-Road 7 local.ini");
+            log.error("  <node.ini>   Path to node.ini");
+            System.exit(1);
+        }
+
+        validateFilePath(args[0], "local.ini");
+        validateFilePath(args[1], "node.ini");
+
+        NodeNameMigrator.migrate(Paths.get(args[0]), Paths.get(args[1]));
     }
 
     private static void migrateSignerDevices(String[] args) {

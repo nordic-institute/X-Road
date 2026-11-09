@@ -37,24 +37,15 @@ import java.util.stream.Stream;
  */
 final class NodeNameCases {
 
-    private static final List<String> YAML_WORDS = List.of("true", "false", "yes", "no", "on", "off", "null");
-
-    private static final List<String> YAML_NUMBERS =
-            List.of("0123", "0x1F", "0b101", "0o17", "1_0", "1e3", "2024-01-31");
-
     private static final List<Case> CASES = Stream.of(
-            Stream.of("node_1", "0", "A_b-c", "0abc", "1a", "0b2", "0o8", "x".repeat(63)).map(Case::pass),
+            Stream.of("node_1", "0", "01", "007", "true", "null", "0123", "1e3", "A_b-c", "0abc", "x".repeat(63))
+                    .map(Case::pass),
             Stream.of("", "\t", " ").map(Case::pass),
-            Stream.of("_node", "-node", "x".repeat(64), "node.1", "nodé", "node\n", " node_1 ").map(Case::fail),
-            YAML_WORDS.stream().flatMap(NodeNameCases::casings).map(Case::fail),
-            YAML_NUMBERS.stream().map(Case::fail)
+            Stream.of("_n", "-n", "x".repeat(64), "cs1.example.org", "node 1", "nodé", "node\n", " node_1 ")
+                    .map(Case::fail)
     ).flatMap(UnaryOperator.identity()).toList();
 
     private NodeNameCases() {
-    }
-
-    private static Stream<String> casings(String word) {
-        return Stream.of(word, Character.toUpperCase(word.charAt(0)) + word.substring(1), word.toUpperCase());
     }
 
     /**

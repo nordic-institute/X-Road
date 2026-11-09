@@ -45,6 +45,12 @@ public interface NodeNameProvider {
         return Optional::empty;
     }
 
+    /** @return a provider of the node name in the environment, see {@link NodeName#fromEnvironment()} */
+    static NodeNameProvider fromEnvironment() {
+        var name = NodeName.fromEnvironment().name();
+        return () -> Optional.of(name);
+    }
+
     /**
      * Applies the {@link NodeName} rule to the configured node name.
      * @param configuredName the configured node name, may be {@code null} or blank

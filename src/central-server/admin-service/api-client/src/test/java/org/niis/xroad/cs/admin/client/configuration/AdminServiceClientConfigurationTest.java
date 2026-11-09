@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.client.configuration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.spring.SpringVaultClient;
 import org.springframework.boot.LazyInitializationBeanFactoryPostProcessor;
@@ -34,13 +35,20 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
 import org.springframework.vault.core.VaultTemplate;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(SystemStubsExtension.class)
 class AdminServiceClientConfigurationTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     private final VaultKeyValueOperations kvOperations = mock(VaultKeyValueOperations.class);
     private final VaultTemplate vaultTemplate = mock(VaultTemplate.class);
@@ -60,7 +68,8 @@ class AdminServiceClientConfigurationTest {
 
     @Test
     void shouldReadAdminAndManagementTlsFromTheNodePaths() {
-        contextRunner.withPropertyValues("xroad.admin-service.ha-node-name=node_a").run(context -> {
+        variables.set("XROAD_NODE_NAME", "node_a");
+        contextRunner.run(context -> {
             var client = context.getBean(SpringVaultClient.class);
 
             assertThatThrownBy(client::getAdminServiceTlsCredentials).isInstanceOf(XrdRuntimeException.class);

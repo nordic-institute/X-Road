@@ -26,50 +26,34 @@
  */
 package org.niis.xroad.common.properties.dbsource;
 
-import java.util.Set;
+import org.niis.xroad.common.properties.NodeProperties;
+
 import java.util.regex.Pattern;
 
 /**
  * The one rule for the name of a cluster node. It decides which {@code configuration_properties} rows a process
  * loads and which secret paths it uses. An instance always holds a valid name.
  * <p>
- * The name comes from the configured value {@value #PROPERTY_KEY}, see {@link #resolve(String)}. The check
- * that rejects values YAML reads as a non-string sees the raw value only when it comes from the environment
- * variable. A value in {@code local.yaml} is converted by the YAML loader before it reaches Java, so for that
- * source the installer and the backup scripts check the file instead.
+ * The name comes from the environment variable {@value NodeProperties#NODE_NAME_ENV_VARIABLE}, see
+ * {@link #fromEnvironment()} and {@link #resolve(String)}.
  *
  * @param name       the validated node name
  * @param configured whether the operator set the name; {@code false} means {@code name} is the default
  */
 public record NodeName(String name, boolean configured) {
 
-    /** Configuration key that holds the node name of a Central Server node. */
-    public static final String PROPERTY_KEY = "xroad.admin-service.ha-node-name";
-
-    /** Node name used when {@link #PROPERTY_KEY} is blank or missing. */
+    /** Node name used when the environment variable is blank or missing. */
     public static final String DEFAULT_NODE_NAME = "node_0";
 
     private static final Pattern VALID_NAME = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$");
 
-    private static final Set<String> YAML_NON_STRING_WORDS = Set.of(
-            "true", "True", "TRUE", "false", "False", "FALSE",
-            "yes", "Yes", "YES", "no", "No", "NO",
-            "on", "On", "ON", "off", "Off", "OFF",
-            "null", "Null", "NULL");
-
-    private static final Pattern YAML_NON_STRING_NUMBER = Pattern.compile(
-            "^(?:0[\\d_]+|0[xX][0-9A-Fa-f_]+|0[bB][01_]+|0[oO][0-7_]+|\\d+_[\\d_]*|\\d[\\d_]*[eE]-?\\d+"
-                    + "|\\d{4}-\\d{2}-\\d{2})$");
-
-    private static final String RULE = "must match " + VALID_NAME.pattern()
-            + " and must not be a value that YAML reads as a non-string, such as true, on, yes, null, 0123, 1_0 or 1e3";
+    /** The rule as a clause that completes the sentence "the name ...", for messages that name their own source. */
+    public static final String RULE = "must match " + VALID_NAME.pattern();
 
     public NodeName {
-        if (name == null || !VALID_NAME.matcher(name).matches()
-                || YAML_NON_STRING_WORDS.contains(name)
-                || YAML_NON_STRING_NUMBER.matcher(name).matches()) {
-            throw new InvalidNodeNameException(
-                    "Invalid node name '%s' in %s: it %s".formatted(name, PROPERTY_KEY, RULE));
+        if (name == null || !VALID_NAME.matcher(name).matches()) {
+            throw new InvalidNodeNameException("Invalid node name '%s' in %s: it %s"
+                    .formatted(name, NodeProperties.NODE_NAME_ENV_VARIABLE, RULE));
         }
     }
 
@@ -85,5 +69,16 @@ public record NodeName(String name, boolean configured) {
             return new NodeName(DEFAULT_NODE_NAME, false);
         }
         return new NodeName(configuredValue, true);
+    }
+
+    /**
+     * The node name of this process, read from {@value NodeProperties#NODE_NAME_ENV_VARIABLE}.
+     *
+     * @return the node name, {@link #DEFAULT_NODE_NAME} with {@code configured = false} when the variable is blank
+     * or unset
+     * @throws InvalidNodeNameException if the value breaks the node name rule
+     */
+    public static NodeName fromEnvironment() {
+        return resolve(NodeProperties.getConfiguredNodeName());
     }
 }
