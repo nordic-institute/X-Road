@@ -61,8 +61,12 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
     /** {@code GeneralName} tag for a DNS subject alternative name entry (RFC 5280). */
     private static final int GENERAL_NAME_DNS = 2;
 
-    /** The provisioning run makes this many sequential gRPC calls, each bounded by the RPC deadline. */
-    private static final int PROVISIONING_RPC_CALLS = 3;
+    /**
+     * The provisioning run makes this many sequential gRPC calls, each bounded by the RPC deadline:
+     * the initial "can sign" check, creating the participant context, the two definition calls, and
+     * the final "can sign" check before binding.
+     */
+    private static final int PROVISIONING_RPC_CALLS = 5;
 
     /** Extra headroom on top of the worst-case RPC time, included in the lease TTL. */
     private static final Duration LEASE_TTL_MARGIN = Duration.ofSeconds(30);

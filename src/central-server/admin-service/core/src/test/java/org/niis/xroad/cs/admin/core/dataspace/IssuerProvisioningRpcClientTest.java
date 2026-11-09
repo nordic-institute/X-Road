@@ -80,6 +80,7 @@ class IssuerProvisioningRpcClientTest {
 
     private final AtomicReference<CreateParticipantContextReq> capturedCreateParticipantContextReq = new AtomicReference<>();
     private ErrorCode configuredCreateParticipantContextError;
+    private String configuredCreateParticipantContextRawErrorCode;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -110,6 +111,16 @@ class IssuerProvisioningRpcClientTest {
             public void createParticipantContext(CreateParticipantContextReq request,
                                                  StreamObserver<CreateParticipantContextResp> responseObserver) {
                 capturedCreateParticipantContextReq.set(request);
+                if (configuredCreateParticipantContextRawErrorCode != null) {
+                    responseObserver.onError(StatusProto.toStatusRuntimeException(
+                            com.google.rpc.Status.newBuilder()
+                                    .setCode(io.grpc.Status.Code.INTERNAL.value())
+                                    .addDetails(Any.pack(XrdRuntimeExceptionProto.newBuilder()
+                                            .setErrorCode(configuredCreateParticipantContextRawErrorCode)
+                                            .build()))
+                                    .build()));
+                    return;
+                }
                 if (configuredCreateParticipantContextError != null) {
                     responseObserver.onError(StatusProto.toStatusRuntimeException(
                             com.google.rpc.Status.newBuilder()
@@ -230,6 +241,18 @@ class IssuerProvisioningRpcClientTest {
     @Test
     void createParticipantContextSwallowsAConflictFromTheIssuer() {
         configuredCreateParticipantContextError = ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT;
+
+        client.createParticipantContext("ctx-id", "did:web:issuer.example.com", "https://issuer.example.com",
+                "key-id", "key-alias");
+
+        var req = capturedCreateParticipantContextReq.get();
+        assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
+        assertThat(req.getDid()).isEqualTo("did:web:issuer.example.com");
+    }
+
+    @Test
+    void createParticipantContextSwallowsAConflictSentWithItsOriginPrefix() {
+        configuredCreateParticipantContextRawErrorCode = "dataspace." + ErrorCode.DSP_PARTICIPANT_CONTEXT_CONFLICT.code();
 
         client.createParticipantContext("ctx-id", "did:web:issuer.example.com", "https://issuer.example.com",
                 "key-id", "key-alias");
