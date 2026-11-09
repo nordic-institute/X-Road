@@ -2,7 +2,7 @@
 
 # User Guide
 
-Version: 0.9  
+Version: 0.10  
 Doc ID: UG-OPMONSYSPAR
 
 | Date       | Version | Description                                                                                                             | Author             |
@@ -15,6 +15,7 @@ Doc ID: UG-OPMONSYSPAR
 | 10.07.2025 | 0.7     | Added grpc related properties                                                                                           | Mikk-Erik Bachmann |
 | 19.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
 | 06.11.2026 | 0.9     | Added trust settings of the operational monitoring connection                                                           | Eneli Reimets      |
+| 10.11.2026 | 0.10    | Added the parameters of the file-based TLS identity of an external operational monitoring daemon                        | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -52,12 +53,14 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 This chapter describes the system parameters used by the X-Road 8 operational monitoring system. The parameters are configuration properties whose names start with `xroad.`. Change a value in the System Parameters view of the Security Server user interface or with the script `/usr/share/xroad/scripts/db_property.sh`. A changed value takes effect when the services that use it are restarted. Managing the system services is explained in \[[UG-SS](#UG-SS)\].
 
-* To change the parameters `xroad.op-monitor.*`, the service *xroad-opmonitor* must be restarted.
+* To change the parameters `xroad.op-monitor.*`, the service *xroad-opmonitor* must be restarted. This includes the identity parameters `xroad.op-monitor.rpc.identity-source` and `xroad.op-monitor.rpc.file-identity.*`, which are for an external operational monitoring daemon host. The identity parameters are not shown in the System Parameters view. They are described in section 15.2.8 of \[[UG-SS](#UG-SS)\].
 * To change the parameters `xroad.common-rpc.channel.op-monitor.*`, the services *xroad-proxy* and *xroad-proxy-ui-api* must be restarted. Both services connect to the operational monitoring daemon.
 * To change the parameters `xroad.proxy.addon.op-monitor.*`, the service *xroad-proxy* must be restarted.
 * The parameter `xroad.common-rpc.use-tls` is for testing only. It is described in section 4.1.1.1 of \[[UG-SYSPAR](#UG-SYSPAR)\], including the services to restart after a change.
 
 The security server and the operational monitoring daemon communicate over gRPC on port 2081 by default. Operational data is stored and queried over this connection.
+
+The parameter `xroad.op-monitor.rpc.port` is the port on which the daemon listens. The parameter `xroad.common-rpc.channel.op-monitor.port` is the port to which *xroad-proxy* and *xroad-proxy-ui-api* connect. Both must have the same value.
 
 The parameter `xroad.common-rpc.channel.op-monitor.deadline-after` is the time in milliseconds a call of the security server to the operational monitoring daemon may take. The channel waits for the daemon to become ready, so a query to a stopped or unreachable daemon fails only when this time has passed. The parameter replaces the HTTP client timeouts of earlier versions.
 
@@ -83,6 +86,10 @@ The parameter `xroad.proxy.addon.op-monitor.buffer.max-message-size` must be low
 | op-monitor | `xroad.op-monitor.rpc.port` | 2081 | The TCP port on which the gRPC server of the operational monitoring daemon listens. |
 | op-monitor | `xroad.op-monitor.rpc.max-inbound-message-size` | not set (gRPC default, 4 MiB) | Maximum size in bytes of a request the gRPC server of the operational monitoring daemon accepts, for example a batch of stored operational data records. The minimum is 65536. |
 | op-monitor | `xroad.op-monitor.rpc.allowed-client-names` | empty (any client with a certificate from the Security Server CA) | Comma-separated client names the gRPC server of the operational monitoring daemon accepts when `xroad.common-rpc.use-tls` is enabled. A client is accepted when the CN or a DNS SAN of its certificate equals an entry. Matching is exact and case-insensitive. IP SANs are never matched. Wildcards are not supported: an entry that contains `*` (for example `*` or `*.example.org`) is invalid and prevents the operational monitoring daemon from starting, and so does an empty entry (for example `proxy,,ui`). With an empty list, any component with a certificate from the Security Server RPC CA can connect. The list does not protect against a compromised component. It is read once, when the daemon starts. In package installations and the Security Server Sidecar, leave the list empty: every component presents the same name, `localhost`, so the list cannot tell the components apart. An external daemon host has no list. |
+| op-monitor | `xroad.op-monitor.rpc.identity-source` | openbao | Where the operational monitoring daemon gets its TLS identity: *openbao* (the secret store of its host) or *file* (the files named by the three parameters below). The value is case-insensitive. Any other value stops the daemon at startup; the error names the parameter. Use *file* only on an external operational monitoring daemon host. In file mode, op-monitor does not use or connect to OpenBao for its TLS identity. |
+| op-monitor | `xroad.op-monitor.rpc.file-identity.private-key-path` | empty | Path of the unencrypted PKCS#8 private key file of the daemon. Required when `xroad.op-monitor.rpc.identity-source` is *file*. |
+| op-monitor | `xroad.op-monitor.rpc.file-identity.certificate-path` | empty | Path of the certificate file of the daemon. The first certificate must match the private key. Required when `xroad.op-monitor.rpc.identity-source` is *file*. |
+| op-monitor | `xroad.op-monitor.rpc.file-identity.trusted-ca-path` | empty | Path of the file with the Security Server RPC CA. The file must hold exactly one CA certificate. Required when `xroad.op-monitor.rpc.identity-source` is *file*. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.host` | 127.0.0.1 | The host name or address used to connect to the gRPC server of the operational monitoring daemon. In the container deployment the default is *op-monitor*. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.port` | 2081 | The port used to connect to the gRPC server of the operational monitoring daemon. |
 | op-monitor channel | `xroad.common-rpc.channel.op-monitor.deadline-after` | 60000 | Milliseconds before a gRPC call to the operational monitoring daemon times out. The channel waits for the daemon to become ready within this time. |
