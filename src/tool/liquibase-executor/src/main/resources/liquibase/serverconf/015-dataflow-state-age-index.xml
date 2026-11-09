@@ -5,9 +5,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
-    logicalFilePath="serverconf/014-dataflow-state-age-index.xml">
+    logicalFilePath="serverconf/015-dataflow-state-age-index.xml">
 
-    <changeSet author="niis" id="014-dataflow-state-age-index">
+    <changeSet author="niis" id="015-dataflow-state-age-index">
         <createIndex indexName="idx_dataflow_state_state_updated_at" tableName="dataflow_state">
             <column name="state"/>
             <column name="updated_at"/>

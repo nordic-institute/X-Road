@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class DataFlowStateAgeIndexMigrationTest {
 
     private static final String INDEX = "idx_dataflow_state_state_updated_at";
-    private static final String INDEX_CHANGESET = "014-dataflow-state-age-index";
+    private static final String INDEX_CHANGESET = "015-dataflow-state-age-index";
 
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
