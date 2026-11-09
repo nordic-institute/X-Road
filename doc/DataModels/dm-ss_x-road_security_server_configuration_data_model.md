@@ -507,6 +507,8 @@ On the first `prepare` or `start` signal, one row is created. The flow's process
 * `TERMINATED` and `COMPLETED` rows once they have not been updated for the configured age (`xroad.dsp-record-cleaner.age`, default `PT6H`, must exceed `PT1H10M`). Until then the state of a finished flow remains available for debugging through the flow-state endpoint.
 * Rows in any state once they have not been updated for the configured upper age limit (`xroad.dsp-record-cleaner.max-age`, default `P7D`). The upper age limit must be positive and exceed the age. It removes rows whose flow never received a final signal, and a row recreated by a start signal that arrived after the row of a finished flow was deleted.
 
+The proxy and the control plane must run in the same time zone, because `updated_at` is a timestamp without time zone written by the proxy. If they differ, a finished row can be deleted earlier than the age, by up to the time-zone difference. A late start signal can then recreate the row, and the upper age limit removes it.
+
 #### 2.19.1 Indexes
 
 | Name                                  | Columns |

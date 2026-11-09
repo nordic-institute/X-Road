@@ -76,6 +76,7 @@ public class DspRecordCleaner {
 
     static final int PAGE_SIZE = 500;
     private static final String STATE_TIMESTAMP = "stateTimestamp";
+    private static final String STATE = "state";
     private static final String TERMINATION_REASON = "Abandoned transfer closed by the DSP record cleaner";
 
     private final TransferProcessStore transferProcessStore;
@@ -188,7 +189,7 @@ public class DspRecordCleaner {
     private int terminateStuckTransfers(long cutoff) {
         var stuckIds = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
                         .filter(List.of(
-                                criterion("state", "<", TransferProcessStates.COMPLETED.code()),
+                                criterion(STATE, "<", TransferProcessStates.COMPLETED.code()),
                                 criterion(STATE_TIMESTAMP, "<", cutoff)))
                         .offset(offset)
                         .limit(PAGE_SIZE)
@@ -222,7 +223,7 @@ public class DspRecordCleaner {
     private int deleteFinishedTransfers(long cutoff) {
         var finishedIds = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
                         .filter(List.of(
-                                criterion("state", "in",
+                                criterion(STATE, "in",
                                         List.of(TransferProcessStates.COMPLETED.code(), TransferProcessStates.TERMINATED.code())),
                                 criterion(STATE_TIMESTAMP, "<", cutoff)))
                         .offset(offset)
@@ -237,7 +238,7 @@ public class DspRecordCleaner {
     private int deleteAbandonedResumedTransfers(long maxCutoff) {
         var resumed = readAll(offset -> transferProcessStore.findAll(QuerySpec.Builder.newInstance()
                 .filter(List.of(
-                        criterion("state", "=", TransferProcessStates.RESUMED.code()),
+                        criterion(STATE, "=", TransferProcessStates.RESUMED.code()),
                         criterion(STATE_TIMESTAMP, "<", maxCutoff)))
                 .offset(offset)
                 .limit(PAGE_SIZE)

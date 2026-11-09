@@ -70,7 +70,8 @@ public class DspRecordCleanerExtension implements ServiceExtension {
     @Setting(key = "xroad.dsp-record-cleaner.age",
             description = "How old DSP records must be before the cleaner closes or deletes them, in ISO-8601 "
                     + "duration format. Must exceed PT1H10M, the policy monitor period plus the data-plane signal retry "
-                    + "window, and stay below xroad.dsp-record-cleaner.max-age.",
+                    + "window, and stay below xroad.dsp-record-cleaner.max-age. The proxy and the control plane must run "
+                    + "in the same time zone: the age is measured against a timestamp without time zone written by the proxy.",
             defaultValue = "PT6H")
     private Duration age;
 
