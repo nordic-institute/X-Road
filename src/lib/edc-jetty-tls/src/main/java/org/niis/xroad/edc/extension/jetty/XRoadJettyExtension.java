@@ -58,6 +58,10 @@ import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
  * {@code xroad.edc.boot.excluded-service-extensions}; the {@code jetty-core} artifact carrying it is also
  * excluded from the runtime classpath entirely (see the {@code xroad.edc-owned-jetty-conventions} Gradle
  * convention), so both layers agree on which module serves HTTPS.
+ *
+ * <p>Supplies the {@link XRoadJettyService} with the bind host of every registered context, read from
+ * {@code web.http.<context>.host} next to that context's existing port and path settings. The
+ * {@value XRoadJettyService#DEFAULT_CONTEXT_NAME} context never consults it, per {@link XRoadJettyService}.
  */
 @Extension(NAME)
 @Provides({WebServer.class, XRoadJettyService.class})
@@ -65,12 +69,13 @@ public class XRoadJettyExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Jetty Service";
 
-    private static final String DEFAULT_CONTEXT_NAME = "default";
+    private static final String DEFAULT_CONTEXT_NAME = XRoadJettyService.DEFAULT_CONTEXT_NAME;
     private static final String DEFAULT_PATH = "/api";
     private static final int DEFAULT_PORT = 8181;
     private static final String KEYSTORE_MATERIAL_NAME = "ds-https-keystore";
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
+    private static final String HOST_SETTING_SUFFIX = ".host";
 
     @Setting(key = "web.http.port", description = "Port for " + DEFAULT_CONTEXT_NAME + " api context", defaultValue = DEFAULT_PORT + "")
     private int defaultPort;
@@ -123,7 +128,8 @@ public class XRoadJettyExtension implements ServiceExtension {
         monitor = context.getMonitor();
         portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, defaultPort, defaultPath));
 
-        jettyService = new XRoadJettyService(monitor, portMappingRegistry);
+        jettyService = new XRoadJettyService(monitor, portMappingRegistry,
+                contextName -> context.getSetting("web.http." + contextName + HOST_SETTING_SUFFIX, null));
         context.registerService(WebServer.class, jettyService);
         context.registerService(XRoadJettyService.class, jettyService);
         healthCheckService.addReadinessProvider(new ConnectorTlsReadinessProvider(jettyService));
