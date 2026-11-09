@@ -36,6 +36,7 @@ import org.niis.xroad.common.rpc.test.PemFiles;
 import org.niis.xroad.common.rpc.test.TestCa;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +52,9 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +99,7 @@ class GenerateOpMonitorRpcIdentityScriptTest {
     void setUp() {
         assumeTrue(opensslAvailable(), "openssl is not installed");
         assumeTrue(!isRoot() || serverUserExists(), "running as root needs the xroad user");
-        dir = workDir.resolve("opmonitor-rpc");
+        dir = workDir.resolve("ssl");
     }
 
     @Test
@@ -190,6 +193,176 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         assertThat(Files.getOwner(dir.resolve("ca.key")).getName()).isEqualTo("root");
         assertThat(Files.getOwner(dir.resolve("ca.crt")).getName()).isEqualTo("root");
         assertThat(Files.getOwner(dir.resolve("server.key")).getName()).isEqualTo("xroad");
+    }
+
+    @Test
+    void rerunKeepingTheCaRestoresTheCaModesAndLeavesTheCaBytesUnchanged() throws Exception {
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+        var before = snapshot();
+        Files.setPosixFilePermissions(dir.resolve("ca.key"), PosixFilePermissions.fromString("rw-r-----"));
+        Files.setPosixFilePermissions(dir.resolve("ca.crt"), PosixFilePermissions.fromString("rw-------"));
+
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+
+        assertThat(mode("ca.key")).isEqualTo("r--------");
+        assertThat(mode("ca.crt")).isEqualTo("rw-r--r--");
+        assertThat(read("ca.key")).isEqualTo(before.get("ca.key"));
+        assertThat(read("ca.crt")).isEqualTo(before.get("ca.crt"));
+    }
+
+    @Test
+    void rerunKeepingTheCaRestoresRootOwnershipOfTheCaFilesAndTheDirectoryModeWhenRunAsRoot() throws Exception {
+        assumeTrue(isRoot(), "ownership can be checked only as root");
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+        var xroad = dir.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("xroad");
+        Files.setOwner(dir.resolve("ca.key"), xroad);
+        Files.setOwner(dir.resolve("ca.crt"), xroad);
+        Files.setPosixFilePermissions(dir, PosixFilePermissions.fromString("rwx------"));
+
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+
+        assertThat(Files.getOwner(dir.resolve("ca.key")).getName()).isEqualTo("root");
+        assertThat(Files.getOwner(dir.resolve("ca.crt")).getName()).isEqualTo("root");
+        assertThat(Files.getOwner(dir).getName()).isEqualTo("root");
+        assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(dir))).isEqualTo("rwxr-xr-x");
+        assertThat(Files.getOwner(dir.resolve("server.key")).getName()).isEqualTo("xroad");
+    }
+
+    @Test
+    void outputDirectoryOwnedByXroadIsRefusedAndNothingIsChangedWhenRunAsRoot() throws Exception {
+        assumeTrue(isRoot(), "ownership can be checked only as root");
+        Files.createDirectory(dir);
+        handOverToXroadWhenRoot(dir);
+
+        var result = run(DNS_NAME);
+
+        assertThat(result.exitCode()).isNotZero();
+        assertThat(result.output()).contains("not controlled by root");
+        assertThat(Files.getOwner(dir).getName()).isEqualTo("xroad");
+        assertThat(listing()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"rwxrwxr-x", "rwxr-xrwx"})
+    void outputDirectoryWritableByGroupOrOthersIsRefusedAndNothingIsChangedWhenRunAsRoot(String permissions) throws Exception {
+        assumeTrue(isRoot(), "ownership can be checked only as root");
+        Files.createDirectory(dir);
+        Files.setPosixFilePermissions(dir, PosixFilePermissions.fromString(permissions));
+
+        var result = run(DNS_NAME);
+
+        assertThat(result.exitCode()).isNotZero();
+        assertThat(result.output()).contains("not controlled by root");
+        assertThat(listing()).isEmpty();
+        assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(dir))).isEqualTo(permissions);
+    }
+
+    @Test
+    void rerunWithoutCaKeyIsRefusedAndChangesNothingUntilTheKeyIsRestored() throws Exception {
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+        var before = snapshot();
+        Files.delete(dir.resolve("ca.key"));
+        var listingBefore = listing().stream().sorted().toList();
+
+        var refused = run(DNS_NAME);
+
+        assertThat(refused.exitCode()).isNotZero();
+        assertThat(refused.output()).contains("only one of ca.crt and ca.key");
+        assertThat(listing().stream().sorted().toList()).isEqualTo(listingBefore);
+        assertThat(read("ca.crt")).isEqualTo(before.get("ca.crt"));
+        assertThat(read("server.key")).isEqualTo(before.get("server.key"));
+        assertThat(read("server.crt")).isEqualTo(before.get("server.crt"));
+
+        Files.writeString(dir.resolve("ca.key"), before.get("ca.key"));
+        Files.setPosixFilePermissions(dir.resolve("ca.key"), PosixFilePermissions.fromString("rw-r-----"));
+
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+
+        assertThat(read("ca.key")).isEqualTo(before.get("ca.key"));
+        assertThat(read("ca.crt")).isEqualTo(before.get("ca.crt"));
+        assertThat(read("server.key")).isNotEqualTo(before.get("server.key"));
+        assertThat(mode("ca.key")).isEqualTo("r--------");
+    }
+
+    @Test
+    void forceNewCaAfterTheCaKeyIsLostCreatesANewCaAndAServerIdentityThatOnlyTheNewCaVerifies() throws Exception {
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+        var before = snapshot();
+        Files.delete(dir.resolve("ca.key"));
+
+        assertThat(run("--force-new-ca", DNS_NAME).exitCode()).isZero();
+
+        assertThat(listing()).containsExactlyInAnyOrderElementsOf(OUTPUT_FILES);
+        var after = snapshot();
+        assertThat(after.get("ca.crt")).isNotEqualTo(before.get("ca.crt"));
+        assertThat(after.get("ca.key")).isNotEqualTo(before.get("ca.key"));
+        assertThat(after.get("server.key")).isNotEqualTo(before.get("server.key"));
+        assertThat(after.get("server.crt")).isNotEqualTo(before.get("server.crt"));
+        var server = certificate("server.crt");
+        assertThatCode(() -> server.verify(certificate("ca.crt").getPublicKey())).doesNotThrowAnyException();
+        assertThatThrownBy(() -> server.verify(parseCertificate(before.get("ca.crt")).getPublicKey()))
+                .isInstanceOf(GeneralSecurityException.class);
+    }
+
+    @Test
+    void missingParentDirectoriesAreCreatedAndRemovedAgainWhenTheRunFails() throws Exception {
+        var nested = workDir.resolve("created").resolve("ssl");
+        assertThat(run(nested, Map.of(), DNS_NAME).exitCode()).isZero();
+        assertThat(nested.resolve("server.key")).exists();
+
+        var failing = workDir.resolve("failed").resolve("ssl");
+        var bin = Files.createDirectory(workDir.resolve("bin"));
+        Files.writeString(bin.resolve("openssl"), "#!/bin/sh\nexit 1\n");
+        Files.setPosixFilePermissions(bin.resolve("openssl"), PosixFilePermissions.fromString("rwx------"));
+        var path = bin + File.pathSeparator + System.getenv("PATH");
+
+        assertThat(run(failing, Map.of("PATH", path), DNS_NAME).exitCode()).isNotZero();
+
+        assertThat(workDir.resolve("failed")).doesNotExist();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "--force-new-ca"})
+    void symlinkedOutputDirectoryIsRefusedAndTheTargetIsLeftUntouched(String option) throws Exception {
+        var target = Files.createDirectory(workDir.resolve("elsewhere"));
+        Files.setPosixFilePermissions(target, PosixFilePermissions.fromString("rwx------"));
+        Files.writeString(target.resolve("keep.txt"), "keep");
+        handOverToXroadWhenRoot(target);
+        Files.createSymbolicLink(dir, target);
+        var before = fileState(target);
+
+        var result = runWithOption(option);
+
+        assertThat(result.exitCode()).isNotZero();
+        assertThat(result.output()).contains("symbolic link");
+        assertThat(Files.isSymbolicLink(dir)).isTrue();
+        assertThat(fileState(target)).isEqualTo(before);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ca.crt", "ca.key"})
+    void symlinkedCaFileIsRefusedAndTheTargetAndTheOtherFilesAreLeftUntouched(String caFile) throws Exception {
+        assertThat(run(DNS_NAME).exitCode()).isZero();
+        var target = workDir.resolve("outside-" + caFile);
+        Files.move(dir.resolve(caFile), target);
+        Files.setPosixFilePermissions(target, PosixFilePermissions.fromString("rw-r-----"));
+        handOverToXroadWhenRoot(target);
+        Files.createSymbolicLink(dir.resolve(caFile), target);
+        var targetBefore = fileState(target);
+        var snapshotBefore = snapshot();
+        var listingBefore = listing().stream().sorted().toList();
+
+        for (var option : List.of("", "--force-new-ca")) {
+            var result = runWithOption(option);
+
+            assertThat(result.exitCode()).isNotZero();
+            assertThat(result.output()).contains("symbolic link");
+        }
+
+        assertThat(Files.isSymbolicLink(dir.resolve(caFile))).isTrue();
+        assertThat(fileState(target)).isEqualTo(targetBefore);
+        assertThat(snapshot()).isEqualTo(snapshotBefore);
+        assertThat(listing().stream().sorted().toList()).isEqualTo(listingBefore);
     }
 
     @Test
@@ -356,8 +529,39 @@ class GenerateOpMonitorRpcIdentityScriptTest {
     }
 
     private Result run(String... args) {
+        return run(dir, Map.of(), args);
+    }
+
+    private Result run(Path outputDir, Map<String, String> extraEnvironment, String... args) {
         var command = Stream.concat(Stream.of("bash", SCRIPT.toString()), Stream.of(args)).toList();
-        return execute(PROCESS_TIMEOUT, command, Map.of(DIR_VARIABLE, dir.toString()));
+        var environment = new HashMap<>(extraEnvironment);
+        environment.put(DIR_VARIABLE, outputDir.toString());
+        return execute(PROCESS_TIMEOUT, command, environment);
+    }
+
+    private Result runWithOption(String option) {
+        return option.isEmpty() ? run(DNS_NAME) : run(option, DNS_NAME);
+    }
+
+    private void handOverToXroadWhenRoot(Path path) throws IOException {
+        if (isRoot()) {
+            var xroad = path.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName("xroad");
+            Files.setOwner(path, xroad);
+        }
+    }
+
+    private static List<String> fileState(Path path) throws IOException {
+        var state = new ArrayList<String>();
+        state.add(Files.getOwner(path).getName());
+        state.add(PosixFilePermissions.toString(Files.getPosixFilePermissions(path)));
+        if (Files.isDirectory(path)) {
+            try (var files = Files.list(path)) {
+                files.map(p -> p.getFileName().toString()).sorted().forEach(state::add);
+            }
+        } else {
+            state.add(Files.readString(path));
+        }
+        return state;
     }
 
     private Result execute(Duration timeout, List<String> command, Map<String, String> environment) {

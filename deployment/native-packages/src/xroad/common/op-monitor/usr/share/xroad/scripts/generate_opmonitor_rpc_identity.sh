@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-DEFAULT_DIR=/etc/xroad/ssl/opmonitor-rpc
+DEFAULT_PARENT=/etc/xroad-opmonitor
+DEFAULT_DIR=$DEFAULT_PARENT/ssl
 DIR=${XROAD_OPMONITOR_IDENTITY_DIR:-$DEFAULT_DIR}
 SERVER_USER=xroad
 DEFAULT_DAYS=3650
@@ -20,7 +21,13 @@ Creates the op-monitor RPC identity in $DEFAULT_DIR:
   server.key  server private key, unencrypted PKCS#8 (readable by $SERVER_USER only)
   server.crt  server certificate signed by the CA (public)
 
-A rerun keeps the CA and replaces the server key and certificate.
+Run as root. The tool creates $DEFAULT_DIR when it is missing and refuses to run when a directory on its
+path is not owned by root or is writable by group or others. $DEFAULT_PARENT and the ssl directory are left
+owned by root with mode 0755.
+
+A rerun keeps the CA and replaces the server key and certificate. Renewing the server certificate under the
+existing CA requires ca.key. If ca.key is unavailable, use --force-new-ca to create a new CA, then import the new
+ca.crt into the Security Server.
 
 OPTIONS:
   --days <n>       server certificate validity in days, default $DEFAULT_DAYS
@@ -182,8 +189,44 @@ elif [[ -z ${XROAD_OPMONITOR_IDENTITY_DIR:-} ]]; then
   die "must be run as root"
 fi
 
+require_not_symlink() {
+  [[ ! -L $1 ]] || die "$1 is a symbolic link; remove it or replace it with a regular file or directory"
+}
+
+require_root_controlled() {
+  local stat_output owner mode
+  stat_output=$(stat -c '%u %a' -- "$1")
+  read -r owner mode <<<"$stat_output"
+  [[ $owner -eq 0 && $((8#$mode & 8#022)) -eq 0 ]] ||
+    die "$1 is not controlled by root (owner uid $owner, mode $mode); the output directory and every directory above it must be owned by root and not writable by group or others"
+}
+
+require_root_controlled_path() {
+  local path=$1
+  if [[ -n ${XROAD_OPMONITOR_IDENTITY_DIR:-} ]]; then
+    [[ ! -d $path ]] || require_root_controlled "$path"
+    return
+  fi
+  while :; do
+    [[ ! -d $path ]] || require_root_controlled "$path"
+    [[ $path != / ]] || break
+    path=$(dirname -- "$path")
+  done
+}
+
+require_not_symlink "$DIR"
+managed_dirs=("$DIR")
+if [[ -n $change_owner && -z ${XROAD_OPMONITOR_IDENTITY_DIR:-} ]]; then
+  DIR=$(readlink -m -- "$DIR")
+  managed_dirs=("$(dirname -- "$DIR")" "$DIR")
+fi
 ca_crt=$DIR/ca.crt
 ca_key=$DIR/ca.key
+require_not_symlink "$ca_crt"
+require_not_symlink "$ca_key"
+if [[ -n $change_owner ]]; then
+  require_root_controlled_path "$DIR"
+fi
 new_ca=
 if [[ -n $force_new_ca ]]; then
   new_ca=1
@@ -203,17 +246,21 @@ else
 fi
 
 dir_created=
+parent_created=
 if [[ ! -d $DIR ]]; then
+  [[ -d $(dirname -- "$DIR") ]] || parent_created=1
   (umask 022 && mkdir -p "$DIR")
   dir_created=1
 fi
 umask 077
-stage=$(mktemp -d "$DIR/.stage.XXXXXX")
+stage=
 cleanup() {
   [[ -z $stage ]] || rm -rf "$stage"
   [[ -z $dir_created ]] || rmdir "$DIR" 2>/dev/null || true
+  [[ -z $parent_created ]] || rmdir "$(dirname -- "$DIR")" 2>/dev/null || true
 }
 trap cleanup EXIT
+stage=$(mktemp -d "$DIR/.stage.XXXXXX")
 
 cat >"$stage/openssl.cnf" <<EOF
 [req]
@@ -259,20 +306,19 @@ quiet_openssl verify -CAfile "$signing_crt" "$stage/server.crt"
 
 chmod 0644 "$stage/server.crt"
 chmod 0400 "$stage/server.key"
-if [[ -n $new_ca ]]; then
-  chmod 0644 "$stage/ca.crt"
-  chmod 0400 "$stage/ca.key"
-fi
 if [[ -n $change_owner ]]; then
   chown "$SERVER_USER:$SERVER_USER" "$stage/server.key"
-  if [[ -n $new_ca ]]; then
-    chown root:root "$stage/ca.crt" "$stage/ca.key"
-  fi
 fi
 
 if [[ -n $new_ca ]]; then
   mv -f "$stage/ca.crt" "$ca_crt"
   mv -f "$stage/ca.key" "$ca_key"
+fi
+chmod 0644 "$ca_crt"
+chmod 0400 "$ca_key"
+if [[ -n $change_owner ]]; then
+  chown root:root "$ca_crt" "$ca_key" "${managed_dirs[@]}"
+  chmod 0755 "${managed_dirs[@]}"
 fi
 mv -f "$stage/server.key" "$DIR/server.key"
 mv -f "$stage/server.crt" "$DIR/server.crt"
