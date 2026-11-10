@@ -63,7 +63,7 @@
         <v-alert
           v-if="item.member_did_stale"
           data-test="member-did-stale-warning"
-          class="mt-2"
+          class="my-2"
           type="warning"
           variant="outlined"
           border="start"
