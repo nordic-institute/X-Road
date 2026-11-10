@@ -10,9 +10,6 @@ NC='\033[0m' # No Color
 TIMESTAMP=$(date '+%Y-%m-%d_%H%M%S')
 XROAD_INSTALLER_LOG_FILE="${XROAD_INSTALLER_LOG_FILE:-xroad-installer-${TIMESTAMP}.log}"
 
-# Node name under which a Security Server stores its signer token PINs in the secret store
-SECRET_STORE_NODE_NAME="node_0"
-
 # Exit codes
 EXIT_SUCCESS=0
 EXIT_ERROR=1
