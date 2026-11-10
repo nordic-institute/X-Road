@@ -35,6 +35,7 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
   testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.junit.platform.launcher)
   testImplementation(libs.logback.classic)
   testImplementation(testFixtures(project(":lib:rpc-core")))
   testImplementation(testFixtures(project(":lib:properties-core")))
@@ -82,4 +83,51 @@ tasks.named("xjc") {
 tasks.compileJava {
   dependsOn(tasks.named("xjc"))
   dependsOn(tasks.processResources)
+}
+
+val identityScript = rootProject.file(
+  "../deployment/native-packages/src/xroad/common/op-monitor/usr/share/xroad/scripts/generate_opmonitor_rpc_identity.sh"
+)
+
+tasks.test {
+  inputs.file(identityScript).withPropertyName("identityScript")
+}
+
+val rootScriptTestDir = layout.buildDirectory.dir("root-script-test")
+
+val stageRootScriptTest by tasks.registering(Sync::class) {
+  description = "Manual root check: stages the identity tool tests for the rootScriptTest container run."
+  group = "verification"
+
+  val runtimeClasspath = sourceSets.test.get().runtimeClasspath
+  from(runtimeClasspath.filter { it.isDirectory }) {
+    into("classes")
+  }
+  from(runtimeClasspath.filter { it.isFile }) {
+    into("lib")
+  }
+  into(rootScriptTestDir)
+}
+
+tasks.register<Exec>("rootScriptTest") {
+  description = "Manual root check, not part of check or CI: runs the root-dependent op-monitor identity tool tests as root " +
+    "in an Ubuntu container. Root ownership and permissions are verified with this task, not on every CI run."
+  group = "verification"
+
+  dependsOn(stageRootScriptTest)
+  inputs.file(identityScript).withPropertyName("identityScript")
+  inputs.dir(rootScriptTestDir).withPropertyName("stagedTests")
+
+  val coreDir = rootProject.file("..").canonicalFile
+  val moduleDir = "/work/core/" + coreDir.toPath().relativize(projectDir.toPath())
+  val install = "export DEBIAN_FRONTEND=noninteractive && apt-get update -qq && apt-get install -y -qq openjdk-25-jre-headless openssl >/dev/null"
+  val run = "java -cp 'build/root-script-test/classes:build/root-script-test/lib/*' " +
+    "org.niis.xroad.opmonitor.core.identity.RootScriptTestLauncher root"
+  commandLine(
+    "docker", "run", "--rm",
+    "--volume", "$coreDir:/work/core:ro",
+    "--workdir", moduleDir,
+    "ubuntu:26.04",
+    "bash", "-ec", "$install && useradd --system xroad && $run"
+  )
 }

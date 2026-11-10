@@ -182,6 +182,8 @@ done
 command -v openssl >/dev/null 2>&1 || die "openssl is not installed"
 
 change_owner=
+# Root is required: the tool creates root-owned CA key material, sets ownership of the server key for $SERVER_USER,
+# and verifies that root controls the output path.
 if [[ $(id -u) -eq 0 ]]; then
   id "$SERVER_USER" >/dev/null 2>&1 || die "user $SERVER_USER does not exist"
   change_owner=1
@@ -203,10 +205,6 @@ require_root_controlled() {
 
 require_root_controlled_path() {
   local path=$1
-  if [[ -n ${XROAD_OPMONITOR_IDENTITY_DIR:-} ]]; then
-    [[ ! -d $path ]] || require_root_controlled "$path"
-    return
-  fi
   while :; do
     [[ ! -d $path ]] || require_root_controlled "$path"
     [[ $path != / ]] || break
@@ -216,9 +214,10 @@ require_root_controlled_path() {
 
 require_not_symlink "$DIR"
 managed_dirs=("$DIR")
-if [[ -n $change_owner && -z ${XROAD_OPMONITOR_IDENTITY_DIR:-} ]]; then
+if [[ -n $change_owner ]]; then
   DIR=$(readlink -m -- "$DIR")
-  managed_dirs=("$(dirname -- "$DIR")" "$DIR")
+  managed_dirs=("$DIR")
+  [[ -n ${XROAD_OPMONITOR_IDENTITY_DIR:-} ]] || managed_dirs=("$(dirname -- "$DIR")" "$DIR")
 fi
 ca_crt=$DIR/ca.crt
 ca_key=$DIR/ca.key
