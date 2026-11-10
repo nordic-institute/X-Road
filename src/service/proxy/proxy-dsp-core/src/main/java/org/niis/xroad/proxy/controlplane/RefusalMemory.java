@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.controlplane;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
+import jakarta.annotation.Nullable;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -70,12 +71,15 @@ class RefusalMemory {
                 .build();
     }
 
-    static boolean isNegotiationRefusal(XrdRuntimeException failure) {
-        return NEGOTIATION_REFUSALS.stream().anyMatch(failure::isCausedBy);
-    }
-
-    void remember(AssetAccessCache.CacheKey key, XrdRuntimeException refusal) {
-        refusals.put(key, refusal.getCode());
+    /**
+     * Remembers {@code failure} under {@code key} when it is a negotiation refusal; any other failure, or a missing
+     * key, is ignored.
+     */
+    void rememberIfRefusal(@Nullable AssetAccessCache.CacheKey key, RuntimeException failure) {
+        if (key != null && failure instanceof XrdRuntimeException xrdFailure
+                && NEGOTIATION_REFUSALS.stream().anyMatch(xrdFailure::isCausedBy)) {
+            refusals.put(key, xrdFailure.getCode());
+        }
     }
 
     /**

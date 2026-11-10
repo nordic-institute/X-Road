@@ -236,10 +236,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
-                if (refusalKey != null && ex instanceof XrdRuntimeException failure
-                        && RefusalMemory.isNegotiationRefusal(failure)) {
-                    refusalMemory.remember(refusalKey, failure);
-                }
+                refusalMemory.rememberIfRefusal(refusalKey, ex);
                 remoteFailures.add(ex);
             }
         }

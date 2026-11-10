@@ -1075,9 +1075,10 @@ class ConsumerSideDspProcessorTest {
         providerA();
         refuseAt(DID_A, URL_A, "dsp_access_refused");
         var otherSender = ClientId.Conf.create(INSTANCE, "COM", "4321", "OtherSub");
+        var otherCallerRequest = new DspRequest(serviceId, otherSender, null, false);
 
         executeRefused();
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, otherSender, null, false)))
+        assertThatThrownBy(() -> processor.execute(otherCallerRequest))
                 .isInstanceOf(XrdRuntimeException.class);
 
         verify(assetAccessAcquisitionService, times(2)).acquireAssetAccess(any(), any(), any(), any(), any(), any());
