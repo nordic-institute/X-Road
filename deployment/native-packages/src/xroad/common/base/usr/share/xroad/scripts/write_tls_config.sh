@@ -11,8 +11,8 @@
 # Usage (when sourced):
 #   . write_tls_config.sh
 #   setup_default_tls_config "proxy"           # Auto-detect, store identity rows if absent
-#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure] [node]  # Package path, guarded
-#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent] [node]  # No guards
+#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure] [node] [keep-shared]  # Package path, guarded
+#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent] [node] [keep-shared]  # No guards
 #
 
 log () { echo >&2 "$@"; }
@@ -96,6 +96,8 @@ extract_cn() {
 #   $4 - optional db_property.sh write flag: --yes overwrites, --if-absent keeps existing
 #        rows; none prompts before overwriting an existing row
 #   $5 - optional Central Server node name: the rows are stored for that node only
+#   $6 - optional "keep-shared": with a node name, a key that has a shared row is not written, so
+#        the shared value keeps applying to the node
 # An answer without a common name falls back to the host name (hostname -f).
 # Returns non-zero, naming the key, on any database error.
 store_tls_identity_rows() {
@@ -106,6 +108,8 @@ store_tls_identity_rows() {
   [[ -n "${4:-}" ]] && write_flag=("$4")
   local -a node_flag=()
   [[ -n "${5:-}" ]] && node_flag=(--node "$5")
+  local keep_shared=false
+  [[ -n "${5:-}" && "${6:-}" == "keep-shared" ]] && keep_shared=true
   local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
 
   local prefix="xroad.${module_name}.tls.certificate-provisioning"
@@ -129,6 +133,10 @@ store_tls_identity_rows() {
       alt-names) value="$dns_list" ;;
       ip-subject-alt-names) value="$ip_list" ;;
     esac
+    if [[ "$keep_shared" == true ]] && "$db_property" get "${prefix}.${key}" >/dev/null 2>&1; then
+      log "${prefix}.${key} has a shared row, not storing a row for node ${5}"
+      continue
+    fi
     "$db_property" set "${prefix}.${key}" "$value" "${write_flag[@]}" "${node_flag[@]}" \
       || { log "FATAL: failed to store ${prefix}.${key} in the database"; return 1; }
   done
@@ -136,9 +144,10 @@ store_tls_identity_rows() {
 
 # Package entry point for the TLS identity rows of a module.
 # Arguments: as store_tls_identity_rows, with $4 optional "reconfigure" to overwrite existing rows;
-# $5 is the optional Central Server node name.
+# $5 is the optional Central Server node name, $6 the optional "keep-shared" (see store_tls_identity_rows).
 # Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
 # Existing rows are kept unless reconfiguring.
+# Sets TLS_IDENTITY_ROWS_WRITTEN to true once the store step has run.
 write_tls_identity_rows() {
   local module_name="$1"
   local mode="${4:-}"
@@ -163,7 +172,8 @@ write_tls_identity_rows() {
     write_flag="--yes"
   fi
 
-  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag" "${5:-}"
+  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag" "${5:-}" "${6:-}" || return
+  export TLS_IDENTITY_ROWS_WRITTEN=true
 }
 
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.

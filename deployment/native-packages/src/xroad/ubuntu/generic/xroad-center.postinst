@@ -270,7 +270,9 @@ prepare_certificates_settings() {
 
 # Stores the answers collected by prepare_certificates_settings as identity rows of this node, or
 # as shared rows when the node has no name. Must run after setup_database() so the
-# configuration_properties table exists.
+# configuration_properties table exists. On an upgrade a named node leaves the keys that have a
+# shared row alone, so the shared names keep applying to it.
+# Arguments: $1 - the postinst action, $2 - the previously configured version, empty on a first install
 store_certificates_settings() {
   local node
   node=$(cs_node_name)
@@ -294,17 +296,20 @@ store_certificates_settings() {
     return
   fi
 
-  local mode=""
+  local mode="" keep_shared=""
   if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
     mode="reconfigure"
+  elif [[ "${1:-}" == "configure" && -n "${2:-}" ]]; then
+    keep_shared="keep-shared"
   fi
 
-  write_tls_identity_rows admin-service "$admin_subject" "$admin_altn" "$mode" "$node" \
+  TLS_IDENTITY_ROWS_WRITTEN=false
+  write_tls_identity_rows admin-service "$admin_subject" "$admin_altn" "$mode" "$node" "$keep_shared" \
     || abort "Failed to store admin-service TLS identity. ABORTING."
-  write_tls_identity_rows management-service "$service_subject" "$service_altn" "$mode" "$node" \
+  write_tls_identity_rows management-service "$service_subject" "$service_altn" "$mode" "$node" "$keep_shared" \
     || abort "Failed to store management-service TLS identity. ABORTING."
 
-  if [[ -n "$mode" ]]; then
+  if [[ -n "$mode" && "$TLS_IDENTITY_ROWS_WRITTEN" == true ]]; then
     log "A TLS key that already exists keeps its names. To issue it again with the new names, delete the key and restart the service:"
     log "  xrd-secret/tls/admin-service/${node:-node_0}"
     log "  xrd-secret/tls/management-service/${node:-node_0}"
@@ -316,7 +321,7 @@ configure | reconfigure)
     store_node_name "$1" "$2"
     setup_database
     prepare_certificates_settings
-    store_certificates_settings "$1"
+    store_certificates_settings "$1" "$2"
 
     RET=""
     db_get xroad-common/username

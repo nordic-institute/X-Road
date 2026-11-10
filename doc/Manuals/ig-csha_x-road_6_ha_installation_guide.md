@@ -178,7 +178,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software. The first installation of the Central Server also asks for the node name, but only when `node.ini` has no name yet. To enter the name at the installation instead of creating `node.ini` by hand, skip steps 1 and 2 and answer the node name question of step 3 (preseed key `xroad-common/node-name`). The installation does not check the name; a node with an invalid name does not start.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster. There are two equal routes: create `node.ini` before installing the Central Server (steps 1 and 2), or answer the node name question of the first Central Server installation in step 3 (preseed key `xroad-common/node-name`; skip steps 1 and 2). The installation asks the question only when `node.ini` has no name yet. The installation does not check the name; a node with an invalid name does not start.
 
 1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/node.ini` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
     ```bash
@@ -189,7 +189,7 @@ In addition, it is necessary to configure a unique node name for each node parti
     [node]
     name=<node_name>
     ```
-    Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). Set the name before installing the Central Server package. The services check the name when they start; a node with an invalid name does not start.
+    Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). The services check the name when they start; a node with an invalid name does not start.
 
     When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`.
 

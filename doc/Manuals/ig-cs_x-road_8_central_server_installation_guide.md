@@ -242,7 +242,9 @@ The names in the certificates are the answers given during the installation, see
 - The DNS alternative names are the fully qualified and the short host name.
 - The IP alternative names are the server's global-scope addresses. Loopback and link-local addresses are left out.
 
-Running `sudo dpkg-reconfigure xroad-center` asks the names again and overwrites the rows of this node. A key that already exists keeps its names; delete it and restart the services as described below.
+Running `sudo dpkg-reconfigure xroad-center` asks the names again and overwrites the rows of this node's scope: the node rows when `node.ini` has a node name, the shared rows otherwise. A key that already exists keeps its names; delete it and restart the services as described below.
+
+On an upgrade, a node that has a node name writes a node row only for a name that has neither a node row nor a shared row; names that already have a shared row keep applying to the node.
 
 **Changing the certificate names**
 
