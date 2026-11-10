@@ -7,7 +7,7 @@
 #
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for
-# ds-control-plane's sts.oauth.token.url and dsp.callback.address config, AND
+# ds-control-plane's sts.oauth.token.url config, AND
 # the packages no longer start the units unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
@@ -65,7 +65,7 @@
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   sts.oauth.token.url and dsp.callback.address config.
+#   sts.oauth.token.url config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
   copy:
@@ -75,15 +75,6 @@
     mode: "0640"
     content: |
       edc:
-        # TODO: EDC's DspApiBaseConfigurationExtension.defaultWebhookAddress() hardcodes
-        # http:// and uses Hostname.get() — which is "localhost" inside the systemd unit
-        # because HOSTNAME isn't exported to the JVM. Both defects need to be addressed
-        # properly (upstream patch or proper hostname propagation + scheme override).
-        # For now pin the callback address explicitly so contract-agreement POSTs go to
-        # the right host over TLS.
-        dsp:
-          callback:
-            address: "https://{{ xroad_host_fqdn }}:8183/api/dsp/%s"
         iam:
           credential:
             revocation:

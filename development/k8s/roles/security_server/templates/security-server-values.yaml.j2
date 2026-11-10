@@ -186,20 +186,10 @@ services:
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1
-{# Only these two need service-specific env entries here (DSP callback address for
-   ds-control-plane, public DID hostname for ds-identity-hub). ds-issuer-service has
-   none - it is not "excluded"; EDC_IAM_DID_WEB_USE_HTTPS is no longer set per-service
-   at all, for any of the three, since the chart's own default is now "true" for all of
-   them (see the security-server chart values.yaml comment on ds-control-plane's
-   EDC_IAM_DID_WEB_USE_HTTPS - upstream EDC's own default, decompile-verified). #}
-{% if ds_tls and svc in ['ds-control-plane', 'ds-identity-hub'] %}
+{# Only ds-identity-hub needs a service-specific env entry (public DID hostname). #}
+{% if ds_tls and svc == 'ds-identity-hub' %}
     env:
-{% if svc == 'ds-control-plane' %}
-      EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_serverproxy_host }}:8183/api/dsp/%s"
-{% endif %}
-{% if svc == 'ds-identity-hub' %}
       EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ds_serverproxy_host }}"
-{% endif %}
 {% endif %}
 {% endfor %}
 {% if softtoken_signer_enabled | default(false) | bool %}
