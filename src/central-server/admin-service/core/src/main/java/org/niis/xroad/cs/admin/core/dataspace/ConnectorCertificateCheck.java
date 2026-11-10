@@ -49,6 +49,9 @@ public class ConnectorCertificateCheck {
     /** {@code GeneralName} tag for a DNS subject alternative name entry (RFC 5280). */
     private static final int GENERAL_NAME_DNS = 2;
 
+    /** Fewest labels a wildcard name may have: {@code *} plus at least two more, so {@code *.org} never matches. */
+    private static final int MIN_WILDCARD_LABELS = 3;
+
     private final DsTlsCertificateService dsTlsCertificateService;
 
     public boolean isReadyFor(String host) {
@@ -71,6 +74,31 @@ public class ConnectorCertificateCheck {
                 .map(san -> san.get(1))
                 .filter(String.class::isInstance)
                 .map(String.class::cast)
-                .anyMatch(host::equalsIgnoreCase);
+                .anyMatch(san -> matchesHost(san, host));
+    }
+
+    /**
+     * Whether a DNS subject alternative name covers the given host: either an exact, case-insensitive match, or a
+     * wildcard name per RFC 6125, section 6.4.3, restricted to the common safe form — the whole leftmost label is
+     * {@code *}, and at least two labels follow it.
+     */
+    private static boolean matchesHost(String subjectAlternativeName, String host) {
+        if (subjectAlternativeName.equalsIgnoreCase(host)) {
+            return true;
+        }
+        String[] sanLabels = subjectAlternativeName.split("\\.", -1);
+        if (sanLabels.length < MIN_WILDCARD_LABELS || !"*".equals(sanLabels[0])) {
+            return false;
+        }
+        String[] hostLabels = host.split("\\.", -1);
+        if (hostLabels.length != sanLabels.length) {
+            return false;
+        }
+        for (int i = 1; i < sanLabels.length; i++) {
+            if (!sanLabels[i].equalsIgnoreCase(hostLabels[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 }

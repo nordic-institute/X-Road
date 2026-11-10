@@ -29,6 +29,8 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
@@ -94,5 +96,49 @@ class ConnectorCertificateCheckTest {
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
 
         assertThat(connectorCertificateCheck.isReadyFor(HOST)).isTrue();
+    }
+
+    @Test
+    void isReadyWhenTheCertificateHasAMatchingWildcardSubjectAlternativeName() throws CertificateParsingException {
+        var certificate = mock(X509Certificate.class);
+        when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, "*.example.org")));
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+
+        assertThat(connectorCertificateCheck.isReadyFor(HOST)).isTrue();
+    }
+
+    @Test
+    void isReadyWhenTheWildcardMatchIsCaseInsensitive() throws CertificateParsingException {
+        var certificate = mock(X509Certificate.class);
+        when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, "*.Example.ORG")));
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+
+        assertThat(connectorCertificateCheck.isReadyFor("ISSUER.example.org")).isTrue();
+    }
+
+    @Test
+    void isNotReadyWhenTheCertificateWithAMatchingWildcardIsExpired() throws Exception {
+        var certificate = mock(X509Certificate.class);
+        doThrow(new CertificateExpiredException("expired")).when(certificate).checkValidity();
+        lenient().when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, "*.example.org")));
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+
+        assertThat(connectorCertificateCheck.isReadyFor(HOST)).isFalse();
+    }
+
+    @ParameterizedTest(name = "[{index}] SAN {0} is not ready for host {1}")
+    @CsvSource({
+            "*.example.org, example.org",
+            "*.example.org, a.issuer.example.org",
+            "*.example.org, issuer.example.com",
+            "*.org, example.org",
+            "iss*.example.org, issuer.example.org"
+    })
+    void isNotReadyWhenTheWildcardDoesNotOverMatch(String subjectAlternativeName, String host) throws CertificateParsingException {
+        var certificate = mock(X509Certificate.class);
+        when(certificate.getSubjectAlternativeNames()).thenReturn(List.of(List.of(GENERAL_NAME_DNS, subjectAlternativeName)));
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, certificate));
+
+        assertThat(connectorCertificateCheck.isReadyFor(host)).isFalse();
     }
 }
