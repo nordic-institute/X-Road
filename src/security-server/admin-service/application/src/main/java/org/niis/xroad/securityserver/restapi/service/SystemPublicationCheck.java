@@ -59,8 +59,7 @@ public class SystemPublicationCheck {
         var state = storedState == null ? PublicationState.NOT_SENT : storedState;
         if (carried != null) {
             var publish = state == PublicationState.SUBMITTED
-                    && ownDid.equals(carried.systemDid())
-                    && carried.dspBaseUrl().equals(expectedDspBaseUrl.get());
+                    && SystemValuesComparison.of(ownDid, expectedDspBaseUrl.get(), carried, _ -> false).isEqual();
             return publish ? PublicationCheckAction.PUBLISH : PublicationCheckAction.NONE;
         }
         return state == PublicationState.PUBLISHED && authCertRegistered.getAsBoolean()

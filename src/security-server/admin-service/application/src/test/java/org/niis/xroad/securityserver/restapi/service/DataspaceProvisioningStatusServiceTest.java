@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,8 +38,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -51,6 +54,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
@@ -66,6 +70,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -151,6 +158,8 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(server.dspBaseUrl()).contains("ss.example.test").contains("7181");
         assertThat(server.publicationState()).isEqualTo(PublicationState.REJECTED);
         assertThat(server.publicationReason()).isEqualTo("conflict-reason");
+        assertThat(server.systemDidMismatch()).isFalse();
+        assertThat(server.dspBaseUrlMismatch()).isFalse();
     }
 
     @Test
@@ -173,6 +182,59 @@ class DataspaceProvisioningStatusServiceTest {
 
         assertThat(server.publicationState()).isEqualTo(PublicationState.NOT_SENT);
         assertThat(server.publicationReason()).isNull();
+        assertThat(server.systemDidMismatch()).isFalse();
+        assertThat(server.dspBaseUrlMismatch()).isFalse();
+    }
+
+    @Test
+    void readStatusFlagsBothSystemValuesWhenASubmittedRowDiffersFromTheCarriedNotStaleValues() {
+        var systemRow = systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"));
+        systemRow.setPublicationState(PublicationState.SUBMITTED);
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
+        when(globalConfProvider.getServerSystemValues(any())).thenReturn(Optional.of(new ServerSystemValues(
+                ParticipantIdentifierScheme.systemDid("ss.example.test:8443").toString(),
+                DspConventions.dspBaseUrl("ss.example.test", 9999))));
+
+        var server = statusService.readStatus().server();
+
+        assertThat(server.systemDidMismatch()).isTrue();
+        assertThat(server.dspBaseUrlMismatch()).isTrue();
+    }
+
+    @Test
+    void readStatusDoesNotResolveTheOwnAddressWithoutAMemberContextAndASentSystemRow() {
+        var serverConf = mock(ServerConfEntity.class);
+        when(serverConf.getOwner()).thenReturn(null);
+        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        var rejected = new DsParticipantEntity();
+        rejected.setState(ParticipantState.ACTIVE);
+        rejected.setPublicationState(PublicationState.REJECTED);
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(rejected));
+        var resolver = mock(OwnSecurityServerResolver.class);
+
+        var status = statusServiceWith(resolver).readStatus();
+
+        assertThat(status.memberPublications()).isEmpty();
+        verifyNoInteractions(resolver);
+    }
+
+    @Test
+    void readStatusResolvesTheOwnAddressOnceForTheMemberAndSystemSignals() {
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        var systemRow = systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"));
+        systemRow.setPublicationState(PublicationState.SUBMITTED);
+        when(dsParticipantRepository.findActiveSystemParticipant()).thenReturn(Optional.of(systemRow));
+        var memberRow = memberRow(ParticipantIdentifierScheme.memberDid(OWNER, "ss.example.test:7183"));
+        memberRow.setPublicationState(PublicationState.SUBMITTED);
+        when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.of(memberRow));
+        var resolver = mock(OwnSecurityServerResolver.class);
+        when(resolver.address()).thenReturn(
+                new OwnAddress.Registered(SecurityServerId.Conf.create(OWNER, "SS0"), "ss.example.test"));
+
+        statusServiceWith(resolver).readStatus();
+
+        verify(resolver, times(1)).address();
     }
 
     @Test
@@ -404,6 +466,15 @@ class DataspaceProvisioningStatusServiceTest {
 
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::identityStatus)
                 .containsExactly(IdentityStatus.OK, IdentityStatus.OK);
+    }
+
+    private DataspaceProvisioningStatusService statusServiceWith(OwnSecurityServerResolver resolver) {
+        var didAuthority = new DataspaceDidAuthority(
+                new OwnSecurityServerResolver(new ServerConfRepositoryIdentitySource(serverConfRepository),
+                        globalConfProvider),
+                adminServiceProperties);
+        return new DataspaceProvisioningStatusService(provisioningService, readinessPredicates, didAuthority,
+                dsParticipantRepository, resolver, globalConfProvider);
     }
 
     private static DsParticipantEntity systemRow(Did did) {

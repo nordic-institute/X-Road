@@ -39,7 +39,8 @@ import org.niis.xroad.serverconf.model.PublicationState;
 import java.util.Set;
 
 /**
- * Compares the DID on a member binding row with the DID globalconf carries for the member on one Security Server.
+ * Compares the DIDs and the DSP base URL on the binding rows with the values globalconf carries for one Security
+ * Server.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DifferenceSignals {
@@ -80,7 +81,48 @@ public final class DifferenceSignals {
      * the member
      */
     public boolean memberMismatch(DsParticipantEntity row) {
-        return row.getPublicationState() != null && SENT.contains(row.getPublicationState())
-                && compareMemberDid(row) == GlobalConfComparison.DIFFERENT;
+        return isSent(row) && compareMemberDid(row) == GlobalConfComparison.DIFFERENT;
+    }
+
+    /**
+     * @param row        the SYSTEM binding row
+     * @param dspBaseUrl the DSP base URL built for the server, {@code null} while it cannot be built
+     * @return how the SYSTEM values globalconf carries compare with the SYSTEM DID on the row and the built DSP base
+     * URL; the pair is stale when the host of either carried value is not the registered address
+     */
+    public SystemValuesComparison compareSystemValues(DsParticipantEntity row, @Nullable String dspBaseUrl) {
+        var carried = globalConfProvider.getServerSystemValues(serverId).orElse(null);
+        return SystemValuesComparison.of(row.getDid(), dspBaseUrl, carried,
+                values -> hostMatcher.isSystemPairStale(values.systemDid(), values.dspBaseUrl()));
+    }
+
+    /**
+     * @param row        the SYSTEM binding row
+     * @param dspBaseUrl the DSP base URL built for the server, {@code null} while it cannot be built
+     * @return for each SYSTEM value, whether the row is in submitted or published state and globalconf carries
+     * another, not stale, value
+     */
+    public SystemMismatch systemMismatch(DsParticipantEntity row, @Nullable String dspBaseUrl) {
+        if (!isSent(row)) {
+            return SystemMismatch.NONE;
+        }
+        var comparison = compareSystemValues(row, dspBaseUrl);
+        return new SystemMismatch(comparison.systemDid() == GlobalConfComparison.DIFFERENT,
+                comparison.dspBaseUrl() == GlobalConfComparison.DIFFERENT);
+    }
+
+    private static boolean isSent(DsParticipantEntity row) {
+        return row.getPublicationState() != null && SENT.contains(row.getPublicationState());
+    }
+
+    /**
+     * Which SYSTEM values differ from the ones globalconf carries.
+     *
+     * @param systemDid  whether the SYSTEM DID differs
+     * @param dspBaseUrl whether the DSP base URL differs
+     */
+    public record SystemMismatch(boolean systemDid, boolean dspBaseUrl) {
+
+        static final SystemMismatch NONE = new SystemMismatch(false, false);
     }
 }

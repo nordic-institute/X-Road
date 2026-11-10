@@ -8784,6 +8784,8 @@ components:
       required:
         - dataspace_ready
         - publication_state
+        - system_did_mismatch
+        - dsp_base_url_mismatch
       properties:
         dataspace_ready:
           type: boolean
@@ -8799,11 +8801,24 @@ components:
           type: string
           readOnly: true
           description: reason for the publication state, for example the Central Server's conflict reason
+        system_did_mismatch:
+          type: boolean
+          readOnly: true
+          description: >-
+            true when globalconf announces a SYSTEM DID that differs from the bound one while the SYSTEM values are
+            submitted or published
+        dsp_base_url_mismatch:
+          type: boolean
+          readOnly: true
+          description: >-
+            true when globalconf announces a DSP base URL that differs from the one built from the registered address
+            and the stored DSP port while the SYSTEM values are submitted or published
     DataspacePublicationState:
       type: string
       readOnly: true
       description: >-
-        whether the SYSTEM values have reached the Central Server. NOT_SENT: not sent yet or retrying.
+        whether the SYSTEM values of the server, or the DIDs of a member, have reached the Central Server.
+        NOT_SENT: not sent yet or retrying.
         SUBMITTED: accepted by the Central Server, not yet in globalconf. PUBLISHED: seen in globalconf.
         REJECTED: refused with a final reason.
       enum:

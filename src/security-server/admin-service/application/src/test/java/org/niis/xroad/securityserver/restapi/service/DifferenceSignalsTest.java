@@ -35,6 +35,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
@@ -54,6 +55,11 @@ class DifferenceSignalsTest {
     private static final String BOUND = memberDid("ss0.example.org:7183");
     private static final String OTHER_SAME_HOST = memberDid("ss0.example.org:8443");
     private static final String OTHER_HOST = memberDid("ss1.example.org:7183");
+
+    private static final String SYSTEM_DID = systemDid("ss0.example.org:7183");
+    private static final String OTHER_SYSTEM_DID = systemDid("ss0.example.org:8443");
+    private static final String BUILT_URL = "https://ss0.example.org:7181/dsp";
+    private static final String OTHER_PORT_URL = "https://ss0.example.org:9999/dsp";
 
     private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
 
@@ -104,6 +110,102 @@ class DifferenceSignalsTest {
         assertThat(signals(ADDRESS, BOUND).compareMemberDid(row)).isEqualTo(GlobalConfComparison.EQUAL);
         assertThat(signals(ADDRESS, OTHER_SAME_HOST).compareMemberDid(row)).isEqualTo(GlobalConfComparison.DIFFERENT);
         assertThat(signals(ADDRESS, OTHER_HOST).compareMemberDid(row)).isEqualTo(GlobalConfComparison.STALE);
+    }
+
+    @Test
+    void compareSystemValuesComparesTheCarriedPairWithTheBoundDidAndTheBuiltUrl() {
+        var row = systemRow(PublicationState.PUBLISHED);
+
+        assertThat(systemSignals(ADDRESS, null).compareSystemValues(row, BUILT_URL))
+                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.ABSENT, GlobalConfComparison.ABSENT));
+        assertThat(systemSignals(ADDRESS, new ServerSystemValues(SYSTEM_DID, BUILT_URL))
+                .compareSystemValues(row, BUILT_URL).isEqual()).isTrue();
+        assertThat(systemSignals(ADDRESS, new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL))
+                .compareSystemValues(row, BUILT_URL))
+                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.DIFFERENT, GlobalConfComparison.DIFFERENT));
+    }
+
+    @Test
+    void theSystemPairIsStaleWhenEitherHostDiffers() {
+        var row = systemRow(PublicationState.PUBLISHED);
+        var otherHostDid = new ServerSystemValues(systemDid("ss1.example.org:7183"), OTHER_PORT_URL);
+        var otherHostUrl = new ServerSystemValues(OTHER_SYSTEM_DID, "https://ss1.example.org:7181/dsp");
+
+        assertThat(systemSignals(ADDRESS, otherHostDid).compareSystemValues(row, BUILT_URL))
+                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.STALE, GlobalConfComparison.STALE));
+        assertThat(systemSignals(ADDRESS, otherHostUrl).compareSystemValues(row, BUILT_URL))
+                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.STALE, GlobalConfComparison.STALE));
+    }
+
+    @Test
+    void anUnknownRegisteredAddressMakesTheSystemPairStale() {
+        var row = systemRow(PublicationState.PUBLISHED);
+
+        assertThat(systemSignals(null, new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL))
+                .compareSystemValues(row, null))
+                .isEqualTo(new SystemValuesComparison(GlobalConfComparison.STALE, GlobalConfComparison.STALE));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
+    void aSentSystemWhoseCarriedValuesDifferAndAreNotStaleMismatchesOnBoth(PublicationState state) {
+        var carried = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL);
+
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(state), BUILT_URL))
+                .isEqualTo(new DifferenceSignals.SystemMismatch(true, true));
+    }
+
+    @Test
+    void aSentSystemMismatchesOnlyOnTheValueThatDiffers() {
+        var row = systemRow(PublicationState.PUBLISHED);
+
+        assertThat(systemSignals(ADDRESS, new ServerSystemValues(OTHER_SYSTEM_DID, BUILT_URL))
+                .systemMismatch(row, BUILT_URL)).isEqualTo(new DifferenceSignals.SystemMismatch(true, false));
+        assertThat(systemSignals(ADDRESS, new ServerSystemValues(SYSTEM_DID, OTHER_PORT_URL))
+                .systemMismatch(row, BUILT_URL)).isEqualTo(new DifferenceSignals.SystemMismatch(false, true));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"}, mode = EnumSource.Mode.EXCLUDE)
+    void aSystemThatIsNotSentNeverMismatches(PublicationState state) {
+        var carried = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL);
+
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(state), BUILT_URL))
+                .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
+    }
+
+    @Test
+    void aSystemWithoutPublicationStateNeverMismatches() {
+        var carried = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL);
+
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(null), BUILT_URL))
+                .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
+    }
+
+    @Test
+    void aStaleSystemPairDoesNotMismatch() {
+        var carried = new ServerSystemValues(systemDid("ss1.example.org:7183"), OTHER_PORT_URL);
+
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(PublicationState.PUBLISHED), BUILT_URL))
+                .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
+    }
+
+    private DifferenceSignals systemSignals(String registeredAddress, ServerSystemValues carried) {
+        when(globalConfProvider.getServerSystemValues(SERVER)).thenReturn(Optional.ofNullable(carried));
+        return DifferenceSignals.of(SERVER, globalConfProvider, registeredAddress);
+    }
+
+    private static DsParticipantEntity systemRow(PublicationState state) {
+        var row = new DsParticipantEntity();
+        row.setParticipantType(ParticipantType.SYSTEM);
+        row.setDid(SYSTEM_DID);
+        row.setState(ParticipantState.ACTIVE);
+        row.setPublicationState(state);
+        return row;
+    }
+
+    private static String systemDid(String authority) {
+        return ParticipantIdentifierScheme.systemDid(authority).toString();
     }
 
     private DifferenceSignals signals(String registeredAddress, String carriedDid) {

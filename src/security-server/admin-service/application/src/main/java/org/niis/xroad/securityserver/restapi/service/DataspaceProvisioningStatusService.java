@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.google.common.base.Suppliers;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -44,6 +45,8 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
@@ -73,46 +76,48 @@ public class DataspaceProvisioningStatusService {
         List<ParticipantContextStatus> contextStatuses = contexts.stream()
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
-        return new DataspaceStatus(true, authCertRegistered, readServerStatus(), contextStatuses,
-                readMemberPublications(contexts));
+        Supplier<Optional<DifferenceSignals>> signals = Suppliers.memoize(this::readDifferenceSignals);
+        return new DataspaceStatus(true, authCertRegistered, readServerStatus(signals), contextStatuses,
+                readMemberPublications(contexts, signals));
     }
 
-    private Map<String, MemberPublication> readMemberPublications(List<ParticipantContext> contexts) {
-        var memberContexts = contexts.stream()
-                .filter(context -> context.kind() == ParticipantKind.MEMBER)
-                .toList();
+    private Map<String, MemberPublication> readMemberPublications(List<ParticipantContext> contexts,
+            Supplier<Optional<DifferenceSignals>> signals) {
         Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
-        if (memberContexts.isEmpty()) {
-            return memberPublications;
-        }
-        var signals = readDifferenceSignals();
-        memberContexts.forEach(context ->
-                memberPublications.put(context.participantId(), readMemberPublication(context, signals)));
+        contexts.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .forEach(context ->
+                        memberPublications.put(context.participantId(), readMemberPublication(context, signals)));
         return memberPublications;
     }
 
-    @Nullable
-    private DifferenceSignals readDifferenceSignals() {
+    private Optional<DifferenceSignals> readDifferenceSignals() {
         return ownSecurityServerResolver.address() instanceof OwnAddress.Registered(var serverId, var address)
-                ? DifferenceSignals.of(serverId, globalConfProvider, address)
-                : null;
+                ? Optional.of(DifferenceSignals.of(serverId, globalConfProvider, address))
+                : Optional.empty();
     }
 
-    private MemberPublication readMemberPublication(ParticipantContext context, @Nullable DifferenceSignals signals) {
+    private MemberPublication readMemberPublication(ParticipantContext context,
+            Supplier<Optional<DifferenceSignals>> signals) {
         var row = dsParticipantRepository.findByMemberIdentifier(context.memberId())
                 .filter(participant -> participant.getState() == ParticipantState.ACTIVE);
         var state = row.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
-        var mismatch = signals != null && row.filter(signals::memberMismatch).isPresent();
+        var mismatch = row.filter(participant -> signals.get().filter(s -> s.memberMismatch(participant)).isPresent())
+                .isPresent();
         return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null),
                 mismatch);
     }
 
-    private ServerStatus readServerStatus() {
+    private ServerStatus readServerStatus(Supplier<Optional<DifferenceSignals>> signals) {
         var system = dsParticipantRepository.findActiveSystemParticipant();
         var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
-        return new ServerStatus(readinessPredicates.isDataspaceReady(), didAuthority.dspBaseUrlIfValid().orElse(null),
-                state,
-                system.map(DsParticipantEntity::getPublicationReason).orElse(null));
+        var dspBaseUrl = didAuthority.dspBaseUrlIfValid().orElse(null);
+        var mismatch = system.filter(row -> DifferenceSignals.SENT.contains(state))
+                .flatMap(row -> signals.get().map(s -> s.systemMismatch(row, dspBaseUrl)))
+                .orElse(DifferenceSignals.SystemMismatch.NONE);
+        return new ServerStatus(readinessPredicates.isDataspaceReady(), dspBaseUrl, state,
+                system.map(DsParticipantEntity::getPublicationReason).orElse(null),
+                mismatch.systemDid(), mismatch.dspBaseUrl());
     }
 
     /**
@@ -136,10 +141,10 @@ public class DataspaceProvisioningStatusService {
     /**
      * Publication of one member's values.
      *
-     * @param publicationState  publication state, NOT_SENT while the member has no state yet
-     * @param publicationReason reason for the publication state, {@code null} when there is none
+     * @param publicationState   publication state, NOT_SENT while the member has no state yet
+     * @param publicationReason  reason for the publication state, {@code null} when there is none
      * @param globalconfMismatch whether globalconf announces another, not stale, DID than the bound one while the DID
-     *                          is submitted or published
+     *                           is submitted or published
      */
     public record MemberPublication(PublicationState publicationState, @Nullable String publicationReason,
                                     boolean globalconfMismatch) {
@@ -148,16 +153,22 @@ public class DataspaceProvisioningStatusService {
     /**
      * Server-level status.
      *
-     * @param dataspaceReady    whether globalconf lists a credential issuer for this instance
-     * @param dspBaseUrl        the DSP base URL, {@code null} while the registered address is unknown or invalid
-     * @param publicationState  publication state of the SYSTEM values
-     * @param publicationReason reason for the publication state, {@code null} when there is none
+     * @param dataspaceReady     whether globalconf lists a credential issuer for this instance
+     * @param dspBaseUrl         the DSP base URL, {@code null} while the registered address is unknown or invalid
+     * @param publicationState   publication state of the SYSTEM values
+     * @param publicationReason  reason for the publication state, {@code null} when there is none
+     * @param systemDidMismatch  whether globalconf announces another, not stale, SYSTEM DID than the bound one while
+     *                           the SYSTEM values are submitted or published
+     * @param dspBaseUrlMismatch whether globalconf announces another, not stale, DSP base URL than the built one
+     *                           while the SYSTEM values are submitted or published
      */
     public record ServerStatus(
             boolean dataspaceReady,
             @Nullable String dspBaseUrl,
             PublicationState publicationState,
-            @Nullable String publicationReason
+            @Nullable String publicationReason,
+            boolean systemDidMismatch,
+            boolean dspBaseUrlMismatch
     ) {
     }
 }

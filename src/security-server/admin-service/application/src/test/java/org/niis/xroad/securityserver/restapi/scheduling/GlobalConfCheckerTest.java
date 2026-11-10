@@ -52,6 +52,7 @@ import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
@@ -78,8 +79,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +105,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
-import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport.inNewTransaction;
 
 /**
  * Test GlobalConfChecker
@@ -702,7 +701,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             TestTransaction.flagForRollback();
             TestTransaction.end();
         }
-        inNewTransaction(() -> {
+        inNewTransaction(transactionManager, () -> {
             jdbcTemplate.update("DELETE FROM ds_participant WHERE id IN (?, ?)", SYSTEM_ROW_ID, MEMBER_ROW_ID);
             clientStatusSnapshot.forEach((id, status) ->
                     jdbcTemplate.update("UPDATE client SET clientstatus = ? WHERE id = ?", status, id));
@@ -710,7 +709,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     private void insertMemberRow(PublicationState state) {
-        inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
+        inNewTransaction(transactionManager, () -> jdbcTemplate.update("INSERT INTO ds_participant"
                 + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state, publication_state,"
                 + " created_at, updated_at)"
                 + " VALUES (?, 'MEMBER', (SELECT id FROM identifier WHERE object_type = 'MEMBER'"
@@ -721,15 +720,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     private void insertSystemRow(PublicationState state) {
-        inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
-                + " (id, participant_type, ctx_id, did, scheme_version, state, publication_state, created_at, updated_at)"
-                + " VALUES (?, 'SYSTEM', 'system', ?, 'v1', 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                SYSTEM_ROW_ID, SYSTEM_DID, state.name()));
-    }
-
-    private void inNewTransaction(Runnable work) {
-        new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(PROPAGATION_REQUIRES_NEW))
-                .executeWithoutResult(_ -> work.run());
+        ParticipantRowTestSupport.insertSystemRow(jdbcTemplate, transactionManager, SYSTEM_ROW_ID, SYSTEM_DID,
+                state.name());
     }
 
     private void carrySystemValues(String did, String dspBaseUrl) {

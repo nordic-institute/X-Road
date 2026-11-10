@@ -37,12 +37,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspacePublicationGlobalConfCheck;
 import org.niis.xroad.securityserver.restapi.service.ControlPlaneProvisioningClient;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient;
+import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.slf4j.LoggerFactory;
@@ -53,27 +57,33 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
+import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport.inNewTransaction;
 
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @WithMockUser(authorities = "VIEW_DATASPACE_STATUS")
 class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestContext {
 
     private static final long MEMBER_ROW_ID = 9013L;
+    private static final long SYSTEM_ROW_ID = 9014L;
     private static final ClientId.Conf MEMBER = TestUtils.getClientId("FI", "GOV", "M1", null);
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(MEMBER, "TEST-INMEM-SS");
     private static final String ADDRESS = "ss.example.test";
     private static final String BOUND_DID = memberDid("ss.example.test:7183");
     private static final String OTHER_DID_SAME_HOST = memberDid("ss.example.test:8443");
     private static final String OTHER_DID_OTHER_HOST = memberDid("other.example.test:7183");
+    private static final String BOUND_SYSTEM_DID = systemDid("ss.example.test:7183");
+    private static final String OTHER_SYSTEM_DID_SAME_HOST = systemDid("ss.example.test:8443");
+    private static final String OTHER_SYSTEM_DID_OTHER_HOST = systemDid("other.example.test:7183");
+    private static final int DSP_PORT = Integer.parseInt(DspConfigKeys.DSP_PORT.defaultValue());
+    private static final String BUILT_DSP_BASE_URL = DspConventions.dspBaseUrl(ADDRESS, DSP_PORT);
+    private static final String OTHER_PORT_DSP_BASE_URL = DspConventions.dspBaseUrl(ADDRESS, DSP_PORT + 1);
+    private static final String OTHER_HOST_DSP_BASE_URL = DspConventions.dspBaseUrl("other.example.test", DSP_PORT);
 
     @MockitoBean
     private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
@@ -91,8 +101,11 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     private PlatformTransactionManager transactionManager;
 
     @AfterEach
-    void deleteMemberRow() {
-        inNewTransaction(() -> jdbcTemplate.update("DELETE FROM ds_participant WHERE id = ?", MEMBER_ROW_ID));
+    void deleteRows() {
+        inNewTransaction(transactionManager, () -> {
+            jdbcTemplate.update("DELETE FROM ds_participant WHERE id = ?", MEMBER_ROW_ID);
+            jdbcTemplate.update("DELETE FROM ds_participant WHERE id = ?", SYSTEM_ROW_ID);
+        });
     }
 
     @ParameterizedTest
@@ -157,6 +170,93 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
                 .containsEntry("state", "ACTIVE");
     }
 
+    @ParameterizedTest
+    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
+    void aSentSystemDidThatDiffersFromTheBoundOneShowsASystemDidMismatch(PublicationState state) {
+        insertSystemRow(state.name());
+        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, BUILT_DSP_BASE_URL);
+
+        assertFlags(true, false);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
+    void aChangedStoredDspPortWithAnUnchangedHostShowsADspBaseUrlMismatch(PublicationState state) {
+        insertSystemRow(state.name());
+        carrySystemValues(BOUND_SYSTEM_DID, OTHER_PORT_DSP_BASE_URL);
+
+        assertFlags(false, true);
+    }
+
+    @Test
+    void equalSystemValuesShowNoMismatch() {
+        insertSystemRow("PUBLISHED");
+        carrySystemValues(BOUND_SYSTEM_DID, BUILT_DSP_BASE_URL);
+
+        assertFlags(false, false);
+    }
+
+    @Test
+    void systemValuesThatGlobalconfDoesNotCarryShowNoMismatch() {
+        insertSystemRow("PUBLISHED");
+        carrySystemValues(null, null);
+
+        assertFlags(false, false);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PublicationState.class, names = {"NOT_SENT", "REJECTED"})
+    void systemValuesThatAreNotSentOrAreRejectedShowNoMismatch(PublicationState state) {
+        insertSystemRow(state.name());
+        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL);
+
+        assertFlags(false, false);
+    }
+
+    @Test
+    void aSystemDidOnAnotherHostMakesThePairStaleAndShowsNoMismatch() {
+        insertSystemRow("PUBLISHED");
+        carrySystemValues(OTHER_SYSTEM_DID_OTHER_HOST, OTHER_PORT_DSP_BASE_URL);
+
+        assertFlags(false, false);
+    }
+
+    @Test
+    void aDspBaseUrlOnAnotherHostMakesThePairStaleAndShowsNoMismatch() {
+        insertSystemRow("PUBLISHED");
+        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_HOST_DSP_BASE_URL);
+
+        assertFlags(false, false);
+    }
+
+    @Test
+    void theSystemMismatchClearsOnceGlobalconfCarriesTheBuiltValuesAgain() {
+        insertSystemRow("PUBLISHED");
+        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL);
+        assertFlags(true, true);
+
+        carrySystemValues(BOUND_SYSTEM_DID, BUILT_DSP_BASE_URL);
+
+        assertFlags(false, false);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = PublicationState.class, names = {"SUBMITTED", "PUBLISHED"})
+    void aSystemMismatchChangesNeitherTheBindingNorThePublicationState(PublicationState state) {
+        insertSystemRow(state.name());
+        carrySystemValues(OTHER_SYSTEM_DID_SAME_HOST, OTHER_PORT_DSP_BASE_URL);
+
+        assertFlags(true, true);
+        assertThat(errorsLoggedBy(() -> globalConfCheck.check(SS_ID))).isEmpty();
+        assertFlags(true, true);
+
+        assertThat(jdbcTemplate.queryForMap("SELECT did, publication_state, state FROM ds_participant WHERE id = ?",
+                SYSTEM_ROW_ID))
+                .containsEntry("did", BOUND_SYSTEM_DID)
+                .containsEntry("publication_state", state.name())
+                .containsEntry("state", "ACTIVE");
+    }
+
     private List<ILoggingEvent> errorsLoggedBy(Runnable action) {
         var logger = (Logger) LoggerFactory.getLogger(DataspacePublicationGlobalConfCheck.class);
         var appender = new ListAppender<ILoggingEvent>();
@@ -172,6 +272,13 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
         return appender.list.stream().filter(event -> event.getLevel().isGreaterOrEqual(Level.ERROR)).toList();
     }
 
+    private void assertFlags(boolean systemDid, boolean dspBaseUrl) {
+        var server = dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer();
+
+        assertThat(server.getSystemDidMismatch()).isEqualTo(systemDid);
+        assertThat(server.getDspBaseUrlMismatch()).isEqualTo(dspBaseUrl);
+    }
+
     private DataspaceParticipantContextStatusDto memberContext() {
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         return dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts().stream()
@@ -185,8 +292,19 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
         when(globalConfProvider.getMemberDid(MEMBER, SS_ID)).thenReturn(Optional.of(did));
     }
 
+    private void carrySystemValues(String did, String dspBaseUrl) {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(ADDRESS);
+        when(globalConfProvider.getServerSystemValues(SS_ID)).thenReturn(
+                did == null ? Optional.empty() : Optional.of(new ServerSystemValues(did, dspBaseUrl)));
+    }
+
+    private void insertSystemRow(String publicationState) {
+        ParticipantRowTestSupport.insertSystemRow(jdbcTemplate, transactionManager, SYSTEM_ROW_ID, BOUND_SYSTEM_DID,
+                publicationState);
+    }
+
     private void insertMemberRow(String publicationState) {
-        inNewTransaction(() -> jdbcTemplate.update("INSERT INTO ds_participant"
+        inNewTransaction(transactionManager, () -> jdbcTemplate.update("INSERT INTO ds_participant"
                         + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state,"
                         + " publication_state, created_at, updated_at)"
                         + " VALUES (?, 'MEMBER', (SELECT id FROM identifier WHERE object_type = 'MEMBER'"
@@ -197,9 +315,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
                 publicationState));
     }
 
-    private void inNewTransaction(Runnable work) {
-        new TransactionTemplate(transactionManager, new DefaultTransactionDefinition(PROPAGATION_REQUIRES_NEW))
-                .executeWithoutResult(_ -> work.run());
+    private static String systemDid(String authority) {
+        return ParticipantIdentifierScheme.systemDid(authority).toString();
     }
 
     private static String memberDid(String authority) {

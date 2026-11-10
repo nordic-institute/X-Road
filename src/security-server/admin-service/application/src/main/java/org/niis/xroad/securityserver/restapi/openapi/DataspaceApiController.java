@@ -110,7 +110,9 @@ public class DataspaceApiController implements DataspaceApi {
                 .dataspaceReady(server.dataspaceReady())
                 .dspBaseUrl(server.dspBaseUrl())
                 .publicationState(DataspacePublicationStateDto.valueOf(server.publicationState().name()))
-                .publicationReason(server.publicationReason());
+                .publicationReason(server.publicationReason())
+                .systemDidMismatch(server.systemDidMismatch())
+                .dspBaseUrlMismatch(server.dspBaseUrlMismatch());
     }
 
     private List<DataspaceParticipantContextStatusDto> toContextDtos(List<ParticipantContextStatus> contexts,
