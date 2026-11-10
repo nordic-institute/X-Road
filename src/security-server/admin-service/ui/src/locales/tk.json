@@ -398,7 +398,8 @@
         "TokenNotAvailable": "Token elýeterli däl",
         "TokenNotFound": "Token tapylmady",
         "UnknownMember": "X-Road ýadrody - gol çekiji: Näbelli agza"
-      }
+      },
+      "op_monitor_trust_failure": "Operasion maglumatlaryň gözegçiligi bilen ynamly baglanyşyk guralmady"
     },
     "csr_not_found": "CSR tapylamdy",
     "diagnostic_request_failed": "Diagnostiki barlag ýerine ýetirilemdi",
@@ -477,7 +478,8 @@
     "tr": {
       "op_monitor": {
         "network_error": "Tor ýalňyşlygy: operasion maglumatlaryň gözegçiligi elýeterli däl"
-      }
+      },
+      "op_monitor_trust_failure": "“Operasion gözegçilik ynamy” goýumynda import edilen operasion gözegçilik CA-syny we gizlin maglumatlar ammarynyň (OpenBao) elýeterlidigini barlaň, soň täzeden synanyşyň."
     },
     "unsupported_openapi_version": "Goldanmaýan OpenAPI wersiýasy. Diňe 3.0.x and 3.1.0 wersiýalary häzirki wagtda goldanýar.",
     "url_already_exists": "URL eýýäm bar",
@@ -744,6 +746,7 @@
       "description": "Başga hostda işleýän operasion gözegçilik demonynyň CA-sy. Ony ýükläň, şonda bu Howpsuz serwer şol operasion gözegçilik demonyna ynanar. Faýlda PEM ýa-da DER kodlaşdyrylan dogry bir CA şahadatnamasy bolmaly we şahsy açar bolmaly däl.",
       "empty": "Operasion gözegçilik CA-sy saklanmaýar",
       "replace": "Çalyş",
+      "restartHint": "Üýtgeşmeleri ulanmak üçin proxy we admin-service hyzmatlaryny gaýtadan işe giriziň.",
       "title": "Operasion gözegçilik CA-sy",
       "upload": "Ýükle",
       "uploaded": "Operasion gözegçilik CA-sy saklandy"
@@ -1192,7 +1195,7 @@
             "enabled": "AntiDOS ulgamyny işe girizmek ýa-da öçürmek üçin baýdak."
           },
           "common-rpc": {
-            "use-tls": "Işledilen halatynda, howpsuzlyk serweriň içki hyzmatlary arasynda ähli gRPC aragatnaşygy üçin özara TLS ulanylýar.",
+            "use-tls": "Diňe synag üçin; önümçilikde hiç wagt öçürmäň. Işledilen halatynda, howpsuzlyk serweriň içki hyzmatlary arasynda ähli gRPC aragatnaşygy üçin özara TLS ulanylýar. Öçürilen halatynda, ähli içki gRPC aragatnaşygy şifrlenmeýär, operasion gözegçilik demony bilen baglanyşyk hem şoňa girýär, we import edilen operasion gözegçilik CA-sy bilen rugsat berilen müşderi atlary ulanylmaýar.",
             "certificate-provisioning": {
               "refresh-interval": "Hyzmatlaryň gRPC TLS sertifikatyny täzelemek gerekdigi barlaýan ýygylygy (meselem, 5H).",
               "wait-duration": "Gizlin ammardan gRPC TLS sertifikatyny ýüklemek şowsuz bolandan soň ilkinji gaýtadan synanyşykdan öňki gijikdirme (meselem, 5S).",
@@ -1288,7 +1291,8 @@
             "health-statistics-period-seconds": "Saglyk statistikasynyň jemlenýän sekuntlardaky döwür.",
             "rpc": {
               "listen-address": "Operasion gözegçilik demony gRPC serweri diňleýän IP salgysy.",
-              "port": "Operasion gözegçilik demony gRPC serweri diňleýän porty."
+              "port": "Operasion gözegçilik demony gRPC serweri diňleýän porty.",
+              "allowed-client-names": "RPC TLS açyk bolanda operasion gözegçilik demony gRPC serweriniň kabul edýän müşderi atlary, otur bilen aýrylan. Müşderiniň sertifikatynyň CN ýa-da DNS SAN-y ýazgy bilen deň bolsa, müşderi kabul edilýär (baş-kiçi harp tapawutlandyrylmaýar, IP SAN ýok, wildcard ýok). Boş (default) howpsuzlyk serweriniň CA sertifikaty bolan islendik müşderini kabul edýär. Wildcard ýa-da boş ýazgy demony başlanda duruzýar. Üýtgetmeden soň demony täzeden başladyň."
             }
           },
           "message-log-archiver": {

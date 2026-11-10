@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.29
+Version: 1.30
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -37,6 +37,7 @@ Doc. ID: UG-SS-SIDECAR
 | 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
 | 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
 | 14.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
+| 06.11.2026 | 1.30    | Link the operational monitoring connection trust settings | Eneli Reimets             |
 
 ## License
 
@@ -93,6 +94,8 @@ The Security Server Sidecar has several images with alternative configurations:
 All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration.
 
 The `slim` image, which didn't include message logging or environmental and operational monitoring, was removed in X-Road 8. Instead, the additional modules can now be enabled and disabled using the Security Server admin UI or the management REST API.
+
+The trust settings of the operational monitoring connection are described in [UG-SS](#Ref_UG-SS) section [15.2.7](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#1527-trust-settings-of-the-operational-monitoring-connection).
 
 ### 1.2 References
 

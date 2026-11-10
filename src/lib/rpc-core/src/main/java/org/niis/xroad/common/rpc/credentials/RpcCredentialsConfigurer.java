@@ -29,9 +29,24 @@ package org.niis.xroad.common.rpc.credentials;
 import io.grpc.ChannelCredentials;
 import io.grpc.ServerCredentials;
 
+import java.util.Collection;
+
 public interface RpcCredentialsConfigurer {
 
     ServerCredentials createServerCredentials();
 
+    /**
+     * @param allowedClientNames names a client certificate must carry, as common name or DNS subject alternative name;
+     *                           empty for the shared server credentials
+     * @return credentials requiring a client certificate that carries one of the names
+     */
+    ServerCredentials createServerCredentials(Collection<String> allowedClientNames);
+
     ChannelCredentials createClientCredentials();
+
+    /**
+     * @param trust whom the channel trusts as the server's certificate issuer
+     * @return credentials presenting the shared client identity and trusting as given
+     */
+    ChannelCredentials createClientCredentials(ChannelTrust trust);
 }

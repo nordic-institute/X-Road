@@ -146,6 +146,14 @@ through those seams. If it genuinely cannot run on LXD, guard it with
 so both the Gradle task and the fat-jar CI run skip it. Without either, it will
 run in the LXD CI job and fail.
 
+### Op-monitor allowed client names in the Compose overlays
+
+The Compose e2e overlay `compose.ss-opmonitor.e2e.yaml` seeds the test-only allow-list
+`xroad.op-monitor.rpc.allowed-client-names` with `proxy,ui` on ss0 using a one-shot psql container.
+The seed uses `ON CONFLICT DO NOTHING`, so it does not overwrite an existing row.
+The Security Server service images do not include `db_property.sh`, so the overlay uses psql.
+`SsOpMonitorAllowListTest` relies on these names.
+
 ## CI
 
 All three lanes (compose, lxd, k8s) run as one matrix job group named `e2e`,

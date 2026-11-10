@@ -45,6 +45,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OperationalDataRecordProto;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataReq;
 import org.niis.xroad.opmonitor.api.StoreOperationalDataResp;
+import org.niis.xroad.opmonitor.client.OpMonitorChannelTrustResolver;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 
@@ -61,6 +62,8 @@ import java.util.logging.SimpleFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -247,8 +250,8 @@ class OpMonitorStoreClientTest {
         channel = ManagedChannelBuilder.forAddress("localhost", server.getPort()).usePlaintext().build();
         var channelFactory = mock(RpcChannelFactory.class);
         var channelProperties = mock(OpMonitorRpcChannelProperties.class);
-        when(channelFactory.createChannel(channelProperties)).thenReturn(channel);
-        opMonitorClient = new OpMonitorClient(channelFactory, channelProperties);
+        when(channelFactory.createChannel(eq(channelProperties), any())).thenReturn(channel);
+        opMonitorClient = new OpMonitorClient(channelFactory, channelProperties, mock(OpMonitorChannelTrustResolver.class));
         opMonitorClient.init();
         return new OpMonitorStoreClient(() -> opMonitorClient);
     }

@@ -4259,7 +4259,6 @@ components:
         - INTERNAL
         - EXTERNAL
       example: INTERNAL
-      format: enum
       type: string
     KeyAlgorithm:
       description: Key type
@@ -4267,7 +4266,6 @@ components:
         - RSA
         - EC
       example: RSA
-      format: enum
       type: string
     ErrorInfo:
       $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
@@ -4414,7 +4412,6 @@ components:
             - ERROR
             - UNKNOWN
           example: OK
-          format: enum
           type: string
     HighAvailabilityClusterStatus:
       allOf:
@@ -4569,7 +4566,6 @@ components:
         - ENCIPHER_ONLY
         - DECIPHER_ONLY
       example: NON_REPUDIATION
-      format: enum
       type: string
     ManagementServicesConfiguration:
       allOf:
@@ -4885,7 +4881,6 @@ components:
         - PAID
         - UNDEFINED
       example: FREE
-      format: enum
       type: string
     CsrFormat:
       description: CSR format
@@ -4893,7 +4888,6 @@ components:
         - PEM
         - DER
       example: PEM
-      format: enum
       type: string
     PossibleTokenAction:
       description: an action to change state or edit tokens # set of values not final or complete
@@ -4905,7 +4899,6 @@ components:
         - CHANGE_PIN
         - EDIT_FRIENDLY_NAME
       example: LOGIN
-      format: enum
       type: string
     PossibleKeyAction:
       description: an action to change state or edit keys # set of values not final or complete
@@ -4913,7 +4906,6 @@ components:
         - DELETE
         - ACTIVATE
       example: DELETE
-      format: enum
       type: string
     ConfigurationSigningKeys:
       description: array containing the configuration signing keys
@@ -5326,7 +5318,6 @@ components:
         - NOT_INITIALIZED
         - UNKNOWN
       example: INITIALIZED
-      format: enum
       type: string
     TokenPassword:
       description: password for logging in to the token # potential-common-api
@@ -5422,7 +5413,6 @@ components:
           readOnly: true
         type:
           type: string
-          format: enum
           enum:
             - MEMBER
             - SUBSYSTEM

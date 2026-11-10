@@ -28,23 +28,43 @@ package org.niis.xroad.ss.test.api.diagnostics;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
+import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTest;
+import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
+import org.niis.xroad.ss.test.api.admin.DiagnosticsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
+import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
+
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.parallel.ResourceAccessMode.READ;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * API tests for Security Server diagnostics traffic tab: service-list population from configured service descriptions.
+ * API tests for Security Server diagnostics traffic tab: service-list population from configured service descriptions
+ * and request counts read from the local op-monitor.
  */
 @DisplayName("Diagnostics traffic — service list population")
+@ResourceLock(value = "op-monitor-ca", mode = READ)
 @SuppressWarnings("checkstyle:magicnumber")
 class DiagnosticsTrafficTest extends SsApiTest {
 
     private static final String JSON_SPEC_URL = "http://mock-server:1080/test-services/testopenapi2.json";
+    private static final Duration RECORD_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration RECORD_POLL_INTERVAL = Duration.ofSeconds(2);
+    private static final Duration CLOCK_SKEW_MARGIN = Duration.ofMinutes(1);
+    private static final String REGISTERED_SUBSYSTEM_CODE = "TestService";
 
     @Test
     @DisplayName("Service selector for a client lists a seeded service code after adding a service description")
@@ -67,5 +87,55 @@ class DiagnosticsTrafficTest extends SsApiTest {
                     .toList();
             assertThat(serviceCodes).contains("s4c2");
         });
+    }
+
+    @Test
+    @DisplayName("Traffic intervals count a request recorded by the proxy, read from the local op-monitor")
+    void intervalsCountARecordedRequest(SsApiTestContainerSetup stack, SsBaselineSeeder seeder) {
+        var clientId = given("a registered subsystem client with plain HTTP connection exists", () ->
+                ensureRegisteredSubsystem(new ClientsAdminClient(seeder.newSession())));
+        var clientPath = clientId.replace(':', '/');
+        var serviceCode = "noSuchService" + System.nanoTime();
+        var serviceId = "%s:%s".formatted(clientId, serviceCode);
+
+        var requestedAt = when("a request for a nonexistent service is sent through the proxy as that client", () -> {
+            var mapping = stack.getContainerMapping(SsApiTestContainerSetup.PROXY, Port.PROXY_HTTP);
+            var sentAt = Instant.now();
+            RestAssuredFactory.given()
+                    .header("X-Road-Client", clientPath)
+                    .get("http://%s:%d/r1/%s/%s".formatted(mapping.host(), mapping.port(), clientPath, serviceCode));
+            return sentAt;
+        });
+
+        then("the intervals call for that service reports at least one request in some interval", () ->
+                await()
+                        .pollDelay(Duration.ZERO)
+                        .pollInterval(RECORD_POLL_INTERVAL)
+                        .atMost(RECORD_TIMEOUT)
+                        .untilAsserted(() -> assertThat(recordedRequestCount(seeder, requestedAt, serviceId)).isPositive()));
+    }
+
+    private static String ensureRegisteredSubsystem(ClientsAdminClient clients) {
+        var clientId = "DEV:%s:%s:%s".formatted(SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE,
+                REGISTERED_SUBSYSTEM_CODE);
+        if (clients.findClientByIdentifier(clientId) == null) {
+            var clientDto = new ClientDto(SsBaselineSeeder.SS_OWNER_CLASS, SsBaselineSeeder.SS_OWNER_CODE)
+                    .subsystemCode(REGISTERED_SUBSYSTEM_CODE)
+                    .connectionType(ConnectionTypeDto.HTTP);
+            clients.addClient(new ClientAddDto(clientDto).ignoreWarnings(true)).statusCode(201);
+        }
+        assertThat(clients.findClientByIdentifier(clientId).getStatus()).isEqualTo(ClientStatusDto.REGISTERED);
+        return clientId;
+    }
+
+    private static int recordedRequestCount(SsBaselineSeeder seeder, Instant requestedAt, String serviceId) {
+        var body = new DiagnosticsAdminClient(seeder.newSession())
+                .getOperationalMonitoringIntervals(requestedAt.minus(CLOCK_SKEW_MARGIN), Instant.now().plus(CLOCK_SKEW_MARGIN), 1,
+                        serviceId)
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+        return body.getList("success_count", Integer.class).stream().mapToInt(Integer::intValue).sum()
+                + body.getList("failure_count", Integer.class).stream().mapToInt(Integer::intValue).sum();
     }
 }

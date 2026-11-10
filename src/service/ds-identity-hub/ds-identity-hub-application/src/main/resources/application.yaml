@@ -45,9 +45,12 @@ xroad:
       # ParticipantSecureTokenService, which resolves to the X-Road claim-aware wrapper and would add
       # the large xroadMemberClaim to DSP tokens. XRoadClaimSignerExtension provides
       # StsClientTokenGeneratorService over the unwrapped embedded service instead.
+      # StsApiConfigurationExtension is excluded because it injects the stock EDC JettyService, which is not on
+      # the classpath. XRoadStsApiConfigurationExtension registers the same STS port mapping and version info.
       excluded-service-extensions: >-
         org.eclipse.edc.web.jetty.JettyExtension,
-        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension
+        org.eclipse.edc.iam.decentralizedclaims.sts.StsClientTokenGeneratorExtension,
+        org.eclipse.edc.api.iam.decentralizedclaims.sts.StsApiConfigurationExtension
   ds:
     rpc:
       host: "0.0.0.0"
