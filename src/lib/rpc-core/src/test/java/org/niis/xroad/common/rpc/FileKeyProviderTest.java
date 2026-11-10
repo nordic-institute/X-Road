@@ -271,7 +271,7 @@ class FileKeyProviderTest {
         return Instant.now().plus(days, ChronoUnit.DAYS);
     }
 
-    private FileKeyProvider newProvider() throws Exception {
+    private FileKeyProvider newProvider() {
         return providerFor(privateKeyPath, certificatePath, trustedCaPath);
     }
 
@@ -283,13 +283,13 @@ class FileKeyProviderTest {
         }
     }
 
-    private FileKeyProvider loadedProvider() throws Exception {
+    private FileKeyProvider loadedProvider() {
         var provider = newProvider();
         provider.init();
         return provider;
     }
 
-    private void assertInitFails(Path failingFile, String reason) throws Exception {
+    private void assertInitFails(Path failingFile, String reason) {
         assertThatThrownBy(newProvider()::init)
                 .isInstanceOf(XrdRuntimeException.class)
                 .hasMessageContaining(failingFile.toString())

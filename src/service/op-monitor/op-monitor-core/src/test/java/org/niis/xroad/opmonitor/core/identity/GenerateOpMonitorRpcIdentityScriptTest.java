@@ -167,7 +167,7 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         var script = scriptWithDefaultParent(sandbox);
         var before = sandboxState(sandbox);
 
-        var result = execute(PROCESS_TIMEOUT, List.of("bash", script.toString(), DNS_NAME), Map.of());
+        var result = execute(List.of("bash", script.toString(), DNS_NAME), Map.of());
 
         assertThat(result.exitCode()).isNotZero();
         assertThat(result.output()).contains("must be run as root");
@@ -374,7 +374,7 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         var before = snapshot();
         var listingBefore = listing().stream().sorted().toList();
         var calls = workDir.resolve("openssl.calls");
-        var path = fakeOpensslFailingOn("-req", calls);
+        var path = fakeOpensslFailingOn(calls);
 
         var result = run(dir, Map.of("PATH", path), option.isEmpty() ? new String[] {DNS_NAME} : new String[] {option, DNS_NAME});
 
@@ -421,10 +421,10 @@ class GenerateOpMonitorRpcIdentityScriptTest {
 
         assertThat(listing()).containsExactlyInAnyOrderElementsOf(OUTPUT_FILES);
         var after = snapshot();
-        assertThat(after.get("ca.crt")).isNotEqualTo(before.get("ca.crt"));
-        assertThat(after.get("ca.key")).isNotEqualTo(before.get("ca.key"));
-        assertThat(after.get("server.key")).isNotEqualTo(before.get("server.key"));
-        assertThat(after.get("server.crt")).isNotEqualTo(before.get("server.crt"));
+        assertThat(after).doesNotContainEntry("ca.crt", before.get("ca.crt"));
+        assertThat(after).doesNotContainEntry("ca.key", before.get("ca.key"));
+        assertThat(after).doesNotContainEntry("server.key", before.get("server.key"));
+        assertThat(after).doesNotContainEntry("server.crt", before.get("server.crt"));
         var server = certificate("server.crt");
         assertThatCode(() -> server.verify(certificate("ca.crt").getPublicKey())).doesNotThrowAnyException();
         assertThatThrownBy(() -> server.verify(parseCertificate(before.get("ca.crt")).getPublicKey()))
@@ -514,10 +514,10 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         assertThat(run(DNS_NAME).exitCode()).isZero();
 
         var after = snapshot();
-        assertThat(after.get("ca.crt")).isEqualTo(before.get("ca.crt"));
-        assertThat(after.get("ca.key")).isEqualTo(before.get("ca.key"));
-        assertThat(after.get("server.key")).isNotEqualTo(before.get("server.key"));
-        assertThat(after.get("server.crt")).isNotEqualTo(before.get("server.crt"));
+        assertThat(after).containsEntry("ca.crt", before.get("ca.crt"));
+        assertThat(after).containsEntry("ca.key", before.get("ca.key"));
+        assertThat(after).doesNotContainEntry("server.key", before.get("server.key"));
+        assertThat(after).doesNotContainEntry("server.crt", before.get("server.crt"));
         var server = certificate("server.crt");
         var newKey = privateKey("server.key");
         var certificateKey = (RSAPublicKey) server.getPublicKey();
@@ -533,14 +533,14 @@ class GenerateOpMonitorRpcIdentityScriptTest {
 
         assertThat(run("--days", "50", DNS_NAME).exitCode()).isZero();
         var second = snapshot();
-        assertThat(second.get("ca.crt")).isEqualTo(first.get("ca.crt"));
-        assertThat(second.get("ca.key")).isEqualTo(first.get("ca.key"));
-        assertThat(second.get("server.crt")).isNotEqualTo(first.get("server.crt"));
+        assertThat(second).containsEntry("ca.crt", first.get("ca.crt"));
+        assertThat(second).containsEntry("ca.key", first.get("ca.key"));
+        assertThat(second).doesNotContainEntry("server.crt", first.get("server.crt"));
 
         assertThat(run("--force-new-ca", "--ca-days", "100", "--days", "50", DNS_NAME).exitCode()).isZero();
         var third = snapshot();
-        assertThat(third.get("ca.crt")).isNotEqualTo(second.get("ca.crt"));
-        assertThat(third.get("ca.key")).isNotEqualTo(second.get("ca.key"));
+        assertThat(third).doesNotContainEntry("ca.crt", second.get("ca.crt"));
+        assertThat(third).doesNotContainEntry("ca.key", second.get("ca.key"));
         var newCa = certificate("ca.crt");
         var server = certificate("server.crt");
         assertThatCode(() -> server.verify(newCa.getPublicKey())).doesNotThrowAnyException();
@@ -655,7 +655,7 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         }
     }
 
-    private String fakeOpensslFailingOn(String failingArgument, Path calls) throws Exception {
+    private String fakeOpensslFailingOn(Path calls) throws Exception {
         var bin = Files.createDirectory(workDir.resolve("bin"));
         var fake = bin.resolve("openssl");
         Files.writeString(fake, """
@@ -665,7 +665,7 @@ class GenerateOpMonitorRpcIdentityScriptTest {
                   [ "$argument" = '%s' ] && exit 1
                 done
                 exec '%s' "$@"
-                """.formatted(calls, failingArgument, realOpenssl()));
+                """.formatted(calls, "-req", realOpenssl()));
         Files.setPosixFilePermissions(fake, PosixFilePermissions.fromString("rwx------"));
         return bin + File.pathSeparator + System.getenv("PATH");
     }
@@ -690,7 +690,7 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         var command = Stream.concat(Stream.of("bash", SCRIPT.toString()), Stream.of(args)).toList();
         var environment = new HashMap<>(extraEnvironment);
         environment.put(DIR_VARIABLE, outputDir.toString());
-        return execute(PROCESS_TIMEOUT, command, environment);
+        return execute(command, environment);
     }
 
     private Result runWithOption(String option) {
@@ -718,16 +718,16 @@ class GenerateOpMonitorRpcIdentityScriptTest {
         return state;
     }
 
-    private Result execute(Duration timeout, List<String> command, Map<String, String> environment) {
+    private Result execute(List<String> command, Map<String, String> environment) {
         try {
             var outputFile = Files.createTempFile(workDir, "process", ".out");
             var builder = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(outputFile.toFile());
             builder.environment().remove(DIR_VARIABLE);
             builder.environment().putAll(environment);
             var process = builder.start();
-            if (!process.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+            if (!process.waitFor(GenerateOpMonitorRpcIdentityScriptTest.PROCESS_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
                 terminate(process);
-                return fail("process timed out after %s, output so far: %s", timeout, Files.readString(outputFile));
+                return fail("process timed out after %s, output so far: %s", GenerateOpMonitorRpcIdentityScriptTest.PROCESS_TIMEOUT, Files.readString(outputFile));
             }
             return new Result(process.exitValue(), Files.readString(outputFile));
         } catch (IOException e) {
@@ -857,9 +857,9 @@ class GenerateOpMonitorRpcIdentityScriptTest {
             var process = new ProcessBuilder("openssl", "version").redirectErrorStream(true).start();
             process.getInputStream().readAllBytes();
             return process.waitFor() == 0;
-        } catch (IOException e) {
+        } catch (IOException _) {
             return false;
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             return false;
         }
@@ -884,9 +884,9 @@ class GenerateOpMonitorRpcIdentityScriptTest {
     private static boolean serverUserExists() {
         try {
             return new ProcessBuilder("id", "xroad").redirectErrorStream(true).start().waitFor() == 0;
-        } catch (IOException e) {
+        } catch (IOException _) {
             return false;
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             return false;
         }

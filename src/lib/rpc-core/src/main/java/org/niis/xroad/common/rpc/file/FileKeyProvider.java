@@ -196,9 +196,9 @@ public class FileKeyProvider implements VaultKeyProvider {
     private static void requireCurrentlyValid(X509Certificate certificate, Path path, String description) {
         try {
             certificate.checkValidity();
-        } catch (CertificateExpiredException e) {
+        } catch (CertificateExpiredException _) {
             throw invalid(path, "the %s expired on %s".formatted(description, certificate.getNotAfter().toInstant()));
-        } catch (CertificateNotYetValidException e) {
+        } catch (CertificateNotYetValidException _) {
             throw invalid(path, "the %s is not valid before %s".formatted(description,
                     certificate.getNotBefore().toInstant()));
         }
@@ -222,7 +222,7 @@ public class FileKeyProvider implements VaultKeyProvider {
             verifier.initVerify(leaf.getPublicKey());
             verifier.update(PROBE);
             matches = verifier.verify(signature);
-        } catch (GeneralSecurityException e) {
+        } catch (GeneralSecurityException _) {
             matches = false;
         }
         if (!matches) {

@@ -220,7 +220,8 @@ class QuarkusRpcConfigTest {
         when(provisioning.exponentialMaxWaitDuration()).thenReturn(Duration.ofMinutes(5));
         when(provisioning.refreshInterval()).thenReturn(Duration.ofHours(5));
         when(rpcProperties.certificateProvisioning()).thenReturn(provisioning);
-        when(pkiFactory.get()).thenReturn(mock(VaultPKISecretEngineFactory.class));
+        var pkiSecretEngineFactory = mock(VaultPKISecretEngineFactory.class);
+        when(pkiFactory.get()).thenReturn(pkiSecretEngineFactory);
     }
 
     private void useFileIdentity(TestCa serverCa, TestCa trustedCa) throws Exception {

@@ -27,7 +27,6 @@ package org.niis.xroad.opmonitor.test.container;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Frame;
 import lombok.SneakyThrows;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
@@ -58,8 +57,6 @@ public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
 
     private static final String COMPOSE_PROJECT = "op-monitor-file-identity-";
     private static final String COMPOSE_FILE = "compose.fileIdentity.intTest.yaml";
-    private static final String COMPOSE_PROJECT_LABEL = "com.docker.compose.project";
-    private static final String COMPOSE_SERVICE_LABEL = "com.docker.compose.service";
     private static final String OP_MONITOR = "op-monitor";
     private static final String OPENBAO_TRAP = "openbao-trap";
     private static final String OPENBAO_URL = "http://openbao:8200/";
@@ -137,14 +134,9 @@ public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
     }
 
     private String containerId(String service) {
-        var containers = DockerClientFactory.instance().client().listContainersCmd().withShowAll(true).exec();
-        return containers.stream()
-                .filter(container -> container.getLabels() != null
-                        && container.getLabels().getOrDefault(COMPOSE_PROJECT_LABEL, "").startsWith(COMPOSE_PROJECT)
-                        && service.equals(container.getLabels().get(COMPOSE_SERVICE_LABEL)))
-                .map(Container::getId)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Container not found: " + service));
+        return env.getContainerByServiceName(service)
+                .orElseThrow(() -> new IllegalStateException("Container not found: " + service))
+                .getContainerId();
     }
 
     @SneakyThrows
