@@ -161,7 +161,7 @@ class ManagementServicesServiceImplTest {
             xRoadMember.setServerClients(Set.of(serverClient0));
 
             when(memberService.getMemberOwnedServers(any()))
-                    .thenReturn(List.of(new MemberServer(new SecurityServer(xRoadMember, "SS1"), null, null)));
+                    .thenReturn(List.of(new MemberServer(new SecurityServer(xRoadMember, "SS1"), null)));
 
             var result = managementServicesService.getManagementServicesConfiguration();
 

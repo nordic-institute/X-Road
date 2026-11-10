@@ -31,9 +31,17 @@ import jakarta.annotation.Nullable;
 /**
  * A Security Server related to a member, with the DID stored for the member on that server.
  *
- * @param server         the server
- * @param memberDid      the member's DID on the server, null when none is stored
- * @param memberDidStale whether the host of the DID differs from the server address, null without a DID
+ * @param server    the server
+ * @param memberDid the member's DID on the server, null when none is stored
  */
-public record MemberServer(SecurityServer server, @Nullable String memberDid, @Nullable Boolean memberDidStale) {
+public record MemberServer(SecurityServer server, @Nullable MemberDid memberDid) {
+
+    /**
+     * A member DID stored for the server, with whether it still matches the server address.
+     *
+     * @param did   the DID
+     * @param stale whether the host of the DID differs from the server address
+     */
+    public record MemberDid(String did, boolean stale) {
+    }
 }

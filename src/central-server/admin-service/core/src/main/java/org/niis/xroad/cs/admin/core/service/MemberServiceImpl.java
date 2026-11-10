@@ -37,6 +37,7 @@ import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberServer;
+import org.niis.xroad.cs.admin.api.domain.MemberServer.MemberDid;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
@@ -203,12 +204,13 @@ public class MemberServiceImpl implements MemberService {
                 .toList();
     }
 
-    private MemberServer toMemberServer(SecurityServerEntity server, String memberDid) {
+    private MemberServer toMemberServer(SecurityServerEntity server, String storedDid) {
         var target = securityServerMapper.toTarget(server);
-        if (memberDid == null) {
-            return new MemberServer(target, null, null);
+        if (storedDid == null) {
+            return new MemberServer(target, null);
         }
-        return new MemberServer(target, memberDid, ParticipantValueValidator.forServer(server).isMemberDidStale(memberDid));
+        return new MemberServer(target,
+                new MemberDid(storedDid, ParticipantValueValidator.forServer(server).isMemberDidStale(storedDid)));
     }
 
     @Override

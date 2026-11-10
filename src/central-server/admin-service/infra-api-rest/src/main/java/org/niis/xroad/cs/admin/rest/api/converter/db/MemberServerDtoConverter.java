@@ -40,7 +40,7 @@ public class MemberServerDtoConverter extends UniDirectionalDtoConverter<MemberS
     @Override
     public MemberServerDto toDto(MemberServer source) {
         var server = securityServerDtoConverter.toDto(source.server());
-        return new MemberServerDto()
+        var dto = new MemberServerDto()
                 .serverId(server.getServerId())
                 .ownerName(server.getOwnerName())
                 .serverAddress(server.getServerAddress())
@@ -50,8 +50,11 @@ public class MemberServerDtoConverter extends UniDirectionalDtoConverter<MemberS
                 .dspBaseUrl(server.getDspBaseUrl())
                 .systemPairStale(server.getSystemPairStale())
                 .createdAt(server.getCreatedAt())
-                .updatedAt(server.getUpdatedAt())
-                .memberDid(source.memberDid())
-                .memberDidStale(source.memberDidStale());
+                .updatedAt(server.getUpdatedAt());
+        var memberDid = source.memberDid();
+        if (memberDid != null) {
+            dto.memberDid(memberDid.did()).memberDidStale(memberDid.stale());
+        }
+        return dto;
     }
 }

@@ -48,6 +48,7 @@ import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.MemberServer;
+import org.niis.xroad.cs.admin.api.domain.MemberServer.MemberDid;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection;
 import org.niis.xroad.cs.admin.api.domain.ParticipantValueResult;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
@@ -402,11 +403,11 @@ class MemberServiceImplTest {
 
             var result = memberService.getMemberOwnedServers(clientId);
 
-            assertThat(result).extracting(m -> m.server().getServerCode(), MemberServer::memberDid, MemberServer::memberDidStale)
+            assertThat(result).extracting(m -> m.server().getServerCode(), MemberServer::memberDid)
                     .containsExactlyInAnyOrder(
-                            tuple("SS0", currentDid, false),
-                            tuple("SS1", movedDid, true),
-                            tuple("SS2", null, null));
+                            tuple("SS0", new MemberDid(currentDid, false)),
+                            tuple("SS1", new MemberDid(movedDid, true)),
+                            tuple("SS2", null));
             verify(memberDidRepository).findRowsByMemberId(memberRowId);
             verifyNoMoreInteractions(memberDidRepository);
         }
@@ -497,10 +498,9 @@ class MemberServiceImplTest {
 
             var result = memberService.getMemberClientOfServers(clientId);
 
-            assertThat(result).singleElement().satisfies(memberServer -> {
-                assertThat(memberServer.memberDid()).isEqualTo(did);
-                assertThat(memberServer.memberDidStale()).isFalse();
-            });
+            assertThat(result).singleElement()
+                    .extracting(MemberServer::memberDid)
+                    .isEqualTo(new MemberDid(did, false));
         }
     }
 
