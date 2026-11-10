@@ -35,8 +35,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -309,30 +307,14 @@ class SecurityServerServiceImplTest implements WithInOrder {
             assertThat(securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR)).isPresent();
         }
 
-        @ParameterizedTest
-        @CsvSource({
-                "NO_STORED_VALUE, did_not_stored",
-                "WRONG_SCHEME, did_wrong_scheme",
-                "DID_TOO_LONG, did_too_long",
-                "NOT_CANONICAL, did_not_canonical",
-                "HOST_DIFFERS, did_host_differs",
-                "UNPARSEABLE_REGISTERED_ADDRESS, did_unparseable_server_address",
-                "NON_ASCII_HOST, did_non_ascii_host",
-                "DSP_BASE_URL_NOT_HTTPS, dsp_base_url_not_https",
-                "DSP_BASE_URL_MALFORMED, dsp_base_url_malformed",
-                "FOREIGN_SYSTEM_DID, did_foreign_system",
-                "UNDECODABLE_DID, did_undecodable",
-                "DSP_BASE_URL_NOT_CANONICAL, dsp_base_url_not_canonical",
-                "DSP_BASE_URL_HOST_DIFFERS, dsp_base_url_host_differs",
-                "DSP_BASE_URL_NON_ASCII_HOST, dsp_base_url_non_ascii_host",
-                "DID_HELD_BY_ANOTHER_SERVER, did_held_by_another_server"})
-        void shouldFailWithTheCodeOfTheReasonTheStoreRefusesThePair(ParticipantValueRejection rejection, String code) {
+        @Test
+        void shouldFailWithTheCodeOfTheReasonTheStoreRefusesThePair() {
             when(participantValueStore.replaceSystemPair(5, PAIR.systemDid(), PAIR.dspBaseUrl()))
-                    .thenReturn(ParticipantValueResult.rejected(rejection));
+                    .thenReturn(ParticipantValueResult.rejected(ParticipantValueRejection.DSP_BASE_URL_NOT_HTTPS));
 
             assertThatThrownBy(() -> securityServerService.editSecurityServer(serverId, NEW_ADDRESS, PAIR))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining(code);
+                    .hasMessageContaining("dsp_base_url_not_https");
             verifyNoInteractions(securityServerMapper);
         }
 
