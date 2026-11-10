@@ -727,7 +727,8 @@ class GenerateOpMonitorRpcIdentityScriptTest {
             var process = builder.start();
             if (!process.waitFor(GenerateOpMonitorRpcIdentityScriptTest.PROCESS_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
                 terminate(process);
-                return fail("process timed out after %s, output so far: %s", GenerateOpMonitorRpcIdentityScriptTest.PROCESS_TIMEOUT, Files.readString(outputFile));
+                return fail("process timed out after %s, output so far: %s", GenerateOpMonitorRpcIdentityScriptTest.PROCESS_TIMEOUT,
+                        Files.readString(outputFile));
             }
             return new Result(process.exitValue(), Files.readString(outputFile));
         } catch (IOException e) {
