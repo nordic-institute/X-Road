@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.controlplane;
 
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import com.github.benmanes.caffeine.cache.Ticker;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -126,17 +127,18 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     public ConsumerSideDspProcessor(AssetAccessAcquisitionService assetAccessAcquisitionService,
                                     ProviderSecurityServerResolver providerSecurityServerResolver,
                                     AssetAccessClientProperties clientProperties) {
-        this(assetAccessAcquisitionService, providerSecurityServerResolver, clientProperties, Clock.systemUTC());
+        this(assetAccessAcquisitionService, providerSecurityServerResolver, clientProperties, Clock.systemUTC(),
+                Ticker.systemTicker());
     }
 
     ConsumerSideDspProcessor(AssetAccessAcquisitionService assetAccessAcquisitionService,
                              ProviderSecurityServerResolver providerSecurityServerResolver,
-                             AssetAccessClientProperties clientProperties, Clock clock) {
+                             AssetAccessClientProperties clientProperties, Clock clock, Ticker refusalTicker) {
         this.assetAccessAcquisitionService = assetAccessAcquisitionService;
         this.providerSecurityServerResolver = providerSecurityServerResolver;
         this.clientProperties = clientProperties;
         this.clock = clock;
-        this.refusalMemory = new RefusalMemory(clock);
+        this.refusalMemory = new RefusalMemory(refusalTicker);
     }
 
     @Override

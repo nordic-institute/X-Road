@@ -52,6 +52,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -103,7 +104,7 @@ class ConsumerSideDspProcessorTest {
     void setUp() {
         lenient().when(clientProperties.acquisitionDeadline()).thenReturn(DEADLINE);
         processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
-                clientProperties, clock);
+                clientProperties, clock, () -> TimeUnit.MILLISECONDS.toNanos(clock.millis()));
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 

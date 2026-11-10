@@ -33,11 +33,9 @@ import jakarta.annotation.Nullable;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACCESS_REFUSED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
@@ -62,8 +60,7 @@ class RefusalMemory {
 
     private final Cache<AssetAccessCache.CacheKey, String> refusals;
 
-    RefusalMemory(Clock clock) {
-        Ticker ticker = () -> TimeUnit.MILLISECONDS.toNanos(clock.millis());
+    RefusalMemory(Ticker ticker) {
         this.refusals = Caffeine.newBuilder()
                 .maximumSize(MAXIMUM_SIZE)
                 .expireAfterWrite(LIFETIME)
