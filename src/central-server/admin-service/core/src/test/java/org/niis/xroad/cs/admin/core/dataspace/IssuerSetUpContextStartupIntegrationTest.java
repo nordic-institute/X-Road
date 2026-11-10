@@ -74,7 +74,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -153,7 +152,7 @@ class IssuerSetUpContextStartupIntegrationTest {
 
         @Bean
         SignerProxyFacade signerProxyFacade(
-                @Value("${" + NODE_INITIALISED_PROPERTY + ":false}") boolean nodeInitialised) throws Exception {
+                @Value("${" + NODE_INITIALISED_PROPERTY + ":false}") boolean nodeInitialised) {
             var tokenInitialised = new AtomicBoolean(nodeInitialised);
             var tokenInfo = mock(TokenInfo.class);
             when(tokenInfo.getStatus()).thenAnswer(_ ->
@@ -247,7 +246,7 @@ class IssuerSetUpContextStartupIntegrationTest {
 
         assertThat(result).isEqualTo(new IssuerSetUpResult.Accepted());
         verify(dataspaceIssuerProvisioningService, timeout(QUIET_PERIOD_MS)).provisionIssuer();
-        verify(issuerSetUpLeaseService, timeout(QUIET_PERIOD_MS)).release(eq(NODE));
+        verify(issuerSetUpLeaseService, timeout(QUIET_PERIOD_MS)).release(NODE);
     }
 
     private void verifySetUpNeverStarts() {

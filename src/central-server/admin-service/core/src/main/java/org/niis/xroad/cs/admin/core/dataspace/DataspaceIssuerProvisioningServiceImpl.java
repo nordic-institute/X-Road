@@ -152,7 +152,7 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
     private void waitBeforeRetry() {
         try {
             sleeper.sleep(CAN_SIGN_RETRY_INTERVAL);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             throw provisioningFailed("interrupted while waiting to retry the can-sign check");
         }

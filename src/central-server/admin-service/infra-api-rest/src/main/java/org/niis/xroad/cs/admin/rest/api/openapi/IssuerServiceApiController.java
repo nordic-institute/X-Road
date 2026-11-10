@@ -81,7 +81,7 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     @AuditEventMethod(event = RestApiAuditEvent.START_ISSUER_SERVICE_SET_UP)
     public ResponseEntity<Void> startIssuerServiceSetUp() {
         return switch (issuerSetUpService.start()) {
-            case IssuerSetUpResult.Accepted ignored -> ResponseEntity.accepted().build();
+            case IssuerSetUpResult.Accepted() -> ResponseEntity.accepted().build();
             case IssuerSetUpResult.Refused(var cause) -> throw refusalException(cause);
         };
     }

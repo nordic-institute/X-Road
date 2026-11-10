@@ -60,7 +60,7 @@ public class ConnectorCertificateCheck {
         Collection<List<?>> subjectAlternativeNames;
         try {
             subjectAlternativeNames = certificate.getSubjectAlternativeNames();
-        } catch (CertificateParsingException e) {
+        } catch (CertificateParsingException _) {
             return false;
         }
         if (subjectAlternativeNames == null) {

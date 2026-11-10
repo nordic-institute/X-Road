@@ -66,7 +66,7 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
      * must fail fast when the Issuer Service is down rather than block for the channel's default deadline; a few
      * seconds is enough for a healthy, collocated Issuer Service to answer.
      */
-    private static final long CAN_SIGN_DEADLINE_MILLIS = 3_000;
+    static final long CAN_SIGN_DEADLINE_MILLIS = 3_000;
 
     private final RpcChannelFactory rpcChannelFactory;
     private final IssuerProvisioningRpcChannelProperties channelProperties;

@@ -122,7 +122,7 @@ class IssuerSetUpServiceImplTest {
     }
 
     @Test
-    void refusesAlreadyRunningWhenAnotherNodeHoldsTheLease() throws Exception {
+    void refusesAlreadyRunningWhenAnotherNodeHoldsTheLease() {
         givenEveryPrerequisiteCheckPasses();
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.of("node-b"));
 
@@ -133,7 +133,7 @@ class IssuerSetUpServiceImplTest {
     }
 
     @Test
-    void refusesAlreadyRunningWhenAcquiringTheFreeLeaseRacesAnotherNode() throws Exception {
+    void refusesAlreadyRunningWhenAcquiringTheFreeLeaseRacesAnotherNode() {
         givenEveryPrerequisiteCheckPasses();
         when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
         when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(false);
@@ -144,10 +144,28 @@ class IssuerSetUpServiceImplTest {
         verifyNoInteractions(dataspaceIssuerProvisioningService);
     }
 
+    @Test
+    void refusesAlreadySetUpWhenTheIssuerBecomesBoundWhileAcquiringTheLease() {
+        when(issuerHostService.getState())
+                .thenReturn(new IssuerHostState(HOST, false), new IssuerHostState(HOST, true));
+        when(connectorCertificateCheck.isReadyFor(HOST)).thenReturn(true);
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
+        when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(DEADLINE_AFTER_MS);
+
+        var result = issuerSetUpService.start();
+
+        assertThat(result).isEqualTo(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP));
+        verify(issuerSetUpLeaseService).release(NODE);
+        verifyNoInteractions(dataspaceIssuerProvisioningService);
+    }
+
     /**
      * The fake run blocks until released, so {@code start()} returning "accepted" is only possible if
      * the provisioning sequence genuinely runs on a background thread rather than inline: an inline
-     * call would hang this test on the same latch it asserts against below.
+     * call would hang this test on the same latch it asserts against below. {@code provisionIssuer()}
+     * returning does not by itself mean the lease has been released, so the release is awaited through
+     * the mocked {@code release(NODE)} call itself.
      */
     @Test
     void acceptsAndRunsTodaysProvisioningSequenceInTheBackgroundWhenEveryCheckPasses() throws Exception {
@@ -158,13 +176,16 @@ class IssuerSetUpServiceImplTest {
 
         var runStarted = new CountDownLatch(1);
         var releaseRun = new CountDownLatch(1);
-        var runFinished = new CountDownLatch(1);
+        var leaseReleased = new CountDownLatch(1);
         doAnswer(invocation -> {
             runStarted.countDown();
             assertThat(releaseRun.await(2, TimeUnit.SECONDS)).isTrue();
-            runFinished.countDown();
             return null;
         }).when(dataspaceIssuerProvisioningService).provisionIssuer();
+        doAnswer(invocation -> {
+            leaseReleased.countDown();
+            return null;
+        }).when(issuerSetUpLeaseService).release(NODE);
 
         var result = issuerSetUpService.start();
 
@@ -175,18 +196,46 @@ class IssuerSetUpServiceImplTest {
 
         releaseRun.countDown();
 
-        assertThat(runFinished.await(2, TimeUnit.SECONDS)).isTrue();
+        assertThat(leaseReleased.await(2, TimeUnit.SECONDS)).isTrue();
         verify(dataspaceIssuerProvisioningService).provisionIssuer();
         verify(issuerSetUpLeaseService).release(NODE);
+    }
+
+    @Test
+    void leaseTtlCoversTheWorstCaseRunAtAShortChannelDeadline() {
+        assertLeaseTtlCoversTheWorstCaseRun(1000);
+    }
+
+    @Test
+    void leaseTtlCoversTheWorstCaseRunAtTheDefaultChannelDeadline() {
+        assertLeaseTtlCoversTheWorstCaseRun(DEADLINE_AFTER_MS);
+    }
+
+    /**
+     * Computes the worst-case run time independently of {@code IssuerSetUpServiceImpl.leaseTtl()}: 3 RPC
+     * calls (creating the participant context and the two definition calls) each wait out the channel
+     * deadline; each of the 2 "can sign" probes retries up to its own fixed per-attempt deadline times the
+     * maximum attempt count, waiting the retry interval between attempts.
+     */
+    private void assertLeaseTtlCoversTheWorstCaseRun(int deadlineAfterMs) {
+        givenEveryPrerequisiteCheckPasses();
+        when(issuerSetUpLeaseService.currentHolder()).thenReturn(Optional.empty());
+        when(issuerSetUpLeaseService.tryAcquire(eq(NODE), any())).thenReturn(true);
+        when(issuerProvisioningRpcChannelProperties.deadlineAfter()).thenReturn(deadlineAfterMs);
+
+        issuerSetUpService.start();
 
         var ttlCaptor = ArgumentCaptor.forClass(Duration.class);
         verify(issuerSetUpLeaseService).tryAcquire(eq(NODE), ttlCaptor.capture());
-        var expectedTtl = Duration.ofMillis(DEADLINE_AFTER_MS).multipliedBy(5)
-                .plus(Duration.ofSeconds(30))
+
+        var oneProbeWorstCase = Duration.ofMillis(IssuerProvisioningRpcClient.CAN_SIGN_DEADLINE_MILLIS)
+                .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS)
                 .plus(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_RETRY_INTERVAL
-                        .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS - 1)
-                        .multipliedBy(2));
-        assertThat(ttlCaptor.getValue()).isEqualTo(expectedTtl);
+                        .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS - 1L));
+        var worstCase = Duration.ofMillis(deadlineAfterMs).multipliedBy(3)
+                .plus(oneProbeWorstCase.multipliedBy(2));
+
+        assertThat(ttlCaptor.getValue()).isGreaterThanOrEqualTo(worstCase);
     }
 
     @Test

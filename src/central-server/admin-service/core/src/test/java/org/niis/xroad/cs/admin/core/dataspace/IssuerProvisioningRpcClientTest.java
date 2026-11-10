@@ -59,6 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("java:S2925")
 @ExtendWith(MockitoExtension.class)
 class IssuerProvisioningRpcClientTest {
 
@@ -103,7 +104,7 @@ class IssuerProvisioningRpcClientTest {
                 if (canSignDelayMillis > 0) {
                     try {
                         Thread.sleep(canSignDelayMillis);
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException _) {
                         Thread.currentThread().interrupt();
                         return;
                     }

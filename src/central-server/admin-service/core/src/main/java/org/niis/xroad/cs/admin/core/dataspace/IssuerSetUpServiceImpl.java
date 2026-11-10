@@ -51,11 +51,15 @@ import java.util.concurrent.Executors;
 public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBean {
 
     /**
-     * The provisioning run makes this many sequential gRPC calls, each bounded by the RPC deadline:
-     * the initial "can sign" check, creating the participant context, the two definition calls, and
-     * the final "can sign" check before binding.
+     * The provisioning run makes this many sequential gRPC calls bounded by the channel RPC deadline:
+     * creating the participant context and the two definition calls. The run's two "can sign" probes
+     * are not among them: each is bounded by its own fixed per-attempt deadline instead, budgeted
+     * separately below.
      */
-    private static final int PROVISIONING_RPC_CALLS = 5;
+    private static final int NON_PROBE_RPC_CALLS = 3;
+
+    /** How many "can sign" probes a run makes: the initial one and the final one before binding. */
+    private static final int CAN_SIGN_PROBES_PER_RUN = 2;
 
     /** Extra headroom on top of the worst-case RPC time, included in the lease TTL. */
     private static final Duration LEASE_TTL_MARGIN = Duration.ofSeconds(30);
@@ -91,25 +95,40 @@ public class IssuerSetUpServiceImpl implements IssuerSetUpService, DisposableBea
             return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING);
         }
 
+        if (issuerHostService.getState().bound()) {
+            issuerSetUpLeaseService.release(node);
+            return new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP);
+        }
+
         executor.execute(() -> runProvisioning(node));
         return new IssuerSetUpResult.Accepted();
     }
 
     /**
      * Longer than the provisioning run could ever take, so a node that crashes mid-run never blocks the
-     * cluster past this point: every RPC call the run makes carries the same deadline, a margin is added on
-     * top of the worst case of all of them running back to back, and the run's two "can sign" probes may
-     * each retry a transient failure up to {@link DataspaceIssuerProvisioningServiceImpl#CAN_SIGN_MAX_ATTEMPTS}
-     * times, waiting {@link DataspaceIssuerProvisioningServiceImpl#CAN_SIGN_RETRY_INTERVAL} between attempts.
+     * cluster past this point: a margin is added on top of the worst case of the non-probe RPC calls
+     * running back to back at the channel deadline, plus the worst case of the two "can sign" probes. Each
+     * probe may retry a transient failure, at its own flat per-attempt deadline, up to
+     * {@link DataspaceIssuerProvisioningServiceImpl#CAN_SIGN_MAX_ATTEMPTS} times, waiting
+     * {@link DataspaceIssuerProvisioningServiceImpl#CAN_SIGN_RETRY_INTERVAL} between attempts.
      */
     private Duration leaseTtl() {
-        var canSignRetryBudget = DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_RETRY_INTERVAL
-                .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS - 1)
-                .multipliedBy(2);
-        return Duration.ofMillis(issuerProvisioningRpcChannelProperties.deadlineAfter())
-                .multipliedBy(PROVISIONING_RPC_CALLS)
-                .plus(LEASE_TTL_MARGIN)
-                .plus(canSignRetryBudget);
+        var nonProbeRpcBudget = Duration.ofMillis(issuerProvisioningRpcChannelProperties.deadlineAfter())
+                .multipliedBy(NON_PROBE_RPC_CALLS);
+        return nonProbeRpcBudget
+                .plus(canSignProbeBudget().multipliedBy(CAN_SIGN_PROBES_PER_RUN))
+                .plus(LEASE_TTL_MARGIN);
+    }
+
+    /**
+     * Worst case for one "can sign" probe: every attempt is bounded by its own fixed per-attempt deadline,
+     * with a wait between attempts.
+     */
+    private static Duration canSignProbeBudget() {
+        return Duration.ofMillis(IssuerProvisioningRpcClient.CAN_SIGN_DEADLINE_MILLIS)
+                .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS)
+                .plus(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_RETRY_INTERVAL
+                        .multipliedBy(DataspaceIssuerProvisioningServiceImpl.CAN_SIGN_MAX_ATTEMPTS - 1L));
     }
 
     private void runProvisioning(String node) {
