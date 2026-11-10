@@ -39,6 +39,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
+import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.admin.DiagnosticsAdminClient;
 import org.niis.xroad.ss.test.api.admin.SystemAdminClient;
@@ -47,6 +48,7 @@ import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -69,6 +71,7 @@ class DiagnosticsTrafficTest extends SsApiTest {
     private static final Duration RECORD_TIMEOUT = Duration.ofSeconds(20);
     private static final Duration RECORD_POLL_INTERVAL = Duration.ofSeconds(1);
     private static final Duration CLOCK_SKEW_MARGIN = Duration.ofMinutes(1);
+    private static final Duration DIAGNOSTIC_LOOKUP_TIMEOUT = Duration.ofSeconds(3);
     private static final String REGISTERED_SUBSYSTEM_CODE = "TestService";
 
     @Test
@@ -113,7 +116,8 @@ class DiagnosticsTrafficTest extends SsApiTest {
         });
 
         then("the intervals call for that service reports at least one request in some interval", () -> {
-            var diagnostics = new DiagnosticsAdminClient(seeder.newSession());
+            var session = seeder.newSession();
+            var diagnostics = new DiagnosticsAdminClient(session);
             try {
                 await("op-monitor record for " + serviceId)
                         .pollDelay(Duration.ZERO)
@@ -122,7 +126,7 @@ class DiagnosticsTrafficTest extends SsApiTest {
                         .logging(log::info)
                         .untilAsserted(() -> assertThat(recordedRequestCount(diagnostics, proxyCall.sentAt(), serviceId)).isPositive());
             } catch (ConditionTimeoutException e) {
-                throw new AssertionError(timeoutReport(seeder, clientId, serviceId, proxyCall), e);
+                throw new AssertionError(timeoutReport(session, clientId, serviceId, proxyCall), e);
             }
         });
     }
@@ -152,24 +156,34 @@ class DiagnosticsTrafficTest extends SsApiTest {
                 serviceId);
     }
 
-    private static String timeoutReport(SsBaselineSeeder seeder, String clientId, String serviceId, ProxyCall proxyCall) {
-        var session = seeder.newSession();
-        var diagnostics = new DiagnosticsAdminClient(session);
+    private static String timeoutReport(AdminApiSession session, String clientId, String serviceId, ProxyCall proxyCall) {
+        var lookupSession = session.withRequestTimeout(DIAGNOSTIC_LOOKUP_TIMEOUT);
+        var diagnostics = new DiagnosticsAdminClient(lookupSession);
         return """
                 op-monitor reported no request for %s within %s
                   client: %s, sent at: %s, proxy response: HTTP %d, X-Road-Error: %s
                   query window: sent at - %s .. now + %s
                   requests for this service: %s, all requests in the window: %s
-                  GET /system/op-monitor-ca: HTTP %d (204 = no imported CA)
+                  GET /system/op-monitor-ca: %s (204 = no imported CA)
                   all requests 0 means nothing reached op-monitor: check the proxy log for
                   'Trusting only the imported op-monitor CA' and 'Sending operational monitoring data failed'
                 """.formatted(
                         serviceId, RECORD_TIMEOUT,
                         clientId, proxyCall.sentAt(), proxyCall.status(), proxyCall.xroadError(),
                         CLOCK_SKEW_MARGIN, CLOCK_SKEW_MARGIN,
-                        describeCount(intervalsAround(diagnostics, proxyCall.sentAt(), serviceId)),
-                        describeCount(intervalsAround(diagnostics, proxyCall.sentAt(), null)),
-                        new SystemAdminClient(session).getOpMonitorCa().extract().statusCode());
+                        bestEffort(() -> describeCount(intervalsAround(diagnostics, proxyCall.sentAt(), serviceId))),
+                        bestEffort(() -> describeCount(intervalsAround(diagnostics, proxyCall.sentAt(), null))),
+                        bestEffort(() -> "HTTP " + new SystemAdminClient(lookupSession).getOpMonitorCa().extract().statusCode()));
+    }
+
+    @SuppressWarnings("java:S2221")
+    private static String bestEffort(Supplier<String> lookup) {
+        try {
+            return lookup.get();
+        } catch (Exception | AssertionError e) {
+            // RestAssured rethrows checked I/O exceptions such as SocketTimeoutException without declaring them
+            return "unavailable (%s)".formatted(e);
+        }
     }
 
     private static String describeCount(ValidatableResponse intervals) {
