@@ -1026,6 +1026,29 @@ HTTP 200
 [Asserts]
 jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
 
+# Gate: each Security Server sees its own DSP base URL in its reloaded global configuration.
+# PUBLISHED is set only after the server's globalconf check finds the stored SYSTEM DID and
+# DSP base URL in its own copy, before the first DSP-routed request (the TestClient registration).
+GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.server.publication_state" == "PUBLISHED"
+
+GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.server.publication_state" == "PUBLISHED"
+
 # Add TestClient to SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/clients
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
