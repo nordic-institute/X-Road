@@ -57,8 +57,10 @@ import org.niis.xroad.serverconf.model.Endpoint;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -98,6 +100,7 @@ class PolicyDefinitionServerConfStoreTest {
     private static final ServiceId.Conf MGMT_SERVICE = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg");
 
     private static final ClientId.Conf SUBJECT_CLIENT = ClientId.Conf.create("DEV", "GOV", "9999", "Consumer");
+    private static final ClientId.Conf OTHER_SUBJECT_CLIENT = ClientId.Conf.create("DEV", "GOV", "9998", "OtherConsumer");
     private static final GlobalGroupId SUBJECT_GROUP = GlobalGroupId.Conf.create("DEV", "sec-owners");
 
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1234", "ss0");
@@ -773,6 +776,121 @@ class PolicyDefinitionServerConfStoreTest {
         assertThat(systemPolicy).isNotNull();
         assertThat(systemPolicy.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX);
         assertThat(otherMemberPolicy).isNull();
+    }
+
+    @Test
+    void findAllByIdInReturnsTheCompoundPolicyFindByIdResolvesUnderMemberContext() {
+        stubMemberOneServiceWithAccessRights(SUBJECT_CLIENT, OTHER_SUBJECT_CLIENT);
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1) + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+
+        assertFindAllByIdInAgreesWithFindById(store, MEMBER_1_CTX, policyId);
+    }
+
+    @Test
+    void findAllByIdInReturnsTheCompoundPolicyFindByIdResolvesUnderSystemContext() {
+        var endpoint = new Endpoint("clientReg", "*", "**", true);
+        mockRealManagementService(List.of(createAccessRight(SUBJECT_CLIENT, endpoint),
+                createAccessRight(OTHER_SUBJECT_CLIENT, endpoint)));
+        var sixPartAttempt = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg", "DEV");
+        lenient().when(serverConfProvider.serviceExists(sixPartAttempt)).thenReturn(false);
+        var policyId = MGMT_SERVICE.asEncodedId() + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+
+        assertFindAllByIdInAgreesWithFindById(store, SYSTEM_PARTICIPANT_CTX, policyId);
+    }
+
+    @Test
+    void findAllByIdInReturnsTheUnrestrictedPolicyFindByIdResolvesUnderSystemContext() {
+        mockRealManagementService(List.of());
+        var otherManagementService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", ManagementServiceCodes.OWNER_CHANGE);
+        lenient().when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE, otherManagementService));
+        lenient().when(serverConfProvider.serviceExists(otherManagementService)).thenReturn(true);
+
+        assertFindAllByIdInAgreesWithFindById(store, SYSTEM_PARTICIPANT_CTX, MGMT_SERVICE.asEncodedId());
+    }
+
+    @Test
+    void findAllByIdInReturnsTheOwnerOnlyPolicyFindByIdResolvesUnderSystemContext() {
+        lenient().when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
+        lenient().when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        lenient().when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        var policyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceContextResolver.resolveSyntheticServices().getFirst());
+
+        assertFindAllByIdInAgreesWithFindById(store, SYSTEM_PARTICIPANT_CTX, policyId);
+    }
+
+    @Test
+    void findAllByIdInReturnsTheBuiltinPolicyFindByIdResolvesUnderSystemContext() {
+        var builtinStore = new PolicyDefinitionServerConfStore(
+                serverConfProvider, new PolicyMapper(), allBuiltins(), DISABLED_CACHE, serviceContextResolver);
+        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
+
+        assertFindAllByIdInAgreesWithFindById(builtinStore, SYSTEM_PARTICIPANT_CTX, builtinAssetId);
+    }
+
+    @Test
+    void findAllByIdInReturnsNothingForUnknownIds() {
+        stubMemberOneServiceWithAccessRights(SUBJECT_CLIENT);
+        var listedPolicyId = AssetMapper.encodeAssetId(SERVICE_1) + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+
+        assertThat(findByIdIn(listedPolicyId)).extracting(PolicyDefinition::getId).containsExactly(listedPolicyId);
+        assertThat(findByIdIn("DEV:GOV:1234:SubSys:unknown")).isEmpty();
+    }
+
+    private List<PolicyDefinition> findByIdIn(String... ids) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("participantContextId", "=", MEMBER_1_CTX))
+                .filter(Criterion.criterion("id", "in", List.of(ids)))
+                .limit(Integer.MAX_VALUE)
+                .build();
+        return store.findAll(query).toList();
+    }
+
+    private void stubMemberOneServiceWithAccessRights(XRoadId... subjects) {
+        var accessRights = Stream.of(subjects)
+                .map(subject -> createAccessRight(subject, new Endpoint("svc1", "GET", "/api/data", false)))
+                .toList();
+        lenient().when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        lenient().when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        lenient().when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(accessRights);
+        lenient().when(participantContextService.search(any()))
+                .thenReturn(ServiceResult.success(List.of(participantContext(MEMBER_1_CTX))));
+        lenient().when(participantContextService.getParticipantContext(MEMBER_1_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_1_CTX)));
+    }
+
+    private void mockRealManagementService(List<AccessRight> accessRights) {
+        lenient().when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT));
+        lenient().when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        lenient().when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
+        lenient().when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(accessRights);
+        lenient().when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        lenient().when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+    }
+
+    private static void assertFindAllByIdInAgreesWithFindById(PolicyDefinitionServerConfStore policyStore,
+                                                              String ctxId, String policyId) {
+        var resolved = policyStore.findById(ctxId, policyId);
+        assertThat(resolved).as("findById resolves %s under %s", policyId, ctxId).isNotNull();
+        var snapshot = queryByParticipantContextId(ctxId).limit(Integer.MAX_VALUE).build();
+        assertThat(policyStore.findAll(snapshot).map(PolicyDefinition::getId).toList())
+                .as("snapshot under %s holds the listed policy and at least one unlisted one", ctxId)
+                .contains(policyId)
+                .hasSizeGreaterThan(1);
+
+        var query = QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("participantContextId", "=", ctxId))
+                .filter(Criterion.criterion("id", "in", List.of(policyId, "DEV:GOV:1234:SubSys:unknown")))
+                .limit(Integer.MAX_VALUE)
+                .build();
+        var found = policyStore.findAll(query).toList();
+
+        assertThat(found).singleElement()
+                .usingRecursiveComparison()
+                .ignoringFields("createdAt")
+                .isEqualTo(resolved);
     }
 
     private static AccessRight createAccessRight(ee.ria.xroad.common.identifier.XRoadId subjectId, Endpoint endpoint) {
