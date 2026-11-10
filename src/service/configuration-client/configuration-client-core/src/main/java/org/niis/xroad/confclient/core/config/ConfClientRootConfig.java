@@ -56,18 +56,14 @@ import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
 
-import java.util.Optional;
-
 import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 public class ConfClientRootConfig {
 
     @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName,
-                            @ConfigProperty(name = NodeNameProvider.HA_NODE_NAME_PROPERTY_KEY)
-                            Optional<String> nodeName) {
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return configBuilder()
-                .dbOverrides(appName, NodeNameProvider.of(nodeName.orElse(null)))
+                .dbOverrides(appName, NodeNameProvider.fromEnvironment())
                 .build();
     }
 

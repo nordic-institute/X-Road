@@ -32,6 +32,7 @@ Doc. ID: IG-CS-8
     - [2.6.1 Configuring TLS Certificates](#261-configuring-tls-certificates-for-global-configuration-distribution)
     - [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface)
     - [2.6.3 Provisioning TLS Certificates for gRPC services](#263-provisioning-tls-certificates-for-grpc-services)
+    - [2.6.4 Node name](#264-node-name)
   - [2.7 Pre-configuration for Registration Web Service](#27-pre-configuration-for-registration-web-service)
   - [2.8 Pre-configuration for Management Web Service](#28-pre-configuration-for-management-web-service)
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
@@ -237,6 +238,32 @@ TLS certificates for the user interface and management services are automaticall
 #### 2.6.3 Provisioning TLS Certificates for gRPC services
 
 TLS certificates for gRPC services are provisioned and rotated automatically, using OpenBao PKI secrets engine (package `xroad-secret-store-local`).
+
+#### 2.6.4 Node name
+
+The node name tells Central Server nodes apart when they share one secret store. The Central Server uses it in secret store paths and, when it is set, in the names of backup archives.
+
+A standalone Central Server does not need a node name. Set one on every node of a high availability cluster, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md).
+
+- Where to set it:
+  - Native packages: the key `name` in the `[node]` section of `/etc/xroad/conf.d/node.ini`. Set it before installing the packages. The directory does not exist before the first installation, so create it first with `sudo mkdir -p /etc/xroad/conf.d`. The package sets the ownership of the directory and its files when it is installed.
+    ```ini
+    [node]
+    name=node_1
+    ```
+  - Containers: the environment variable `XROAD_NODE_NAME`.
+- The rule:
+  - Use 1 to 63 characters: letters, digits, `_` and `-`.
+  - The first character must be a letter or a digit.
+  - The name is read as plain text, so values such as `01`, `007` and `true` are valid.
+- What it selects:
+  - The node's signer token PINs in the secret store.
+  - The node's configuration rows: a row set with `db_property.sh --node <node>` applies only to the node with that name, and only while the node has that name. See [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md#28-installing-the-support-for-hardware-tokens) section 2.8, "Per-node values".
+- If the name is not set:
+  - The services use the name `node_0` in secret store paths.
+  - Backup archive names have no node name suffix.
+- The services check the name when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
+- Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
 
 ### 2.7 Pre-configuration for Registration Web Service
 

@@ -41,6 +41,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
@@ -79,7 +80,7 @@ class QuarkusVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new QuarkusVaultClient(kvSecretEngine);
+        vaultClient = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_0"));
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
@@ -373,6 +374,32 @@ class QuarkusVaultClientTest {
         vaultClient.clearOpMonitorCa();
         vaultClient.createOpMonitorCa(second);
         assertThat(vaultClient.getOpMonitorCa()).contains(second);
+    }
+
+    @Test
+    void shouldStoreTokenPinUnderTheNodePath() {
+        vaultClient.setTokenPin("tok1", "1234".toCharArray());
+
+        assertThat(secretsByPath).containsOnlyKeys("signer/token-pins/node_0/tok1");
+        assertThat(vaultClient.getTokenPin("tok1")).hasValue("1234".toCharArray());
+    }
+
+    @Test
+    void shouldKeepTokenPinsOfDifferentNodesSeparate() {
+        var nodeA = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("node_a"));
+        var nodeZero = new QuarkusVaultClient(kvSecretEngine, NodeIdentity.resolve("0"));
+
+        nodeA.setTokenPin("0", "1111".toCharArray());
+        nodeZero.setTokenPin("0", "2222".toCharArray());
+
+        assertThat(secretsByPath).containsOnlyKeys("signer/token-pins/node_a/0", "signer/token-pins/0/0");
+        assertThat(nodeA.getTokenPin("0")).hasValue("1111".toCharArray());
+        assertThat(nodeZero.getTokenPin("0")).hasValue("2222".toCharArray());
+
+        nodeA.deleteTokenPin("0");
+
+        assertThat(nodeA.getTokenPin("0")).isEmpty();
+        assertThat(nodeZero.getTokenPin("0")).hasValue("2222".toCharArray());
     }
 
     private static X509Certificate selfSignedCa(String subjectName) throws Exception {

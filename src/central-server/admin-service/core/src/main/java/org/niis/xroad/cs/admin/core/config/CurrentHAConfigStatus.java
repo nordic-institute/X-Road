@@ -26,39 +26,23 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.properties.dbsource.NodeName;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@Getter
-@RequiredArgsConstructor
 public class CurrentHAConfigStatus {
 
-    private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
-
     /**
-     * Deliberately read from the Spring {@code Environment} rather than the {@code XRoadConfig} DSL:
-     * the node name is per-node install-time identity written to {@code /etc/xroad/conf.d/local.yaml},
-     * and the packaged backup/restore scripts parse that same file for the same key
-     * ({@code _backup_restore_common.sh:check_central_ha_node_name}). The DSL resolves DB overrides and
-     * packaged defaults only, so moving this key there would leave the scripts and the application
-     * reading different values.
+     * The node name is per-node install-time identity read from the {@code XROAD_NODE_NAME} environment
+     * variable, which the service launcher takes from {@code node.ini}. The backup and restore scripts read
+     * the same {@code node.ini} key.
      */
-    @Value("${xroad.admin-service.ha-node-name}")
-    private final String haNodeName;
-
     @Bean
     HAConfigStatus currentHaConfigStatus() {
-        if (StringUtils.isEmpty(haNodeName)) {
-            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
-        } else {
-            return new HAConfigStatus(haNodeName, true);
-        }
+        var nodeName = NodeName.fromEnvironment();
+        return new HAConfigStatus(nodeName.name(), nodeName.configured());
     }
 
 }
