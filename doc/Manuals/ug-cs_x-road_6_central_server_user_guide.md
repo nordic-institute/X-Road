@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.53  
+Version: 2.54  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -79,6 +79,7 @@ Doc. ID: UG-CS
 | 20.10.2025 | 2.51    | Add information about paid and free tsp and ocsp responders                                                                                                                                                                                                                                                                                                                                                                             | Mikk-Erik Bachmann   |
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
+| 10.11.2026 | 2.54    | Added Issuer Service issuance settings and statuslist capacity paragraph                                                                                                                                                                                                                                                                                                                                                                | Ričardas Bučiūnas    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -110,6 +111,9 @@ Doc. ID: UG-CS
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
       - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
   - [4.5 Configuring the Issuer Service Host](#45-configuring-the-issuer-service-host)
+  - [4.6 Issuer Service Issuance Settings and Statuslist Capacity](#46-issuer-service-issuance-settings-and-statuslist-capacity)
+    - [4.6.1 Issuance Settings](#461-issuance-settings)
+    - [4.6.2 Statuslist Capacity](#462-statuslist-capacity)
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -531,6 +535,35 @@ Only a valid DNS name is accepted: not an IP address, not `localhost` or a name 
 **Recommendation:** use a separate cluster DNS name for the Issuer Service host, not the host name of a Central Server node, even on a single node. The host cannot change after binding. If you use the node's own host name and add a node later, the existing node needs a new address, and every Security Server needs a new configuration anchor. With more than one node, the host must be the cluster DNS name, never a node's own host name.
 
 **ATTENTION!** On an initialized Central Server, the Issuer Service identity is bound automatically soon after the host is set. Check the value before you send it. Once the identity is bound, a valid new host, even the same one again, is refused, and the response names the bound host.
+
+### 4.6 Issuer Service Issuance Settings and Statuslist Capacity
+
+#### 4.6.1 Issuance Settings
+
+The Issuer Service issues credentials in batches. Before it delivers a credential to a Security Server, it takes a time-limited lease on the issuance request. If a node stalls for longer than the lease, another node can take the request over, and the credential can be delivered twice. A full batch must therefore finish well inside the lease: the batch size multiplied by the delivery call timeout must be smaller than the lease duration.
+
+The shipped configuration sets these values explicitly, so that a software upgrade cannot change them unnoticed:
+
+| Setting                                                   | Value  | Meaning                                                              |
+|-----------------------------------------------------------|--------|----------------------------------------------------------------------|
+| `edc.issuer.issuance.state-machine.lease-duration-millis` | 300000 | How long a node holds the lease on an issuance request, in ms        |
+| `edc.issuer.issuance.state-machine.batch-size`            | 10     | How many issuance requests a node processes in one batch             |
+| `edc.issuer.issuance.send.call-timeout.ms`                | 15000  | Time limit for one delivery call to a Security Server, in ms         |
+| `edc.issuer.issuance.send.connect-timeout.ms`             | 5000   | Time limit for opening the connection of a delivery call, in ms      |
+
+The default values need no change. To override a value, set the same key in `/etc/xroad/conf.d/local-ds-issuer-service.yaml` and restart the `xroad-ds-issuer-service` service. Keep the batch size multiplied by the call timeout smaller than the lease duration.
+
+#### 4.6.2 Statuslist Capacity
+
+Every credential holds one slot in a statuslist, which records whether the credential is revoked. A statuslist has at least 131072 slots. Each renewal of a credential takes a new slot. Credentials are valid for 30 days and are renewed 7 days before they expire, so a participant uses about 15.87 slots per year.
+
+The number of participants N is the number of hosted members plus the number of Security Servers. The number of statuslists needed after Y years is:
+
+`lists after Y years = ceil(N × 15.87 × Y / 131072)`
+
+For example, 5000 participants after 5 years need ceil(5000 × 15.87 × 5 / 131072) = 4 statuslists.
+
+When a statuslist is full, the Issuer Service adds a new one automatically and issues later credentials from it. X-Road keeps the default size, so no action is needed.
 
 ## 5. Configuration Management
 
