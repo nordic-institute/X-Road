@@ -427,7 +427,7 @@
           },
           "checkDid": "Comprobar DID",
           "success": "DID del miembro actualizado correctamente",
-          "title": "Editar DID del miembro"
+          "title": "Editar DID del miembro en {server}"
         },
         "editMemberName": "Editar el nombre del miembro",
         "enterCode": "Ingrese el código de miembro",
@@ -497,7 +497,7 @@
         "checkDid": "Comprobar DID",
         "dspBaseUrlField": "URL base de DSP",
         "notify": "Informe de este cambio al operador del servidor de seguridad, por ejemplo por correo electrónico. El servidor de seguridad conserva sus propios valores hasta que el operador lo vuelva a identificar.",
-        "oldHostWarning": "El SYSTEM DID y la URL base de DSP aún usan el host antiguo. Cámbielos también, o déjelos para que el operador del servidor de seguridad vuelva a identificar el servidor.",
+        "oldHostWarning": "El SYSTEM DID y la URL base de DSP pueden seguir usando el host antiguo. Cámbielos también, o déjelos para que el operador del servidor de seguridad vuelva a identificar el servidor.",
         "publishedValues": "Valores publicados",
         "publishedValuesHint": "La configuración global anuncia estos valores a otros servidores.",
         "success": "Dirección del servidor de seguridad actualizada correctamente",

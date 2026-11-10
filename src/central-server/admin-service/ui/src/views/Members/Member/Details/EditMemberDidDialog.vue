@@ -26,7 +26,7 @@
  -->
 <template>
   <XrdSimpleDialog
-    title="members.member.details.editDid.title"
+    :translated-title="$t('members.member.details.editDid.title', { server: server.server_id.server_code })"
     data-test="member-did-edit-dialog"
     save-button-text="action.save"
     submittable

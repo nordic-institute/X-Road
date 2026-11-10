@@ -461,7 +461,7 @@
           },
           "checkDid": "Check DID",
           "success": "Member DID successfully updated",
-          "title": "Edit member DID"
+          "title": "Edit member DID on {server}"
         },
         "editMemberName": "Edit Member's name",
         "enterCode": "Enter Member Code",
@@ -534,7 +534,7 @@
         "checkDid": "Check DID",
         "dspBaseUrlField": "DSP base URL",
         "notify": "Inform the Security Server operator about this change, for example by email. The Security Server keeps its own values until the operator re-identifies it.",
-        "oldHostWarning": "The SYSTEM DID and DSP base URL still use the old host. Change them too, or leave them for the Security Server operator to re-identify the server.",
+        "oldHostWarning": "The SYSTEM DID and DSP base URL may still use the old host. Change them too, or leave them for the Security Server operator to re-identify the server.",
         "publishedValues": "Published values",
         "publishedValuesHint": "Global configuration announces these values to other servers.",
         "success": "Security server address successfully updated",

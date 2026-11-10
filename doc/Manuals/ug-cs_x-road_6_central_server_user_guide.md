@@ -834,17 +834,17 @@ The Central Server refuses a DID that does not meet the rules below. The window 
 
 | Reason | Message shown |
 |--------|---------------|
-| The DID is not a did:web DID of version v1 | The member DID must be a did:web DID of version v1 |
-| The DID is too long | The member DID is too long |
-| The host of the DID or the address of the Security Server contains non-ASCII characters | The host of the member DID and the security server address must be ASCII |
-| The DID cannot be decoded | The member DID cannot be decoded |
-| The DID is not in its canonical form | The member DID is not in its canonical form |
-| The host of the DID does not match the address of the Security Server | The host of the member DID must match the security server address |
-| The DID is the DID of another member | The member DID is the DID of another member |
+| The DID is not a did:web DID of version v1 | The DID must be a did:web DID of version v1 |
+| The DID is too long | The DID is too long |
+| The host of the DID or the address of the Security Server contains non-ASCII characters | The host of the DID and the security server address must be ASCII |
+| The DID cannot be decoded | The DID cannot be decoded |
+| The DID is not in its canonical form | The DID is not in its canonical form |
+| The host of the DID does not match the address of the Security Server | The host of the DID must match the security server address |
+| The DID is the DID of another member | The DID belongs to another member |
 | The Security Server does not serve the member | The security server does not serve this member |
 | The address of the Security Server cannot be read as a host | The security server address cannot be read as a host |
-| Another Security Server already uses the DID, including when another administrator saved it at the same time | The member DID is already used by another security server |
-| The member has no stored DID on the Security Server, so there is nothing to replace | The security server has no stored DID for this member to replace |
+| Another Security Server already uses the DID, including when another administrator saved it at the same time | The DID is already used by another security server |
+| The member has no stored DID on the Security Server, so there is nothing to replace | The security server has no stored DID to replace |
 
 The Central Server writes the events "Edit member DID" and "Check member DID" to the audit log (see [Chapter 13](#13-audit-log) and [SPEC-AL](#13-references)).
 

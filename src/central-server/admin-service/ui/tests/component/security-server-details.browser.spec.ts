@@ -204,7 +204,7 @@ describe('1000 — CS Security Server Details — edit dialog with SYSTEM pair (
   const STALE_TEXT =
     'The SYSTEM DID or DSP base URL does not match the Security Server address. Other servers use the old values to reach this server. Edit the values, or ask the Security Server operator to re-identify the server.';
   const OLD_HOST_TEXT =
-    'The SYSTEM DID and DSP base URL still use the old host. Change them too, or leave them for the Security Server operator to re-identify the server.';
+    'The SYSTEM DID and DSP base URL may still use the old host. Change them too, or leave them for the Security Server operator to re-identify the server.';
   const NOTIFY_TEXT =
     'Inform the Security Server operator about this change, for example by email. The Security Server keeps its own values until the operator re-identifies it.';
 

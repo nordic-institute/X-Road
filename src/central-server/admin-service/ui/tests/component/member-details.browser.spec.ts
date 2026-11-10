@@ -312,6 +312,18 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       expect(patchSpy).not.toHaveBeenCalled();
     });
 
+    it('names the server of the row whose Edit was clicked in the title', async () => {
+      const otherServer = {
+        ...withDid,
+        server_id: { ...withDid.server_id, server_code: 'E2E-SS3', encoded_id: `${MEMBER_ID}:E2E-SS3` },
+      };
+      await renderWith([withDid, otherServer], []);
+      await page.getByTestId('member-did-edit-E2E-SS3').click();
+      const dialog = page.getByTestId('member-did-edit-dialog');
+
+      await expect.element(dialog.getByTestId('dialog-title')).toMatchTextContent('Edit member DID on E2E-SS3');
+    });
+
     it('saves through the PATCH, closes, reloads both lists and shows the notify banner', async () => {
       const patchSpy = vi.fn();
       let ownedCalls = 0;

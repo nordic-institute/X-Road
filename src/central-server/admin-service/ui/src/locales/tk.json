@@ -425,7 +425,7 @@
           },
           "checkDid": "DID-i barla",
           "success": "Agzanyň DID-i üstünlikli täzelendi",
-          "title": "Agzanyň DID-ini üýtget"
+          "title": "{server} serwerinde agzanyň DID-ini üýtget"
         },
         "editMemberName": "Agzanyň adyny redaktirle",
         "enterCode": "Agza kodyny giriz",
@@ -492,7 +492,7 @@
         "checkDid": "DID-i barla",
         "dspBaseUrlField": "DSP esasy URL-i",
         "notify": "Howpsuzlyk serweriniň operatoryna bu üýtgeşme barada, meselem, e-poçta arkaly habar beriň. Operator serweri täzeden kesgitleýänçä, howpsuzlyk serweri öz bahalaryny saklaýar.",
-        "oldHostWarning": "SYSTEM DID we DSP esasy URL-i henizem köne hosty ulanýar. Olary hem üýtgediň ýa-da serweri täzeden kesgitlemek üçin howpsuzlyk serweriniň operatoryna goýuň.",
+        "oldHostWarning": "SYSTEM DID we DSP esasy URL-i henizem köne hosty ulanyp bilerler. Olary hem üýtgediň ýa-da serweri täzeden kesgitlemek üçin howpsuzlyk serweriniň operatoryna goýuň.",
         "publishedValues": "Neşir edilen bahalar",
         "publishedValuesHint": "Global konfigurasiýa bu bahalary beýleki serwerlere habar berýär.",
         "success": "Howpsuzlyk serweriň salgysy üstünlikli täzelendi",
