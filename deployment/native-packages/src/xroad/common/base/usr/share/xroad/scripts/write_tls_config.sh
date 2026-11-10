@@ -133,9 +133,16 @@ store_tls_identity_rows() {
       alt-names) value="$dns_list" ;;
       ip-subject-alt-names) value="$ip_list" ;;
     esac
-    if [[ "$keep_shared" == true ]] && "$db_property" get "${prefix}.${key}" >/dev/null 2>&1; then
-      log "${prefix}.${key} has a shared row, not storing a row for node ${5}"
-      continue
+    if [[ "$keep_shared" == true ]]; then
+      local shared_rc=0
+      "$db_property" get "${prefix}.${key}" >/dev/null 2>&1 || shared_rc=$?
+      if [[ "$shared_rc" -eq 0 ]]; then
+        log "${prefix}.${key} has a shared row, not storing a row for node ${5}"
+        continue
+      elif [[ "$shared_rc" -ne 1 ]]; then
+        log "FATAL: failed to read the shared row ${prefix}.${key} from the database"
+        return 1
+      fi
     fi
     "$db_property" set "${prefix}.${key}" "$value" "${write_flag[@]}" "${node_flag[@]}" \
       || { log "FATAL: failed to store ${prefix}.${key} in the database"; return 1; }
@@ -147,7 +154,7 @@ store_tls_identity_rows() {
 # $5 is the optional Central Server node name, $6 the optional "keep-shared" (see store_tls_identity_rows).
 # Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
 # Existing rows are kept unless reconfiguring.
-# Sets TLS_IDENTITY_ROWS_WRITTEN to true once the store step has run.
+# Sets the shell variable TLS_IDENTITY_ROWS_WRITTEN to true once the store step has run; it is not exported.
 write_tls_identity_rows() {
   local module_name="$1"
   local mode="${4:-}"
@@ -173,7 +180,8 @@ write_tls_identity_rows() {
   fi
 
   store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag" "${5:-}" "${6:-}" || return
-  export TLS_IDENTITY_ROWS_WRITTEN=true
+  # shellcheck disable=SC2034
+  TLS_IDENTITY_ROWS_WRITTEN=true
 }
 
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.
