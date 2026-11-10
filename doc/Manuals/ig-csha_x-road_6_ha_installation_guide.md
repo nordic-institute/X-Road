@@ -178,7 +178,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
 The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
-In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
+In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software. The first installation of the Central Server also asks for the node name, but only when `node.ini` has no name yet. To enter the name at the installation instead of creating `node.ini` by hand, skip steps 1 and 2 and answer the node name question of step 3 (preseed key `xroad-common/node-name`). The installation does not check the name; a node with an invalid name does not start.
 
 1.  On each node, create the directory `/etc/xroad/conf.d` if it does not exist, and edit the file `/etc/xroad/conf.d/node.ini` in it, creating the file if necessary. The directory does not exist before the first installation. The package sets the ownership of the directory and its files when it is installed.
     ```bash
@@ -201,9 +201,9 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
-**TLS certificate names.** The installation does not ask for the names of the admin and management service TLS certificates. Each node's certificates carry its own host name.
+**TLS certificate names.** The installation asks for the common name and the alternative names of the admin and management service TLS certificates ([IG-CS section 2.6](ig-cs_x-road_8_central_server_installation_guide.md#26-package-installation); preseed keys `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`). The suggested names are those of the node's host. On a node that has a node name, the answers are stored as rows of that node, so each node's certificates get the names entered on that node. On a node without a node name they are stored as shared rows.
 
-To use other names, for example a load balancer name, change the certificate names as described in [IG-CS section 2.6.2](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface). The names are rows in the shared configuration database. A row can be set for one node with `--node <node>` or for all nodes without it. A node uses its own row first, then the shared row, then the name derived from its host. After a change, delete the key of each affected node and restart the services of that node.
+To use other names later, for example a load balancer name, change the certificate names as described in [IG-CS section 2.6.2](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface). The names are rows in the shared configuration database. A row can be set for one node with `--node <node>` or for all nodes without it. A node uses its own row first, then the shared row, then the name derived from its host. After a change, delete the key of each affected node and restart the services of that node.
 
 To give each node its own host name and the load balancer name, set the rows of each node. The rows of node 2 and later can be set from the first node before the new node is installed, because the configuration database already exists. For the management service certificate, the rows are, for `node_1` and `node_2`:
 
@@ -236,7 +236,7 @@ The node name must follow this rule:
 - The first character must be a letter or a digit.
 - The name is read as plain text, so values such as `01`, `007` and `true` are valid.
 
-The services check the name with this rule when they start, and a node with an invalid name does not start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
+The installation does not check the name. The services check it with this rule when they start, and a node with an invalid name does not start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
 
 The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `node.ini` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
 

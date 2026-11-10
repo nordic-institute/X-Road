@@ -5,6 +5,59 @@ Default: 127.0.0.1:5432
 Description: Insert database server connection string
  This will be used by the Central Server to connect to the database host.
 
+Template: xroad-common/node-name
+Type: string
+Default:
+Description: Insert the Central Server node name (leave empty for a standalone Central Server)
+ Leave empty unless this Central Server is a node of a high availability cluster.
+ An empty answer installs a standalone Central Server, which uses the node name node_0.
+ .
+ The name must start with a letter or digit, followed by letters, digits, '_' or '-', at most 63 characters in total, for example node_1.
+ .
+ The installation does not check the name. A name that does not follow this rule makes the Central Server services fail to start.
+ .
+ The name is stored in /etc/xroad/conf.d/node.ini and is asked only at the first installation. Do not change it after the node is in use: the node's own settings and TLS keys are stored under the name.
+
+Template: xroad-common/admin-subject
+Type: string
+Description: Insert admin interface TLS certificate subject common name
+ This certificate will be used to secure admin WebUI connections.
+ .
+ Include most used hostname or IP address as common name (CN) value.
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/admin-altsubject
+Type: string
+Description: Insert admin interface TLS certificate subject name alternatives
+ This certificate will be used to secure admin WebUI connections.
+ .
+ Include all alternative names and IP addresses which will be used for accessing admin WebUI
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}
+
+Template: xroad-common/service-subject
+Type: string
+Description: Insert management service TLS certificate subject common name [default=${HOST}]
+ This certificate will be used to secure management Security Server and management services.
+ .
+ Include most used hostname or IP address as common name (CN) value.
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/service-altsubject
+Type: string
+Description: Insert management service TLS certificate subject name alternatives [default=${ALT}]
+ This certificate will be used to secure management Security Server and management services.
+ .
+ Include all alternative names and IP addresses which will be used for accessing secure services
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}
+
 Template: xroad-common/global-conf-subject
 Type: string
 Description: Insert TLS certificate subject name for Global configuration distribution over HTTPS [default=/CN=${HOST}]

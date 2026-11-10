@@ -4,6 +4,10 @@
 . /usr/share/debconf/confmodule
 trap db_stop EXIT
 
+. /usr/share/xroad/scripts/write_tls_config.sh
+
+readonly NODE_INI=/etc/xroad/conf.d/node.ini
+
 abort() {
     local rc=$?
     echo -e "xroad-center: FATAL: $*" >&2
@@ -164,9 +168,155 @@ EOF
     fi
 }
 
+cs_node_name() {
+  crudini --get "$NODE_INI" node name 2>/dev/null || true
+}
+
+# Writes the node name answer to node.ini on a first install of a node that has no name yet.
+# An empty answer keeps the Central Server standalone (node_0). The name is not checked here;
+# the services validate it when they start.
+# Arguments: $1 - the postinst action, $2 - the previously configured version, empty on a first install
+store_node_name() {
+  [[ "$1" == "configure" && -z "$2" ]] || return 0
+  [[ -z "$(cs_node_name)" ]] || return 0
+
+  RET=""
+  db_get xroad-common/node-name || true
+  local node_name="$RET"
+  [[ -n "$node_name" ]] || return 0
+
+  crudini --set "$NODE_INI" node name "$node_name" || abort "Failed to write the node name to ${NODE_INI}. ABORTING."
+  chown xroad:xroad "$NODE_INI"
+  chmod 0640 "$NODE_INI"
+  log "Central Server node name set to '${node_name}' in ${NODE_INI}"
+}
+
+# Prints the stored value of a TLS identity row in the scope this node writes to: the row of the
+# node when node.ini has a name, the shared row otherwise. Fails when the row does not exist.
+# Arguments: $1 - module name, $2 - row key (common-name, alt-names, ip-subject-alt-names)
+stored_tls_row() {
+  local node
+  node=$(cs_node_name)
+  local -a node_flag=()
+  [[ -n "$node" ]] && node_flag=(--node "$node")
+  /usr/share/xroad/scripts/db_property.sh get "xroad.$1.tls.certificate-provisioning.$2" "${node_flag[@]}" 2>/dev/null
+}
+
+# Prints the stored alternative name rows of a module in the IP:<address>,DNS:<name> answer format.
+stored_alt_names() {
+  local ips dns item out=""
+  local -a items
+  ips=$(stored_tls_row "$1" ip-subject-alt-names) || ips=""
+  dns=$(stored_tls_row "$1" alt-names) || dns=""
+  IFS=, read -ra items <<<"$ips"
+  for item in "${items[@]}"; do
+    [[ -n "$item" ]] && out+="IP:${item},"
+  done
+  IFS=, read -ra items <<<"$dns"
+  for item in "${items[@]}"; do
+    [[ -n "$item" ]] && out+="DNS:${item},"
+  done
+  echo "${out%,}"
+}
+
+# Sets the defaults of the two questions of a module and asks them. The default is the stored row of
+# this node's scope when there is one, else the previous or preseeded answer, else the host value.
+# Arguments: $1 - module name, $2 - subject question, $3 - alternative names question
+ask_tls_names() {
+  local module="$1" subject_question="$2" alt_question="$3"
+  local stored_subject stored_alt
+
+  stored_subject=$(stored_tls_row "$module" common-name) || stored_subject=""
+  stored_alt=$(stored_alt_names "$module")
+
+  db_subst "$subject_question" HOST "$HOST"
+  db_subst "$alt_question" ALT "$ALT"
+
+  if [[ -n "$stored_subject" ]]; then
+    db_set "$subject_question" "$stored_subject"
+  else
+    db_get "$subject_question"
+    [ -z "$RET" ] && db_set "$subject_question" "$HOST"
+  fi
+  if [[ -n "$stored_alt" ]]; then
+    db_set "$alt_question" "$stored_alt"
+  else
+    db_get "$alt_question"
+    [ -z "$RET" ] && db_set "$alt_question" "$ALT"
+  fi
+
+  db_beginblock
+  db_input critical "$subject_question" || true
+  db_input critical "$alt_question" || true
+  db_endblock
+  db_go
+}
+
+prepare_certificates_settings() {
+  HOST=$(hostname -f)
+  if (( ${#HOST} > 64 )); then
+    HOST="$(hostname -s)"
+  fi
+  LIST=
+  for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+  ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+  log "Preparing center-admin-service certificate properties"
+  ask_tls_names admin-service xroad-common/admin-subject xroad-common/admin-altsubject
+
+  log "Preparing management service certificate properties"
+  ask_tls_names management-service xroad-common/service-subject xroad-common/service-altsubject
+}
+
+# Stores the answers collected by prepare_certificates_settings as identity rows of this node, or
+# as shared rows when the node has no name. Must run after setup_database() so the
+# configuration_properties table exists.
+store_certificates_settings() {
+  local node
+  node=$(cs_node_name)
+  local node_arg=""
+  [[ -n "$node" ]] && node_arg=" --node ${node@Q}"
+
+  local admin_subject admin_altn service_subject service_altn
+  RET=""
+  db_get xroad-common/admin-subject || true; admin_subject="$RET"
+  db_get xroad-common/admin-altsubject || true; admin_altn="$RET"
+  db_get xroad-common/service-subject || true; service_subject="$RET"
+  db_get xroad-common/service-altsubject || true; service_altn="$RET"
+
+  RET=""
+  db_get xroad-common/skip-cs-db-migrations || true
+  if [[ "$RET" == "true" ]]; then
+    log "Database migrations were skipped, TLS identity rows not stored. Once the schema is migrated, store the answers with:"
+    log "  /usr/share/xroad/scripts/write_tls_config.sh set admin-service ${admin_subject@Q} ${admin_altn@Q}${node_arg} --yes"
+    log "  /usr/share/xroad/scripts/write_tls_config.sh set management-service ${service_subject@Q} ${service_altn@Q}${node_arg} --yes"
+    log "or run 'dpkg-reconfigure xroad-center' and answer No to skipping migrations"
+    return
+  fi
+
+  local mode=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    mode="reconfigure"
+  fi
+
+  write_tls_identity_rows admin-service "$admin_subject" "$admin_altn" "$mode" "$node" \
+    || abort "Failed to store admin-service TLS identity. ABORTING."
+  write_tls_identity_rows management-service "$service_subject" "$service_altn" "$mode" "$node" \
+    || abort "Failed to store management-service TLS identity. ABORTING."
+
+  if [[ -n "$mode" ]]; then
+    log "A TLS key that already exists keeps its names. To issue it again with the new names, delete the key and restart the service:"
+    log "  xrd-secret/tls/admin-service/${node:-node_0}"
+    log "  xrd-secret/tls/management-service/${node:-node_0}"
+  fi
+}
+
 case "$1" in
 configure | reconfigure)
+    store_node_name "$1" "$2"
     setup_database
+    prepare_certificates_settings
+    store_certificates_settings "$1"
 
     RET=""
     db_get xroad-common/username

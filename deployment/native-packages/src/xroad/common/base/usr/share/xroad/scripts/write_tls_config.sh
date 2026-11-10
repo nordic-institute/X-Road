@@ -6,13 +6,13 @@
 #
 # Usage (when called directly):
 #   write_tls_config.sh setup_default <module_name>  # Auto-detect hostname and IPs, store identity rows if absent
-#   write_tls_config.sh set <module_name> <subject> <alt_names> [--yes|--if-absent]  # Given identity, no guards
+#   write_tls_config.sh set <module_name> <subject> <alt_names> [--node <name>] [--yes|--if-absent]  # Given identity, no guards
 #
 # Usage (when sourced):
 #   . write_tls_config.sh
 #   setup_default_tls_config "proxy"           # Auto-detect, store identity rows if absent
-#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure]  # Package path, guarded
-#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent]  # No guards
+#   write_tls_identity_rows "proxy" "$subject" "$altn" [reconfigure] [node]  # Package path, guarded
+#   store_tls_identity_rows "proxy" "$subject" "$altn" [--yes|--if-absent] [node]  # No guards
 #
 
 log () { echo >&2 "$@"; }
@@ -21,7 +21,7 @@ usage() {
   cat >&2 <<EOF
 Usage:
   $0 setup_default <module_name>
-  $0 set <module_name> <subject> <alt_names> [--yes|-y|--if-absent]
+  $0 set <module_name> <subject> <alt_names> [--node <name>] [--yes|-y|--if-absent]
 
 Commands:
   setup_default - Auto-detect hostname and IPs, store identity rows in the database if absent
@@ -33,12 +33,14 @@ Arguments:
   alt_names     - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
 
 Options for set:
-  -y, --yes      Overwrite existing rows without prompting
-      --if-absent  Keep existing rows, insert only the missing ones
+  -n, --node <name>  Central Server only. Store the rows of this node instead of the shared rows
+  -y, --yes          Overwrite existing rows without prompting
+      --if-absent    Keep existing rows, insert only the missing ones
 
 Examples:
   $0 setup_default proxy
   $0 set proxy ss1.example.com "IP:10.0.0.1,DNS:ss1.example.com,DNS:ss1" --yes
+  $0 set admin-service cs1.example.com "IP:10.0.0.1,DNS:cs1.example.com" --node node_1 --yes
 
 EOF
   exit 1
@@ -93,6 +95,7 @@ extract_cn() {
 #   $3 - Alternative names in format: IP:1.1.1.1,DNS:name,IP:2.2.2.2,...
 #   $4 - optional db_property.sh write flag: --yes overwrites, --if-absent keeps existing
 #        rows; none prompts before overwriting an existing row
+#   $5 - optional Central Server node name: the rows are stored for that node only
 # An answer without a common name falls back to the host name (hostname -f).
 # Returns non-zero, naming the key, on any database error.
 store_tls_identity_rows() {
@@ -101,6 +104,8 @@ store_tls_identity_rows() {
   local altn="$3"
   local -a write_flag=()
   [[ -n "${4:-}" ]] && write_flag=("$4")
+  local -a node_flag=()
+  [[ -n "${5:-}" ]] && node_flag=(--node "$5")
   local db_property="${DB_PROPERTY_SCRIPT:-/usr/share/xroad/scripts/db_property.sh}"
 
   local prefix="xroad.${module_name}.tls.certificate-provisioning"
@@ -124,13 +129,14 @@ store_tls_identity_rows() {
       alt-names) value="$dns_list" ;;
       ip-subject-alt-names) value="$ip_list" ;;
     esac
-    "$db_property" set "${prefix}.${key}" "$value" "${write_flag[@]}" \
+    "$db_property" set "${prefix}.${key}" "$value" "${write_flag[@]}" "${node_flag[@]}" \
       || { log "FATAL: failed to store ${prefix}.${key} in the database"; return 1; }
   done
 }
 
 # Package entry point for the TLS identity rows of a module.
-# Arguments: as store_tls_identity_rows, with $4 optional "reconfigure" to overwrite existing rows.
+# Arguments: as store_tls_identity_rows, with $4 optional "reconfigure" to overwrite existing rows;
+# $5 is the optional Central Server node name.
 # Skips when XROAD_IGNORE_DATABASE_SETUP is set or systemd is not the running init.
 # Existing rows are kept unless reconfiguring.
 write_tls_identity_rows() {
@@ -157,7 +163,7 @@ write_tls_identity_rows() {
     write_flag="--yes"
   fi
 
-  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag"
+  store_tls_identity_rows "$module_name" "$2" "$3" "$write_flag" "${5:-}"
 }
 
 # Store the TLS identity rows of a module using the auto-detected host name and addresses.
@@ -188,11 +194,14 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     set)
       shift
       write_flag=""
+      node=""
       positional=()
       while (($#)); do
         case "$1" in
           -y|--yes)    write_flag="--yes" ;;
           --if-absent) write_flag="--if-absent" ;;
+          -n|--node)   (( $# >= 2 )) || { log "Error: $1 requires a node name"; usage; }
+                       node="$2"; shift ;;
           -h|--help)   usage ;;
           -*)          log "Error: unknown option $1"; usage ;;
           *)           positional+=("$1") ;;
@@ -200,7 +209,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         shift
       done
       (( ${#positional[@]} == 3 )) || { log "Error: set needs <module_name> <subject> <alt_names>"; usage; }
-      store_tls_identity_rows "${positional[0]}" "${positional[1]}" "${positional[2]}" "$write_flag"
+      store_tls_identity_rows "${positional[0]}" "${positional[1]}" "${positional[2]}" "$write_flag" "$node"
       ;;
     *)
       log "Error: unknown command '${1:-}'"

@@ -8,6 +8,10 @@
   loop:
     - { question: "xroad-common/username", value: "{{ xroad_ui_user }}" }
     - { question: "xroad-common/database-host", value: "{{ database_host }}" }
+    - { question: "xroad-common/admin-subject", value: "{{ xroad_host_fqdn }}" }
+    - { question: "xroad-common/admin-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}{{ xroad_cs_cluster_dns_san }}" }
+    - { question: "xroad-common/service-subject", value: "{{ xroad_host_fqdn }}" }
+    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}{{ xroad_cs_cluster_dns_san }}" }
     - { question: "xroad-common/global-conf-subject", value: "/CN={{ xroad_host_fqdn }}" }
     - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ xroad_host_fqdn }}{{ xroad_host_extra_dns_san }}{{ xroad_cs_cluster_dns_san }}" }
     - { question: "xroad-common/skip-cs-db-migrations", value: "false" }

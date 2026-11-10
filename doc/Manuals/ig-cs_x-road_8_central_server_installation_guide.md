@@ -96,8 +96,8 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.7     | TCP 80 HTTP between the Central Server and the management services' Security Server<br>TCP 443 HTTP between the Central Server and the management services' Security Server<br>TCP 4000 user interface<br>TCP 4002 HTTPS between the Central Server and the management services' Security Server | Internal network ports, the user interface port, and management service ports for the management services' Security Server                                                                                                                                                                 |
 | 1.8     |                                                                                                                                                                                                                                                                                                  | Central Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                     |
 | 1.9     |                                                                                                                                                                                                                                                                                                  | Central Server public IP address, NAT address                                                                                                                                                                                                                                              |
-| 1.10    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                                                                                                                   | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
-| 1.11    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                                                                                                                   | Information about the services TLS certificate                                                                                                                                                                                                                                             |
+| 1.10    | <by default, the server’s host name is the common name and its IP addresses and names are the alternative names; the installation asks for them>                                                                                                                                                                                   | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
+| 1.11    | <by default, the server’s host name is the common name and its IP addresses and names are the alternative names; the installation asks for them>                                                                                                                                                                                   | Information about the services TLS certificate                                                                                                                                                                                                                                             |
 | 1.12    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                                                                                                                   | Information about the global configuration TLS certificate                                                                                                                                                                                                                                 |
 
 It is strongly recommended to protect the Central Server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the Central Server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Central Server vulnerable to exploits and attacks.**
@@ -207,9 +207,16 @@ Upon the first installation of the Central Server software, the system asks for 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-The installation does not ask for the names of the user interface and management services TLS certificates (reference data: 1.10; 1.11). Their names come from the host, see [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
+- The node name, on the first installation only, and only when `/etc/xroad/conf.d/node.ini` has no node name yet. Leave the answer empty for a standalone Central Server. Enter the name of the node when the server is a node of a high availability cluster. The installation does not check the name; see [2.6.4 Node name](#264-node-name) for the rule and for what happens when the name does not follow it. The preseed key is `xroad-common/node-name`.
 
-ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, change the certificate names after the installation. Follow the procedure in section [2.6.2](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
+- Names of the TLS certificate of the user interface (reference data: 1.10) and of the TLS certificate of the management services (reference data: 1.11). The installation asks the common name and the alternative names of each certificate. The name and IP addresses detected from the operating system are suggested as default values. When the database already has the names for this node, those are suggested instead.
+
+  Enter the common name as a plain host name or IP address, for example `server.domain.tld`.
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+  The certificate gets exactly the names that are entered. The answers are stored in the configuration database and are used when the services create their keys, see [2.6.2 Provisioning TLS Certificates for management services and user interface](#262-provisioning-tls-certificates-for-management-services-and-user-interface). When `node.ini` has a node name, the answers are stored as rows of that node. Otherwise they are stored as shared rows. The preseed keys are `xroad-common/admin-subject`, `xroad-common/admin-altsubject`, `xroad-common/service-subject` and `xroad-common/service-altsubject`.
+
+ATTENTION: Security Servers connect to the management services by the Central Server address in the global configuration (reference data: 1.9). If that address is not the host name or one of the host's global-scope IP addresses, for example a NAT address or a load balancer name, enter it as the common name or as an alternative name of the management services certificate. The names can also be changed after the installation. Follow the procedure in section [2.6.2](#262-provisioning-tls-certificates-for-management-services-and-user-interface).
 
 #### 2.6.1 Configuring TLS Certificates for global configuration distribution
 
@@ -229,11 +236,13 @@ TLS certificates for the user interface and management services are automaticall
 
 Each node has its own keys. The user interface key is stored at `xrd-secret/tls/admin-service/<node>` and the management services key at `xrd-secret/tls/management-service/<node>`. `<node>` is the node name, see [2.6.4 Node name](#264-node-name).
 
-The names in the certificates come from the host:
+The names in the certificates are the answers given during the installation, see [2.6 Package Installation](#26-package-installation). They are stored in the configuration database as rows of the node when `node.ini` has a node name, and as shared rows otherwise. A key that has no row falls back to the name derived from the host:
 
 - The common name is the fully qualified host name. It is the short host name when the fully qualified name is longer than 64 characters.
 - The DNS alternative names are the fully qualified and the short host name.
 - The IP alternative names are the server's global-scope addresses. Loopback and link-local addresses are left out.
+
+Running `sudo dpkg-reconfigure xroad-center` asks the names again and overwrites the rows of this node. A key that already exists keeps its names; delete it and restart the services as described below.
 
 **Changing the certificate names**
 
@@ -299,7 +308,7 @@ The node name tells Central Server nodes apart when they share one secret store.
 A standalone Central Server does not need a node name. Set one on every node of a high availability cluster, see the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md).
 
 - Where to set it:
-  - Native packages: the key `name` in the `[node]` section of `/etc/xroad/conf.d/node.ini`. Set it before installing the packages. The directory does not exist before the first installation, so create it first with `sudo mkdir -p /etc/xroad/conf.d`. The package sets the ownership of the directory and its files when it is installed.
+  - Native packages: the key `name` in the `[node]` section of `/etc/xroad/conf.d/node.ini`. The first installation asks for the name and writes the file when the answer is not empty. The question is skipped when `node.ini` already has a name, so the file can also be created before installing the packages. The directory does not exist before the first installation, so create it first with `sudo mkdir -p /etc/xroad/conf.d`. The package sets the ownership of the directory and its files when it is installed. Upgrades and `dpkg-reconfigure` do not ask for the name.
     ```ini
     [node]
     name=node_1
@@ -315,7 +324,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
 - If the name is not set:
   - The services use the name `node_0` in secret store paths.
   - Backup archive names have no node name suffix.
-- The services check the name when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
+- The installation does not check the name. The services check it when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
 - Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
 
 ### 2.7 Pre-configuration for Registration Web Service

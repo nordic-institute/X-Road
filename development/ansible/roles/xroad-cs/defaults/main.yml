@@ -1,6 +1,6 @@
 ---
-# Routable host name used for the global configuration TLS certificate subject/SANs preseeded
-# into the xroad-center debconf answers. LXD dev containers only
+# Routable host name used for the TLS certificate subjects/SANs preseeded into the
+# xroad-center debconf answers. LXD dev containers only
 # have a short hostname, hence the ".lxd" suffix; hosts whose inventory_hostname
 # is already a routable FQDN (e.g. perftest) override this to inventory_hostname
 # itself.
@@ -18,8 +18,8 @@ xroad_cs_ha_node_name: ""
 # Issuer Service host set through the admin API after the install.
 xroad_cs_issuer_host: "{{ groups['cs_servers'] | first }}"
 
-# DNS name of the cluster the node belongs to. When set, the preseeded global configuration
-# certificate subject carries it among its DNS alternative names. Empty leaves it unchanged.
+# DNS name of the cluster the node belongs to. When set, the preseeded certificate
+# subjects carry it among their DNS alternative names. Empty leaves them unchanged.
 xroad_cs_cluster_name: ""
 xroad_cs_cluster_dns_san: "{{ ',DNS:' + xroad_cs_cluster_name if xroad_cs_cluster_name | length > 0 else '' }}"
 
