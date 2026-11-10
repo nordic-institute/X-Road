@@ -52,7 +52,6 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.vault.core.VaultTemplate;
 
@@ -66,6 +65,7 @@ import org.springframework.vault.core.VaultTemplate;
 @Configuration
 public class BootstrapConfiguration {
 
+    public static final String ADMIN_SERVICE_VAULT_KEY_CLIENT = "adminServiceVaultKeyClient";
     public static final String MANAGEMENT_SERVICE_VAULT_KEY_CLIENT = "managementServiceVaultKeyClient";
 
     private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
@@ -91,14 +91,14 @@ public class BootstrapConfiguration {
     }
 
     @Bean
-    @Primary
+    @Qualifier(ADMIN_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
     VaultKeyClient springVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
         return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
     }
 
     @Bean
-    @Primary
+    @Qualifier(ADMIN_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
     VaultKeyClient noopVaultKeyClient() {
         return new NoopVaultKeyClient();

@@ -41,6 +41,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.vault.TlsKeyProvisioning;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -62,9 +63,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Stream;
 
-import static java.util.Arrays.stream;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CERTIFICATE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
 import static org.niis.xroad.common.core.exception.ErrorCode.KEY_CERT_GENERATION_FAILED;
@@ -170,11 +169,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
     public void generateTlsKeyAndCertificate() {
         try {
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var tlsCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createManagementServiceTlsCredentials(tlsCredentials);
+            vaultClient.createManagementServiceTlsCredentials(TlsKeyProvisioning.provision(vaultKeyClient));
             log.info("Successfully created management service TLS credentials");
         } catch (CertificateException | IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Failed to generate management service TLS key and certificate", e);

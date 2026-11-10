@@ -55,8 +55,6 @@ public sealed interface ConfigKey<T> permits Prefix.DefaultConfigKey {
     String key();
 
     String defaultValue();
-    /** @return whether {@link #defaultValue()} is computed on each read, so evaluating it can be costly or fail */
-    boolean hasLazyDefault();
 
     T convertedDefaultValue();
 

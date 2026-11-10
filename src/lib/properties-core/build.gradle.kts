@@ -18,7 +18,6 @@ dependencies {
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.systemStubs)
   testImplementation(libs.junit.jupiter.params)
-  testImplementation(libs.logback.classic)
 
   testFixturesImplementation(libs.smallrye.config.core)
   testFixturesImplementation(libs.h2database)

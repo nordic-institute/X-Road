@@ -29,14 +29,13 @@ package org.niis.xroad.restapi.vault;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.vault.TlsKeyProvisioning;
+import org.niis.xroad.common.vault.TlsKeyStores;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundleRegistry;
 import org.springframework.boot.ssl.SslStoreBundle;
-
-import java.security.KeyStore;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -55,12 +54,8 @@ public class AdminServiceSslBundleRegistrar implements SslBundleRegistrar {
                     vaultClient::createAdminServiceTlsCredentials,
                     vaultKeyClient);
 
-            KeyStore keystore = KeyStore.getInstance("PKCS12");
-            keystore.load(null, null);
-            keystore.setKeyEntry(BUNDLE_NAME, tlsCredentials.getKey(), null, tlsCredentials.getCertChain());
-            SslStoreBundle storeBundle = SslStoreBundle.of(keystore, null, null);
-            SslBundle sslBundle = SslBundle.of(storeBundle);
-            registry.registerBundle(BUNDLE_NAME, sslBundle);
+            var keystore = TlsKeyStores.toPkcs12KeyStore(BUNDLE_NAME, tlsCredentials);
+            registry.registerBundle(BUNDLE_NAME, SslBundle.of(SslStoreBundle.of(keystore, null, null)));
         } catch (Exception e) {
             throw new IllegalStateException("Unable to register '%s' SSL bundle".formatted(BUNDLE_NAME), e);
         }

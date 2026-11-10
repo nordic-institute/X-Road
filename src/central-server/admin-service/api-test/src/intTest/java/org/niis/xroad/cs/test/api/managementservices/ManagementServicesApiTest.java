@@ -47,6 +47,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class ManagementServicesApiTest extends CsApiTest {
 
+    private static final String VAULT_SECRET_PATH = "/v1/xrd-secret/tls/management-service/test_node";
+
     private static final String VAULT_ISSUE_MOCK_TEMPLATE = """
             {
               "httpRequest": {
@@ -68,21 +70,21 @@ class ManagementServicesApiTest extends CsApiTest {
 
     private static final String VAULT_SECRET_POST_MOCK = """
             {
-              "httpRequest": {"method": "POST", "path": "/v1/xrd-secret/tls/management-service/test_node"},
+              "httpRequest": {"method": "POST", "path": "%s"},
               "httpResponse": {"statusCode": 200, "headers": {"Content-Type": ["application/json"]}}
             }
-            """;
+            """.formatted(VAULT_SECRET_PATH);
 
     private static final String VAULT_SECRET_GET_MOCK_TEMPLATE = """
             {
-              "httpRequest": {"method": "GET", "path": "/v1/xrd-secret/tls/management-service/test_node"},
+              "httpRequest": {"method": "GET", "path": "%s"},
               "httpResponse": {
                 "statusCode": 200,
                 "headers": {"Content-Type": ["application/json"]},
-                "body": {"type": "JSON", "json": %s}
+                "body": {"type": "JSON", "json": %%s}
               }
             }
-            """;
+            """.formatted(VAULT_SECRET_PATH);
 
     @Test
     @ResourceLocks({
@@ -209,7 +211,7 @@ class ManagementServicesApiTest extends CsApiTest {
                             .statusCode(201));
         } finally {
             seeder.clearMockExpectations("/v1/xrd-pki/issue/xrd-internal");
-            seeder.clearMockExpectations("/v1/xrd-secret/tls/management-service/test_node");
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
     }
 
@@ -234,7 +236,7 @@ class ManagementServicesApiTest extends CsApiTest {
                     mgmt.getCertificate()
                             .statusCode(200));
         } finally {
-            seeder.clearMockExpectations("/v1/xrd-secret/tls/management-service/test_node");
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
     }
 
@@ -250,7 +252,7 @@ class ManagementServicesApiTest extends CsApiTest {
                     mgmt.downloadCertificate()
                             .statusCode(200));
         } finally {
-            seeder.clearMockExpectations("/v1/xrd-secret/tls/management-service/test_node");
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
     }
 
@@ -266,7 +268,7 @@ class ManagementServicesApiTest extends CsApiTest {
                     mgmt.generateCsr("CN=cs")
                             .statusCode(200));
         } finally {
-            seeder.clearMockExpectations("/v1/xrd-secret/tls/management-service/test_node");
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
     }
 
@@ -287,7 +289,7 @@ class ManagementServicesApiTest extends CsApiTest {
                             .statusCode(200));
         } finally {
             seeder.clearMockExpectations("/v1/xrd-pki/issue/xrd-internal");
-            seeder.clearMockExpectations("/v1/xrd-secret/tls/management-service/test_node");
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
     }
 
@@ -305,7 +307,7 @@ class ManagementServicesApiTest extends CsApiTest {
                             .statusCode(400)
                             .body("error.code", equalTo("key_not_found")));
         } finally {
-            seeder.clearMockExpectations("/v1/xrd-secret/tls/management-service/test_node");
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
     }
 

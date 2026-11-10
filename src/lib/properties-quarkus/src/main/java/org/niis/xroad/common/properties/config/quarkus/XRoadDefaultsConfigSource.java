@@ -39,8 +39,7 @@ import java.util.Set;
  * Publishes the packaged DSL defaults ({@code ConfigKey.defaultValue()}, already in raw
  * string form) of the given {@link ConfigKeyProvider}s into the Quarkus/SmallRye config
  * tree, so {@code ${xroad.*}} placeholders and {@code @ConfigProperty} resolve without
- * duplicating defaults in YAML. Keys with a lazy default are left out: their value needs a costly or fallible
- * lookup that only the consumers of those keys should trigger.
+ * duplicating defaults in YAML.
  *
  * <p>Low ordinal on purpose: defaults are a fallback only — {@code application.yaml}, profiles, env vars
  * and the stored overrides of framework-visible keys ({@link XRoadFrameworkConfigSource}, ordinal 299)
@@ -61,7 +60,7 @@ public final class XRoadDefaultsConfigSource implements ConfigSource {
         var map = new LinkedHashMap<String, String>();
         for (var provider : providers) {
             provider.keys().forEach(key -> {
-                if (!key.hasLazyDefault() && key.defaultValue() != null) {
+                if (key.defaultValue() != null) {
                     map.put(key.key(), key.defaultValue());
                 }
             });

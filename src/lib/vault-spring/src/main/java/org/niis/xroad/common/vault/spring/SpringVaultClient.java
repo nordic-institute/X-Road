@@ -29,6 +29,7 @@ package org.niis.xroad.common.vault.spring;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -64,24 +65,20 @@ public class SpringVaultClient implements VaultClient {
     private final String managementServiceTlsPath;
 
     /**
-     * Client that keeps the admin and management service TLS keys at the plain, node-independent paths.
+     * @param vaultClient  the key-value operations of the secret store
+     * @param nodeIdentity the identity of the node whose name scopes the admin and management service TLS keys,
+     *                     or {@code null} to keep them at the plain, node-independent paths
      */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient) {
+    public SpringVaultClient(VaultKeyValueOperations vaultClient, @Nullable NodeIdentity nodeIdentity) {
         this.vaultClient = vaultClient;
-        this.adminServiceTlsPath = ADMIN_SERVICE_TLS_CREDENTIALS_PATH;
-        this.managementServiceTlsPath = MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH;
-    }
-
-    /**
-     * Client that keeps the admin and management service TLS keys under the given node name.
-     *
-     * @param nodeIdentity the identity of the node
-     */
-    public SpringVaultClient(VaultKeyValueOperations vaultClient, NodeIdentity nodeIdentity) {
-        var nodePaths = new NodeScopedSecretPaths(nodeIdentity);
-        this.vaultClient = vaultClient;
-        this.adminServiceTlsPath = nodePaths.adminServiceTls();
-        this.managementServiceTlsPath = nodePaths.managementServiceTls();
+        if (nodeIdentity == null) {
+            this.adminServiceTlsPath = ADMIN_SERVICE_TLS_CREDENTIALS_PATH;
+            this.managementServiceTlsPath = MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH;
+        } else {
+            var nodePaths = new NodeScopedSecretPaths(nodeIdentity);
+            this.adminServiceTlsPath = nodePaths.adminServiceTls();
+            this.managementServiceTlsPath = nodePaths.managementServiceTls();
+        }
     }
 
     @Override

@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.EnvProperties;
-import org.niis.xroad.common.properties.HostIdentity;
 import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable;
 import org.niis.xroad.common.properties.dbsource.NodeConfigTestTable.Row;
@@ -51,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * The admin and management TLS certificate names are read through the application {@code XRoadConfig} bean, so
  * each node can store its own values in {@code configuration_properties}: a row of the node, else a shared row,
- * else the host default.
+ * else the default ({@code XROAD_HOST}, else {@code localhost}; loopback IP).
  */
 @ExtendWith(SystemStubsExtension.class)
 class AdminServiceTlsNodeNamesTest {
@@ -60,6 +59,7 @@ class AdminServiceTlsNodeNamesTest {
     private static final String MANAGEMENT = "xroad.management-service.tls.certificate-provisioning.";
     private static final String NODE_1 = "node_1";
     private static final String NODE_2 = "node_2";
+    private static final List<String> DEFAULT_IP_ADDRESSES = List.of("127.0.0.1");
 
     private static Map<String, String> databaseEnvironment;
 
@@ -90,17 +90,17 @@ class AdminServiceTlsNodeNamesTest {
     }
 
     @Test
-    void node1ResolvesItsOwnRowThenTheSharedRowThenTheHostDefault() {
+    void node1ResolvesItsOwnRowThenTheSharedRowThenTheDefault() {
         var properties = tlsProperties(NODE_1);
 
         assertNames(properties.getCertificateProvisioning(),
-                "ui-1.example.org", List.of("ui.shared.example.org", "ui-lb"), defaultIpAddresses());
+                "ui-1.example.org", List.of("ui.shared.example.org", "ui-lb"), DEFAULT_IP_ADDRESSES);
         assertNames(properties.getManagementServiceCertificateProvisioning(),
-                "mgmt-1.example.org", List.of("mgmt.shared.example.org", "mgmt-lb"), defaultIpAddresses());
+                "mgmt-1.example.org", List.of("mgmt.shared.example.org", "mgmt-lb"), DEFAULT_IP_ADDRESSES);
     }
 
     @Test
-    void node2ResolvesTheSharedRowOrTheHostDefaultWhereOnlyNode1HasARow() {
+    void node2ResolvesTheSharedRowOrTheDefaultWhereOnlyNode1HasARow() {
         var properties = tlsProperties(NODE_2);
 
         assertNames(properties.getCertificateProvisioning(),
@@ -110,13 +110,13 @@ class AdminServiceTlsNodeNamesTest {
     }
 
     @Test
-    void nodeWithoutRowsResolvesTheSharedRowsAndTheHostDefaults() {
+    void nodeWithoutRowsResolvesTheSharedRowsAndTheDefaults() {
         var properties = tlsProperties("node_3");
 
         assertNames(properties.getCertificateProvisioning(),
-                "ui.shared.example.org", List.of("ui.shared.example.org", "ui-lb"), defaultIpAddresses());
+                "ui.shared.example.org", List.of("ui.shared.example.org", "ui-lb"), DEFAULT_IP_ADDRESSES);
         assertNames(properties.getManagementServiceCertificateProvisioning(),
-                defaultCommonName(), List.of("mgmt.shared.example.org", "mgmt-lb"), defaultIpAddresses());
+                defaultCommonName(), List.of("mgmt.shared.example.org", "mgmt-lb"), DEFAULT_IP_ADDRESSES);
         assertSettings(properties.getCertificateProvisioning(), Duration.ofHours(48), "admin-role", "admin-pki");
         assertSettings(properties.getManagementServiceCertificateProvisioning(),
                 Duration.ofHours(72), "management-role", "management-pki");
@@ -146,10 +146,6 @@ class AdminServiceTlsNodeNamesTest {
     }
 
     private static String defaultCommonName() {
-        return EnvProperties.xroadHost(HostIdentity.local().commonName());
-    }
-
-    private static List<String> defaultIpAddresses() {
-        return HostIdentity.local().ipAddresses().stream().filter(value -> !value.isBlank()).toList();
+        return EnvProperties.xroadHost("localhost");
     }
 }

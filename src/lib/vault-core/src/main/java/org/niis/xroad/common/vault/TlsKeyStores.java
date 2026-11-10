@@ -25,34 +25,28 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.config.quarkus;
+package org.niis.xroad.common.vault;
 
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Prefix;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.experimental.UtilityClass;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 
-class XRoadDefaultsConfigSourceTest {
+@UtilityClass
+public class TlsKeyStores {
 
-    @Test
-    void publishesPlainDefaultsAndNeverEvaluatesLazyDefaults() {
-        var lazyEvaluations = new AtomicInteger();
-        var prefix = Prefix.of("xroad.defaultssourcetest");
-        prefix.string("plain").withDefaultValue("fixed").build();
-        prefix.string("lazy").withLazyDefaultValue(() -> {
-            lazyEvaluations.incrementAndGet();
-            throw new IllegalStateException("host detection must not run");
-        }).build();
-
-        var source = new XRoadDefaultsConfigSource(List.of(ConfigKeyProvider.forPrefix(prefix)));
-
-        assertThat(source.getProperties()).containsOnlyKeys("xroad.defaultssourcetest.plain");
-        assertThat(source.getValue("xroad.defaultssourcetest.plain")).isEqualTo("fixed");
-        assertThat(source.getValue("xroad.defaultssourcetest.lazy")).isNull();
-        assertThat(lazyEvaluations).hasValue(0);
+    /**
+     * @param alias  the alias of the key entry
+     * @param tlsKey the key and certificate chain to store
+     * @return a PKCS12 key store holding the key under the alias, without a key password
+     */
+    public static KeyStore toPkcs12KeyStore(String alias, InternalSSLKey tlsKey) throws IOException, GeneralSecurityException {
+        var keystore = KeyStore.getInstance("PKCS12");
+        keystore.load(null, null);
+        keystore.setKeyEntry(alias, tlsKey.getKey(), null, tlsKey.getCertChain());
+        return keystore;
     }
 }

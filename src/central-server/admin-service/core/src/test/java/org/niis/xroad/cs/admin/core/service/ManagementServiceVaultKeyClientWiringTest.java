@@ -33,12 +33,15 @@ import org.niis.xroad.cs.admin.core.config.AdminServiceTlsProperties;
 import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.boot.LazyInitializationBeanFactoryPostProcessor;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.stereotype.Component;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.vault.core.VaultTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 class ManagementServiceVaultKeyClientWiringTest {
@@ -64,5 +67,19 @@ class ManagementServiceVaultKeyClientWiringTest {
 
             assertThat(injected).isSameAs(management).isNotSameAs(admin);
         });
+    }
+
+    @Test
+    void shouldNotResolveAnUnqualifiedKeyClientInjection() {
+        contextRunner.withUserConfiguration(UnqualifiedConsumer.class)
+                .withPropertyValues("spring.cloud.vault.enabled=true")
+                .run(context -> assertThatThrownBy(() -> context.getBean(UnqualifiedConsumer.class))
+                        .hasRootCauseInstanceOf(NoUniqueBeanDefinitionException.class));
+    }
+
+    @Component
+    static class UnqualifiedConsumer {
+        UnqualifiedConsumer(VaultKeyClient vaultKeyClient) {
+        }
     }
 }

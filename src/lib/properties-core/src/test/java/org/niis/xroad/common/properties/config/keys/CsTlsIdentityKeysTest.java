@@ -29,7 +29,6 @@ package org.niis.xroad.common.properties.config.keys;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.EnvProperties;
-import org.niis.xroad.common.properties.HostIdentity;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Source;
@@ -39,28 +38,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CsTlsIdentityKeysTest {
 
-    private final HostIdentity host = HostIdentity.local();
-
     @Test
-    void adminAndManagementIdentityDefaultToTheHostIdentityWhenNoRowExists() {
-        assertDefaultsToTheHostIdentity(CsAdminServiceConfigKeys.instance(),
+    void adminAndManagementNamesDefaultToXroadHostOrLocalhostWhenNoRowExists() {
+        assertDefaultNames(CsAdminServiceConfigKeys.instance(),
                 CsAdminServiceConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME,
                 CsAdminServiceConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES,
                 CsAdminServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES);
-        assertDefaultsToTheHostIdentity(CsManagementServiceConfigKeys.instance(),
+        assertDefaultNames(CsManagementServiceConfigKeys.instance(),
                 CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME,
                 CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES,
                 CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES);
     }
 
-    private void assertDefaultsToTheHostIdentity(ConfigKeyProvider provider, ConfigKey<String> commonNameKey,
-                                                 ConfigKey<String[]> altNamesKey, ConfigKey<String[]> ipNamesKey) {
+    private void assertDefaultNames(ConfigKeyProvider provider, ConfigKey<String> commonNameKey,
+                                    ConfigKey<String[]> altNamesKey, ConfigKey<String[]> ipNamesKey) {
         var config = XRoadConfigBuilder.create().register(provider).build();
 
         var commonName = config.get(commonNameKey);
         assertThat(commonName.source()).isEqualTo(Source.DEFAULT);
-        assertThat(commonName.value()).isEqualTo(EnvProperties.xroadHost(host.commonName()));
-        assertThat(config.get(altNamesKey).value()).containsExactlyElementsOf(host.dnsNames());
-        assertThat(config.get(ipNamesKey).value()).containsExactlyElementsOf(host.ipAddresses());
+        assertThat(commonName.value()).isEqualTo(EnvProperties.xroadHost("localhost"));
+        assertThat(config.get(altNamesKey).value()).isEmpty();
+        assertThat(config.get(ipNamesKey).value()).containsExactly("127.0.0.1");
     }
 }

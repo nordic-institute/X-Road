@@ -81,7 +81,7 @@ class SpringVaultClientTest {
 
     @BeforeEach
     void setUp() {
-        vaultClient = new SpringVaultClient(vaultKeyValueOperations);
+        vaultClient = new SpringVaultClient(vaultKeyValueOperations, null);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);

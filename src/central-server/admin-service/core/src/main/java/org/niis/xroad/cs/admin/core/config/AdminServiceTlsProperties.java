@@ -29,9 +29,9 @@ package org.niis.xroad.cs.admin.core.config;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
-import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
 import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
 import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
+import org.niis.xroad.common.vault.spring.config.ManagementServiceCertificateProvisioning;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,13 +52,7 @@ public class AdminServiceTlsProperties {
     }
 
     public CertificateProvisioningProperties getManagementServiceCertificateProvisioning() {
-        return new CertificateProvisioningConfig(
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME),
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME),
-                toList(xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES)),
-                toList(xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_TTL),
-                xRoadConfig.value(CsManagementServiceConfigKeys.TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
+        return ManagementServiceCertificateProvisioning.from(xRoadConfig);
     }
 
     private static List<String> toList(String[] values) {

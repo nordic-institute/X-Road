@@ -34,7 +34,10 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -76,12 +79,21 @@ public class TlsKeyProvisioning {
             }
             log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", name);
         }
-        var keyData = keyClient.provisionNewCerts();
-        var certChain = Stream.concat(stream(keyData.identityCertChain()), stream(keyData.trustCerts()))
-                .toArray(X509Certificate[]::new);
-        var tlsKey = new InternalSSLKey(keyData.identityPrivateKey(), certChain);
+        var tlsKey = provision(keyClient);
         writer.write(tlsKey);
         log.info("Successfully created '{}' TLS credentials", name);
         return tlsKey;
+    }
+
+    /**
+     * @param keyClient provisions a new key and certificate chain
+     * @return the new key with its identity certificate chain followed by the trust certificates
+     */
+    public static InternalSSLKey provision(VaultKeyClient keyClient)
+            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        var keyData = keyClient.provisionNewCerts();
+        var certChain = Stream.concat(stream(keyData.identityCertChain()), stream(keyData.trustCerts()))
+                .toArray(X509Certificate[]::new);
+        return new InternalSSLKey(keyData.identityPrivateKey(), certChain);
     }
 }
