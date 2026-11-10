@@ -32,6 +32,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -41,6 +43,7 @@ import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -188,6 +191,54 @@ class DifferenceSignalsTest {
 
         assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(PublicationState.PUBLISHED), BUILT_URL))
                 .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
+    }
+
+    @Test
+    void hostStatusIsOkWhenEveryActiveBindingIsAtTheRegisteredHost() {
+        var bindings = List.of(row(PublicationState.PUBLISHED, BOUND), row(PublicationState.NOT_SENT, OTHER_SAME_HOST),
+                systemRow(PublicationState.PUBLISHED));
+
+        assertThat(signals(ADDRESS, null).hostStatus(bindings)).isEqualTo(HostStatus.OK);
+    }
+
+    @Test
+    void hostStatusIsOkWithoutBindings() {
+        assertThat(signals(ADDRESS, null).hostStatus(List.of())).isEqualTo(HostStatus.OK);
+    }
+
+    @Test
+    void hostStatusDiffersWhenAnActiveMemberBindingIsAtAnotherHost() {
+        var bindings = List.of(row(PublicationState.PUBLISHED, BOUND), row(PublicationState.NOT_SENT, OTHER_HOST));
+
+        assertThat(signals(ADDRESS, null).hostStatus(bindings)).isEqualTo(HostStatus.DIFFERS);
+    }
+
+    @Test
+    void hostStatusDiffersWhenTheSystemBindingIsAtAnotherHost() {
+        var system = systemRow(PublicationState.PUBLISHED);
+        system.setDid(systemDid("ss1.example.org:7183"));
+
+        assertThat(signals(ADDRESS, null).hostStatus(List.of(row(PublicationState.PUBLISHED, BOUND), system)))
+                .isEqualTo(HostStatus.DIFFERS);
+    }
+
+    @Test
+    void hostStatusIgnoresADecommissionedBindingAtAnotherHost() {
+        var decommissioned = row(PublicationState.PUBLISHED, OTHER_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+
+        assertThat(signals(ADDRESS, null).hostStatus(List.of(row(PublicationState.PUBLISHED, BOUND), decommissioned)))
+                .isEqualTo(HostStatus.OK);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"b\u00fccher.example", "bad host", " "})
+    @NullAndEmptySource
+    void hostStatusIsUnknownWhenTheRegisteredAddressCannotBeUsed(String registeredAddress) {
+        var bindings = List.of(row(PublicationState.PUBLISHED, OTHER_HOST));
+
+        assertThat(signals(registeredAddress, null).hostStatus(bindings)).isEqualTo(HostStatus.UNKNOWN);
+        assertThat(signals(registeredAddress, null).hostStatus(List.of())).isEqualTo(HostStatus.UNKNOWN);
     }
 
     private DifferenceSignals systemSignals(String registeredAddress, ServerSystemValues carried) {

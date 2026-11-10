@@ -8786,6 +8786,7 @@ components:
         - publication_state
         - system_did_mismatch
         - dsp_base_url_mismatch
+        - host_status
       properties:
         dataspace_ready:
           type: boolean
@@ -8813,6 +8814,17 @@ components:
           description: >-
             true when globalconf announces a DSP base URL that differs from the one built from the registered address
             and the stored DSP port while the SYSTEM values are submitted or published
+        host_status:
+          type: string
+          readOnly: true
+          description: >-
+            whether the DIDs of the active bindings, SYSTEM and members, carry the registered address as their host.
+            OK: every DID host is the registered address. DIFFERS: at least one DID host is another one, so
+            re-identification is due. UNKNOWN: the registered address is not known or not usable
+          enum:
+            - OK
+            - DIFFERS
+            - UNKNOWN
     DataspacePublicationState:
       type: string
       readOnly: true

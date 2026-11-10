@@ -45,9 +45,19 @@ class RegisteredHostMatcherTest {
 
     @Test
     void shouldMatchTheDidHostOfTheRegisteredAddress() {
+        assertThat(matcher.isRegisteredAddressUsable()).isTrue();
         assertThat(matcher.didHostMatches(memberDid("ss0.example.org:7183"))).isTrue();
         assertThat(matcher.didHostMatches(ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString()))
                 .isTrue();
+    }
+
+    @Test
+    void shouldUseARegisteredAddressWithAPortAsItsHost() {
+        var withPort = RegisteredHostMatcher.of("ss0.example.org:7183");
+
+        assertThat(withPort.isRegisteredAddressUsable()).isTrue();
+        assertThat(withPort.didHostMatches(memberDid("ss0.example.org:8443"))).isTrue();
+        assertThat(withPort.didHostMatches(memberDid("ss1.example.org:7183"))).isFalse();
     }
 
     @ParameterizedTest
@@ -126,6 +136,7 @@ class RegisteredHostMatcherTest {
         var systemDid = ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString();
 
         assertThat(unusable.didHostMatches(memberDid("ss0.example.org:7183"))).isFalse();
+        assertThat(unusable.isRegisteredAddressUsable()).isFalse();
         assertThat(unusable.dspBaseUrlHostMatches(DSP_BASE_URL)).isFalse();
         assertThat(unusable.isMemberDidStale(memberDid("ss0.example.org:7183"))).isTrue();
         assertThat(unusable.isSystemPairStale(systemDid, DSP_BASE_URL)).isTrue();

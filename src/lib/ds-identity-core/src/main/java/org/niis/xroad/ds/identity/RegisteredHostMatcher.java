@@ -63,6 +63,13 @@ public final class RegisteredHostMatcher {
     }
 
     /**
+     * @return whether the registered address is known and a usable host, so that a host can match it
+     */
+    public boolean isRegisteredAddressUsable() {
+        return registeredHost != null;
+    }
+
+    /**
      * @param did a DID in wire form
      * @return whether the host it names is the registered address
      */

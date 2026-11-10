@@ -34,8 +34,10 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -109,6 +111,21 @@ public final class DifferenceSignals {
         var comparison = compareSystemValues(row, dspBaseUrl);
         return new SystemMismatch(comparison.systemDid() == GlobalConfComparison.DIFFERENT,
                 comparison.dspBaseUrl() == GlobalConfComparison.DIFFERENT);
+    }
+
+    /**
+     * @param bindings the SYSTEM and member binding rows; decommissioned rows are ignored
+     * @return {@link HostStatus#UNKNOWN} when the registered address cannot be used, {@link HostStatus#DIFFERS} when
+     * the DID host of an active row is not the registered address, otherwise {@link HostStatus#OK}
+     */
+    public HostStatus hostStatus(Collection<DsParticipantEntity> bindings) {
+        if (!hostMatcher.isRegisteredAddressUsable()) {
+            return HostStatus.UNKNOWN;
+        }
+        var differs = bindings.stream()
+                .filter(row -> row.getState() == ParticipantState.ACTIVE)
+                .anyMatch(row -> !hostMatcher.didHostMatches(row.getDid()));
+        return differs ? HostStatus.DIFFERS : HostStatus.OK;
     }
 
     private static boolean isSent(DsParticipantEntity row) {

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import com.google.common.base.Suppliers;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -42,11 +41,12 @@ import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
@@ -76,13 +76,13 @@ public class DataspaceProvisioningStatusService {
         List<ParticipantContextStatus> contextStatuses = contexts.stream()
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
-        Supplier<Optional<DifferenceSignals>> signals = Suppliers.memoize(this::readDifferenceSignals);
+        Optional<DifferenceSignals> signals = readDifferenceSignals();
         return new DataspaceStatus(true, authCertRegistered, readServerStatus(signals), contextStatuses,
                 readMemberPublications(contexts, signals));
     }
 
     private Map<String, MemberPublication> readMemberPublications(List<ParticipantContext> contexts,
-            Supplier<Optional<DifferenceSignals>> signals) {
+            Optional<DifferenceSignals> signals) {
         Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
         contexts.stream()
                 .filter(context -> context.kind() == ParticipantKind.MEMBER)
@@ -98,26 +98,35 @@ public class DataspaceProvisioningStatusService {
     }
 
     private MemberPublication readMemberPublication(ParticipantContext context,
-            Supplier<Optional<DifferenceSignals>> signals) {
+            Optional<DifferenceSignals> signals) {
         var row = dsParticipantRepository.findByMemberIdentifier(context.memberId())
                 .filter(participant -> participant.getState() == ParticipantState.ACTIVE);
         var state = row.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
-        var mismatch = row.filter(participant -> signals.get().filter(s -> s.memberMismatch(participant)).isPresent())
+        var mismatch = row.filter(participant -> signals.filter(s -> s.memberMismatch(participant)).isPresent())
                 .isPresent();
         return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null),
                 mismatch);
     }
 
-    private ServerStatus readServerStatus(Supplier<Optional<DifferenceSignals>> signals) {
+    private ServerStatus readServerStatus(Optional<DifferenceSignals> signals) {
         var system = dsParticipantRepository.findActiveSystemParticipant();
         var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
         var dspBaseUrl = didAuthority.dspBaseUrlIfValid().orElse(null);
-        var mismatch = system.filter(row -> DifferenceSignals.SENT.contains(state))
-                .flatMap(row -> signals.get().map(s -> s.systemMismatch(row, dspBaseUrl)))
+        var mismatch = system.flatMap(row -> signals.map(s -> s.systemMismatch(row, dspBaseUrl)))
                 .orElse(DifferenceSignals.SystemMismatch.NONE);
         return new ServerStatus(readinessPredicates.isDataspaceReady(), dspBaseUrl, state,
                 system.map(DsParticipantEntity::getPublicationReason).orElse(null),
-                mismatch.systemDid(), mismatch.dspBaseUrl());
+                mismatch.systemDid(), mismatch.dspBaseUrl(), readHostStatus(system, signals));
+    }
+
+    private HostStatus readHostStatus(Optional<DsParticipantEntity> system,
+            Optional<DifferenceSignals> signals) {
+        return signals.map(s -> {
+            var bindings = new ArrayList<>(
+                    dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)));
+            system.ifPresent(bindings::add);
+            return s.hostStatus(bindings);
+        }).orElse(HostStatus.UNKNOWN);
     }
 
     /**
@@ -161,6 +170,7 @@ public class DataspaceProvisioningStatusService {
      *                           the SYSTEM values are submitted or published
      * @param dspBaseUrlMismatch whether globalconf announces another, not stale, DSP base URL than the built one
      *                           while the SYSTEM values are submitted or published
+     * @param hostStatus         whether the DIDs of the active bindings carry the registered address as their host
      */
     public record ServerStatus(
             boolean dataspaceReady,
@@ -168,7 +178,8 @@ public class DataspaceProvisioningStatusService {
             PublicationState publicationState,
             @Nullable String publicationReason,
             boolean systemDidMismatch,
-            boolean dspBaseUrlMismatch
+            boolean dspBaseUrlMismatch,
+            HostStatus hostStatus
     ) {
     }
 }

@@ -37,11 +37,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.keys.DspConfigKeys;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceServerStatusDto.HostStatusEnum;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspacePublicationGlobalConfCheck;
 import org.niis.xroad.securityserver.restapi.service.ControlPlaneProvisioningClient;
@@ -74,6 +78,7 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     private static final ClientId.Conf MEMBER = TestUtils.getClientId("FI", "GOV", "M1", null);
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(MEMBER, "TEST-INMEM-SS");
     private static final String ADDRESS = "ss.example.test";
+    private static final String OTHER_HOST_ADDRESS = "other.example.test";
     private static final String BOUND_DID = memberDid("ss.example.test:7183");
     private static final String OTHER_DID_SAME_HOST = memberDid("ss.example.test:8443");
     private static final String OTHER_DID_OTHER_HOST = memberDid("other.example.test:7183");
@@ -257,6 +262,135 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
                 .containsEntry("state", "ACTIVE");
     }
 
+    @Test
+    void bindingsAllAtTheRegisteredHostShowHostStatusOk() {
+        insertMemberRow("PUBLISHED");
+        insertSystemRow("PUBLISHED");
+        registerAddress(ADDRESS);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
+    }
+
+    @Test
+    void aMemberBindingAtAnotherHostShowsHostStatusDiffers() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        insertSystemRow("PUBLISHED");
+        registerAddress(ADDRESS);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+    }
+
+    @Test
+    void theSystemBindingAtAnotherHostShowsHostStatusDiffers() {
+        insertMemberRow("PUBLISHED");
+        insertSystemRow("PUBLISHED", OTHER_SYSTEM_DID_OTHER_HOST);
+        registerAddress(ADDRESS);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+    }
+
+    @Test
+    void anAddressThatIsNotRegisteredShowsHostStatusUnknown() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(null);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.UNKNOWN);
+    }
+
+    @Test
+    void unavailableGlobalconfShowsHostStatusUnknown() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        when(globalConfProvider.getSecurityServerAddress(SS_ID))
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR).build());
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.UNKNOWN);
+    }
+
+    @Test
+    void anUnusableRegisteredAddressShowsHostStatusUnknown() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        registerAddress("b\u00fccher.example");
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.UNKNOWN);
+    }
+
+    @Test
+    void aDecommissionedBindingAtAnotherHostDoesNotShowHostStatusDiffers() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "DECOMMISSIONED");
+        insertSystemRow("PUBLISHED");
+        registerAddress(ADDRESS);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
+    }
+
+    @Test
+    void hostStatusClearsOnceTheBindingsAgreeWithTheRegisteredAddressAgain() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        registerAddress(ADDRESS);
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+
+        inNewTransaction(transactionManager, () -> jdbcTemplate.update("UPDATE ds_participant SET did = ? WHERE id = ?",
+                BOUND_DID, MEMBER_ROW_ID));
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
+    }
+
+    @Test
+    void hostStatusClearsOnceTheRegisteredAddressAgreesWithTheBindingsAgain() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        registerAddress(ADDRESS);
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+
+        registerAddress(OTHER_HOST_ADDRESS);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
+    }
+
+    @Test
+    void staleGlobalconfValuesWithAllBindingsAtTheRegisteredHostShowHostStatusOkAndNoMismatch() {
+        insertMemberRow("PUBLISHED");
+        insertSystemRow("PUBLISHED");
+        carry(OTHER_DID_OTHER_HOST);
+        carrySystemValues(OTHER_SYSTEM_DID_OTHER_HOST, OTHER_HOST_DSP_BASE_URL);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.OK);
+        assertThat(memberContext().getGlobalconfMismatch()).isFalse();
+        assertFlags(false, false);
+    }
+
+    @Test
+    void aBindingAtTheOldHostShowsHostStatusDiffersAndAMemberMismatchWhenGlobalconfCarriesADidAtTheNewHost() {
+        insertMemberRow("PUBLISHED");
+        registerAddress(OTHER_HOST_ADDRESS);
+        when(globalConfProvider.getMemberDid(MEMBER, SS_ID)).thenReturn(Optional.of(OTHER_DID_OTHER_HOST));
+
+        var status = dataspaceApiController.getDataspaceProvisioningStatus().getBody();
+
+        assertThat(status.getServer().getHostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+        assertThat(memberContext(status).getGlobalconfMismatch()).isTrue();
+    }
+
+    @Test
+    void hostStatusChangesNeitherTheBindingsNorThePublicationStates() {
+        insertMemberRow("PUBLISHED", OTHER_DID_OTHER_HOST, "ACTIVE");
+        insertSystemRow("PUBLISHED", OTHER_SYSTEM_DID_OTHER_HOST);
+        registerAddress(ADDRESS);
+
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+        assertThat(hostStatus()).isEqualTo(HostStatusEnum.DIFFERS);
+
+        assertThat(jdbcTemplate.queryForMap("SELECT did, publication_state, state FROM ds_participant WHERE id = ?",
+                MEMBER_ROW_ID))
+                .containsEntry("did", OTHER_DID_OTHER_HOST)
+                .containsEntry("publication_state", "PUBLISHED")
+                .containsEntry("state", "ACTIVE");
+        assertThat(jdbcTemplate.queryForMap("SELECT did, publication_state, state FROM ds_participant WHERE id = ?",
+                SYSTEM_ROW_ID))
+                .containsEntry("did", OTHER_SYSTEM_DID_OTHER_HOST)
+                .containsEntry("publication_state", "PUBLISHED")
+                .containsEntry("state", "ACTIVE");
+    }
+
     private List<ILoggingEvent> errorsLoggedBy(Runnable action) {
         var logger = (Logger) LoggerFactory.getLogger(DataspacePublicationGlobalConfCheck.class);
         var appender = new ListAppender<ILoggingEvent>();
@@ -279,9 +413,21 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
         assertThat(server.getDspBaseUrlMismatch()).isEqualTo(dspBaseUrl);
     }
 
+    private HostStatusEnum hostStatus() {
+        return dataspaceApiController.getDataspaceProvisioningStatus().getBody().getServer().getHostStatus();
+    }
+
+    private void registerAddress(String address) {
+        when(globalConfProvider.getSecurityServerAddress(SS_ID)).thenReturn(address);
+    }
+
     private DataspaceParticipantContextStatusDto memberContext() {
+        return memberContext(dataspaceApiController.getDataspaceProvisioningStatus().getBody());
+    }
+
+    private static DataspaceParticipantContextStatusDto memberContext(DataspaceProvisioningStatusDto status) {
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-        return dataspaceApiController.getDataspaceProvisioningStatus().getBody().getParticipantContexts().stream()
+        return status.getParticipantContexts().stream()
                 .filter(context -> memberCtxId.equals(context.getParticipantId()))
                 .findFirst()
                 .orElseThrow();
@@ -299,20 +445,28 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     }
 
     private void insertSystemRow(String publicationState) {
-        ParticipantRowTestSupport.insertSystemRow(jdbcTemplate, transactionManager, SYSTEM_ROW_ID, BOUND_SYSTEM_DID,
+        insertSystemRow(publicationState, BOUND_SYSTEM_DID);
+    }
+
+    private void insertSystemRow(String publicationState, String did) {
+        ParticipantRowTestSupport.insertSystemRow(jdbcTemplate, transactionManager, SYSTEM_ROW_ID, did,
                 publicationState);
     }
 
     private void insertMemberRow(String publicationState) {
+        insertMemberRow(publicationState, BOUND_DID, "ACTIVE");
+    }
+
+    private void insertMemberRow(String publicationState, String did, String state) {
         inNewTransaction(transactionManager, () -> jdbcTemplate.update("INSERT INTO ds_participant"
                         + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state,"
                         + " publication_state, created_at, updated_at)"
                         + " VALUES (?, 'MEMBER', (SELECT id FROM identifier WHERE object_type = 'MEMBER'"
                         + " AND xroad_instance = ? AND member_class = ? AND member_code = ?),"
-                        + " ?, ?, ?, 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                        + " ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
                 MEMBER_ROW_ID, MEMBER.getXRoadInstance(), MEMBER.getMemberClass(), MEMBER.getMemberCode(),
-                ParticipantIdentifierScheme.memberCtxId(MEMBER), BOUND_DID, ParticipantIdentifierScheme.SCHEME_VERSION,
-                publicationState));
+                ParticipantIdentifierScheme.memberCtxId(MEMBER), did, ParticipantIdentifierScheme.SCHEME_VERSION,
+                state, publicationState));
     }
 
     private static String systemDid(String authority) {

@@ -61,6 +61,7 @@ import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 import org.niis.xroad.serverconf.model.PublicationState;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,9 +71,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -202,7 +203,7 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     @Test
-    void readStatusDoesNotResolveTheOwnAddressWithoutAMemberContextAndASentSystemRow() {
+    void readStatusResolvesTheOwnAddressOnceWithoutAMemberContextAndASentSystemRow() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
@@ -216,7 +217,36 @@ class DataspaceProvisioningStatusServiceTest {
         var status = statusServiceWith(resolver).readStatus();
 
         assertThat(status.memberPublications()).isEmpty();
-        verifyNoInteractions(resolver);
+        assertThat(status.server().hostStatus()).isEqualTo(HostStatus.UNKNOWN);
+        verify(resolver, times(1)).address();
+    }
+
+    @Test
+    void readStatusReportsHostStatusDiffersForTheSystemBindingAndReadsTheMembersOfEveryPublicationState() {
+        when(dsParticipantRepository.findActiveSystemParticipant())
+                .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ih.other.test:7183"))));
+        when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
+                .thenReturn(List.of(memberRow(ParticipantIdentifierScheme.memberDid(OWNER, "ss.example.test:8443"))));
+
+        assertThat(statusService.readStatus().server().hostStatus()).isEqualTo(HostStatus.DIFFERS);
+    }
+
+    @Test
+    void readStatusReportsHostStatusDiffersForAMemberBindingAtAnotherHostWhileTheSystemBindingMatches() {
+        when(dsParticipantRepository.findActiveSystemParticipant())
+                .thenReturn(Optional.of(systemRow(ParticipantIdentifierScheme.systemDid("ss.example.test:7183"))));
+        when(dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)))
+                .thenReturn(List.of(memberRow(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183"))));
+
+        assertThat(statusService.readStatus().server().hostStatus()).isEqualTo(HostStatus.DIFFERS);
+    }
+
+    @Test
+    void readStatusReportsHostStatusUnknownWithoutReadingTheMemberBindingsWhenTheAddressIsNotRegistered() {
+        when(globalConfProvider.getSecurityServerAddress(any())).thenReturn(null);
+
+        assertThat(statusService.readStatus().server().hostStatus()).isEqualTo(HostStatus.UNKNOWN);
+        verify(dsParticipantRepository, never()).findActiveMembers(any());
     }
 
     @Test
