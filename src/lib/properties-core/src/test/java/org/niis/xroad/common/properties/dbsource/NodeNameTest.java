@@ -31,27 +31,38 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NodeNameTest {
 
+    static Stream<String> validNames() {
+        return Stream.of("node_1", "0", "01", "007", "true", "null", "0123", "1e3", "A_b-c", "0abc", "x".repeat(63));
+    }
+
+    static Stream<String> rejectedNames() {
+        return Stream.of("_n", "-n", "x".repeat(64), "cs1.example.org", "node 1", "nodé", "node\n", " node_1 ");
+    }
+
     @ParameterizedTest
-    @MethodSource("org.niis.xroad.common.properties.dbsource.NodeNameCases#valid")
+    @MethodSource("validNames")
     void validNameIsUsedUnchanged(String name) {
         assertThat(NodeName.resolve(name)).isEqualTo(new NodeName(name, true));
     }
 
     @ParameterizedTest
     @NullSource
-    @MethodSource("org.niis.xroad.common.properties.dbsource.NodeNameCases#blank")
+    @ValueSource(strings = {"", "\t", " "})
     void blankOrMissingNameResolvesToTheDefaultNode(String value) {
         assertThat(NodeName.resolve(value)).isEqualTo(new NodeName("node_0", false));
     }
 
     @ParameterizedTest
-    @MethodSource("org.niis.xroad.common.properties.dbsource.NodeNameCases#rejected")
+    @MethodSource("rejectedNames")
     void nameBreakingTheRuleIsRejected(String name) {
         assertThatThrownBy(() -> NodeName.resolve(name)).isInstanceOf(InvalidNodeNameException.class);
         assertThatThrownBy(() -> new NodeName(name, true)).isInstanceOf(InvalidNodeNameException.class);

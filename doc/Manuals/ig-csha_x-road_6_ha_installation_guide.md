@@ -189,7 +189,7 @@ In addition, it is necessary to configure a unique node name for each node parti
     [node]
     name=<node_name>
     ```
-    Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). Set the name before installing the Central Server package. The installation stops if the name is not valid.
+    Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc.. The name must follow the rule in section [4.1](#41-node-name-and-renaming-a-node). Set the name before installing the Central Server package. The services check the name when they start; a node with an invalid name does not start.
 
     When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`.
 
@@ -236,7 +236,7 @@ The node name must follow this rule:
 - The first character must be a letter or a digit.
 - The name is read as plain text, so values such as `01`, `007` and `true` are valid.
 
-The installation and the backup and restore scripts check the name with this rule. The services check it when they start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
+The services check the name with this rule when they start, and a node with an invalid name does not start. In containers, set the name with the environment variable `XROAD_NODE_NAME`.
 
 The name is fixed after the node has joined the cluster. The node keeps its secrets in the secret store under its name, so changing the name in `node.ini` of a running node leaves the node without its secrets. To rename a node, remove the node and join it again under the new name:
 

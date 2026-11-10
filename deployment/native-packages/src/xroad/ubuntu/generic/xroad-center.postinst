@@ -2,7 +2,6 @@
 # postinst script for xroad-center
 
 . /usr/share/debconf/confmodule
-. /usr/share/xroad/scripts/_node_name.sh
 trap db_stop EXIT
 
 abort() {
@@ -165,13 +164,8 @@ EOF
     fi
 }
 
-check_configured_node_name() {
-    read_node_ini_node_name >/dev/null || exit 1
-}
-
 case "$1" in
 configure | reconfigure)
-    check_configured_node_name
     setup_database
 
     RET=""

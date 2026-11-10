@@ -82,7 +82,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/generate_gpg_keypair.sh
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
-/usr/share/xroad/scripts/_node_name.sh
 /usr/share/xroad/scripts/_backup_format_version
 /usr/share/xroad/scripts/_create_backup_metadata.sh
 /usr/share/xroad/scripts/_setup_db.sh

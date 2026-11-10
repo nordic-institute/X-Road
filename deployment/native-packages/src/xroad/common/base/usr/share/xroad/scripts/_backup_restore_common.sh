@@ -17,9 +17,6 @@ OPENBAO_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_openbao_db.sh"
 OPENBAO_DATABASE_RESTORE_SCRIPT="/usr/share/xroad/scripts/restore_openbao_db.sh"
 COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
-# shellcheck source=/dev/null
-source /usr/share/xroad/scripts/_node_name.sh
-
 # The value in this file must be increased when we introduce changes that make earlier
 # backup files incompatible with the current system. BackupMetadataService (Java) reads
 # the same file to determine backup compatibility for the admin UI, so this is the
@@ -59,11 +56,10 @@ check_central_ha_node_name () {
   if [[ $USE_BASE_64 = true ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=$(echo "$CENTRAL_SERVER_HA_NODE_NAME" | base64 --decode)
   fi
-  check_node_name "$CENTRAL_SERVER_HA_NODE_NAME" "the -n option" || exit 2
   if [[ -z "${CENTRAL_SERVER_HA_NODE_NAME//[[:space:]]/}" ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=""
   fi
-  node_name=$(read_node_ini_node_name) || exit 2
+  node_name=$(crudini --get /etc/xroad/conf.d/node.ini node name 2>/dev/null || echo "")
   if [[ -z "${node_name//[[:space:]]/}" ]] ; then
     node_name=""
   fi

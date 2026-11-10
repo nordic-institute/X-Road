@@ -21,8 +21,7 @@
 # Without --node the shared rows are listed, with --node the rows of that node only. The exit code
 # is 0 also when there are no rows, and 2 on any operational error.
 # --node is for a Central Server only; on any other host it exits with status 2 before the
-# database is touched. A node name must follow the node name rule of _node_name.sh, the same as
-# the installer and backup scripts use; a blank or invalid one exits with status 2 the same way.
+# database is touched. A blank node name exits with status 2 the same way.
 
 set -euo pipefail
 
@@ -32,11 +31,6 @@ readonly CS_MARKER="/etc/xroad/services/centralserver-admin-service.conf"
 log()       { echo "$(date -Iseconds) ${LOG_TAG}: $*" >&2; }
 log_error() { echo "$(date -Iseconds) ${LOG_TAG} ERROR: $*" >&2; }
 die()       { log_error "$*"; exit 2; }
-
-readonly NODE_NAME_HELPER="/usr/share/xroad/scripts/_node_name.sh"
-[ -f "$NODE_NAME_HELPER" ] || die "Node name helper $NODE_NAME_HELPER not found"
-# shellcheck source=_node_name.sh
-source "$NODE_NAME_HELPER" || die "Cannot load node name helper $NODE_NAME_HELPER"
 
 usage() {
   cat >&2 <<EOF
@@ -59,8 +53,7 @@ Commands:
 
 Common options:
   -n, --node <name>  Central Server only. Act on the row of this Central Server node
-                     (for example node_1) instead of the shared row. The name must
-                     match ^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\$.
+                     (for example node_1) instead of the shared row.
   -y, --yes          Skip interactive confirmation prompt
   -h, --help         Show this help
 
@@ -118,7 +111,6 @@ validate_node() {
   if [[ "$NODE" =~ ^[[:space:]]*$ ]]; then
     die "--node requires a non-blank node name"
   fi
-  check_node_name "$NODE" "--node" || exit 2
 }
 
 load_db_properties() {

@@ -25,11 +25,3 @@ dependencies {
   testFixturesImplementation(libs.mockito.core)
   testFixturesImplementation(libs.systemStubs)
 }
-
-tasks.test {
-  val nodeNameScript = rootDir.resolve(
-    "../deployment/native-packages/src/xroad/common/base/usr/share/xroad/scripts/_node_name.sh"
-  ).canonicalFile
-  inputs.files(nodeNameScript).withPropertyName("nodeNameScript")
-  systemProperty("xroad.test.node-name-script", nodeNameScript.path)
-}

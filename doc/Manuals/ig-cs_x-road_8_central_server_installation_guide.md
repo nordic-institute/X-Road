@@ -315,7 +315,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
 - If the name is not set:
   - The services use the name `node_0` in secret store paths.
   - Backup archive names have no node name suffix.
-- The installer and the backup and restore scripts check the name with the same rule as the services. The installation stops with a message that names the rule when the name is not valid.
+- The services check the name when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
 - Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
 
 ### 2.7 Pre-configuration for Registration Web Service
