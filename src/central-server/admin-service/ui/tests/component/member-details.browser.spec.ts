@@ -30,9 +30,10 @@ import { HttpResponse } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 import { submitDialogForm } from '../setup/dialog-helpers';
+import { refusalCase, registerDidCheckSpecs } from '../setup/did-check-specs';
 import { Permissions } from '@/global';
 import type { RequestHandler } from 'msw';
-import type { Client, DidCheck, SecurityServer } from '@/openapi-types';
+import type { Client, SecurityServer } from '@/openapi-types';
 
 const MEMBER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem';
 const SERVER_ID = 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1';
@@ -401,173 +402,22 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
   });
 
   describe('check DID button', () => {
-    type CheckCase = [name: string, answer: DidCheck, text: string, icon: string, color: string];
-    const SUCCESS: [string, string] = ['check_circle', 'success'];
-    const WARNING: [string, string] = ['warning', 'warning'];
-    const ERROR: [string, string] = ['error', 'error'];
-    const FETCH_TEXT = 'The member DID does not resolve: its DID document could not be fetched. You can still save.';
-    const checkCases: CheckCase[] = [
-      ['RESOLVED', { status: 'RESOLVED' }, 'The member DID resolves.', ...SUCCESS],
-      [
-        'NOT_RESOLVED MALFORMED_DID',
-        { status: 'NOT_RESOLVED', resolution_reason: 'MALFORMED_DID' },
-        'The member DID does not resolve: its DID document is malformed. You can still save.',
-        ...WARNING,
+    registerDidCheckSpecs({
+      subject: 'member DID',
+      checkPath: '/api/v1/members/:member_id/servers/:server_id/member-did-check',
+      buttonTestId: 'member-did-check-button',
+      resultTestId: 'member-did-check-result',
+      openDialog,
+      fillForCheck: (dialog) => didField(dialog).fill(NEW_DID),
+      expectedRequest: { member_did: NEW_DID },
+      editWhilePending: (dialog) => didField(dialog).fill(NEW_DID),
+      editBeforeNewCheck: (dialog) => didField(dialog).fill(NEW_DID),
+      refusalCases: [
+        refusalCase('UNDECODABLE_DID', 'The DID cannot be decoded'),
+        refusalCase('DID_OF_OTHER_MEMBER', 'The DID belongs to another member'),
+        refusalCase('MEMBER_NOT_SERVED', 'The security server does not serve this member'),
+        refusalCase('NO_STORED_VALUE', 'The security server has no stored DID to replace'),
       ],
-      [
-        'NOT_RESOLVED NO_DOCUMENT',
-        { status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' },
-        'The member DID does not resolve: no DID document was found. You can still save.',
-        ...WARNING,
-      ],
-      [
-        'NOT_RESOLVED ID_MISMATCH',
-        { status: 'NOT_RESOLVED', resolution_reason: 'ID_MISMATCH' },
-        'The member DID does not resolve: the DID document belongs to another DID. You can still save.',
-        ...WARNING,
-      ],
-      ['NOT_RESOLVED FETCH_FAILURE', { status: 'NOT_RESOLVED', resolution_reason: 'FETCH_FAILURE' }, FETCH_TEXT, ...WARNING],
-      ['NOT_RESOLVED without a reason', { status: 'NOT_RESOLVED' }, FETCH_TEXT, ...WARNING],
-      [
-        'RESOLVER_UNAVAILABLE',
-        { status: 'RESOLVER_UNAVAILABLE' },
-        'The member DID could not be checked because the Issuer Service is unreachable. You can still save.',
-        ...WARNING,
-      ],
-      ['REFUSED without a reason', { status: 'REFUSED' }, 'Internal error. See server logs for more details', ...ERROR],
-      [
-        'REFUSED WRONG_SCHEME',
-        { status: 'REFUSED', refusal_reason: 'WRONG_SCHEME' },
-        'The DID must be a did:web DID of version v1',
-        ...ERROR,
-      ],
-      ['REFUSED DID_TOO_LONG', { status: 'REFUSED', refusal_reason: 'DID_TOO_LONG' }, 'The DID is too long', ...ERROR],
-      [
-        'REFUSED NON_ASCII_HOST',
-        { status: 'REFUSED', refusal_reason: 'NON_ASCII_HOST' },
-        'The host of the DID and the security server address must be ASCII',
-        ...ERROR,
-      ],
-      [
-        'REFUSED UNDECODABLE_DID',
-        { status: 'REFUSED', refusal_reason: 'UNDECODABLE_DID' },
-        'The DID cannot be decoded',
-        ...ERROR,
-      ],
-      [
-        'REFUSED NOT_CANONICAL',
-        { status: 'REFUSED', refusal_reason: 'NOT_CANONICAL' },
-        'The DID is not in its canonical form',
-        ...ERROR,
-      ],
-      [
-        'REFUSED HOST_DIFFERS',
-        { status: 'REFUSED', refusal_reason: 'HOST_DIFFERS' },
-        'The host of the DID must match the security server address',
-        ...ERROR,
-      ],
-      [
-        'REFUSED DID_OF_OTHER_MEMBER',
-        { status: 'REFUSED', refusal_reason: 'DID_OF_OTHER_MEMBER' },
-        'The DID belongs to another member',
-        ...ERROR,
-      ],
-      [
-        'REFUSED MEMBER_NOT_SERVED',
-        { status: 'REFUSED', refusal_reason: 'MEMBER_NOT_SERVED' },
-        'The security server does not serve this member',
-        ...ERROR,
-      ],
-      [
-        'REFUSED UNPARSEABLE_REGISTERED_ADDRESS',
-        { status: 'REFUSED', refusal_reason: 'UNPARSEABLE_REGISTERED_ADDRESS' },
-        'The security server address cannot be read as a host',
-        ...ERROR,
-      ],
-      [
-        'REFUSED DID_HELD_BY_ANOTHER_SERVER',
-        { status: 'REFUSED', refusal_reason: 'DID_HELD_BY_ANOTHER_SERVER' },
-        'The DID is already used by another security server',
-        ...ERROR,
-      ],
-      [
-        'REFUSED NO_STORED_VALUE',
-        { status: 'REFUSED', refusal_reason: 'NO_STORED_VALUE' },
-        'The security server has no stored DID to replace',
-        ...ERROR,
-      ],
-    ];
-
-    it.each(checkCases)('shows the answer %s', async (_name, answer, text, iconName, iconColor) => {
-      const checkSpy = vi.fn();
-      const dialog = await openDialog([
-        specHttp.post('/members/{member_id}/servers/{server_id}/member-did-check', async ({ request, response }) => {
-          checkSpy(await request.json());
-          return response(200).json(answer as never);
-        }),
-      ]);
-
-      await didField(dialog).fill(NEW_DID);
-      await dialog.getByTestId('member-did-check-button').click();
-
-      const result = dialog.getByTestId('member-did-check-result');
-      await expect.element(result).toMatchTextContent(text);
-      const icon = result.element().querySelector('.v-icon');
-      expect(icon?.textContent?.trim()).toBe(iconName);
-      expect(icon?.classList).toContain(`text-${iconColor}`);
-      expect(checkSpy).toHaveBeenCalledWith({ member_did: NEW_DID });
-    });
-
-    describe('late answers', () => {
-      const NO_DOCUMENT_TEXT = 'The member DID does not resolve: no DID document was found. You can still save.';
-      const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
-
-      function gatedFirstCheck() {
-        let release!: () => void;
-        const gate = new Promise<void>((resolve) => (release = resolve));
-        let calls = 0;
-        const firstServed = vi.fn();
-        const handler = specHttp.untyped.post('/api/v1/members/:member_id/servers/:server_id/member-did-check', async () => {
-          calls += 1;
-          if (calls > 1) {
-            return HttpResponse.json({ status: 'NOT_RESOLVED', resolution_reason: 'NO_DOCUMENT' });
-          }
-          await gate;
-          firstServed();
-          return HttpResponse.json({ status: 'RESOLVED' });
-        });
-        return { handler, release, firstServed };
-      }
-
-      it('drops an answer that arrives after the DID was edited', async () => {
-        const { handler, release, firstServed } = gatedFirstCheck();
-        const dialog = await openDialog([handler]);
-        const result = dialog.getByTestId('member-did-check-result');
-
-        await dialog.getByTestId('member-did-check-button').click();
-        await didField(dialog).fill(NEW_DID);
-        release();
-        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
-        await settle();
-
-        await expect.element(result).not.toBeInTheDocument();
-      });
-
-      it('drops an answer that arrives after a newer check and shows the newer answer', async () => {
-        const { handler, release, firstServed } = gatedFirstCheck();
-        const dialog = await openDialog([handler]);
-        const result = dialog.getByTestId('member-did-check-result');
-
-        await dialog.getByTestId('member-did-check-button').click();
-        await didField(dialog).fill(NEW_DID);
-        await dialog.getByTestId('member-did-check-button').click();
-        await expect.element(result).toMatchTextContent(NO_DOCUMENT_TEXT);
-        release();
-        await vi.waitFor(() => expect(firstServed).toHaveBeenCalled());
-        await settle();
-
-        await expect.element(result).toMatchTextContent(NO_DOCUMENT_TEXT);
-      });
     });
 
     it('is disabled with an empty DID and clears the result when the DID changes', async () => {

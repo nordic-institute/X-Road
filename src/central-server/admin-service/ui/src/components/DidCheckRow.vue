@@ -62,11 +62,11 @@ defineProps({
   },
   disabled: {
     type: Boolean,
-    default: false,
+    required: true,
   },
   checking: {
     type: Boolean,
-    default: false,
+    required: true,
   },
   outcome: {
     type: Object as PropType<DidCheckOutcome>,

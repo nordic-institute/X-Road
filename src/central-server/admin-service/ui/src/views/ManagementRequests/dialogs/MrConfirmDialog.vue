@@ -57,6 +57,7 @@ import { useI18n } from 'vue-i18n';
 import { ManagementRequestType, SecurityServer } from '@/openapi-types';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useSecurityServer } from '@/store/modules/security-servers';
+import { addressChanged, hasStoredSystemPair } from '@/util/helpers';
 import { useNotifications, XrdConfirmDialog } from '@niis/shared-ui';
 
 /**
@@ -107,8 +108,7 @@ function findServerBeforeApproval(): Promise<SecurityServer | undefined> {
 }
 
 function needsOperatorNotice(server: SecurityServer | undefined): boolean {
-  const hasSystemPair = !!server?.system_did && !!server.dsp_base_url;
-  return hasSystemPair && server?.server_address?.toLowerCase() !== props.requestedAddress?.toLowerCase();
+  return hasStoredSystemPair(server?.system_did, server?.dsp_base_url) && addressChanged(server?.server_address, props.requestedAddress);
 }
 
 function approve() {

@@ -48,30 +48,28 @@
         </div>
       </template>
       <template #[`item.member_did`]="{ item }">
-        <div :data-test="`member-did-${item.server_id.server_code}`">
-          <div class="d-flex align-center justify-space-between ga-4">
-            <span :data-test="item.member_did ? 'member-did' : 'member-did-missing'" class="text-break">{{ item.member_did || '-' }}</span>
-            <XrdBtn
-              v-if="allowEditMemberDid"
-              variant="text"
-              color="tertiary"
-              text="action.edit"
-              :data-test="`member-did-edit-${item.server_id.server_code}`"
-              :disabled="!item.member_did"
-              @click="emit('edit-member-did', item)"
-            />
-          </div>
-          <v-alert
-            v-if="item.member_did_stale"
-            data-test="member-did-stale-warning"
-            class="mt-2"
-            type="warning"
-            variant="outlined"
-            border="start"
-            density="compact"
-            :text="$t('members.member.details.memberDidStaleWarning')"
+        <div class="d-flex align-center justify-space-between ga-4">
+          <span :data-test="item.member_did ? 'member-did' : 'member-did-missing'" class="text-break">{{ item.member_did || '-' }}</span>
+          <XrdBtn
+            v-if="allowEditMemberDid"
+            variant="text"
+            color="tertiary"
+            text="action.edit"
+            :data-test="`member-did-edit-${item.server_id.server_code}`"
+            :disabled="!item.member_did"
+            @click="emit('edit-member-did', item)"
           />
         </div>
+        <v-alert
+          v-if="item.member_did_stale"
+          data-test="member-did-stale-warning"
+          class="mt-2"
+          type="warning"
+          variant="outlined"
+          border="start"
+          density="compact"
+          :text="$t('members.member.details.memberDidStaleWarning')"
+        />
       </template>
       <template #[`item.action`]="{ item }">
         <slot name="actions" :server="item"></slot>

@@ -51,7 +51,7 @@
         </XrdFormBlockRow>
       </XrdFormBlock>
       <template v-if="hasSystemPair">
-        <div class="body-regular font-weight-bold mt-4" data-test="security-server-published-values-title">
+        <div class="body-regular font-weight-bold mt-4">
           {{ $t('securityServers.dialogs.editAddress.publishedValues') }}
         </div>
         <div class="body-small mb-4">{{ $t('securityServers.dialogs.editAddress.publishedValuesHint') }}</div>
@@ -116,6 +116,7 @@ import { useDidCheck } from '@/composables/use-did-check';
 import type { DidResolutionReason } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { DID_REFUSAL_TEXT } from '@/util/did-refusal-text';
+import { addressChanged, hasStoredSystemPair } from '@/util/helpers';
 
 const props = defineProps({
   securityServerId: {
@@ -149,7 +150,7 @@ const RESOLUTION_TEXT: Record<DidResolutionReason, string> = {
   FETCH_FAILURE: 'securityServers.dialogs.editAddress.check.not_resolved_fetch_failure',
 };
 
-const hasSystemPair = !!props.systemDid && !!props.dspBaseUrl;
+const hasSystemPair = hasStoredSystemPair(props.systemDid, props.dspBaseUrl);
 
 const { meta, errors, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
@@ -181,7 +182,7 @@ const { checking, outcome, check } = useDidCheck({
   },
 });
 
-const addressChanged = computed(() => securityServerAddress.value !== props.address);
+const addressEdited = computed(() => addressChanged(props.address, securityServerAddress.value));
 const systemPairChanged = computed(
   () => hasSystemPair && (systemDidInput.value !== props.systemDid || dspBaseUrlInput.value !== props.dspBaseUrl),
 );
@@ -190,7 +191,7 @@ const warningText = computed(() => {
   if (!hasSystemPair || systemPairChanged.value) {
     return undefined;
   }
-  if (addressChanged.value) {
+  if (addressEdited.value) {
     return 'securityServers.dialogs.editAddress.oldHostWarning';
   }
   return props.systemPairStale ? 'securityServers.staleValuesWarning' : undefined;
@@ -217,10 +218,11 @@ function save(evt: Event, handler: DialogSaveHandler) {
     const systemPair = systemPairChanged.value
       ? { system_did: systemDidInput.value as string, dsp_base_url: dspBaseUrlInput.value as string }
       : undefined;
+    const informOperator = hasSystemPair && (addressEdited.value || systemPairChanged.value);
     return updateAddress(props.securityServerId, securityServerAddress.value as string, systemPair)
       .then(() => {
         addSuccessMessage('securityServers.dialogs.editAddress.success');
-        if (hasSystemPair) {
+        if (informOperator) {
           addError(t('securityServers.dialogs.editAddress.notify'), { warning: true });
         }
         emits('save');

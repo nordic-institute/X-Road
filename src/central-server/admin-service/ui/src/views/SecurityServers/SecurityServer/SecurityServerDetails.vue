@@ -93,8 +93,8 @@
     <edit-security-server-address-dialog
       v-if="showEditAddressDialog"
       :address="address"
-      :system-did="hasSystemPair ? securityServer?.system_did : undefined"
-      :dsp-base-url="hasSystemPair ? securityServer?.dsp_base_url : undefined"
+      :system-did="securityServer?.system_did"
+      :dsp-base-url="securityServer?.dsp_base_url"
       :system-pair-stale="systemPairStale"
       :security-server-id="serverId"
       @cancel="closeEditAddress"
@@ -114,6 +114,7 @@ import { Permissions } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useUser } from '@/store/modules/user';
+import { hasStoredSystemPair } from '@/util/helpers';
 
 import EditSecurityServerAddressDialog from './dialogs/EditSecurityServerAddressDialog.vue';
 
@@ -156,7 +157,7 @@ export default defineComponent({
       return this.hasPermission(Permissions.EDIT_SECURITY_SERVER_ADDRESS);
     },
     hasSystemPair(): boolean {
-      return !!this.securityServer?.system_did && !!this.securityServer?.dsp_base_url;
+      return hasStoredSystemPair(this.securityServer?.system_did, this.securityServer?.dsp_base_url);
     },
     systemPairStale(): boolean {
       return this.securityServer?.system_pair_stale === true;
