@@ -1,7 +1,6 @@
 #!/bin/bash
 
 . /usr/share/debconf/confmodule
-. /usr/share/xroad/scripts/_node_name.sh
 
 if [ "$1" = "upgrade" ]; then
   if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
@@ -9,14 +8,6 @@ if [ "$1" = "upgrade" ]; then
     exit 1
   fi
 
-fi
-
-check_configured_node_name() {
-  read_node_ini_node_name >/dev/null || exit 1
-}
-
-if [ "$1" = "install" ] || [ "$1" = "upgrade" ]; then
-  check_configured_node_name
 fi
 
 handle_error() {
