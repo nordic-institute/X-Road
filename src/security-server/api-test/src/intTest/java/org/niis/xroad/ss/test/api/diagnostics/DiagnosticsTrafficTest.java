@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.ss.test.api.diagnostics;
 
+import io.restassured.response.ValidatableResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -38,6 +41,7 @@ import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.admin.DiagnosticsAdminClient;
+import org.niis.xroad.ss.test.api.admin.SystemAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -55,14 +59,15 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * API tests for Security Server diagnostics traffic tab: service-list population from configured service descriptions
  * and request counts read from the local op-monitor.
  */
+@Slf4j
 @DisplayName("Diagnostics traffic — service list population")
 @ResourceLock(value = "op-monitor-ca", mode = READ)
 @SuppressWarnings("checkstyle:magicnumber")
 class DiagnosticsTrafficTest extends SsApiTest {
 
     private static final String JSON_SPEC_URL = "http://mock-server:1080/test-services/testopenapi2.json";
-    private static final Duration RECORD_TIMEOUT = Duration.ofSeconds(60);
-    private static final Duration RECORD_POLL_INTERVAL = Duration.ofSeconds(2);
+    private static final Duration RECORD_TIMEOUT = Duration.ofSeconds(20);
+    private static final Duration RECORD_POLL_INTERVAL = Duration.ofSeconds(1);
     private static final Duration CLOCK_SKEW_MARGIN = Duration.ofMinutes(1);
     private static final String REGISTERED_SUBSYSTEM_CODE = "TestService";
 
@@ -98,21 +103,28 @@ class DiagnosticsTrafficTest extends SsApiTest {
         var serviceCode = "noSuchService" + System.nanoTime();
         var serviceId = "%s:%s".formatted(clientId, serviceCode);
 
-        var requestedAt = when("a request for a nonexistent service is sent through the proxy as that client", () -> {
+        var proxyCall = when("a request for a nonexistent service is sent through the proxy as that client", () -> {
             var mapping = stack.getContainerMapping(SsApiTestContainerSetup.PROXY, Port.PROXY_HTTP);
             var sentAt = Instant.now();
-            RestAssuredFactory.given()
+            var response = RestAssuredFactory.given()
                     .header("X-Road-Client", clientPath)
                     .get("http://%s:%d/r1/%s/%s".formatted(mapping.host(), mapping.port(), clientPath, serviceCode));
-            return sentAt;
+            return new ProxyCall(sentAt, response.statusCode(), response.header("X-Road-Error"));
         });
 
-        then("the intervals call for that service reports at least one request in some interval", () ->
-                await()
+        then("the intervals call for that service reports at least one request in some interval", () -> {
+            var diagnostics = new DiagnosticsAdminClient(seeder.newSession());
+            try {
+                await("op-monitor record for " + serviceId)
                         .pollDelay(Duration.ZERO)
                         .pollInterval(RECORD_POLL_INTERVAL)
                         .atMost(RECORD_TIMEOUT)
-                        .untilAsserted(() -> assertThat(recordedRequestCount(seeder, requestedAt, serviceId)).isPositive()));
+                        .logging(log::info)
+                        .untilAsserted(() -> assertThat(recordedRequestCount(diagnostics, proxyCall.sentAt(), serviceId)).isPositive());
+            } catch (ConditionTimeoutException e) {
+                throw new AssertionError(timeoutReport(seeder, clientId, serviceId, proxyCall), e);
+            }
+        });
     }
 
     private static String ensureRegisteredSubsystem(ClientsAdminClient clients) {
@@ -128,14 +140,45 @@ class DiagnosticsTrafficTest extends SsApiTest {
         return clientId;
     }
 
-    private static int recordedRequestCount(SsBaselineSeeder seeder, Instant requestedAt, String serviceId) {
-        var body = new DiagnosticsAdminClient(seeder.newSession())
-                .getOperationalMonitoringIntervals(requestedAt.minus(CLOCK_SKEW_MARGIN), Instant.now().plus(CLOCK_SKEW_MARGIN), 1,
-                        serviceId)
+    private static int recordedRequestCount(DiagnosticsAdminClient diagnostics, Instant sentAt, String serviceId) {
+        return DiagnosticsAdminClient.totalRequestCount(intervalsAround(diagnostics, sentAt, serviceId)
                 .statusCode(200)
                 .extract()
-                .jsonPath();
-        return body.getList("success_count", Integer.class).stream().mapToInt(Integer::intValue).sum()
-                + body.getList("failure_count", Integer.class).stream().mapToInt(Integer::intValue).sum();
+                .jsonPath());
+    }
+
+    private static ValidatableResponse intervalsAround(DiagnosticsAdminClient diagnostics, Instant sentAt, String serviceId) {
+        return diagnostics.getOperationalMonitoringIntervals(sentAt.minus(CLOCK_SKEW_MARGIN), Instant.now().plus(CLOCK_SKEW_MARGIN), 1,
+                serviceId);
+    }
+
+    private static String timeoutReport(SsBaselineSeeder seeder, String clientId, String serviceId, ProxyCall proxyCall) {
+        var session = seeder.newSession();
+        var diagnostics = new DiagnosticsAdminClient(session);
+        return """
+                op-monitor reported no request for %s within %s
+                  client: %s, sent at: %s, proxy response: HTTP %d, X-Road-Error: %s
+                  query window: sent at - %s .. now + %s
+                  requests for this service: %s, all requests in the window: %s
+                  GET /system/op-monitor-ca: HTTP %d (204 = no imported CA)
+                  all requests 0 means nothing reached op-monitor: check the proxy log for
+                  'Trusting only the imported op-monitor CA' and 'Sending operational monitoring data failed'
+                """.formatted(
+                        serviceId, RECORD_TIMEOUT,
+                        clientId, proxyCall.sentAt(), proxyCall.status(), proxyCall.xroadError(),
+                        CLOCK_SKEW_MARGIN, CLOCK_SKEW_MARGIN,
+                        describeCount(intervalsAround(diagnostics, proxyCall.sentAt(), serviceId)),
+                        describeCount(intervalsAround(diagnostics, proxyCall.sentAt(), null)),
+                        new SystemAdminClient(session).getOpMonitorCa().extract().statusCode());
+    }
+
+    private static String describeCount(ValidatableResponse intervals) {
+        var response = intervals.extract();
+        return response.statusCode() == 200
+                ? String.valueOf(DiagnosticsAdminClient.totalRequestCount(response.jsonPath()))
+                : "HTTP " + response.statusCode();
+    }
+
+    private record ProxyCall(Instant sentAt, int status, String xroadError) {
     }
 }
