@@ -4301,7 +4301,6 @@ components:
         - READY
         - FAILED
       example: NOT_CONFIGURED
-      format: enum
       type: string
     CanSignCause:
       description: why the data space issuer cannot sign credentials for the bound (or to-be-bound) DID
@@ -4313,7 +4312,6 @@ components:
         - ISSUER_SERVICE_UNREACHABLE
         - DID_MISMATCH
       example: NO_ACTIVE_KEY
-      format: enum
       type: string
     ErrorInfo:
       $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
