@@ -60,7 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -105,14 +105,14 @@ public final class XRoadJettyService implements WebServer {
      */
     static final String DEFAULT_CONTEXT_NAME = "default";
     private static final String DEFAULT_CONTEXT_BIND_HOST = "127.0.0.1";
-    private static final Function<String, String> NO_HOST_OVERRIDE = contextName -> null;
+    private static final UnaryOperator<String> NO_HOST_OVERRIDE = contextName -> null;
 
     private final Monitor monitor;
     private final PortMappingRegistry portMappingRegistry;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
     private final Clock clock;
-    private final Function<String, String> hostResolver;
+    private final UnaryOperator<String> hostResolver;
 
     private SslContextFactory.Server sslContextFactory;
     private volatile X509Certificate servedCertificate;
@@ -129,7 +129,7 @@ public final class XRoadJettyService implements WebServer {
      * @param hostResolver resolves the configured bind host of a named context, by context name; {@code null} when
      *                      none is configured. Never consulted for {@link #DEFAULT_CONTEXT_NAME}.
      */
-    public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, Function<String, String> hostResolver) {
+    public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, UnaryOperator<String> hostResolver) {
         this(monitor, portMappingRegistry, hostResolver, Clock.systemUTC());
     }
 
@@ -137,7 +137,7 @@ public final class XRoadJettyService implements WebServer {
         this(monitor, portMappingRegistry, NO_HOST_OVERRIDE, clock);
     }
 
-    XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, Function<String, String> hostResolver, Clock clock) {
+    XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry, UnaryOperator<String> hostResolver, Clock clock) {
         this.monitor = monitor;
         this.clock = clock;
         this.portMappingRegistry = portMappingRegistry;
