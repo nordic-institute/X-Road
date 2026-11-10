@@ -27,6 +27,8 @@
 
 package org.niis.xroad.common.properties.dbsource;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.List;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -35,7 +37,8 @@ import java.util.stream.Stream;
  * The node name test table, one row per branch of the node name rule. Used by {@link NodeNameTest} and the shell
  * parity test so both check the same values. A blank value is accepted and means no name.
  */
-final class NodeNameCases {
+@UtilityClass
+class NodeNameCases {
 
     private static final List<Case> CASES = Stream.of(
             Stream.of("node_1", "0", "01", "007", "true", "null", "0123", "1e3", "A_b-c", "0abc", "x".repeat(63))
@@ -44,9 +47,6 @@ final class NodeNameCases {
             Stream.of("_n", "-n", "x".repeat(64), "cs1.example.org", "node 1", "nodé", "node\n", " node_1 ")
                     .map(Case::fail)
     ).flatMap(UnaryOperator.identity()).toList();
-
-    private NodeNameCases() {
-    }
 
     /**
      * @param value    the configured value
