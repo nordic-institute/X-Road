@@ -26,11 +26,14 @@
 
 package org.niis.xroad.opmonitor.core.config;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_FILE_IDENTITY_CERTIFICATE_PATH;
 import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RPC_FILE_IDENTITY_PRIVATE_KEY_PATH;
@@ -54,9 +57,21 @@ public class OpMonitorRpcProperties extends XRoadRpcProperties {
 
     @Override
     public FileIdentity fileIdentity() {
-        return new FileIdentity(
-                Path.of(xRoadConfig.value(RPC_FILE_IDENTITY_PRIVATE_KEY_PATH)),
-                Path.of(xRoadConfig.value(RPC_FILE_IDENTITY_CERTIFICATE_PATH)),
-                Path.of(xRoadConfig.value(RPC_FILE_IDENTITY_TRUSTED_CA_PATH)));
+        var privateKeyPath = xRoadConfig.value(RPC_FILE_IDENTITY_PRIVATE_KEY_PATH);
+        var certificatePath = xRoadConfig.value(RPC_FILE_IDENTITY_CERTIFICATE_PATH);
+        var trustedCaPath = xRoadConfig.value(RPC_FILE_IDENTITY_TRUSTED_CA_PATH);
+
+        var unset = Stream.of(
+                        Map.entry(RPC_FILE_IDENTITY_PRIVATE_KEY_PATH.key(), privateKeyPath),
+                        Map.entry(RPC_FILE_IDENTITY_CERTIFICATE_PATH.key(), certificatePath),
+                        Map.entry(RPC_FILE_IDENTITY_TRUSTED_CA_PATH.key(), trustedCaPath))
+                .filter(setting -> setting.getValue().isBlank())
+                .map(Map.Entry::getKey)
+                .toList();
+        if (!unset.isEmpty()) {
+            throw XrdRuntimeException.systemInternalError(
+                    "Invalid file-based RPC identity: not set: " + String.join(", ", unset));
+        }
+        return new FileIdentity(Path.of(privateKeyPath), Path.of(certificatePath), Path.of(trustedCaPath));
     }
 }

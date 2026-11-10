@@ -47,6 +47,8 @@ import org.niis.xroad.common.rpc.test.TlsTestChannels;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -150,11 +152,12 @@ class FileKeyProviderTest {
     }
 
     @Test
-    void unsetPathFailsInitNamingTheSetting() {
+    void unsetPathFailsInitWithAGenericMessage() {
         var provider = providerFor(Path.of(""), certificatePath, trustedCaPath);
         assertThatThrownBy(provider::init)
                 .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining("xroad.op-monitor.rpc.file-identity.private-key-path is not set");
+                .hasMessageContaining("the private key path is not set")
+                .hasMessageNotContaining("xroad.");
     }
 
     @Test
@@ -223,10 +226,49 @@ class FileKeyProviderTest {
     }
 
     @Test
+    void expiredServerCertificateFailsInit() throws Exception {
+        writeServerIdentity(opMonitorCa.issueLeaf("op-monitor", List.of(HOST), List.of(), daysFromNow(-10), daysFromNow(-1)));
+        assertInitFails(certificatePath, "server certificate expired");
+    }
+
+    @Test
+    void notYetValidServerCertificateFailsInit() throws Exception {
+        writeServerIdentity(opMonitorCa.issueLeaf("op-monitor", List.of(HOST), List.of(), daysFromNow(1), daysFromNow(10)));
+        assertInitFails(certificatePath, "server certificate is not valid before");
+    }
+
+    @Test
+    void serverCertificateThatIsACaFailsInit() throws Exception {
+        writeServerIdentity(opMonitorCa.issueCaLeaf("op-monitor", List.of(HOST), List.of()));
+        assertInitFails(certificatePath, "server certificate is a CA certificate");
+    }
+
+    @Test
+    void expiredTrustedCaFailsInit() throws Exception {
+        PemFiles.writeCertificates(trustedCaPath, TestCa.selfSigned("expired CA", daysFromNow(-10), daysFromNow(-1)).certificate());
+        assertInitFails(trustedCaPath, "trusted CA certificate expired");
+    }
+
+    @Test
+    void notYetValidTrustedCaFailsInit() throws Exception {
+        PemFiles.writeCertificates(trustedCaPath, TestCa.selfSigned("future CA", daysFromNow(1), daysFromNow(10)).certificate());
+        assertInitFails(trustedCaPath, "trusted CA certificate is not valid before");
+    }
+
+    @Test
     void verifyingTrustManagerBeforeInitFails() throws Exception {
         var provider = newProvider();
         assertThatThrownBy(() -> provider.createVerifyingTrustManager(null))
                 .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    private void writeServerIdentity(TestCa.TestLeaf identity) throws Exception {
+        PemFiles.writePrivateKey(privateKeyPath, identity.privateKey());
+        PemFiles.writeCertificates(certificatePath, identity.chain()[0]);
+    }
+
+    private static Instant daysFromNow(long days) {
+        return Instant.now().plus(days, ChronoUnit.DAYS);
     }
 
     private FileKeyProvider newProvider() throws Exception {

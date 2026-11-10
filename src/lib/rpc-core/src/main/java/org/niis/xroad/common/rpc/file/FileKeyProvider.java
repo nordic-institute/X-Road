@@ -47,6 +47,8 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -74,12 +76,13 @@ public class FileKeyProvider implements VaultKeyProvider {
 
     @Override
     public void init() {
-        var privateKeyPath = requireSet(fileIdentity.privateKeyPath(), "private-key-path");
-        var certificatePath = requireSet(fileIdentity.certificatePath(), "certificate-path");
-        var trustedCaPath = requireSet(fileIdentity.trustedCaPath(), "trusted-ca-path");
+        var privateKeyPath = requireSet(fileIdentity.privateKeyPath(), "private key path");
+        var certificatePath = requireSet(fileIdentity.certificatePath(), "certificate path");
+        var trustedCaPath = requireSet(fileIdentity.trustedCaPath(), "trusted CA path");
 
         var privateKey = readPrivateKey(privateKeyPath);
         var certificateChain = readCertificates(certificatePath);
+        requireServerCertificateUsable(certificateChain.getFirst(), certificatePath);
         requireKeyMatchesCertificate(privateKey, privateKeyPath, certificateChain.getFirst(), certificatePath);
         var ca = readTrustedCa(trustedCaPath);
 
@@ -135,10 +138,10 @@ public class FileKeyProvider implements VaultKeyProvider {
         return builder.build();
     }
 
-    private static Path requireSet(Path path, String settingName) {
+    private static Path requireSet(Path path, String description) {
         if (path == null || path.toString().isEmpty()) {
             throw XrdRuntimeException.systemInternalError(
-                    "Invalid file-based RPC identity: xroad.op-monitor.rpc.file-identity.%s is not set".formatted(settingName));
+                    "Invalid file-based RPC identity: the %s is not set".formatted(description));
         }
         return path;
     }
@@ -179,7 +182,26 @@ public class FileKeyProvider implements VaultKeyProvider {
         if (ca.getBasicConstraints() < 0) {
             throw invalid(path, "the certificate is not a CA certificate (basicConstraints CA:TRUE is required)");
         }
+        requireCurrentlyValid(ca, path, "trusted CA certificate");
         return ca;
+    }
+
+    private static void requireServerCertificateUsable(X509Certificate certificate, Path path) {
+        requireCurrentlyValid(certificate, path, "server certificate");
+        if (certificate.getBasicConstraints() >= 0) {
+            throw invalid(path, "the server certificate is a CA certificate (basicConstraints CA:TRUE is not allowed)");
+        }
+    }
+
+    private static void requireCurrentlyValid(X509Certificate certificate, Path path, String description) {
+        try {
+            certificate.checkValidity();
+        } catch (CertificateExpiredException e) {
+            throw invalid(path, "the %s expired on %s".formatted(description, certificate.getNotAfter().toInstant()));
+        } catch (CertificateNotYetValidException e) {
+            throw invalid(path, "the %s is not valid before %s".formatted(description,
+                    certificate.getNotBefore().toInstant()));
+        }
     }
 
     private static void requireKeyMatchesCertificate(PrivateKey privateKey, Path privateKeyPath,

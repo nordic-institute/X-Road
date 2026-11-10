@@ -133,7 +133,10 @@ class QuarkusRpcConfigTest {
         when(rpcProperties.identitySource()).thenReturn(RpcProperties.IdentitySource.FILE);
         when(rpcProperties.fileIdentity()).thenReturn(new RpcProperties.FileIdentity(missing, missing, missing));
 
-        assertThatThrownBy(() -> produce(NO_TOKEN)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> produce(NO_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(missing.toString())
+                .hasMessageContaining("missing or cannot be read");
         verifyNoInteractions(pkiFactory);
     }
 
@@ -187,7 +190,9 @@ class QuarkusRpcConfigTest {
 
         useOpenBaoIdentity();
         assertThat(produce(TOKEN)).isInstanceOf(ReloadableVaultKeyManager.class);
-        assertThatThrownBy(() -> produce(NO_TOKEN)).isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> produce(NO_TOKEN))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("OpenBao token");
     }
 
     @Test

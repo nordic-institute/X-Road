@@ -27,6 +27,10 @@
 package org.niis.xroad.opmonitor.core.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
@@ -34,18 +38,56 @@ import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OpMonitorRpcPropertiesTest {
 
     @Test
-    void identityIsOpenbaoWithUnsetPathsByDefault() {
+    void identityIsOpenbaoByDefault() {
         var properties = new OpMonitorRpcProperties(config(Map.of()));
 
         assertThat(properties.identitySource()).isEqualTo(RpcProperties.IdentitySource.OPENBAO);
-        assertThat(properties.fileIdentity()).isEqualTo(RpcProperties.FileIdentity.UNSET);
+    }
+
+    @Test
+    void fileIdentityWithoutAnyPathNamesAllThreeSettings() {
+        var properties = new OpMonitorRpcProperties(config(Map.of()));
+
+        assertThatThrownBy(properties::fileIdentity)
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(OpMonitorConfigKeys.RPC_FILE_IDENTITY_PRIVATE_KEY_PATH.key())
+                .hasMessageContaining(OpMonitorConfigKeys.RPC_FILE_IDENTITY_CERTIFICATE_PATH.key())
+                .hasMessageContaining(OpMonitorConfigKeys.RPC_FILE_IDENTITY_TRUSTED_CA_PATH.key());
+    }
+
+    @ParameterizedTest
+    @MethodSource("missingPathSettings")
+    void fileIdentityWithOneMissingPathNamesOnlyThatSetting(String missing, List<String> present) {
+        var overrides = new HashMap<String, String>();
+        present.forEach(key -> overrides.put(key, "/id/" + key));
+        overrides.put(missing, "");
+        var properties = new OpMonitorRpcProperties(config(overrides));
+
+        var failure = assertThatThrownBy(properties::fileIdentity)
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(missing);
+        present.forEach(failure::hasMessageNotContaining);
+    }
+
+    static Stream<Arguments> missingPathSettings() {
+        var privateKey = OpMonitorConfigKeys.RPC_FILE_IDENTITY_PRIVATE_KEY_PATH.key();
+        var certificate = OpMonitorConfigKeys.RPC_FILE_IDENTITY_CERTIFICATE_PATH.key();
+        var trustedCa = OpMonitorConfigKeys.RPC_FILE_IDENTITY_TRUSTED_CA_PATH.key();
+        return Stream.of(
+                Arguments.of(privateKey, List.of(certificate, trustedCa)),
+                Arguments.of(certificate, List.of(privateKey, trustedCa)),
+                Arguments.of(trustedCa, List.of(privateKey, certificate)));
     }
 
     @Test

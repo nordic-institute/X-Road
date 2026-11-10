@@ -3209,7 +3209,8 @@ With `xroad.op-monitor.rpc.identity-source` set to *file*, the daemon does not s
 
 - a path parameter is not set, or its file is missing, cannot be read or is empty;
 - the private key is not an unencrypted PKCS#8 key (a block starting with `-----BEGIN PRIVATE KEY-----`) or does not match the first certificate of the certificate file, or the certificate file holds no certificate;
-- the trusted CA file does not hold exactly one CA certificate.
+- the first certificate of the certificate file (the server certificate) has expired or is not yet valid, or is a CA certificate (basic constraint CA:TRUE);
+- the trusted CA file does not hold exactly one CA certificate, or that CA certificate has expired or is not yet valid.
 
 The error in the daemon log names the parameter that is not set, or the file and the reason.
 
