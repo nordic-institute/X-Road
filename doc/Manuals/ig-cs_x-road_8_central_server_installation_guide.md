@@ -138,9 +138,10 @@ The table below lists the open ports for Central Server components utilizing the
 | Secret Store         | 8200      | tcp          | Local Secret Store (OpenBao) port             |
 
 The Issuer Service's public ports (6183, 6185, 6187) listen on the interface set by the
-`xroad.dataspace.issuer.listen-address` property. The default is `0.0.0.0`, so every interface
-accepts connections. Port 6181 always listens on 127.0.0.1 and the property does not change it.
-Set a shared value, used by every node without its own value, with:
+`xroad.dataspace.issuer.listen-address` property. The default is `0.0.0.0`; it and `::` both
+listen on every interface, IPv4 and IPv6. Port 6181 always listens on 127.0.0.1 and the
+property does not change it. Set a shared value, used by every node without its own value,
+with:
 
 ```bash
 sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dataspace.issuer.listen-address <address>
@@ -160,12 +161,10 @@ sudo systemctl restart xroad-ds-issuer-service
 ```
 
 **Caution:** a value other than `0.0.0.0`, `::` or a loopback address takes these ports off
-loopback too, because the service then listens only on the interface named. In a cluster this
-breaks the development Ansible playbook's readiness check, which waits for `localhost:6183`
-after the Issuer Service TLS certificate is provisioned, and it can break a haproxy backend that
-reaches these ports on loopback. The property has no validator: a mistyped address does not
-fail the command that sets it, and shows up only as a bind failure when the Issuer Service next
-starts.
+loopback too, because the service then listens only on the interface named, and it can break a
+haproxy backend that reaches these ports on loopback. The property has no validator: a mistyped
+address does not fail the command that sets it, and shows up only as a bind failure when the
+Issuer Service next starts.
 
 ### 2.3 Requirements to the Central Server
 

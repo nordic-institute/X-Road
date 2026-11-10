@@ -70,7 +70,8 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     /**
      * {@code xroad.dataspace.issuer.listen-address} — the interface the Issuer Service's public DID,
      * issuance and status-list ports bind to; distinct from {@code xroad.dataspace.issuer.host}, the
-     * advertised DID/URL host. Defaults to every interface.
+     * advertised DID/URL host. {@code 0.0.0.0} (the default) and {@code ::} both listen on every
+     * interface, IPv4 and IPv6; blank is also accepted and listens on every interface.
      */
     public static final ConfigKey<String> ISSUER_LISTEN_ADDRESS = ISSUER
             .string("listen-address")

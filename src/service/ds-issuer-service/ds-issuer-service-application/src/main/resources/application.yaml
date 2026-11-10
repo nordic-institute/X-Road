@@ -50,15 +50,15 @@ web:
     did:
       port: 6183
       path: /
-      host: ${xroad.dataspace.issuer.listen-address}
+      host: ${xroad.dataspace.issuer.listen-address:}
     issuance:
       port: 6185
       path: /api/issuance
-      host: ${xroad.dataspace.issuer.listen-address}
+      host: ${xroad.dataspace.issuer.listen-address:}
     statuslist:
       port: 6187
       path: /statuslist
-      host: ${xroad.dataspace.issuer.listen-address}
+      host: ${xroad.dataspace.issuer.listen-address:}
 
 edc:
   hostname: ${HOSTNAME}

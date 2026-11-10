@@ -121,7 +121,7 @@ public final class XRoadJettyService implements WebServer {
     private volatile boolean stopped;
     private volatile String notServedCause;
 
-    public XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
+    XRoadJettyService(Monitor monitor, PortMappingRegistry portMappingRegistry) {
         this(monitor, portMappingRegistry, NO_HOST_OVERRIDE, Clock.systemUTC());
     }
 
