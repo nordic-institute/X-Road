@@ -35,24 +35,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.function.Supplier;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_FOREIGN_SYSTEM;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_HELD_BY_ANOTHER_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_MEMBER_NOT_SERVED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_NOT_STORED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_OF_OTHER_MEMBER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_TOO_LONG;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_UNDECODABLE;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_UNPARSEABLE_SERVER_ADDRESS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DID_WRONG_SCHEME;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DSP_BASE_URL_HOST_DIFFERS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DSP_BASE_URL_MALFORMED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DSP_BASE_URL_NON_ASCII_HOST;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DSP_BASE_URL_NOT_CANONICAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.DSP_BASE_URL_NOT_HTTPS;
-
 /**
  * Turns the refusal of an administrator's replacement of a published value into a bad request.
  */
@@ -74,7 +56,7 @@ class ParticipantValueRefusals {
             if (!ConstraintViolations.violates(e, exclusionConstraint)) {
                 throw e;
             }
-            throw new BadRequestException(DID_HELD_BY_ANOTHER_SERVER.build());
+            throw new BadRequestException(ErrorMessage.DID_HELD_BY_ANOTHER_SERVER.build());
         }
         if (result.outcome() == ParticipantValueResult.Outcome.REJECTED) {
             throw new BadRequestException(errorOf(result.rejection()).build());
@@ -83,23 +65,23 @@ class ParticipantValueRefusals {
 
     static ErrorMessage errorOf(ParticipantValueRejection rejection) {
         return switch (rejection) {
-            case NO_STORED_VALUE -> DID_NOT_STORED;
-            case WRONG_SCHEME -> DID_WRONG_SCHEME;
-            case DID_TOO_LONG -> DID_TOO_LONG;
-            case NOT_CANONICAL -> DID_NOT_CANONICAL;
-            case HOST_DIFFERS -> DID_HOST_DIFFERS;
-            case NON_ASCII_HOST -> DID_NON_ASCII_HOST;
-            case UNPARSEABLE_REGISTERED_ADDRESS -> DID_UNPARSEABLE_SERVER_ADDRESS;
-            case UNDECODABLE_DID -> DID_UNDECODABLE;
-            case FOREIGN_SYSTEM_DID -> DID_FOREIGN_SYSTEM;
-            case DID_OF_OTHER_MEMBER -> DID_OF_OTHER_MEMBER;
-            case MEMBER_NOT_SERVED -> DID_MEMBER_NOT_SERVED;
-            case DID_HELD_BY_ANOTHER_SERVER -> DID_HELD_BY_ANOTHER_SERVER;
-            case DSP_BASE_URL_NOT_HTTPS -> DSP_BASE_URL_NOT_HTTPS;
-            case DSP_BASE_URL_MALFORMED -> DSP_BASE_URL_MALFORMED;
-            case DSP_BASE_URL_NOT_CANONICAL -> DSP_BASE_URL_NOT_CANONICAL;
-            case DSP_BASE_URL_HOST_DIFFERS -> DSP_BASE_URL_HOST_DIFFERS;
-            case DSP_BASE_URL_NON_ASCII_HOST -> DSP_BASE_URL_NON_ASCII_HOST;
+            case NO_STORED_VALUE -> ErrorMessage.DID_NOT_STORED;
+            case WRONG_SCHEME -> ErrorMessage.DID_WRONG_SCHEME;
+            case DID_TOO_LONG -> ErrorMessage.DID_TOO_LONG;
+            case NOT_CANONICAL -> ErrorMessage.DID_NOT_CANONICAL;
+            case HOST_DIFFERS -> ErrorMessage.DID_HOST_DIFFERS;
+            case NON_ASCII_HOST -> ErrorMessage.DID_NON_ASCII_HOST;
+            case UNPARSEABLE_REGISTERED_ADDRESS -> ErrorMessage.DID_UNPARSEABLE_SERVER_ADDRESS;
+            case UNDECODABLE_DID -> ErrorMessage.DID_UNDECODABLE;
+            case FOREIGN_SYSTEM_DID -> ErrorMessage.DID_FOREIGN_SYSTEM;
+            case DID_OF_OTHER_MEMBER -> ErrorMessage.DID_OF_OTHER_MEMBER;
+            case MEMBER_NOT_SERVED -> ErrorMessage.DID_MEMBER_NOT_SERVED;
+            case DID_HELD_BY_ANOTHER_SERVER -> ErrorMessage.DID_HELD_BY_ANOTHER_SERVER;
+            case DSP_BASE_URL_NOT_HTTPS -> ErrorMessage.DSP_BASE_URL_NOT_HTTPS;
+            case DSP_BASE_URL_MALFORMED -> ErrorMessage.DSP_BASE_URL_MALFORMED;
+            case DSP_BASE_URL_NOT_CANONICAL -> ErrorMessage.DSP_BASE_URL_NOT_CANONICAL;
+            case DSP_BASE_URL_HOST_DIFFERS -> ErrorMessage.DSP_BASE_URL_HOST_DIFFERS;
+            case DSP_BASE_URL_NON_ASCII_HOST -> ErrorMessage.DSP_BASE_URL_NON_ASCII_HOST;
             case VALUE_DIFFERS ->
                     throw new IllegalStateException("A replacement cannot be refused as " + rejection);
         };

@@ -413,10 +413,8 @@ describe('CS Member Details — edit member DID (Browser Mode)', () => {
       editWhilePending: (dialog) => didField(dialog).fill(NEW_DID),
       editBeforeNewCheck: (dialog) => didField(dialog).fill(NEW_DID),
       refusalCases: [
-        refusalCase('UNDECODABLE_DID', 'The DID cannot be decoded'),
         refusalCase('DID_OF_OTHER_MEMBER', 'The DID belongs to another member'),
         refusalCase('MEMBER_NOT_SERVED', 'The security server does not serve this member'),
-        refusalCase('NO_STORED_VALUE', 'The security server has no stored DID to replace'),
       ],
     });
 

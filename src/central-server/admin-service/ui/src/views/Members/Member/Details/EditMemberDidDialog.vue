@@ -76,7 +76,6 @@ import DidCheckRow from '@/components/DidCheckRow.vue';
 import { useDidCheck } from '@/composables/use-did-check';
 import type { Client, DidResolutionReason, MemberServer } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
-import { DID_REFUSAL_TEXT } from '@/util/did-refusal-text';
 
 const props = defineProps({
   member: {
@@ -119,7 +118,6 @@ const { checking, outcome, check } = useDidCheck({
     resolved: 'members.member.details.editDid.check.resolved',
     resolverUnavailable: 'members.member.details.editDid.check.resolver_unavailable',
     resolution: RESOLUTION_TEXT,
-    refusal: DID_REFUSAL_TEXT,
   },
 });
 

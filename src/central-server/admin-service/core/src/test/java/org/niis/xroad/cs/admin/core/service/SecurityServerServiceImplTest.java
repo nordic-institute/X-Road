@@ -321,6 +321,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
                 "DSP_BASE_URL_NOT_HTTPS, dsp_base_url_not_https",
                 "DSP_BASE_URL_MALFORMED, dsp_base_url_malformed",
                 "FOREIGN_SYSTEM_DID, did_foreign_system",
+                "UNDECODABLE_DID, did_undecodable",
                 "DSP_BASE_URL_NOT_CANONICAL, dsp_base_url_not_canonical",
                 "DSP_BASE_URL_HOST_DIFFERS, dsp_base_url_host_differs",
                 "DSP_BASE_URL_NON_ASCII_HOST, dsp_base_url_non_ascii_host",

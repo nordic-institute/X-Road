@@ -30,7 +30,7 @@ import type { Locator } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 import { specHttp } from './spec-http';
-import type { DidCheck } from '@/openapi-types';
+import type { DidCheck, DidRefusalReason, DidResolutionReason } from '@/openapi-types';
 
 export type DidCheckCase = [name: string, answer: DidCheck, text: string, icon: string, color: string];
 
@@ -57,17 +57,17 @@ const SUCCESS: [string, string] = ['check_circle', 'success'];
 const WARNING: [string, string] = ['warning', 'warning'];
 const ERROR: [string, string] = ['error', 'error'];
 
-export const refusalCase = (reason: string, text: string): DidCheckCase => [
+export const refusalCase = (reason: DidRefusalReason, text: string): DidCheckCase => [
   `REFUSED ${reason}`,
-  { status: 'REFUSED', refusal_reason: reason } as DidCheck,
+  { status: 'REFUSED', refusal_reason: reason },
   text,
   ...ERROR,
 ];
 
 function sharedCases(subject: string): DidCheckCase[] {
-  const notResolved = (reason: string, why: string): DidCheckCase => [
+  const notResolved = (reason: DidResolutionReason, why: string): DidCheckCase => [
     `NOT_RESOLVED ${reason}`,
-    { status: 'NOT_RESOLVED', resolution_reason: reason } as DidCheck,
+    { status: 'NOT_RESOLVED', resolution_reason: reason },
     `The ${subject} does not resolve: ${why}. You can still save.`,
     ...WARNING,
   ];
@@ -92,7 +92,9 @@ function sharedCases(subject: string): DidCheckCase[] {
     refusalCase('HOST_DIFFERS', 'The host of the DID must match the security server address'),
     refusalCase('UNPARSEABLE_REGISTERED_ADDRESS', 'The security server address cannot be read as a host'),
     refusalCase('NON_ASCII_HOST', 'The host of the DID and the security server address must be ASCII'),
+    refusalCase('UNDECODABLE_DID', 'The DID cannot be decoded'),
     refusalCase('DID_HELD_BY_ANOTHER_SERVER', 'The DID is already used by another security server'),
+    refusalCase('NO_STORED_VALUE', 'The security server has no stored DID to replace'),
   ];
 }
 

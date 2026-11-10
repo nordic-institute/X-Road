@@ -115,7 +115,6 @@ import DidCheckRow from '@/components/DidCheckRow.vue';
 import { useDidCheck } from '@/composables/use-did-check';
 import type { DidResolutionReason } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { DID_REFUSAL_TEXT } from '@/util/did-refusal-text';
 import { addressChanged, hasStoredSystemPair } from '@/util/helpers';
 
 const props = defineProps({
@@ -178,7 +177,6 @@ const { checking, outcome, check } = useDidCheck({
     resolved: 'securityServers.dialogs.editAddress.check.resolved',
     resolverUnavailable: 'securityServers.dialogs.editAddress.check.resolver_unavailable',
     resolution: RESOLUTION_TEXT,
-    refusal: DID_REFUSAL_TEXT,
   },
 });
 

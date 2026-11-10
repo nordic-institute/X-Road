@@ -170,24 +170,23 @@ public final class ParticipantValueValidator {
     }
 
     private Optional<ParticipantValueRejection> checkSystemDid(String did) {
-        return checkDid(did, FOREIGN_SYSTEM_DID,
+        return checkDid(did,
                 participant -> participant instanceof SystemParticipant ? Optional.empty() : Optional.of(FOREIGN_SYSTEM_DID));
     }
 
     private Optional<ParticipantValueRejection> validateMemberDid(MemberDid memberDid) {
-        return checkDid(memberDid.did(), UNDECODABLE_DID, participant -> checkMemberIdentity(participant, memberDid.member()));
+        return checkDid(memberDid.did(), participant -> checkMemberIdentity(participant, memberDid.member()));
     }
 
     private Optional<ParticipantValueRejection> checkDid(
-            String did, ParticipantValueRejection undecodable,
-            Function<DecodedParticipant, Optional<ParticipantValueRejection>> identityCheck) {
+            String did, Function<DecodedParticipant, Optional<ParticipantValueRejection>> identityCheck) {
         var shape = checkShape(did);
         if (shape.isPresent()) {
             return shape;
         }
         var participant = decode(did);
         if (participant.isEmpty()) {
-            return Optional.of(isDecodableWithCanonicalEncoding(did) ? NOT_CANONICAL : undecodable);
+            return Optional.of(isDecodableWithCanonicalEncoding(did) ? NOT_CANONICAL : UNDECODABLE_DID);
         }
         var authority = checkAuthority(participant.get().ssHost());
         return authority.isPresent() ? authority : identityCheck.apply(participant.get());

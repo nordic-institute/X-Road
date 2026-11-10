@@ -138,7 +138,8 @@ class ParticipantValueValidatorTest {
             "did:web:ss0.example.org%3a7183:v1:system|" + DSP_URL + "|NOT_CANONICAL",
             "did:web:ss0.example.org%3A7183:v1:%73ystem|" + DSP_URL + "|NOT_CANONICAL",
             OWNER_DID + "|" + DSP_URL + "|FOREIGN_SYSTEM_DID",
-            "did:web:ss0.example.org%3A7183:v1:system:extra|" + DSP_URL + "|FOREIGN_SYSTEM_DID",
+            "did:web:ss0.example.org%3A7183:v1:system:extra|" + DSP_URL + "|UNDECODABLE_DID",
+            "did:web:ss0.example.org%3A7183:v1:system%2|" + DSP_URL + "|UNDECODABLE_DID",
             SYSTEM_DID + "|http://ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_HTTPS",
             SYSTEM_DID + "|ss0.example.org:8183/api/dsp|DSP_BASE_URL_NOT_HTTPS",
             SYSTEM_DID + "|https://other.example.org:8183/api/dsp|DSP_BASE_URL_HOST_DIFFERS",
@@ -173,6 +174,8 @@ class ParticipantValueValidatorTest {
             "did:web:SS0.example.org%3A7183:v1:system|NOT_CANONICAL",
             "did:web:ss1.example.org%3A7183:v1:system|HOST_DIFFERS",
             OWNER_DID + "|FOREIGN_SYSTEM_DID",
+            "did:web:ss0.example.org%3A7183:v1:system:extra|UNDECODABLE_DID",
+            "did:web:ss0.example.org%3A7183:v1:system%2|UNDECODABLE_DID",
             "did:web:bücher.example%3A7183:v1:system|NON_ASCII_HOST"
     })
     void shouldValidateSystemDidAlone(String did, ParticipantValueRejection expected) {

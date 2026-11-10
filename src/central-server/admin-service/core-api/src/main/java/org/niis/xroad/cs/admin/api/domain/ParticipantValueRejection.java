@@ -53,7 +53,7 @@ public enum ParticipantValueRejection {
     DSP_BASE_URL_HOST_DIFFERS,
     /** The host in the DSP base URL is not ASCII. */
     DSP_BASE_URL_NON_ASCII_HOST,
-    /** The member DID has the shape of a DID of scheme version {@code v1} but cannot be decoded. */
+    /** The member or SYSTEM DID has the shape of a DID of scheme version {@code v1} but cannot be decoded. */
     UNDECODABLE_DID,
     /** The member DID decodes to a participant other than the claimed member: another member or a SYSTEM participant. */
     DID_OF_OTHER_MEMBER,

@@ -27,31 +27,21 @@
 import { computed, ref, shallowRef, watch, type WatchSource } from 'vue';
 import type { DialogSaveHandler } from '@niis/shared-ui';
 
-import { DidCheckStatus, type DidResolutionReason } from '@/openapi-types';
+import { type DidCheck, DidCheckStatus, type DidResolutionReason } from '@/openapi-types';
+import { DID_REFUSAL_TEXT } from '@/util/did-refusal-text';
 
-export type DidCheckAnswer<Refusal extends string> = {
-  status: DidCheckStatus;
-  refusal_reason?: Refusal;
-  resolution_reason?: DidResolutionReason;
-};
-
-export type DidCheckTexts<Refusal extends string> = {
+export type DidCheckTexts = {
   resolved: string;
   resolverUnavailable: string;
   resolution: Record<DidResolutionReason, string>;
-  refusal: Record<Refusal, string>;
 };
 
 export type DidCheckOutcome = { icon: string; color: 'success' | 'warning' | 'error'; text: string };
 
-export function useDidCheck<Refusal extends string>(options: {
-  request: () => Promise<DidCheckAnswer<Refusal>>;
-  resetOn: WatchSource[];
-  texts: DidCheckTexts<Refusal>;
-}) {
+export function useDidCheck(options: { request: () => Promise<DidCheck>; resetOn: WatchSource[]; texts: DidCheckTexts }) {
   const { request, resetOn, texts } = options;
   const checking = ref(false);
-  const answer = shallowRef<DidCheckAnswer<Refusal> | undefined>(undefined);
+  const answer = shallowRef<DidCheck | undefined>(undefined);
   let latestCheck = 0;
 
   watch(
@@ -84,7 +74,7 @@ export function useDidCheck<Refusal extends string>(options: {
         return {
           icon: 'error',
           color: 'error',
-          text: (result.refusal_reason && texts.refusal[result.refusal_reason]) ?? 'error_code.internal_error',
+          text: (result.refusal_reason && DID_REFUSAL_TEXT[result.refusal_reason]) ?? 'error_code.internal_error',
         };
     }
   });

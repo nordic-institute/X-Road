@@ -63,6 +63,7 @@ import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.HOST_
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NON_ASCII_HOST;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NOT_CANONICAL;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.NO_STORED_VALUE;
+import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNDECODABLE_DID;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.UNPARSEABLE_REGISTERED_ADDRESS;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.WRONG_SCHEME;
 
@@ -118,6 +119,8 @@ class SystemDidCheckParityTest {
                         HOST_DIFFERS),
                 Arguments.of("a member DID", true, false, ADDRESS, "did:web:ss0.example.org%3A7183:v1:DEV:COM:222",
                         FOREIGN_SYSTEM_DID),
+                Arguments.of("a DID that cannot be decoded", true, false, ADDRESS,
+                        "did:web:ss0.example.org%3A7183:v1:system%2", UNDECODABLE_DID),
                 Arguments.of("an unusable proposed address", true, false, "", SYSTEM_DID, UNPARSEABLE_REGISTERED_ADDRESS),
                 Arguments.of("a non-ASCII proposed address", true, false, "ssä0.example.org", SYSTEM_DID, NON_ASCII_HOST),
                 Arguments.of("a DID held by another server", true, true, ADDRESS, SYSTEM_DID, DID_HELD_BY_ANOTHER_SERVER),
