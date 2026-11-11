@@ -540,7 +540,7 @@ Only a valid DNS name is accepted: not an IP address, not `localhost` or a name 
 
 #### 4.6.1 Issuance Settings
 
-The Issuer Service issues credentials in batches. Before it delivers a credential to a Security Server, it takes a time-limited lease on the issuance request. If a node stalls for longer than the lease, another node can take the request over, and the credential can be delivered twice. A full batch must therefore finish well inside the lease: the batch size multiplied by the delivery call timeout must be smaller than the lease duration.
+The Issuer Service issues credentials in batches. In each state-machine iteration it takes a time-limited lease on a whole batch of issuance requests, not one lease per delivery. If a node stalls for longer than the lease, another node can take the requests over, and a credential can be delivered twice. A full batch must therefore finish shorter than the lease: the batch size multiplied by the delivery call timeout must be smaller than the lease duration.
 
 The shipped configuration sets these values explicitly, so that a software upgrade cannot change them unnoticed:
 
@@ -551,19 +551,19 @@ The shipped configuration sets these values explicitly, so that a software upgra
 | `edc.issuer.issuance.send.call-timeout.ms`                | 15000  | Time limit for one delivery call to a Security Server, in ms         |
 | `edc.issuer.issuance.send.connect-timeout.ms`             | 5000   | Time limit for opening the connection of a delivery call, in ms      |
 
-The default values need no change. To override a value, set the same key in `/etc/xroad/conf.d/local-ds-issuer-service.yaml` and restart the `xroad-ds-issuer-service` service. Keep the batch size multiplied by the call timeout smaller than the lease duration.
+The default values need no change. To override a value, set the same key in `/etc/xroad/conf.d/local-ds-issuer-service.yaml` and restart the `xroad-ds-issuer-service` service. The override file is local to the node. On a clustered Central Server, set the override on every node and restart the service on each of them. Keep the batch size multiplied by the call timeout smaller than the lease duration.
 
 #### 4.6.2 Statuslist Capacity
 
-Every credential holds one slot in a statuslist, which records whether the credential is revoked. A statuslist has at least 131072 slots. Each renewal of a credential takes a new slot. Credentials are valid for 30 days and are renewed 7 days before they expire, so a participant uses about 15.87 slots per year.
+Every credential holds one slot in a statuslist, which records whether the credential is revoked. A statuslist has at least 131072 slots. Each renewal of a credential takes a new slot. Credentials are valid for 30 days and are renewed 7 days before they expire by default, so with this default a participant uses about 15.87 slots per year.
 
-The number of participants N is the number of hosted members plus the number of Security Servers. The number of statuslists needed after Y years is:
+The number of participants N counts each member once for every Security Server that hosts it, plus each Security Server. A member has a separate dataspace identity on every Security Server that hosts it. The number of statuslists needed after Y years is:
 
 `lists after Y years = ceil(N × 15.87 × Y / 131072)`
 
 For example, 5000 participants after 5 years need ceil(5000 × 15.87 × 5 / 131072) = 4 statuslists.
 
-When a statuslist is full, the Issuer Service adds a new one automatically and issues later credentials from it. X-Road keeps the default size, so no action is needed.
+When a statuslist is full, the Issuer Service adds a new one automatically and issues later credentials from it. The size of a statuslist is set by `edc.issuer.statuslist.bitstring.size`. Its minimum and default is 131072. X-Road does not set it, so no action is needed.
 
 ## 5. Configuration Management
 
