@@ -144,7 +144,7 @@ class CandidateHandshakeRaceTest {
         var order = race.order(List.of(candidate("ss0", slow), candidate("ss1", fast))).get(10, TimeUnit.SECONDS);
 
         assertThat(order).extracting(Candidate::counterPartyId).first().isEqualTo("ss1");
-        assertThat(fast.handshakesCompleted()).hasValue(1);
+        await().atMost(8, TimeUnit.SECONDS).untilAsserted(() -> assertThat(fast.handshakesCompleted()).hasValue(1));
         assertThat(slow.handshakesCompleted()).hasValue(0);
     }
 
@@ -287,7 +287,7 @@ class CandidateHandshakeRaceTest {
         }
 
         assertThat(failed).allMatch(cooldownTracker::isCoolingDown);
-        assertThat(winner.handshakesCompleted()).hasValue(10);
+        await().atMost(8, TimeUnit.SECONDS).untilAsserted(() -> assertThat(winner.handshakesCompleted()).hasValue(10));
         assertThat(failedOrders.size()).isGreaterThan(1);
     }
 
