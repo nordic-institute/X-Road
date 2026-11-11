@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
@@ -53,6 +54,7 @@ class SinglePropertySetterTest {
             .toString();
 
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
+    private static final String GROUPING_KEYS_KEY = "xroad.message-log-encryption.archive.grouping-keys";
 
     static class TestSinglePropertySetter extends SinglePropertySetter {
         TestSinglePropertySetter(String propertyKey, String propertyValue) {
@@ -168,6 +170,37 @@ class SinglePropertySetterTest {
                     .map(ILoggingEvent::getFormattedMessage)
                     .reduce("", (a, b) -> a + "\n" + b);
             assertThat(logged).contains(GROUPING_KEY).contains("team");
+        }
+    }
+
+    @Nested
+    class GroupingKeysConversion {
+
+        @Test
+        void indexedGroupingKeysKeySavesNothingAndReportsReplacementKey() {
+            var indexedKey = GROUPING_KEYS_KEY + ".\"DEV/COM/1111\"[0]";
+
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                var exception = assertThrows(XrdRuntimeException.class,
+                        () -> new TestSinglePropertySetter(indexedKey, "KEY1")
+                                .migrate("not/used", DB_PROPERTIES_PATH));
+
+                assertThat(exception.getMessage()).contains(indexedKey).contains(GROUPING_KEYS_KEY);
+                assertThat(mockedDb.constructed()).isEmpty();
+            }
+        }
+
+        @Test
+        void exactGroupingKeysKeyWithJsonValueSavedUnchanged() {
+            var json = "{\"DEV/COM/1111\":[\"KEY1\",\"KEY2\"]}";
+
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                new TestSinglePropertySetter(GROUPING_KEYS_KEY, json)
+                        .migrate("not/used", DB_PROPERTIES_PATH);
+
+                var dbRepo = mockedDb.constructed().getFirst();
+                Mockito.verify(dbRepo).saveProperty(GROUPING_KEYS_KEY, json);
+            }
         }
     }
 

@@ -30,6 +30,8 @@ package org.niis.xroad.configuration.migration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Map;
 
@@ -42,7 +44,16 @@ public class SinglePropertySetter extends BasePropertiesToDbMigrator {
 
     @Override
     Map<String, String> loadProperties(String filePath) {
+        refuseOldIndexedShape();
         return Map.of(propertyKey, propertyValue);
+    }
+
+    private void refuseOldIndexedShape() {
+        LegacyConfigValueShapes.mergedKeyFor(propertyKey).ifPresent(mergedKey -> {
+            throw XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE,
+                    "Key '%s' is part of the structured value stored under '%s'; set that key instead with the whole value",
+                    propertyKey, mergedKey);
+        });
     }
 
     public static void main(String[] args) {

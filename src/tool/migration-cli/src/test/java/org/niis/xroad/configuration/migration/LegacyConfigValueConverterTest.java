@@ -28,14 +28,19 @@
 package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LegacyConfigValueConverterTest {
 
     private static final String GROUPING_KEY = "xroad.message-log-encryption.archive.grouping-strategy";
+    private static final String GROUPING_KEYS_KEY = "xroad.message-log-encryption.archive.grouping-keys";
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     @Test
     void convertsLowerCaseMemberToUpperCaseConstant() {
@@ -114,6 +119,61 @@ class LegacyConfigValueConverterTest {
 
         assertThat(secondPass.properties()).isEqualTo(firstPass.properties());
         assertThat(secondPass.warnings()).isEmpty();
+    }
+
+    @Test
+    void mergesIndexedGroupingKeysRowsIntoOneJsonRow() {
+        var result = LegacyConfigValueConverter.convert(Map.of(
+                GROUPING_KEYS_KEY + ".\"DEV/COM/1111\"[0]", "KEY1",
+                GROUPING_KEYS_KEY + ".\"DEV/COM/1111\"[1]", "KEY2",
+                GROUPING_KEYS_KEY + ".\"DEV/COM/2222/SUB\"[0]", "KEY3"));
+
+        assertThat(result.properties()).containsOnlyKeys(GROUPING_KEYS_KEY);
+        assertThat(result.warnings()).isEmpty();
+
+        Map<String, Set<String>> parsed = JSON_MAPPER.readValue(result.properties().get(GROUPING_KEYS_KEY),
+                new TypeReference<Map<String, Set<String>>>() { });
+        assertThat(parsed).containsOnly(
+                Map.entry("DEV/COM/1111", Set.of("KEY1", "KEY2")),
+                Map.entry("DEV/COM/2222/SUB", Set.of("KEY3")));
+    }
+
+    @Test
+    void noIndexedGroupingKeysRowsMeansNoGroupingKeysRowInOutput() {
+        var result = LegacyConfigValueConverter.convert(Map.of("some.other.key", "value"));
+
+        assertThat(result.properties()).doesNotContainKey(GROUPING_KEYS_KEY);
+    }
+
+    @Test
+    void lookalikeGroupingKeysKeyPassesThroughUnchanged() {
+        var lookalikeKey = GROUPING_KEYS_KEY + "-extra";
+        var result = LegacyConfigValueConverter.convert(Map.of(lookalikeKey, "value"));
+
+        assertThat(result.properties()).containsEntry(lookalikeKey, "value");
+        assertThat(result.warnings()).isEmpty();
+    }
+
+    @Test
+    void reconvertingAlreadyMergedGroupingKeysRowIsNoOp() {
+        var firstPass = LegacyConfigValueConverter.convert(Map.of(
+                GROUPING_KEYS_KEY + ".\"DEV/COM/1111\"[0]", "KEY1"));
+
+        var secondPass = LegacyConfigValueConverter.convert(firstPass.properties());
+
+        assertThat(secondPass.properties()).isEqualTo(firstPass.properties());
+        assertThat(secondPass.warnings()).isEmpty();
+    }
+
+    @Test
+    void groupingStrategyAndGroupingKeysRowsConvertIndependentlyInOneCall() {
+        var result = LegacyConfigValueConverter.convert(Map.of(
+                GROUPING_KEY, "member",
+                GROUPING_KEYS_KEY + ".\"DEV/COM/1111\"[0]", "KEY1"));
+
+        assertThat(result.properties()).containsEntry(GROUPING_KEY, "MEMBER");
+        assertThat(result.properties()).containsKey(GROUPING_KEYS_KEY);
+        assertThat(result.warnings()).isEmpty();
     }
 
 }

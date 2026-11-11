@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 /**
@@ -45,12 +46,41 @@ import java.util.TreeMap;
 public final class LegacyConfigValueConverter {
 
     public static ConversionResult convert(Map<String, String> rawProperties) {
+        Map<String, String> merged = mergeStructuredRows(rawProperties);
+
         Map<String, String> converted = new TreeMap<>();
         List<String> warnings = new ArrayList<>();
 
-        rawProperties.forEach((key, value) -> converted.put(key, convertValue(key, value, warnings)));
+        merged.forEach((key, value) -> converted.put(key, convertValue(key, value, warnings)));
 
         return new ConversionResult(converted, warnings);
+    }
+
+    /**
+     * Replaces every {@link LegacyConfigValueShapes.MergedJsonShape}'s own rows (indexed entries or
+     * per-field rows, found via its key's prefix-aware lookup) with the single merged key holding the
+     * JSON value built from them. Rows belonging to no such shape pass through unchanged.
+     */
+    private static Map<String, String> mergeStructuredRows(Map<String, String> rawProperties) {
+        Map<String, Map<String, String>> rowsByMergedKey = new TreeMap<>();
+        Map<String, String> passthrough = new TreeMap<>();
+
+        rawProperties.forEach((key, value) -> {
+            Optional<String> mergedKey = LegacyConfigValueShapes.mergedKeyFor(key);
+            if (mergedKey.isPresent()) {
+                rowsByMergedKey.computeIfAbsent(mergedKey.get(), _ -> new TreeMap<>()).put(key, value);
+            } else {
+                passthrough.put(key, value);
+            }
+        });
+
+        Map<String, String> result = new TreeMap<>(passthrough);
+        rowsByMergedKey.forEach((mergedKey, rows) -> {
+            var shape = (LegacyConfigValueShapes.MergedJsonShape) LegacyConfigValueShapes.shapeOf(mergedKey);
+            result.put(mergedKey, shape.merger().apply(rows));
+        });
+
+        return result;
     }
 
     private static String convertValue(String key, String value, List<String> warnings) {
