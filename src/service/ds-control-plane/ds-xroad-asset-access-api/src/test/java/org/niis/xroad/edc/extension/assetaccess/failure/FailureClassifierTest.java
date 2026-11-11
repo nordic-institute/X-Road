@@ -34,8 +34,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.http.spi.EdcHttpClientException;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletionException;
@@ -94,32 +92,20 @@ class FailureClassifierTest {
     }
 
     @Test
-    void clientErrorStatusResultIsAProviderRejection() {
-        assertThat(FailureClassifier.classify(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Counter Party responded with 403")))
-                .isEqualTo(FailureKind.PROVIDER_REJECTION);
-    }
-
-    @Test
-    void retryableStatusResultIsOther() {
-        assertThat(FailureClassifier.classify(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Counter Party responded with 302")))
+    void negotiationClientErrorTextWithRequestPrefixIsOther() {
+        assertThat(FailureClassifier.classify(negotiation(REQUEST_PREFIX + CLIENT_ERROR_TEXT, false)))
                 .isEqualTo(FailureKind.OTHER);
     }
 
     @Test
-    void negotiationClientErrorTextWithRequestPrefixIsAProviderRejection() {
-        assertThat(FailureClassifier.classify(negotiation(REQUEST_PREFIX + CLIENT_ERROR_TEXT, false)))
-                .isEqualTo(FailureKind.PROVIDER_REJECTION);
-    }
-
-    @Test
-    void negotiationClientErrorTextWithTerminationPrefixIsAProviderRejection() {
+    void negotiationClientErrorTextWithTerminationPrefixIsOther() {
         assertThat(FailureClassifier.classify(negotiation(TERMINATION_PREFIX + CLIENT_ERROR_TEXT, false)))
-                .isEqualTo(FailureKind.PROVIDER_REJECTION);
+                .isEqualTo(FailureKind.OTHER);
     }
 
     @Test
-    void negotiationClientErrorTextWithoutPrefixIsAProviderRejection() {
-        assertThat(FailureClassifier.classify(negotiation(CLIENT_ERROR_TEXT, false))).isEqualTo(FailureKind.PROVIDER_REJECTION);
+    void negotiationClientErrorTextWithoutPrefixIsOther() {
+        assertThat(FailureClassifier.classify(negotiation(CLIENT_ERROR_TEXT, false))).isEqualTo(FailureKind.OTHER);
     }
 
     @Test
@@ -145,9 +131,9 @@ class FailureClassifierTest {
     }
 
     @Test
-    void negotiationClientErrorTextWithATransportLookAlikeBodyIsAProviderRejection() {
+    void negotiationClientErrorTextWithATransportLookAlikeBodyIsOther() {
         assertThat(FailureClassifier.classify(negotiation(REQUEST_PREFIX + CLIENT_ERROR_TEXT + TRANSPORT_TEXT, false)))
-                .isEqualTo(FailureKind.PROVIDER_REJECTION);
+                .isEqualTo(FailureKind.OTHER);
     }
 
     @Test
@@ -160,13 +146,13 @@ class FailureClassifierTest {
         assertThat(FailureClassifier.classify(negotiation(VERIFICATION_PREFIX + TRANSPORT_TEXT, true)))
                 .isEqualTo(FailureKind.TRANSPORT_FAULT);
         assertThat(FailureClassifier.classify(negotiation(VERIFICATION_PREFIX + CLIENT_ERROR_TEXT, true)))
-                .isEqualTo(FailureKind.PROVIDER_REJECTION);
+                .isEqualTo(FailureKind.OTHER);
         assertThat(FailureClassifier.classify(negotiation(VERIFICATION_PREFIX + LOCAL_TEXT, true))).isEqualTo(FailureKind.OTHER);
     }
 
     @Test
-    void negotiationWithoutErrorTextAndWithAReceivedMessageIsAProviderRejection() {
-        assertThat(FailureClassifier.classify(negotiation(null, true))).isEqualTo(FailureKind.PROVIDER_REJECTION);
+    void negotiationWithoutErrorTextAndWithAReceivedMessageIsOther() {
+        assertThat(FailureClassifier.classify(negotiation(null, true))).isEqualTo(FailureKind.OTHER);
     }
 
     @Test
@@ -175,15 +161,15 @@ class FailureClassifierTest {
     }
 
     @Test
-    void transferWithAReceivedMessageIsAProviderRejectionWhateverTheText() {
-        assertThat(FailureClassifier.classify(transfer(TRANSPORT_TEXT, true))).isEqualTo(FailureKind.PROVIDER_REJECTION);
-        assertThat(FailureClassifier.classify(transfer("provider free text", true))).isEqualTo(FailureKind.PROVIDER_REJECTION);
-        assertThat(FailureClassifier.classify(transfer(null, true))).isEqualTo(FailureKind.PROVIDER_REJECTION);
+    void transferWithAReceivedMessageIsOtherWhateverTheText() {
+        assertThat(FailureClassifier.classify(transfer(TRANSPORT_TEXT, true))).isEqualTo(FailureKind.OTHER);
+        assertThat(FailureClassifier.classify(transfer("provider free text", true))).isEqualTo(FailureKind.OTHER);
+        assertThat(FailureClassifier.classify(transfer(null, true))).isEqualTo(FailureKind.OTHER);
     }
 
     @Test
-    void transferClientErrorTextIsAProviderRejection() {
-        assertThat(FailureClassifier.classify(transfer(CLIENT_ERROR_TEXT, false))).isEqualTo(FailureKind.PROVIDER_REJECTION);
+    void transferClientErrorTextIsOther() {
+        assertThat(FailureClassifier.classify(transfer(CLIENT_ERROR_TEXT, false))).isEqualTo(FailureKind.OTHER);
     }
 
     @Test

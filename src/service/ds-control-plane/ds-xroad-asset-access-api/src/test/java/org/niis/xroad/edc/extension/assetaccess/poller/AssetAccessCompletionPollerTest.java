@@ -196,12 +196,12 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void awaitNegotiationFailsAsProviderRejectionWhenTerminatedWithAReceivedMessageAndNoErrorDetail() {
+    void awaitNegotiationFailsAsOtherWhenTerminatedWithAReceivedMessageAndNoErrorDetail() {
         when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
                 Stream.of(buildNegotiation("neg-1", ContractNegotiationStates.TERMINATED, null, null, receivedMessage())));
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
-        assertFailedWith(future, FailureKind.PROVIDER_REJECTION, XrdRuntimeException.class);
+        assertFailedWith(future, FailureKind.OTHER, XrdRuntimeException.class);
     }
 
     @Test
@@ -274,12 +274,12 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void awaitTransferFailsAsProviderRejectionWhenTerminatedWithAReceivedMessage() {
+    void awaitTransferFailsAsOtherWhenTerminatedWithAReceivedMessage() {
         when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
                 Stream.of(buildTransferProcess(TransferProcessStates.TERMINATED, null, "provider free text", receivedMessage())));
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
-        assertFailedWith(future, FailureKind.PROVIDER_REJECTION, XrdRuntimeException.class);
+        assertFailedWith(future, FailureKind.OTHER, XrdRuntimeException.class);
     }
 
     @Test

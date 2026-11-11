@@ -135,10 +135,10 @@ class NegotiationTransferTransportShapeTest {
 
     @ParameterizedTest
     @MethodSource("stagesAndClientErrorStatuses")
-    void clientErrorIsAProviderRejection(Stage stage, int status) throws Exception {
+    void clientErrorIsOther(Stage stage, int status) throws Exception {
         var kind = failAgainstServerAnswering(stage, status);
 
-        assertThat(kind).isEqualTo(FailureKind.PROVIDER_REJECTION);
+        assertThat(kind).isEqualTo(FailureKind.OTHER);
     }
 
     @ParameterizedTest
@@ -179,23 +179,23 @@ class NegotiationTransferTransportShapeTest {
     }
 
     @Test
-    void verificationSendAnsweredWithAClientErrorAndAReceivedMessageIsAProviderRejection() throws Exception {
+    void verificationSendAnsweredWithAClientErrorAndAReceivedMessageIsOther() throws Exception {
         var server = serverAnswering(403);
         try {
             var kind = failVerificationAgainst("http://localhost:" + server.getAddress().getPort() + "/dsp");
 
-            assertThat(kind).isEqualTo(FailureKind.PROVIDER_REJECTION);
+            assertThat(kind).isEqualTo(FailureKind.OTHER);
         } finally {
             server.stop(0);
         }
     }
 
     @Test
-    void terminatedNegotiationWithAReceivedMessageAndNoErrorTextIsAProviderRejection() {
+    void terminatedNegotiationWithAReceivedMessageAndNoErrorTextIsOther() {
         var negotiation = negotiation(ContractNegotiationStates.TERMINATED, "http://localhost:1/dsp", receivedMessage());
 
         assertThat(negotiation.getErrorDetail()).isNull();
-        assertThat(FailureClassifier.classify(negotiation)).isEqualTo(FailureKind.PROVIDER_REJECTION);
+        assertThat(FailureClassifier.classify(negotiation)).isEqualTo(FailureKind.OTHER);
     }
 
     private static Stream<Arguments> stagesAndClientErrorStatuses() {

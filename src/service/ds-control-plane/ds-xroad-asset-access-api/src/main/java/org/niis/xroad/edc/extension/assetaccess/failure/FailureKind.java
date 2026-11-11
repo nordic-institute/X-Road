@@ -33,10 +33,8 @@ package org.niis.xroad.edc.extension.assetaccess.failure;
 public enum FailureKind {
     /** The provider Security Server could not be reached, or did not answer in time. */
     TRANSPORT_FAULT,
-    /** The provider answered and rejected the request, for example with a 4xx status. */
-    PROVIDER_REJECTION,
     /**
-     * Any other failure: an application fault such as a provider 5xx, or a failure local to this Security Server.
+     * Any other failure: an application fault such as a provider 4xx or 5xx, or a failure local to this Security Server.
      * Never triggers failover.
      */
     OTHER

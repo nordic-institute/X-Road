@@ -461,7 +461,7 @@ public class AssetAccessOrchestrator {
     private StageOutcome<Catalog> catalogOutcome(String key, StatusResult<byte[]> result) {
         if (result.failed()) {
             monitor.warning("%s catalog fetch failed: %s".formatted(key, result.getFailureDetail()));
-            return new StageOutcome.Failed<>(FailureClassifier.classify(result),
+            return new StageOutcome.Failed<>(FailureKind.OTHER,
                     XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
                             .origin(ErrorOrigin.DATASPACE)
                             .details(result.getFailureDetail())

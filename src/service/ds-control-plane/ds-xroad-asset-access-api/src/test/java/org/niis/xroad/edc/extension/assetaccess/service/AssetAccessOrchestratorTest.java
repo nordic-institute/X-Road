@@ -488,7 +488,7 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
     }
 
     @Test
-    void catalogStageProviderClientErrorIsAProviderRejectionCarryingDspCatalogFetchFailed() throws Exception {
+    void catalogStageProviderClientErrorIsOtherCarryingDspCatalogFetchFailed() throws Exception {
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(
                         StatusResult.failure(ResponseStatus.FATAL_ERROR, "Counter Party responded with 403")));
@@ -496,7 +496,7 @@ class AssetAccessOrchestratorTest extends AssetAccessOrchestratorTestSupport {
         var outcome = catalogStageOutcome();
 
         assertThat(outcome).isInstanceOfSatisfying(StageOutcome.Failed.class, failed -> {
-            assertThat(failed.failureKind()).isEqualTo(FailureKind.PROVIDER_REJECTION);
+            assertThat(failed.failureKind()).isEqualTo(FailureKind.OTHER);
             assertThat(failed.failure()).isInstanceOfSatisfying(XrdRuntimeException.class, xre -> {
                 assertThat(xre.getErrorCode()).isEqualTo("dataspace.dsp_catalog_fetch_failed");
                 assertThat(xre.getDetails()).contains("403");
