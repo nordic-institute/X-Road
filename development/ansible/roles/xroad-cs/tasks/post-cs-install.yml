@@ -154,11 +154,11 @@
     timeout: 240
   when: xroad_cs_ds_tls_san | length > 0
 
-# Starts the Issuer Service set-up. 409 ("already set up" or "already running") is accepted so a
+# Initializes the Issuer Service. 409 ("already initialized" or "already running") is accepted so a
 # re-run of this role against an already-bound issuer stays idempotent.
-- name: start the Issuer Service set-up through the admin API
+- name: initialize the Issuer Service through the admin API
   uri:
-    url: "https://localhost:4000/api/v1/issuer-service/set-up"
+    url: "https://localhost:4000/api/v1/issuer-service/initialize"
     method: POST
     headers:
       X-XSRF-TOKEN: "{{ cs_admin_login.cookies['XSRF-TOKEN'] }}"

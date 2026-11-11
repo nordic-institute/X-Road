@@ -127,7 +127,7 @@ class IssuerServiceStatusServiceImplTest {
         var status = issuerServiceStatusService.getStatus();
 
         assertThat(status.runInProgress()).isTrue();
-        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.SETTING_UP);
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.INITIALIZING);
     }
 
     @Test

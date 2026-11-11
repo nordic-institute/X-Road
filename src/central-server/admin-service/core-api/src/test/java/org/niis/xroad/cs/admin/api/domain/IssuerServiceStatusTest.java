@@ -54,14 +54,14 @@ class IssuerServiceStatusTest {
     void readyToSetUpWhenPrerequisitesPassAndNothingIsBoundOrRunning() {
         var status = IssuerServiceStatus.derive(true, true, false, DID, null, CanSignResult.absent());
 
-        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_SET_UP);
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_INITIALIZE);
     }
 
     @Test
     void readyToSetUpWhenUnboundAndTheIssuerCanSignForTheDidToBind() {
         var status = IssuerServiceStatus.derive(true, true, false, DID, null, CanSignResult.canSign(DID));
 
-        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_SET_UP);
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.READY_TO_INITIALIZE);
         assertThat(status.canSign()).isTrue();
         assertThat(status.canSignCause()).isNull();
     }
@@ -78,7 +78,7 @@ class IssuerServiceStatusTest {
     void settingUpWhenARunHoldsTheLease() {
         var status = IssuerServiceStatus.derive(true, true, true, DID, null, CanSignResult.absent());
 
-        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.SETTING_UP);
+        assertThat(status.overall()).isEqualTo(IssuerServiceStatus.Overall.INITIALIZING);
     }
 
     @Test

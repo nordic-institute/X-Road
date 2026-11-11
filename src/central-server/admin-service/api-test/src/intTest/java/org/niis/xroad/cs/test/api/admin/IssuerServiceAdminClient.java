@@ -54,9 +54,9 @@ public class IssuerServiceAdminClient {
                 .then();
     }
 
-    public ValidatableResponse startSetUp() {
+    public ValidatableResponse initialize() {
         return session.given()
-                .post("/issuer-service/set-up")
+                .post("/issuer-service/initialize")
                 .then();
     }
 }

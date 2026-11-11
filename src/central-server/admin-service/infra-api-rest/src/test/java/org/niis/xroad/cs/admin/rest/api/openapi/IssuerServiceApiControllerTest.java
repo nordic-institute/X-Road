@@ -180,49 +180,49 @@ class IssuerServiceApiControllerTest {
     }
 
     @Test
-    void startIssuerServiceSetUpReturnsAcceptedWhenTheServiceAccepts() {
+    void initializeIssuerServiceReturnsAcceptedWhenTheServiceAccepts() {
         when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Accepted());
 
-        var response = issuerServiceApiController.startIssuerServiceSetUp();
+        var response = issuerServiceApiController.initializeIssuerService();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
     }
 
     @Test
-    void startIssuerServiceSetUpPropagatesTheAlreadySetUpCauseAsConflict() {
+    void initializeIssuerServicePropagatesTheAlreadySetUpCauseAsConflict() {
         when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_SET_UP));
 
-        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+        assertThatThrownBy(issuerServiceApiController::initializeIssuerService)
                 .isInstanceOf(ConflictException.class)
                 .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
                         .isEqualTo(ErrorMessage.ISSUER_SERVICE_ALREADY_BOUND.code()));
     }
 
     @Test
-    void startIssuerServiceSetUpPropagatesTheHostNotSetCauseAsConflict() {
+    void initializeIssuerServicePropagatesTheHostNotSetCauseAsConflict() {
         when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.HOST_NOT_SET));
 
-        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+        assertThatThrownBy(issuerServiceApiController::initializeIssuerService)
                 .isInstanceOf(ConflictException.class)
                 .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
                         .isEqualTo(ErrorMessage.ISSUER_SERVICE_HOST_NOT_SET.code()));
     }
 
     @Test
-    void startIssuerServiceSetUpPropagatesTheCertificateNotReadyCauseAsConflict() {
+    void initializeIssuerServicePropagatesTheCertificateNotReadyCauseAsConflict() {
         when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.CERTIFICATE_NOT_READY));
 
-        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+        assertThatThrownBy(issuerServiceApiController::initializeIssuerService)
                 .isInstanceOf(ConflictException.class)
                 .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
                         .isEqualTo(ErrorMessage.ISSUER_SERVICE_CERTIFICATE_NOT_READY.code()));
     }
 
     @Test
-    void startIssuerServiceSetUpPropagatesTheAlreadyRunningCauseAsConflict() {
+    void initializeIssuerServicePropagatesTheAlreadyRunningCauseAsConflict() {
         when(issuerSetUpService.start()).thenReturn(new IssuerSetUpResult.Refused(IssuerSetUpResult.Cause.ALREADY_RUNNING));
 
-        assertThatThrownBy(issuerServiceApiController::startIssuerServiceSetUp)
+        assertThatThrownBy(issuerServiceApiController::initializeIssuerService)
                 .isInstanceOf(ConflictException.class)
                 .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
                         .isEqualTo(ErrorMessage.ISSUER_SERVICE_ALREADY_RUNNING.code()));

@@ -3523,19 +3523,19 @@ paths:
       summary: set the Issuer Service host
       tags:
         - issuer-service
-  /issuer-service/set-up:
+  /issuer-service/initialize:
     post:
       description:
-        <h3>Administrator starts the one-time Issuer Service set-up.</h3>
+        <h3>Administrator starts the one-time Issuer Service initialization.</h3>
         <p>
-        Runs the set-up prerequisite checks and answers at once. Either accepted, with the run
-        continuing in the background, or refused with the first failing cause (issuer already set up,
+        Runs the initialization prerequisite checks and answers at once. Either accepted, with the run
+        continuing in the background, or refused with the first failing cause (issuer already initialized,
         host not set, or connector TLS certificate missing, expired or not valid for the issuer host).
         </p>
-      operationId: startIssuerServiceSetUp
+      operationId: initializeIssuerService
       responses:
         '202':
-          description: set-up accepted; the run continues in the background
+          description: initialization accepted; the run continues in the background
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -3544,7 +3544,7 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: start the Issuer Service set-up
+      summary: initialize the Issuer Service
       tags:
         - issuer-service
   /openapi.yaml:
@@ -4292,12 +4292,12 @@ components:
       example: RSA
       type: string
     IssuerServiceOverallStatus:
-      description: the issuer's overall set-up and signing state
+      description: the issuer's overall initialization and signing state
       enum:
         - NOT_CONFIGURED
         - WAITING_FOR_CERTIFICATE
-        - READY_TO_SET_UP
-        - SETTING_UP
+        - READY_TO_INITIALIZE
+        - INITIALIZING
         - READY
         - FAILED
       example: NOT_CONFIGURED
@@ -4528,10 +4528,10 @@ components:
           description: whether the connector TLS certificate is present, unexpired and valid for the host
           type: boolean
         run_in_progress:
-          description: whether a set-up run currently holds the lease
+          description: whether an initialization run currently holds the lease
           type: boolean
         did_to_bind:
-          description: the issuer DID that set-up would bind, absent when the host is not set
+          description: the issuer DID that initialization would bind, absent when the host is not set
           format: text
           type: string
         can_sign:

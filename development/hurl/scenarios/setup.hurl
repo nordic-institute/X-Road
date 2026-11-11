@@ -27,7 +27,7 @@ Content-Type: application/json
 # https://github.com/nordic-institute/X-Road/blob/6ef2d9e83287ccb281b0cc27ba663a5ae8c4aa16/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml#L1344
 HTTP 200
 
-# Set the Issuer Service host; the set-up call below refuses until it is set.
+# Set the Issuer Service host; the initialize call below refuses until it is set.
 PUT https://{{cs_host}}:4000/api/v1/issuer-service/host
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -264,11 +264,11 @@ certificate: file,cs_ds_tls_cert.pem;
 
 HTTP 200
 
-# Start the Issuer Service set-up now that the connector TLS certificate is in place, then wait
+# Initialize the Issuer Service now that the connector TLS certificate is in place, then wait
 # until the issuer identity is bound. Bounded by retries so a broken Issuer Service fails this
-# script instead of hanging it. 409 ("already set up" or "already running") is accepted too, so a
+# script instead of hanging it. 409 ("already initialized" or "already running") is accepted too, so a
 # re-run against an already-bound issuer stays idempotent.
-POST https://{{cs_host}}:4000/api/v1/issuer-service/set-up
+POST https://{{cs_host}}:4000/api/v1/issuer-service/initialize
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP *

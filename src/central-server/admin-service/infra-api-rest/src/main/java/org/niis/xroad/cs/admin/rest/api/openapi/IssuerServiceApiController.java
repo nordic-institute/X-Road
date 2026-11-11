@@ -77,9 +77,9 @@ public class IssuerServiceApiController implements IssuerServiceApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('SET_UP_ISSUER_SERVICE')")
-    @AuditEventMethod(event = RestApiAuditEvent.START_ISSUER_SERVICE_SET_UP)
-    public ResponseEntity<Void> startIssuerServiceSetUp() {
+    @PreAuthorize("hasAuthority('INITIALIZE_ISSUER_SERVICE')")
+    @AuditEventMethod(event = RestApiAuditEvent.INITIALIZE_ISSUER_SERVICE)
+    public ResponseEntity<Void> initializeIssuerService() {
         return switch (issuerSetUpService.start()) {
             case IssuerSetUpResult.Accepted() -> ResponseEntity.accepted().build();
             case IssuerSetUpResult.Refused(var cause) -> throw refusalException(cause);

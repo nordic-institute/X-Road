@@ -167,7 +167,7 @@ class IssuerServiceApiTest extends CsApiTest {
 
     @Test
     @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ_WRITE)
-    void startingSetUpIsRefusedWhenTheHostIsUnset(CsBaselineSeeder seeder) {
+    void startingInitializationIsRefusedWhenTheHostIsUnset(CsBaselineSeeder seeder) {
         var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
 
         var stateBeforeClear = given("the current issuer service state", () ->
@@ -182,8 +182,8 @@ class IssuerServiceApiTest extends CsApiTest {
         var host = stateBeforeClear.getString("host");
         when("the issuer service host is cleared", seeder::clearIssuerServiceHost);
         try {
-            then("set-up is refused because the host is unset", () ->
-                    issuerService.startSetUp()
+            then("initialization is refused because the host is unset", () ->
+                    issuerService.initialize()
                             .statusCode(409)
                             .body("error.code", equalTo("issuer_service_host_not_set")));
         } finally {
@@ -193,11 +193,11 @@ class IssuerServiceApiTest extends CsApiTest {
 
     @Test
     @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ)
-    void startingSetUpIsForbiddenWithoutThePermission(CsBaselineSeeder seeder) {
+    void startingInitializationIsForbiddenWithoutThePermission(CsBaselineSeeder seeder) {
         var issuerService = new IssuerServiceAdminClient(seeder.newManagementServiceOnlySession());
 
-        then("starting set-up is forbidden", () ->
-                issuerService.startSetUp()
+        then("starting initialization is forbidden", () ->
+                issuerService.initialize()
                         .statusCode(403));
     }
 
@@ -212,7 +212,7 @@ class IssuerServiceApiTest extends CsApiTest {
             @ResourceLock(value = "issuer-service-host", mode = ResourceAccessMode.READ),
             @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ_WRITE)
     })
-    void statusShowsSettingUpWhileARunHoldsTheLeaseAndRevertsWhenItEnds(CsBaselineSeeder seeder) {
+    void statusShowsInitializingWhileARunHoldsTheLeaseAndRevertsWhenItEnds(CsBaselineSeeder seeder) {
         var issuerService = new IssuerServiceAdminClient(seeder.newSecurityOfficerSession());
 
         var stateBefore = given("the current issuer service state", () ->
@@ -235,13 +235,13 @@ class IssuerServiceApiTest extends CsApiTest {
                             .body("run_in_progress", equalTo(false))
                             .extract().jsonPath().getString("status"));
 
-            given("a set-up run holds the lease", () -> seeder.acquireIssuerSetUpLease(LEASE_OWNER_NODE));
+            given("an initialization run holds the lease", () -> seeder.acquireIssuerSetUpLease(LEASE_OWNER_NODE));
             try {
-                then("the status reports a run in progress and the overall state as setting up", () ->
+                then("the status reports a run in progress and the overall state as initializing", () ->
                         issuerService.getIssuerServiceState()
                                 .statusCode(200)
                                 .body("run_in_progress", equalTo(true))
-                                .body("status", equalTo("SETTING_UP")));
+                                .body("status", equalTo("INITIALIZING")));
             } finally {
                 seeder.releaseIssuerSetUpLease();
             }

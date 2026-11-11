@@ -59,8 +59,8 @@ public record IssuerServiceStatus(
     public enum Overall {
         NOT_CONFIGURED,
         WAITING_FOR_CERTIFICATE,
-        READY_TO_SET_UP,
-        SETTING_UP,
+        READY_TO_INITIALIZE,
+        INITIALIZING,
         READY,
         FAILED
     }
@@ -96,9 +96,9 @@ public record IssuerServiceStatus(
         } else if (!certificateReady) {
             overall = Overall.WAITING_FOR_CERTIFICATE;
         } else if (runInProgress) {
-            overall = Overall.SETTING_UP;
+            overall = Overall.INITIALIZING;
         } else if (canSignResult.outcome() == CanSignOutcome.ABSENT || matches) {
-            overall = Overall.READY_TO_SET_UP;
+            overall = Overall.READY_TO_INITIALIZE;
         } else {
             overall = Overall.FAILED;
         }
