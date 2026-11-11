@@ -43,7 +43,6 @@ import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -90,29 +89,25 @@ public class BootstrapConfiguration {
         return bean;
     }
 
-    @Bean
-    @Qualifier(ADMIN_SERVICE_VAULT_KEY_CLIENT)
+    @Bean(ADMIN_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
     VaultKeyClient springVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
         return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
     }
 
-    @Bean
-    @Qualifier(ADMIN_SERVICE_VAULT_KEY_CLIENT)
+    @Bean(ADMIN_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
     VaultKeyClient noopVaultKeyClient() {
         return new NoopVaultKeyClient();
     }
 
-    @Bean
-    @Qualifier(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
+    @Bean(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
     VaultKeyClient managementServiceSpringVaultKeyClient(VaultTemplate vaultTemplate, AdminServiceTlsProperties properties) {
         return new SpringVaultKeyClient(vaultTemplate, properties.getManagementServiceCertificateProvisioning());
     }
 
-    @Bean
-    @Qualifier(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
+    @Bean(MANAGEMENT_SERVICE_VAULT_KEY_CLIENT)
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "false", matchIfMissing = true)
     VaultKeyClient managementServiceNoopVaultKeyClient() {
         return new NoopVaultKeyClient();

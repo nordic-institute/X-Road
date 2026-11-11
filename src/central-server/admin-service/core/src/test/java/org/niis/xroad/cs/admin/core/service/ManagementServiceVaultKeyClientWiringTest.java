@@ -27,14 +27,19 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
+import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.niis.xroad.cs.admin.core.config.AdminServiceTlsProperties;
 import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.LazyInitializationBeanFactoryPostProcessor;
+import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -43,14 +48,18 @@ import org.springframework.vault.core.VaultTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ManagementServiceVaultKeyClientWiringTest {
 
+    private final CertificateProvisioningProperties adminProvisioning = mock(CertificateProvisioningProperties.class);
+    private final CertificateProvisioningProperties managementProvisioning = mock(CertificateProvisioningProperties.class);
+
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withInitializer(context -> context.addBeanFactoryPostProcessor(new LazyInitializationBeanFactoryPostProcessor()))
-            .withUserConfiguration(BootstrapConfiguration.class, ManagementServiceTlsCertificateServiceImpl.class)
+            .withUserConfiguration(BootstrapConfiguration.class, ManagementServiceTlsCertificateServiceImpl.class, AdminConsumer.class)
             .withBean(VaultTemplate.class, () -> mock(VaultTemplate.class))
-            .withBean(AdminServiceTlsProperties.class, () -> mock(AdminServiceTlsProperties.class))
+            .withBean(AdminServiceTlsProperties.class, this::tlsProperties)
             .withBean(VaultClient.class, () -> mock(VaultClient.class))
             .withBean(CertificateConverter.class, () -> mock(CertificateConverter.class))
             .withBean(AuditDataHelper.class, () -> mock(AuditDataHelper.class))
@@ -59,14 +68,42 @@ class ManagementServiceVaultKeyClientWiringTest {
     @Test
     void shouldInjectTheManagementServiceKeyClientWhenOpenBaoIsEnabled() {
         contextRunner.withPropertyValues("spring.cloud.vault.enabled=true").run(context -> {
-            var admin = context.getBean("springVaultKeyClient", VaultKeyClient.class);
-            var management = context.getBean("managementServiceSpringVaultKeyClient", VaultKeyClient.class);
-
-            var injected = (VaultKeyClient) ReflectionTestUtils.getField(
-                    context.getBean(ManagementServiceTlsCertificateServiceImpl.class), "vaultKeyClient");
-
-            assertThat(injected).isSameAs(management).isNotSameAs(admin);
+            var admin = context.getBean(BootstrapConfiguration.ADMIN_SERVICE_VAULT_KEY_CLIENT, VaultKeyClient.class);
+            var management = context.getBean(BootstrapConfiguration.MANAGEMENT_SERVICE_VAULT_KEY_CLIENT, VaultKeyClient.class);
+            assertThat(admin).isInstanceOf(SpringVaultKeyClient.class).isNotSameAs(management);
+            assertThat(management).isInstanceOf(SpringVaultKeyClient.class);
+            assertThat(managementInjected(context)).isSameAs(management);
+            assertThat(context.getBean(AdminConsumer.class).vaultKeyClient).isSameAs(admin);
+            assertThat(provisioningOf(managementInjected(context))).isSameAs(managementProvisioning);
+            assertThat(provisioningOf(context.getBean(AdminConsumer.class).vaultKeyClient)).isSameAs(adminProvisioning);
         });
+    }
+
+    @Test
+    void shouldInjectTheNamedNoopKeyClientsWhenOpenBaoIsDisabled() {
+        contextRunner.withPropertyValues("spring.cloud.vault.enabled=false").run(context -> {
+            var admin = context.getBean(BootstrapConfiguration.ADMIN_SERVICE_VAULT_KEY_CLIENT, VaultKeyClient.class);
+            var management = context.getBean(BootstrapConfiguration.MANAGEMENT_SERVICE_VAULT_KEY_CLIENT, VaultKeyClient.class);
+            assertThat(admin).isInstanceOf(NoopVaultKeyClient.class).isNotSameAs(management);
+            assertThat(managementInjected(context)).isSameAs(management);
+            assertThat(context.getBean(AdminConsumer.class).vaultKeyClient).isSameAs(admin);
+        });
+    }
+
+    private AdminServiceTlsProperties tlsProperties() {
+        var properties = mock(AdminServiceTlsProperties.class);
+        when(properties.getCertificateProvisioning()).thenReturn(adminProvisioning);
+        when(properties.getManagementServiceCertificateProvisioning()).thenReturn(managementProvisioning);
+        return properties;
+    }
+
+    private static CertificateProvisioningProperties provisioningOf(VaultKeyClient client) {
+        return (CertificateProvisioningProperties) ReflectionTestUtils.getField(client, "properties");
+    }
+
+    private static VaultKeyClient managementInjected(AssertableApplicationContext context) {
+        return (VaultKeyClient) ReflectionTestUtils.getField(
+                context.getBean(ManagementServiceTlsCertificateServiceImpl.class), "vaultKeyClient");
     }
 
     @Test
@@ -75,6 +112,14 @@ class ManagementServiceVaultKeyClientWiringTest {
                 .withPropertyValues("spring.cloud.vault.enabled=true")
                 .run(context -> assertThatThrownBy(() -> context.getBean(UnqualifiedConsumer.class))
                         .hasRootCauseInstanceOf(NoUniqueBeanDefinitionException.class));
+    }
+
+    @Component
+    static class AdminConsumer {
+        private final VaultKeyClient vaultKeyClient;
+        AdminConsumer(@Qualifier(BootstrapConfiguration.ADMIN_SERVICE_VAULT_KEY_CLIENT) VaultKeyClient vaultKeyClient) {
+            this.vaultKeyClient = vaultKeyClient;
+        }
     }
 
     @Component
