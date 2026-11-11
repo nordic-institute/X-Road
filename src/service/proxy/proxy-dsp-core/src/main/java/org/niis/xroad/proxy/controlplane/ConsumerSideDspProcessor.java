@@ -46,7 +46,7 @@ import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
-import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
  * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
- * servers via {@link ProviderSecurityServerResolver} and invokes
+ * servers, leaving out those in maintenance mode, via {@link DefaultServiceAddressResolver} and invokes
  * {@link AssetAccessAcquisitionService#acquireAssetAccess} once with all of them; the control plane
  * chooses among them.
  *
@@ -98,7 +98,7 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
-    private final ProviderSecurityServerResolver providerSecurityServerResolver;
+    private final DefaultServiceAddressResolver serviceAddressResolver;
     private final AssetAccessClientProperties clientProperties;
 
     @Override
@@ -144,7 +144,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         var assetId = serviceId.asEncodedId();
         var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
 
-        var providerAddresses = providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer());
+        var providerAddresses = serviceAddressResolver.resolveCandidates(serviceId, request.targetSecurityServer());
         log.debug("processing DSP request for service {}, asset {}, management={}. Got {} possible targets",
                 serviceId, assetId, request.managementSubsystem(), providerAddresses.size());
         if (providerAddresses.isEmpty()) {

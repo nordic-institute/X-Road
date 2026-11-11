@@ -42,15 +42,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.SharedParameters.MaintenanceMode;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -87,6 +92,11 @@ class ConsumerSideDspProcessorTest {
     private static final String SYSTEM_DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:system";
     private static final String SYSTEM_URL_A = "https://xrd-ss0.lxd:8183/api/dsp/system/http-dsp-profile-2025-1";
     private static final String SYSTEM_URL_B = "https://xrd-ss1.lxd:8183/api/dsp/system/http-dsp-profile-2025-1";
+    private static final String SS0_HOST = "ss0.example.org";
+    private static final String SS1_HOST = "ss1.example.org";
+    private static final String SS1_DID = "did:web:ss1.example.org%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
+    private static final String SS1_URL = "https://ss1.example.org:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID
+            + "/http-dsp-profile-2025-1";
     private static final String BLANK_HOST = "";
     private static final String UNKNOWN_HOST = "unknown.example.com";
     private static final ClientId SENDER = ClientId.Conf.create(INSTANCE, "COM", "4321", "SenderSub");
@@ -99,14 +109,23 @@ class ConsumerSideDspProcessorTest {
     private ProviderSecurityServerResolver providerSecurityServerResolver;
     @Mock
     private AssetAccessClientProperties clientProperties;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
+    @Mock
+    private ProxyProperties proxyProperties;
 
+    private DefaultServiceAddressResolver serviceAddressResolver;
     private ConsumerSideDspProcessor processor;
     private ServiceId serviceId;
 
     @BeforeEach
     void setUp() {
         lenient().when(clientProperties.acquisitionDeadline()).thenReturn(DEADLINE);
-        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
+        lenient().when(globalConfProvider.getMaintenanceMode(any(String.class), any(String.class)))
+                .thenReturn(Optional.empty());
+        serviceAddressResolver = new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
+                providerSecurityServerResolver);
+        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, serviceAddressResolver,
                 clientProperties);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
@@ -476,6 +495,61 @@ class ConsumerSideDspProcessorTest {
         var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
 
         assertThat(result.candidateCount()).isEqualTo(1);
+    }
+
+    @Test
+    void aServerInMaintenanceModeIsNotACandidate() {
+        stubProviderAddressesAndAcquisition(SS0_HOST, SS1_HOST);
+        when(globalConfProvider.getMaintenanceMode(INSTANCE, SS0_HOST))
+                .thenReturn(Optional.of(new MaintenanceMode(true, "draining")));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(SS1_DID, SS1_URL)), any(), any(), any());
+    }
+
+    @Test
+    void aServerWithMaintenanceModeSwitchedOffIsACandidate() {
+        stubProviderAddressesAndAcquisition(SS0_HOST, SS1_HOST);
+        when(globalConfProvider.getMaintenanceMode(INSTANCE, SS0_HOST))
+                .thenReturn(Optional.of(new MaintenanceMode(false, null)));
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(2);
+    }
+
+    @Test
+    void everyServerInMaintenanceModeFailsAsTheClassicPathDoes() {
+        stubProviderAddresses(SS0_HOST, SS1_HOST);
+        when(globalConfProvider.getMaintenanceMode(eq(INSTANCE), any(String.class)))
+                .thenReturn(Optional.of(new MaintenanceMode(true, "draining")));
+        var classic = (XrdRuntimeException) catchThrowable(() -> serviceAddressResolver.resolve(serviceId, null, null));
+
+        var dsp = (XrdRuntimeException) catchThrowable(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)));
+
+        assertThat(classic.getCode()).isEqualTo(ErrorCode.MAINTENANCE_MODE.code());
+        assertThat(dsp.getCode()).isEqualTo(classic.getCode());
+        assertThat(dsp.getDetails()).isEqualTo(classic.getDetails());
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aTargetedServerInMaintenanceModeFailsAsTheClassicPathDoes() {
+        var hint = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss-a");
+        when(providerSecurityServerResolver.resolve(serviceId, hint))
+                .thenReturn(List.of(new ProviderAddress(hint, SS0_HOST)));
+        when(globalConfProvider.getMaintenanceMode(hint)).thenReturn(Optional.of(new MaintenanceMode(true, "draining")));
+        var classic = (XrdRuntimeException) catchThrowable(() -> serviceAddressResolver.resolve(serviceId, hint, null));
+
+        var dsp = (XrdRuntimeException) catchThrowable(() -> processor.execute(new DspRequest(serviceId, SENDER, hint, false)));
+
+        assertThat(classic.getCode()).isEqualTo(ErrorCode.MAINTENANCE_MODE.code());
+        assertThat(dsp.getCode()).isEqualTo(classic.getCode());
+        assertThat(dsp.getDetails()).isEqualTo(classic.getDetails());
+        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -948,9 +1022,13 @@ class ConsumerSideDspProcessorTest {
                 .containsExactly("originalCode=" + refusalCode);
     }
 
-    private void stubProviderAddressesAndAcquisition(String... hosts) {
+    private void stubProviderAddresses(String... hosts) {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(Stream.of(hosts).map(host -> new ProviderAddress(null, host)).toList());
+    }
+
+    private void stubProviderAddressesAndAcquisition(String... hosts) {
+        stubProviderAddresses(hosts);
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
     }
