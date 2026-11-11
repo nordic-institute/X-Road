@@ -52,6 +52,20 @@
           <XrdBtn v-if="canEditAddress" variant="text" color="tertiary" text="action.edit" @click="showEditAddressDialog = true" />
         </XrdCardTableRow>
 
+        <XrdCardTableRow
+          v-if="hasSystemPair"
+          data-test="security-server-system-did"
+          label="securityServers.systemDid"
+          :value="securityServer?.system_did"
+        />
+
+        <XrdCardTableRow
+          v-if="hasSystemPair"
+          data-test="security-server-dsp-base-url"
+          label="securityServers.dspBaseUrl"
+          :value="securityServer?.dsp_base_url"
+        />
+
         <XrdCardTableRow data-test="security-server-maintenance-mode" label="securityServers.maintenanceMode">
           <template v-if="securityServer?.in_maintenance_mode" #value>
             <v-icon class="mr-2" icon="check_circle" color="success" filled />
@@ -65,10 +79,23 @@
           </template>
         </XrdCardTableRow>
       </XrdCardTable>
+      <v-alert
+        v-if="systemPairStale"
+        data-test="security-server-stale-values-warning"
+        class="ma-4"
+        type="warning"
+        variant="outlined"
+        border="start"
+        density="compact"
+        :text="$t('securityServers.staleValuesWarning')"
+      />
     </XrdCard>
     <edit-security-server-address-dialog
       v-if="showEditAddressDialog"
       :address="address"
+      :system-did="securityServer?.system_did"
+      :dsp-base-url="securityServer?.dsp_base_url"
+      :system-pair-stale="systemPairStale"
       :security-server-id="serverId"
       @cancel="closeEditAddress"
       @save="closeEditAddress"
@@ -87,6 +114,7 @@ import { Permissions } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useUser } from '@/store/modules/user';
+import { hasStoredSystemPair } from '@/util/helpers';
 
 import EditSecurityServerAddressDialog from './dialogs/EditSecurityServerAddressDialog.vue';
 
@@ -127,6 +155,12 @@ export default defineComponent({
     },
     canEditAddress(): boolean {
       return this.hasPermission(Permissions.EDIT_SECURITY_SERVER_ADDRESS);
+    },
+    hasSystemPair(): boolean {
+      return hasStoredSystemPair(this.securityServer?.system_did, this.securityServer?.dsp_base_url);
+    },
+    systemPairStale(): boolean {
+      return this.securityServer?.system_pair_stale === true;
     },
     address(): string {
       return this.securityServer?.server_address ?? '';
