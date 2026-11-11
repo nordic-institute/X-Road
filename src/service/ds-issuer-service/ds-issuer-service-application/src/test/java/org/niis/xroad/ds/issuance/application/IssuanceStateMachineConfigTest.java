@@ -27,10 +27,15 @@
 package org.niis.xroad.ds.issuance.application;
 
 import io.smallrye.config.source.yaml.YamlConfigSource;
+import org.eclipse.edc.identityhub.statemachine.IdentityHubStateMachineConfiguration;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,6 +47,8 @@ class IssuanceStateMachineConfigTest {
     private static final String CALL_TIMEOUT_KEY = PREFIX + "send.call-timeout.ms";
     private static final String CONNECT_TIMEOUT_KEY = PREFIX + "send.connect-timeout.ms";
 
+    private static final String[] SHIPPED_KEYS = {LEASE_DURATION_KEY, BATCH_SIZE_KEY, CALL_TIMEOUT_KEY, CONNECT_TIMEOUT_KEY};
+
     private static YamlConfigSource shipped;
 
     @BeforeAll
@@ -50,22 +57,51 @@ class IssuanceStateMachineConfigTest {
     }
 
     @Test
-    void shippedConfigSetsAllIssuanceLeaseBatchAndTimeoutKeys() {
-        for (var key : new String[] {LEASE_DURATION_KEY, BATCH_SIZE_KEY, CALL_TIMEOUT_KEY, CONNECT_TIMEOUT_KEY}) {
-            assertThat(shipped.getValue(key)).as("%s must be set in application.yaml", key).isNotNull();
+    void shippedKeysAreDeclaredByEdc() {
+        var declared = edcDeclaredKeys();
+        for (var key : SHIPPED_KEYS) {
+            assertThat(declared)
+                    .as("%s must match a setting key declared by IdentityHubStateMachineConfiguration, "
+                            + "otherwise EDC ignores it and uses its default", key)
+                    .contains(key.substring(PREFIX.length()));
+        }
+    }
+
+    @Test
+    void shippedValuesArePositive() {
+        for (var key : SHIPPED_KEYS) {
+            assertThat(shippedNumber(key)).as("%s must be greater than 0", key).isPositive();
         }
     }
 
     @Test
     void fullBatchOfDeliveryCallsFitsInsideTheLease() {
-        var leaseMillis = Long.parseLong(shipped.getValue(LEASE_DURATION_KEY));
-        var batchSize = Long.parseLong(shipped.getValue(BATCH_SIZE_KEY));
-        var callTimeoutMillis = Long.parseLong(shipped.getValue(CALL_TIMEOUT_KEY));
+        var leaseMillis = shippedNumber(LEASE_DURATION_KEY);
+        var batchSize = shippedNumber(BATCH_SIZE_KEY);
+        var callTimeoutMillis = shippedNumber(CALL_TIMEOUT_KEY);
 
         assertThat(batchSize * callTimeoutMillis)
                 .as("%s x %s must stay below %s: a node that stalls past its lease lets another node "
                         + "take the same requests and deliver a credential twice",
                         BATCH_SIZE_KEY, CALL_TIMEOUT_KEY, LEASE_DURATION_KEY)
                 .isLessThan(leaseMillis);
+    }
+
+    private static long shippedNumber(String key) {
+        var value = shipped.getValue(key);
+        assertThat(value).as("%s must be set in application.yaml", key).isNotNull();
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw new AssertionError("%s = %s must be a number".formatted(key, value), e);
+        }
+    }
+
+    private static Set<String> edcDeclaredKeys() {
+        return Arrays.stream(IdentityHubStateMachineConfiguration.class.getDeclaredFields())
+                .map(field -> field.getAnnotation(Setting.class))
+                .filter(setting -> setting != null)
+                .map(Setting::key)
+                .collect(Collectors.toSet());
     }
 }
