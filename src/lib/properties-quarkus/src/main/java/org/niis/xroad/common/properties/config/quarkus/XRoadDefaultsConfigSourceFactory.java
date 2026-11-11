@@ -35,6 +35,7 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.FrameworkPublishedConfig;
 import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
+import org.niis.xroad.common.properties.dbsource.NodeNameProvider;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -46,8 +47,8 @@ import java.util.stream.Collectors;
  * Registers {@link XRoadDefaultsConfigSource} with the packaged catalogue
  * ({@link ConfigKeyProviders#allProviders()}), plus {@link XRoadFrameworkConfigSource} for the stored
  * overrides of keys marked {@link org.niis.xroad.common.properties.config.ConfigKey#publishedToFramework()},
- * read through {@link QuarkusNodeNameProvider} so a row stored for this node wins over the shared row of
- * the same key. Wired via {@code META-INF/services/io.smallrye.config.ConfigSourceFactory}.
+ * read through {@link NodeNameProvider#fromEnvironment()} so a row stored for this node wins over the shared
+ * row of the same key. Wired via {@code META-INF/services/io.smallrye.config.ConfigSourceFactory}.
  *
  * <p>An app may narrow what is published by setting {@code xroad.config.defaults-scopes} to a
  * comma-separated list of scope root paths (e.g. {@code xroad.common}); only those providers'
@@ -67,7 +68,7 @@ public final class XRoadDefaultsConfigSourceFactory implements ConfigSourceFacto
         var providers = selectProviders(ConfigKeyProviders.allProviders(), scopes);
         var appName = context.getValue("quarkus.application.name");
         var storedOverrides = FrameworkPublishedConfig.storedOverrides(
-                appName == null ? null : appName.getValue(), providers, QuarkusNodeNameProvider.forContext(context));
+                appName == null ? null : appName.getValue(), providers, NodeNameProvider.fromEnvironment());
         if (storedOverrides.isEmpty()) {
             return List.of(new XRoadDefaultsConfigSource(providers));
         }

@@ -111,12 +111,7 @@ def cmd_get(args):
     data = load_yaml(file_path)
     keys = parse_path(path)
     value = get_value(data, keys)
-
-    if value is None:
-        # Fall back to the whole dotted path as a single flat top-level key
-        flat_key = path[1:] if path.startswith('.') else path
-        value = get_value(data, [flat_key])
-
+    
     if value is None:
         # Return empty string for missing values (compatible with yq behavior)
         print("")
