@@ -303,7 +303,7 @@ public class ClientSoapMessageProcessor {
                                             OpMonitoringData opMonitoringData) throws Exception {
         var replayEntity = new AtomicReference<ReplaySoapProxyMessageEntity>();
         return dspFailover.run(dspRequest, xRequestId, proxyProperties.clientProxy().enableRequestRetry(),
-                () -> replayEntity.get() != null || completeRequestForReplay(ctx, decoder)
+                () -> replayEntity.get() != null || completeRequestForReplay(ctx, decoder, xRequestId)
                         && replayEntity.compareAndSet(null, new ReplaySoapProxyMessageEntity(decoder)),
                 (httpSender, access) -> {
                     sendRequest(httpSender, ctx, decoder, xRequestId, opMonitoringData, access, replayEntity.get());
@@ -335,7 +335,7 @@ public class ClientSoapMessageProcessor {
                 var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
                 httpSender.close();
                 if (!retryEnabled || !clientRequestPreparationService.shouldRetry(e, targets, attempt)
-                        || replayEntity == null && !completeRequestForReplay(ctx, decoder)) {
+                        || replayEntity == null && !completeRequestForReplay(ctx, decoder, xRequestId)) {
                     throw e;
                 }
                 if (replayEntity == null) {
@@ -352,14 +352,20 @@ public class ClientSoapMessageProcessor {
      * After a failed first attempt, finishes producing the request message so that it can be
      * replayed: drains the remaining encoded message from the pipe — letting the handler thread
      * parse the whole client request, cache the attachments, sign the message and log it — waits
-     * for the handler thread to finish, and verifies it completed without errors.
+     * for the handler thread to finish, and verifies it completed without errors. The handler thread's own
+     * error is logged when it blocks the replay, because the caller only sees the failed send.
      *
      * @return true if the request message is fully produced and replayable
      */
-    private boolean completeRequestForReplay(ClientSoapRequestContext ctx, SoapRequestDecoder decoder) {
+    private boolean completeRequestForReplay(ClientSoapRequestContext ctx, SoapRequestDecoder decoder, String xRequestId) {
         drainAndClose(ctx.reqIns());
         waitForRequestSent(ctx);
-        return decoder.getException() == null;
+        var requestError = decoder.getException();
+        if (requestError != null) {
+            log.warn("The client request could not be completed for replay, so it is not sent again (xRequestId: {})",
+                    xRequestId, requestError);
+        }
+        return requestError == null;
     }
 
     record SentRequest(HttpSender httpSender, @Nullable AssetAccessResponse assetAccess) {

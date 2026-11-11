@@ -89,6 +89,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -129,7 +130,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
 @Timeout(30)
 class ClientSoapMessageProcessorTest {
 
-    private final Logger failoverLogger = Logger.getLogger(DspFailover.class.getName());
+    private final Logger clientProxyLogger = Logger.getLogger(DspFailover.class.getPackageName());
     private final List<LogRecord> loggedWarnings = new CopyOnWriteArrayList<>();
     private final Handler warningCollector = new Handler() {
         @Override
@@ -152,18 +153,18 @@ class ClientSoapMessageProcessorTest {
 
     @BeforeEach
     void collectWarnings() {
-        originalLoggerLevel = failoverLogger.getLevel();
-        originalUseParentHandlers = failoverLogger.getUseParentHandlers();
-        failoverLogger.setLevel(Level.ALL);
-        failoverLogger.setUseParentHandlers(false);
-        failoverLogger.addHandler(warningCollector);
+        originalLoggerLevel = clientProxyLogger.getLevel();
+        originalUseParentHandlers = clientProxyLogger.getUseParentHandlers();
+        clientProxyLogger.setLevel(Level.ALL);
+        clientProxyLogger.setUseParentHandlers(false);
+        clientProxyLogger.addHandler(warningCollector);
     }
 
     @AfterEach
     void stopCollectingWarnings() {
-        failoverLogger.removeHandler(warningCollector);
-        failoverLogger.setUseParentHandlers(originalUseParentHandlers);
-        failoverLogger.setLevel(originalLoggerLevel);
+        clientProxyLogger.removeHandler(warningCollector);
+        clientProxyLogger.setUseParentHandlers(originalUseParentHandlers);
+        clientProxyLogger.setLevel(originalLoggerLevel);
     }
 
     private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
@@ -179,12 +180,17 @@ class ClientSoapMessageProcessorTest {
     private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
     private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS_C_ID = "did:web:ss-c.example%3A7183:v1:DEV:COM:222";
+    private static final String SS_C_ADDRESS = "https://ss-c.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SS_A_TOKEN = "token-issued-by-ss-a";
     private static final String SS_B_TOKEN = "token-issued-by-ss-b";
+    private static final String SS_C_TOKEN = "token-issued-by-ss-c";
     private static final AssetAccessResponse WON_BY_SS_A =
             new AssetAccessResponse("https://ss-a.example:8183/data", SS_A_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     private static final AssetAccessResponse WON_BY_SS_B =
             new AssetAccessResponse("https://ss-b.example:8183/data", SS_B_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
+    private static final AssetAccessResponse WON_BY_SS_C =
+            new AssetAccessResponse("https://ss-c.example:8183/data", SS_C_TOKEN, new AcquisitionCandidate(SS_C_ID, SS_C_ADDRESS));
 
     @Test
     void isManagementRequestReturnsTrueWhenServiceIdMatchesManagementSubsystem() {
@@ -699,21 +705,77 @@ class ClientSoapMessageProcessorTest {
         assertThat(dspRequests.getAllValues().get(1).triedServers()).containsExactly(SS_A_ADDRESS);
     }
 
-    @Test
-    void aReadTimeoutIsSentOnceAndTheOriginalErrorReachesTheCallerWithoutEvictionOrReport() throws Exception {
+    @ParameterizedTest
+    @MethodSource("failuresAfterSend")
+    void aFailureAfterTheSendIsSentOnceAndTheOriginalErrorReachesTheCallerWithoutEvictionOrReport(Throwable fault)
+            throws Exception {
         var harness = createRefusalHarness(true, false);
         stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
         var request = newUnfinishedRequest();
-        var readTimeout = new SocketTimeoutException("Read timed out");
-        stubSenders(harness, failingSender(readTimeout), mock(HttpSender.class));
+        stubSenders(harness, failingSender(fault), mock(HttpSender.class));
 
         assertThatThrownBy(() -> harness.processor().processRequest(request.ctx(), request.decoder(), "req-1", null))
-                .isSameAs(readTimeout);
+                .isSameAs(fault);
 
         verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
         verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @Test
+    void whenThreeCandidatesRefuseEachIsTriedOnceAndTheCallerGetsTheDataPlaneError() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 3, WON_BY_SS_A, WON_BY_SS_B, WON_BY_SS_C);
+        var request = newCompletedRequest();
+        var refusedBySsC = new ConnectException("refused by C");
+        stubSenders(harness, failingSender(new ConnectException("refused by A")),
+                failingReplaySender(new ConnectException("refused by B")), failingReplaySender(refusedBySsC));
+
+        assertThatThrownBy(() -> send(harness, request)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, refusedBySsC));
+
+        var dspRequests = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor(), times(3)).execute(dspRequests.capture());
+        assertThat(dspRequests.getAllValues()).extracting(DspRequest::triedServers)
+                .containsExactly(Set.of(), Set.of(SS_A_ADDRESS), Set.of(SS_A_ADDRESS, SS_B_ADDRESS));
+        verify(harness.dspSendFailureHandler(), times(3)).handle(any(), any());
+    }
+
+    @Test
+    void aFailureBeforeTheSendOnTheFirstServerThenAFailureAfterTheSendOnTheSiblingEndsWithTheSiblingsError() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 3, WON_BY_SS_A, WON_BY_SS_B, WON_BY_SS_C);
+        var request = newCompletedRequest();
+        var readTimeout = new SocketTimeoutException("Read timed out");
+        stubSenders(harness, failingSender(new ConnectException("refused")), failingReplaySender(readTimeout),
+                mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness, request)).isSameAs(readTimeout);
+
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
+        verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(SS_B_ADDRESS);
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(eq(SS_B_ID), any());
+    }
+
+    @Test
+    void aRequestThatCannotBeCompletedForReplayBlocksTheFailoverAndItsOwnErrorIsLoggedAtWarn() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var request = newCompletedRequest();
+        request.decoder().setError(new IllegalArgumentException("malformed attachment"));
+        var fault = new ConnectException("refused");
+        stubSenders(harness, failingSender(fault), mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness, request)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
+        assertThat(loggedWarnings).anySatisfy(warning -> {
+            assertThat(warning.getThrown()).isSameAs(request.decoder().getException());
+            assertThat(warning.getMessage()).contains("xRequestId: req-1");
+        });
     }
 
     @Test
