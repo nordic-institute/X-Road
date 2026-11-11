@@ -65,26 +65,24 @@ import java.util.concurrent.TimeUnit;
  * and call timeouts of a probe are the probe deadline; only the write timeout is inherited. The probe client has a
  * connection pool of its own that keeps no idle connection and speaks HTTP/1.1 only, so a connection is never shared
  * between probes, every probe opens a fresh connection, and a connection pooled by earlier DSP calls never wins.
- * Probes run concurrently: they start together, or one stagger apart when a
- * stagger is set.
+ * Probes run concurrently: they start together, or one stagger apart when a stagger is set.
  *
- * <p>The first probe to complete its TLS handshake wins and the others are cancelled. The winner's exchange is
- * allowed to finish, without reading its status, so that a winner whose request fails, for example by getting no
- * answer before the probe deadline, is demoted before the order is handed out. A probe that fails before the race
- * is decided, or the winner's probe that fails after its handshake, puts its server in cooldown; probes cancelled
- * by the winner are not failures. A probe that gets a response without completing a TLS handshake, for example over
- * plain HTTP, is a failure too.
+ * <p>The race is decided when the first probe completes its TLS handshake. Every probe call is then cancelled, the
+ * winner's included: the HTTP request only drives the connection, and its outcome never demotes or cools a server.
+ * A probe that fails before the race is decided, by a connect or TLS failure or by no handshake within the probe
+ * deadline, puts its server in cooldown; probes cancelled by the winner, started or not, are not failures. A probe
+ * that gets a response without completing a TLS handshake, for example over plain HTTP, is a failure too.
  *
- * <p>The order is the winner, then the cancelled candidates, then the failed ones, a demoted winner among them;
- * each of the last two groups is shuffled. It is handed out on a dedicated completion executor, so the acquisition
- * that follows does not run on an OkHttp callback thread.
+ * <p>The order is the winner, then the cancelled candidates, then the failed ones; each of the last two groups is
+ * shuffled. It is handed out on a dedicated completion executor, so the acquisition that follows does not run on an
+ * OkHttp callback thread.
  *
  * <p>Each completed handshake updates the server's moving average of connection setup time, TCP connect plus TLS
- * handshake ({@link HandshakeTimes}); a failed probe drops the server's average. With a probe stagger of zero all
- * probes start together and the averages do not affect the order. With a positive stagger the probes start one
- * stagger apart, servers with the lowest average first and servers without a recorded average last, so a server that
- * usually answers first is probed before the others and may win before they are started. A probe that fails before
- * the race is decided starts the next waiting probe at once instead of at that probe's slot.
+ * handshake ({@link HandshakeTimes}), before the calls are cancelled; a failed probe drops the server's average. With
+ * a probe stagger of zero all probes start together and the averages do not affect the order. With a positive stagger
+ * the probes start one stagger apart, servers with the lowest average first and servers without a recorded average
+ * last, so a server that usually answers first is probed before the others and may win before they are started. A
+ * probe that fails before the race is decided starts the next waiting probe at once instead of at that probe's slot.
  */
 public class CandidateHandshakeRace {
 
@@ -108,10 +106,11 @@ public class CandidateHandshakeRace {
      * @param cooldownTracker          marks servers whose probe failed
      * @param executorInstrumentation  instruments the completion executor the order is handed out on and the
      *                                 stagger scheduler that starts the delayed probes
-     * @param probeDeadline            time limit for one probe, from start until its response completes
+     * @param probeDeadline            time limit for the TCP connect and TLS handshake of one probe
      * @param probeStagger             delay between the starts of consecutive probes; zero starts all probes together
      * @param smoothingFactor          weight of the newest sample in a server's average connection setup time, above 0
      *                                 and at most 1
+     * @param monitor                  receives probe outcomes
      */
     public CandidateHandshakeRace(OkHttpClient client,
                                   CooldownTracker cooldownTracker,
@@ -223,7 +222,6 @@ public class CandidateHandshakeRace {
         private final List<Probe> probes;
         private final CompletableFuture<List<Candidate>> result = new CompletableFuture<>();
         private boolean decided;
-        private Probe declaredWinner;
         private List<Probe> startOrder = List.of();
 
         private Round(List<Candidate> candidates) {
@@ -324,34 +322,34 @@ public class CandidateHandshakeRace {
             List<Probe> unfinished;
             synchronized (this) {
                 decided = true;
-                unfinished = probes.stream()
-                        .filter(probe -> probe.state == ProbeState.PENDING || probe.state == ProbeState.WINNER)
-                        .toList();
+                unfinished = probes.stream().filter(probe -> probe.state == ProbeState.PENDING).toList();
                 unfinished.forEach(probe -> probe.state = ProbeState.CANCELLED);
             }
             unfinished.forEach(probe -> probe.call.cancel());
         }
 
-        private void declareWinner(Probe probe) {
+        private void declareWinner(Probe winner) {
             List<Probe> cancelled;
+            List<Candidate> order;
             synchronized (this) {
-                if (decided || probe.state != ProbeState.PENDING) {
+                if (decided || winner.state != ProbeState.PENDING) {
                     return;
                 }
-                probe.state = ProbeState.WINNER;
-                declaredWinner = probe;
+                winner.state = ProbeState.WINNER;
                 decided = true;
                 cancelled = probes.stream().filter(other -> other.state == ProbeState.PENDING).toList();
                 cancelled.forEach(other -> other.state = ProbeState.CANCELLED);
+                order = decidedOrder();
             }
-            monitor.debug("Probe won the race: counterPartyAddress=%s".formatted(probe.candidate.counterPartyAddress()));
+            monitor.debug("Probe won the race: counterPartyAddress=%s".formatted(winner.candidate.counterPartyAddress()));
+            winner.call.cancel();
             cancelled.forEach(other -> other.call.cancel());
+            handOut(order);
         }
 
         private void recordFailure(Probe probe, Throwable cause) {
             synchronized (this) {
-                var demotesWinner = probe.state == ProbeState.WINNER;
-                if (!demotesWinner && (decided || probe.state != ProbeState.PENDING)) {
+                if (probe.state != ProbeState.PENDING) {
                     return;
                 }
                 probe.state = ProbeState.FAILED;
@@ -370,28 +368,6 @@ public class CandidateHandshakeRace {
                     return;
                 }
                 decided = true;
-                order = decidedOrder();
-            }
-            handOut(order);
-        }
-
-        private void failWhenNoHandshakeCompleted(Probe probe) {
-            boolean noHandshake;
-            synchronized (this) {
-                noHandshake = probe.state == ProbeState.PENDING;
-            }
-            if (noHandshake) {
-                recordFailure(probe, new IllegalStateException(
-                        "Probe response without a TLS handshake: " + probe.candidate.counterPartyAddress()));
-            }
-        }
-
-        private void exchangeEnded(Probe probe) {
-            List<Candidate> order;
-            synchronized (this) {
-                if (probe != declaredWinner) {
-                    return;
-                }
                 order = decidedOrder();
             }
             handOut(order);
@@ -432,14 +408,13 @@ public class CandidateHandshakeRace {
             @Override
             public void onFailure(Call call, IOException e) {
                 recordFailure(probe, e);
-                exchangeEnded(probe);
             }
 
             @Override
             public void onResponse(Call call, Response response) {
                 response.close();
-                failWhenNoHandshakeCompleted(probe);
-                exchangeEnded(probe);
+                recordFailure(probe, new IllegalStateException(
+                        "Probe response without a TLS handshake: " + probe.candidate.counterPartyAddress()));
             }
         }
     }

@@ -162,11 +162,12 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
     private long cooldownPeriodSeconds;
 
     @Setting(key = "xroad.asset-access.handshake-race.deadline-millis",
-            description = "Time limit in milliseconds for one provider Security Server probe, counted from that "
-                    + "probe's own start. A probe is a TLS connection opened to each candidate before negotiation, "
-                    + "all at once or staggered (see xroad.asset-access.handshake-race.stagger-millis). The first "
-                    + "probe to complete its TLS handshake wins; every probe opens a fresh connection, and the catalog "
-                    + "call opens its own. A probe that fails or exceeds the limit, the winner's included, puts its "
+            description = "Time limit in milliseconds for the TCP connect and TLS handshake of one provider Security "
+                    + "Server probe, counted from that probe's own start. A probe is a TLS connection opened to each "
+                    + "candidate before negotiation, all at once or staggered (see "
+                    + "xroad.asset-access.handshake-race.stagger-millis). The first probe to complete its TLS "
+                    + "handshake wins and every probe is cancelled, so the HTTP reply never counts. A probe whose "
+                    + "connect or handshake fails or exceeds the limit puts its "
                     + "server in cooldown and orders it after the others. "
                     + "At most " + MAX_HANDSHAKE_RACE_DEADLINE_MILLIS + ".",
             defaultValue = "1500")
@@ -178,16 +179,18 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
                     + "server's moving average connection setup time (TCP connect plus TLS handshake; see "
                     + "xroad.asset-access.handshake-race.smoothing-factor; in memory only), fastest first, servers "
                     + "with no recorded average last (a failed probe drops the server's average), so the usually "
-                    + "fastest server is probed before the others and may win before they are started. A probe that "
-                    + "fails before a winner is chosen starts the next waiting probe at once. Must be below "
+                    + "fastest server is probed before the others and may win before they are started; a probe "
+                    + "not started when a winner is chosen never starts. A probe that fails before a winner is "
+                    + "chosen starts the next waiting probe at once. Must be below "
                     + "xroad.asset-access.handshake-race.deadline-millis. Typical values are 100 to 250.",
             defaultValue = "0")
     private long handshakeRaceStaggerMillis;
 
     @Setting(key = "xroad.asset-access.handshake-race.smoothing-factor",
             description = "Weight of the newest sample when a provider Security Server's moving average connection "
-                    + "setup time is updated after a completed probe. Must be above 0 and at most 1. A higher value "
-                    + "follows recent changes faster and smooths out less; 1 keeps only the latest sample.",
+                    + "setup time is updated after a completed TLS handshake. Must be above 0 and at most 1. A "
+                    + "higher value follows recent changes faster and smooths out less; 1 keeps only the latest "
+                    + "sample.",
             defaultValue = "0.3")
     private double handshakeRaceSmoothingFactor;
 

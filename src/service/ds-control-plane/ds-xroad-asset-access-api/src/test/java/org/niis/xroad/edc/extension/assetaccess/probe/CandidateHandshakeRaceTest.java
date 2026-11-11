@@ -65,6 +65,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -97,12 +98,12 @@ class CandidateHandshakeRaceTest {
     private static final String CONTEXT = "DEV:COM:222";
     private static final String DSP_PATH = "/api/dsp/" + CONTEXT + "/http-dsp-profile-2025-1";
     private static final String VERSION_PATH = "/api/dsp/" + CONTEXT + "/.well-known/dspace-version";
-    private static final String FAST_HOST = "fast.xroad.test";
-    private static final String SLOW_HOST = "slow.xroad.test";
+    private static final String SS1_HOST = "ss1.example.org";
+    private static final String SS0_HOST = "ss0.example.org";
+    private static final String SS2_HOST = "ss2.example.org";
     private static final Duration DEADLINE = Duration.ofSeconds(5);
     private static final long SLOW_HANDSHAKE_MILLIS = 3000;
     private static final double SMOOTHING_FACTOR = 0.3;
-    private static final String RETRY_HOST = "retry.xroad.test";
     private static final InetAddress UNREACHABLE_ADDRESS = InetAddress.ofLiteral("127.0.0.2");
     private static final long FAILED_CONNECT_ATTEMPT_MILLIS = 600;
     private static final Duration MINIMUM_RETRIED_SAMPLE = Duration.ofMillis(200);
@@ -114,6 +115,7 @@ class CandidateHandshakeRaceTest {
     private final List<HttpServer> plainServers = new ArrayList<>();
     private final List<CandidateHandshakeRace> races = new ArrayList<>();
     private final CooldownTracker cooldownTracker = new CooldownTracker(Duration.ofSeconds(180));
+    private volatile boolean unreachableAddressFirst;
     private OkHttpClient client;
 
     @BeforeAll
@@ -135,37 +137,86 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void theFasterHandshakeIsOrderedFirst() throws Exception {
-        var slow = startServer(SLOW_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
-        var fast = startServer(FAST_HOST, trustedCa, 0);
+        var slow = startServer(SS0_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
+        var fast = startServer(SS1_HOST, trustedCa, 0);
         var race = race(DEADLINE);
 
-        var order = race.order(List.of(candidate("slow", slow), candidate("fast", fast))).get(10, TimeUnit.SECONDS);
+        var order = race.order(List.of(candidate("ss0", slow), candidate("ss1", fast))).get(10, TimeUnit.SECONDS);
 
-        assertThat(order).extracting(Candidate::counterPartyId).first().isEqualTo("fast");
+        assertThat(order).extracting(Candidate::counterPartyId).first().isEqualTo("ss1");
         assertThat(fast.handshakesCompleted()).hasValue(1);
         assertThat(slow.handshakesCompleted()).hasValue(0);
     }
 
     @Test
     void losingProbesAreCancelledOnceTheWinnerCompletesItsHandshake() throws Exception {
-        var slow = startServer(SLOW_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
-        var fast = startServer(FAST_HOST, trustedCa, 0);
+        var slow = startServer(SS0_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
+        var fast = startServer(SS1_HOST, trustedCa, 0);
         var race = race(DEADLINE);
 
-        var order = race.order(List.of(candidate("slow", slow), candidate("fast", fast))).get(10, TimeUnit.SECONDS);
+        var order = race.order(List.of(candidate("ss0", slow), candidate("ss1", fast))).get(10, TimeUnit.SECONDS);
 
         await().atMost(8, TimeUnit.SECONDS).until(() -> slow.handshakesAbandoned().get() == 1);
         assertThat(slow.handshakesCompleted()).hasValue(0);
-        assertThat(order).extracting(Candidate::counterPartyId).containsExactly("fast", "slow");
+        assertThat(order).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
         assertThat(cooldownTracker.isCoolingDown(slow.address())).isFalse();
     }
 
     @Test
-    void aConnectionPooledByTheEdcClientDoesNotWinWithoutAHandshake() throws Exception {
-        var warm = startServer(SLOW_HOST, trustedCa, 0);
-        var fresh = startServer(FAST_HOST, trustedCa, 0);
+    void everyProbeCallIsCancelledOnceTheRaceIsDecidedTheWinnersIncluded() throws Exception {
+        var ss0 = startServer(SS0_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
+        var ss1 = startServer(SS1_HOST, trustedCa, 0);
+        ss1.holdResponses();
         var race = race(DEADLINE);
-        var warmUpRequest = new Request.Builder().url("https://" + SLOW_HOST + ":" + warm.port() + VERSION_PATH).build();
+
+        var order = race.order(List.of(candidate("ss0", ss0), candidate("ss1", ss1))).get(10, TimeUnit.SECONDS);
+
+        assertThat(order).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
+        await().atMost(DEADLINE.dividedBy(2)).until(() -> client.dispatcher().runningCallsCount() == 0);
+        assertThat(cooldownTracker.isCoolingDown(ss1.address())).isFalse();
+        assertThat(cooldownTracker.isCoolingDown(ss0.address())).isFalse();
+        ss1.releaseResponses();
+    }
+
+    @Test
+    void aSlowHttpReplyAfterTheHandshakeChangesNeitherTheOrderNorTheCooldown() throws Exception {
+        var ss0 = startServer(SS0_HOST, trustedCa, 0);
+        var ss1 = startServer(SS1_HOST, trustedCa, 0);
+        ss0.holdHandshakes();
+        ss1.holdResponses();
+        var race = race(Duration.ofSeconds(3));
+
+        var order = race.order(List.of(candidate("ss0", ss0), candidate("ss1", ss1)));
+
+        assertThat(order.get(2, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
+        await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2))
+                .until(() -> !cooldownTracker.isCoolingDown(ss1.address()) && !cooldownTracker.isCoolingDown(ss0.address()));
+        ss0.releaseHandshakes();
+        ss1.releaseResponses();
+    }
+
+    @Test
+    void aFailedHttpReplyAfterTheHandshakeChangesNeitherTheOrderNorTheCooldown() throws Exception {
+        var ss0 = startServer(SS0_HOST, trustedCa, 0);
+        var ss1 = startServer(SS1_HOST, trustedCa, 0);
+        ss0.holdHandshakes();
+        ss1.dropConnectionsAfterTheHandshake();
+        var race = race(DEADLINE);
+
+        var order = race.order(List.of(candidate("ss0", ss0), candidate("ss1", ss1)));
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
+        await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2))
+                .until(() -> !cooldownTracker.isCoolingDown(ss1.address()) && !cooldownTracker.isCoolingDown(ss0.address()));
+        ss0.releaseHandshakes();
+    }
+
+    @Test
+    void aConnectionPooledByTheEdcClientDoesNotWinWithoutAHandshake() throws Exception {
+        var warm = startServer(SS0_HOST, trustedCa, 0);
+        var fresh = startServer(SS1_HOST, trustedCa, 0);
+        var race = race(DEADLINE);
+        var warmUpRequest = new Request.Builder().url("https://" + SS0_HOST + ":" + warm.port() + VERSION_PATH).build();
         try (var response = client.newCall(warmUpRequest).execute()) {
             assertThat(response.code()).isEqualTo(200);
         }
@@ -184,42 +235,9 @@ class CandidateHandshakeRaceTest {
     }
 
     @Test
-    void aWinnerWhoseProbeRequestGetsNoAnswerIsOrderedAfterTheOthersAndMarkedInCooldown() throws Exception {
-        var silent = startServer("silent.xroad.test", trustedCa, 0);
-        var healthy = startServer("healthy.xroad.test", trustedCa, 0);
-        silent.holdResponses();
-        healthy.holdHandshakes();
-        var race = race(Duration.ofSeconds(2));
-
-        var order = race.order(List.of(candidate("silent", silent), candidate("healthy", healthy)));
-
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "silent");
-        assertThat(silent.handshakesCompleted()).hasValue(1);
-        assertThat(cooldownTracker.isCoolingDown(silent.address())).isTrue();
-        assertThat(cooldownTracker.isCoolingDown(healthy.address())).isFalse();
-        silent.releaseResponses();
-        healthy.releaseHandshakes();
-    }
-
-    @Test
-    void aWinnerWhoseProbeRequestGetsNoAnswerLosesItsAverage() throws Exception {
-        var silent = startServer("silent.xroad.test", trustedCa, 0);
-        var healthy = startServer("healthy.xroad.test", trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        silent.holdResponses();
-        healthy.holdHandshakes();
-        var race = race(Duration.ofSeconds(2), Duration.ZERO, handshakeTimes);
-
-        var order = race.order(List.of(candidate("silent", silent), candidate("healthy", healthy)));
-
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "silent");
-        assertThat(handshakeTimes.average(silent.address())).isEmpty();
-    }
-
-    @Test
     void aProbeThatGetsAResponseWithoutATlsHandshakeIsAFailureSoTheRoundCompletes() throws Exception {
         var plainAddress = startPlainServer();
-        var unapproved = startServer("unapproved.xroad.test", untrustedCa, 0);
+        var unapproved = startServer(SS2_HOST, untrustedCa, 0);
         var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
         handshakeTimes.record(plainAddress, Duration.ofMillis(5));
         var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
@@ -232,18 +250,18 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void aProbeFailureMarksTheServerInCooldownAndFailedServersComeAfterAllWinners() throws Exception {
-        var fast = startServer(FAST_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
-        var refused = unusedAddress(FAST_HOST);
-        var unapproved = startServer("unapproved.xroad.test", untrustedCa, 0);
+        var fast = startServer(SS1_HOST, trustedCa, 300);
+        var refused = unusedAddress(SS1_HOST);
+        var unapproved = startServer("ss2.example.org", untrustedCa, 0);
         var race = race(DEADLINE);
 
         var order = race.order(List.of(
                 new Candidate("refused", refused),
                 candidate("unapproved", unapproved),
-                candidate("fast", fast))).get(10, TimeUnit.SECONDS);
+                candidate("ss1", fast))).get(10, TimeUnit.SECONDS);
 
-        assertThat(order).extracting(Candidate::counterPartyId).first().isEqualTo("fast");
-        assertThat(order).extracting(Candidate::counterPartyId).containsExactlyInAnyOrder("fast", "refused", "unapproved");
+        assertThat(order).extracting(Candidate::counterPartyId).first().isEqualTo("ss1");
+        assertThat(order).extracting(Candidate::counterPartyId).containsExactlyInAnyOrder("ss1", "refused", "unapproved");
         assertThat(cooldownTracker.isCoolingDown(refused)).isTrue();
         assertThat(cooldownTracker.isCoolingDown(unapproved.address())).isTrue();
         assertThat(cooldownTracker.isCoolingDown(fast.address())).isFalse();
@@ -251,9 +269,9 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void probeFailedServersAreShuffled() throws Exception {
-        var winner = startServer(FAST_HOST, trustedCa, 300);
-        var failed = List.of(unusedAddress(FAST_HOST), unusedAddress(FAST_HOST), unusedAddress(FAST_HOST),
-                unusedAddress(FAST_HOST));
+        var winner = startServer(SS1_HOST, trustedCa, 300);
+        var failed = List.of(unusedAddress(SS1_HOST), unusedAddress(SS1_HOST), unusedAddress(SS1_HOST),
+                unusedAddress(SS1_HOST));
         var candidates = new ArrayList<Candidate>();
         candidates.add(candidate("winner", winner));
         for (var i = 0; i < failed.size(); i++) {
@@ -275,7 +293,7 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void aProbeThatMissesTheDeadlineIsAFailure() throws Exception {
-        var stalled = startServer(SLOW_HOST, trustedCa, 5000);
+        var stalled = startServer(SS0_HOST, trustedCa, 5000);
         var race = race(Duration.ofMillis(400));
 
         var order = race.order(List.of(candidate("stalled", stalled))).get(10, TimeUnit.SECONDS);
@@ -286,8 +304,8 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void whenEveryProbeFailsEveryServerIsInCooldownAndStillReturned() throws Exception {
-        var first = unusedAddress(FAST_HOST);
-        var second = unusedAddress(SLOW_HOST);
+        var first = unusedAddress(SS1_HOST);
+        var second = unusedAddress(SS0_HOST);
         var race = race(DEADLINE);
 
         var order = race.order(List.of(new Candidate("first", first), new Candidate("second", second)))
@@ -307,19 +325,19 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void probesTrustOnlyTheConnectorCaAndDialUnderTheExactHostName() throws Exception {
-        var trusted = startServer(FAST_HOST, trustedCa, 0);
+        var trusted = startServer(SS1_HOST, trustedCa, 0);
         var race = race(DEADLINE);
 
         var order = race.order(List.of(candidate("trusted", trusted))).get(10, TimeUnit.SECONDS);
 
         assertThat(order).extracting(Candidate::counterPartyId).containsExactly("trusted");
-        assertThat(trusted.hostHeaders()).containsExactly(FAST_HOST + ":" + trusted.port());
+        assertThat(trusted.handshakesCompleted()).hasValue(1);
         assertThat(cooldownTracker.isCoolingDown(trusted.address())).isFalse();
     }
 
     @Test
     void aCertificateForAnotherHostNameFailsTheProbe() throws Exception {
-        var wrongName = startServer("other.xroad.test", trustedCa, 0, "unrelated.xroad.test");
+        var wrongName = startServer("ss2.example.org", trustedCa, 0, "ss0.example.org");
         var race = race(DEADLINE);
 
         var order = race.order(List.of(new Candidate("wrong-name", wrongName.address()))).get(10, TimeUnit.SECONDS);
@@ -330,7 +348,7 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void theOrderIsHandedOutOnTheCompletionExecutor() throws Exception {
-        var provider = startServer(FAST_HOST, trustedCa, 0);
+        var provider = startServer(SS1_HOST, trustedCa, 0);
         provider.holdHandshakes();
         var race = race(DEADLINE);
 
@@ -339,149 +357,6 @@ class CandidateHandshakeRaceTest {
         provider.releaseHandshakes();
 
         assertThat(completingThread.get(10, TimeUnit.SECONDS)).startsWith(CandidateHandshakeRace.COMPLETION_THREAD_NAME);
-    }
-
-    @Test
-    void everyCompletedHandshakeUpdatesTheServersAverage() throws Exception {
-        var fast = startServer(FAST_HOST, trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
-
-        race.order(List.of(candidate("fast", fast))).get(10, TimeUnit.SECONDS);
-
-        assertThat(handshakeTimes.average(fast.address()).orElseThrow()).isPositive().isLessThan(DEADLINE);
-    }
-
-    @Test
-    void aServerWhoseProbeFailedStartsAmongTheServersWithoutAnAverageOnceItIsProbedAgain() throws Exception {
-        var stagger = Duration.ofMillis(250);
-        var flaky = startServer("flaky.xroad.test", untrustedCa, 0);
-        var known = startServer("known.xroad.test", trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        handshakeTimes.record(flaky.address(), Duration.ofMillis(1));
-        handshakeTimes.record(known.address(), Duration.ofMillis(400));
-        var race = race(DEADLINE, stagger, handshakeTimes);
-        var candidates = List.of(candidate("flaky", flaky), candidate("known", known));
-        known.holdHandshakes();
-
-        var firstOrder = race.order(candidates);
-        await().atMost(8, TimeUnit.SECONDS).until(() -> handshakeTimes.average(flaky.address()).isEmpty());
-        known.releaseHandshakes();
-
-        assertThat(firstOrder.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId)
-                .containsExactly("known", "flaky");
-        assertThat(cooldownTracker.isCoolingDown(flaky.address())).isTrue();
-        flaky.holdHandshakes();
-        known.holdHandshakes();
-        var secondOrder = race.order(candidates);
-        await().atMost(8, TimeUnit.SECONDS).until(() -> flaky.acceptNanos().size() == 2 && known.acceptNanos().size() == 2);
-        flaky.releaseHandshakes();
-        known.releaseHandshakes();
-
-        assertThat(secondOrder.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).first().isEqualTo("known");
-        assertThat(flaky.acceptNanos().get(1) - known.acceptNanos().get(1)).isGreaterThanOrEqualTo(minimumGapNanos(stagger));
-    }
-
-    @Test
-    void aStaggeredRaceStoppedMidRoundStillStartsItsPendingProbesAndCompletes() throws Exception {
-        var failing = startServer("failing.xroad.test", untrustedCa, 0);
-        var healthy = startServer("healthy.xroad.test", trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        handshakeTimes.record(failing.address(), Duration.ofMillis(1));
-        var race = race(DEADLINE, Duration.ofMillis(250), handshakeTimes);
-
-        var order = race.order(List.of(candidate("healthy", healthy), candidate("failing", failing)));
-        race.stop();
-
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "failing");
-        assertThat(healthy.handshakesCompleted()).hasValue(1);
-    }
-
-    @Test
-    void cancellingTheOrderCancelsTheRunningProbeAndTheProbeStartsStillScheduled() throws Exception {
-        var stagger = Duration.ofMillis(800);
-        var started = startServer("started.xroad.test", trustedCa, 0);
-        var scheduled = startServer("scheduled.xroad.test", trustedCa, 0);
-        var lastScheduled = startServer("last.xroad.test", trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        handshakeTimes.record(started.address(), Duration.ofMillis(10));
-        handshakeTimes.record(scheduled.address(), Duration.ofMillis(20));
-        handshakeTimes.record(lastScheduled.address(), Duration.ofMillis(30));
-        List.of(started, scheduled, lastScheduled).forEach(TlsServer::holdHandshakes);
-        var race = race(DEADLINE, stagger, handshakeTimes);
-        var order = race.order(List.of(candidate("last", lastScheduled), candidate("scheduled", scheduled), candidate("started", started)));
-        await().atMost(8, TimeUnit.SECONDS).until(() -> !started.acceptNanos().isEmpty());
-
-        order.cancel(true);
-
-        await().atMost(DEADLINE.dividedBy(2)).until(() -> client.dispatcher().runningCallsCount() == 0);
-        started.releaseHandshakes();
-        await().atMost(8, TimeUnit.SECONDS).until(() -> started.handshakesAbandoned().get() == 1);
-        await().during(stagger.multipliedBy(2).plusMillis(100)).atMost(stagger.multipliedBy(2).plusSeconds(5))
-                .until(() -> scheduled.acceptNanos().isEmpty() && lastScheduled.acceptNanos().isEmpty());
-        assertThat(started.handshakesCompleted()).hasValue(0);
-        assertThat(handshakeTimes.average(started.address())).hasValue(Duration.ofMillis(10));
-        assertThat(handshakeTimes.average(scheduled.address())).hasValue(Duration.ofMillis(20));
-        assertThat(handshakeTimes.average(lastScheduled.address())).hasValue(Duration.ofMillis(30));
-        assertThat(List.of(started, scheduled, lastScheduled)).noneMatch(server -> cooldownTracker.isCoolingDown(server.address()));
-        scheduled.releaseHandshakes();
-        lastScheduled.releaseHandshakes();
-    }
-
-    @Test
-    void aStaggeredRaceBegunAfterStopStillCompletes() throws Exception {
-        var first = startServer("first.xroad.test", trustedCa, 0);
-        var second = startServer("second.xroad.test", trustedCa, 0);
-        var race = race(DEADLINE, Duration.ofMillis(250), new HandshakeTimes(SMOOTHING_FACTOR));
-        race.stop();
-
-        var order = race.order(List.of(candidate("first", first), candidate("second", second)));
-
-        assertThat(order.get(10, TimeUnit.SECONDS)).hasSize(2);
-    }
-
-    @Test
-    void aStaggeredRaceBegunAfterStopStartsAllProbesAtOnceAndCompletesWhenTheFirstStartedProbeFails() throws Exception {
-        var failing = startServer("failing.xroad.test", untrustedCa, 0);
-        var healthy = startServer("healthy.xroad.test", trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        handshakeTimes.record(failing.address(), Duration.ofMillis(1));
-        failing.holdHandshakes();
-        healthy.holdHandshakes();
-        var race = race(Duration.ofSeconds(30), Duration.ofSeconds(4), handshakeTimes);
-        race.stop();
-
-        var order = race.order(List.of(candidate("healthy", healthy), candidate("failing", failing)));
-        await().atMost(8, TimeUnit.SECONDS).until(() -> !failing.acceptNanos().isEmpty() && !healthy.acceptNanos().isEmpty());
-        failing.releaseHandshakes();
-        await().atMost(8, TimeUnit.SECONDS).until(() -> cooldownTracker.isCoolingDown(failing.address()));
-        healthy.releaseHandshakes();
-
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "failing");
-    }
-
-    @Test
-    void aProbeThatFailsBeforeAWinnerStartsTheNextWaitingProbeAtOnce() throws Exception {
-        var stagger = Duration.ofSeconds(1);
-        var failing = startServer("failing.xroad.test", untrustedCa, 0);
-        var next = startServer("next.xroad.test", trustedCa, 0);
-        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
-        handshakeTimes.record(failing.address(), Duration.ofMillis(1));
-        handshakeTimes.record(next.address(), Duration.ofMillis(400));
-        next.holdHandshakes();
-        var race = race(Duration.ofSeconds(30), stagger, handshakeTimes);
-        var begin = System.nanoTime();
-
-        var order = race.order(List.of(candidate("next", next), candidate("failing", failing)));
-        await().atMost(8, TimeUnit.SECONDS).until(() -> !next.acceptNanos().isEmpty());
-
-        assertThat(next.acceptNanos().getFirst() - begin).isLessThan(stagger.toNanos());
-        await().during(stagger.plusMillis(250)).atMost(stagger.plusSeconds(5)).until(() -> next.acceptNanos().size() == 1);
-        assertThat(order).isNotDone();
-        next.releaseHandshakes();
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("next", "failing");
-        assertThat(next.acceptNanos()).hasSize(1);
-        assertThat(failing.acceptNanos()).hasSize(1);
     }
 
     @Test
@@ -531,9 +406,180 @@ class CandidateHandshakeRaceTest {
     }
 
     @Test
+    void everyCompletedHandshakeUpdatesTheServersAverage() throws Exception {
+        var fast = startServer(SS1_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
+
+        race.order(List.of(candidate("ss1", fast))).get(10, TimeUnit.SECONDS);
+
+        assertThat(handshakeTimes.average(fast.address()).orElseThrow()).isPositive().isLessThan(DEADLINE);
+    }
+
+    @Test
+    void aServerWhoseProbeFailedStartsAmongTheServersWithoutAnAverageOnceItIsProbedAgain() throws Exception {
+        var stagger = Duration.ofMillis(250);
+        var flaky = startServer(SS2_HOST, untrustedCa, 0);
+        var known = startServer(SS1_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(flaky.address(), Duration.ofMillis(1));
+        handshakeTimes.record(known.address(), Duration.ofMillis(400));
+        var race = race(DEADLINE, stagger, handshakeTimes);
+        var candidates = List.of(candidate("flaky", flaky), candidate("known", known));
+        known.holdHandshakes();
+
+        var firstOrder = race.order(candidates);
+        await().atMost(8, TimeUnit.SECONDS).until(() -> handshakeTimes.average(flaky.address()).isEmpty());
+        known.releaseHandshakes();
+
+        assertThat(firstOrder.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId)
+                .containsExactly("known", "flaky");
+        assertThat(cooldownTracker.isCoolingDown(flaky.address())).isTrue();
+        flaky.holdHandshakes();
+        known.holdHandshakes();
+        var secondOrder = race.order(candidates);
+        await().atMost(8, TimeUnit.SECONDS).until(() -> flaky.acceptNanos().size() == 2 && known.acceptNanos().size() == 2);
+        flaky.releaseHandshakes();
+        known.releaseHandshakes();
+
+        assertThat(secondOrder.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).first().isEqualTo("known");
+        assertThat(flaky.acceptNanos().get(1) - known.acceptNanos().get(1)).isGreaterThanOrEqualTo(minimumGapNanos(stagger));
+    }
+
+    @Test
+    void aStaggeredRaceStoppedMidRoundStillStartsItsPendingProbesAndCompletes() throws Exception {
+        var failing = startServer(SS2_HOST, untrustedCa, 0);
+        var healthy = startServer(SS1_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(failing.address(), Duration.ofMillis(1));
+        var race = race(DEADLINE, Duration.ofMillis(250), handshakeTimes);
+
+        var order = race.order(List.of(candidate("healthy", healthy), candidate("failing", failing)));
+        race.stop();
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "failing");
+        assertThat(cooldownTracker.isCoolingDown(failing.address())).isTrue();
+        assertThat(cooldownTracker.isCoolingDown(healthy.address())).isFalse();
+    }
+
+    @Test
+    void cancellingTheOrderCancelsTheRunningProbeAndTheProbeStartsStillScheduled() throws Exception {
+        var stagger = Duration.ofMillis(800);
+        var started = startServer(SS0_HOST, trustedCa, 0);
+        var scheduled = startServer(SS1_HOST, trustedCa, 0);
+        var lastScheduled = startServer(SS2_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(started.address(), Duration.ofMillis(10));
+        handshakeTimes.record(scheduled.address(), Duration.ofMillis(20));
+        handshakeTimes.record(lastScheduled.address(), Duration.ofMillis(30));
+        List.of(started, scheduled, lastScheduled).forEach(TlsServer::holdHandshakes);
+        var race = race(DEADLINE, stagger, handshakeTimes);
+        var order = race.order(List.of(candidate("ss2", lastScheduled), candidate("ss1", scheduled), candidate("ss0", started)));
+        await().atMost(8, TimeUnit.SECONDS).until(() -> !started.acceptNanos().isEmpty());
+
+        order.cancel(true);
+
+        await().atMost(DEADLINE.dividedBy(2)).until(() -> client.dispatcher().runningCallsCount() == 0);
+        started.releaseHandshakes();
+        await().atMost(8, TimeUnit.SECONDS).until(() -> started.handshakesAbandoned().get() == 1);
+        await().during(stagger.multipliedBy(2).plusMillis(100)).atMost(stagger.multipliedBy(2).plusSeconds(5))
+                .until(() -> scheduled.acceptNanos().isEmpty() && lastScheduled.acceptNanos().isEmpty());
+        assertThat(started.handshakesCompleted()).hasValue(0);
+        assertThat(handshakeTimes.average(started.address())).hasValue(Duration.ofMillis(10));
+        assertThat(handshakeTimes.average(scheduled.address())).hasValue(Duration.ofMillis(20));
+        assertThat(handshakeTimes.average(lastScheduled.address())).hasValue(Duration.ofMillis(30));
+        assertThat(List.of(started, scheduled, lastScheduled)).noneMatch(server -> cooldownTracker.isCoolingDown(server.address()));
+        scheduled.releaseHandshakes();
+        lastScheduled.releaseHandshakes();
+    }
+
+    @Test
+    void aProbeNotStartedWhenTheRaceIsDecidedIsCancelledAndNeverStarts() throws Exception {
+        var stagger = Duration.ofMillis(500);
+        var quick = startServer(SS1_HOST, trustedCa, 0);
+        var waiting = startServer(SS0_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(quick.address(), Duration.ofMillis(10));
+        handshakeTimes.record(waiting.address(), Duration.ofMillis(20));
+        var dispatched = new AtomicInteger();
+        var executor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 10, TimeUnit.SECONDS, new SynchronousQueue<>()) {
+            @Override
+            public void execute(Runnable command) {
+                dispatched.incrementAndGet();
+                super.execute(command);
+            }
+        };
+        var race = race(DEADLINE, stagger, handshakeTimes, new Dispatcher(executor));
+
+        var order = race.order(List.of(candidate("ss0", waiting), candidate("ss1", quick)));
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
+        await().during(stagger.plusMillis(200)).atMost(stagger.plusSeconds(5)).until(() -> waiting.acceptNanos().isEmpty());
+        assertThat(dispatched).hasValue(1);
+        assertThat(cooldownTracker.isCoolingDown(waiting.address())).isFalse();
+        assertThat(handshakeTimes.average(waiting.address())).hasValue(Duration.ofMillis(20));
+    }
+
+    @Test
+    void aStaggeredRaceBegunAfterStopStillCompletes() throws Exception {
+        var first = startServer(SS0_HOST, trustedCa, 0);
+        var second = startServer(SS1_HOST, trustedCa, 0);
+        var race = race(DEADLINE, Duration.ofMillis(250), new HandshakeTimes(SMOOTHING_FACTOR));
+        race.stop();
+
+        var order = race.order(List.of(candidate("ss0", first), candidate("ss1", second)));
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).hasSize(2);
+    }
+
+    @Test
+    void aStaggeredRaceBegunAfterStopStartsAllProbesAtOnceAndCompletesWhenTheFirstStartedProbeFails() throws Exception {
+        var failing = startServer(SS2_HOST, untrustedCa, 0);
+        var healthy = startServer(SS1_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(failing.address(), Duration.ofMillis(1));
+        failing.holdHandshakes();
+        healthy.holdHandshakes();
+        var race = race(Duration.ofSeconds(30), Duration.ofSeconds(4), handshakeTimes);
+        race.stop();
+
+        var order = race.order(List.of(candidate("healthy", healthy), candidate("failing", failing)));
+        await().atMost(8, TimeUnit.SECONDS).until(() -> !failing.acceptNanos().isEmpty() && !healthy.acceptNanos().isEmpty());
+        failing.releaseHandshakes();
+        await().atMost(8, TimeUnit.SECONDS).until(() -> cooldownTracker.isCoolingDown(failing.address()));
+        healthy.releaseHandshakes();
+
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("healthy", "failing");
+    }
+
+    @Test
+    void aProbeThatFailsBeforeAWinnerStartsTheNextWaitingProbeAtOnce() throws Exception {
+        var stagger = Duration.ofSeconds(1);
+        var failing = startServer(SS2_HOST, untrustedCa, 0);
+        var next = startServer(SS1_HOST, trustedCa, 0);
+        var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        handshakeTimes.record(failing.address(), Duration.ofMillis(1));
+        handshakeTimes.record(next.address(), Duration.ofMillis(400));
+        next.holdHandshakes();
+        var race = race(Duration.ofSeconds(30), stagger, handshakeTimes);
+        var begin = System.nanoTime();
+
+        var order = race.order(List.of(candidate("next", next), candidate("failing", failing)));
+        await().atMost(8, TimeUnit.SECONDS).until(() -> !next.acceptNanos().isEmpty());
+
+        assertThat(next.acceptNanos().getFirst() - begin).isLessThan(stagger.toNanos());
+        await().during(stagger.plusMillis(250)).atMost(stagger.plusSeconds(5)).until(() -> next.acceptNanos().size() == 1);
+        assertThat(order).isNotDone();
+        next.releaseHandshakes();
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("next", "failing");
+        assertThat(next.acceptNanos()).hasSize(1);
+        assertThat(failing.acceptNanos()).hasSize(1);
+    }
+
+    @Test
     void aProbeCancelledByTheWinnerKeepsItsAverage() throws Exception {
-        var fast = startServer(FAST_HOST, trustedCa, 0);
-        var slow = startServer(SLOW_HOST, trustedCa, 0);
+        var fast = startServer(SS1_HOST, trustedCa, 0);
+        var slow = startServer(SS0_HOST, trustedCa, 0);
         var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
         var seeded = Duration.ofMillis(700);
         handshakeTimes.record(slow.address(), seeded);
@@ -541,11 +587,11 @@ class CandidateHandshakeRaceTest {
         slow.holdHandshakes();
         var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
 
-        var order = race.order(List.of(candidate("slow", slow), candidate("fast", fast)));
+        var order = race.order(List.of(candidate("ss0", slow), candidate("ss1", fast)));
         await().atMost(8, TimeUnit.SECONDS).until(() -> !slow.acceptNanos().isEmpty());
         fast.releaseHandshakes();
 
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("fast", "slow");
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
         slow.releaseHandshakes();
         await().atMost(8, TimeUnit.SECONDS).until(() -> slow.handshakesAbandoned().get() == 1);
         await().during(Duration.ofMillis(250)).atMost(Duration.ofSeconds(5))
@@ -555,8 +601,9 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void aSampleSpansFromTheFirstConnectAttemptSoRetriedConnectsCount() throws Exception {
-        var retried = startServer(RETRY_HOST, trustedCa, 0);
+        var retried = startServer(SS1_HOST, trustedCa, 0);
         var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
+        unreachableAddressFirst = true;
         var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
 
         race.order(List.of(candidate("retried", retried))).get(10, TimeUnit.SECONDS);
@@ -567,30 +614,30 @@ class CandidateHandshakeRaceTest {
 
     @Test
     void withoutStaggerAllProbesStartTogetherAndTheAveragesDoNotChangeTheOrder() throws Exception {
-        var fast = startServer(FAST_HOST, trustedCa, 0);
-        var slow = startServer(SLOW_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
+        var fast = startServer(SS1_HOST, trustedCa, 0);
+        var slow = startServer(SS0_HOST, trustedCa, SLOW_HANDSHAKE_MILLIS);
         var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
         handshakeTimes.record(fast.address(), Duration.ofSeconds(1));
         handshakeTimes.record(slow.address(), Duration.ofMillis(1));
         fast.holdHandshakes();
         slow.holdHandshakes();
         var race = race(DEADLINE, Duration.ZERO, handshakeTimes);
-        var order = race.order(List.of(candidate("slow", slow), candidate("fast", fast)));
+        var order = race.order(List.of(candidate("ss0", slow), candidate("ss1", fast)));
 
         await().atMost(8, TimeUnit.SECONDS).until(() -> !fast.acceptNanos().isEmpty() && !slow.acceptNanos().isEmpty());
         assertThat(order).isNotDone();
         fast.releaseHandshakes();
 
-        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("fast", "slow");
+        assertThat(order.get(10, TimeUnit.SECONDS)).extracting(Candidate::counterPartyId).containsExactly("ss1", "ss0");
         slow.releaseHandshakes();
     }
 
     @Test
     void withStaggerProbesStartOneStaggerApartInAverageOrderAndAnUnknownServerStartsLast() throws Exception {
         var stagger = Duration.ofMillis(250);
-        var quick = startServer("quick.xroad.test", trustedCa, 0);
-        var middling = startServer("middling.xroad.test", trustedCa, 0);
-        var unknown = startServer("unknown.xroad.test", trustedCa, 0);
+        var quick = startServer(SS0_HOST, trustedCa, 0);
+        var middling = startServer(SS1_HOST, trustedCa, 0);
+        var unknown = startServer(SS2_HOST, trustedCa, 0);
         var handshakeTimes = new HandshakeTimes(SMOOTHING_FACTOR);
         handshakeTimes.record(middling.address(), Duration.ofMillis(400));
         handshakeTimes.record(quick.address(), Duration.ofMillis(50));
@@ -609,16 +656,6 @@ class CandidateHandshakeRaceTest {
 
         assertThat(middlingStart - quickStart).isGreaterThanOrEqualTo(minimumGapNanos(stagger));
         assertThat(unknownStart - middlingStart).isGreaterThanOrEqualTo(minimumGapNanos(stagger));
-    }
-
-    @Test
-    void theProbePathIsTheRegisteredParticipantContextVersionEndpoint() throws Exception {
-        var provider = startServer(FAST_HOST, trustedCa, 0);
-        var race = race(DEADLINE);
-
-        race.order(List.of(candidate("fast", provider))).get(10, TimeUnit.SECONDS);
-
-        assertThat(provider.requests()).containsExactly("GET " + VERSION_PATH + " -> 200");
     }
 
     @Test
@@ -642,6 +679,11 @@ class CandidateHandshakeRaceTest {
     }
 
     private CandidateHandshakeRace race(Duration deadline, Duration stagger, HandshakeTimes handshakeTimes) throws Exception {
+        return race(deadline, stagger, handshakeTimes, new Dispatcher());
+    }
+
+    private CandidateHandshakeRace race(Duration deadline, Duration stagger, HandshakeTimes handshakeTimes, Dispatcher dispatcher)
+            throws GeneralSecurityException, IOException {
         var trustStore = KeyStore.getInstance("PKCS12");
         trustStore.load(null, null);
         trustStore.setCertificateEntry("ca", trustedCa.certificate());
@@ -652,14 +694,14 @@ class CandidateHandshakeRaceTest {
         sslContext.init(null, new X509TrustManager[] {trustManager}, null);
 
         client = new OkHttpClient.Builder()
+                .dispatcher(dispatcher)
                 .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
                 .socketFactory(new SlowFailingConnectSocketFactory())
                 .dns(hostname -> {
-                    if (RETRY_HOST.equals(hostname)) {
-                        return List.of(UNREACHABLE_ADDRESS, InetAddress.getLoopbackAddress());
-                    }
-                    if (hostname.endsWith(".xroad.test")) {
-                        return List.of(InetAddress.getLoopbackAddress());
+                    if (hostname.endsWith(".example.org")) {
+                        return unreachableAddressFirst
+                                ? List.of(UNREACHABLE_ADDRESS, InetAddress.getLoopbackAddress())
+                                : List.of(InetAddress.getLoopbackAddress());
                     }
                     throw new java.net.UnknownHostException(hostname);
                 })
@@ -692,7 +734,7 @@ class CandidateHandshakeRaceTest {
         });
         server.start();
         plainServers.add(server);
-        return "http://plain.xroad.test:" + server.getAddress().getPort() + DSP_PATH;
+        return "http://ss2.example.org:" + server.getAddress().getPort() + DSP_PATH;
     }
 
     private static Candidate candidate(String id, TlsServer server) {
@@ -751,11 +793,10 @@ class CandidateHandshakeRaceTest {
         private final long handshakeDelayMillis;
         private final AtomicInteger handshakesCompleted = new AtomicInteger();
         private final AtomicInteger handshakesAbandoned = new AtomicInteger();
-        private final List<String> hostHeaders = new CopyOnWriteArrayList<>();
-        private final List<String> requests = new CopyOnWriteArrayList<>();
         private final List<Long> acceptNanos = new CopyOnWriteArrayList<>();
         private volatile CountDownLatch handshakeGate = new CountDownLatch(0);
         private volatile CountDownLatch responseGate = new CountDownLatch(0);
+        private volatile boolean dropAfterHandshake;
 
         private TlsServer(String host, TestLeaf leaf, long handshakeDelayMillis) throws Exception {
             this.host = host;
@@ -790,14 +831,6 @@ class CandidateHandshakeRaceTest {
             return handshakesAbandoned;
         }
 
-        List<String> hostHeaders() {
-            return hostHeaders;
-        }
-
-        List<String> requests() {
-            return requests;
-        }
-
         List<Long> acceptNanos() {
             return acceptNanos;
         }
@@ -808,6 +841,10 @@ class CandidateHandshakeRaceTest {
 
         void releaseHandshakes() {
             handshakeGate.countDown();
+        }
+
+        void dropConnectionsAfterTheHandshake() {
+            dropAfterHandshake = true;
         }
 
         void holdResponses() {
@@ -848,22 +885,18 @@ class CandidateHandshakeRaceTest {
                 handshakeGate.await();
                 socket.startHandshake();
                 handshakesCompleted.incrementAndGet();
+                if (dropAfterHandshake) {
+                    return;
+                }
                 var in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.ISO_8859_1));
                 var out = socket.getOutputStream();
-                String requestLine;
-                while ((requestLine = in.readLine()) != null) {
-                    String header;
-                    while ((header = in.readLine()) != null && !header.isEmpty()) {
-                        if (header.regionMatches(true, 0, "Host:", 0, "Host:".length())) {
-                            hostHeaders.add(header.substring("Host:".length()).trim());
-                        }
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.isEmpty()) {
+                        responseGate.await();
+                        out.write("HTTP/1.1 200 X\r\nContent-Length: 0\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1));
+                        out.flush();
                     }
-                    responseGate.await();
-                    var path = requestLine.split(" ")[1];
-                    var status = VERSION_PATH.equals(path) ? 200 : 404;
-                    requests.add("GET " + path + " -> " + status);
-                    out.write(("HTTP/1.1 " + status + " X\r\nContent-Length: 0\r\n\r\n").getBytes(StandardCharsets.ISO_8859_1));
-                    out.flush();
                 }
             } catch (IOException e) {
                 if (handshakesCompleted.get() == 0 || e instanceof javax.net.ssl.SSLHandshakeException) {
