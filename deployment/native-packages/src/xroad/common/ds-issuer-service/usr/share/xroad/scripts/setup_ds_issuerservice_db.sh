@@ -81,3 +81,12 @@ crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.url" "$jd
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.username" "$ROLE_NAME"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.connection.password" "$issuer_pw"
 crudini --set "$DB_PROPS" '' "xroad.db.${DB_NAME}.hibernate.hikari.dataSource.currentSchema" "${SCHEMA_NAME},public"
+
+LIQUIBASE_COMMAND_PASSWORD="$issuer_pw" /usr/share/xroad/db/liquibase.sh \
+  --changelog="$DB_NAME" \
+  --url="$jdbc_url" \
+  --username="$ROLE_NAME" \
+  --defaultSchemaName="$SCHEMA_NAME" \
+  --contexts=user \
+  update ||
+  die "Running database migrations failed, please check database availability and configuration in ${DB_PROPS}"

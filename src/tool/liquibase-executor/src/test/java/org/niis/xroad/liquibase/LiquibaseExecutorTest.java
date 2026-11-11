@@ -84,7 +84,8 @@ class LiquibaseExecutorTest {
     void shouldResolveAllChangelogRootsFromClasspath() {
         String[] changelogs = {"centerui-changelog.xml", "serverconf-changelog.xml",
                 "messagelog-changelog.xml", "op-monitor-changelog.xml",
-                "ds-control-plane-changelog.xml", "ds-identity-hub-changelog.xml"};
+                "ds-control-plane-changelog.xml", "ds-identity-hub-changelog.xml",
+                "ds-issuer-service-changelog.xml"};
         for (String changelog : changelogs) {
             URL resource = getClass().getClassLoader().getResource("liquibase/" + changelog);
             assertNotNull(resource, "Changelog not found on classpath: liquibase/" + changelog);
