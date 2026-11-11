@@ -44,19 +44,19 @@ public class DspSendFailureHandler {
     private final DspRequestProcessor dspRequestProcessor;
 
     /**
-     * Does nothing unless the failure is a transport fault and an asset access was used.
+     * Does nothing unless nothing was sent and an asset access was used.
      * Never throws; the caller rethrows the original failure.
      *
      * @param failure     the exception thrown by the send
      * @param assetAccess the asset access the send used; {@code null} when none was acquired
      */
     public void handle(Throwable failure, @Nullable AssetAccessResponse assetAccess) {
-        if (assetAccess == null || !TransportFaultClassifier.isTransportFault(failure)) {
+        if (assetAccess == null || !TransportFaultClassifier.nothingWasSent(failure)) {
             return;
         }
         var winnerId = assetAccess.winner().counterPartyId();
         var winnerAddress = assetAccess.winner().counterPartyAddress();
-        log.warn("DSP data-plane send failed with a transport fault: counterPartyId={} counterPartyAddress={}",
+        log.warn("DSP data-plane send failed before the request was sent: counterPartyId={} counterPartyAddress={}",
                 winnerId, winnerAddress);
         try {
             dspRequestProcessor.invalidateAssetAccessWonBy(winnerAddress);

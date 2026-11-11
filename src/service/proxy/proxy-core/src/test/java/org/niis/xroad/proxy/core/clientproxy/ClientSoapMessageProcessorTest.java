@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.google.common.base.Ticker;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,11 +77,10 @@ import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import javax.net.ssl.SSLHandshakeException;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -90,11 +90,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
@@ -106,7 +106,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -130,9 +129,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
 @Timeout(30)
 class ClientSoapMessageProcessorTest {
 
-    private static final int PIPE_BYTES = 5_000;
-
-    private final Logger processorLogger = Logger.getLogger(ClientSoapMessageProcessor.class.getName());
+    private final Logger failoverLogger = Logger.getLogger(DspFailover.class.getName());
     private final List<LogRecord> loggedWarnings = new CopyOnWriteArrayList<>();
     private final Handler warningCollector = new Handler() {
         @Override
@@ -155,18 +152,18 @@ class ClientSoapMessageProcessorTest {
 
     @BeforeEach
     void collectWarnings() {
-        originalLoggerLevel = processorLogger.getLevel();
-        originalUseParentHandlers = processorLogger.getUseParentHandlers();
-        processorLogger.setLevel(Level.ALL);
-        processorLogger.setUseParentHandlers(false);
-        processorLogger.addHandler(warningCollector);
+        originalLoggerLevel = failoverLogger.getLevel();
+        originalUseParentHandlers = failoverLogger.getUseParentHandlers();
+        failoverLogger.setLevel(Level.ALL);
+        failoverLogger.setUseParentHandlers(false);
+        failoverLogger.addHandler(warningCollector);
     }
 
     @AfterEach
     void stopCollectingWarnings() {
-        processorLogger.removeHandler(warningCollector);
-        processorLogger.setUseParentHandlers(originalUseParentHandlers);
-        processorLogger.setLevel(originalLoggerLevel);
+        failoverLogger.removeHandler(warningCollector);
+        failoverLogger.setUseParentHandlers(originalUseParentHandlers);
+        failoverLogger.setLevel(originalLoggerLevel);
     }
 
     private static final AcquisitionCandidate WINNER = new AcquisitionCandidate(
@@ -461,21 +458,36 @@ class ClientSoapMessageProcessorTest {
     }
 
     @ParameterizedTest
-    @MethodSource("transportFaults")
-    void aTransportFaultOnTheDspSendReachesTheFailureHandlerAndIsRethrownUnchanged(Throwable fault) throws Exception {
+    @MethodSource("failuresBeforeSend")
+    void aFailureBeforeTheDspSendReachesTheFailureHandlerAndEndsAsTheDataPlaneError(Throwable fault) throws Exception {
         var harness = createRefusalHarness(true, false);
-        stubDspEndpoint(harness, WON_BY_SS_A);
-        var ctx = newSoapRequestContext();
-        var decoder = newUnnegotiatedDecoder(ctx);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        var request = newUnfinishedRequest();
         var httpSender = failingSender(fault);
+        stubSenders(harness, httpSender);
 
-        assertThatThrownBy(() -> harness.processor().sendRequest(httpSender, ctx, decoder, "req-1", null, WON_BY_SS_A, null))
-                .isSameAs(fault);
+        assertThatThrownBy(() -> send(harness, request)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
 
         verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
         verify(harness.clientRequestPreparationService()).markAddressUnusableIfHandshakeFailure(httpSender, fault);
         verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
         verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
+    }
+
+    @ParameterizedTest
+    @MethodSource("failuresAfterSend")
+    void aFailureAfterTheDspSendIsRethrownUnchangedAndNeitherDropsNorReportsTheWinner(Throwable fault) throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
+        var request = newUnfinishedRequest();
+        var httpSender = failingSender(fault);
+        stubSenders(harness, httpSender);
+
+        assertThatThrownBy(() -> send(harness, request)).isSameAs(fault);
+
+        verify(harness.clientRequestPreparationService()).markAddressUnusableIfHandshakeFailure(httpSender, fault);
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
     }
 
     @ParameterizedTest
@@ -525,7 +537,7 @@ class ClientSoapMessageProcessorTest {
     @Test
     void aTokenRejectionOnlyDropsTheEntryAndALaterTransportFaultDropsAndReports() throws Exception {
         var harness = createRefusalHarness(true, false);
-        stubDspEndpoint(harness, WON_BY_SS_A);
+        stubAcquisitions(harness, 1, WON_BY_SS_A);
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
 
         harness.processor().dropAssetAccessOnTokenRejection(
@@ -535,11 +547,10 @@ class ClientSoapMessageProcessorTest {
         verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
 
-        var ctx = newSoapRequestContext();
-        var decoder = newUnnegotiatedDecoder(ctx);
+        var request = newUnfinishedRequest();
         var fault = new ConnectException("refused");
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(failingSender(fault), ctx, decoder, "req-1", null, WON_BY_SS_A, null)).isSameAs(fault);
+        stubSenders(harness, failingSender(fault));
+        assertThatThrownBy(() -> send(harness, request)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
 
         verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
         verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
@@ -548,19 +559,16 @@ class ClientSoapMessageProcessorTest {
     @Test
     void aTokenRejectionOnTheSiblingAfterATransportFaultReportsOnlyTheFailedServer() throws Exception {
         var harness = createRefusalHarness(true, false);
-        stubDspEndpoint(harness, WON_BY_SS_A);
-        stubDspEndpoint(harness, WON_BY_SS_B);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
         var dspRequest = new DspRequest(ServiceId.Conf.create(OTHER_CLIENT, "svc"), OTHER_CLIENT, null, false);
-        var ctx = newSoapRequestContext();
-        var decoder = newUnnegotiatedDecoder(ctx);
-        var fault = new ConnectException("refused");
-        assertThatThrownBy(() -> harness.processor()
-                .sendRequest(failingSender(fault), ctx, decoder, "req-1", null, WON_BY_SS_A, null)).isSameAs(fault);
+        var request = newCompletedRequest();
+        stubSenders(harness, failingSender(new ConnectException("refused")), mock(HttpSender.class));
 
-        harness.processor().sendRequest(mock(HttpSender.class), ctx, decoder, "req-2", null, WON_BY_SS_B, null);
+        var sent = send(harness, request);
         harness.processor().dropAssetAccessOnTokenRejection(
-                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest, WON_BY_SS_B);
+                XrdRuntimeException.systemException(AGREEMENT_TOKEN_REJECTED, "rejected"), dspRequest, sent.assetAccess());
 
+        assertThat(sent.assetAccess()).isSameAs(WON_BY_SS_B);
         verify(harness.consumerSideDspProcessor()).invalidateAssetAccess(dspRequest);
         verify(harness.consumerSideDspProcessor(), times(1)).reportCounterPartyFailure(any(), any());
         verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(eq(SS_B_ID), any());
@@ -568,7 +576,7 @@ class ClientSoapMessageProcessorTest {
     }
 
     @ParameterizedTest
-    @MethodSource("transportFaults")
+    @MethodSource("failuresBeforeSend")
     void aTransportFaultOfTheFirstServerIsServedByTheSibling(Throwable fault) throws Exception {
         var harness = createRefusalHarness(true, false);
         stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
@@ -675,35 +683,37 @@ class ClientSoapMessageProcessorTest {
     }
 
     @Test
-    void aRequestPartlySentBeforeTheFaultIsCompletedAndReplayedInFullToTheSibling() throws Exception {
+    void aConnectFailureOfTheFirstServerReachesTheSiblingWhichIsToldTheFirstServerWasTried() throws Exception {
         var harness = createRefusalHarness(true, false);
         stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
-        var request = newUnfinishedRequest();
-        var requestBytes = new byte[PIPE_BYTES];
-        var fed = new CountDownLatch(1);
-        Thread.ofVirtual().start(() -> {
-            try (var out = request.ctx().reqOuts()) {
-                out.write(requestBytes);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } finally {
-                fed.countDown();
-                request.ctx().httpSenderGate().countDown();
-            }
-        });
-        var cutOffSsA = mock(HttpSender.class);
-        doAnswer(invocation -> {
-            invocation.<InputStream>getArgument(1).readNBytes(PIPE_BYTES / 10);
-            throw new SocketTimeoutException("Read timed out");
-        }).when(cutOffSsA).doPost(any(URI.class), any(InputStream.class), anyLong(), nullable(String.class));
+        var request = newCompletedRequest();
         var servedBySsB = mock(HttpSender.class);
-        stubSenders(harness, cutOffSsA, servedBySsB);
+        stubSenders(harness, failingSender(new ConnectException("refused")), servedBySsB);
 
         var sent = send(harness, request);
 
         assertThat(sent.httpSender()).isSameAs(servedBySsB);
-        assertThat(fed.getCount()).isZero();
-        verify(servedBySsB).doPost(eq(URI.create(WON_BY_SS_B.endpoint())), any(ReplaySoapProxyMessageEntity.class));
+        var dspRequests = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(dspRequests.capture());
+        assertThat(dspRequests.getAllValues().get(0).triedServers()).isEmpty();
+        assertThat(dspRequests.getAllValues().get(1).triedServers()).containsExactly(SS_A_ADDRESS);
+    }
+
+    @Test
+    void aReadTimeoutIsSentOnceAndTheOriginalErrorReachesTheCallerWithoutEvictionOrReport() throws Exception {
+        var harness = createRefusalHarness(true, false);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var request = newUnfinishedRequest();
+        var readTimeout = new SocketTimeoutException("Read timed out");
+        stubSenders(harness, failingSender(readTimeout), mock(HttpSender.class));
+
+        assertThatThrownBy(() -> harness.processor().processRequest(request.ctx(), request.decoder(), "req-1", null))
+                .isSameAs(readTimeout);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
     }
 
     @Test
@@ -925,13 +935,23 @@ class ClientSoapMessageProcessorTest {
         return Stream.of(WON_BY_SS_A, new AssetAccessResponse(WON_BY_SS_A.endpoint(), null, WON_BY_SS_A.winner()));
     }
 
-    static Stream<Throwable> transportFaults() {
+    static Stream<Throwable> failuresBeforeSend() {
         return Stream.of(
                 new ConnectException("refused"),
                 new UnknownHostException("ss-a.example"),
                 new ConnectTimeoutException("connect timed out"),
-                new SSLHandshakeException("handshake_failure"),
-                new SocketTimeoutException("Read timed out"));
+                new SSLHandshakeException("handshake_failure"));
+    }
+
+    static Stream<Throwable> failuresAfterSend() {
+        return Stream.of(
+                new SocketTimeoutException("Read timed out"),
+                new SocketException("Connection reset"),
+                new NoHttpResponseException("ss-a.example:8183 failed to respond"));
+    }
+
+    static Stream<Throwable> transportFaults() {
+        return Stream.concat(failuresBeforeSend(), failuresAfterSend());
     }
 
     static Stream<Throwable> answersFromALiveProvider() {
@@ -997,9 +1017,13 @@ class ClientSoapMessageProcessorTest {
         }
     }
 
+    /**
+     * Makes {@code execute} return the given accesses in order. The first reports {@code candidateCount} candidates and
+     * every later one a candidate fewer, as the real processor does once the previous winner is excluded.
+     */
     private static void stubAcquisitionResults(RefusalHarness harness, int candidateCount, AssetAccessResponse... accesses) {
-        var acquisitions = Stream.of(accesses)
-                .map(access -> new DspAcquisition(access, candidateCount))
+        var acquisitions = IntStream.range(0, accesses.length)
+                .mapToObj(i -> new DspAcquisition(accesses[i], candidateCount - i))
                 .toArray(DspAcquisition[]::new);
         var remaining = Arrays.copyOfRange(acquisitions, 1, acquisitions.length);
         when(harness.consumerSideDspProcessor().execute(any()))
@@ -1149,7 +1173,7 @@ class ClientSoapMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 legacyCallRefusalPolicy,
-                dspSendFailureHandler);
+                new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler));
         return new RefusalHarness(processor, clientRequestPreparationService, globalConfProvider, legacyCallRefusalPolicy,
                 consumerSideDspProcessor, dspSendFailureHandler, httpSenderProvider);
     }
@@ -1182,7 +1206,7 @@ class ClientSoapMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 mock(LegacyCallRefusalPolicy.class),
-                mock(DspSendFailureHandler.class));
+                mock(DspFailover.class));
     }
 
     private ClientSoapMessageProcessor createProcessor(GlobalConfProvider globalConfProvider,
@@ -1200,6 +1224,6 @@ class ClientSoapMessageProcessorTest {
                 mock(DspRequestProcessor.class),
                 mock(IdentifierValidationService.class),
                 mock(LegacyCallRefusalPolicy.class),
-                mock(DspSendFailureHandler.class));
+                mock(DspFailover.class));
     }
 }

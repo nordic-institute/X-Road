@@ -30,48 +30,45 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.net.ssl.SSLHandshakeException;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.List;
 
-/**
- * Tells whether a failed data-plane send was a network fault, as opposed to an answer from a live server.
- * <p>
- * A failure is a transport fault only when its cause chain positively contains a refused or unreachable
- * connection, a host name that does not resolve, a connect timeout, a TLS handshake failure or a read timeout.
- * Anything else, including an error raised after a response arrived, is not a transport fault.
- * A timeout waiting for a connection from the local pool never reaches the provider, so on its own it is not
- * a transport fault either.
- */
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TransportFaultClassifier {
 
-    private static final List<Class<? extends Throwable>> TRANSPORT_FAULT_TYPES = List.of(
-            ConnectException.class,
-            NoRouteToHostException.class,
-            UnknownHostException.class,
-            ConnectTimeoutException.class,
-            SSLHandshakeException.class,
-            SocketTimeoutException.class);
-
     /**
-     * Tells whether the given send failure was caused by a network fault.
+     * Tells whether the provider's Security Server never received the request that the given send failure
+     * ended: the connection or the TLS handshake failed before any request byte was sent.
      *
      * @param failure the exception thrown by the send
-     * @return true if the cause chain contains a transport fault
+     * @return true if the cause chain shows that nothing was sent
      */
-    public static boolean isTransportFault(Throwable failure) {
+    public static boolean nothingWasSent(Throwable failure) {
         return ExceptionUtils.getThrowableList(failure).stream()
                 .filter(cause -> !(cause instanceof ConnectionPoolTimeoutException))
-                .anyMatch(TransportFaultClassifier::isTransportFaultCause);
+                .anyMatch(TransportFaultClassifier::showsNothingWasSent);
     }
 
-    private static boolean isTransportFaultCause(Throwable cause) {
-        return TRANSPORT_FAULT_TYPES.stream().anyMatch(type -> type.isInstance(cause));
+    private static boolean showsNothingWasSent(Throwable cause) {
+        return cause instanceof ConnectException
+                || cause instanceof NoRouteToHostException
+                || cause instanceof UnknownHostException
+                || cause instanceof ConnectTimeoutException
+                || cause instanceof SSLHandshakeException
+                || cause instanceof XrdRuntimeException ex && (ex.isCausedBy(NETWORK_ERROR) || failedHandshake(ex));
+    }
+
+    private static boolean failedHandshake(XrdRuntimeException failure) {
+        return failure.isCausedBy(SSL_AUTH_FAILED)
+                && ExceptionUtils.indexOfType(failure.getCause(), IOException.class) >= 0;
     }
 }

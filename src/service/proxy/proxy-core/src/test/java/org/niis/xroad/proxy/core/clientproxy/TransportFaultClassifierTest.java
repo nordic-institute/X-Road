@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import org.apache.http.HttpHost;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
@@ -37,10 +38,12 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.stream.Stream;
@@ -49,26 +52,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 class TransportFaultClassifierTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("failures")
-    void classifiesFailure(String name, Throwable failure, boolean expectedTransportFault) {
-        assertThat(TransportFaultClassifier.isTransportFault(failure)).isEqualTo(expectedTransportFault);
+    void classifiesFailure(String name, Throwable failure, boolean expectedNothingWasSent) {
+        assertThat(TransportFaultClassifier.nothingWasSent(failure)).isEqualTo(expectedNothingWasSent);
     }
 
     @Test
-    void nullIsNotATransportFault() {
-        assertThat(TransportFaultClassifier.isTransportFault(null)).isFalse();
+    void nullMeansTheRequestWasSent() {
+        assertThat(TransportFaultClassifier.nothingWasSent(null)).isFalse();
     }
 
     static Stream<Arguments> failures() {
-        return Stream.of(transportFaults(), mixedChains(), otherFailures()).flatMap(rows -> rows);
+        return Stream.of(nothingSent(), factoryFailures(), mixedChains(), sent()).flatMap(rows -> rows);
     }
 
-    private static Stream<Arguments> transportFaults() {
+    private static Stream<Arguments> nothingSent() {
         var hostConnectException = new HttpHostConnectException(new ConnectException("refused"),
                 new HttpHost("127.0.0.1", 1));
         return Stream.of(
@@ -77,8 +82,7 @@ class TransportFaultClassifierTest {
                         new NamedFailure("no route to host", new NoRouteToHostException("unreachable")),
                         new NamedFailure("unresolvable host", new UnknownHostException("no.such.host")),
                         new NamedFailure("connect timeout", new ConnectTimeoutException("connect timed out")),
-                        new NamedFailure("tls handshake failure", new SSLHandshakeException("handshake_failure")),
-                        new NamedFailure("read timeout", new SocketTimeoutException("Read timed out")))
+                        new NamedFailure("tls handshake failure", new SSLHandshakeException("handshake_failure")))
                 .flatMap(fault -> Stream.of(
                         Arguments.of(fault.name(), fault.failure(), true),
                         Arguments.of(fault.name() + ", wrapped by the sender",
@@ -86,6 +90,31 @@ class TransportFaultClassifierTest {
                         Arguments.of(fault.name() + ", wrapped twice",
                                 new IllegalStateException(XrdRuntimeException.systemException(IO_ERROR, fault.failure())),
                                 true)));
+    }
+
+    private static Stream<Arguments> factoryFailures() {
+        return Stream.of(
+                Arguments.of("socket factory could not connect, network unreachable",
+                        networkError(new SocketException("Network is unreachable")), true),
+                Arguments.of("socket factory connect timed out",
+                        networkError(new SocketTimeoutException("connect timed out")), true),
+                Arguments.of("socket factory network error, wrapped by the sender",
+                        XrdRuntimeException.systemException(IO_ERROR,
+                                networkError(new SocketException("Network is unreachable"))), true),
+                Arguments.of("socket factory handshake timed out",
+                        sslAuthFailed(new SocketTimeoutException("Read timed out")), true),
+                Arguments.of("socket factory handshake reset",
+                        sslAuthFailed(new SocketException("Connection reset")), true),
+                Arguments.of("socket factory handshake rejected the provider certificate",
+                        sslAuthFailed(new SSLPeerUnverifiedException("peer not verified")), true),
+                Arguments.of("socket factory handshake failure, wrapped twice",
+                        new IllegalStateException(XrdRuntimeException.systemException(IO_ERROR,
+                                sslAuthFailed(new SocketException("Connection reset")))), true),
+                Arguments.of("provider certificate check without an io cause",
+                        XrdRuntimeException.systemException(SSL_AUTH_FAILED, "Certificate is not trusted"), false),
+                Arguments.of("provider certificate check with a non-io cause",
+                        XrdRuntimeException.systemException(SSL_AUTH_FAILED, new IllegalStateException("no ocsp"),
+                                "Certificate is not trusted"), false));
     }
 
     private static Stream<Arguments> mixedChains() {
@@ -98,8 +127,14 @@ class TransportFaultClassifierTest {
                         true));
     }
 
-    private static Stream<Arguments> otherFailures() {
+    private static Stream<Arguments> sent() {
         return Stream.of(
+                Arguments.of("read timeout", new SocketTimeoutException("Read timed out"), false),
+                Arguments.of("read timeout, wrapped by the sender",
+                        XrdRuntimeException.systemException(IO_ERROR, new SocketTimeoutException("Read timed out")),
+                        false),
+                Arguments.of("no http response", new NoHttpResponseException("failed to respond"), false),
+                Arguments.of("connection reset", new SocketException("Connection reset"), false),
                 Arguments.of("connection pool timeout", new ConnectionPoolTimeoutException("pool exhausted"), false),
                 Arguments.of("connection pool timeout, wrapped by the sender",
                         XrdRuntimeException.systemException(IO_ERROR,
@@ -122,6 +157,14 @@ class TransportFaultClassifierTest {
                         XrdRuntimeException.systemException(IO_ERROR, new IOException("broken")), false),
                 Arguments.of("tls failure that is not a handshake failure", new SSLException("bad record mac"), false),
                 Arguments.of("unrelated runtime exception", new IllegalArgumentException("bad argument"), false));
+    }
+
+    private static XrdRuntimeException networkError(Throwable cause) {
+        return XrdRuntimeException.systemException(NETWORK_ERROR, cause, "Could not connect to any target host");
+    }
+
+    private static XrdRuntimeException sslAuthFailed(IOException cause) {
+        return XrdRuntimeException.systemException(SSL_AUTH_FAILED, cause, "TLS handshake failed");
     }
 
     private record NamedFailure(String name, Throwable failure) {

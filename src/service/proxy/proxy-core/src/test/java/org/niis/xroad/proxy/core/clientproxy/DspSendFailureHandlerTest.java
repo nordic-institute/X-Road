@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -57,6 +59,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.niis.xroad.common.core.exception.ErrorCode.AGREEMENT_TOKEN_REJECTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,8 +81,8 @@ class DspSendFailureHandlerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("transportFaults")
-    void aTransportFaultDropsTheAccessWonByTheWinnerAndReportsIt(Throwable fault) {
+    @MethodSource("failuresBeforeSend")
+    void aFailureBeforeSendDropsTheAccessWonByTheWinnerAndReportsIt(Throwable fault) {
         handler.handle(fault, WON_BY_SS_A);
 
         verify(dspRequestProcessor).invalidateAssetAccessWonBy(WINNER_ADDRESS);
@@ -87,15 +90,15 @@ class DspSendFailureHandlerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("otherFailures")
-    void aFailureThatIsNoTransportFaultChangesNothing(Throwable failure) {
+    @MethodSource("failuresAfterSend")
+    void aFailureAfterSendChangesNothing(Throwable failure) {
         handler.handle(failure, WON_BY_SS_A);
 
         verifyNoInteractions(dspRequestProcessor);
     }
 
     @Test
-    void aTransportFaultWithoutAnAssetAccessChangesNothing() {
+    void aFailureBeforeSendWithoutAnAssetAccessChangesNothing() {
         assertThatCode(() -> handler.handle(new ConnectException("refused"), null)).doesNotThrowAnyException();
 
         verifyNoInteractions(dspRequestProcessor);
@@ -121,14 +124,14 @@ class DspSendFailureHandlerTest {
     }
 
     @Test
-    void twoConcurrentFaultsOnTheSameServerSendTwoReportsAndFailNowhere() throws Exception {
+    void twoConcurrentFailuresBeforeSendOnTheSameServerSendTwoReportsAndFailNowhere() throws Exception {
         var executor = Executors.newFixedThreadPool(2);
         var startGate = new CountDownLatch(1);
         try {
             var futures = Stream.of(1, 2)
                     .map(_ -> executor.submit(() -> {
                         startGate.await();
-                        handler.handle(new SocketTimeoutException("Read timed out"), WON_BY_SS_A);
+                        handler.handle(new ConnectException("refused"), WON_BY_SS_A);
                         return null;
                     }))
                     .toList();
@@ -145,16 +148,20 @@ class DspSendFailureHandlerTest {
         verify(dspRequestProcessor, never()).execute(any());
     }
 
-    static Stream<Throwable> transportFaults() {
+    static Stream<Throwable> failuresBeforeSend() {
         return Stream.of(
                 new ConnectException("refused"),
                 new SSLHandshakeException("handshake_failure"),
-                new SocketTimeoutException("Read timed out"),
+                XrdRuntimeException.systemException(NETWORK_ERROR, new SocketException("Network is unreachable"),
+                        "Could not connect to any target host"),
                 XrdRuntimeException.systemException(IO_ERROR, new ConnectException("refused")));
     }
 
-    static Stream<Throwable> otherFailures() {
+    static Stream<Throwable> failuresAfterSend() {
         return Stream.of(
+                new SocketTimeoutException("Read timed out"),
+                new NoHttpResponseException("failed to respond"),
+                new SocketException("Connection reset"),
                 XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s: %s", 503,
                         "Service Unavailable"),
                 XrdRuntimeException.systemException(SERVICE_FAILED, "service failed"),

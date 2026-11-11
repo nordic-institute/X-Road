@@ -40,6 +40,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.edc.protocol.assetaccess.SecurityServerAuthority;
 import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.DspAcquisition;
@@ -51,6 +52,8 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.Provider
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
@@ -148,12 +151,12 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             throw noCandidatesFound(serviceId);
         }
         var participantContextId = ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
-        var candidates = deriveCandidates(requestTargetsSystemCtx, serviceId, providerAddresses);
+        var candidates = deriveCandidates(requestTargetsSystemCtx, serviceId, providerAddresses, request.triedServers());
         try {
             var access = assetAccessAcquisitionService.acquireAssetAccess(
                     participantContextId, assetId, candidates, request.targetSecurityServer(), request.sender(),
                     clientProperties.acquisitionDeadline());
-            return new DspAcquisition(access, (int) candidates.stream().distinct().count());
+            return new DspAcquisition(access, (int) candidates.stream().map(ConsumerSideDspProcessor::authorityOf).distinct().count());
         } catch (XrdRuntimeException ex) {
             throw remapRemoteNotFound(ex, serviceId);
         } catch (RuntimeException ex) {
@@ -167,16 +170,21 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     /**
      * Derives the acquisition candidate of every provider address, skipping an address whose target
-     * cannot be derived. When none is left, the first derivation failure is thrown, or the no-candidates
-     * error for an empty address list.
+     * cannot be derived and a candidate whose server the call already tried. When none is left, the first
+     * derivation failure is thrown, or the no-candidates error.
      */
     private List<AcquisitionCandidate> deriveCandidates(boolean requestTargetsSystemCtx, ServiceId serviceId,
-                                                        List<ProviderAddress> providerAddresses) {
+                                                        List<ProviderAddress> providerAddresses,
+                                                        Set<String> triedServers) {
+        var triedAuthorities = triedServers.stream().map(SecurityServerAuthority::of).collect(Collectors.toSet());
         var candidates = new ArrayList<AcquisitionCandidate>();
         XrdRuntimeException firstFailure = null;
         for (var address : providerAddresses) {
             try {
-                candidates.add(candidateFor(requestTargetsSystemCtx, serviceId, address.hostAddress()));
+                var candidate = candidateFor(requestTargetsSystemCtx, serviceId, address.hostAddress());
+                if (!triedAuthorities.contains(authorityOf(candidate))) {
+                    candidates.add(candidate);
+                }
             } catch (XrdRuntimeException ex) {
                 log.warn("Skipping SS {} (address {}): acquisition target cannot be derived",
                         address.serverId(), address.hostAddress(), ex);
@@ -213,6 +221,10 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         return new CounterPartyTarget(
                 DspConventions.memberCounterPartyId(providerMember, hostAddress),
                 DspConventions.memberCounterPartyAddress(providerMember, hostAddress));
+    }
+
+    private static String authorityOf(AcquisitionCandidate candidate) {
+        return SecurityServerAuthority.of(candidate.counterPartyAddress());
     }
 
     private static XrdRuntimeException noCandidatesFound(ServiceId serviceId) {

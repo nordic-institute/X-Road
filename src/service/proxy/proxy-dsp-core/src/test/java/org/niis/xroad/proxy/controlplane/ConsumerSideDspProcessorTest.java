@@ -52,6 +52,7 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.Provider
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -413,6 +414,52 @@ class ConsumerSideDspProcessorTest {
                 .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
 
         var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        assertThat(result.candidateCount()).isEqualTo(2);
+    }
+
+    @Test
+    void aTriedServerIsDroppedFromTheCandidatesRegardlessOfLetterCase() {
+        stubProviderAddressesAndAcquisition(HOST_A, HOST_B);
+        var tried = "HTTPS://XRD-SS0.LXD:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1";
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false).withTriedServer(tried));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_B, URL_B)), any(), any(), any());
+    }
+
+    @Test
+    void aTriedServerIsDroppedWhateverParticipantContextItsAddressNames() {
+        stubProviderAddressesAndAcquisition(HOST_A, HOST_B);
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false).withTriedServer(SYSTEM_URL_A));
+
+        assertThat(result.candidateCount()).isEqualTo(1);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(single(DID_B, URL_B)), any(), any(), any());
+    }
+
+    @Test
+    void aTriedAddressOnTheDefaultPortDoesNotDropTheServerOfTheDspPort() {
+        stubProviderAddressesAndAcquisition(HOST_A, HOST_B);
+        var tried = "https://xrd-ss0.lxd/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1";
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false).withTriedServer(tried));
+
+        assertThat(result.candidateCount()).isEqualTo(2);
+        verify(assetAccessAcquisitionService).acquireAssetAccess(
+                any(), any(), eq(List.of(new AcquisitionCandidate(DID_A, URL_A), new AcquisitionCandidate(DID_B, URL_B))),
+                any(), any(), any());
+    }
+
+    @Test
+    void theCandidateCountIsTheNumberOfDistinctServersLeftAfterTheTriedOnesAreDropped() {
+        stubProviderAddressesAndAcquisition(HOST_A, HOST_A, HOST_B, HOST_C);
+
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false).withTriedServer(
+                "https://xrd-ss2.lxd:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1"));
 
         assertThat(result.candidateCount()).isEqualTo(2);
     }
@@ -899,6 +946,13 @@ class ConsumerSideDspProcessorTest {
         assertThat(repeat.getErrorCodeMetadata())
                 .isEqualTo(first.getErrorCodeMetadata())
                 .containsExactly("originalCode=" + refusalCode);
+    }
+
+    private void stubProviderAddressesAndAcquisition(String... hosts) {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(Stream.of(hosts).map(host -> new ProviderAddress(null, host)).toList());
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null, WINNER));
     }
 
     private static List<AcquisitionCandidate> single(String counterPartyId, String counterPartyAddress) {

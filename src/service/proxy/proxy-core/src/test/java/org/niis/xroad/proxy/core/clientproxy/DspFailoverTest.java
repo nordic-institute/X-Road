@@ -25,74 +25,241 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.HttpSender;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.proxy.core.dsp.AcquisitionCandidate;
+import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
+import org.niis.xroad.proxy.core.dsp.DspAcquisition;
+import org.niis.xroad.proxy.core.dsp.DspRequest;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATA_PLANE_UNREACHABLE;
-import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 
+@ExtendWith(MockitoExtension.class)
 class DspFailoverTest {
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("failoverCases")
-    void failsOverOnlyOnATransportFaultWithACandidateLeftRetryOnAndAResendableBody(
-            String ignoredCase, Throwable failure, int attempt, int candidateCount, boolean retryEnabled,
-            boolean bodyResendable, boolean expected) {
-        assertThat(DspFailover.canFailOver(failure, attempt, candidateCount, retryEnabled, () -> bodyResendable))
-                .isEqualTo(expected);
+    private static final String SS0 = "https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS1 = "https://ss1.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS2 = "https://ss2.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String REQUEST_ID = "req-1";
+
+    @Mock
+    private DspRequestProcessor dspRequestProcessor;
+    @Mock
+    private HttpSenderProvider httpSenderProvider;
+    @Mock
+    private HttpSender httpSender;
+
+    private DspFailover failover;
+    private DspRequest request;
+
+    @BeforeEach
+    void setUp() {
+        failover = new DspFailover(dspRequestProcessor, httpSenderProvider, new DspSendFailureHandler(dspRequestProcessor));
+        var provider = ClientId.Conf.create("DEV", "COM", "222", "TESTSERVICE");
+        request = new DspRequest(ServiceId.Conf.create(provider, "petstore"), provider, null, false);
+        when(httpSenderProvider.createClientHttpSender()).thenReturn(httpSender);
     }
 
     @Test
-    void theBodyIsOnlyCompletedWhenEveryOtherConditionHolds() {
-        var refused = new ConnectException("refused");
+    void aSuccessfulSendReturnsItsOutcomeWithoutAnyFailureHandling() throws Exception {
+        acquisitionsWonBy(2, SS0);
+
+        var outcome = failover.run(request, REQUEST_ID, true, () -> true, (_, access) -> access.winner().counterPartyAddress());
+
+        assertThat(outcome).isEqualTo(SS0);
+        verify(httpSender, never()).close();
+        verify(dspRequestProcessor, never()).invalidateAssetAccessWonBy(any());
+        verify(dspRequestProcessor, never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @Test
+    void aFailureBeforeSendMovesTheCallToTheSiblingWithTheFailedServerExcluded() throws Exception {
+        acquisitionsWonBy(2, SS0, SS1);
+
+        var outcome = failover.run(request, REQUEST_ID, true, () -> true, (_, access) -> {
+            if (SS0.equals(access.winner().counterPartyAddress())) {
+                throw new ConnectException("refused");
+            }
+            return access.winner().counterPartyAddress();
+        });
+
+        assertThat(outcome).isEqualTo(SS1);
+        assertThat(acquiredRequests()).extracting(DspRequest::triedServers).containsExactly(Set.of(), Set.of(SS0));
+        verify(dspRequestProcessor).invalidateAssetAccessWonBy(SS0);
+        verify(dspRequestProcessor).reportCounterPartyFailure(winnerId(SS0), SS0);
+        verify(httpSender).close();
+    }
+
+    @Test
+    void everyCandidateIsTriedOnceThenTheCallerGetsTheDataPlaneError() {
+        acquisitionsWonBy(3, SS0, SS1, SS2);
+        var attempts = new AtomicInteger();
+
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, true, () -> true, (_, _) -> {
+            attempts.incrementAndGet();
+            throw new ConnectException("refused");
+        })).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
+            assertThat(e.isCausedBy(IO_ERROR)).isTrue();
+            assertThat(e.getErrorCodeMetadata()).contains("originalCode=" + DSP_DATA_PLANE_UNREACHABLE.code());
+        });
+
+        assertThat(attempts).hasValue(3);
+        assertThat(acquiredRequests()).extracting(DspRequest::triedServers)
+                .containsExactly(Set.of(), Set.of(SS0), Set.of(SS0, SS1));
+    }
+
+    @Test
+    void aFailureAfterSendIsThrownUnchangedWithoutEvictionOrReport() {
+        acquisitionsWonBy(2, SS0);
+        var readTimeout = new SocketTimeoutException("Read timed out");
+
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, true, () -> true, (_, _) -> {
+            throw readTimeout;
+        })).isSameAs(readTimeout);
+
+        verify(dspRequestProcessor, times(1)).execute(any());
+        verify(httpSender).close();
+        verify(dspRequestProcessor, never()).invalidateAssetAccessWonBy(any());
+        verify(dspRequestProcessor, never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @Test
+    void aFailureAfterSendOnTheSiblingEndsWithThatOriginalError() {
+        acquisitionsWonBy(3, SS0, SS1);
+        var readTimeout = new SocketTimeoutException("Read timed out");
+
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, true, () -> true, (_, access) -> {
+            if (SS0.equals(access.winner().counterPartyAddress())) {
+                throw new ConnectException("refused");
+            }
+            throw readTimeout;
+        })).isSameAs(readTimeout);
+
+        verify(dspRequestProcessor, times(2)).execute(any());
+        verify(dspRequestProcessor).invalidateAssetAccessWonBy(SS0);
+        verify(dspRequestProcessor, never()).invalidateAssetAccessWonBy(SS1);
+    }
+
+    @Test
+    void withRequestRetryOffAFailureBeforeSendIsHandledButNotFailedOver() {
+        acquisitionsWonBy(2, SS0);
+
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, false, () -> true, (_, _) -> {
+            throw new ConnectException("refused");
+        })).isInstanceOfSatisfying(XrdRuntimeException.class,
+                e -> assertThat(e.getErrorCodeMetadata()).contains("originalCode=" + DSP_DATA_PLANE_UNREACHABLE.code()));
+
+        verify(dspRequestProcessor, times(1)).execute(any());
+        verify(dspRequestProcessor).invalidateAssetAccessWonBy(SS0);
+        verify(dspRequestProcessor).reportCounterPartyFailure(winnerId(SS0), SS0);
+    }
+
+    @Test
+    void aSingleCandidateIsNotFailedOver() {
+        acquisitionsWonBy(1, SS0);
+
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, true, () -> true, (_, _) -> {
+            throw new ConnectException("refused");
+        })).isInstanceOf(XrdRuntimeException.class);
+
+        verify(dspRequestProcessor, times(1)).execute(any());
+    }
+
+    @Test
+    void aBodyThatCannotBeResentIsNotFailedOver() {
+        acquisitionsWonBy(2, SS0);
+
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, true, () -> false, (_, _) -> {
+            throw new ConnectException("refused");
+        })).isInstanceOf(XrdRuntimeException.class);
+
+        verify(dspRequestProcessor, times(1)).execute(any());
+    }
+
+    @Test
+    void theBodyIsOnlyCompletedWhenEveryOtherConditionHolds() throws Exception {
         var completions = new AtomicInteger();
+        acquisitionsWonBy(2, SS0, SS0);
 
-        DspFailover.canFailOver(refused, 2, 2, true, () -> completions.incrementAndGet() > 0);
-        DspFailover.canFailOver(refused, 1, 2, false, () -> completions.incrementAndGet() > 0);
-        DspFailover.canFailOver(new IllegalStateException("not a transport fault"), 1, 2, true,
-                () -> completions.incrementAndGet() > 0);
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, true, () -> completions.incrementAndGet() > 0, (_, _) -> {
+            throw new SocketTimeoutException("Read timed out");
+        })).isInstanceOf(SocketTimeoutException.class);
+        assertThatThrownBy(() -> failover.run(request, REQUEST_ID, false, () -> completions.incrementAndGet() > 0, (_, _) -> {
+            throw new ConnectException("refused");
+        })).isInstanceOf(XrdRuntimeException.class);
         assertThat(completions).hasValue(0);
+    }
 
-        DspFailover.canFailOver(refused, 1, 2, true, () -> completions.incrementAndGet() > 0);
+    @Test
+    void theBodyIsCompletedOnceWhenEveryOtherConditionHolds() throws Exception {
+        var completions = new AtomicInteger();
+        acquisitionsWonBy(2, SS0, SS1);
+
+        failover.run(request, REQUEST_ID, true, () -> completions.incrementAndGet() > 0, (_, access) -> {
+            if (SS0.equals(access.winner().counterPartyAddress())) {
+                throw new ConnectException("refused");
+            }
+            return access;
+        });
         assertThat(completions).hasValue(1);
     }
 
-    @Test
-    void aTransportFaultIsTranslatedToTheDataPlaneErrorAndAnyOtherFailureIsReturnedUnchanged() {
-        var refused = new ConnectException("refused");
-        var answer = XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s", 500);
-
-        assertThat(DspFailover.translateTransportFault(refused)).isInstanceOfSatisfying(XrdRuntimeException.class, e -> {
-            assertThat(e.isCausedBy(IO_ERROR)).isTrue();
-            assertThat(e.getErrorCodeMetadata()).contains("originalCode=" + DSP_DATA_PLANE_UNREACHABLE.code());
-            assertThat(e.getCause()).isSameAs(refused);
-        });
-        assertThat(DspFailover.translateTransportFault(answer)).isSameAs(answer);
+    /**
+     * Makes each acquisition return the next winner. Like the real processor, every acquisition reports one candidate
+     * fewer than the one before, since the previous winner is excluded. Further acquisitions fail the test.
+     */
+    private void acquisitionsWonBy(int candidateCount, String first, String... more) {
+        var addresses = new ArrayList<String>();
+        addresses.add(first);
+        addresses.addAll(List.of(more));
+        var acquisitions = new ArrayList<DspAcquisition>();
+        for (var i = 0; i < addresses.size(); i++) {
+            acquisitions.add(acquisition(addresses.get(i), candidateCount - i));
+        }
+        var rest = acquisitions.subList(1, acquisitions.size()).toArray(DspAcquisition[]::new);
+        when(dspRequestProcessor.execute(any())).thenReturn(acquisitions.getFirst(), rest)
+                .thenThrow(new AssertionError("more acquisitions than the test expects"));
     }
 
-    static Stream<Arguments> failoverCases() {
-        var refused = new ConnectException("refused");
-        return Stream.of(
-                arguments("transport fault with a candidate left", refused, 1, 2, true, true, true),
-                arguments("transport fault nested in another exception",
-                        XrdRuntimeException.systemException(IO_ERROR, refused), 1, 2, true, true, true),
-                arguments("every candidate tried", refused, 2, 2, true, true, false),
-                arguments("more attempts than candidates", refused, 3, 2, true, true, false),
-                arguments("a single candidate", refused, 1, 1, true, true, false),
-                arguments("request retry disabled", refused, 1, 2, false, true, false),
-                arguments("body no longer resendable", refused, 1, 2, true, false, false),
-                arguments("answer from a live provider",
-                        XrdRuntimeException.systemException(HTTP_ERROR, "Server responded with error %s", 500),
-                        1, 2, true, true, false));
+    private static DspAcquisition acquisition(String address, int candidateCount) {
+        var winner = new AcquisitionCandidate(winnerId(address), address);
+        return new DspAcquisition(new AssetAccessResponse("https://data.example.org/data", "token", winner), candidateCount);
+    }
+
+    private static String winnerId(String address) {
+        return "did:web:" + address.substring("https://".length(), address.indexOf(':', "https://".length()));
+    }
+
+    private List<DspRequest> acquiredRequests() {
+        var captor = ArgumentCaptor.forClass(DspRequest.class);
+        verify(dspRequestProcessor, atLeastOnce()).execute(captor.capture());
+        return captor.getAllValues();
     }
 }

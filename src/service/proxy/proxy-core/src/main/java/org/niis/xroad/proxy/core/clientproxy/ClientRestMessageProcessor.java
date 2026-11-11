@@ -126,7 +126,7 @@ public class ClientRestMessageProcessor {
     private final DspRequestProcessor consumerSideDspProcessor;
     private final IdentifierValidationService identifierValidationService;
     private final LegacyCallRefusalPolicy legacyCallRefusalPolicy;
-    private final DspSendFailureHandler dspSendFailureHandler;
+    private final DspFailover dspFailover;
 
     /**
      * Processes a REST message exchange described by the given request context.
@@ -225,8 +225,8 @@ public class ClientRestMessageProcessor {
 
     /**
      * Sends the request and returns the sender of the successful attempt, left open so the response
-     * can be parsed from it. Requests that go through DSP fail over to a sibling Security Server on a
-     * transport fault; all other requests use the TLS handshake retry across the resolved addresses.
+     * can be parsed from it. Requests that go through DSP move to a sibling Security Server only when nothing
+     * was sent; all other requests use the TLS handshake retry across the resolved addresses.
      */
     SentRequest send(RequestWrapper jRequest, OpMonitoringData opMonitoringData, RestRequest restRequest,
                      ClientId senderId, ServiceId requestServiceId, String xRequestId, ProxyRequestContext ctx)
@@ -281,10 +281,9 @@ public class ClientRestMessageProcessor {
     }
 
     /**
-     * Sends the request to the provider over DSP. After a transport fault on the data-plane send the
-     * request is resent in full to the Security Server that a new acquisition selects, with at most as many
-     * attempts as there are candidate Security Servers. Failures of the acquisition and of the request preparation
-     * are thrown as they are.
+     * Sends the request to the provider over DSP. When the chosen Security Server never received the request,
+     * it goes to the Security Server that a new acquisition selects. Failures of the acquisition and of the
+     * request preparation are thrown as they are.
      */
     private SentRequest sendWithDspFailover(DspRequest dspRequest, RequestWrapper jRequest,
                                             OpMonitoringData opMonitoringData, RestRequest restRequest,
@@ -293,27 +292,11 @@ public class ClientRestMessageProcessor {
         final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
         var entity = createRequestEntity(jRequest, opMonitoringData, restRequest, senderId, xRequestId, retryEnabled);
         try {
-            for (int attempt = 1; ; attempt++) {
-                var acquisition = consumerSideDspProcessor.execute(dspRequest);
-                var access = acquisition.access();
-                var tokenPresented = StringUtils.isNotBlank(access.authorization());
-                var httpSender = httpSenderProvider.createClientHttpSender();
+            return dspFailover.run(dspRequest, xRequestId, retryEnabled, entity::isReplayable, (httpSender, access) -> {
                 var addresses = prepareDspSender(httpSender, access, requestServiceId, opMonitoringData, xRequestId, ctx);
-                try {
-                    post(httpSender, addresses, entity, opMonitoringData);
-                    return new SentRequest(httpSender, entity.getRestBodyDigest(), tokenPresented);
-                } catch (Exception failure) {
-                    httpSender.close();
-                    dspSendFailureHandler.handle(failure, access);
-                    if (!DspFailover.canFailOver(failure, attempt, acquisition.candidateCount(), retryEnabled,
-                            entity::isReplayable)) {
-                        throw DspFailover.translateTransportFault(failure);
-                    }
-                    log.warn("Sending the request over the data plane failed with a transport fault, acquiring access again"
-                            + " (xRequestId: {}, attempt: {}, candidates: {})",
-                            xRequestId, attempt, acquisition.candidateCount(), failure);
-                }
-            }
+                post(httpSender, addresses, entity, opMonitoringData);
+                return new SentRequest(httpSender, entity.getRestBodyDigest(), StringUtils.isNotBlank(access.authorization()));
+            });
         } finally {
             entity.consume();
         }
@@ -345,15 +328,10 @@ public class ClientRestMessageProcessor {
 
     private URI[] prepareDspSender(HttpSender httpSender, AssetAccessResponse access, ServiceId requestServiceId,
                                    OpMonitoringData opMonitoringData, String xRequestId, ProxyRequestContext ctx) {
-        try {
-            var addresses = clientRequestPreparationService.prepareRequest(
-                    httpSender, requestServiceId, URI.create(access.endpoint()), ctx, opMonitoringData, null);
-            addRequestHeaders(httpSender, xRequestId, access.authorization());
-            return addresses;
-        } catch (Exception e) {
-            httpSender.close();
-            throw e;
-        }
+        var addresses = clientRequestPreparationService.prepareRequest(
+                httpSender, requestServiceId, URI.create(access.endpoint()), ctx, opMonitoringData, null);
+        addRequestHeaders(httpSender, xRequestId, access.authorization());
+        return addresses;
     }
 
     private static void addRequestHeaders(HttpSender httpSender, String xRequestId, @Nullable String agreementToken) {

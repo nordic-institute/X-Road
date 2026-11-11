@@ -32,15 +32,14 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.google.common.base.Ticker;
-import com.google.common.primitives.Bytes;
 import lombok.SneakyThrows;
 import org.apache.http.HttpEntity;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.message.BasicHeader;
 import org.eclipse.jetty.http.HttpFields;
@@ -62,9 +61,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor.SentRequest;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
@@ -73,8 +70,6 @@ import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspAcquisition;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
-import org.niis.xroad.proxy.core.messagelog.MessageLog;
-import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
@@ -92,9 +87,8 @@ import javax.net.ssl.SSLHandshakeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -104,12 +98,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
@@ -127,7 +121,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -150,10 +143,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
 
 class ClientRestMessageProcessorTest {
 
-    private static final int BODY_SIZE = 200_000;
-    private static final int BODY_CUT_OFF = 10_000;
-
-    private final Logger processorLogger = Logger.getLogger(ClientRestMessageProcessor.class.getName());
+    private final Logger failoverLogger = Logger.getLogger(DspFailover.class.getName());
     private final List<LogRecord> loggedWarnings = new CopyOnWriteArrayList<>();
     private final Handler warningCollector = new Handler() {
         @Override
@@ -181,18 +171,18 @@ class ClientRestMessageProcessorTest {
 
     @BeforeEach
     void collectWarnings() {
-        originalLoggerLevel = processorLogger.getLevel();
-        originalUseParentHandlers = processorLogger.getUseParentHandlers();
-        processorLogger.setLevel(Level.ALL);
-        processorLogger.setUseParentHandlers(false);
-        processorLogger.addHandler(warningCollector);
+        originalLoggerLevel = failoverLogger.getLevel();
+        originalUseParentHandlers = failoverLogger.getUseParentHandlers();
+        failoverLogger.setLevel(Level.ALL);
+        failoverLogger.setUseParentHandlers(false);
+        failoverLogger.addHandler(warningCollector);
     }
 
     @AfterEach
     void stopCollectingWarnings() {
-        processorLogger.removeHandler(warningCollector);
-        processorLogger.setUseParentHandlers(originalUseParentHandlers);
-        processorLogger.setLevel(originalLoggerLevel);
+        failoverLogger.removeHandler(warningCollector);
+        failoverLogger.setUseParentHandlers(originalUseParentHandlers);
+        failoverLogger.setLevel(originalLoggerLevel);
     }
 
     @SneakyThrows
@@ -246,7 +236,7 @@ class ClientRestMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 mock(LegacyCallRefusalPolicy.class),
-                mock(DspSendFailureHandler.class)
+                new DspFailover(consumerSideDspProcessor, httpSenderProvider, mock(DspSendFailureHandler.class))
         );
     }
 
@@ -550,7 +540,7 @@ class ClientRestMessageProcessorTest {
     }
 
     @ParameterizedTest
-    @MethodSource("transportFaults")
+    @MethodSource("failuresBeforeSend")
     void aTransportFaultOnTheDspSendReachesTheFailureHandlerAndEndsAsTheDataPlaneError(Throwable fault) throws Exception {
         var harness = createHarness(true);
         stubAcquisitions(harness, 1, WON_BY_SS_A);
@@ -765,25 +755,6 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void aReadTimeoutOfTheFirstServerIsServedByTheSibling() throws Exception {
-        var harness = createHarness(true);
-        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
-        var timedOutSsA = failingSender(new SocketTimeoutException("Read timed out"));
-        var servedBySsB = mock(HttpSender.class);
-        stubSenders(harness, timedOutSsA, servedBySsB);
-
-        var sent = send(harness);
-
-        assertThat(sent.getHttpSender()).isSameAs(servedBySsB);
-        verify(timedOutSsA).close();
-        verify(servedBySsB, never()).close();
-        verify(servedBySsB).doPost(eq(URI.create(WON_BY_SS_B.endpoint())), nullable(HttpEntity.class));
-        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
-        verify(harness.dspSendFailureHandler()).handle(any(SocketTimeoutException.class), eq(WON_BY_SS_A));
-        verify(harness.dspSendFailureHandler(), never()).handle(any(), eq(WON_BY_SS_B));
-    }
-
-    @Test
     void aFailedNewAcquisitionAfterATransportFaultReachesTheCallerAndTheFaultIsLogged() throws Exception {
         var harness = createHarness(true);
         var fault = new ConnectException("refused");
@@ -917,40 +888,6 @@ class ClientRestMessageProcessorTest {
     }
 
     @Test
-    void aFaultAfterPartOfTheBodyWasWrittenIsResentInFullFromTheStartToTheSibling() throws Exception {
-        var harness = createHarness(true);
-        stubSigning(harness.messageSigningService());
-        MessageLog.init(new NullLogManager(harness.globalConfProvider(), mock(ServerConfProvider.class)));
-        var body = randomBody();
-        var request = mock(RequestWrapper.class);
-        when(request.getInputStream()).thenReturn(new ByteArrayInputStream(body));
-        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
-        var writtenToSsA = new ByteArrayOutputStream();
-        var writtenToSsB = new ByteArrayOutputStream();
-        var cutOffSsA = mock(HttpSender.class);
-        doAnswer(invocation -> {
-            invocation.<HttpEntity>getArgument(1).writeTo(new CutOffOutputStream(writtenToSsA, BODY_CUT_OFF));
-            return null;
-        }).when(cutOffSsA).doPost(any(URI.class), nullable(HttpEntity.class));
-        var servedBySsB = mock(HttpSender.class);
-        doAnswer(invocation -> {
-            invocation.<HttpEntity>getArgument(1).writeTo(writtenToSsB);
-            return null;
-        }).when(servedBySsB).doPost(any(URI.class), nullable(HttpEntity.class));
-        stubSenders(harness, cutOffSsA, servedBySsB);
-
-        var sent = send(harness, request, restRequest());
-
-        assertThat(sent.getHttpSender()).isSameAs(servedBySsB);
-        verify(cutOffSsA).close();
-        verify(servedBySsB, never()).close();
-        assertThat(writtenToSsA.size()).isEqualTo(BODY_CUT_OFF);
-        assertThat(writtenToSsB.toByteArray()).startsWith(writtenToSsA.toByteArray());
-        assertThat(Bytes.indexOf(writtenToSsB.toByteArray(), body)).isNotNegative();
-        verify(harness.dspSendFailureHandler()).handle(any(XrdRuntimeException.class), eq(WON_BY_SS_A));
-    }
-
-    @Test
     void whenEveryCandidateRefusesTheCallerGetsTheDataPlaneErrorAfterOneAcquisitionPerCandidate() throws Exception {
         var harness = createHarness(true);
         stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
@@ -1043,7 +980,7 @@ class ClientRestMessageProcessorTest {
         when(harness.consumerSideDspProcessor().execute(any()))
                 .thenReturn(new DspAcquisition(WON_BY_SS_A, 2))
                 .thenThrow(new AssertionError("more acquisitions than the test expects"));
-        var failure = XrdRuntimeException.systemException(IO_ERROR, new ConnectException("no address"));
+        var failure = new IllegalArgumentException("illegal header value");
         when(harness.clientRequestPreparationService()
                 .prepareRequest(any(), any(), eq(URI.create(WON_BY_SS_A.endpoint())), any(), any(), any()))
                 .thenThrow(failure);
@@ -1056,16 +993,108 @@ class ClientRestMessageProcessorTest {
         verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
         verify(httpSender).close();
         verify(httpSender, never()).doPost(any(URI.class), nullable(HttpEntity.class));
-        verifyNoInteractions(harness.dspSendFailureHandler());
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
     }
 
-    static Stream<Throwable> transportFaults() {
+    @Test
+    void aConnectFailureOfAPostIsServedByTheSiblingWhichIsToldTheFirstServerWasTried() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var refusedBySsA = failingSender(new ConnectException("refused"));
+        var servedBySsB = mock(HttpSender.class);
+        stubSenders(harness, refusedBySsA, servedBySsB);
+
+        var sent = send(harness, mock(RequestWrapper.class), restRequest("POST"));
+
+        assertThat(sent.getHttpSender()).isSameAs(servedBySsB);
+        var dspRequests = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(dspRequests.capture());
+        assertThat(dspRequests.getAllValues().get(0).triedServers()).isEmpty();
+        assertThat(dspRequests.getAllValues().get(1).triedServers()).containsExactly(SS_A_ADDRESS);
+        verify(servedBySsB).doPost(eq(URI.create(WON_BY_SS_B.endpoint())), nullable(HttpEntity.class));
+    }
+
+    @ParameterizedTest
+    @MethodSource("failuresAfterSendOfEveryMethod")
+    void aFailureAfterTheSendIsNotResentAndNeitherDropsNorReportsTheWinner(String method, Throwable failure)
+            throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 2, WON_BY_SS_A, WON_BY_SS_B);
+        var sentBySsA = failingSender(failure);
+        stubSenders(harness, sentBySsA, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness, mock(RequestWrapper.class), restRequest(method))).isSameAs(failure);
+
+        verify(harness.consumerSideDspProcessor(), times(1)).execute(any());
+        verify(harness.httpSenderProvider(), times(1)).createClientHttpSender();
+        verify(sentBySsA).close();
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(any());
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(any(), any());
+    }
+
+    @Test
+    void whenThreeCandidatesRefuseEachIsTriedOnceAndTheCallerGetsTheDataPlaneError() throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 3, WON_BY_SS_A, WON_BY_SS_B, WON_BY_SS_C);
+        var fault = new ConnectException("refused");
+        stubSenders(harness, failingSender(fault), failingSender(fault), failingSender(fault));
+
+        assertThatThrownBy(() -> send(harness)).satisfies(thrown -> assertDataPlaneUnreachable(thrown, fault));
+
+        var dspRequests = ArgumentCaptor.forClass(DspRequest.class);
+        verify(harness.consumerSideDspProcessor(), times(3)).execute(dspRequests.capture());
+        assertThat(dspRequests.getAllValues().get(2).triedServers()).containsExactlyInAnyOrder(SS_A_ADDRESS, SS_B_ADDRESS);
+        verify(harness.httpSenderProvider(), times(3)).createClientHttpSender();
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_A);
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_B);
+        verify(harness.dspSendFailureHandler()).handle(fault, WON_BY_SS_C);
+    }
+
+    @Test
+    void aFailureBeforeTheSendOnTheFirstServerThenAFailureAfterTheSendOnTheSiblingEndsWithTheSiblingsError()
+            throws Exception {
+        var harness = createHarness(true);
+        stubAcquisitions(harness, 3, WON_BY_SS_A, WON_BY_SS_B, WON_BY_SS_C);
+        var refusedBySsA = failingSender(new ConnectException("refused"));
+        var readTimeout = new SocketTimeoutException("Read timed out");
+        var sentBySsB = failingSender(readTimeout);
+        stubSenders(harness, refusedBySsA, sentBySsB, mock(HttpSender.class));
+
+        assertThatThrownBy(() -> send(harness)).isSameAs(readTimeout);
+
+        verify(harness.consumerSideDspProcessor(), times(2)).execute(any());
+        verify(harness.httpSenderProvider(), times(2)).createClientHttpSender();
+        verify(refusedBySsA).close();
+        verify(sentBySsB).close();
+        verify(harness.consumerSideDspProcessor()).invalidateAssetAccessWonBy(SS_A_ADDRESS);
+        verify(harness.consumerSideDspProcessor()).reportCounterPartyFailure(SS_A_ID, SS_A_ADDRESS);
+        verify(harness.consumerSideDspProcessor(), never()).invalidateAssetAccessWonBy(SS_B_ADDRESS);
+        verify(harness.consumerSideDspProcessor(), never()).reportCounterPartyFailure(eq(SS_B_ID), any());
+    }
+
+    static Stream<Throwable> failuresBeforeSend() {
         return Stream.of(
                 new ConnectException("refused"),
                 new UnknownHostException("ss-a.example"),
                 new ConnectTimeoutException("connect timed out"),
-                new SSLHandshakeException("handshake_failure"),
-                new SocketTimeoutException("Read timed out"));
+                new SSLHandshakeException("handshake_failure"));
+    }
+
+    static Stream<Throwable> failuresAfterSend() {
+        return Stream.of(
+                new SocketTimeoutException("Read timed out"),
+                new SocketException("Connection reset"),
+                new NoHttpResponseException("ss-a.example:8183 failed to respond"));
+    }
+
+    static Stream<Throwable> transportFaults() {
+        return Stream.concat(failuresBeforeSend(), failuresAfterSend());
+    }
+
+    static Stream<Arguments> failuresAfterSendOfEveryMethod() {
+        return Stream.of("GET", "POST", "PUT", "PATCH", "DELETE")
+                .flatMap(method -> failuresAfterSend().map(failure -> Arguments.of(method, failure)));
     }
 
     static Stream<Throwable> answersFromALiveProvider() {
@@ -1094,20 +1123,26 @@ class ClientRestMessageProcessorTest {
     private static final String SS_A_ADDRESS = "https://ss-a.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SS_B_ID = "did:web:ss-b.example%3A7183:v1:DEV:COM:222";
     private static final String SS_B_ADDRESS = "https://ss-b.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
+    private static final String SS_C_ID = "did:web:ss-c.example%3A7183:v1:DEV:COM:222";
+    private static final String SS_C_ADDRESS = "https://ss-c.example:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1";
     private static final String SS_A_TOKEN = "token-issued-by-ss-a";
     private static final String SS_B_TOKEN = "token-issued-by-ss-b";
+    private static final String SS_C_TOKEN = "token-issued-by-ss-c";
     private static final AssetAccessResponse WON_BY_SS_A =
             new AssetAccessResponse("https://ss-a.example:8183/data", SS_A_TOKEN, new AcquisitionCandidate(SS_A_ID, SS_A_ADDRESS));
     private static final AssetAccessResponse WON_BY_SS_B =
             new AssetAccessResponse("https://ss-b.example:8183/data", SS_B_TOKEN, new AcquisitionCandidate(SS_B_ID, SS_B_ADDRESS));
+    private static final AssetAccessResponse WON_BY_SS_C =
+            new AssetAccessResponse("https://ss-c.example:8183/data", SS_C_TOKEN, new AcquisitionCandidate(SS_C_ID, SS_C_ADDRESS));
 
     /**
-     * Makes {@code execute} return the given accesses in order, each reporting {@code candidateCount} candidates,
-     * and fail the test on any further acquisition, so a broken attempt limit cannot loop.
+     * Makes {@code execute} return the given accesses in order. The first reports {@code candidateCount} candidates and
+     * every later one a candidate fewer, as the real processor does once the previous winner is excluded. Any further
+     * acquisition fails the test, so a broken failover loop cannot run on.
      */
     private static void stubAcquisitions(RestHarness harness, int candidateCount, AssetAccessResponse... accesses) {
-        var acquisitions = Stream.of(accesses)
-                .map(access -> new DspAcquisition(access, candidateCount))
+        var acquisitions = IntStream.range(0, accesses.length)
+                .mapToObj(i -> new DspAcquisition(accesses[i], candidateCount - i))
                 .toArray(DspAcquisition[]::new);
         var remaining = Arrays.copyOfRange(acquisitions, 1, acquisitions.length);
         when(harness.consumerSideDspProcessor().execute(any()))
@@ -1131,21 +1166,6 @@ class ClientRestMessageProcessorTest {
     private static SentRequest send(RestHarness harness, RequestWrapper jRequest, RestRequest restRequest) throws Exception {
         return harness.processor().send(jRequest, null, restRequest, restRequest.getClientId(),
                 serviceId(), "req-1", restRequestContext());
-    }
-
-    private static void stubSigning(MessageSigningService messageSigningService) throws Exception {
-        var chain = mock(CertChain.class);
-        when(chain.getAllCertsWithoutTrustedRoot()).thenReturn(List.of());
-        when(messageSigningService.getAuthKey()).thenReturn(new AuthKey(chain, null));
-        when(messageSigningService.getAllOcspResponses(any())).thenReturn(List.of());
-        when(messageSigningService.createSigningCtx(any()))
-                .thenReturn(builder -> new SignatureData("<Signature>test-signature</Signature>"));
-    }
-
-    private static byte[] randomBody() {
-        var body = new byte[BODY_SIZE];
-        new Random(42).nextBytes(body);
-        return body;
     }
 
     private static void assertDataPlaneUnreachable(Throwable thrown, Throwable cause) {
@@ -1205,7 +1225,11 @@ class ClientRestMessageProcessorTest {
     }
 
     private static RestRequest restRequest() {
-        return new RestRequest("GET", "/r1/DEV/COM/222/TestClient/testService", null, List.of(), "req-1");
+        return restRequest("GET");
+    }
+
+    private static RestRequest restRequest(String method) {
+        return new RestRequest(method, "/r1/DEV/COM/222/TestClient/testService/pets", null, List.of(), "req-1");
     }
 
     private static RestRequest restRequestForcedTo(SecurityServerId target) {
@@ -1220,31 +1244,6 @@ class ClientRestMessageProcessorTest {
 
     private static RestRequestContext restRequestContext() {
         return new RestRequestContext(mock(RequestWrapper.class), mock(ResponseWrapper.class), null);
-    }
-
-    private static final class CutOffOutputStream extends OutputStream {
-        private final OutputStream sink;
-        private int remaining;
-
-        CutOffOutputStream(OutputStream sink, int allowedBytes) {
-            this.sink = sink;
-            this.remaining = allowedBytes;
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            write(new byte[]{(byte) b}, 0, 1);
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            var allowed = Math.min(len, remaining);
-            sink.write(b, off, allowed);
-            remaining -= allowed;
-            if (allowed < len) {
-                throw new SSLHandshakeException("Received fatal alert: certificate_required");
-            }
-        }
     }
 
     private record RestHarness(ClientRestMessageProcessor processor, DspRequestProcessor consumerSideDspProcessor,
@@ -1307,7 +1306,7 @@ class ClientRestMessageProcessorTest {
                 consumerSideDspProcessor,
                 mock(IdentifierValidationService.class),
                 legacyCallRefusalPolicy,
-                dspSendFailureHandler);
+                new DspFailover(consumerSideDspProcessor, httpSenderProvider, dspSendFailureHandler));
         return new RestHarness(processor, consumerSideDspProcessor, clientRequestPreparationService,
                 globalConfProvider, legacyCallRefusalPolicy, dspSendFailureHandler, httpSenderProvider,
                 messageSigningService);

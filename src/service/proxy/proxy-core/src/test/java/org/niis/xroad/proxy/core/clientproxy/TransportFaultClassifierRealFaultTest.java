@@ -83,36 +83,36 @@ class TransportFaultClassifierRealFaultTest {
     }
 
     @Test
-    void closedPortIsATransportFault() throws IOException {
+    void closedPortMeansNothingWasSent() throws IOException {
         int closedPort = server.getLocalPort();
         server.close();
 
         assertThat(sendFailure("http", closedPort))
-                .satisfies(TransportFaultClassifierRealFaultTest::assertTransportFault);
+                .satisfies(TransportFaultClassifierRealFaultTest::assertNothingWasSent);
     }
 
     @Test
-    void rejectedTlsHandshakeIsATransportFault() {
+    void rejectedTlsHandshakeMeansNothingWasSent() {
         serveEachConnection(socket -> {
             readSome(socket);
             write(socket, TLS_HANDSHAKE_FAILURE_ALERT);
         });
 
         assertThat(sendFailure("https", server.getLocalPort()))
-                .satisfies(TransportFaultClassifierRealFaultTest::assertTransportFault);
+                .satisfies(TransportFaultClassifierRealFaultTest::assertNothingWasSent);
     }
 
     @Test
-    void serverThatNeverAnswersIsATransportFault() {
+    void serverThatNeverAnswersMeansTheRequestWasSent() {
         serveEachConnection(socket -> {
         });
 
         assertThat(sendFailure("http", server.getLocalPort()))
-                .satisfies(TransportFaultClassifierRealFaultTest::assertTransportFault);
+                .satisfies(failure -> assertThat(TransportFaultClassifier.nothingWasSent(failure)).isFalse());
     }
 
     @Test
-    void unresolvableHostIsATransportFault() throws IOException {
+    void unresolvableHostMeansNothingWasSent() throws IOException {
         var connectionManager = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
@@ -126,7 +126,7 @@ class TransportFaultClassifierRealFaultTest {
                     sender.doPost(URI.create("http://unresolvable.provider.test/"), "request", "text/plain");
                 }
             });
-            assertThat(failure).satisfies(TransportFaultClassifierRealFaultTest::assertTransportFault);
+            assertThat(failure).satisfies(TransportFaultClassifierRealFaultTest::assertNothingWasSent);
         }
     }
 
@@ -146,7 +146,7 @@ class TransportFaultClassifierRealFaultTest {
     }
 
     @Test
-    void serverAnsweringWithErrorStatusIsNotATransportFault() {
+    void serverAnsweringWithErrorStatusMeansTheRequestWasSent() {
         serveEachConnection(socket -> {
             readSome(socket);
             write(socket, "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
@@ -156,12 +156,12 @@ class TransportFaultClassifierRealFaultTest {
         assertThat(sendFailure("http", server.getLocalPort())).satisfies(failure -> {
             assertThat(failure).isInstanceOfSatisfying(XrdRuntimeException.class,
                     e -> assertThat(e.isCausedBy(HTTP_ERROR)).isTrue());
-            assertThat(TransportFaultClassifier.isTransportFault(failure)).isFalse();
+            assertThat(TransportFaultClassifier.nothingWasSent(failure)).isFalse();
         });
     }
 
-    private static void assertTransportFault(Throwable failure) {
-        assertThat(TransportFaultClassifier.isTransportFault(failure)).isTrue();
+    private static void assertNothingWasSent(Throwable failure) {
+        assertThat(TransportFaultClassifier.nothingWasSent(failure)).isTrue();
     }
 
     private Throwable sendFailure(String scheme, int port) {
