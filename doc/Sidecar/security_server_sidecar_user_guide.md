@@ -788,7 +788,17 @@ The database server must run PostgreSQL 15 or newer. For full compatibility, use
 
 2. Restore the databases from the backup of step 1 of [Running the migration with an external database](#running-the-migration-with-an-external-database).
 
-3. Fix the cause, and run step 3 of [Running the migration with an external database](#running-the-migration-with-an-external-database) again.
+3. Remove the secret store database and role if created by the failed attempt, as the restore does not remove them.
+
+    Connect as the `postgres` user, with the password you pass in `XROAD_DB_PWD`:
+
+    ```bash
+    psql -h <database host> -p <database port> -U postgres -d postgres \
+      -c 'DROP DATABASE IF EXISTS "openbao"' \
+      -c 'DROP ROLE IF EXISTS "openbao"'
+    ```
+
+4. Fix the cause, and run step 3 of [Running the migration with an external database](#running-the-migration-with-an-external-database) again.
 
 ##### Rolling back a migration with an external database
 
