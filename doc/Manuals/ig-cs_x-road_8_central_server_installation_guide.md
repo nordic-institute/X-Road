@@ -117,6 +117,7 @@ The table below lists the required connections between different components. Ple
 | In                  | X-Road Member Security Server     | Central Server                | 4001                | tcp          | Authentication certificate registration requests from X-Road Members' Security Servers                                                                                           |
 | In                  | Management Security Server        | Central Server                | 80, 443, 4001, 4002 | tcp          | Source in the internal network. Management service requests from Management Security Server. Global configuration distribution. Authentication certificate registration requests |
 | In                  | Monitoring Security Server        | Central Server                | 80, 443, 4001       | tcp          | Source in the internal network. Global configuration distribution. Authentication certificate registration requests                                                              |
+| In                  | Security Server                   | Central Server                | 6183, 6185, 6187    | tcp          | Issuer Service DID documents, credential issuance and credential status lists, reached through the cluster DNS name                                                               |
 | In                  | X-Road Member Security Server     | Management Security Server    | 5500, 5577          | tcp          | Management service requests from X-Road Members' Security Servers                                                                                                                |
 | In                  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443          | tcp          | Source in the internal network                                                                                                                                                   |
 | In                  | Admin, management REST API client | Central Server                | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
@@ -129,10 +130,41 @@ The table below lists the open ports for Central Server components utilizing the
 |----------------------|-----------|--------------|-----------------------------------------------|
 | Registration Service | 8084      | tcp          | For incoming requests to Registration Service |
 | Management Service   | 8085      | tcp          | For incoming requests to Management Service   |
+| Issuer Service       | 6181      | tcp          | EDC default API and health check              |
+| Issuer Service       | 5460      | tcp          | gRPC from the Central Server admin service     |
 | PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port              |
 | Signer               | 5560      | tcp          | Signer gRPC port                              |
 | Audit log            | 514       | udp          |                                               |
 | Secret Store         | 8200      | tcp          | Local Secret Store (OpenBao) port             |
+
+The Issuer Service's public ports (6183, 6185, 6187) listen on the interface set by the
+`xroad.dataspace.issuer.listen-address` property. The default is `0.0.0.0`; it and `::` both
+listen on every interface, IPv4 and IPv6. Port 6181 always listens on 127.0.0.1 and the
+property does not change it. Set a shared value, used by every node without its own value,
+with:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes -- xroad.dataspace.issuer.listen-address <address>
+```
+
+Set a value for one node of a cluster instead with:
+
+```bash
+sudo /usr/share/xroad/scripts/db_property.sh set --yes --node <node> -- xroad.dataspace.issuer.listen-address <address>
+```
+
+On a single node with no node name configured, the node is `node_0`. The Issuer Service reads
+the property once at startup, so restart it after a change:
+
+```bash
+sudo systemctl restart xroad-ds-issuer-service
+```
+
+**Caution:** a value other than `0.0.0.0`, `::` or a loopback address takes these ports off
+loopback too, because the service then listens only on the interface named, and it can break a
+haproxy backend that reaches these ports on loopback. The property has no validator: a mistyped
+address does not fail the command that sets it, and shows up only as a bind failure when the
+Issuer Service next starts.
 
 ### 2.3 Requirements to the Central Server
 

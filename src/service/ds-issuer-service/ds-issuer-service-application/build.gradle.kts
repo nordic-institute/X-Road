@@ -85,5 +85,6 @@ dependencies {
 
   testImplementation(testFixtures(project(":lib:properties-core")))
   testImplementation(testFixtures(project(":lib:bootstrap-edc-quarkus")))
+  testImplementation(libs.smallrye.config.yaml)
   testImplementation(libs.assertj.core)
 }
