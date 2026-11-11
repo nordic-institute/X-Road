@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ss.test.api.admin;
 
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 
 import java.time.Instant;
@@ -155,6 +156,14 @@ public class DiagnosticsAdminClient {
         return request
                 .get("/diagnostics/operational-monitoring")
                 .then();
+    }
+
+    /**
+     * Sums the success and failure counts over all buckets of an operational monitoring intervals response.
+     */
+    public static int totalRequestCount(JsonPath intervals) {
+        return intervals.getList("success_count", Integer.class).stream().mapToInt(Integer::intValue).sum()
+                + intervals.getList("failure_count", Integer.class).stream().mapToInt(Integer::intValue).sum();
     }
 
     /**
