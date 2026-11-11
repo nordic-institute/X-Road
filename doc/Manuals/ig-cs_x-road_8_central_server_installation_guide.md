@@ -9,7 +9,7 @@ Doc. ID: IG-CS-8
 | Date       | Version | Description                                                                                          | Author          |
 |------------|---------|------------------------------------------------------------------------------------------------------|-----------------|
 | 07.10.2025 | 1.0     | Initial version                                                                                      | Justas Samuolis |
-| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check and the default node name | Ričardas Bučiūnas |
+| 11.11.2026 | 1.1     | Document the TLS certificate names, the per-node rows, the node name check, the default node name and the shared rows of a standalone server | Ričardas Bučiūnas |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -281,9 +281,11 @@ The answers are stored as rows of the node when `node.ini` has a node name, and 
 
 Each node resolves every key in this order: the row of the node, the shared row, the default.
 
-Running `sudo dpkg-reconfigure xroad-center` asks the names again. The suggested value is the value the node uses now. A key is stored only when the answer differs from that value, in the scope of the node: as a node row when `node.ini` has a node name, as a shared row otherwise. A key that already exists keeps its names; delete it and restart the services as described below.
+Running `sudo dpkg-reconfigure xroad-center` asks the names again. The suggested value is the value the node uses now, except on a server without a node name that has a row set with `--node node_0`; see the next paragraph. A key is stored only when the answer differs from that value, in the scope of the node: as a node row when `node.ini` has a node name, as a shared row otherwise. A key that already exists keeps its names; delete it and restart the services as described below.
 
-An upgrade follows the same rule. A key that has a node row or a shared row and an unchanged answer is not written, so a shared row keeps applying to the node.
+A server without a node name uses the node name `node_0`, so a row set with `db_property.sh --node node_0` wins over the shared row. On such a server the installation reads and writes shared rows only. It neither shows nor changes `node_0` rows. Set shared rows on a standalone server, without `--node`.
+
+An upgrade follows the same rule as `dpkg-reconfigure`. A key that has a node row or a shared row and an unchanged answer is not written, so a shared row keeps applying to the node.
 
 **Changing the certificate names**
 
@@ -368,7 +370,7 @@ A standalone Central Server does not need a node name. Set one on every node of 
   - The services use the name `node_0` in secret store paths.
   - Backup archive names have no node name suffix.
   - `node_0` is the default name of an initialized Central Server that is not clustered. The server does not report itself as clustered.
-- To turn a standalone Central Server into node 1 of a cluster, set `name=node_0` in `node.ini`. The server keeps its keys in the secret store and its configuration rows, because they are already stored under `node_0`; nothing is moved. From then on the server reports itself as clustered. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the other steps.
+- To turn a standalone Central Server into node 1 of a cluster, set `name=node_0` in `node.ini`. The server keeps its keys in the secret store, because they are already stored under `node_0`. It keeps its configuration rows too: the installation and the migration from X-Road 7 write shared rows, and shared rows keep applying to the node. Nothing is moved. From then on the server reports itself as clustered. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md) for the other steps.
 - The installation checks the name that is entered at the prompt before it writes anything. A name that does not follow the rule stops the installation with an error, and neither `node.ini` nor any configuration row is written. Enter a valid name and run the installation again. The installation also stops when `node.ini` exists but cannot be read.
 - The installation does not check a name that is already in `node.ini`. The services check it when they start. A node with a name that does not follow the rule does not start, and the message in the service log names the rule.
 - Do not change the name after the node has been used. See the [Central Server High Availability Installation Guide](ig-csha_x-road_6_ha_installation_guide.md#41-node-name-and-renaming-a-node) for how to rename a node and move its configuration rows.
