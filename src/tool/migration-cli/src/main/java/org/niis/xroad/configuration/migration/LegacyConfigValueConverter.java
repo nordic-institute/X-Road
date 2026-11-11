@@ -46,10 +46,10 @@ import java.util.TreeMap;
 public final class LegacyConfigValueConverter {
 
     public static ConversionResult convert(Map<String, String> rawProperties) {
-        Map<String, String> merged = mergeStructuredRows(rawProperties);
+        List<String> warnings = new ArrayList<>();
+        Map<String, String> merged = mergeStructuredRows(rawProperties, warnings);
 
         Map<String, String> converted = new TreeMap<>();
-        List<String> warnings = new ArrayList<>();
 
         merged.forEach((key, value) -> converted.put(key, convertValue(key, value, warnings)));
 
@@ -59,9 +59,10 @@ public final class LegacyConfigValueConverter {
     /**
      * Replaces every {@link LegacyConfigValueShapes.MergedJsonShape}'s own rows (indexed entries or
      * per-field rows, found via its key's prefix-aware lookup) with the single merged key holding the
-     * JSON value built from them. Rows belonging to no such shape pass through unchanged.
+     * JSON value built from them, appending any warnings the shape's merger reports. Rows belonging to
+     * no such shape pass through unchanged.
      */
-    private static Map<String, String> mergeStructuredRows(Map<String, String> rawProperties) {
+    private static Map<String, String> mergeStructuredRows(Map<String, String> rawProperties, List<String> warnings) {
         Map<String, Map<String, String>> rowsByMergedKey = new TreeMap<>();
         Map<String, String> passthrough = new TreeMap<>();
 
@@ -77,7 +78,7 @@ public final class LegacyConfigValueConverter {
         Map<String, String> result = new TreeMap<>(passthrough);
         rowsByMergedKey.forEach((mergedKey, rows) -> {
             var shape = (LegacyConfigValueShapes.MergedJsonShape) LegacyConfigValueShapes.shapeOf(mergedKey);
-            result.put(mergedKey, shape.merger().apply(rows));
+            result.put(mergedKey, shape.merger().apply(rows, warnings));
         });
 
         return result;

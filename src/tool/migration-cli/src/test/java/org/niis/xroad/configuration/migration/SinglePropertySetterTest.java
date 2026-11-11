@@ -204,4 +204,37 @@ class SinglePropertySetterTest {
         }
     }
 
+    @Nested
+    class SignerModulesConversion {
+
+        private static final String SIGNER_MODULES_KEY = "xroad.signer.modules";
+
+        @Test
+        void perFieldSignerModulesKeySavesNothingAndReportsReplacementKey() {
+            var fieldKey = SIGNER_MODULES_KEY + ".hsm_one.enabled";
+
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                var exception = assertThrows(XrdRuntimeException.class,
+                        () -> new TestSinglePropertySetter(fieldKey, "true")
+                                .migrate("not/used", DB_PROPERTIES_PATH));
+
+                assertThat(exception.getMessage()).contains(fieldKey).contains(SIGNER_MODULES_KEY);
+                assertThat(mockedDb.constructed()).isEmpty();
+            }
+        }
+
+        @Test
+        void exactSignerModulesKeyWithJsonValueSavedUnchanged() {
+            var json = "{\"hsm_one\":{\"enabled\":true}}";
+
+            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
+                new TestSinglePropertySetter(SIGNER_MODULES_KEY, json)
+                        .migrate("not/used", DB_PROPERTIES_PATH);
+
+                var dbRepo = mockedDb.constructed().getFirst();
+                Mockito.verify(dbRepo).saveProperty(SIGNER_MODULES_KEY, json);
+            }
+        }
+    }
+
 }

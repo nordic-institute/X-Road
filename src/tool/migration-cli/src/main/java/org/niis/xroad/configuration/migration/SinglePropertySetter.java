@@ -44,11 +44,11 @@ public class SinglePropertySetter extends BasePropertiesToDbMigrator {
 
     @Override
     Map<String, String> loadProperties(String filePath) {
-        refuseOldIndexedShape();
+        refuseRowOfMergedShape();
         return Map.of(propertyKey, propertyValue);
     }
 
-    private void refuseOldIndexedShape() {
+    private void refuseRowOfMergedShape() {
         LegacyConfigValueShapes.mergedKeyFor(propertyKey).ifPresent(mergedKey -> {
             throw XrdRuntimeException.systemException(ErrorCode.INVALID_PROPERTY_VALUE,
                     "Key '%s' is part of the structured value stored under '%s'; set that key instead with the whole value",

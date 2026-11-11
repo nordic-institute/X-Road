@@ -30,6 +30,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(project(":lib:messagelog-core"))
+  testImplementation(project(":service:signer:signer-common"))
   testImplementation(libs.springBoot.starterTest)
   testImplementation(libs.systemStubs)
 

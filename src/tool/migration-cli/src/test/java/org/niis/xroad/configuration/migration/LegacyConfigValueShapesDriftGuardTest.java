@@ -29,15 +29,22 @@ package org.niis.xroad.configuration.migration;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import org.niis.xroad.signer.common.config.SignerModuleConfig;
+import tools.jackson.databind.util.NamingStrategyImpls;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Guards {@link LegacyConfigValueShapes} against drifting from {@link GroupingStrategy}, whose constants
- * it duplicates for the migration CLI (which has no production dependency on the message log module).
+ * Guards {@link LegacyConfigValueShapes} against drifting from {@link GroupingStrategy} and
+ * {@link SignerModuleConfig}, whose constants and fields it duplicates for the migration CLI (which has
+ * no production dependency on the message log or signer modules).
  */
 class LegacyConfigValueShapesDriftGuardTest {
 
@@ -52,6 +59,33 @@ class LegacyConfigValueShapesDriftGuardTest {
                 .toList();
 
         assertThat(shape.allowedConstants()).containsExactlyInAnyOrderElementsOf(expectedConstants);
+    }
+
+    @Test
+    void signerModulesShapeFieldsMatchSignerModuleConfigFields() {
+        Map<String, LegacyConfigValueShapes.FieldType> expectedFields = new HashMap<>();
+        for (Field field : SignerModuleConfig.class.getDeclaredFields()) {
+            expectedFields.put(NamingStrategyImpls.KEBAB_CASE.translate(field.getName()), fieldTypeOf(field));
+        }
+
+        assertThat(LegacyConfigValueShapes.signerModuleFields()).containsExactlyInAnyOrderEntriesOf(expectedFields);
+    }
+
+    private static LegacyConfigValueShapes.FieldType fieldTypeOf(Field field) {
+        Class<?> type = field.getType();
+        if (type == boolean.class || type == Boolean.class) {
+            return LegacyConfigValueShapes.FieldType.BOOLEAN;
+        }
+        if (type == String.class) {
+            return LegacyConfigValueShapes.FieldType.STRING;
+        }
+        if (type == List.class) {
+            return LegacyConfigValueShapes.FieldType.STRING_LIST;
+        }
+        if (type == Set.class) {
+            return LegacyConfigValueShapes.FieldType.SLOT_IDS;
+        }
+        throw new IllegalStateException("Unexpected field type %s for field %s".formatted(type, field.getName()));
     }
 
 }
