@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.54  
+Version: 2.55  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -80,6 +80,7 @@ Doc. ID: UG-CS
 | 05.11.2025 | 2.52    | Add information about the approved CAs default CSR format                                                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 20.10.2026 | 2.53    | Added Issuer Service host configuration paragraph                                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 06.11.2026 | 2.54    | Added the member DID column, the stale DID warning and the member DID edit and check (Section 7.2.1)                                                                                                                                                                                                                                                                                                                                    | Justas Samuolis      |
+| 11.11.2026 | 2.55    | Added a note that xroad-center must be restarted before re-creating the management service key after a change of the certificate names                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -483,6 +484,8 @@ To re-create Management Service key and self-signed certificate, follow these st
 3. Confirm the re-creating by clicking Confirm.
 4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
+The new certificate gets the names that are stored in the configuration database. The user interface service `xroad-center` reads these names once, when it starts. If you changed the names after `xroad-center` started, restart `xroad-center` before you click Re-create key. Otherwise the new certificate gets the old names. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2 for how to change the names.
+
 To generate Management Service certificate signing request, follow these steps.
 
 1. In the Navigation tabs, select Settings --> TLS certificates.
@@ -504,7 +507,7 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 
 **ATTENTION!**
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
-- The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
+- The running management services keep serving the old certificate until they are restarted. Restart `xroad-center-management-service`, then `xroad-center-registration-service`, in this order. See [IG-CS](ig-cs_x-road_8_central_server_installation_guide.md#262-provisioning-tls-certificates-for-management-services-and-user-interface) section 2.6.2.
 
 ### 4.5 Configuring the Issuer Service Host
 

@@ -27,7 +27,9 @@
 
 package org.niis.xroad.common.vault.spring;
 
+import org.niis.xroad.common.core.node.NodeIdentity;
 import org.niis.xroad.common.vault.NoopVaultClient;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -42,9 +44,10 @@ public class SpringVaultClientConfig {
     @ConditionalOnProperty(name = "spring.cloud.vault.enabled", havingValue = "true")
     SpringVaultClient springVaultClient(VaultTemplate vaultTemplate,
                                         @Value("${spring.cloud.vault.kv.backend}") String rootPath,
-                                        @Value("${spring.cloud.vault.kv.backend-version}") String version) {
+                                        @Value("${spring.cloud.vault.kv.backend-version}") String version,
+                                        ObjectProvider<NodeIdentity> nodeIdentity) {
         var vaultKvClient = vaultTemplate.opsForKeyValue(rootPath, getKeyValueBackendVersion(version));
-        return new SpringVaultClient(vaultKvClient);
+        return new SpringVaultClient(vaultKvClient, nodeIdentity.getIfAvailable());
     }
 
     private VaultKeyValueOperationsSupport.KeyValueBackend getKeyValueBackendVersion(String version) {

@@ -29,41 +29,24 @@ package org.niis.xroad.cs.management.core.configuration;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
+import org.niis.xroad.common.vault.TlsKeyProvisioning;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.util.stream.Stream;
+import java.security.GeneralSecurityException;
 
-import static java.util.Arrays.stream;
-
-@Slf4j
 @RequiredArgsConstructor
 public class ManagementServiceSslBundleRegistrar extends AbstractManagementServiceSslBundleRegistrar {
     private final VaultKeyClient vaultKeyClient;
     private final VaultClient vaultClient;
 
     @Override
-    protected InternalSSLKey resolveTlsCredentials() throws IOException, CertificateException,
-            NoSuchAlgorithmException, InvalidKeySpecException {
-        try {
-            return vaultClient.getManagementServicesTlsCredentials();
-        } catch (Exception e) {
-            log.warn("Unable to locate '{}' TLS credentials, attempting to create new ones", BUNDLE_NAME, e);
-            var vaultKeyData = vaultKeyClient.provisionNewCerts();
-            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
-                    .toArray(X509Certificate[]::new);
-            var tlsCredentials = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
-            vaultClient.createManagementServiceTlsCredentials(tlsCredentials);
-            log.info("Successfully created '{}' TLS credentials", BUNDLE_NAME);
-            return tlsCredentials;
-        }
+    protected InternalSSLKey resolveTlsCredentials() throws IOException, GeneralSecurityException {
+        return TlsKeyProvisioning.readOrProvision(BUNDLE_NAME,
+                vaultClient::getManagementServicesTlsCredentials,
+                vaultClient::createManagementServiceTlsCredentials,
+                vaultKeyClient);
     }
-
 }
