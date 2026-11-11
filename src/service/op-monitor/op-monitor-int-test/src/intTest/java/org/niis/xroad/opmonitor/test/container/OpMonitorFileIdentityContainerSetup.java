@@ -46,8 +46,8 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * Op-monitor test stack for the file-based TLS identity: op-monitor with its databases, and no OpenBao service. A
- * trap listens at the OpenBao address and logs every connection. Three more op-monitor services start with broken
- * identity files and are expected to stop.
+ * trap listens at the OpenBao address and logs every connection. Three additional op-monitor services use
+ * invalid identity files and are expected to fail during startup.
  */
 public class OpMonitorFileIdentityContainerSetup extends BaseComposeSetup {
 

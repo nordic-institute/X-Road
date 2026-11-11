@@ -15,7 +15,7 @@ Doc ID: UG-OPMONSYSPAR
 | 10.07.2025 | 0.7     | Added grpc related properties                                                                                           | Mikk-Erik Bachmann |
 | 19.10.2026 | 0.8     | Operational monitoring parameters of X-Road 8: store and query over gRPC                                                | Eneli Reimets      |
 | 06.11.2026 | 0.9     | Added trust settings of the operational monitoring connection                                                           | Eneli Reimets      |
-| 10.11.2026 | 0.10    | Added the parameters of the file-based TLS identity of an external operational monitoring daemon                        | Eneli Reimets      |
+| 11.11.2026 | 0.10    | Added the parameters of the file-based TLS identity of an external operational monitoring daemon                        | Eneli Reimets      |
 
 ## Table of Contents
 
