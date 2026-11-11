@@ -1,0 +1,79 @@
+✅ Playbook X-VIA adaptado para On-Premises
+  
+  Sim, funciona perfeitamente em ambiente on-premises com banco PostgreSQL do cliente. O playbook agora suporta:
+  
+  O que foi criado/atualizado:
+  
+  ┌─────────────────────────────────┬────────────────────────────────────────────┐
+  │ Arquivo                         │ Função                                     │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ xvia_install.yml                │ Playbook principal (3 plays: CA → CS → SS) │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ hosts/xvia_onpremises.txt       │ Inventário de exemplo on-premises          │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ vars_files/xvia_cdn.yml         │ Config de pacotes (CDN/S3/local)           │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ vars_files/xvia_database.yml    │ Config banco (customizável)                │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ tasks/xvia_cs_install.yml       │ Instalação do Central Server               │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ tasks/xvia_ca_install.yml       │ Instalação do CA (OCSP/TSA)                │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ tasks/xvia_db_remote.yml        │ Setup banco remoto                         │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ tasks/xvia_db_local.yml         │ Setup banco local                          │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ tasks/xvia_postinstall.yml      │ Liquibase, PAM, autologin                  │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ tasks/xvia_validate.yml         │ Validação serviços + login                 │
+  ├─────────────────────────────────┼────────────────────────────────────────────┤
+  │ templates/xvia_db.properties.j2 │ Template JDBC                              │
+  └─────────────────────────────────┴────────────────────────────────────────────┘
+  
+  Como usar no cliente:
+  
+  Instalação completa com banco on-premises:
+  
+  ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+    -e "admin_password=SenhaDoCliente" \
+    -e "database_admin_password=SenhaDoBanco" \
+    -e "xroad_ui_user=admin-orgao" \
+    -e "database_host=192.168.1.50:5432" \
+    -e "database_admin_user=dba_cliente"
+  
+  Com senhas customizadas para todos os bancos:
+  
+  ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+    -e "admin_password=MinhaSenh4" \
+    -e "xroad_ui_user=meu-admin" \
+    -e "database_admin_password=DBSenh4" \
+    -e "database_admin_user=postgres" \
+    -e "serverconf_password=SenhaServerconf" \
+    -e "messagelog_password=SenhaMsglog" \
+    -e "opmonitor_password=SenhaOpmon" \
+    -e "centerui_password=SenhaCenterUI"
+  
+  Apenas Security Server:
+  
+  ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+    -e "admin_password=Senha" -e "database_admin_password=DB" --tags ss
+  
+  Ambiente sem internet (pacotes pré-copiados):
+  
+  # Antes: copie o tarball para os servidores
+  scp xroad-7.8.0-ubuntu24.04.tar.gz ubuntu@servidor:/opt/xvia-packages/
+  
+  ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+    -e "admin_password=Senha" \
+    -e "database_admin_password=DB" \
+    -e "xvia_package_source=local"
+  
+  Tags disponíveis:
+  
+  - --tags ca → Apenas CA Server
+  - --tags cs → Apenas Central Server
+  - --tags ss → Apenas Security Server(s)
+  
+  Para configurar no inventário do cliente:
+  
+  Edite hosts/xvia_onpremises.txt com os IPs/FQDNs reais e a chave SSH do ambiente.
