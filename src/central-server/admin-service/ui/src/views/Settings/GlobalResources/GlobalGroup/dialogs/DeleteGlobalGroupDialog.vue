@@ -32,7 +32,7 @@
     focus-on-accept
     :loading="loading"
     :data="{ group: groupCode }"
-    @save="proceedWithDelete"
+    @accept="proceedWithDelete"
     @cancel="cancelDelete"
   />
 </template>
