@@ -31,6 +31,33 @@ init:
     username: "opmonitor"
     schema: "public"
     changelogName: "op-monitor"
+  # Dataspace entries render only when the matching services.<name>.replicas is above 0.
+  # Entries without userSecretKey connect as `postgres`; entries without passwordSecretKey
+  # read `postgres-password`. Both keys come from the Secret db-<job name>.
+  dsControlPlane:
+    host: "db-ds-control-plane"
+    port: "5432"
+    database: "ds-control-plane"
+    schema: "public"
+    changelogName: "ds-control-plane"
+    userSecretKey: "username"
+    passwordSecretKey: "password"
+  dsIdentityHub:
+    host: "db-ds-identity-hub"
+    port: "5432"
+    database: "ds-identity-hub"
+    schema: "public"
+    changelogName: "ds-identity-hub"
+    userSecretKey: "username"
+    passwordSecretKey: "password"
+  dsIssuerService:
+    host: "db-ds-issuer-service"
+    port: "5432"
+    database: "ds-issuer-service"
+    schema: "public"
+    changelogName: "ds-issuer-service"
+    userSecretKey: "username"
+    passwordSecretKey: "password"
 
 
 # Non-default xroad.* runtime config, seeded into the serverconf

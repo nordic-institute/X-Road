@@ -41,18 +41,27 @@ spec:
             - name: JDBC_URL
               value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
             - name: JDBC_USER
+              {{- if $config.userSecretKey }}
+              valueFrom:
+                secretKeyRef:
+                  name: db-{{ $name }}
+                  key: {{ $config.userSecretKey }}
+              {{- else }}
               value: "postgres"
+              {{- end }}
             - name: JDBC_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-{{ $name }}
-                  key: postgres-password
+                  key: {{ $config.passwordSecretKey | default "postgres-password" }}
             - name: CHANGELOG
               value: {{ ($config.changelogName | default $name) | quote }}
             - name: DEFAULT_SCHEMA_NAME
               value: {{ $config.schema | quote }}
+            {{- if $config.username }}
             - name: PROP_DB_USER
               value: {{ $config.username | quote }}
+            {{- end }}
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
@@ -85,5 +94,18 @@ Generate all DB init jobs
 ---
 {{- if (index .Values "services" "op-monitor" "enabled") }}
     {{- include "xroad.db.init.job" (dict "root" $root "name" "opmonitor" "config" .Values.init.opmonitor) }}
+{{- end }}
+{{- /* Dataspace components, rendered only when the service runs */}}
+{{- if gt (int (index .Values "services" "ds-control-plane" "replicas")) 0 }}
+---
+{{- include "xroad.db.init.job" (dict "root" $root "name" "ds-control-plane" "config" .Values.init.dsControlPlane) }}
+{{- end }}
+{{- if gt (int (index .Values "services" "ds-identity-hub" "replicas")) 0 }}
+---
+{{- include "xroad.db.init.job" (dict "root" $root "name" "ds-identity-hub" "config" .Values.init.dsIdentityHub) }}
+{{- end }}
+{{- if gt (int (index .Values "services" "ds-issuer-service" "replicas")) 0 }}
+---
+{{- include "xroad.db.init.job" (dict "root" $root "name" "ds-issuer-service" "config" .Values.init.dsIssuerService) }}
 {{- end }}
 {{- end }}
