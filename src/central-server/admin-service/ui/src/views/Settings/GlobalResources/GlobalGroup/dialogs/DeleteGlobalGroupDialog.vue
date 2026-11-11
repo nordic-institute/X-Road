@@ -75,6 +75,9 @@ export default defineComponent({
       this.$emit('cancel');
     },
     proceedWithDelete(): void {
+      if (this.loading) {
+        return;
+      }
       this.loading = true;
       this.globalGroupStore
         .deleteByCode(this.groupCode)

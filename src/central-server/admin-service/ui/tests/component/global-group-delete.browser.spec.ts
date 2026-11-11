@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { page } from 'vitest/browser';
+import { page, userEvent } from 'vitest/browser';
 import { HttpResponse } from 'msw';
 import type { RequestHandler } from 'msw';
 import { renderRoute } from '../setup/render-route';
@@ -86,8 +86,8 @@ describe('CS Global Group — delete dialog (Browser Mode)', () => {
 
     await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
     expect(deleteSpy).toHaveBeenCalledWith(GROUP_CODE);
-    await expect.element(page.getByTestId('global-groups-table')).toBeVisible();
     await expect.element(page.getByText('Global group deleted successfully.')).toBeVisible();
+    await expect.element(page.getByTestId('global-groups-table')).toBeVisible();
     await expect.poll(() => page.getByTestId('remove-group-button').query()).toBeNull();
   });
 
@@ -106,6 +106,51 @@ describe('CS Global Group — delete dialog (Browser Mode)', () => {
     await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
     await expect.element(page.getByText('Cannot read TLS certificate')).toBeVisible();
     await expect.element(page.getByTestId('dialog-save-button')).not.toHaveClass('v-btn--loading');
+  });
+
+  it('a second confirm while the DELETE is pending sends no second request', async () => {
+    const deleteSpy = vi.fn();
+    let releaseDelete: () => void = () => {};
+    const deleteGate = new Promise<void>((resolve) => {
+      releaseDelete = resolve;
+    });
+    await renderGroupView([
+      specHttp.delete('/global-groups/{group_code}', async ({ params, response }) => {
+        deleteSpy(params.group_code);
+        await deleteGate;
+        return response(204).empty();
+      }),
+    ]);
+
+    await openDeleteDialog();
+    await page.getByTestId('dialog-save-button').click();
+    await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
+    await expect.element(page.getByTestId('dialog-save-button')).toHaveClass('v-btn--loading');
+
+    await userEvent.keyboard('{Enter}');
+    releaseDelete();
+
+    await expect.element(page.getByText('Global group deleted successfully.')).toBeVisible();
+    await expect.element(page.getByTestId('global-groups-table')).toBeVisible();
+    expect(deleteSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('confirming again after a failed DELETE sends a new request', async () => {
+    const deleteSpy = vi.fn();
+    await renderGroupView([
+      specHttp.untyped.delete('/api/v1/global-groups/:group_code', () => {
+        deleteSpy();
+        return HttpResponse.json({ status: 400, error: { code: 'cannot_read_certificate' } }, { status: 400 });
+      }),
+    ]);
+
+    await openDeleteDialog();
+    await page.getByTestId('dialog-save-button').click();
+    await expect.poll(() => deleteSpy.mock.calls.length).toBe(1);
+    await expect.element(page.getByTestId('dialog-save-button')).not.toHaveClass('v-btn--loading');
+
+    await page.getByTestId('dialog-save-button').click();
+    await expect.poll(() => deleteSpy.mock.calls.length).toBe(2);
   });
 
   it('cancelling closes the dialog without sending DELETE', async () => {
