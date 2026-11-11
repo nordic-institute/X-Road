@@ -103,6 +103,7 @@ import static org.mockito.Mockito.when;
                 DataspaceIssuerProvisioningServiceImpl.class,
                 DataspaceIssuerDidServiceImpl.class,
                 DataspaceMemberDidServiceImpl.class,
+                DidBatchResolution.class,
                 ParticipantValueStoreImpl.class,
                 IssuerSetUpLeaseServiceImpl.class,
                 IssuerServiceStatusServiceImpl.class
