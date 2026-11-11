@@ -28,25 +28,21 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.securityserver.restapi.service.DifferenceSignals.Differences;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
@@ -62,13 +58,15 @@ public class DataspaceProvisioningStatusService {
     private final DataspaceDidAuthority didAuthority;
     private final DsParticipantRepository dsParticipantRepository;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
-    private final GlobalConfProvider globalConfProvider;
+    private final DifferenceEvaluator differenceEvaluator;
 
     /**
      * Returns a snapshot of the current provisioning status. Deliberately not transactional: the context
      * enumeration, the SYSTEM binding row read, each context's binding row read inside its status read and
      * the publication read of each MEMBER context run in their own short transactions, so no pooled DB
-     * connection is held across the blocking gRPC calls of the per-context status reads.
+     * connection is held across the blocking gRPC calls of the per-context status reads. The difference evaluator
+     * also reads the SYSTEM binding row and every active member binding row, and builds the DSP base URL when the
+     * SYSTEM row is sent.
      */
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
@@ -76,57 +74,36 @@ public class DataspaceProvisioningStatusService {
         List<ParticipantContextStatus> contextStatuses = contexts.stream()
                 .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
-        Optional<DifferenceSignals> signals = readDifferenceSignals();
-        return new DataspaceStatus(true, authCertRegistered, readServerStatus(signals), contextStatuses,
-                readMemberPublications(contexts, signals));
+        var differences = differenceEvaluator.evaluate(ownSecurityServerResolver.address());
+        return new DataspaceStatus(true, authCertRegistered, readServerStatus(differences), contextStatuses,
+                readMemberPublications(contexts, differences));
     }
 
     private Map<String, MemberPublication> readMemberPublications(List<ParticipantContext> contexts,
-            Optional<DifferenceSignals> signals) {
+            Differences differences) {
         Map<String, MemberPublication> memberPublications = new LinkedHashMap<>();
         contexts.stream()
                 .filter(context -> context.kind() == ParticipantKind.MEMBER)
                 .forEach(context ->
-                        memberPublications.put(context.participantId(), readMemberPublication(context, signals)));
+                        memberPublications.put(context.participantId(), readMemberPublication(context, differences)));
         return memberPublications;
     }
 
-    private Optional<DifferenceSignals> readDifferenceSignals() {
-        return ownSecurityServerResolver.address() instanceof OwnAddress.Registered(var serverId, var address)
-                ? Optional.of(DifferenceSignals.of(serverId, globalConfProvider, address))
-                : Optional.empty();
-    }
-
-    private MemberPublication readMemberPublication(ParticipantContext context,
-            Optional<DifferenceSignals> signals) {
+    private MemberPublication readMemberPublication(ParticipantContext context, Differences differences) {
         var row = dsParticipantRepository.findByMemberIdentifier(context.memberId())
                 .filter(participant -> participant.getState() == ParticipantState.ACTIVE);
         var state = row.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
-        var mismatch = row.filter(participant -> signals.filter(s -> s.memberMismatch(participant)).isPresent())
-                .isPresent();
         return new MemberPublication(state, row.map(DsParticipantEntity::getPublicationReason).orElse(null),
-                mismatch);
+                differences.memberMismatches().contains(context.memberId()));
     }
 
-    private ServerStatus readServerStatus(Optional<DifferenceSignals> signals) {
+    private ServerStatus readServerStatus(Differences differences) {
         var system = dsParticipantRepository.findActiveSystemParticipant();
         var state = system.map(DsParticipantEntity::getPublicationState).orElse(PublicationState.NOT_SENT);
-        var dspBaseUrl = didAuthority.dspBaseUrlIfValid().orElse(null);
-        var mismatch = system.flatMap(row -> signals.map(s -> s.systemMismatch(row, dspBaseUrl)))
-                .orElse(DifferenceSignals.SystemMismatch.NONE);
-        return new ServerStatus(readinessPredicates.isDataspaceReady(), dspBaseUrl, state,
-                system.map(DsParticipantEntity::getPublicationReason).orElse(null),
-                mismatch.systemDid(), mismatch.dspBaseUrl(), readHostStatus(system, signals));
-    }
-
-    private HostStatus readHostStatus(Optional<DsParticipantEntity> system,
-            Optional<DifferenceSignals> signals) {
-        return signals.map(s -> {
-            var bindings = new ArrayList<>(
-                    dsParticipantRepository.findActiveMembers(EnumSet.allOf(PublicationState.class)));
-            system.ifPresent(bindings::add);
-            return s.hostStatus(bindings);
-        }).orElse(HostStatus.UNKNOWN);
+        var mismatch = differences.systemMismatch();
+        return new ServerStatus(readinessPredicates.isDataspaceReady(), didAuthority.dspBaseUrlIfValid().orElse(null),
+                state, system.map(DsParticipantEntity::getPublicationReason).orElse(null),
+                mismatch.systemDid(), mismatch.dspBaseUrl(), differences.hostStatus());
     }
 
     /**

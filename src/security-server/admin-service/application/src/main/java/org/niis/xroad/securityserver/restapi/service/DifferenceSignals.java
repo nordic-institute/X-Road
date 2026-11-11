@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
@@ -34,15 +35,19 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Compares the DIDs and the DSP base URL on the binding rows with the values globalconf carries for one Security
- * Server.
+ * Server. The publication steps compare single rows; {@link #evaluate} evaluates the host status, the SYSTEM
+ * mismatches and the member mismatches in one go and returns them as {@link Differences}.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DifferenceSignals {
@@ -62,7 +67,7 @@ public final class DifferenceSignals {
      * @param registeredAddress  the registered address of the Security Server, {@code null} when it is unknown
      * @return the signals for that server
      */
-    public static DifferenceSignals of(SecurityServerId serverId, GlobalConfProvider globalConfProvider,
+    static DifferenceSignals of(SecurityServerId serverId, GlobalConfProvider globalConfProvider,
             @Nullable String registeredAddress) {
         return new DifferenceSignals(serverId, globalConfProvider, RegisteredHostMatcher.of(registeredAddress));
     }
@@ -82,7 +87,7 @@ public final class DifferenceSignals {
      * @return whether the row is in submitted or published state and globalconf carries another, not stale, DID for
      * the member
      */
-    public boolean memberMismatch(DsParticipantEntity row) {
+    boolean memberMismatch(DsParticipantEntity row) {
         return isSent(row) && compareMemberDid(row) == GlobalConfComparison.DIFFERENT;
     }
 
@@ -100,32 +105,45 @@ public final class DifferenceSignals {
 
     /**
      * @param row        the SYSTEM binding row
-     * @param dspBaseUrl the DSP base URL built for the server, {@code null} while it cannot be built
+     * @param dspBaseUrl the DSP base URL built for the server, {@code null} while it cannot be built; asked for
+     *                   only when the row is in submitted or published state
      * @return for each SYSTEM value, whether the row is in submitted or published state and globalconf carries
      * another, not stale, value
      */
-    public SystemMismatch systemMismatch(DsParticipantEntity row, @Nullable String dspBaseUrl) {
+    SystemMismatch systemMismatch(DsParticipantEntity row, Supplier<String> dspBaseUrl) {
         if (!isSent(row)) {
             return SystemMismatch.NONE;
         }
-        var comparison = compareSystemValues(row, dspBaseUrl);
+        var comparison = compareSystemValues(row, dspBaseUrl.get());
         return new SystemMismatch(comparison.systemDid() == GlobalConfComparison.DIFFERENT,
                 comparison.dspBaseUrl() == GlobalConfComparison.DIFFERENT);
     }
 
     /**
-     * @param bindings the SYSTEM and member binding rows; decommissioned rows are ignored
-     * @return {@link HostStatus#UNKNOWN} when the registered address cannot be used, {@link HostStatus#DIFFERS} when
-     * the DID host of an active row is not the registered address, otherwise {@link HostStatus#OK}
+     * Evaluates every signal at once, from the rows as they are now. When the registered address cannot be used
+     * nothing is compared and the host status is {@code UNKNOWN}.
+     *
+     * @param system     the active SYSTEM binding row, {@code null} when there is none
+     * @param members    the active member binding rows, whatever their publication state
+     * @param dspBaseUrl the DSP base URL built for the server, {@code null} while it cannot be built; asked for
+     *                   only when the SYSTEM row is in submitted or published state
+     * @return the host status, the SYSTEM mismatches, the members with a mismatch and the rows at another host
      */
-    public HostStatus hostStatus(Collection<DsParticipantEntity> bindings) {
+    public Differences evaluate(@Nullable DsParticipantEntity system, Collection<DsParticipantEntity> members,
+            Supplier<String> dspBaseUrl) {
         if (!hostMatcher.isRegisteredAddressUsable()) {
-            return HostStatus.UNKNOWN;
+            return Differences.UNKNOWN;
         }
-        var differs = bindings.stream()
-                .filter(row -> row.getState() == ParticipantState.ACTIVE)
-                .anyMatch(row -> !hostMatcher.didHostMatches(row.getDid()));
-        return differs ? HostStatus.DIFFERS : HostStatus.OK;
+        var memberMismatches = members.stream()
+                .filter(this::memberMismatch)
+                .<ClientId>map(DsParticipantEntity::getMemberIdentifier)
+                .collect(Collectors.toUnmodifiableSet());
+        var systemMismatch = system == null ? SystemMismatch.NONE : systemMismatch(system, dspBaseUrl);
+        var hostDiffering = Stream.concat(members.stream(), Stream.ofNullable(system))
+                .filter(row -> !hostMatcher.didHostMatches(row.getDid()))
+                .toList();
+        return new Differences(hostDiffering.isEmpty() ? HostStatus.OK : HostStatus.DIFFERS, systemMismatch,
+                memberMismatches, hostDiffering);
     }
 
     private static boolean isSent(DsParticipantEntity row) {
@@ -141,5 +159,22 @@ public final class DifferenceSignals {
     public record SystemMismatch(boolean systemDid, boolean dspBaseUrl) {
 
         static final SystemMismatch NONE = new SystemMismatch(false, false);
+    }
+
+    /**
+     * All signals of one evaluation.
+     *
+     * @param hostStatus       {@code OK} when the DIDs of all active bindings carry the registered address as their
+     *                         host, {@code DIFFERS} when one does not, {@code UNKNOWN} when the registered address
+     *                         cannot be used
+     * @param systemMismatch   which SYSTEM values differ from the ones globalconf carries
+     * @param memberMismatches the members whose carried DID differs from the bound one
+     * @param hostDiffering    the active bindings whose DID host is not the registered address
+     */
+    public record Differences(HostStatus hostStatus, SystemMismatch systemMismatch, Set<ClientId> memberMismatches,
+                              List<DsParticipantEntity> hostDiffering) {
+
+        static final Differences UNKNOWN =
+                new Differences(HostStatus.UNKNOWN, SystemMismatch.NONE, Set.of(), List.of());
     }
 }

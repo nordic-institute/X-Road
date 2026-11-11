@@ -31,18 +31,17 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceDidAuthority;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
 import org.niis.xroad.securityserver.restapi.service.DifferenceSignals;
 import org.niis.xroad.securityserver.restapi.service.HostedMembers;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheck;
 import org.niis.xroad.securityserver.restapi.service.PublicationCheckAction;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.impl.ownserver.OwnAddress;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
 import org.niis.xroad.serverconf.model.PublicationState;
 import org.springframework.stereotype.Component;
@@ -63,6 +62,8 @@ import java.time.Instant;
  * the configured timeout goes back to not sent under the same guards: the authentication certificate must be
  * registered for the SYSTEM values, and the member must be hosted on this server for a member DID. A row with no
  * known change time never goes back by the timeout. The SYSTEM values and the member DIDs are checked independently.
+ * After both, a last step evaluates the difference signals afresh from the rows as they are then and hands them to
+ * {@link DataspaceDifferenceLog}.
  *
  * <p>Runs after the transaction of the globalconf check has committed, so the members hosted here are read from the
  * committed serverconf, including the client statuses of that check. A globalconf check that rolls back publishes
@@ -75,7 +76,8 @@ public class DataspacePublicationGlobalConfCheck {
 
     private final DsParticipantRepository dsParticipantRepository;
     private final ClientRepository clientRepository;
-    private final GlobalConfProvider globalConfProvider;
+    private final DifferenceEvaluator differenceEvaluator;
+    private final DataspaceDifferenceLog differenceLog;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
     private final OwnSecurityServerResolver ownSecurityServerResolver;
@@ -86,13 +88,14 @@ public class DataspacePublicationGlobalConfCheck {
     private Clock clock = Clock.systemUTC();
 
     public DataspacePublicationGlobalConfCheck(DsParticipantRepository dsParticipantRepository,
-            ClientRepository clientRepository, GlobalConfProvider globalConfProvider,
-            DataspaceReadinessPredicates readinessPredicates, DataspaceDidAuthority didAuthority,
-            OwnSecurityServerResolver ownSecurityServerResolver, AdminServiceProperties adminServiceProperties,
-            PlatformTransactionManager transactionManager) {
+            ClientRepository clientRepository, DifferenceEvaluator differenceEvaluator,
+            DataspaceDifferenceLog differenceLog, DataspaceReadinessPredicates readinessPredicates,
+            DataspaceDidAuthority didAuthority, OwnSecurityServerResolver ownSecurityServerResolver,
+            AdminServiceProperties adminServiceProperties, PlatformTransactionManager transactionManager) {
         this.dsParticipantRepository = dsParticipantRepository;
         this.clientRepository = clientRepository;
-        this.globalConfProvider = globalConfProvider;
+        this.differenceEvaluator = differenceEvaluator;
+        this.differenceLog = differenceLog;
         this.readinessPredicates = readinessPredicates;
         this.didAuthority = didAuthority;
         this.ownSecurityServerResolver = ownSecurityServerResolver;
@@ -109,6 +112,8 @@ public class DataspacePublicationGlobalConfCheck {
     public void check(SecurityServerId securityServerId) {
         runStep("SYSTEM values", () -> checkSystemValues(securityServerId));
         runStep("member DIDs", () -> checkMemberDids(securityServerId));
+        runStep("differences", () -> differenceLog.record(
+                differenceEvaluator.evaluate(ownSecurityServerResolver.address(securityServerId))));
     }
 
     private void runStep(String subject, Runnable step) {
@@ -150,9 +155,7 @@ public class DataspacePublicationGlobalConfCheck {
     }
 
     private DifferenceSignals signals(SecurityServerId securityServerId) {
-        var registeredAddress = ownSecurityServerResolver.address(securityServerId)
-                instanceof OwnAddress.Registered(var _, var address) ? address : null;
-        return DifferenceSignals.of(securityServerId, globalConfProvider, registeredAddress);
+        return differenceEvaluator.signals(securityServerId, ownSecurityServerResolver.address(securityServerId));
     }
 
     private Instant submittedBefore() {

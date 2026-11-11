@@ -50,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
+import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome;
 import org.niis.xroad.securityserver.restapi.service.MemberDidRegistrationSendOutcome.Entry;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
@@ -172,8 +173,9 @@ class DataspaceMemberPublicationTest {
                 didRegistrationSender, adminServiceProperties);
         backoff = new PublicationBackoff(clock, () -> 1.0);
         stage.setBackoff(backoff);
-        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository, globalConfProvider,
-                readinessPredicates, didAuthority,
+        check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, clientRepository,
+                new DifferenceEvaluator(dsParticipantRepository, globalConfProvider, didAuthority),
+                new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
                 new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
                 adminServiceProperties, mock(PlatformTransactionManager.class));
         check.setClock(clock);

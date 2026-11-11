@@ -46,9 +46,11 @@ import org.niis.xroad.globalconf.model.ServerSystemValues;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceServerStatusDto.HostStatusEnum;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceDifferenceLog;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.DataspacePublicationGlobalConfCheck;
 import org.niis.xroad.securityserver.restapi.service.ControlPlaneProvisioningClient;
+import org.niis.xroad.securityserver.restapi.service.HostStatus;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient;
 import org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -58,6 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +69,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.ParticipantRowTestSupport.inNewTransaction;
 
@@ -96,6 +102,8 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
     private IdentityHubProvisioningClient identityHubClient;
     @MockitoBean
     private ControlPlaneProvisioningClient controlPlaneClient;
+    @MockitoSpyBean
+    private DataspaceDifferenceLog differenceLog;
     @Autowired
     private DataspaceApiController dataspaceApiController;
     @Autowired
@@ -173,6 +181,20 @@ class DataspaceGlobalConfMismatchStatusTest extends AbstractApiControllerTestCon
                 .containsEntry("did", BOUND_DID)
                 .containsEntry("publication_state", state.name())
                 .containsEntry("state", "ACTIVE");
+    }
+
+    @Test
+    void theGlobalconfCheckHandsTheDifferencesToTheLogOncePerCheck() {
+        insertMemberRow("PUBLISHED");
+        carry(OTHER_DID_SAME_HOST);
+
+        assertThat(errorsLoggedBy(() -> {
+            globalConfCheck.check(SS_ID);
+            globalConfCheck.check(SS_ID);
+        })).isEmpty();
+
+        verify(differenceLog, times(2)).record(argThat(differences ->
+                differences.memberMismatches().contains(MEMBER) && differences.hostStatus() == HostStatus.OK));
     }
 
     @ParameterizedTest

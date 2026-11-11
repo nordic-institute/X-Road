@@ -139,9 +139,10 @@ class DataspaceProvisioningStatusServiceTest {
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
 
+        var statusDidAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
         statusService = new DataspaceProvisioningStatusService(provisioningService, readinessPredicates,
-                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties), dsParticipantRepository,
-                ownSecurityServerResolver, globalConfProvider);
+                statusDidAuthority, dsParticipantRepository, ownSecurityServerResolver,
+                new DifferenceEvaluator(dsParticipantRepository, globalConfProvider, statusDidAuthority));
     }
 
     @Test
@@ -504,7 +505,8 @@ class DataspaceProvisioningStatusServiceTest {
                         globalConfProvider),
                 adminServiceProperties);
         return new DataspaceProvisioningStatusService(provisioningService, readinessPredicates, didAuthority,
-                dsParticipantRepository, resolver, globalConfProvider);
+                dsParticipantRepository, resolver,
+                new DifferenceEvaluator(dsParticipantRepository, globalConfProvider, didAuthority));
     }
 
     private static DsParticipantEntity systemRow(Did did) {

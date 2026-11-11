@@ -47,6 +47,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.securityserver.restapi.service.DidRegistrationSender;
+import org.niis.xroad.securityserver.restapi.service.DifferenceEvaluator;
 import org.niis.xroad.securityserver.restapi.service.SystemDidRegistrationSendOutcome;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.ownserver.OwnSecurityServerResolver;
@@ -58,12 +59,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -134,7 +137,8 @@ class DataspacePublicationWritersTest {
         stage = new DataspacePublicationStage(readinessPredicates, didAuthority, dsParticipantRepository,
                 didRegistrationSender, mock(AdminServiceProperties.class));
         check = new DataspacePublicationGlobalConfCheck(dsParticipantRepository, mock(ClientRepository.class),
-                globalConfProvider, readinessPredicates, didAuthority,
+                new DifferenceEvaluator(dsParticipantRepository, globalConfProvider, didAuthority),
+                new DataspaceDifferenceLog(), readinessPredicates, didAuthority,
                 new OwnSecurityServerResolver(mock(OwnServerIdentitySource.class), globalConfProvider),
                 adminServiceProperties, mock(PlatformTransactionManager.class));
         check.setClock(clock);
@@ -382,6 +386,7 @@ class DataspacePublicationWritersTest {
 
     @Test
     void theDspBaseUrlIsNotBuiltForNotSentAndRejectedRows() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn("ss.example.test");
         for (var state : new PublicationState[] {PublicationState.NOT_SENT, PublicationState.REJECTED}) {
             row.setPublicationState(state);
             carry(CARRIED);
@@ -390,6 +395,7 @@ class DataspacePublicationWritersTest {
             globalconfCheck();
         }
 
+        verify(dsParticipantRepository, atLeastOnce()).findActiveMembers(EnumSet.allOf(PublicationState.class));
         verify(didAuthority, never()).dspBaseUrlIfValid();
     }
 }

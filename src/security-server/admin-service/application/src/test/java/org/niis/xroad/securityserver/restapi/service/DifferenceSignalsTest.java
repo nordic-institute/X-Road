@@ -45,6 +45,8 @@ import org.niis.xroad.serverconf.model.PublicationState;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -154,7 +156,7 @@ class DifferenceSignalsTest {
     void aSentSystemWhoseCarriedValuesDifferAndAreNotStaleMismatchesOnBoth(PublicationState state) {
         var carried = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL);
 
-        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(state), BUILT_URL))
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(state), () -> BUILT_URL))
                 .isEqualTo(new DifferenceSignals.SystemMismatch(true, true));
     }
 
@@ -163,9 +165,9 @@ class DifferenceSignalsTest {
         var row = systemRow(PublicationState.PUBLISHED);
 
         assertThat(systemSignals(ADDRESS, new ServerSystemValues(OTHER_SYSTEM_DID, BUILT_URL))
-                .systemMismatch(row, BUILT_URL)).isEqualTo(new DifferenceSignals.SystemMismatch(true, false));
+                .systemMismatch(row, () -> BUILT_URL)).isEqualTo(new DifferenceSignals.SystemMismatch(true, false));
         assertThat(systemSignals(ADDRESS, new ServerSystemValues(SYSTEM_DID, OTHER_PORT_URL))
-                .systemMismatch(row, BUILT_URL)).isEqualTo(new DifferenceSignals.SystemMismatch(false, true));
+                .systemMismatch(row, () -> BUILT_URL)).isEqualTo(new DifferenceSignals.SystemMismatch(false, true));
     }
 
     @ParameterizedTest
@@ -173,7 +175,7 @@ class DifferenceSignalsTest {
     void aSystemThatIsNotSentNeverMismatches(PublicationState state) {
         var carried = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL);
 
-        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(state), BUILT_URL))
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(state), () -> BUILT_URL))
                 .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
     }
 
@@ -181,7 +183,7 @@ class DifferenceSignalsTest {
     void aSystemWithoutPublicationStateNeverMismatches() {
         var carried = new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL);
 
-        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(null), BUILT_URL))
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(null), () -> BUILT_URL))
                 .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
     }
 
@@ -189,28 +191,36 @@ class DifferenceSignalsTest {
     void aStaleSystemPairDoesNotMismatch() {
         var carried = new ServerSystemValues(systemDid("ss1.example.org:7183"), OTHER_PORT_URL);
 
-        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(PublicationState.PUBLISHED), BUILT_URL))
+        assertThat(systemSignals(ADDRESS, carried).systemMismatch(systemRow(PublicationState.PUBLISHED), () -> BUILT_URL))
                 .isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
     }
 
     @Test
     void hostStatusIsOkWhenEveryActiveBindingIsAtTheRegisteredHost() {
-        var bindings = List.of(row(PublicationState.PUBLISHED, BOUND), row(PublicationState.NOT_SENT, OTHER_SAME_HOST),
-                systemRow(PublicationState.PUBLISHED));
+        var members = List.of(row(PublicationState.PUBLISHED, BOUND), row(PublicationState.NOT_SENT, OTHER_SAME_HOST));
 
-        assertThat(signals(ADDRESS, null).hostStatus(bindings)).isEqualTo(HostStatus.OK);
+        var differences = signals(ADDRESS, null).evaluate(systemRow(PublicationState.PUBLISHED), members,
+                () -> null);
+
+        assertThat(differences.hostStatus()).isEqualTo(HostStatus.OK);
+        assertThat(differences.hostDiffering()).isEmpty();
     }
 
     @Test
     void hostStatusIsOkWithoutBindings() {
-        assertThat(signals(ADDRESS, null).hostStatus(List.of())).isEqualTo(HostStatus.OK);
+        assertThat(signals(ADDRESS, null).evaluate(null, List.of(), () -> null).hostStatus())
+                .isEqualTo(HostStatus.OK);
     }
 
     @Test
     void hostStatusDiffersWhenAnActiveMemberBindingIsAtAnotherHost() {
-        var bindings = List.of(row(PublicationState.PUBLISHED, BOUND), row(PublicationState.NOT_SENT, OTHER_HOST));
+        var atOtherHost = row(PublicationState.NOT_SENT, OTHER_HOST);
 
-        assertThat(signals(ADDRESS, null).hostStatus(bindings)).isEqualTo(HostStatus.DIFFERS);
+        var differences = signals(ADDRESS, null)
+                .evaluate(null, List.of(row(PublicationState.PUBLISHED, BOUND), atOtherHost), () -> null);
+
+        assertThat(differences.hostStatus()).isEqualTo(HostStatus.DIFFERS);
+        assertThat(differences.hostDiffering()).containsExactly(atOtherHost);
     }
 
     @Test
@@ -218,27 +228,77 @@ class DifferenceSignalsTest {
         var system = systemRow(PublicationState.PUBLISHED);
         system.setDid(systemDid("ss1.example.org:7183"));
 
-        assertThat(signals(ADDRESS, null).hostStatus(List.of(row(PublicationState.PUBLISHED, BOUND), system)))
-                .isEqualTo(HostStatus.DIFFERS);
-    }
+        var differences = signals(ADDRESS, null)
+                .evaluate(system, List.of(row(PublicationState.PUBLISHED, BOUND)), () -> null);
 
-    @Test
-    void hostStatusIgnoresADecommissionedBindingAtAnotherHost() {
-        var decommissioned = row(PublicationState.PUBLISHED, OTHER_HOST);
-        decommissioned.setState(ParticipantState.DECOMMISSIONED);
-
-        assertThat(signals(ADDRESS, null).hostStatus(List.of(row(PublicationState.PUBLISHED, BOUND), decommissioned)))
-                .isEqualTo(HostStatus.OK);
+        assertThat(differences.hostStatus()).isEqualTo(HostStatus.DIFFERS);
+        assertThat(differences.hostDiffering()).containsExactly(system);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"b\u00fccher.example", "bad host", " "})
     @NullAndEmptySource
     void hostStatusIsUnknownWhenTheRegisteredAddressCannotBeUsed(String registeredAddress) {
-        var bindings = List.of(row(PublicationState.PUBLISHED, OTHER_HOST));
+        var system = systemRow(PublicationState.PUBLISHED);
+        var members = List.of(row(PublicationState.PUBLISHED, OTHER_HOST));
+        when(globalConfProvider.getServerSystemValues(SERVER))
+                .thenReturn(Optional.of(new ServerSystemValues(OTHER_SYSTEM_DID, OTHER_PORT_URL)));
+        Supplier<String> failingUrl = () -> {
+            throw new AssertionError("the DSP base URL must not be asked for");
+        };
+        var signals = signals(registeredAddress, OTHER_SAME_HOST);
 
-        assertThat(signals(registeredAddress, null).hostStatus(bindings)).isEqualTo(HostStatus.UNKNOWN);
-        assertThat(signals(registeredAddress, null).hostStatus(List.of())).isEqualTo(HostStatus.UNKNOWN);
+        var differences = signals.evaluate(system, members, failingUrl);
+        var withoutBindings = signals.evaluate(null, List.of(), failingUrl);
+
+        assertThat(differences).isEqualTo(DifferenceSignals.Differences.UNKNOWN);
+        assertThat(withoutBindings).isEqualTo(DifferenceSignals.Differences.UNKNOWN);
+    }
+
+    @Test
+    void theDspBaseUrlIsAskedForOnlyWhenTheSystemRowIsSent() {
+        var asked = new AtomicInteger();
+        Supplier<String> dspBaseUrl = () -> {
+            asked.incrementAndGet();
+            return BUILT_URL;
+        };
+        var signals = signals(ADDRESS, null);
+
+        signals.evaluate(null, List.of(), dspBaseUrl);
+        signals.evaluate(systemRow(PublicationState.NOT_SENT), List.of(), dspBaseUrl);
+        assertThat(asked).hasValue(0);
+
+        signals.evaluate(systemRow(PublicationState.SUBMITTED), List.of(), dspBaseUrl);
+        assertThat(asked).hasValue(1);
+    }
+
+    @Test
+    void evaluateCombinesEverySignalFromOneSetOfRows() {
+        var system = systemRow(PublicationState.PUBLISHED);
+        var mismatching = row(PublicationState.PUBLISHED, BOUND);
+        var atOtherHost = row(PublicationState.NOT_SENT, OTHER_HOST);
+        atOtherHost.setMemberIdentifier(ClientIdEntityFactory.create(ClientId.Conf.create("DEV", "COM", "333")));
+        when(globalConfProvider.getServerSystemValues(SERVER))
+                .thenReturn(Optional.of(new ServerSystemValues(OTHER_SYSTEM_DID, BUILT_URL)));
+        var signals = signals(ADDRESS, OTHER_SAME_HOST);
+
+        var differences = signals.evaluate(system, List.of(mismatching, atOtherHost), () -> BUILT_URL);
+
+        assertThat(differences.hostStatus()).isEqualTo(HostStatus.DIFFERS);
+        assertThat(differences.systemMismatch()).isEqualTo(new DifferenceSignals.SystemMismatch(true, false));
+        assertThat(differences.memberMismatches()).containsExactly(MEMBER);
+        assertThat(differences.hostDiffering()).containsExactly(atOtherHost);
+    }
+
+    @Test
+    void evaluateWithoutASystemRowHasNoSystemMismatch() {
+        var differences = signals(ADDRESS, null).evaluate(null, List.of(row(PublicationState.PUBLISHED, BOUND)),
+                () -> BUILT_URL);
+
+        assertThat(differences.hostStatus()).isEqualTo(HostStatus.OK);
+        assertThat(differences.systemMismatch()).isEqualTo(new DifferenceSignals.SystemMismatch(false, false));
+        assertThat(differences.memberMismatches()).isEmpty();
+        assertThat(differences.hostDiffering()).isEmpty();
     }
 
     private DifferenceSignals systemSignals(String registeredAddress, ServerSystemValues carried) {
