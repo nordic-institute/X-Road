@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -190,6 +191,52 @@ class DidAuthorityTest {
     })
     void shouldTellWhetherAnHttpsUrlCanCarryAuthorityAsHost(String authority, boolean expected) {
         assertThat(DidAuthority.isUriHost(authority)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "https://ss0.example.org:7181/dsp,   ss0.example.org:7181",
+            "https://ss0.example.org,            ss0.example.org",
+            "HTTPS://SS0.Example.org/dsp,        SS0.Example.org",
+            "hTtPs://ss0.example.org/dsp,        ss0.example.org",
+            "https://ss0.example.org?x=1,        ss0.example.org",
+            "https://ss0.example.org#top,        ss0.example.org",
+            "https://ss0.example.org/a?b#c,      ss0.example.org",
+            "https://user@ss0.example.org/dsp,   user@ss0.example.org",
+            "https://[2001:db8::1]:7181/dsp,     [2001:db8::1]:7181",
+            "https:///dsp,                       ''",
+            "https://,                           ''"
+    })
+    void shouldTakeTheAuthorityOfAnHttpsUrl(String url, String expected) {
+        assertThat(DidAuthority.httpsAuthority(url)).contains(expected);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"http://ss0.example.org/dsp", "ss0.example.org/dsp", "https:/ss0.example.org",
+            "https:ss0.example.org", "ftp://ss0.example.org", " https://ss0.example.org", ""})
+    void shouldTakeNoAuthorityFromAUrlThatIsNotHttps(String url) {
+        assertThat(DidAuthority.httpsAuthority(url)).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ss0.example.org", "ss0.example.org:7183", "SS0.Example.ORG:443", "[2001:db8::1]:7183",
+            "2001:db8::1"})
+    void shouldTellAParseableAuthority(String authority) {
+        assertThat(DidAuthority.isParseable(authority)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", ":7183", "user@ss0.example.org", "ss0.example.org:0", "ss0.example.org:70000",
+            "ss0.example.org:http", "[2001:db8::1", "[ss0.example.org]", "ss0.example.org ", "my_host",
+            "bücher.example"})
+    void shouldTellAnAuthorityThatCannotBeParsed(String authority) {
+        assertThat(DidAuthority.isParseable(authority)).isFalse();
+    }
+
+    @Test
+    void shouldTellANullAuthorityIsNotParseable() {
+        assertThat(DidAuthority.isParseable(null)).isFalse();
     }
 
     @Test

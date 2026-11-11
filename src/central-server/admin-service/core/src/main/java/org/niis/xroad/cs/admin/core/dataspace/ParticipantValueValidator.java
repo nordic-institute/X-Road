@@ -37,6 +37,7 @@ import org.niis.xroad.ds.identity.DecodedParticipant;
 import org.niis.xroad.ds.identity.DidAuthority;
 import org.niis.xroad.ds.identity.MemberParticipant;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.ds.identity.RegisteredHostMatcher;
 import org.niis.xroad.ds.identity.SystemParticipant;
 
 import java.net.URI;
@@ -45,7 +46,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_OF_OTHER_MEMBER;
 import static org.niis.xroad.cs.admin.api.domain.ParticipantValueRejection.DID_TOO_LONG;
@@ -85,7 +85,7 @@ public final class ParticipantValueValidator {
     private static final int MIN_DID_SEGMENT_COUNT = 3;
 
     private final RegisteredServer server;
-    private final String registeredHost;
+    private final RegisteredHostMatcher hostMatcher;
     private final ParticipantValueRejection registeredAddressRejection;
 
     /**
@@ -107,18 +107,15 @@ public final class ParticipantValueValidator {
 
     public ParticipantValueValidator(RegisteredServer server) {
         this.server = server;
-        var address = server.registeredAddress();
-        if (address == null) {
-            registeredHost = null;
-            registeredAddressRejection = UNPARSEABLE_REGISTERED_ADDRESS;
-        } else if (!DidAuthority.isAscii(address)) {
-            registeredHost = null;
-            registeredAddressRejection = NON_ASCII_HOST;
-        } else {
-            var host = canonicalHostOf(address);
-            registeredHost = host.orElse(null);
-            registeredAddressRejection = host.isPresent() ? null : UNPARSEABLE_REGISTERED_ADDRESS;
+        this.hostMatcher = RegisteredHostMatcher.of(server.registeredAddress());
+        this.registeredAddressRejection = registeredAddressRejection(server.registeredAddress(), hostMatcher);
+    }
+
+    private static ParticipantValueRejection registeredAddressRejection(String address, RegisteredHostMatcher matcher) {
+        if (matcher.isRegisteredAddressUsable()) {
+            return null;
         }
+        return address != null && !DidAuthority.isAscii(address) ? NON_ASCII_HOST : UNPARSEABLE_REGISTERED_ADDRESS;
     }
 
     /**
@@ -137,7 +134,7 @@ public final class ParticipantValueValidator {
      * @return whether its host is not the registered address, or the registered address cannot be used
      */
     public boolean isMemberDidStale(String storedDid) {
-        return !didHostMatches(storedDid);
+        return hostMatcher.isMemberDidStale(storedDid);
     }
 
     /**
@@ -146,7 +143,7 @@ public final class ParticipantValueValidator {
      * @return whether the host of either is not the registered address, or the registered address cannot be used
      */
     public boolean isSystemPairStale(String storedDid, String storedDspBaseUrl) {
-        return !didHostMatches(storedDid) || !dspBaseUrlHostMatches(storedDspBaseUrl);
+        return hostMatcher.isSystemPairStale(storedDid, storedDspBaseUrl);
     }
 
     /**
@@ -225,58 +222,33 @@ public final class ParticipantValueValidator {
         if (!DidAuthority.isCanonical(authority)) {
             return Optional.of(NOT_CANONICAL);
         }
-        return hostMatches(authority) ? Optional.empty() : Optional.of(HOST_DIFFERS);
+        return hostMatcher.authorityHostMatches(authority) ? Optional.empty() : Optional.of(HOST_DIFFERS);
     }
 
     private Optional<ParticipantValueRejection> checkDspBaseUrl(String url) {
-        if (url == null || !startsWithHttps(url)) {
+        var httpsAuthority = DidAuthority.httpsAuthority(url);
+        if (httpsAuthority.isEmpty()) {
             return Optional.of(DSP_BASE_URL_NOT_HTTPS);
         }
-        var authority = authorityOf(url);
+        var authority = httpsAuthority.get();
         if (!DidAuthority.isAscii(authority)) {
             return Optional.of(DSP_BASE_URL_NON_ASCII_HOST);
         }
         if (authority.indexOf('@') >= 0 || url.indexOf('?') >= 0 || url.indexOf('#') >= 0
-                || canonicalHostOf(authority).isEmpty() || !DidAuthority.isUriHost(authority)
+                || !DidAuthority.isParseable(authority) || !DidAuthority.isUriHost(authority)
                 || !isWellFormedUri(url)) {
             return Optional.of(DSP_BASE_URL_MALFORMED);
         }
         if (!url.startsWith(DSP_BASE_URL_PREFIX) || !hasCanonicalHost(authority)) {
             return Optional.of(DSP_BASE_URL_NOT_CANONICAL);
         }
-        return hostMatches(authority) ? Optional.empty() : Optional.of(DSP_BASE_URL_HOST_DIFFERS);
+        return hostMatcher.authorityHostMatches(authority) ? Optional.empty() : Optional.of(DSP_BASE_URL_HOST_DIFFERS);
     }
 
     private static boolean hasCanonicalHost(String authority) {
         var parsed = DidAuthority.parse(authority);
         var port = parsed.port().isPresent() ? ":" + parsed.port().getAsInt() : "";
         return authority.equals(DidAuthority.canonicalHost(parsed.host()) + port);
-    }
-
-    private boolean didHostMatches(String did) {
-        return registeredHost != null && did != null && decode(did).map(DecodedParticipant::ssHost)
-                .filter(this::hostMatches).isPresent();
-    }
-
-    private boolean dspBaseUrlHostMatches(String url) {
-        return registeredHost != null && url != null && startsWithHttps(url) && hostMatches(authorityOf(url));
-    }
-
-    private boolean hostMatches(String authority) {
-        return canonicalHostOf(authority).filter(host -> host.equals(registeredHost)).isPresent();
-    }
-
-    private static boolean startsWithHttps(String url) {
-        return url.regionMatches(true, 0, DSP_BASE_URL_PREFIX, 0, DSP_BASE_URL_PREFIX.length());
-    }
-
-    private static String authorityOf(String url) {
-        var afterScheme = url.substring(DSP_BASE_URL_PREFIX.length());
-        int end = IntStream.range(0, afterScheme.length())
-                .filter(i -> "/?#".indexOf(afterScheme.charAt(i)) >= 0)
-                .findFirst()
-                .orElse(afterScheme.length());
-        return afterScheme.substring(0, end);
     }
 
     private static boolean isWellFormedUri(String url) {
@@ -296,14 +268,6 @@ public final class ParticipantValueValidator {
     private static Optional<DecodedParticipant> decode(String did) {
         try {
             return Optional.of(ParticipantIdentifierScheme.decodeDid(did));
-        } catch (XrdRuntimeException _) {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<String> canonicalHostOf(String authority) {
-        try {
-            return Optional.of(DidAuthority.canonicalHost(DidAuthority.parse(authority).host()));
         } catch (XrdRuntimeException _) {
             return Optional.empty();
         }

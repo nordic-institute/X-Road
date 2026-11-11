@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 /**
  * Decides whether the host of a DID or of a DSP base URL is the registered address of a Security Server, and
@@ -44,8 +43,6 @@ import java.util.stream.IntStream;
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RegisteredHostMatcher {
-
-    private static final String DSP_BASE_URL_PREFIX = "https://";
 
     @Nullable
     private final String registeredHost;
@@ -74,7 +71,7 @@ public final class RegisteredHostMatcher {
      * @return whether the host it names is the registered address
      */
     public boolean didHostMatches(@Nullable String did) {
-        return registeredHost != null && did != null && decodedHost(did).filter(this::hostMatches).isPresent();
+        return registeredHost != null && did != null && decodedHost(did).filter(this::authorityHostMatches).isPresent();
     }
 
     /**
@@ -82,7 +79,16 @@ public final class RegisteredHostMatcher {
      * @return whether the host it names is the registered address
      */
     public boolean dspBaseUrlHostMatches(@Nullable String url) {
-        return registeredHost != null && url != null && startsWithHttps(url) && hostMatches(authorityOf(url));
+        return registeredHost != null && DidAuthority.httpsAuthority(url).filter(this::authorityHostMatches).isPresent();
+    }
+
+    /**
+     * @param authority a host with an optional port, as in a DID or a DSP base URL
+     * @return whether the host it names is the registered address
+     */
+    public boolean authorityHostMatches(@Nullable String authority) {
+        return registeredHost != null
+                && canonicalHostOf(authority).filter(host -> host.equals(registeredHost)).isPresent();
     }
 
     /**
@@ -102,10 +108,6 @@ public final class RegisteredHostMatcher {
         return !didHostMatches(systemDid) || !dspBaseUrlHostMatches(dspBaseUrl);
     }
 
-    private boolean hostMatches(String authority) {
-        return canonicalHostOf(authority).filter(host -> host.equals(registeredHost)).isPresent();
-    }
-
     private static Optional<String> decodedHost(String did) {
         try {
             return Optional.of(ParticipantIdentifierScheme.decodeDid(did).ssHost());
@@ -120,18 +122,5 @@ public final class RegisteredHostMatcher {
         } catch (XrdRuntimeException _) {
             return Optional.empty();
         }
-    }
-
-    private static boolean startsWithHttps(String url) {
-        return url.regionMatches(true, 0, DSP_BASE_URL_PREFIX, 0, DSP_BASE_URL_PREFIX.length());
-    }
-
-    private static String authorityOf(String url) {
-        var afterScheme = url.substring(DSP_BASE_URL_PREFIX.length());
-        int end = IntStream.range(0, afterScheme.length())
-                .filter(i -> "/?#".indexOf(afterScheme.charAt(i)) >= 0)
-                .findFirst()
-                .orElse(afterScheme.length());
-        return afterScheme.substring(0, end);
     }
 }

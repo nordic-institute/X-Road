@@ -77,6 +77,27 @@ class RegisteredHostMatcherTest {
         assertThat(RegisteredHostMatcher.of("[::1]").didHostMatches(memberDid("[::1]"))).isTrue();
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"ss0.example.org:443", "SS0.Example.ORG"})
+    void shouldUseARegisteredAddressInAnyNormalisation(String registered) {
+        var normalised = RegisteredHostMatcher.of(registered);
+
+        assertThat(normalised.didHostMatches(memberDid("ss0.example.org:7183"))).isTrue();
+        assertThat(normalised.dspBaseUrlHostMatches(DSP_BASE_URL)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"2001:db8::1", "[2001:db8::1]", "2001:DB8::1", "[2001:db8::1]:443"})
+    void shouldUseAnIpv6RegisteredAddressInAnyNormalisation(String registered) {
+        var ipv6 = RegisteredHostMatcher.of(registered);
+
+        assertThat(ipv6.isRegisteredAddressUsable()).isTrue();
+        assertThat(ipv6.didHostMatches(memberDid("[2001:db8::1]:7183"))).isTrue();
+        assertThat(ipv6.dspBaseUrlHostMatches("https://[2001:db8::1]:443/api/dsp")).isTrue();
+        assertThat(ipv6.dspBaseUrlHostMatches("https://[2001:DB8::1]/api/dsp")).isTrue();
+        assertThat(ipv6.dspBaseUrlHostMatches(DSP_BASE_URL)).isFalse();
+    }
+
     @Test
     void shouldNotMatchAnotherHost() {
         assertThat(matcher.didHostMatches(memberDid("ss1.example.org:7183"))).isFalse();
@@ -109,6 +130,55 @@ class RegisteredHostMatcherTest {
         assertThat(matcher.dspBaseUrlHostMatches(url)).isFalse();
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"https://user@ss0.example.org/dsp", "https://ss0.example.org:0/dsp",
+            "https://ss0.example.org:70000/dsp", "https://ss0.example.org:http/dsp", "https://ss0.example.orgé/dsp",
+            "https://ss0.example.org:/dsp"})
+    void shouldNotMatchADspBaseUrlWithAMalformedAuthority(String url) {
+        var systemDid = ParticipantIdentifierScheme.systemDid("ss0.example.org:7183").toString();
+
+        assertThat(matcher.dspBaseUrlHostMatches(url)).isFalse();
+        assertThat(matcher.isSystemPairStale(systemDid, url)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"https://ss0.example.org?x=1", "https://ss0.example.org#top",
+            "https://ss0.example.org:7181?x=1", "https://ss0.example.org/dsp?x=1#top"})
+    void shouldEndTheDspBaseUrlAuthorityAtAQueryOrFragment(String url) {
+        assertThat(matcher.dspBaseUrlHostMatches(url)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"did:web:ss0.example.org%2:v1:DEV:COM:222", "did:web:ss0.example.org:v1:system:extra",
+            "did:web:ss0.example.org%3a7183:v1:DEV:COM:222", "did:web:ss0.example.org%41:v1:DEV:COM:222",
+            "did:web:ss0.example.org:v1:DEV:COM:%41BC", "did:web:ss0.example.orgé:v1:system",
+            "did:web:ss0.example.org:v1:DEV:COM"})
+    void shouldCallAnUndecodableDidStale(String did) {
+        assertThat(matcher.didHostMatches(did)).isFalse();
+        assertThat(matcher.isMemberDidStale(did)).isTrue();
+    }
+
+    @Test
+    void shouldNotMatchAnotherIpv6Host() {
+        var ipv6 = RegisteredHostMatcher.of("2001:db8::1");
+
+        assertThat(ipv6.didHostMatches(memberDid("[2001:db8::2]:7183"))).isFalse();
+        assertThat(ipv6.dspBaseUrlHostMatches("https://[2001:db8::2]:7181/dsp")).isFalse();
+        assertThat(ipv6.isMemberDidStale(memberDid("[2001:db8::2]:7183"))).isTrue();
+        assertThat(ipv6.didHostMatches(memberDid("[2001:db8::1]:7183"))).isTrue();
+    }
+
+    @Test
+    void shouldMatchAnAuthorityByItsHost() {
+        assertThat(matcher.authorityHostMatches("ss0.example.org")).isTrue();
+        assertThat(matcher.authorityHostMatches("SS0.Example.org:8443")).isTrue();
+        assertThat(matcher.authorityHostMatches("ss1.example.org")).isFalse();
+        assertThat(matcher.authorityHostMatches("user@ss0.example.org")).isFalse();
+        assertThat(matcher.authorityHostMatches("")).isFalse();
+        assertThat(matcher.authorityHostMatches(null)).isFalse();
+        assertThat(RegisteredHostMatcher.of(null).authorityHostMatches("ss0.example.org")).isFalse();
+    }
+
     @Test
     void shouldCallAMemberDidStaleOnlyWhenItsHostDiffers() {
         assertThat(matcher.isMemberDidStale(memberDid("ss0.example.org:7183"))).isFalse();
@@ -129,7 +199,9 @@ class RegisteredHostMatcherTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"bücher.example", "bad host", "ss0.example.org:notaport", " "})
+    @ValueSource(strings = {"bücher.example", "例え.jp", "ss0.example.orgé", "bad host", "ss0.example.org:notaport", " ",
+            ":7183", "[2001:db8::1", "ss0.example.org:http", "ss0.example.org:70000", "ss0.example.org ",
+            "host:80:90", "a/b", "a%b", "[host:80]", "my_host", "[10.0.0.1]", "-a.org", "ss0.123"})
     @NullAndEmptySource
     void shouldCallEveryValueStaleWhenTheRegisteredAddressCannotBeUsed(String registeredAddress) {
         var unusable = RegisteredHostMatcher.of(registeredAddress);

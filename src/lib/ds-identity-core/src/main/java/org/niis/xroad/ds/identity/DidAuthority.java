@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.ds.identity;
 
+import jakarta.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -33,7 +34,9 @@ import java.net.Inet6Address;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.stream.IntStream;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -48,6 +51,8 @@ public class DidAuthority {
     /** The port a {@code did:web} authority omits. */
     public static final int DEFAULT_HTTPS_PORT = 443;
 
+    private static final String HTTPS_SCHEME_PREFIX = "https://";
+    private static final String AUTHORITY_TERMINATORS = "/?#";
     private static final int NON_ASCII_START = 0x80;
     private static final int MIN_PORT = 1;
     private static final int MAX_PORT = 65535;
@@ -178,6 +183,38 @@ public class DidAuthority {
         try {
             var parsed = parse(authority);
             return authority.equals(canonical(parsed.host(), parsed.port().orElse(DEFAULT_HTTPS_PORT)));
+        } catch (XrdRuntimeException _) {
+            return false;
+        }
+    }
+
+    /**
+     * The authority of an {@code https} URL: the text after the scheme up to the first {@code /}, {@code ?} or
+     * {@code #}. The scheme is matched in any case; nothing else is checked.
+     *
+     * @param url a URL
+     * @return the authority, or empty when the URL is {@code null} or does not start with {@code https://}
+     */
+    public static Optional<String> httpsAuthority(@Nullable String url) {
+        if (url == null || !url.regionMatches(true, 0, HTTPS_SCHEME_PREFIX, 0, HTTPS_SCHEME_PREFIX.length())) {
+            return Optional.empty();
+        }
+        var afterScheme = url.substring(HTTPS_SCHEME_PREFIX.length());
+        int end = IntStream.range(0, afterScheme.length())
+                .filter(i -> AUTHORITY_TERMINATORS.indexOf(afterScheme.charAt(i)) >= 0)
+                .findFirst()
+                .orElse(afterScheme.length());
+        return Optional.of(afterScheme.substring(0, end));
+    }
+
+    /**
+     * @param authority an authority to check
+     * @return whether {@link #parse(String)} accepts it
+     */
+    public static boolean isParseable(String authority) {
+        try {
+            parse(authority);
+            return true;
         } catch (XrdRuntimeException _) {
             return false;
         }
