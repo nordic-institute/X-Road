@@ -32,7 +32,7 @@
     focus-on-accept
     :loading="loading"
     :data="{ group: groupCode }"
-    @save="proceedWithDelete"
+    @accept="proceedWithDelete"
     @cancel="cancelDelete"
   />
 </template>
@@ -75,6 +75,9 @@ export default defineComponent({
       this.$emit('cancel');
     },
     proceedWithDelete(): void {
+      if (this.loading) {
+        return;
+      }
       this.loading = true;
       this.globalGroupStore
         .deleteByCode(this.groupCode)
