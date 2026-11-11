@@ -33,6 +33,7 @@ import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -203,6 +204,52 @@ class GlobalConfMemberIdClaimVerifierTest {
         Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
 
         assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_AUDIENCE_INVALID.name()));
+    }
+
+    @Test
+    void returnsClaimExpiredWhenTokenValidationReportsMissingIat() throws Exception {
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        when(certChainValidator.validate(any())).thenReturn(Result.success());
+        when(tokenValidationService.validate(anyString(), any(), any(List.class)))
+                .thenReturn(Result.failure("Required issued at (iat) claim is missing in token"));
+
+        Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
+
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_EXPIRED.name()));
+    }
+
+    @Test
+    void returnsClaimExpiredWhenTokenValidationReportsClaimTooOld() throws Exception {
+        MembershipTestSupport.TestKeyAndCert keyAndCert = MembershipTestSupport.TestKeyAndCert.generate();
+        String jws = MembershipTestSupport.signMemberClaim(keyAndCert, HOLDER_DID, ISSUER_DID, true);
+        when(certChainValidator.validate(any())).thenReturn(Result.success());
+        when(tokenValidationService.validate(anyString(), any(), any(List.class)))
+                .thenReturn(Result.failure("Issued at (iat) claim is older than the allowed claim lifetime"));
+
+        Result<ClientId> result = verifier.verify(jws, HOLDER_DID, ISSUER_DID);
+
+        assertTrue(result.getFailureDetail().startsWith(MembershipVerificationFailureReason.CLAIM_EXPIRED.name()));
+    }
+
+    @Test
+    void rulesIncludeAgeRuleFedFromConfiguredLifetimeAndLeeway() {
+        List<TokenValidationRule> rules = verifier.rules(HOLDER_DID, ISSUER_DID);
+        TokenValidationRule ageRule = rules.stream()
+                .filter(MemberClaimAgeRule.class::isInstance)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("MemberClaimAgeRule not found in rules()"));
+
+        var withinConfiguredLifetime = ClaimToken.Builder.newInstance()
+                .claim("iat", clock.instant().minusSeconds(properties.lifetimeSeconds()).getEpochSecond())
+                .build();
+        var pastConfiguredLifetime = ClaimToken.Builder.newInstance()
+                .claim("iat", clock.instant().minusSeconds(properties.lifetimeSeconds() + properties.leewaySeconds() + 1)
+                        .getEpochSecond())
+                .build();
+
+        assertTrue(ageRule.checkRule(withinConfiguredLifetime, null).succeeded());
+        assertTrue(ageRule.checkRule(pastConfiguredLifetime, null).failed());
     }
 
     @Test
