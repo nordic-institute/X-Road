@@ -48,8 +48,8 @@ class FrameworkPublishedConfigTest {
             "xroad.proxy.health-check-port",
             "xroad.proxy-ui-api.request-size-limit-binary-upload",
             "xroad.admin-service.request-size-limit-binary-upload",
-            // every key of the DSP registry is published: the control-plane extensions and the identity hub
-            // configuration read it from the framework configuration
+            // every key of the DSP registry but the publication timeout is published: the control-plane
+            // extensions and the identity hub configuration read it from the framework configuration
             "xroad.dsp.did-port",
             "xroad.dsp.dsp-port",
             "xroad.dsp.catalog.cache.enabled",

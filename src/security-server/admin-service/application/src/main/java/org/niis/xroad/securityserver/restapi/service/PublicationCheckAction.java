@@ -42,7 +42,9 @@ public enum PublicationCheckAction {
     NONE(null, null),
     PUBLISH(PublicationState.SUBMITTED, PublicationState.PUBLISHED),
     /** Moves the row back to not sent, so that the next reconciler pass sends again. */
-    RESEND(PublicationState.PUBLISHED, PublicationState.NOT_SENT);
+    RESEND(PublicationState.PUBLISHED, PublicationState.NOT_SENT),
+    /** Moves a row that stayed submitted too long back to not sent, so that the next reconciler pass sends again. */
+    RESEND_AFTER_TIMEOUT(PublicationState.SUBMITTED, PublicationState.NOT_SENT);
 
     @Nullable
     private final PublicationState expected;

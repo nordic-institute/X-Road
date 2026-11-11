@@ -65,6 +65,22 @@ public record SystemValuesComparison(GlobalConfComparison systemDid, GlobalConfC
     }
 
     /**
+     * @return {@link GlobalConfComparison#ABSENT} when globalconf carries no values, {@link GlobalConfComparison#EQUAL}
+     * when it carries both as held, otherwise {@link GlobalConfComparison#STALE} if either value is stale, else
+     * {@link GlobalConfComparison#DIFFERENT}
+     */
+    public GlobalConfComparison overall() {
+        if (systemDid == GlobalConfComparison.ABSENT) {
+            return GlobalConfComparison.ABSENT;
+        }
+        if (isEqual()) {
+            return GlobalConfComparison.EQUAL;
+        }
+        return systemDid == GlobalConfComparison.STALE || dspBaseUrl == GlobalConfComparison.STALE
+                ? GlobalConfComparison.STALE : GlobalConfComparison.DIFFERENT;
+    }
+
+    /**
      * @return whether globalconf carries both values as held
      */
     public boolean isEqual() {

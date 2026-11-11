@@ -101,4 +101,19 @@ class SystemValuesComparisonTest {
         assertThat(comparison).isEqualTo(new SystemValuesComparison(EQUAL, STALE));
         assertThat(comparison.isEqual()).isFalse();
     }
+
+    @Test
+    void theOverallComparisonIsAbsentOnlyWhenNothingIsCarriedAndEqualOnlyWhenBothValuesAreEqual() {
+        assertThat(new SystemValuesComparison(ABSENT, ABSENT).overall()).isEqualTo(ABSENT);
+        assertThat(new SystemValuesComparison(EQUAL, EQUAL).overall()).isEqualTo(EQUAL);
+        assertThat(new SystemValuesComparison(EQUAL, DIFFERENT).overall()).isEqualTo(DIFFERENT);
+        assertThat(new SystemValuesComparison(DIFFERENT, EQUAL).overall()).isEqualTo(DIFFERENT);
+    }
+
+    @Test
+    void theOverallComparisonIsStaleWhenEitherValueIsStale() {
+        assertThat(new SystemValuesComparison(EQUAL, STALE).overall()).isEqualTo(STALE);
+        assertThat(new SystemValuesComparison(STALE, DIFFERENT).overall()).isEqualTo(STALE);
+        assertThat(new SystemValuesComparison(DIFFERENT, STALE).overall()).isEqualTo(STALE);
+    }
 }
